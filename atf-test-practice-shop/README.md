@@ -54,7 +54,8 @@ flowchart LR
 | Configurație | `src/test/resources/atf-practice-shop.yaml`, `ShopConfigurationLoader` | valori și fixture-uri Practice Shop, nu configurare globală ATF |
 | UI | `routes`, `locators`, `pages`, `flow` în `src/main/java/atf/ui/practiceshop` | semantică a aplicației; browserul generic rămâne în `atf-ui` |
 | API | `api` și `support/api` în același source root | contractele wire și maparea către dovezile Shop; transportul generic rămâne în `atf-core` |
-| Evidence consumer | `src/test/.../support/{lifecycle,evidence,reporting}` | harness-ul și adaptoarele exclusiv E2E sunt test-scoped; rendererul și schema Extent rămân în `atf-reporting` |
+| Evidence runtime | `src/main/.../{evidence,reporting}` | factory-uri de captură și politică Shop, fără JUnit/Kit; rendererul rămâne în Reporting |
+| Harness consumer | `src/test/.../support/{lifecycle,reporting}` | ownership browser/report, metadata de rulare și integrare JUnit |
 | Teste | `src/test/java/atf/ui/tests/practiceshop` | compun și verifică Shop; testele reutilizabile ATF aparțin modulului care deține contractul generic |
 
 Comportamentele Shop folosesc `atf-core`, `atf-console`, `atf-reporting` și
@@ -73,6 +74,8 @@ src/main/java/atf/ui/practiceshop
 ├── locators/     CSS selectors și selecția exactă a produsului
 ├── pages/        page objects, inclusiv account flows
 ├── flow/         journey-ul semantic și stage-urile lui
+├── evidence/     capture provider cu mascarea câmpurilor sensibile Shop
+├── reporting/    politica de screenshot din configurația Shop
 └── support/      checkpoint, validation, API report mapping și network journal Shop
 
 src/test/java/atf/ui/tests/practiceshop
@@ -88,15 +91,14 @@ src/test/java/atf/ui/tests/practiceshop
 │   └── support/      fixture-uri și transporturi locale test-only
 └── support/
     ├── lifecycle/  context browser/report per scenariu și probele sale
-    ├── evidence/   capture provider-ul cu mascarea câmpurilor sensibile
-    ├── reporting/ metadata/adaptoare și politica de screenshot Shop
+    ├── reporting/ metadata de rulare și probele adaptorului
     └── ...         fixture-uri, extension și probe E2E
 ```
 
 `src/main` păstrează modelul de aplicație, locatoarele, paginile, flow-urile și
-contractele Shop care pot fi reutilizate de consumer. Contextul browser/report,
-capture provider-ul și adaptoarele de prezentare sunt strict infrastructură de
-test și nu intră în artefactul produs; `atf-test-kit` are același scope de test.
+contractele Shop care pot fi reutilizate de consumer, inclusiv factory-urile
+pure pentru captură și politica de screenshot. Contextul browser/report,
+Store-ul și extensiile JUnit rămân în test; `atf-test-kit` are scope de test.
 Suita consumatorului rămâne concentrată pe `e2e`, `component` și `api`; `support`
 este infrastructură de test, nu un al treilea tip de test.
 
@@ -121,10 +123,12 @@ captura, profilele, maparea API și regulile de business. Primitivele neutre nu
 se dublează aici: escaping-ul selectorilor este în `atf-ui`, iar diagnosticul
 generic pentru body API indisponibil este în `atf-core`.
 
-Pachetul `support.reporting` rămâne în `src/test`: `ShopReportSystemMetadata`
-proiectează numai configurația Shop în allowlist-ul System, iar
-`ShopScreenshotPolicy` transformă politica YAML Shop într-un
- `ReportEvidenceProfile`. Contextul folosește direct
+`ShopReportSystemMetadata` rămâne în `src/test/support.reporting` și proiectează
+configurația rulării în allowlist-ul System. În runtime,
+`atf.ui.practiceshop.reporting.ShopScreenshotPolicy` transformă politica YAML
+în `ReportEvidenceProfile`, iar `evidence.ShopBrowserCaptureProvider` aplică
+mascarea Shop înaintea capturii generice UI. Niciunul nu importă JUnit/Kit.
+Contextul folosește direct
 `ReportModelAdapters.uiActions(...)`; nu mai există un bridge local care doar
 retransmite apelul. Auditul comun al ecranului aparține `UiScreenAudit` din
 `atf-ui`, iar închiderea resursei aparține `CloseOnceResource` din Kit.
@@ -205,7 +209,9 @@ Forma vizuală generică este în
 
 ## Variantele E2E
 
-`ShopE2eSuite` rulează clasele în ordinea `@Order` de mai jos. Rularea suitei
+`ShopE2eSuite` declară prin `@ConfigurationParameter` scope-ul `suite`,
+ordonarea engine-ului Jupiter prin `ClassOrderer.OrderAnnotation` și dezactivarea
+paralelismului. Clasele rulează în ordinea `@Order` de mai jos. Rularea suitei
 creează efecte externe în demo-ul Practice Shop; folosește testele component
 pentru variații care nu au nevoie de browser sau de server.
 
@@ -222,7 +228,7 @@ Profilele sunt compuse pe axe distincte, nu prin schimbarea journey-ului:
 | Axă | Owner / valoare live | Efect |
 |---|---|---|
 | Canal | `@AtfTestChannel(UI)` sau `UI_API` pe clasă | `UI` nu publică API evidence; `UI_API` cere inspector allowlisted și checkpoint-uri selectate înainte de deschiderea browserului |
-| Formă | `@AtfUiEvidence(flow = UNIFIED_FLOW)` numai pe `ShopUiOnlySingleFlowPurchaseE2eTest`; `CONFIGURED` moștenește YAML-ul | schimbă gruparea evidence-ului, nu pașii business sau verdictul; valoarea explicită se aplică per scenariu și în raportul partajat |
+| Formă | `@AtfUiEvidence(flow = UNIFIED_FLOW)` pe `ShopUiOnlySingleFlowPurchaseE2eTest`; `CONFIGURED` păstrează baza `SCREEN_CHECKPOINTS` construită de `ShopScreenshotPolicy`, nu citește un flow YAML | schimbă gruparea evidence-ului, nu pașii business sau verdictul; valoarea explicită se aplică per scenariu și în raportul partajat |
 | Capturi | YAML `reporting.screenshotPolicy: each-checkpoint`; `@AtfUiEvidence(screenshots = ...)` poate suprascrie explicit valoarea pentru scenariul propriu | politica efectivă determină capturile admise, fără scurgere între scenarii-surori |
 | Detalii acțiuni | `@WithE2eHarness(actionDetails = CONFIGURED)` implicit | păstrează setarea profilului, fără a opri capturarea acțiunilor |
 
@@ -263,8 +269,25 @@ autentificare.
 | `REGISTER_PER_RUN + SYNTHETIC` | `ShopNewAccountPurchaseE2eTest` | `@AllowsRegistrationPerRun`; email `atf.invalid` și parolă generate |
 | `REGISTER_PER_RUN + LOCAL` | suportat de `@AuthenticatedE2e`, dar nefolosit de suita curentă | copiază exemplul în `practice-software-testing-registration.local.properties`; `{runId}` apare exact o dată și domeniul este controlat de owner |
 
-Registration este o mutație remote; nu se reîncearcă automat și contul nu este
-șters la teardown. Preflight-ul verifică profilul local fără să afișeze valorile.
+- Registration este o mutație remote; nu se reîncearcă automat.
+- Politica remote este păstrarea contului creat: teardown-ul nu execută DELETE.
+- Un fixture existent este împrumutat și nu se șterge.
+- Preflight-ul nu afișează valorile.
+
+| Ownership | Comportament |
+|---|---|
+| Clasă lansată separat | scope `class` implicit; Store-ul clasei deține referința. `REUSE_FIXTURE` cere fixture propriu; `REGISTER_PER_RUN` pregătește un cont o dată în clasă. |
+| `ShopE2eSuite` | scope `suite` explicit; Store-ul root deține contul creat și reutilizat de clasele autentificate. Nu se deduce modul din numele sau ID-ul suitei. |
+| Sesiune browser | login UI confirmat în `SETUP` pentru fiecare metodă; partajarea contului nu partajează browserul. |
+| Setup incert | starea eșuată blochează reînregistrarea și fallback-ul automat; consumerul dependent indică setup-ul nereușit. |
+| Închidere | referința este eliberată și când publicarea raportului eșuează; uitarea referinței nu înseamnă ștergerea contului remote. |
+
+În `SETUP` sunt distincte contul nou, fixture-ul existent și contul reutilizat;
+credențialele rămân redactate. Primitiva neutră este
+[`TestRunScope`](../atf-test-kit/README.md#valori-cu-ownership-per-clasă-sau-execuție).
+`ShopAccountScopeComponentTest` probează adaptorul cu Jupiter real, inclusiv
+publicare eșuată și două lansări succesive; aceste probe locale nu înlocuiesc
+înregistrarea și purchase-ul prin aplicația reală.
 
 ### Raport partajat — starea consumerului
 
@@ -595,7 +618,24 @@ copiate aici ca reguli paralele.
 
 | Owner | Conține |
 |---|---|
-| Shop `src/main/java` | pagini, flow-uri, payload-uri și validarea terminală `ShopPurchaseConfirmation`; fără JUnit/Test Kit |
+| Shop `src/main/java` | pagini, flow-uri, payload-uri, captură/politică Shop și validarea terminală `ShopPurchaseConfirmation`; fără JUnit/Test Kit |
 | Shop `src/test/java` | teste business, fixture-uri și adaptoare JUnit/report specifice Shop |
 | `atf-test-kit` | lifecycle neutru; nu primește browser, Reporting sau business |
 | `atf-ui` / `atf-reporting-tests` | auditul neutru de ecran / contractele generice de randare |
+
+### Ținta refactorizării suportului Shop
+
+Ținta este mai puțin cod auxiliar în test, nu mutarea întregului harness în
+main. Source-set-urile din tabelul de mai sus descriu implementarea curentă.
+
+- Scope-ul contului și cele două factory-uri runtime au ownerii descriși mai
+  sus; nu lărgim dependența Kit ca scurtătură pentru alte mutări.
+- Rămân de separat inputurile metadata și responsabilitățile contextului
+  browser/report, păstrând adaptorul JUnit și probele sale în test.
+- Un journey complet rămâne comun pentru UI pe pași, UI compact cu poză finală
+  și UI+API; cheia YAML pentru flow nu este încă un contract livrat al adaptorului.
+- Cele trei gate-uri rămân complete până la probele de echivalență; politica
+  capturilor nu justifică o a doua poveste business.
+
+Candidatele concrete, limitările guard-ului și acceptanța sunt în
+[feedback-ul refactorizării](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md).

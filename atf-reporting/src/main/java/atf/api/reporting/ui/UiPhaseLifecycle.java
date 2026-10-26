@@ -113,9 +113,11 @@ public final class UiPhaseLifecycle implements AutoCloseable {
                     screenshot == null ? "" : screenshot.base64Png(), immutableCopy(assertions),
                     status, "Setup validation", immutableCopy(actions), apiValidation,
                     ReportScreenshotPolicy.CapturePoint.CHECKPOINT, false));
+            scenario.retainUiFailures(assertions);
             return;
         }
         evidencePublisher.publishSetup(keyword, title, target, assertions, actions, apiValidation, screenshot, status);
+        scenario.retainUiFailures(assertions);
     }
 
     void setup(AtfGherkinKeyword keyword, String title, String target,
@@ -249,17 +251,22 @@ public final class UiPhaseLifecycle implements AutoCloseable {
                     assertions == null ? List.of() : List.copyOf(assertions), status,
                     "Screen validation", immutableCopy(actions), UiApiValidationEvidence.empty(),
                     ReportScreenshotPolicy.CapturePoint.CHECKPOINT, true));
+            scenario.retainUiFailures(assertions);
             return;
         }
         evidencePublisher.publishScreenValidationAsMedia(title, target, base64Png,
                 assertions, actions, ReportScreenshotPolicy.CapturePoint.CHECKPOINT, status);
+        scenario.retainUiFailures(assertions);
     }
 
     void failureEvidence(String title, String target,
                          Collection<AtfUiActionRecord> actions,
                          Throwable failure, String base64Png) {
         ensureOpen();
-        evidencePublisher.publishFailure(title, target, actions, failure, base64Png);
+        boolean noIndependentAction = actions == null || actions.stream()
+                .noneMatch(action -> action.status() == AtfReportStatus.FAIL);
+        evidencePublisher.publishFailure(title, target, actions, failure, base64Png,
+                noIndependentAction && scenario.reports(failure));
     }
 
     void complete(AtfReportStatus status) {
@@ -313,10 +320,12 @@ public final class UiPhaseLifecycle implements AutoCloseable {
             unifiedCheckpoints.add(new UiUnifiedFlowCheckpoint(keyword, title, target,
                     eligibleScreenshot, immutableCopy(assertions), status, validationTitle,
                     immutableCopy(actions), apiValidation, capturePoint, false));
+            scenario.retainUiFailures(assertions);
             return;
         }
         evidencePublisher.publishAction(keyword, title, target, base64Png, assertions,
                 status, validationTitle, actions, apiValidation, capturePoint);
+        scenario.retainUiFailures(assertions);
     }
 
     private void action(String keyword, String title, String target,

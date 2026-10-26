@@ -1,6 +1,7 @@
 package atf.ui.tests.practiceshop.support;
 
 import atf.api.core.config.ApiTransportMode;
+import atf.api.testkit.scope.TestRunScope;
 import atf.ui.practiceshop.config.model.ShopCredentials;
 import atf.ui.practiceshop.config.ShopConfiguration;
 import atf.ui.practiceshop.config.ShopConfigurationLoader;
@@ -19,25 +20,12 @@ import java.lang.annotation.Target;
 
 /** Shared composition and selection boundary for Practice Shop tests. */
 public final class ShopTestSupport {
-    static final String SUITE_MODE_PROPERTY = "atf.practice.shop.e2e.suite";
     private static final String AUTHENTICATED_REASON =
             "authenticated Practice Shop fixture is not configured";
     private static final String LIVE_REASON =
             "authenticated live Practice Shop API fixture is not configured";
 
     private ShopTestSupport() { }
-
-    static boolean suiteModeEnabled() {
-        return Boolean.parseBoolean(System.getProperty(SUITE_MODE_PROPERTY, "false"));
-    }
-
-    static boolean suiteModeEnabled(String executionRootId) {
-        return suiteModeEnabled() || executionRootId.contains("ShopE2eSuite");
-    }
-
-    static boolean suiteModeEnabled(ExtensionContext context) {
-        return suiteModeEnabled(context.getRoot().getUniqueId().toString());
-    }
 
     public enum BrowserMode {
         HEADED,
@@ -123,15 +111,17 @@ public final class ShopTestSupport {
     public static final class AuthenticatedE2eCondition implements ExecutionCondition {
         @Override
         public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
+            TestRunScope scope = TestRunScope.selected(context);
             try {
                 ShopConfiguration configuration = configurationFor(context.getRequiredTestClass());
                 AuthenticatedE2e profile = context.getRequiredTestClass()
                         .getAnnotation(AuthenticatedE2e.class);
-                if (suiteModeEnabled(context) && profile != null
-                        && profile.accountSetup() == AccountSetupMode.REUSE_FIXTURE
-                        && ShopAuthenticatedAccountTestSupport.hasSuiteAccount(
-                                context.getRoot().getUniqueId())) {
-                    return ConditionEvaluationResult.enabled(
+                if (scope == TestRunScope.SUITE && profile != null
+                        && profile.accountSetup() == AccountSetupMode.REUSE_FIXTURE) {
+                    var accounts = ShopE2eTestSupport.accounts(context);
+                    if (accounts.hasFailed()) return ConditionEvaluationResult.disabled(
+                            "suite account setup failed; inspect SETUP; automatic registration retry is forbidden");
+                    if (accounts.current().isPresent()) return ConditionEvaluationResult.enabled(
                             "authenticated account was registered earlier in this Practice Shop suite");
                 }
                 String skipReason = authenticatedSetupSkipReason(context.getRequiredTestClass(), configuration);

@@ -1,4 +1,5 @@
 package atf.api.reporting.api.contract.internal;
+import atf.api.reporting.api.evidence.ReportBodyAvailability;
 
 import atf.api.reporting.api.ReportHttpHeaders;
 import atf.api.reporting.api.ReportJsonBodyPolicy;
@@ -48,8 +49,11 @@ public final class ApiReportRequestBodyValidator {
                 && !ApiReportContractValueSupport.sameJson(expected.expectedRequestBody(), body)) {
             violations.add(expected.key() + " request JSON differs from configured request-body");
         }
-        if (!ApiReportContractValueSupport.hasPayload(input.responseBody())
-                || !ApiReportContractValueSupport.isJson(input.responseBody())) {
+        boolean absentResponse = input.responseAvailability() ==
+                ReportBodyAvailability.ABSENT
+                && input.responseBody().isEmpty() && expected.responseBody().isEmpty();
+        if (!absentResponse && (!ApiReportContractValueSupport.hasPayload(input.responseBody())
+                || !ApiReportContractValueSupport.isJson(input.responseBody()))) {
             violations.add(expected.key() + " must expose a non-empty JSON response body");
         }
         return ValidationResult.ofViolations(violations);

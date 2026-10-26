@@ -5,12 +5,15 @@ ownerului; rapoartele și rezultatele unei rulări nu devin documentație perman
 
 ## Pe scurt
 
-- Reporting: fidelitatea request-ului observat, ownerul API din Fails și lizibilitatea tabelelor foarte imbricate în panouri înguste.
+- Reporting: lizibilitatea tabelelor foarte imbricate în panouri înguste.
+  Corelarea aserțiunii UI cu excepția propagată este livrată la owner.
 
-- AutoEx: register/delete și login/delete cu setup API sunt probate la 70%;
-  rămâne vignette-ul natural chiar la Delete account, nu corecția nominală.
-  Activarea DOM Close nu repară geometria pointerului.
-- Consumeri: echivalența selecției E2E reduse și auditul interactiv API Shop.
+- AutoEx: contractul livrat pentru Delete account, Close JavaScript la 70% și
+  separarea navigării de traficul browser este în [README-ul modulului](../../atf-test-auto-ex/README.md#delete-account--navigare-întreruptă).
+  Activarea DOM Close nu repară geometria pointerului; limita generică rămâne deschisă.
+- Consumeri: scope explicit al contului, runtime reutilizabil în main la owner,
+  adaptoare JUnit minime și profile UI/UI+API independente; reducerea selecției
+  live rămâne condiționată de echivalență.
 - Contractele livrate se găsesc în [indexul documentației](../README.md),
   nu în checklist-uri de implementare deja închise.
 
@@ -25,12 +28,11 @@ lor. Gap-urile secundare rămân vizibile în documentul ownerului.
 
 | Ordine | Feedback / owner | Scor /100 | Lacuna care decide ordinea |
 |---:|---|---:|---|
-| 1 | [Reporting](ATF_Reporting_Feedback.md) | **78** = 31 + 21 + 20 + 6 | fidelitatea headerelor/body-ului observat; separat, ownerul API în Fails (76) și lizibilitatea nesting-ului îngust (64) |
+| 1 | [Consumer — refactorizare E2E](ATF_Consumer_Business_Test_Focus_Feedback.md) | **82** = 31 + 23 + 20 + 8 | separarea responsabilităților runtime rămase; apoi configurare evidence (80), intenții lizibile (67), launcher Reporting (58) și reducerea repetării live (57) |
 | 2 | [ATF UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ; activarea JavaScript explicită nu închide această limită |
-| 3 | [AutoEx](ATF_Automation_Exercise_Feedback.md) | **65** = 36 + 18 + 10 + 1 | confirmarea și refuzul replay-ului sunt întărite; lipsește proba reclamei naturale chiar la Delete account la 70%, nu succesul din alte tranziții |
-| 4 | [Consumer — profile E2E](ATF_Consumer_Business_Test_Focus_Feedback.md) | **57** = 24 + 10 + 17 + 6 | selecția live redusă cere smoke succes/failure și echivalență business, nu doar mapping-ul adnotării |
-| 5 | [Documentație — ancore](#doc-link-anchor-01--validarea-automată-a-ancorelor) | **44** = 14 + 11 + 15 + 4 | guard-ul validează fișierul local, dar elimină fragmentul înaintea verificării; ancora lipsă nu este detectată |
-| 6 | [Shop API — audit standalone](ATF_Practice_Shop_API_Test_Design_Feedback.md) | **33** = 10 + 5 + 15 + 3 | HTTP este probat; randarea interactivă a raportului consumerului trebuie încă atestată |
+| 3 | [Reporting](ATF_Reporting_Feedback.md) | **64** = 28 + 18 + 14 + 4 | lizibilitatea nesting-ului îngust |
+| 4 | [Documentație — ancore](#doc-link-anchor-01--validarea-automată-a-ancorelor) | **44** = 14 + 11 + 15 + 4 | guard-ul validează fișierul local, dar elimină fragmentul înaintea verificării; ancora lipsă nu este detectată |
+| 5 | [Shop API — audit standalone](ATF_Practice_Shop_API_Test_Design_Feedback.md) | **33** = 10 + 5 + 15 + 3 | HTTP este probat; randarea interactivă a raportului consumerului trebuie încă atestată |
 
 Ordinea nu înlocuiește criteriul de închidere. O componentă verde nu certifică
 un flow remote, iar succesul live nu certifică toate politicile sau randarea.

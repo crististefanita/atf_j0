@@ -42,8 +42,8 @@ public record UiNetworkObservation(
         path = normalize(path);
         requestHeaders = Map.copyOf(requestHeaders == null ? Map.of() : requestHeaders);
         responseHeaders = Map.copyOf(responseHeaders == null ? Map.of() : responseHeaders);
-        requestBody = normalize(requestBody);
-        responseBody = normalize(responseBody);
+        requestBody = normalizeBody(requestBody);
+        responseBody = normalizeBody(responseBody);
         authMethod = normalize(authMethod);
         authSource = normalize(authSource);
         service = normalize(service);
@@ -258,7 +258,7 @@ public record UiNetworkObservation(
     }
 
     private static String bounded(String value, int limit) {
-        if (value == null || value.isBlank()) return "";
+        if (value == null || value.isEmpty()) return "";
         if (value.length() <= limit) return value;
         if (limit <= 14) return value.substring(0, limit);
         return value.substring(0, Math.max(0, limit - 14)) + "… [truncated]";
@@ -279,7 +279,7 @@ public record UiNetworkObservation(
 
     private static String signature(String method, String url, String body) {
         return normalize(method).toUpperCase(Locale.ROOT) + " " + safeTarget(url)
-                + " #body=" + sha256(body == null ? "<absent>" : body.trim());
+                + " #body=" + sha256(body == null ? "<absent>" : body);
     }
 
     private static String safeTarget(String url) {
@@ -335,4 +335,5 @@ public record UiNetworkObservation(
     }
 
     private static String normalize(String value) { return value == null ? "" : value.trim(); }
+    private static String normalizeBody(String value) { return value == null ? "" : value; }
 }

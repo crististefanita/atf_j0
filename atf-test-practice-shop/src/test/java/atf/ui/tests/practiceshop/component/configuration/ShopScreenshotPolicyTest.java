@@ -5,7 +5,7 @@ import atf.api.reporting.evidence.ReportScreenshotPolicy;
 import atf.api.reporting.evidence.profile.ReportEvidenceCaptureSource;
 import atf.api.reporting.evidence.profile.ReportEvidenceFlowMode;
 import atf.ui.practiceshop.config.ShopConfigurationLoader;
-import atf.ui.tests.practiceshop.support.reporting.ShopScreenshotPolicy;
+import atf.ui.practiceshop.reporting.ShopScreenshotPolicy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 

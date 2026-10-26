@@ -61,9 +61,11 @@ class ApiWhitespaceBodyComponentTest {
     @Test
     void absentLiteralNullAndUncapturedStillHaveDistinctEvidence() {
         var absent = new LinkedHashMap<String, String>();
+        var absentDetails = new LinkedHashMap<String, String>();
         ApiExchangeEvidence.publishFields(ApiBodyArtifactFixture.exchange("", MIME, ReportBodyAvailability.ABSENT),
-                (name, value) -> { }, absent::put);
-        assertEquals("null", absent.get("REQUEST JSON"));
+                absentDetails::put, absent::put);
+        assertTrue(absent.isEmpty(), "confirmed absence must not become a JSON null document");
+        assertEquals("Absent — confirmed no HTTP body", absentDetails.get("request.body.capture"));
         var literal = new LinkedHashMap<String, String>();
         var literalDetails = new LinkedHashMap<String, String>();
         ApiExchangeEvidence.publishFields(ApiBodyArtifactFixture.exchange("null", "application/json", ReportBodyAvailability.AVAILABLE),

@@ -81,15 +81,16 @@ Shop și AutoEx repetă unele responsabilități de test, dar diferența nu just
 un modul UI nou. Prima țintă este mult mai mică: mutarea în `atf-test-kit` doar a
 primitivelor neutre care se repetă și pot fi testate fără browser sau site.
 
-- `atf-test-kit` poate găzdui ownership generic de resurse, close-once și
-  combinarea erorii primare cu eșecurile de cleanup; acestea sunt propuneri,
-  nu API-uri existente până la implementare și probe.
+- `atf-test-kit` deține deja `TestRunInitialization`, `CloseOnceResource`,
+  `FailureAwareCleanup`, `FailureEvidenceCleanup` și `ArmedCleanup`;
+  reutilizează aceste contracte, nu recrea inițializarea sau cleanup-ul local.
 - Kit-ul nu primește Playwright, `Page`, sesiuni Extent, profile de captură,
   network inspector, YAML consumer sau vocabulary de journey. `atf-ui` îl
   consumă deja în test scope; dependența inversă ar crea un ciclu.
 - Extensiile JUnit care deschid browserul, raportează evidence și închid sesiunea
-  rămân adaptoare în `src/test` pentru fiecare consumer. Se extrage un helper JUnit
-  numai dacă elimină comportament identic, nu doar cod cu forme asemănătoare.
+  sunt astăzi adaptoare în `src/test` pentru fiecare consumer. Ținta refactorizării
+  este un adaptor minim peste capabilități la owner, nu mutarea extensiei întregi
+  în main; un helper JUnit comun intră în Kit numai cu un contract neutru demonstrat.
 - Codul folosit exclusiv de teste nu stă în `src/main` doar pentru că un gate
   clasifică orice pachet `support` drept reutilizabil; ownership-ul se determină
   din apelanți, dependențe și source-set.
@@ -110,6 +111,25 @@ primitivelor neutre care se repetă și pot fi testate fără browser sau site.
 Boundary-ul neutru al infrastructurii comune este documentat în
 [README-ul Test Kit](../atf-test-kit/README.md); source-set-ul și compoziția
 concretă rămân în README-ul ownerului fiecărui consumer.
+
+### Testul exprimă intenția, main deține capabilitatea
+
+- Mută în `src/main` logica reutilizabilă numai la ownerul real: runtime de
+  aplicație la consumer, browser la UI, model/publicare la Reporting și
+  infrastructură de test neutră în Kit-ul existent.
+- Nu muta în main oracolul, fixture-ul artificial sau un runner ascuns ca să
+  golești un director. Numele `support` nu decide source-set-ul.
+- Păstrează testul declarativ: precondiție, acțiune business și rezultat observat;
+  o metodă scurtă nu justifică un `execute()` fără contract ori assertions ascunse.
+- Separă povestea business de canal, grupare și capturi; un profil de evidence
+  diferit reutilizează journey-ul, nu îl copiază și nu îi elimină pași.
+- Redu un harness câte o responsabilitate, cu probe nominale și failure-path;
+  o fațadă stabilă păstrează testele lizibile în timpul extracției.
+- Adaptoarele dependente de JUnit rămân minime la granița de execuție;
+  extinderea unui API comun nu introduce dependențe UI/Reporting în Kit.
+
+Cerințele încă neimplementate și ordinea sunt în
+[feedback-ul refactorizării](feedback/ATF_Consumer_Business_Test_Focus_Feedback.md).
 
 ## Contracte protejate și schimbări controlate
 

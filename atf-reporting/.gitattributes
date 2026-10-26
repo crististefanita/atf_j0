@@ -1,0 +1,3 @@
+# Native browser assets stay readable and byte budgets stay portable across checkouts.
+src/main/resources/**/*.js text eol=lf
+src/main/resources/**/*.css text eol=lf

@@ -1,44 +1,43 @@
 package atf.ui.tests.autoex.api;
 
 import atf.api.console.junit.AtfConsoleTestExtension;
-import atf.api.core.reporting.console.AtfConsoleEvent;
-import atf.api.reporting.console.AtfConsoleSink;
 import atf.api.core.http.response.ApiExecutionResult;
-import atf.api.reporting.contract.AtfReportPorts;
-import atf.api.reporting.contract.AtfReportStatus;
-import atf.api.reporting.model.diagnostic.ReportPhaseDiagnostic;
-import atf.api.reporting.api.evidence.ApiExchangeEvidence;
+import atf.api.core.reporting.console.AtfConsoleEvent;
 import atf.api.reporting.api.ReportModelAdapters;
-import atf.api.reporting.contract.AtfAssertion;
-import atf.api.reporting.configuration.ReportingSettings;
+import atf.api.reporting.api.evidence.ApiExchangeEvidence;
 import atf.api.reporting.configuration.ReportEnvironmentField;
 import atf.api.reporting.configuration.ReportEnvironmentSnapshot;
+import atf.api.reporting.configuration.ReportingSettings;
+import atf.api.reporting.console.AtfConsoleSink;
+import atf.api.reporting.contract.AtfAssertion;
+import atf.api.reporting.contract.AtfReportPorts;
+import atf.api.reporting.contract.AtfReportStatus;
 import atf.api.reporting.extent.session.ExtentReportSession;
+import atf.api.reporting.model.diagnostic.ReportPhaseDiagnostic;
 import atf.api.reporting.security.SensitiveDataRedactor;
-import atf.api.testkit.output.ReportOutputDirectory;
 import atf.api.testkit.lifecycle.FailureAwareCleanup;
+import atf.api.testkit.output.ReportOutputDirectory;
 import atf.ui.autoex.api.AutoExApiJsonField;
-import atf.ui.autoex.support.AutoExProjectRoot;
+import atf.ui.autoex.runtime.config.AutoExProjectRoot;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Instant;
-import java.util.ArrayDeque;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Collection;
-import java.util.Set;
-import java.util.UUID;
-
-import static atf.api.reporting.ui.contract.ReportUiContract.Phase.TEST_BODY;
 import static atf.api.reporting.console.AtfConsoleEvent.Type.REPORT_PUBLISHED;
+import static atf.api.reporting.ui.contract.ReportUiContract.Phase.TEST_BODY;
 
 /** Publishes direct Automation Exercise API contract runs as one auditable Extent artifact. */
 public final class AutoExApiContractReportExtension implements BeforeAllCallback, BeforeEachCallback,

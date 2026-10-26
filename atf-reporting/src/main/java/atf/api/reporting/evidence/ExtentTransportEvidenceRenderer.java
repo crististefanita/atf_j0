@@ -193,6 +193,7 @@ public final class ExtentTransportEvidenceRenderer {
         if (execution == null) return;
         var body = new StringBuilder(AtfReportHtmlVocabulary.openTag(
                 AtfReportHtmlVocabulary.Tag.DIV,
+                ReportEvidenceMarkup.executionAttributes(execution, redactor),
                 AtfReportHtmlVocabulary.classAttribute(
                         AtfReportHtmlVocabulary.CssClass.EXECUTION_EVIDENCE_BODY)))
                 .append(AtfReportMarkup.table(AtfReportHtmlVocabulary.classList(

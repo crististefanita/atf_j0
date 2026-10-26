@@ -92,7 +92,8 @@ class ExtentReportFailureProjectionContractTest {
                         "Fails must resolve the request from the failing phase, not the first request in the scenario"),
                 () -> assertTrue(html.contains("context.request=text(request,'.card-title a.node')"),
                         "the request shown in Fails must belong to the failed phase"),
-                () -> assertTrue(html.contains("q('.helm-trace-table tbody tr,.execution-table tbody tr',request)"),
+                () -> assertTrue(html.contains("failureTransportEvidence(request,measured)")
+                                && html.contains("context.duration=measured.duration||context.duration"),
                         "the duration shown in Fails must belong to the failed request"),
                 () -> assertTrue(html.contains("var durationMs=atfDurationValue(rawDuration)")
                                 && html.contains("duration=durationMs===null?rawDuration:atfFormatDuration(durationMs)"),

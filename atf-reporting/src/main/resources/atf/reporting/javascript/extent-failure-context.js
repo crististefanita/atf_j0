@@ -1,46 +1,25 @@
 function failureTransportEvidence(card, state) {
-  var trace = card.querySelector('.helm-trace-table'),
-    execution = card.querySelector('.execution-table');
-  [trace, execution]
-    .filter(function (table) {
-      return !!table;
-    })
-    .forEach(function (evidence) {
-      var evidenceRows =
-        evidence.tBodies && evidence.tBodies[0]
-          ? Array.prototype.slice.call(evidence.tBodies[0].rows)
-          : [];
-      evidenceRows.forEach(function (evidenceRow) {
-        var evidenceCells = Array.prototype.slice.call(evidenceRow.cells || []),
-          evidenceLabel = String(text(evidenceCells[0], '')).toUpperCase();
-        if (evidenceLabel === 'FAILURE CAUSE')
-          state.message = text(evidenceCells[1], '');
-        if (
-          (evidenceLabel === 'RESPONSE DURATION' ||
-            evidenceLabel === 'RESPONSE DURATION (MS)' ||
-            evidenceLabel === 'RESPONSE.DURATION.MS') &&
-          !state.duration
-        ) {
-          var rawDuration = text(evidenceCells[1], '');
-          var durationMs = atfDurationValue(rawDuration);
-          state.duration =
-            durationMs === null ? rawDuration : atfFormatDuration(durationMs);
-        }
-      });
+  ['.helm-trace-table', '.execution-table'].forEach(function (selector) {
+    var table = card.querySelector(selector);
+    if (!table) return;
+    q('tbody tr', table).forEach(function (row) {
+      var label = text(row.cells[0], '').toUpperCase(),
+        rawDuration = text(row.cells[1], '');
+      if (label === 'FAILURE CAUSE') state.message = rawDuration;
+      if (['RESPONSE DURATION', 'RESPONSE DURATION (MS)', 'RESPONSE.DURATION.MS'].includes(label) && !state.duration) {
+        var durationMs = atfDurationValue(rawDuration);
+        state.duration = durationMs === null ? rawDuration : atfFormatDuration(durationMs);
+      }
     });
+  });
 }
 function failureValidationCandidate(card) {
   var table = card.querySelector('.helm-validation-table');
   if (!table) return null;
-  var body = table.tBodies && table.tBodies[0],
-    rows = body ? Array.prototype.slice.call(body.rows) : [],
-    row =
-      rows.find(function (candidate) {
-        var cells = Array.prototype.slice.call(candidate.cells || []);
-        return text(cells[3], '').indexOf('❌') >= 0;
-      }) || rows[0];
+  var rows = table.tBodies[0] ? Array.from(table.tBodies[0].rows) : [],
+    row = rows.find(candidate => text(candidate.cells[3], '').indexOf('❌') >= 0) || rows[0];
   if (!row) return null;
-  var cells = Array.prototype.slice.call(row.cells || []);
+  var cells = row.cells;
   return {
     card: card,
     label: text(cells[0], ''),
@@ -48,6 +27,13 @@ function failureValidationCandidate(card) {
     actual: text(cells[2], ''),
     result: text(cells[3], '')
   };
+}
+function failureRequestIdentity(card) {
+  if (!card) return '';
+  var node = q('[data-atf-request-method]', card).find(candidate =>
+    candidate.closest('.card[data-atf-node-role="request"]') === card);
+  return node ? node.getAttribute('data-atf-request-method') + ' ' +
+    node.getAttribute('data-atf-request-path') : '';
 }
 function collectFailureState(item) {
   var state = {
@@ -71,8 +57,9 @@ function collectFailureState(item) {
       state.phase = title;
       state.phaseCard = card;
     }
-    if (/^(GET|POST|PUT|PATCH|DELETE|HEAD) /.test(title))
-      state.requests.push({ card: card, title: title });
+    var identity = failureRequestIdentity(card);
+    if (identity || /^(GET|POST|PUT|PATCH|DELETE|HEAD) /.test(title))
+      state.requests.push({ card: card, title: identity || title });
     var setupFailure = failedSetupEvidence(card),
       uiFailure = failedUiEvidence(card);
     if (setupFailure) state.uiFailures.push(setupFailure);
@@ -86,86 +73,49 @@ function collectFailureState(item) {
   return state;
 }
 function failureEntryBelongsToPhase(entry, phaseCard) {
-  return (
-    !phaseCard ||
-    !!(
-      phaseCard.compareDocumentPosition(entry.card) &
-      Node.DOCUMENT_POSITION_PRECEDING
-    )
+  return !phaseCard || Boolean(
+    phaseCard.compareDocumentPosition(entry.card) & Node.DOCUMENT_POSITION_PRECEDING
   );
 }
 function latestFailureEntry(entries, phaseCard) {
-  var scoped = entries.filter(function (entry) {
-    return failureEntryBelongsToPhase(entry, phaseCard);
-  });
+  var scoped = entries.filter(entry => failureEntryBelongsToPhase(entry, phaseCard));
   return scoped.length ? scoped[scoped.length - 1] : entries[0] || null;
 }
 function failureContextFromState(state) {
-  var request = '',
-    validation = '',
-    assertion = '',
-    message = state.message,
-    fallback = null;
-  if (state.runtimeFailures.length) {
-    var runtime = state.runtimeFailures[0];
-    return {
+  var missing = 'Failure recorded; see exact test for full evidence',
+    context = {
       phase: state.phase || 'Unknown phase',
+      ui: false,
+      request: '',
+      duration: state.duration,
+      step: '',
+      validation: 'No contract validation recorded',
+      assertion: missing,
+      message: state.message || missing
+    },
+    concrete = state.runtimeFailures[0] || state.uiFailures[0];
+  if (concrete) {
+    return Object.assign(context, concrete, {
       ui: true,
       request: '',
       duration: '',
-      step: runtime.step,
-      validation: runtime.validation,
-      assertion: runtime.assertion,
-      message: runtime.message
-    };
+      step: concrete.step || 'UI step'
+    });
   }
   if (state.phase !== 'TEARDOWN') {
-    var requestEntry = latestFailureEntry(state.requests, state.phaseCard);
-    request = requestEntry ? requestEntry.title : '';
-    fallback = latestFailureEntry(state.validations, state.phaseCard);
+    var requestEntry = latestFailureEntry(state.requests, state.phaseCard),
+      fallback = latestFailureEntry(state.validations, state.phaseCard);
+    context.request = requestEntry ? requestEntry.title : '';
     if (fallback) {
-      validation = /status/i.test(fallback.label)
+      context.validation = /status/i.test(fallback.label)
         ? 'Validate: status=' + fallback.expected
         : fallback.label;
-      assertion =
-        fallback.label +
-        ' → ' +
-        statusDisplay(fallback.expected) +
-        ' → ' +
-        statusDisplay(fallback.actual);
-      if (
-        !message &&
-        ((fallback.result || '').indexOf('❌') >= 0 ||
-          state.phase === 'TEST BODY')
-      )
-        message =
-          fallback.label +
-          ' expected ' +
-          statusDisplay(fallback.expected) +
-          ', actual ' +
-          statusDisplay(fallback.actual);
+      var expected = statusDisplay(fallback.expected),
+        actual = statusDisplay(fallback.actual);
+      context.assertion = fallback.label + ' → ' + expected + ' → ' + actual;
+      if (!state.message && ((fallback.result || '').indexOf('❌') >= 0 || state.phase === 'TEST BODY'))
+        context.message = fallback.label + ' expected ' + expected + ', actual ' + actual;
     }
-  }
-  var context = {
-    phase: state.phase || 'Unknown phase',
-    ui: false,
-    request: request,
-    duration: state.duration,
-    step: '',
-    validation: validation || 'No contract validation recorded',
-    assertion:
-      assertion || 'Failure recorded; see exact test for full evidence',
-    message: message || 'Failure recorded; see exact test for full evidence'
-  };
-  if (state.uiFailures.length) {
-    var concrete = state.uiFailures[0];
-    context.ui = true;
-    context.step = concrete.step || 'UI step';
-    context.request = '';
-    context.duration = '';
-    context.validation = concrete.validation;
-    context.assertion = concrete.assertion;
-    context.message = concrete.message;
   }
   return context;
 }
@@ -182,34 +132,27 @@ function failureContext(item) {
 function failureContextFor(item, anchor) {
   var ctx = failureContext(item);
   if (!anchor) return ctx;
-  var cells = Array.prototype.slice
-      .call(anchor.cells || [])
-      .map(function (cell) {
-        return text(cell, '');
-      }),
+  var cells = Array.from(anchor.cells || [], cell => text(cell, '')),
     label = cells[0] || 'Assertion',
     expected = cells[1] || '',
     actual = cells[2] || '';
   var validation = anchor.closest('.card');
   var evidence = anchor.closest('[data-atf-evidence-owner]'),
     channel = evidence && evidence.getAttribute('data-atf-evidence-owner'),
-    requests = [],
-    parent = validation && validation.parentElement;
-  while (parent) {
-    var requestCard = parent.closest('.card[data-atf-node-role="request"]');
-    if (!requestCard) break;
-    requests.push(requestCard);
-    parent = requestCard.parentElement;
+    requests = [];
+  for (var parent = validation && validation.parentElement; parent; parent = parent.parentElement) {
+    if (parent.matches('.card[data-atf-node-role="request"]')) requests.push(parent);
   }
   var nearest = requests[0],
     requestTitle = nearest ? text(nearest, '.card-title a.node') : '',
-    httpRequest = /^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s/.test(requestTitle),
+    identity = failureRequestIdentity(nearest),
+    httpRequest = !!identity || (channel !== 'api' && /^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s/.test(requestTitle)),
     phase = anchor.closest('.card[data-atf-node-role="phase"]');
   // Explicit typed ownership wins. Method-shaped titles are only a legacy fallback.
   if (channel === 'api' || channel === 'ui' || httpRequest) {
     ctx.ui = channel === 'ui' || (channel !== 'api' && !httpRequest);
     ctx.evidenceOwner = ctx.ui ? 'ui' : 'api';
-    ctx.request = ctx.ui ? '' : httpRequest ? requestTitle : 'API correlation';
+    ctx.request = ctx.ui ? '' : identity || (httpRequest ? requestTitle : 'API correlation');
     ctx.step = ctx.ui ? 'UI assertion' : '';
     ctx.duration = '';
     var checkpoint = requests.length ? text(requests[requests.length - 1], '.card-title a.node') : '';
@@ -230,7 +173,10 @@ function failureContextFor(item, anchor) {
   }
   ctx.assertion =
     label + ' → ' + statusDisplay(expected) + ' → ' + statusDisplay(actual);
-  if (ctx.evidenceOwner === 'api' || !ctx.message || ctx.message.indexOf('PRIMARY:') < 0)
+  if (ctx.evidenceOwner === 'api' && ctx.message && ctx.message.indexOf('PRIMARY:') >= 0)
+    ctx.message = label + ' expected ' + statusDisplay(expected) + ', actual ' +
+      statusDisplay(actual) + ' | Scenario diagnostics: ' + ctx.message;
+  if (!ctx.message || ctx.message.indexOf('PRIMARY:') < 0)
     ctx.message =
       label +
       ' expected ' +

@@ -1,4 +1,6 @@
 package atf.api.reporting.api.contract.internal;
+import atf.api.reporting.api.evidence.ReportBodyAvailability;
+import atf.api.reporting.api.contract.ApiReportContractInput;
 
 import atf.api.reporting.api.contract.ApiReportRouteContract;
 import atf.api.reporting.audit.ValidationResult;
@@ -8,9 +10,22 @@ import java.util.List;
 
 /** Compares response JSON as a tree, independent of whitespace and field order. */
 public final class ApiReportContractResponseJsonValidator {
-    public ValidationResult validate(ApiReportRouteContract expected, String actualBody) {
-        String expectedDocument = expected.responseBody().isBlank() ? "null" : expected.responseBody();
-        String actualDocument = actualBody == null ? "" : actualBody.trim();
+    public ValidationResult validate(ApiReportRouteContract expected,
+                                     ApiReportContractInput input) {
+        String expectedDocument = expected.responseBody();
+        String actualDocument = input.responseBody().trim();
+        if (input.responseAvailability() == ReportBodyAvailability.ABSENT) {
+            return expectedDocument.isEmpty() && input.responseBody().isEmpty()
+                    ? ValidationResult.empty() : ValidationResult.ofViolations(List.of(
+                    expected.key() + " confirmed absent response contradicts configured or rendered payload"));
+        }
+        if (input.responseAvailability() != ReportBodyAvailability.AVAILABLE) {
+            return ValidationResult.ofViolations(List.of(expected.key() + " response body was not captured"));
+        }
+        if (expectedDocument.isEmpty()) {
+            return ValidationResult.ofViolations(List.of(expected.key()
+                    + " expected no response body but rendered a captured payload"));
+        }
         if (actualDocument.isBlank()) {
             return ValidationResult.ofViolations(List.of(expected.key()
                     + " rendered an empty response JSON document"));

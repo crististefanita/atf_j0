@@ -1,17 +1,16 @@
-package atf.ui.autoex.support;
+package atf.ui.tests.autoex.extension;
 
 import atf.api.reporting.evidence.ReportScreenshotPolicy;
-import atf.api.reporting.evidence.profile.ReportEvidenceCaptureSource;
 import atf.api.reporting.evidence.profile.ReportEvidenceFlowMode;
 import atf.api.reporting.evidence.profile.ReportEvidenceProfile;
 import atf.api.testkit.evidence.AtfUiEvidenceFlow;
 import atf.api.testkit.evidence.AtfUiScreenshotPolicy;
-
+import atf.ui.autoex.runtime.config.AutoExEvidenceProfile;
 import java.util.Objects;
 
 /** Builds the browser-evidence profile shared by the report session and each E2E run. */
-public final class AutoExEvidenceProfile {
-    private AutoExEvidenceProfile() { }
+public final class AutoExEvidenceProfileAdapter {
+    private AutoExEvidenceProfileAdapter() { }
 
     public static ReportEvidenceProfile forRun(AtfUiEvidenceFlow flow,
                                                AtfUiScreenshotPolicy screenshots,
@@ -31,10 +30,6 @@ public final class AutoExEvidenceProfile {
             case CONFIGURED, SCREEN_CHECKPOINTS -> ReportEvidenceFlowMode.SCREEN_CHECKPOINTS;
             case UNIFIED_FLOW -> ReportEvidenceFlowMode.UNIFIED_FLOW;
         };
-        return ReportEvidenceProfile.builder()
-                .flowMode(flowMode)
-                .screenshotPolicy(selectedPolicy)
-                .captureSource(ReportEvidenceCaptureSource.BROWSER)
-                .build();
+        return AutoExEvidenceProfile.forRun(flowMode, selectedPolicy);
     }
 }

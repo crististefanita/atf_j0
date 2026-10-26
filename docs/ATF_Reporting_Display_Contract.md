@@ -79,15 +79,22 @@ navigare, nu statusul sau evidence-ul testelor.
 
 | Canal | Ce trebuie să fie vizibil | Ce nu se inventează |
 |---|---|---|
-| API | method/path, request/response details, JSON sau `null`, execution attempts și validarea contractului când aceasta există | request sintetic pentru un pas UI, verdict din status HTTP fără contract, durată `0 ms` pentru o durată necapturată |
+| API | method/path, request/response details, body capturat sau explicația disponibilității, execution attempts și validarea contractului când aceasta există | request sintetic pentru un pas UI, payload inventat, verdict din status HTTP fără contract, durată `0 ms` pentru o durată necapturată |
 | UI | acțiunile relevante inclusiv `getText`/text extraction, audit observations, assertions și capturi relevante | request/response HTTP pentru setup intern, duplicate de propoziție Gherkin sau verdict business dedus din screenshot |
 | UI+API | cei doi copii de validare, corelarea explicită și un Network Inspector care referă exchange-urile publicate | republicarea aceluiași exchange ca apel nou sau mutarea tuturor aserțiunilor în `Screen validation` |
 
 Pentru `POST` și `PUT`, request-ul și response-ul publicate trebuie să păstreze
 body JSON parseable și non-empty atunci când contractul endpointului îl cere.
-Pentru body absent, valoarea publică este explicit `null`; body necapturat și
-body absent sunt stări diferite. Etichetele de cardinalitate sunt produse de
-vocabularul comun, nu de publisheri locali.
+
+| Disponibilitatea body-ului | Afișare |
+|---|---|
+| `AVAILABLE` | payload-ul capturat, după redacție; numai textul JSON literal `null` devine document JSON `null` |
+| `ABSENT` | explicație în details că nu a existat body, fără pane JSON |
+| `NOT_CAPTURED` | explicație că dovada lipsește, fără payload presupus |
+
+Request details și replay folosesc aceeași proiecție sanitizată a headerelor;
+observația browser nu primește default-uri de la client sau din response.
+Etichetele de cardinalitate sunt produse de vocabularul comun, nu de publisheri locali.
 
 ## Cerințe de layout și responsive
 

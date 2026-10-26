@@ -131,6 +131,39 @@ trei selecții. Suitele redundante se elimină, nu testele care arată un gap.
   Confirmarea serverului și a fluxului real rămâne în probele live opt-in;
   succesul fixture-ului nu certifică persistența ori semantica remote.
 
+### Contractul refactorizării E2E
+
+Testul exprimă povestea; runtime-ul execută capabilitățile, iar adaptorul JUnit
+rezolvă numai declarația și lifecycle-ul. Aceasta este ținta simplificării;
+nu descrie o mutare deja aplicată harness-urilor curente.
+
+| Zonă | Conținut urmărit | Limită |
+|---|---|---|
+| Consumer `src/test` | teste business, suite și adaptor minim de execuție | fără infrastructură generică duplicată |
+| Consumer `src/main` | pagini, flow-uri, contracte și runtime reutilizabil specific aplicației | fără JUnit/Kit introduse prin mutare mecanică |
+| Modulele ATF existente | primitive neutre în Kit, browser în UI, model/publicare în Reporting | fără modul nou sau dependențe circulare |
+
+- Păstrează trei gate-uri principale per consumer: local, UI E2E și API live;
+  o politică de captură nu justifică o suită sau un journey copiat.
+- Modelele UI per checkpoint, UI cu o captură finală și UI+API folosesc aceeași
+  poveste completă; gruparea `UNIFIED_FLOW` nu dezactivează validările intermediare.
+- Rezolvă separat canalul, gruparea, capturile și detaliile acțiunilor;
+  `CONFIGURED` trebuie să moștenească o bază reală, nu un default ascuns.
+- Captura de succes se leagă de starea pasului sau de confirmarea terminală;
+  captura de failure rămâne controlată separat prin politică.
+- Contul partajat are owner și scope explicite; ordinea suitei nu substituie
+  setup-ul, iar un eșec al raportului nu împiedică eliberarea registrului.
+- Factory-urile fără JUnit/Kit pot aparține runtime-ului aplicației:
+  `ShopBrowserCaptureProvider` și `ShopScreenshotPolicy` sunt în main Shop;
+  contextul browser/report și metadata de rulare rămân în test.
+- Nici numărul mic de linii, nici un director `support` gol nu sunt dovadă de
+  calitate; comparați assertions, ownership, failure-path și selecția efectivă.
+
+Contractul generic de evidence este în
+[ATF Evidence Capture](ATF_Evidence_Capture_Contract.md); diferențele live și
+condițiile înaintea mutărilor sunt în
+[feedback-ul consumerilor](feedback/ATF_Consumer_Business_Test_Focus_Feedback.md).
+
 ### Inventarul executabil după mutări și reclasificare
 
 - Rulați entry point-urile reale ale suitelor, fără selectarea încă o dată a
@@ -211,6 +244,14 @@ SETUP
   și agregarea erorilor.
 - `TestRunInitialization` deține achiziția cu factory-uri și rollback-ul
   handle-urilor returnate; proba neutră nu pornește UI sau Reporting.
+- `TestRunScope` din Kit rezolvă explicit `class` sau `suite` prin parametrul
+  JUnit `atf.test.run.scope`; ownership-ul aparține Store-ului real, nu unui
+  cache static ori numelui suitei. `ScopedTestValue` păstrează eșecul achiziției
+  și interzice replay-ul implicit.
+- Eliberarea unei referințe nu înseamnă ștergerea resursei remote. Declarați
+  separat păstrarea contului creat și împrumutul fixture-ului; confirmați login-ul
+  fiecărei sesiuni în `SETUP`. Probele Jupiter verifică lifecycle-ul, iar E2E-ul
+  verifică înregistrarea și purchase-ul real.
 - Consumerul furnizează factory-urile și callback-urile specifice; fiecare
   factory garantează cleanup-ul propriei achiziții parțiale înainte de returnare.
 - `CloseOnceResource` și `ArmedCleanup` separă închiderea o singură dată de

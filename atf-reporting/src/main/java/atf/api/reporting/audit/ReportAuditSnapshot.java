@@ -1,4 +1,5 @@
 package atf.api.reporting.audit;
+import atf.api.reporting.api.evidence.ReportBodyAvailability;
 
 import atf.api.reporting.contract.AtfReportStatus;
 
@@ -188,28 +189,48 @@ public final class ReportAuditSnapshot {
     }
 
     public record JsonEvidence(String requestBody, String responseBody,
-                               List<String> violations) {
+                               List<String> violations,
+                               ReportBodyAvailability requestAvailability,
+                               ReportBodyAvailability responseAvailability) {
+        /** Legacy documents prove captured bytes, never confirmed absence. */
+        public JsonEvidence(String requestBody, String responseBody, List<String> violations) {
+            this(requestBody, responseBody, violations, documentAvailability(requestBody),
+                    documentAvailability(responseBody));
+        }
+
         public JsonEvidence {
             requestBody = requestBody == null ? "" : requestBody;
             responseBody = responseBody == null ? "" : responseBody;
             violations = List.copyOf(Objects.requireNonNull(violations, "violations"));
+            Objects.requireNonNull(requestAvailability, "requestAvailability");
+            Objects.requireNonNull(responseAvailability, "responseAvailability");
         }
 
         public boolean compliant() {
-            return hasDocument(requestBody)
-                    && hasDocument(responseBody) && violations.isEmpty();
+            return explained(requestBody, requestAvailability)
+                    && explained(responseBody, responseAvailability) && violations.isEmpty();
         }
 
-        public boolean requestHasPayload() { return !isExplicitEmpty(requestBody); }
+        public boolean requestHasPayload() { return requestAvailability ==
+                ReportBodyAvailability.AVAILABLE && hasDocument(requestBody); }
 
-        public boolean responseHasPayload() { return !isExplicitEmpty(responseBody); }
+        public boolean responseHasPayload() { return responseAvailability ==
+                ReportBodyAvailability.AVAILABLE && hasDocument(responseBody); }
 
         private static boolean hasDocument(String body) {
             return body != null && !body.isBlank();
         }
 
-        private static boolean isExplicitEmpty(String body) {
-            return "null".equals(body == null ? "" : body.trim());
+        private static boolean explained(String body, ReportBodyAvailability availability) {
+            return availability == ReportBodyAvailability.ABSENT
+                    ? body.isEmpty() : availability == ReportBodyAvailability.AVAILABLE
+                    && hasDocument(body);
+        }
+
+        private static ReportBodyAvailability documentAvailability(String body) {
+            return body == null || body.isBlank()
+                    ? ReportBodyAvailability.NOT_CAPTURED
+                    : ReportBodyAvailability.AVAILABLE;
         }
     }
 

@@ -54,7 +54,7 @@ public final class ApiReportContractAuditor {
         if (!input.executionFields().isEmpty()) {
             validation = validation.merge(executionEvidenceValidator.validate(expected, input));
         }
-        validation = validation.merge(responseJsonValidator.validate(expected, input.responseBody()));
+        validation = validation.merge(responseJsonValidator.validate(expected, input));
         return new Result(input.requestTitle(), Optional.of(expected), validation.violations());
     }
 

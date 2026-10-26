@@ -98,8 +98,9 @@ public final class ApiExchangeParityProbe {
                 if (!Boolean.TRUE.equals(evidence.evaluate("element => element.open"))) LOCATORS.summary(evidence).click();
                 snapshot.put(kind, fields(evidence));
                 var documents = LOCATORS.documents(evidence).allTextContents();
-                assertEquals(kind.equals("execution-evidence") || index == 4 ? 0 : 1, documents.size(),
-                        CASES.get(index) + ": available/absent JSON is explicit; unavailable is not invented");
+                assertEquals(kind.equals("execution-evidence") || index == 1 || index == 4 ? 0 : 1,
+                        documents.size(), CASES.get(index)
+                                + ": only captured JSON has a payload; absence and missing capture stay explicit");
                 snapshot.put(kind + " JSON", documents.stream().map(ApiExchangeParityProbe::json).toList());
             }
             String text = requests.nth(index).innerText();
@@ -108,8 +109,10 @@ public final class ApiExchangeParityProbe {
                 assertTrue(text.contains("17 ms"));
                 assertTrue(text.contains("43 ms"));
                 assertTrue(text.contains("curl --request 'QUERY'"));
-                assertTrue(text.contains("Authorization: ***REDACTED***' --data-raw"),
-                        "renderer redaction must preserve the shell header closing quote");
+                assertTrue(text.contains("--header 'Authorization: ***REDACTED***'"),
+                        "renderer redaction must preserve both shell header quotes regardless of header order");
+                assertTrue(text.contains("--data-raw '{\"query\":\"value\"}'"),
+                        "the quoted body must remain a separate replay argument");
             }
             if (index == 1) assertTrue(text.contains("0 ms"), "measured zero remains zero");
             if (index == 4) assertTrue(text.contains("Not captured"), "missing capture must be explained");

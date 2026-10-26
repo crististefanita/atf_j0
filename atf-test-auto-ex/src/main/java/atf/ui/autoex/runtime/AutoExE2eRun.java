@@ -1,96 +1,62 @@
-package atf.ui.autoex.support;
+package atf.ui.autoex.runtime;
 
-import atf.api.console.junit.AtfConsoleTestContext;
+import atf.api.core.http.request.HttpHeader;
+import atf.api.core.http.response.ApiExecutionResult;
 import atf.api.reporting.api.ReportModelAdapters;
-import atf.api.reporting.configuration.AtfReportConfigurationLoader;
-import atf.api.reporting.configuration.ReportEnvironmentField;
-import atf.api.reporting.configuration.ReportEnvironmentSnapshot;
 import atf.api.reporting.contract.AtfAssertion;
 import atf.api.reporting.contract.AtfGherkinKeyword;
 import atf.api.reporting.contract.AtfReportStatus;
-import atf.api.reporting.api.ReportRequest;
-import atf.api.reporting.api.request.ReportRequestHeaders;
-import atf.api.reporting.api.ReportResponse;
-import atf.api.reporting.api.ReportTransportProvenance;
-import atf.api.reporting.api.ReportTraceMetadata;
 import atf.api.reporting.evidence.ReportScreenshotPolicy;
 import atf.api.reporting.evidence.profile.ReportEvidenceProfile;
 import atf.api.reporting.model.ReportExecutionEvidence;
 import atf.api.reporting.ui.UiExtentReportSession;
-import atf.api.reporting.ui.validation.UiApiValidationEvidence;
-import atf.api.reporting.ui.UiExtentReportOptions;
-import atf.api.reporting.ui.network.ReportNetworkInspector;
+import atf.api.reporting.ui.failure.UiCheckpointFailure;
 import atf.api.reporting.ui.network.ReportNetworkCaptureStatus;
-import atf.api.reporting.api.ReportAuthObservation;
-import atf.api.reporting.api.ReportAuthMethod;
-import atf.api.reporting.api.ReportAuthSource;
-import atf.api.reporting.api.ReportAttemptRecord;
-import atf.api.reporting.api.ReportRequestSignature;
-import atf.api.reporting.api.evidence.ReportBodyAvailability;
-import atf.api.testkit.files.AtfTestResourceReader;
-import atf.api.testkit.output.ReportOutputDirectory;
-import atf.api.testkit.channel.AtfTestChannelResolver;
-import atf.api.testkit.channel.TestChannel;
-import atf.api.testkit.lifecycle.FailureAwareCleanup;
-import atf.api.testkit.lifecycle.FailureEvidenceCleanup;
-import atf.api.testkit.evidence.AtfUiEvidence;
-import atf.api.testkit.evidence.AtfUiEvidenceFlow;
-import atf.api.testkit.evidence.AtfUiScreenshotPolicy;
-import atf.api.ui.config.UiScreenValidationConfiguration;
+import atf.api.reporting.ui.network.ReportNetworkInspector;
+import atf.api.reporting.ui.validation.UiApiValidationEvidence;
+import atf.api.ui.audit.UiScreenAudit;
 import atf.api.ui.config.UiBrowserConfiguration;
 import atf.api.ui.config.UiNetworkSettlementPolicy;
+import atf.api.ui.config.UiScreenValidationConfiguration;
+import atf.api.ui.network.UiNetworkObservation;
 import atf.api.ui.playwright.AtfLocator;
 import atf.api.ui.playwright.PlaywrightActionSequence;
 import atf.api.ui.playwright.PlaywrightUiSession;
 import atf.api.ui.playwright.UiScreenValidation;
-import atf.api.ui.audit.UiScreenAudit;
 import atf.ui.autoex.config.AutoExConfiguration;
-import atf.api.core.http.request.HttpHeader;
-import atf.api.core.http.response.ApiExecutionResult;
+import atf.ui.autoex.locator.AutoExRoutes;
+import atf.ui.autoex.locator.AutoExSelectors;
 import atf.ui.autoex.support.browser.AutoExPrivacyConsentHandler;
 import atf.ui.autoex.support.browser.AutoExVignetteHandler;
-import atf.api.testkit.lifecycle.TestRunInitialization;
 import atf.ui.autoex.support.catalog.AutoExCatalogSnapshot;
 import atf.ui.autoex.support.journey.AutoExPurchaseSession;
 import atf.ui.autoex.support.trace.AutoExTraceStep;
-import atf.ui.autoex.config.AutoExConfigurationLoader;
-import atf.ui.autoex.locator.AutoExRoutes;
-import atf.ui.autoex.locator.AutoExSelectors;
 import com.microsoft.playwright.Page;
-import org.junit.jupiter.api.extension.ExtensionContext;
 
-import java.time.LocalDateTime;
+import java.net.URI;
 import java.time.Duration;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 
 import static atf.api.core.http.request.HttpMethod.GET;
 import static atf.api.core.http.request.MediaTypes.APPLICATION_JSON;
 import static atf.ui.autoex.api.AutoExApiJsonField.NAME;
 import static atf.ui.autoex.api.AutoExApiJsonField.PRICE;
 import static atf.ui.autoex.api.AutoExApiJsonField.PRODUCTS;
-import static atf.api.reporting.ui.contract.ReportUiContract.Phase.TEST_BODY;
+import static java.util.stream.Collectors.joining;
 
-/** Per-test composition root for one headless browser and one UI Extent artifact. */
+/** Caller-owned AutoEx browser/report runtime; it has no test framework dependency. */
 public final class AutoExE2eRun implements AutoExPurchaseSession {
-    private static final ExtensionContext.Namespace NAMESPACE =
-            ExtensionContext.Namespace.create(AutoExE2eRun.class);
-    private static final String SUITE_REPORT_KEY = "auto-ex-suite-report";
     private static final String NETWORK_SUMMARY_TITLE = "API network inspector — journey summary";
-    private static final String REPORT_FILE_PREFIX = "ui-atf-auto-ex-purchase-suite_";
-    private static final DateTimeFormatter REPORT_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss-SSS");
-
     private final AutoExConfiguration configuration;
     private final PlaywrightUiSession browser;
-    private final UiExtentReportSession report;
     private final UiExtentReportSession.UiScenario scenario;
     private final UiExtentReportSession.UiPhase phase;
     private final ReportEvidenceProfile evidenceProfile;
-    private final TestChannel channel;
+    private final boolean apiEnabled;
+    private final AutoExRunLifecycle lifecycle;
     private final List<ReportNetworkInspector.Step> networkSteps = new ArrayList<>();
     private final PlaywrightActionSequence actions;
     private int networkCursor;
@@ -100,71 +66,21 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
     private AutoExAccountCleanup failureCleanup;
     private boolean finished;
 
-    private AutoExE2eRun(AutoExConfiguration configuration, PlaywrightUiSession browser,
-                         UiExtentReportSession report, UiExtentReportSession.UiScenario scenario,
+    public AutoExE2eRun(AutoExConfiguration configuration, PlaywrightUiSession browser,
+                         UiExtentReportSession.UiScenario scenario,
                          UiExtentReportSession.UiPhase phase, ReportEvidenceProfile evidenceProfile,
-                         TestChannel channel) {
+                         boolean apiEnabled, AutoExRunLifecycle lifecycle) {
         this.configuration = configuration;
         this.browser = browser;
-        this.report = report;
         this.scenario = scenario;
         this.phase = phase;
         this.evidenceProfile = evidenceProfile;
-        this.channel = channel;
+        this.apiEnabled = apiEnabled;
+        this.lifecycle = Objects.requireNonNull(lifecycle, "lifecycle");
         this.actions = browser.newActionSequence();
     }
 
-    static AutoExE2eRun open(ExtensionContext context) {
-        AutoExConfiguration configuration = AutoExConfigurationLoader.load();
-        TestChannel channel = AtfTestChannelResolver.resolve(context.getRequiredTestClass())
-                .orElseThrow(() -> new IllegalStateException("AutoEx E2E must declare @AtfTestChannel"))
-                .channel();
-        if (channel != TestChannel.UI && channel != TestChannel.UI_API) {
-            throw new IllegalStateException("AutoEx purchase journey supports UI or UI_API channels only");
-        }
-        AtfUiEvidence evidenceAnnotation = context.getRequiredTestClass()
-                .getAnnotation(AtfUiEvidence.class);
-        AtfUiEvidenceFlow flow = evidenceAnnotation == null
-                ? AtfUiEvidenceFlow.CONFIGURED : evidenceAnnotation.flow();
-        AtfUiScreenshotPolicy screenshots = evidenceAnnotation == null
-                ? AtfUiScreenshotPolicy.CONFIGURED : evidenceAnnotation.screenshots();
-        var reportConfiguration = AtfReportConfigurationLoader.load();
-        ReportEvidenceProfile evidence = AutoExEvidenceProfile.forRun(
-                flow, screenshots, reportConfiguration.screenshotPolicy());
-        ReportEvidenceProfile sessionEvidence = ReportEvidenceProfile.forScreenshotPolicy(
-                reportConfiguration.screenshotPolicy());
-        if (channel == TestChannel.UI_API) {
-            configuration = withNetworkInspection(configuration);
-        }
-        var projectRoot = AutoExProjectRoot.discover();
-        var uiBase = AtfTestResourceReader.resolveContained(
-                projectRoot, configuration.uiReportBaseDirectory());
-        var output = ReportOutputDirectory.resolve(projectRoot, uiBase,
-                context.getRequiredTestClass());
-        var console = AtfConsoleTestContext.configuredSink();
-        var reportConsole = AutoExConsoleBridge.reportingSink(console);
-        UiBrowserConfiguration reportBrowser = configuration.browser();
-        ReportResource reportResource = context.getRoot().getStore(NAMESPACE)
-                .getOrComputeIfAbsent(SUITE_REPORT_KEY,
-                        ignored -> new ReportResource(output, reportName(context), reportConsole,
-                                sessionEvidence, reportBrowser),
-                        ReportResource.class);
-        UiExtentReportSession report = reportResource.report();
-        AutoExConfiguration runConfiguration = configuration;
-        return TestRunInitialization.create(
-                () -> PlaywrightUiSession.open(runConfiguration.browser(), console),
-                browser -> report.startScenario(context.getRequiredTestClass().getSimpleName(),
-                        context.getRequiredTestClass().getPackageName(), context.getDisplayName(),
-                        List.of("e2e", "ui", "automation-exercise"), evidence),
-                scenario -> scenario.startPhase(TEST_BODY.displayName()),
-                (browser, scenario, phase) -> new AutoExE2eRun(runConfiguration, browser, report,
-                        scenario, phase, evidence, channel),
-                phase -> phase.complete(AtfReportStatus.FAIL),
-                scenario -> scenario.complete(AtfReportStatus.FAIL),
-                PlaywrightUiSession::close);
-    }
-
-    private static AutoExConfiguration withNetworkInspection(AutoExConfiguration source) {
+    public static AutoExConfiguration withNetworkInspection(AutoExConfiguration source) {
         UiBrowserConfiguration current = source.browser();
         var network = current.networkInspection().withEnabled(true)
                 .withSettlementPolicy(UiNetworkSettlementPolicy.bounded(
@@ -176,39 +92,6 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
                 source.uiReportBaseDirectory(), source.catalog(), source.registration(), source.payment());
     }
 
-    private static final class ReportResource implements ExtensionContext.Store.CloseableResource {
-        private final UiExtentReportSession report;
-
-        private ReportResource(java.nio.file.Path output, String name,
-                               atf.api.reporting.console.AtfConsoleSink console,
-                               ReportEvidenceProfile evidence, UiBrowserConfiguration browser) {
-            var environment = ReportEnvironmentSnapshot.builder()
-                    .put(ReportEnvironmentField.CLIENT,
-                            "Playwright browser · CSS zoom %d%%".formatted(browser.zoomPercent()))
-                    .put(ReportEnvironmentField.BROWSER, browser.browser())
-                    .put(ReportEnvironmentField.HEADLESS, Boolean.toString(browser.headless()))
-                    .put(ReportEnvironmentField.VIEWPORT,
-                            "%d × %d".formatted(browser.viewportWidth(), browser.viewportHeight()))
-                    .build();
-            report = UiExtentReportSession.openConfigured(UiExtentReportOptions.builder(output)
-                    .fileName(name)
-                    .console(console)
-                    .evidenceProfile(evidence)
-                    .environment(environment)
-                    .build());
-        }
-
-        private UiExtentReportSession report() { return report; }
-        @Override public void close() { report.close(); }
-    }
-
-    private static String reportName(ExtensionContext context) {
-        String method = context.getRequiredTestMethod().getName().replaceAll("[^A-Za-z0-9_-]", "-");
-        String unique = UUID.randomUUID().toString().substring(0, 8);
-        return REPORT_FILE_PREFIX + method + "_" + REPORT_TIME.format(LocalDateTime.now())
-                + "_" + unique + ".html";
-    }
-
     public AutoExConfiguration configuration() { return configuration; }
     public Page page() { return browser.page(); }
     public String currentUrl() { return page().url(); }
@@ -216,7 +99,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
     /** Reads the configured product through the site's real, read-only catalog API. */
     @SuppressWarnings("unchecked")
     public AutoExCatalogSnapshot inspectCatalogApi(String productName) {
-        java.net.URI endpoint = AutoExRoutes.PRODUCTS_API.resolve(configuration.baseUrl());
+        URI endpoint = AutoExRoutes.PRODUCTS_API.resolve(configuration.baseUrl());
         Object result = page().evaluate("""
                 async request => {
                   const response = await fetch(request.url, { headers: request.headers });
@@ -238,7 +121,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
         return new AutoExCatalogSnapshot(status.intValue(), products.size(), price);
     }
 
-    public void navigate(java.net.URI uri) {
+    public void navigate(URI uri) {
         actions.navigate(page(), Objects.requireNonNull(uri, "uri"), "requested page is loaded");
     }
 
@@ -302,17 +185,17 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
         boolean passed = assertions.stream().allMatch(AtfAssertion::passed);
         String screenshot = evidenceProfile.captures(ReportScreenshotPolicy.CapturePoint.CHECKPOINT)
                 ? capture(title) : "";
-        UiApiValidationEvidence apiValidation = channel == TestChannel.UI_API
+        UiApiValidationEvidence apiValidation = apiEnabled
                 ? networkValidationSinceCursor() : UiApiValidationEvidence.empty();
         var actionEvidence = ReportModelAdapters.uiActions(actions.drain());
         AtfReportStatus status = passed ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
         phase.step(keyword, title, currentUrl(), screenshot, assertions, actionEvidence,
                 apiValidation, ReportScreenshotPolicy.CapturePoint.CHECKPOINT, status);
-        if (channel == TestChannel.UI_API) {
+        if (apiEnabled) {
             networkSteps.add(ReportNetworkInspector.Step.from(keyword.text(), title, assertions, exchangeEvidence(apiValidation)));
         }
-        if (!passed) throw new AssertionError("UI checkpoint failed: " + title
-                + ". Failed assertions: " + failedAssertionSummary(assertions));
+        if (!passed) throw new UiCheckpointFailure("UI checkpoint failed: " + title
+                + ". Failed assertions: " + failedAssertionSummary(assertions), assertions);
     }
 
     public void checkpoint(AutoExTraceStep step, List<AtfAssertion> assertions) {
@@ -354,18 +237,18 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
                 ? capture(title) : "";
         UiScreenAudit.record(actions, title, currentUrl(), assertions.size(),
                 new UiScreenValidation.Evidence(title, screenshot, !screenshot.isBlank()), passed);
-        UiApiValidationEvidence apiValidation = channel == TestChannel.UI_API
+        UiApiValidationEvidence apiValidation = apiEnabled
                 ? networkValidationSinceCursor() : UiApiValidationEvidence.empty();
         phase.screenValidation(title, currentUrl(), screenshot, assertions,
                 ReportModelAdapters.uiActions(actions.drain()), apiValidation,
                 ReportScreenshotPolicy.CapturePoint.FINAL,
                 passed ? AtfReportStatus.PASS : AtfReportStatus.FAIL);
-        if (channel == TestChannel.UI_API) {
+        if (apiEnabled) {
             networkSteps.add(ReportNetworkInspector.Step.from(AtfGherkinKeyword.THEN.text(),
                     title, assertions, exchangeEvidence(apiValidation)));
         }
-        if (!passed) throw new AssertionError("Final screen validation failed: " + title
-                + ". Failed assertions: " + failedAssertionSummary(assertions));
+        if (!passed) throw new UiCheckpointFailure("Final screen validation failed: " + title
+                + ". Failed assertions: " + failedAssertionSummary(assertions), assertions);
     }
 
     public void finalScreenshot(AutoExTraceStep step, List<AtfAssertion> assertions) {
@@ -382,7 +265,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
         var observations = inspector.observationsSince(networkCursor);
         networkCursor += observations.size();
         return new UiApiValidationEvidence(List.of(), observations.stream()
-                .map(AutoExE2eRun::toExecutionEvidence)
+                .map(AutoExObservedExchangeMapper::map)
                 .map(evidence -> new UiApiValidationEvidence.Exchange(evidence, List.of())).toList());
     }
 
@@ -392,7 +275,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
 
     public void clearFailureCleanup() { failureCleanup = null; }
 
-    void finish(Throwable testFailure) throws Exception {
+    public void finish(Throwable testFailure) throws Exception {
         if (finished) return;
         finished = true;
         Throwable terminalFailure = testFailure;
@@ -402,7 +285,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
                     "E2E completed without explicitly deleting its disposable account");
         }
 
-        terminalFailure = FailureEvidenceCleanup.finish(terminalFailure,
+        terminalFailure = lifecycle.finish(terminalFailure, new AutoExRunLifecycle.Completion(
                 () -> {
                     if (failureCleanup != null) {
                         try { failureCleanup.run(); }
@@ -410,18 +293,15 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
                     }
                 },
                 () -> {
-                    if (channel == TestChannel.UI_API) {
+                    if (apiEnabled) {
                         phase.networkInspector(NETWORK_SUMMARY_TITLE,
                                 causalApiObservations().stream()
-                                        .map(AutoExE2eRun::toExecutionEvidence).toList(), networkSteps,
+                                        .map(AutoExObservedExchangeMapper::map).toList(), networkSteps,
                                 captureCoverage());
                     }
-                }, this::publishFailure, browser::close);
-        AtfReportStatus status = terminalFailure == null ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
-        terminalFailure = FailureAwareCleanup.runAll(terminalFailure, () -> phase.complete(status));
-        AtfReportStatus scenarioStatus = terminalFailure == null ? status : AtfReportStatus.FAIL;
-        terminalFailure = FailureAwareCleanup.runAll(terminalFailure, () -> scenario.complete(scenarioStatus));
-
+                }, this::publishFailure, browser::close,
+                failed -> phase.complete(failed ? AtfReportStatus.FAIL : AtfReportStatus.PASS),
+                failed -> scenario.complete(failed ? AtfReportStatus.FAIL : AtfReportStatus.PASS)));
         if (testFailure == null && terminalFailure != null) {
             if (terminalFailure instanceof Exception exception) throw exception;
             if (terminalFailure instanceof Error error) throw error;
@@ -460,7 +340,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
         causalNetworkBaseline = browser.networkInspector().observationCursor();
     }
     public void awaitCartExchange(String productId) {
-        if (channel != TestChannel.UI_API) return;
+        if (!apiEnabled) return;
         String route = AutoExRoutes.ADD_TO_CART.path() + productId;
         browser.networkInspector().awaitAfter(networkCursor,
                 observation -> observation.method().equals(GET.value())
@@ -468,9 +348,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
                 .orElseThrow(() -> new AssertionError(
                         "The browser did not finish the cart XHR before its UI/API checkpoint: " + route));
     }
-    public boolean observesApiTraffic() { return channel == TestChannel.UI_API; }
-
-    public TestChannel channel() { return channel; }
+    public boolean observesApiTraffic() { return apiEnabled; }
 
     /** An API-only GIVEN; direct preparation is never attributed to a browser action. */
     public void apiSetup(String title, ApiExecutionResult execution, List<AtfAssertion> assertions) {
@@ -483,34 +361,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
         if (!passed) throw new AssertionError("API setup failed: " + failedAssertionSummary(assertions));
     }
 
-    private static ReportExecutionEvidence toExecutionEvidence(
-            atf.api.ui.network.UiNetworkObservation observation) {
-        var request = ReportRequest.builder(observation.method(), observation.path())
-                .headers(ReportRequestHeaders.observed(observation.requestHeaders()))
-                .authProfile(observation.authMethod())
-                .body(observation.requestBody(), ReportBodyAvailability.from(observation.requestBody()))
-                .authentication(new ReportAuthObservation(ReportAuthMethod.fromProfile(observation.authMethod()),
-                        switch (observation.authSource()) {
-                            case "request-header" -> ReportAuthSource.HEADER;
-                            case "query" -> ReportAuthSource.QUERY;
-                            default -> ReportAuthSource.NONE;
-                        })).build();
-        var response = new ReportResponse(observation.status(), observation.responseBody(),
-                observation.responseHeaders(), null, observation.url(), observation.responseBodyAvailable()
-                        ? ReportBodyAvailability.from(observation.responseBody())
-                        : ReportBodyAvailability.NOT_CAPTURED);
-        var trace = ReportTraceMetadata.from(request).withCapture("", observation.sequence(),
-                TEST_BODY.displayName(), "api", "", observation.resourceKind().name().toLowerCase(java.util.Locale.ROOT),
-                observation.evidenceSource(), ReportRequestSignature.responseBodyDigest(response), "", "")
-                .withService(observation.service());
-        var attempts = observation.requestFailed()
-                ? List.of(new ReportAttemptRecord(1, -1, null, "FAILURE", observation.failureReason()))
-                : List.<ReportAttemptRecord>of();
-        return new ReportExecutionEvidence(response, 1, null, List.of(), attempts, request,
-                ReportTransportProvenance.LIVE_HTTP, trace);
-    }
-
-    private List<atf.api.ui.network.UiNetworkObservation> causalApiObservations() {
+    private List<UiNetworkObservation> causalApiObservations() {
         return browser.networkInspector().observationsSince(causalNetworkBaseline);
     }
 
@@ -531,7 +382,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
         return assertions.stream().filter(assertion -> !assertion.passed())
                 .map(assertion -> assertion.name() + " [expected=" + assertion.expected()
                         + "; actual=" + assertion.actual() + "]")
-                .collect(java.util.stream.Collectors.joining("; "));
+                .collect(joining("; "));
     }
 
     private AtfLocator locator(String selector) { return new AtfLocator(page().locator(selector), selector); }

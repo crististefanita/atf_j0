@@ -101,9 +101,14 @@ public final class ApiReportUiFlow {
         for (int scenarioIndex = 0; scenarioIndex < scenarios.count(); scenarioIndex++) {
             Locator scenario = scenarios.nth(scenarioIndex);
             if (!scenario.isVisible()) continue;
-            expandCard(scenario);
-            expandScenarioChildren(scenario);
+            expandScenario(scenario);
         }
+    }
+
+    /** Expands one selected scenario without changing its siblings' disclosure state. */
+    public void expandScenario(Locator scenario) {
+        expandCard(scenario);
+        expandScenarioChildren(scenario);
     }
 
     public void expandRequestEvidence(Locator request) {

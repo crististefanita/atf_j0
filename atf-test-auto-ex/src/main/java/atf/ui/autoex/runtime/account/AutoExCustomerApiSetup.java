@@ -1,13 +1,13 @@
-package atf.ui.autoex.support;
+package atf.ui.autoex.runtime.account;
 
 import atf.api.reporting.contract.AtfAssertion;
 import atf.ui.autoex.api.AutoExApiAccount;
 import atf.ui.autoex.api.AutoExApiRequestFactory;
 import atf.ui.autoex.api.AutoExLiveApi;
 import atf.ui.autoex.page.AccountPage;
+import atf.ui.autoex.runtime.AutoExE2eRun;
 import atf.ui.autoex.support.account.AutoExTestAccount;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.util.List;
 
 import static atf.ui.autoex.api.AutoExApiJsonField.MESSAGE;

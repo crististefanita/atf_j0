@@ -23,6 +23,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @AtfUnitTest
 class ExtentReportUiFailureEvidenceTest {
+    private static final String FAILED_UI_ASSERTIONS =
+            "class=\"atf-ui-assertions\" data-atf-evidence-owner=\"ui\" data-atf-evidence-status=\"fail\"";
+
     @Test
     void rendersConcreteUiFailureLeavesAsFailWithAnActionableSummary() throws Exception {
         Path root = Files.createTempDirectory("atf-ui-failure-leaves-");
@@ -94,7 +97,7 @@ class ExtentReportUiFailureEvidenceTest {
                 () -> assertTrue(html.contains("data-atf-evidence-type=\"report-setup\" data-atf-evidence-status=\"fail\"")),
                 () -> assertTrue(html.contains("Audit observations · 1 failed of 1")),
                 () -> assertTrue(html.contains("class=\"atf-ui-observations\" data-atf-evidence-status=\"fail\"")),
-                () -> assertTrue(html.contains("class=\"atf-ui-assertions\" data-atf-evidence-status=\"fail\"")),
+                () -> assertTrue(html.contains(FAILED_UI_ASSERTIONS)),
                 () -> assertTrue(count(html, "<span class=\"badge log fail-bg\">Fail</span>") >= 3,
                         "setup, audit and assertion evidence must each expose a Fail event"));
     }
@@ -144,7 +147,7 @@ class ExtentReportUiFailureEvidenceTest {
                 () -> assertTrue(html.contains("NoClassDefFoundError: "
                                 + "atf/ui/practiceshop/pages/ShopCartPage$CartLine"),
                         "linkage error class and message must be present in report evidence"),
-                () -> assertTrue(html.contains("class=\"atf-ui-assertions\" data-atf-evidence-status=\"fail\"")),
+                () -> assertTrue(html.contains(FAILED_UI_ASSERTIONS)),
                 () -> assertTrue(html.contains("Failure evidence")));
     }
 

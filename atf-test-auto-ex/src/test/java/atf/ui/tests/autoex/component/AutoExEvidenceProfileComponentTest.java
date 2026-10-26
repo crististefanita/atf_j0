@@ -7,10 +7,9 @@ import atf.api.testkit.AtfComponentTest;
 import atf.api.testkit.evidence.AtfUiEvidence;
 import atf.api.testkit.evidence.AtfUiEvidenceFlow;
 import atf.api.testkit.evidence.AtfUiScreenshotPolicy;
-import atf.ui.autoex.support.AutoExEvidenceProfile;
 import atf.ui.tests.autoex.e2e.AutoExPurchaseUiFinalScreenshotE2eTest;
+import atf.ui.tests.autoex.extension.AutoExEvidenceProfileAdapter;
 import org.junit.jupiter.api.Test;
-
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -23,12 +22,12 @@ class AutoExEvidenceProfileComponentTest {
 
     @Test
     void annotationOverridesOnlyDeclaredAxesAndConfiguredAxesRemainConfigured() {
-        var configured = AutoExEvidenceProfile.forRun(AtfUiEvidenceFlow.CONFIGURED,
+        var configured = AutoExEvidenceProfileAdapter.forRun(AtfUiEvidenceFlow.CONFIGURED,
                 AtfUiScreenshotPolicy.CONFIGURED, ReportScreenshotPolicy.FINAL_AND_FAILURE);
-        var unifiedWithConfiguredScreenshots = AutoExEvidenceProfile.forRun(
+        var unifiedWithConfiguredScreenshots = AutoExEvidenceProfileAdapter.forRun(
                 AtfUiEvidenceFlow.UNIFIED_FLOW, AtfUiScreenshotPolicy.CONFIGURED,
                 ReportScreenshotPolicy.NONE);
-        var finalOnly = AutoExEvidenceProfile.forRun(AtfUiEvidenceFlow.UNIFIED_FLOW,
+        var finalOnly = AutoExEvidenceProfileAdapter.forRun(AtfUiEvidenceFlow.UNIFIED_FLOW,
                 AtfUiScreenshotPolicy.FINAL_ONLY, ReportScreenshotPolicy.EACH_CHECKPOINT);
 
         assertAll(
@@ -53,13 +52,12 @@ class AutoExEvidenceProfileComponentTest {
                 .getAnnotation(AtfUiEvidence.class);
 
         assertEquals(AtfUiScreenshotPolicy.FINAL_AND_FAILURE, annotation.screenshots());
-        var profile = AutoExEvidenceProfile.forRun(annotation.flow(), annotation.screenshots(),
+        var profile = AutoExEvidenceProfileAdapter.forRun(annotation.flow(), annotation.screenshots(),
                 ReportScreenshotPolicy.NONE);
         assertAll(
                 () -> assertTrue(profile.captures(ReportScreenshotPolicy.CapturePoint.FINAL)),
                 () -> assertTrue(profile.captures(ReportScreenshotPolicy.CapturePoint.FAILURE)),
                 () -> assertFalse(profile.captures(ReportScreenshotPolicy.CapturePoint.CHECKPOINT)));
     }
-
 
 }

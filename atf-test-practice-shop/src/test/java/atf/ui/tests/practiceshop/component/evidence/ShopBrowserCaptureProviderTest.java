@@ -4,7 +4,7 @@ import atf.api.core.http.protocol.ApiUris;
 import atf.api.reporting.evidence.profile.ReportEvidenceCaptureSource;
 import atf.api.testkit.AtfComponentTest;
 import atf.api.ui.config.UiScreenValidationConfiguration;
-import atf.ui.tests.practiceshop.support.evidence.ShopBrowserCaptureProvider;
+import atf.ui.practiceshop.evidence.ShopBrowserCaptureProvider;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import org.junit.jupiter.api.Test;

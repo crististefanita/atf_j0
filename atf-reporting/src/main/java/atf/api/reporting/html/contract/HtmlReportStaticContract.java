@@ -23,8 +23,7 @@ public final class HtmlReportStaticContract {
                 && source.contains("data-tab=\"tests\"")
                 && source.contains("data-tab=\"fails\""));
         checks.put("collapsed evidence", !source.contains("class=\"collapse show\""));
-        checks.put("json evidence channels", source.contains("REQUEST JSON")
-                && source.contains("RESPONSE JSON") && source.contains("class=\"json-code\""));
+        checks.put("json evidence channels", bodyChannel(source, "request") && bodyChannel(source, "response"));
         checks.put("aggregate assertions", source.contains("ASSERTION")
                 && source.contains("EXPECTED") && source.contains("ACTUAL")
                 && source.contains("RESULT"));
@@ -34,6 +33,14 @@ public final class HtmlReportStaticContract {
         checks.put("no project absolute paths", !source.contains("file:/")
                 && !source.matches("(?s).*\\b[A-Z]:[\\\\/].*"));
         return new Evaluation(checks);
+    }
+
+    private static boolean bodyChannel(String source, String side) {
+        String label = side.toUpperCase(java.util.Locale.ROOT);
+        return ((source.contains(label + " JSON") || source.contains(label + " FORM BODY")
+                || source.contains(label + " BODY")) && source.contains("class=\"json-code\""))
+                || source.contains("data-atf-" + side + "-body-availability=\"ABSENT\"")
+                || source.contains("data-atf-" + side + "-body-availability=\"NOT_CAPTURED\"");
     }
 
     public record Evaluation(Map<String, Boolean> checks) {

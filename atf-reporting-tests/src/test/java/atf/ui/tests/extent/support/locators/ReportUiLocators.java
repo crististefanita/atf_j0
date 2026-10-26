@@ -291,6 +291,9 @@ public final class ReportUiLocators {
     }
 
     public Locator requestDetails(Locator request) { return evidence.requestDetails(request); }
+    public Locator validationForOwner(Locator scope, atf.api.reporting.contract.evidence.ReportEvidenceOwner owner) {
+        return evidence.validationForOwner(scope, owner);
+    }
     public Locator httpEvidenceDisclosures(Locator scope) { return evidence.httpEvidenceDisclosures(scope); }
     public Locator responseDetails(Locator request) { return evidence.responseDetails(request); }
     public Locator executionEvidence(Locator request) { return evidence.executionEvidence(request); }

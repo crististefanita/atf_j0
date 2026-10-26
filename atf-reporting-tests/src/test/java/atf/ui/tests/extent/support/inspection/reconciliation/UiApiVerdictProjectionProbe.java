@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 import static atf.api.reporting.contract.AtfGherkinKeyword.THEN;
+import static atf.api.reporting.audit.ReportAuditChecks.check;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -67,41 +68,65 @@ public final class UiApiVerdictProjectionProbe {
             assertScenarioStatus(owner.detail(), CORRELATION_FAIL);
 
             var expectations = List.of(
-                    new FailureExpectation(UI_PASS_API_FAIL, "API cart quantity contract failed", ReportEvidenceOwner.API, "GET /cart/quantity"),
-                    new FailureExpectation(UI_FAIL_API_PASS, "UI confirmation notice is missing", ReportEvidenceOwner.UI, ""),
-                    new FailureExpectation(BOTH_FAIL, "API cart quantity contract failed", ReportEvidenceOwner.API, "GET /cart/quantity"),
-                    new FailureExpectation(BOTH_FAIL, "API-looking UI notice contract failed", ReportEvidenceOwner.UI, ""),
-                    new FailureExpectation(CORRELATION_FAIL, "API correlation is inconsistent", ReportEvidenceOwner.API, "API correlation"));
-            for (int index = 0; index < expectations.size(); index++) {
-                page = audit.openTab(ReportUiContract.Tab.FAILS.hash());
-                Locator fails = LOCATORS.failsView(page);
-                assertEquals(expectations.size(), LOCATORS.failureItems(fails).count(),
-                        "each failed assertion retains its owner, including a mixed-failure scenario");
-                audit.actions().click(LOCATORS.failureItemAction(page, index), "inspect the failure owner");
-                Locator detail = LOCATORS.failureDetail(fails);
-                String text = detail.innerText();
-                var matches = expectations.stream().filter(expected -> text.contains(expected.scenario())
-                        && text.contains(expected.cause())).toList();
-                assertEquals(1, matches.size(), () -> "missing, merged or wrong failure cause: " + text);
-                var expected = matches.getFirst();
-                String ownerMarker = AtfReportHtmlVocabulary.attribute(
-                        AtfReportHtmlVocabulary.Attribute.EVIDENCE_OWNER, expected.owner().attributeValue());
-                assertTrue(detail.innerHTML().contains(ownerMarker), () -> "wrong semantic owner: " + text);
-                if (expected.owner() == ReportEvidenceOwner.API) {
-                    assertTrue(text.contains("REQUEST") && text.contains(expected.request()), text);
-                    assertTrue(text.contains("CHECKPOINT") && text.contains(expected.scenario()), text);
-                    assertTrue(!text.contains("STEP UI assertion") && !text.contains("GET " + PASSING_ROUTE), text);
-                } else {
-                    assertTrue(text.contains("STEP") && text.contains("UI assertion"), text);
-                }
-                Locator openLink = LOCATORS.failureDetailOpenLink(fails);
-                assertEquals(1, openLink.count());
-                String href = openLink.getAttribute("href");
-                assertTrue(href != null && href.contains("scenario-index="));
-                audit.actions().click(LOCATORS.failureDetailOpenAction(page), "open the exact failure in Tests");
-                audit.actions().waitForVisible(LOCATORS.testsView(page), ReportUiContract.Tab.TESTS.hash());
-                assertTrue(page.url().contains("#test-id=") && page.url().contains("scenario-index="));
-                assertTrue(LOCATORS.visibleTestDetail(page).innerText().contains(expected.scenario()));
+                    new FailureExpectation(UI_PASS_API_FAIL, "API cart quantity contract failed", ReportEvidenceOwner.API, "QUERY /cart/quantity", 0),
+                    new FailureExpectation(UI_FAIL_API_PASS, "UI confirmation notice is missing", ReportEvidenceOwner.UI, "", 1),
+                    new FailureExpectation(BOTH_FAIL, "API cart quantity contract failed", ReportEvidenceOwner.API, "QUERY /cart/quantity", 2),
+                    new FailureExpectation(BOTH_FAIL, "API-looking UI notice contract failed", ReportEvidenceOwner.UI, "", 2),
+                    new FailureExpectation(CORRELATION_FAIL, "API correlation is inconsistent", ReportEvidenceOwner.API, "API correlation", 3));
+            for (int ordinal = 0; ordinal < expectations.size(); ordinal++) {
+                int index = ordinal;
+                audit.audit("mixed failure " + (index + 1) + " retains its owner and exact link", inspected -> {
+                    Page failurePage = audit.openTab(ReportUiContract.Tab.FAILS.hash());
+                    Locator fails = LOCATORS.failsView(failurePage);
+                    assertEquals(expectations.size(), LOCATORS.failureItems(fails).count(),
+                            "each failed assertion retains its owner, including a mixed-failure scenario");
+                    audit.actions().click(LOCATORS.failureItemAction(failurePage, index), "inspect the failure owner");
+                    Locator detail = LOCATORS.failureDetail(fails);
+                    String text = detail.innerText();
+                    var matches = expectations.stream().filter(expected -> text.contains(expected.scenario())
+                            && text.contains(expected.cause())).toList();
+                    assertEquals(1, matches.size(), () -> "missing, merged or wrong failure cause: " + text);
+                    var expected = matches.getFirst();
+                    String ownerMarker = AtfReportHtmlVocabulary.attribute(
+                            AtfReportHtmlVocabulary.Attribute.EVIDENCE_OWNER, expected.owner().attributeValue());
+                    assertTrue(detail.innerHTML().contains(ownerMarker), () -> "wrong semantic owner: " + text);
+                    if (expected.owner() == ReportEvidenceOwner.API) {
+                        assertTrue(text.contains("REQUEST") && text.contains(expected.request()), text);
+                        assertTrue(text.contains("CHECKPOINT") && text.contains(expected.scenario()), text);
+                        assertTrue(!text.contains("STEP UI assertion") && !text.contains("GET " + PASSING_ROUTE), text);
+                        if (expected.request().startsWith("QUERY ")) {
+                            assertTrue(text.contains("5 ms") && !text.contains("91 ms"),
+                                    "failure duration must belong to its exchange: " + text);
+                        }
+                    } else {
+                        assertTrue(text.contains("STEP") && text.contains("UI assertion"), text);
+                    }
+                    inspected.screen("the failure index preserves its typed owner and checkpoint", "Fails / " + expected.scenario(),
+                            audit.capture(failurePage, "Typed failure owner: " + expected.owner()), List.of(
+                                    check("Evidence owner", expected.owner().attributeValue(), ownerMarker,
+                                            detail.innerHTML().contains(ownerMarker)),
+                                    check("Failure cause", expected.cause(), text, text.contains(expected.cause())),
+                                    check("Scenario", expected.scenario(), text, text.contains(expected.scenario()))),
+                            AtfReportStatus.PASS);
+                    Locator openLink = LOCATORS.failureDetailOpenLink(fails);
+                    assertEquals(1, openLink.count());
+                    String href = openLink.getAttribute("href");
+                    String scenarioAnchor = "scenario-index=" + expected.scenarioIndex();
+                    assertTrue(href != null && href.endsWith(scenarioAnchor), href);
+                    audit.actions().click(LOCATORS.failureDetailOpenAction(failurePage), "open the exact failure in Tests");
+                    audit.actions().waitForVisible(LOCATORS.testsView(failurePage), ReportUiContract.Tab.TESTS.hash());
+                    assertTrue(failurePage.url().contains("#test-id=") && failurePage.url().endsWith(scenarioAnchor));
+                    assertEquals("true", LOCATORS.scenarios(LOCATORS.visibleTestDetail(failurePage))
+                            .nth(expected.scenarioIndex()).getAttribute("data-atf-scenario-open"));
+                    String selectedScenario = LOCATORS.visibleTestDetail(failurePage).innerText();
+                    assertTrue(selectedScenario.contains(expected.scenario()));
+                    inspected.screen("Open in Tests selects the exact original scenario", "Tests / " + expected.scenario(),
+                            audit.capture(failurePage, "Original scenario: " + expected.scenario()), List.of(
+                                    check("Scenario deep-link", scenarioAnchor, failurePage.url(),
+                                            failurePage.url().endsWith(scenarioAnchor)),
+                                    check("Selected scenario", expected.scenario(), selectedScenario,
+                                            selectedScenario.contains(expected.scenario()))), AtfReportStatus.PASS);
+                });
             }
             assertTrue(context.browserDiagnostics().valid(),
                     () -> context.browserDiagnostics().violations().toString());
@@ -115,10 +140,20 @@ public final class UiApiVerdictProjectionProbe {
             if (scenario.innerText().contains(scenarioTitle)) {
                 assertTrue(LOCATORS.nodeStatusBadge(scenario).innerText().contains("Fail"),
                         () -> "scenario must aggregate the failing channel: " + scenarioTitle);
+                boolean uiFails = scenarioTitle.equals(UI_FAIL_API_PASS) || scenarioTitle.equals(BOTH_FAIL);
+                assertChannelBadge(scenario, ReportEvidenceOwner.UI, uiFails ? "Fail" : "Pass");
+                assertChannelBadge(scenario, ReportEvidenceOwner.API,
+                        scenarioTitle.equals(UI_FAIL_API_PASS) ? "Pass" : "Fail");
                 return;
             }
         }
         throw new AssertionError("scenario is missing from the visible owner: " + scenarioTitle);
+    }
+
+    private static void assertChannelBadge(Locator scenario, ReportEvidenceOwner owner, String expected) {
+        Locator card = LOCATORS.validationForOwner(scenario, owner);
+        assertEquals(expected, LOCATORS.nodeStatusBadge(card).innerText().trim(),
+                "the browser badge must preserve the local channel verdict");
     }
 
     private static Path publish() {
@@ -164,8 +199,9 @@ public final class UiApiVerdictProjectionProbe {
         String path = title.equals(PASSING_ROUTE) ? PASSING_ROUTE
                 : title.equals(UI_FAIL_API_PASS) ? "/checkout/confirmation" : "/cart/quantity";
         String url = "https://report-fixture.invalid" + path;
-        Duration elapsed = Duration.ofMillis(5);
-        var request = ReportRequest.builder(HttpMethod.GET.value(), path)
+        Duration elapsed = Duration.ofMillis(title.equals(PASSING_ROUTE) ? 91 : 5);
+        String method = path.equals("/cart/quantity") ? "QUERY" : HttpMethod.GET.value();
+        var request = ReportRequest.builder(method, path)
                 .headers(ReportRequestHeaders.observed(Map.of("Accept", "application/json")))
                 .body("", ReportBodyAvailability.ABSENT).build();
         var response = new ReportResponse(200, "{\"ok\":true}",
@@ -215,5 +251,6 @@ public final class UiApiVerdictProjectionProbe {
         }
     }
 
-    private record FailureExpectation(String scenario, String cause, ReportEvidenceOwner owner, String request) { }
+    private record FailureExpectation(String scenario, String cause, ReportEvidenceOwner owner,
+                                      String request, int scenarioIndex) { }
 }

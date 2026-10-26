@@ -347,6 +347,13 @@ storage și notificarea subscriberilor, inspectorul reconstruiește sau limiteaz
 URL/path, headers, body, auth/source, failure, service și signature. Testul
 negativ pentru input creat de caller protejează acest boundary.
 
+- Body-urile capturate nu folosesc `trim()`; spațiile marginale și payload-ul
+  numai din whitespace rămân date, nu absență.
+- Redacția și plafonul de preview rămân active înainte de storage/subscribers;
+  semnătura consumă același body redactat și limitat, fără eliminarea spațiilor.
+- `UiNetworkBodyFidelityComponentTest` probează capturarea browser locală,
+  sanitizarea typed, notificarea subscriberilor și separarea semnăturilor.
+
 Read-back după acțiune:
 
 - înainte de acțiune: capturează `observationCursor()`;

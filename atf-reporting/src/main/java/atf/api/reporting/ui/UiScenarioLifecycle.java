@@ -1,11 +1,17 @@
 package atf.api.reporting.ui;
 import atf.api.reporting.contract.AtfReportPorts;
+import atf.api.reporting.contract.AtfAssertion;
+import atf.api.reporting.ui.failure.UiCheckpointFailure;
 import atf.api.reporting.contract.AtfReportStatus;
 import atf.api.reporting.evidence.ReportScreenshotPolicy;
 import atf.api.reporting.evidence.profile.ReportEvidenceFlowMode;
 import atf.api.reporting.evidence.profile.ReportEvidenceProfile;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Set;
 
 
 /** Owns scenario completion state while the public UI facade stays thin. */
@@ -19,6 +25,17 @@ public final class UiScenarioLifecycle implements AutoCloseable {
     private boolean phaseStarted;
     private boolean unifiedFlowPublished;
     private boolean completed;
+    private final Set<AtfAssertion> failedUiAssertions = Collections.newSetFromMap(new IdentityHashMap<>());
+
+    void retainUiFailures(Collection<AtfAssertion> assertions) {
+        if (assertions != null) assertions.stream()
+                .filter(assertion -> assertion.resultStatus() == AtfReportStatus.FAIL)
+                .forEach(failedUiAssertions::add);
+    }
+
+    boolean reports(Throwable failure) {
+        return UiCheckpointFailure.isReported(failure, failedUiAssertions);
+    }
 
     UiScenarioLifecycle(AtfReportPorts.Scenario delegate, ReportEvidenceProfile evidenceProfile,
                         String scenarioTitle) {

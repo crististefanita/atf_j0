@@ -51,7 +51,8 @@ public final class MockReportContractAuditor {
         ApiReportContractAuditor.Result result = delegate.inspect(new ApiReportContractInput(
                 requestTitle, requestUrl, actualStatus,
                 json.requestBody(), json.responseBody(), json.violations(),
-                safeRendered.requestFields(), safeRendered.responseFields(), safeRendered.executionFields()));
+                safeRendered.requestFields(), safeRendered.responseFields(), safeRendered.executionFields(),
+                json.requestAvailability(), json.responseAvailability()));
         Optional<MockRoute> route = result.route().flatMap(contract -> mock.routes().stream()
                 .filter(candidate -> candidate.key().equals(contract.key()))
                 .findFirst());

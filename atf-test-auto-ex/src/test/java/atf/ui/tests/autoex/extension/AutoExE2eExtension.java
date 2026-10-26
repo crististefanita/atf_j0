@@ -1,7 +1,8 @@
-package atf.ui.autoex.support;
+package atf.ui.tests.autoex.extension;
 
 import atf.api.testkit.lifecycle.AtfE2eActivationPolicy;
 import atf.ui.autoex.config.AutoExConfigurationLoader;
+import atf.ui.autoex.runtime.AutoExE2eRun;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
@@ -35,7 +36,7 @@ public final class AutoExE2eExtension implements ExecutionCondition,
 
     @Override
     public void beforeEach(ExtensionContext context) {
-        context.getStore(NAMESPACE).put(RUN_KEY, AutoExE2eRun.open(context));
+        context.getStore(NAMESPACE).put(RUN_KEY, AutoExRunFactory.open(context));
     }
 
     @Override

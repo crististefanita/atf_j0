@@ -402,6 +402,13 @@ Rendererul nu inventează statusuri.
 
 ### Captura la failure
 
+- Adaptorul aruncă `UiCheckpointFailure(message, assertions)` cu instanțele
+  exacte ale aserțiunilor UI FAIL publicate în scenariul curent.
+- În Fails rămâne aserțiunea originală; diagnosticul de propagare și captura
+  finală rămân în `Failure evidence` din Tests, inclusiv în flow unificat.
+- Nu se compară titluri sau mesaje. Excepțiile obișnuite, instanțele diferite
+  cu același conținut, eșecurile API și cleanup/acțiunile independente rămân separate.
+
 `Failure evidence` păstrează acțiunile executate și cauza inițială.
 `UiFailureScreenshotState` evaluează politica înaintea payload-ului:
 
@@ -956,14 +963,12 @@ response-ului nu completează MIME-ul request-ului. Portul legacy `json(...)`
 poate primi explicit valoarea JSON `null`; el nu dovedește că un body HTTP a fost
 capturat și nu înlocuiește `ReportBodyAvailability`.
 
-`ReportEvidenceOwner.UI/API` aparține validării și snapshot-ului semantic.
-Wrapperul assertions expune `data-atf-evidence-owner`; Fails îl consumă înaintea
-euristicilor legacy, fără să deducă ownerul din titlul liber.
-
-Eșecul API păstrează
-`REQUEST`, validarea, cauza și checkpoint-ul Gherkin proprietar; eșecul de corelare
-fără exchange invalid apare ca `API correlation`, nu ca request-ul-soră PASS.
-Eșecul UI rămâne `STEP`, iar statusurile UI/API nu se propagă lateral.
+| Owner / caz | Contract Fails |
+|---|---|
+| `ReportEvidenceOwner.UI/API` | aparține validării și snapshot-ului; `data-atf-evidence-owner` are prioritate față de euristicile legacy, nu este dedus din titlul liber |
+| UI FAIL | `STEP`, fără propagarea statusului către API PASS |
+| API FAIL | `REQUEST`, validarea, cauza și checkpoint-ul Gherkin proprietar; UI PASS rămâne independent |
+| corelare API FAIL, exchange-uri PASS | `API correlation`, nu request-ul-soră PASS sau durata lui |
 
 Formatarea comună nu modifică request-ul executat:
 
@@ -1165,6 +1170,10 @@ consumerului pentru total, format și owner și produce doar încălcările
 observate; nu are baseline hardcodat. Bundle-ul HTML/evidence se bugetează în
 consumer, unde există artifactul complet, nu în biblioteca standalone. Astfel o optimizare
 poate fi verificată fără să transforme numele sau hash-ul artifactului în API.
+
+Sursele native JavaScript/CSS folosesc LF, guvernat de `.gitattributes` al
+modulului; bugetele rămân comparabile în checkout-uri Windows/Linux.
+Compactarea modifică numai copia publicată.
 
 Facade-urile Java (`AtfFallbackTheme`, `AtfReportOverviewCss`, facades-urile CSS
 theme/evidence,

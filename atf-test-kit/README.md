@@ -70,6 +70,7 @@ Fiecare clasă executabilă declară exact un nivel:
 | `atf.api.testkit.documentation` | `DocumentationTarget` repeatable | selecție de documente; validatorii rămân în ATF Tests |
 | `atf.api.testkit.evidence` | `AtfUiEvidence`, `AtfUiEvidenceFlow`, `AtfUiScreenshotPolicy` | declară independent gruparea flow-ului și intenția capturilor; adaptorii consumer le mapează în profilul Reporting |
 | `atf.api.testkit.lifecycle` | `TestRunInitialization`, `CloseOnceResource`, `ArmedCleanup`, `FailureAwareCleanup`, `FailureEvidenceCleanup`, `AtfE2eActivationPolicy` | achiziție/rollback, cleanup și activare E2E neutre; fără API UI/Reporting |
+| `atf.api.testkit.scope` | `TestRunScope`, `ScopedTestValue<T>` | ownership explicit în Store-ul JUnit, fără cache static sau resurse UI |
 
 `atf.api.testkit.lifecycle` este un pachet al modulului existent
 `atf-test-kit`, nu un modul nou. Nu introduce dependențe către UI sau Reporting.
@@ -98,6 +99,33 @@ acceptate, iar politici contradictorii la același nivel eșuează fail-fast.
 prin `AtfReportPathOptIn.include(owner)` și notifică dacă cel puțin un owner a
 activat opțiunea.
 
+### Valori cu ownership per clasă sau execuție
+
+`TestRunScope.selected(context)` citește parametrul JUnit
+`atf.test.run.scope`; valorile invalide opresc configurarea.
+
+| Valoare | Owner | Utilizare |
+|---|---|---|
+| `class` implicit | Store-ul clasei concrete | metodele clasei împart valoarea; alte clase au valori distincte |
+| `suite` explicit | Store-ul root al execuției | clasele aceleiași execuții pot reutiliza valoarea |
+
+- Suita declară `@ConfigurationParameter(key = "atf.test.run.scope", value = "suite")`;
+  ordinea și paralelismul sunt decizii separate ale consumerului.
+- `value(context, owner, name, type)` izolează cheile și scope-urile.
+  Două lansări în aceeași JVM nu împart valori, chiar cu ID-uri JUnit identice.
+- `ScopedTestValue.getOrCreate(...)` execută factory-ul o dată și întoarce
+  valoarea plus indicatorul `created`; o achiziție eșuată blochează retry-ul
+  implicit și păstrează cauza inițială.
+- `close()` este idempotent și uită referința, inclusiv după un eșec;
+  nu închide obiectul stocat și nu șterge resursa remote împrumutată.
+- Reprezentările `toString()` nu includ valoarea. Consumerul deține politica
+  de redactare și orice operație externă de cleanup.
+
+`ScopedTestValueTest` verifică stările și concurența;
+`TestRunScopeComponentTest` lansează Jupiter real pentru metode, clase,
+execuții repetate, setup/body eșuat și eliberare la închiderea Store-ului.
+Launcher-ul și engine-ul Jupiter sunt dependențe numai de test ale Kit.
+
 ### Limite de responsabilitate
 
 - `AtfUiEvidence` deține numai vocabularul declarat: `CONFIGURED` lasă fiecare
@@ -121,11 +149,30 @@ Nu se creează un modul UI nou și nu se mută harness-urile consumerilor ca ata
 | Contract | Owner / limită |
 |---|---|
 | `FailureAwareCleanup`: închiderea inversă a resurselor dobândite și agregarea eșecurilor | implementat în `atf-test-kit`; probat direct și prin adaptoarele Shop/AutoEx, fără API UI/Reporting |
-| Browser, `Page`, Playwright, Extent, capture profile, network inspector și business | adaptorul `src/test` al fiecărui consumer; nu intră în Test Kit |
+| Browser/report lifecycle și extensia JUnit | adaptorul `src/test` al consumerului; nu intră în Test Kit |
+| Configurație, captură și mapping specifice aplicației fără JUnit/Kit | runtime-ul `src/main` al consumerului; browserul generic rămâne în UI, rendererul în Reporting |
 | Lifecycle-ul sau extensia JUnit UI | rămân locale până când ambele consumatoare demonstrează același contract; `atf-ui` consumă deja Test Kit în test scope, deci dependența inversă ar crea ciclu |
 | Scope-ul Shop pentru Test Kit | importurile și dependența Maven sunt în `test` scope; verificat de `ConsumerModuleArchitectureGovernanceTest` din `atf-tests` |
 | Clasificare, evidence și instalare | `@AtfE2eTest` și `@AtfTestChannel` clasifică testul; `@AtfUiEvidence` declară forma dovezii; extensia și resursele rămân la consumer. Contractul adnotărilor este în [documentația infrastructurii de test](../docs/ATF_Test_Infrastructure_Annotations.md), iar alegerea layer-ului în [ghidul de testare](../docs/ATF_Testing_Guide.md). |
 | Activare E2E | `AtfE2eActivationPolicy` rezolvă semnalele deja colectate de extensia consumerului; nu citește YAML sau proprietăți de sistem și nu pornește browserul |
+
+### Reutilizare fără un nou modul de suport
+
+Ținta este eliminarea infrastructurii duplicate din consumeri, nu mutarea
+browserului sau raportului în Kit. Primitivele din `lifecycle` există deja.
+
+- Scope-ul neutru există în `atf.api.testkit.scope`; Shop îl consumă pentru
+  referința contului, păstrând înregistrarea și autentificarea la ownerul aplicației.
+  Un adaptor JUnit suplimentar cere un contract comun demonstrat.
+- Runtime-ul specific aplicației se separă în consumer; fixture-urile și
+  oracolele artificiale nu devin API-uri main numai pentru a goli `src/test`.
+- Nu introducem dependențe Playwright/Reporting sau un modul UI nou;
+  configurația și declarațiile sunt rezolvate înainte de achiziția resurselor.
+- `@AtfUiEvidence` declară intenția, nu garantează că adaptorul citește o cheie
+  YAML pentru fiecare axă; starea efectivă este documentată de consumer.
+
+Diferențele rămase și probele cerute sunt în
+[feedback-ul refactorizării](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md).
 
 ## Dependențe
 

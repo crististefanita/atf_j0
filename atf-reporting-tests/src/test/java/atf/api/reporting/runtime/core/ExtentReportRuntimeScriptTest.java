@@ -277,7 +277,7 @@ class ExtentReportRuntimeScriptTest {
                          "Fails must recognize the explicit runtime Failure evidence card"),
                  () -> assertTrue(script.contains("runtimeFailures"),
                          "runtime failure evidence must be kept separate from semantic validations"),
-                 () -> assertTrue(script.contains("runtimeFailures.length"),
+                 () -> assertTrue(script.contains("state.runtimeFailures[0]||state.uiFailures[0]"),
                          "runtime failure evidence must win over a later green page validation"),
                  () -> assertTrue(script.contains("ctx.step='Failure evidence'"),
                          "Fails must label the explicit runtime failure step"),

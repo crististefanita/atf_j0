@@ -17,6 +17,8 @@ import atf.api.console.junit.AtfReportPathOptIn;
 import atf.api.testkit.AtfConsoleMessages;
 import atf.api.testkit.reporting.AtfReportPath;
 import atf.api.testkit.lifecycle.CloseOnceResource;
+import atf.api.testkit.scope.ScopedTestValue;
+import atf.api.testkit.scope.TestRunScope;
 import atf.api.testkit.channel.AtfTestChannelResolver;
 import atf.api.testkit.channel.TestChannel;
 import atf.api.ui.playwright.PlaywrightActionSequence;
@@ -32,7 +34,7 @@ import atf.ui.tests.practiceshop.support.lifecycle.ShopE2eContext;
 import atf.ui.tests.practiceshop.support.lifecycle.ShopE2eActivationExtension;
 import atf.ui.practiceshop.support.ShopPurchaseTraceStep;
 import atf.ui.practiceshop.support.ShopPurchaseCheckpoint;
-import atf.ui.tests.practiceshop.support.reporting.ShopScreenshotPolicy;
+import atf.ui.practiceshop.reporting.ShopScreenshotPolicy;
 import com.microsoft.playwright.Page;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
@@ -61,8 +63,14 @@ public final class ShopE2eTestSupport {
             ExtensionContext.Namespace.create(ShopE2eTestSupport.class);
     private static final String HARNESS_KEY = "e2e-harness";
     private static final String SUITE_REPORT_KEY = "practice-shop-suite-report";
+    private static final String ACCOUNT_KEY = "registered-account";
 
     private ShopE2eTestSupport() { }
+
+    static ScopedTestValue<ShopCredentials> accounts(ExtensionContext context) {
+        return TestRunScope.selected(context).value(
+                context, ShopE2eTestSupport.class, ACCOUNT_KEY, ShopCredentials.class);
+    }
 
     public enum HarnessProfile {
         CONFIGURED,
@@ -100,8 +108,6 @@ public final class ShopE2eTestSupport {
                     context.getRequiredTestClass().getAnnotation(ShopTestSupport.AuthenticatedE2e.class);
             ShopTestSupport.AccountSetupMode accountSetup = authenticated == null
                     ? ShopTestSupport.AccountSetupMode.REUSE_FIXTURE : authenticated.accountSetup();
-            ShopTestSupport.RegistrationProfileMode registrationProfileMode = authenticated == null
-                    ? ShopTestSupport.RegistrationProfileMode.LOCAL : authenticated.registrationProfile();
             Path registrationProfile = authenticated != null
                     && accountSetup == ShopTestSupport.AccountSetupMode.REGISTER_PER_RUN
                     && authenticated.registrationProfile() == ShopTestSupport.RegistrationProfileMode.LOCAL
@@ -111,10 +117,12 @@ public final class ShopE2eTestSupport {
             ReportEvidenceProfile presentation = reportProfile(configuration, harness, uiEvidence);
             atf.api.reporting.console.AtfConsoleSink reportConsole;
             UiExtentReportSession sharedReport = null;
-            if (ShopTestSupport.suiteModeEnabled(context)) {
+            TestRunScope scope = TestRunScope.selected(context);
+            ScopedTestValue<ShopCredentials> accounts = accounts(context);
+            if (scope == TestRunScope.SUITE) {
                 SuiteReportResource suiteReport = context.getRoot().getStore(NAMESPACE)
                         .getOrComputeIfAbsent(SUITE_REPORT_KEY,
-                                ignored -> new SuiteReportResource(context.getRoot().getUniqueId()),
+                                ignored -> new SuiteReportResource(accounts),
                                 SuiteReportResource.class);
                 suiteReport.includeReportPath(context.getRequiredTestClass());
                 sharedReport = suiteReport.open(configuration, presentation);
@@ -125,14 +133,10 @@ public final class ShopE2eTestSupport {
             }
             ShopE2eContext browser = ShopE2eContext.open(
                     configuration, presentation, sharedReport, reportConsole);
-            String rootId = context.getRoot().getUniqueId();
-            String accountRunScope = ShopTestSupport.suiteModeEnabled(context)
-                    ? ShopAuthenticatedAccountTestSupport.suiteAccountScope(rootId)
-                    : rootId + "::" + context.getRequiredTestClass().getName();
             context.getStore(NAMESPACE).put(HARNESS_KEY, new CloseOnceResource<>(
                     new E2eHarness(configuration, browser, new ShopLocators(),
                             context.getRequiredTestClass().getSimpleName(), accountSetup, registrationProfile,
-                            accountRunScope)));
+                            scope, accounts)));
         }
 
         @Override
@@ -162,14 +166,14 @@ public final class ShopE2eTestSupport {
     }
 
     /** Root-store owner: all suite scenarios share one reporter, flushed after the last child test. */
-    private static final class SuiteReportResource implements ExtensionContext.Store.CloseableResource {
-        private final String rootId;
+    static final class SuiteReportResource implements ExtensionContext.Store.CloseableResource {
+        private final ScopedTestValue<ShopCredentials> accounts;
         private final AtfReportPathOptIn reportPathOptIn = new AtfReportPathOptIn(
                 AtfConsoleTestExtension.reportPathPublisher());
         private UiExtentReportSession report;
 
-        private SuiteReportResource(String rootId) {
-            this.rootId = rootId;
+        SuiteReportResource(ScopedTestValue<ShopCredentials> accounts) {
+            this.accounts = Objects.requireNonNull(accounts, "accounts");
         }
 
         synchronized void includeReportPath(Class<?> owner) {
@@ -189,11 +193,13 @@ public final class ShopE2eTestSupport {
 
         @Override
         public synchronized void close() {
-            if (report != null) {
-                report.close();
-                report = null;
+            UiExtentReportSession owned = report;
+            report = null;
+            try {
+                if (owned != null) owned.close();
+            } finally {
+                accounts.close();
             }
-            ShopAuthenticatedAccountTestSupport.clearSuiteAccount(rootId);
         }
     }
 
@@ -295,14 +301,8 @@ public final class ShopE2eTestSupport {
                              String reportClass,
                              ShopTestSupport.AccountSetupMode accountSetupMode,
                              Path registrationProfileFile,
-                             String accountRunScope) implements AutoCloseable {
-        public E2eHarness(ShopConfiguration configuration,
-                          ShopE2eContext context,
-                          ShopLocators locators, String reportClass) {
-            this(configuration, context, locators, reportClass,
-                    ShopTestSupport.AccountSetupMode.REUSE_FIXTURE, null, "standalone");
-        }
-
+                             TestRunScope runScope,
+                             ScopedTestValue<ShopCredentials> accounts) implements AutoCloseable {
         public E2eHarness {
             Objects.requireNonNull(configuration, "configuration");
             Objects.requireNonNull(context, "context");
@@ -311,9 +311,8 @@ public final class ShopE2eTestSupport {
                 throw new IllegalArgumentException("reportClass is required");
             }
             Objects.requireNonNull(accountSetupMode, "accountSetupMode");
-            if (accountRunScope == null || accountRunScope.isBlank()) {
-                throw new IllegalArgumentException("accountRunScope is required");
-            }
+            Objects.requireNonNull(runScope, "runScope");
+            Objects.requireNonNull(accounts, "accounts");
         }
 
         public void run(String title, String overview, Consumer<E2eJourney> businessFlow) {
@@ -371,7 +370,8 @@ public final class ShopE2eTestSupport {
         public ShopApiNetworkJournal apiNetwork() { return harness.context().apiNetwork(); }
         public ShopTestSupport.AccountSetupMode accountSetupMode() { return harness.accountSetupMode(); }
         public Path registrationProfileFile() { return harness.registrationProfileFile(); }
-        public String accountRunScope() { return harness.accountRunScope(); }
+        public TestRunScope runScope() { return harness.runScope(); }
+        public ScopedTestValue<ShopCredentials> accounts() { return harness.accounts(); }
         public void checkpoint(ShopPurchaseTraceStep step, Collection<AtfAssertion> assertions,
                                Collection<atf.api.reporting.model.ReportExecutionEvidence> apiEvidence) {
             if (completed || failed) throw new IllegalStateException("SETUP is already finished");

@@ -36,16 +36,17 @@ class CategoriesAndEvidenceSectionValidatorTest {
     }
 
     @Test
-    void explicitNullExplainsBodylessRequestWithoutClaimingAPayload() {
+    void explicitNullRemainsACapturedJsonPayload() {
         var json = new ReportAuditSnapshot.JsonEvidence("null", "{\"id\":1}", List.of());
         var snapshot = new ReportAuditSnapshot.RequestEvidence(true, 1, 1, 1, json);
         var result = new EvidenceSectionValidator().validate(snapshot);
 
         assertTrue(result.valid());
-        assertEquals("explicit request/response JSON (null = no payload)",
+        assertTrue(json.requestHasPayload());
+        assertEquals("captured JSON or confirmed absent body on each side",
                 result.assertions().stream().filter(item -> item.name().equals("JSON evidence present"))
                         .findFirst().orElseThrow().expected());
-        assertEquals("valid JSON document (null = no payload)",
+        assertEquals("valid JSON document or confirmed absent body",
                 result.assertions().stream().filter(item -> item.name().equals("Request JSON"))
                         .findFirst().orElseThrow().expected());
     }

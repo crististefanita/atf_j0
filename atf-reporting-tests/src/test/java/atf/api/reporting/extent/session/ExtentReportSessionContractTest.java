@@ -6,6 +6,7 @@ import atf.api.reporting.support.TestReportPaths;
 import atf.api.reporting.support.ApiReportTestUrls;
 import atf.api.reporting.support.publication.CleanupPublicationFixture;
 import atf.api.reporting.markup.ExtentReportAssets;
+import atf.api.reporting.evidence.ReportEvidenceStyleContract;
 import atf.api.mock.MockRoutePaths;
 import atf.api.core.http.response.ApiAttemptOutcome;
 import atf.api.core.http.response.ApiAttemptRecord;
@@ -256,7 +257,9 @@ class ExtentReportSessionContractTest {
                  () -> assertTrue(html.contains("function failureIndexMarkup(name,ctx,id,scenarioIndex,ordinal)")),
                  () -> assertTrue(html.contains("data-atf-failure-phase")),
                 () -> assertTrue(html.contains("q('.card',item)")),
-                () -> assertTrue(html.contains("table.tBodies&&table.tBodies[0]")),
+                () -> assertTrue(Boolean.TRUE.equals(ReportEvidenceStyleContract.inspectHtml(report, html, false)
+                                .checks().get("specialized evidence")),
+                        "the artifact must contain the real aggregate assertion table"),
                 () -> assertTrue(html.contains("Array.prototype.slice.call(row.cells||[])")),
                 () -> assertTrue(html.contains("Validate: status=")),
                 () -> assertTrue(html.contains("ctx.validation")),
@@ -396,7 +399,8 @@ class ExtentReportSessionContractTest {
                 () -> assertTrue(html.contains("function failureContextFor(item,anchor)")),
                  () -> assertTrue(html.contains("var durationMs=atfDurationValue(rawDuration)")
                         && html.contains("duration=durationMs===null?rawDuration:atfFormatDuration(durationMs)")),
-                 () -> assertTrue(html.contains("uiFailures.length"),
+                 () -> assertTrue(html.contains("function failedUiEvidence(card)")
+                                 && html.contains("function failureTransportEvidence(card,state)"),
                          "the failure projection must detect concrete UI evidence separately from transport failures"),
                  () -> assertTrue(html.contains("ctx.ui?ctx.step:ctx.request"),
                          "the Fails index must use STEP for UI failures and REQUEST for API failures"),

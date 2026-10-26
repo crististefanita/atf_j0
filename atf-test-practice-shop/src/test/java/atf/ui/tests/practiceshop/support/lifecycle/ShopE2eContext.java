@@ -32,11 +32,11 @@ import atf.ui.practiceshop.support.ShopAuditObservations;
 import atf.ui.practiceshop.support.ShopLoginBodyRecovery;
 import atf.ui.practiceshop.support.ShopCountryOption;
 import atf.ui.practiceshop.support.api.ShopApiNetworkJournal;
-import atf.ui.tests.practiceshop.support.evidence.ShopBrowserCaptureProvider;
+import atf.ui.practiceshop.evidence.ShopBrowserCaptureProvider;
 import atf.ui.tests.practiceshop.support.reporting.ShopReportSystemMetadata;
 import atf.api.reporting.api.ReportModelAdapters;
 import atf.api.ui.audit.UiScreenAudit;
-import atf.ui.tests.practiceshop.support.reporting.ShopScreenshotPolicy;
+import atf.ui.practiceshop.reporting.ShopScreenshotPolicy;
 import com.microsoft.playwright.Page;
 
 import java.nio.file.Path;

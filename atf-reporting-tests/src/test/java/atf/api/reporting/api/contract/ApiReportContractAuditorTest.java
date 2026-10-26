@@ -128,14 +128,21 @@ class ApiReportContractAuditorTest {
     @Test
     void requiresJsonRequestAndResponseEvidenceForPutRoutes() {
         var auditor = new ApiReportContractAuditor(catalog(putRoute()));
-        var missingRequest = auditor.inspect(putInput("null", OK_BODY));
-        var missingResponse = auditor.inspect(putInput(REQUEST_BODY, "null"));
+        var missingRequest = auditor.inspect(putInput("", OK_BODY));
+        var missingResponse = auditor.inspect(putInput(REQUEST_BODY, ""));
 
         assertAll(
                 () -> assertFalse(missingRequest.compliant()),
                 () -> assertTrue(ViolationSignal.REQUEST_JSON_BODY.occursIn(missingRequest.violations())),
                 () -> assertFalse(missingResponse.compliant()),
                 () -> assertTrue(ViolationSignal.RESPONSE_JSON_BODY.occursIn(missingResponse.violations())));
+    }
+
+    @Test
+    void literalNullIsCapturedJsonButMustStillMatchTheConfiguredResponse() {
+        var auditor = new ApiReportContractAuditor(catalog(putRoute()));
+        assertTrue(auditor.inspect(putInput("null", OK_BODY)).compliant());
+        assertFalse(auditor.inspect(putInput(REQUEST_BODY, "null")).compliant());
     }
 
     @Test

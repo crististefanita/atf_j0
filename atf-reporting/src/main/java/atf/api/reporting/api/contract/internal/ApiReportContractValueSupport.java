@@ -15,7 +15,7 @@ public final class ApiReportContractValueSupport {
     private ApiReportContractValueSupport() { }
 
     public static boolean hasPayload(String body) {
-        return body != null && !body.isBlank() && !"null".equals(body.trim());
+        return body != null && !body.isBlank();
     }
 
     public static boolean isJson(String body) {

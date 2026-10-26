@@ -1,4 +1,6 @@
 package atf.api.reporting.evidence.markup;
+import atf.api.reporting.model.ReportExecutionEvidence;
+import atf.api.reporting.security.SensitiveDataRedactor;
 
 import atf.api.reporting.contract.AtfReportStatus;
 import atf.api.reporting.markup.vocabulary.AtfReportHtmlVocabulary;
@@ -22,6 +24,26 @@ import static atf.api.reporting.markup.vocabulary.AtfReportHtmlVocabulary.openTa
 /** Shared semantic primitives for Extent and fallback evidence renderers. */
 public final class ReportEvidenceMarkup {
     private ReportEvidenceMarkup() {
+    }
+
+    /** Machine-readable facts from the captured exchange, independent of display titles. */
+    public static String executionAttributes(ReportExecutionEvidence execution,
+                                             SensitiveDataRedactor redactor) {
+        var request = execution.request();
+        var response = execution.response();
+        var attributes = new java.util.ArrayList<String>();
+        if (request != null) {
+            attributes.add(attribute(AtfReportHtmlVocabulary.Attribute.REQUEST_METHOD, request.method()));
+            attributes.add(attribute(AtfReportHtmlVocabulary.Attribute.REQUEST_PATH,
+                    redactor.redactText(request.path())));
+            attributes.add(attribute(AtfReportHtmlVocabulary.Attribute.REQUEST_BODY_AVAILABILITY,
+                    request.bodyAvailability().name()));
+        }
+        if (response != null) {
+            attributes.add(attribute(AtfReportHtmlVocabulary.Attribute.RESPONSE_BODY_AVAILABILITY,
+                    response.bodyAvailability().name()));
+        }
+        return String.join(" ", attributes);
     }
 
     public static String disclosureStart(String kind, String title) {

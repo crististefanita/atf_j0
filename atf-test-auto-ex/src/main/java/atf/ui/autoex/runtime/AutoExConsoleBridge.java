@@ -1,11 +1,10 @@
-package atf.ui.autoex.support;
+package atf.ui.autoex.runtime;
 
 import atf.api.core.reporting.console.AtfConsoleEvent;
 import atf.api.core.reporting.console.AtfConsoleSink;
-
 import java.util.Objects;
 
-/** Test-only composition of the independent Reporting and Core console ports. */
+/** Consumer composition of the independent Reporting and Core console ports. */
 final class AutoExConsoleBridge {
     private AutoExConsoleBridge() { }
 

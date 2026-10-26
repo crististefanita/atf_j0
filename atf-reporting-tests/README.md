@@ -75,7 +75,10 @@ Proiecția contextului UI este verificată la componentă:
 | `UiApiValidationContractComponentTest` | interzice intrările cu exchange-uri brute în API, lifecycle, publisher și buffer; verifică verdictele UI/API independente și exchange-urile surori în checkpoint, setup, final și unified, plus markup-ul request/response/execution real |
 | `ReportRequestHeadersTest` | sursa observată/configurată, override case-insensitive, compatibilitatea clientului existent și copiere imutabilă |
 | `ObservedRequestEvidenceComponentTest` | Extent/fallback/UI_API × șase input-uri: absent, necapturat, JSON literal null, headere explicite redactate, default-uri declarate și response fără body; Request details și replay nu inventează headere sau payload |
-| `UiApiVerdictProjectionComponentTest` | UI PASS/API FAIL, UI FAIL/API PASS, ambele FAIL și corelare API FAIL cu exchange-uri PASS; owner tipizat, request/checkpoint/cauză exacte, ultimul exchange-soră PASS și Open in Tests pentru fiecare failure |
+| `ObservedBodyAuditComponentTest` | 22 de cazuri: audit browser real în cele trei publishere, body absent/necapturat/null literal, JSON fallback collapsed și comparație cu catalogul fără payload inventat |
+| `LiveClientHeaderProbe` | HTTP loopback real prin clientul ATF; headerele primite pe fir sunt comparate cu proiecția Reporting și replay-ul sanitizat |
+| `UiApiVerdictProjectionComponentTest` | UI PASS/API FAIL, UI FAIL/API PASS, ambele FAIL și corelare API FAIL cu exchange-uri PASS; owner tipizat, request/checkpoint/cauză exacte, ultimul exchange-soră PASS și indicele exact Open in Tests; audit separat cu pași, assertions și capturi pentru cele cinci intrări Fails |
+| `ApiWhitespaceBodyComponentTest` + `UiNetworkBodyFidelityComponentTest` din UI | body prezent numai din whitespace rămâne distinct de absent, necapturat și JSON literal null; captură/sanitizare la ownerul UI, apoi formatare/publicare/replay la Reporting |
 | `ExtentReportUiEvidencePublishingTest` | publisher-ul UI nu adaugă un request HTTP sintetic; exchange-ul nested păstrează request/response/JSON/execution |
 | `ExtentReportDisclosureBrowserComponentTest` | artifact controlat cu PASS/WARNING/FAIL; niciun tabel introductiv la checkpoint, validări și screenshot disponibile, API exchange complet, close fără subarbore vizibil și titluri custom identificate semantic; captură deduplicată deschisă prin click/Enter cu sursa colapsată, fără salt la ancoră |
 | `ReportPhaseDiagnosticTest` | conversie explicită, statusul fazei sursă, chei legacy delimitate, context nemodificat și rezultat imutabil; portul diagnostic nu creează HTTP |
@@ -173,6 +176,17 @@ Contractul este verificat pe două seam-uri:
 | reporting fallback/Extent | `HtmlReportComponentContractTest` și `ExtentReportSessionContractTest` validează titlul publicat în artifact |
 | consumer Practice Shop | `ShopApiOperationTest`, `ShopStandaloneApiReportTest` și `ShopApiMethodFidelityTest` validează method/path/intent, absența `QUERY`, operation kind și route template |
 
+### Corelarea cauzelor UI
+
+Corelarea cauzelor UI este verificată separat de
+`UiFailureCorrelationComponentTest`: aceeași instanță de aserțiune publicată
+și excepția sa propagată produc o singură intrare Fails. Fixture-ul neutru
+acoperă nouă scenarii în ambele moduri de flow; cele 16 cauze intenționate
+rămân distincte, inclusiv UI/API cu texte egale și excepții independente.
+Auditul browser verifică fiecare Open in Tests, aserțiunea originală,
+diagnosticul terminal și captura păstrată; testul unitar verifică
+identitatea, propagarea wrapped, cleanup-ul și ciclurile de cauze.
+
 ### Fidelitatea metodei și a timpilor API
 
 - metoda observată rămâne fidelă în snapshot, titlu, semnătură și replay; aliasul
@@ -180,6 +194,8 @@ Contractul este verificat pe două seam-uri:
 - durata necapturată este distinctă de `0 ms`, iar response time, totalul cu retry
   și durata publicării nu se substituie între ele;
 - corp absent, JSON literal `null` și corp necapturat rămân stări distincte;
+- replay-ul păstrează argumentele shell citate separat; testul de paritate nu
+  presupune ordinea headerelor și nu transformă absența într-un pane JSON;
 - `ReportTransportTimingTest` și `ApiExchangeParityComponentTest` verifică
   proiecția Reporting, iar `ShopApiMethodFidelityTest` protejează adaptorul
   consumerului;
@@ -558,8 +574,8 @@ Entry-point-urile selectabile direct din IntelliJ sunt separate pe layer:
 | `AtfReportingComponentSuite` | `component` din reporting și UI extent | boundary HTML/CSS/JS, contracte și fixture-uri controlate; snapshot-ul de navigation performance este mapat prin `ReportRuntimePerformanceSnapshot`, iar `ReportRuntimePerformanceBudget` verifică fixture-uri configurabile fără verdict business |
 | `AtfReportingIntegrationSuite` | `integration` din `atf.api.reporting` | session, publication, replay și contracte de integrare ale librăriei |
 | `AtfReportingApiFixtureSuite` | `integration` din `atf.api.tests.api` | mock API → core → validation → reporting evidence, fără browser |
-| `AtfReportingUiAuditSuite` | `e2e` din `atf.ui.tests.extent.e2e` | audit browser/debug al artifactului Extent, cu owner UI explicit |
-| `ExtentReportingE2eSuite` | `e2e` din `atf.ui.tests.extent.e2e` | browser/debug, click-uri, disclosure și randare observabilă |
+| `AtfReportingUiAuditSuite` | `e2e` din `atf.ui.tests.extent.e2e` | launcher browser/debug; aceeași selecție ca `ExtentReportingE2eSuite` |
+| `ExtentReportingE2eSuite` | același pachet/tag și aceeași excludere de suite | declară suplimentar `@AtfTestChannel(UI)`; nu adaugă alt inventar de probe |
 
 Gate-ul API cross-projection este inclus în `AtfReportingComponentSuite` și
 legat de `ReportingCoverageMatrixTest`: contract API direct, aceeași dovadă prin
@@ -590,8 +606,19 @@ mvn -pl atf-reporting-tests -am "-Dtest=AtfReportingComponentSuite" "-Dsurefire.
   eșec se diagnostichează din raportul și logul run-ului curent, nu dintr-un
   rezumat istoric păstrat aici.
 
-Launcher-ele sunt specifice layer-ului: `ExtentReportingE2eSuite` agregă E2E,
-iar `AtfReportingUiAuditSuite` auditează randarea UI.
+Cele două launchere E2E nu separă astăzi acoperirea browser de auditul UI:
+ambele selectează aceleași probe. Nu le lansa împreună în același gate.
+
+- Alegerea unui launcher canonic sau a unui alias de compatibilitate este
+  cerință deschisă, nu o ștergere deja aplicată.
+- Compară identitățile JUnit descoperite și metadata canalului înainte de
+  consolidare; păstrează testele și failure-path-urile, nu doar totalul.
+- Probele neutre de lifecycle, configurare și captură rămân la ownerii Kit/UI;
+  cele de renderer/publicare rămân aici, fără importuri Shop/AutoEx.
+
+Acceptanța este compilată în
+[feedback-ul refactorizării](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md),
+la `REPORTING-LAUNCHER-06`.
 
 Ancorele de output sunt:
 

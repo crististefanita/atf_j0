@@ -310,6 +310,13 @@ rendererul fallback:
   (`AVAILABLE`); textul literal `null` este un document JSON real;
 - `ABSENT` confirmă că nu a existat body, iar `NOT_CAPTURED` declară că dovada
   nu este disponibilă. Ambele publică explicația în details, nu un payload `null`;
+- auditorul primește disponibilitatea capturii separat de document: acceptă
+  absența confirmată fără JSON, respinge captura lipsă ori contradictorie și
+  tratează literalul `null` drept payload. Lipsa unui bloc HTML nu dovedește
+  singură că body-ul HTTP a fost absent;
+- metadata exchange-ului păstrează metoda/ruta și disponibilitatea ambelor body-uri.
+  Fails folosește ownerul validării și identitatea acestui exchange, inclusiv
+  pentru metode HTTP extensibile; un exchange frate nu îi înlocuiește contextul;
 - direcția request/response este typed și independentă de eticheta vizibilă;
   form/text nu sunt redenumite JSON, iar MIME-ul upstream nu este rescris.
   `NOT_CAPTURED` este explicit și nu fabrică payload; compatibilitatea legacy

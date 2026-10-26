@@ -136,15 +136,16 @@ public final class AccountPage extends AutoExPage {
         String actualUrl = run.currentUrl();
         AtfAssertion deletion = AutoExStoreAssertions.accountDeleted(result);
         boolean reachedDestination = destination.toString().equals(actualUrl);
-        boolean singleRequest = attempt.startedRequests() == 1;
-        if (deletion.passed() && reachedDestination && singleRequest) run.clearFailureCleanup();
+        var traffic = attempt.traffic();
+        boolean singleNavigation = traffic.singleDeletionNavigation();
+        if (deletion.passed() && reachedDestination && singleNavigation) run.clearFailureCleanup();
         run.checkpoint(AutoExPurchaseTraceStep.ACCOUNT_DELETED,
                 List.of(new AtfAssertion("Disposable customer identity", account.signupName(), identity,
                                 account.signupName().equals(identity)),
                         new AtfAssertion("Account deletion destination", destination.toString(), actualUrl,
                                 reachedDestination),
-                        new AtfAssertion("Account deletion requests", "1",
-                                Integer.toString(attempt.startedRequests()), singleRequest), deletion));
+                        new AtfAssertion("Account deletion navigation", "exactly one GET document navigation",
+                                traffic.description(), singleNavigation), deletion));
         click(AutoExSelectors.CONTINUE, "deleted account flow returns to the store");
         return result;
     }

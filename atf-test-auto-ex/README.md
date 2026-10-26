@@ -116,8 +116,9 @@ garantează ordinea și păstrarea cauzei; AutoEx furnizează callback-urile:
 
 **Decizie de boundary:** `AutoExPurchaseSession` rămâne în `src/main` ca API
 intern al runtime-ului consumer, deoarece journey-ul de producție îl folosește.
-Nu este API generic ATF; JUnit/evidence și lifecycle-ul browserului rămân în
-`src/test`. Reevaluați decizia numai dacă se schimbă apelanții runtime sau dacă
+Nu este API generic ATF; JUnit și rezolvarea adnotărilor rămân în `src/test`,
+iar browserul și publicarea sunt în runtime-ul main. Reevaluați decizia dacă
+se schimbă apelanții runtime sau dacă
 testul de arhitectură nu mai confirmă acest ownership; orice extracție generică
 trebuie demonstrată comportamental în ambii consumatori.
 
@@ -129,8 +130,9 @@ trebuie demonstrată comportamental în ambii consumatori.
   și politica de captură; adaptorul AutoEx îl mapează în profilul Reporting.
   Varianta cu o captură la succes folosește `FINAL_AND_FAILURE`: nu adaugă
   capturi la checkpoint-uri, dar păstrează captura terminală și una la failure.
-  Axele `CONFIGURED` păstrează
-  profilul configurat. Declarația este direct pe clasa E2E; metadata nu pornește
+  Pentru `CONFIGURED`, capturile moștenesc politica Reporting, iar flow-ul
+  rămâne `SCREEN_CHECKPOINTS` în `AutoExEvidenceProfileAdapter.forRun`; un flow YAML
+  nu este încă rezolvat aici. Declarația este direct pe clasa E2E; metadata nu pornește
   singură browserul sau lifecycle-ul.
 - `@UiReportSubdirectory("auto-ex")` și `@AtfConsoleMessages(DETAILS)` păstrează
   output-ul și diagnosticul consumerului în locația/politica stabilite.
@@ -158,8 +160,8 @@ Self-service-ul contului poate fi selectat separat, fără plată sau factură:
 | `AutoExAccountUiE2eTest` | vizitator neînregistrat | înregistrare UI, ștergerea propriei identități, întoarcere în magazin |
 | `AutoExExistingCustomerUiApiE2eTest` | cont sintetic pregătit prin API-ul real | login UI, ștergerea propriei identități, întoarcere în magazin |
 
-Aceste selecții manuale nu măresc `AutoExBusinessSuite`. Nu sunt teste de
-reclamă: verifică self-service-ul clientului și tratează vignette-ul numai dacă
+Ambele clase sunt incluse în `AutoExE2eSuite` și pot fi lansate individual.
+Nu sunt teste de reclamă: verifică self-service-ul clientului și tratează vignette-ul numai dacă
 site-ul îl afișează natural. Nu îl solicită, nu îl fabrică și nu întârzie flow-ul
 pentru a-l provoca.
 
@@ -367,8 +369,15 @@ depinde de activarea inspectorului UI_API.
 | Vignette închisă, zero request-uri, destinație neatinsă | permite cel mult o continuare a navigării, nu retry de ștergere executată |
 | Înaintea continuării | reîncarcă Home; cere aceeași identitate exactă, Delete account vizibil și încă zero request-uri |
 | Altă identitate sau stare ambiguă | FAIL; nu șterge alt cont și nu repetă plata, înregistrarea sau login-ul arbitrar |
-| Confirmare | URL exact `/delete_account`, heading `account-deleted` vizibil și un singur request; apoi dezarmează cleanup-ul |
+| Confirmare | URL exact `/delete_account`, heading `account-deleted` vizibil și exact o navigare GET de tip document, într-un snapshot complet; apoi dezarmează cleanup-ul |
 | A doua întrerupere fără confirmare | FAIL cu evidence înainte de recuperare; fără buclă de continuări |
+| Trafic suplimentar fără navigare | nu devine o a doua navigare; ACTUAL păstrează numărul total și fiecare observație: metodă, resursă, navigare și calea redirectului, fără query sau credențiale |
+| Zero/două navigări, metodă/resursă neașteptată ori diagnostic incomplet | FAIL; nu relaxează condiția la „cel puțin una” |
+
+`Traffic.singleDeletionNavigation()` verifică navigarea business, în timp ce
+`startedRequests()` protejează separat orice request observat împotriva
+replay-ului. Două evenimente browser nu certifică două click-uri sau două
+execuții HTTP pe server; raportul nu pretinde măsurarea efectelor server-side.
 
 - Continuarea observată publică un pas Gherkin separat, numărul de request-uri
   de dinaintea continuării și identitatea revalidată; două click-uri UI nu sunt
@@ -707,14 +716,48 @@ Clasele și cele trei suite principale pot fi lansate direct din IntelliJ.
 
 Contractele API și precondiția pentru `UI_API` sunt normate în acest README.
 `AutoExPurchaseSession` rămâne boundary intern al runtime-ului consumer; nu
-există un TODO activ de extracție generică; lifecycle-ul JUnit/evidence și
-politica E2E rămân în adaptorul test-scoped.
+există un TODO activ de extracție generică. Adnotările și lifecycle-ul JUnit
+rămân în adaptorul test-scoped; browserul și publicarea aparțin runtime-ului main.
 
 ### Suport partajat și source-set-uri
 
 | Owner | Contract |
 |---|---|
-| AutoEx `src/main/java` | pagini, journey-uri, `AutoExLiveApi` și `AutoExApiResponseAssertions`, fără JUnit |
-| AutoEx `src/test/java` | teste business, fixture-ul sintetic și adaptorul de aserțiuni/publicare `AutoExApiTestSupport`; testele nu apelează alte clase de test |
+| AutoEx `src/main/java` | pagini, journey-uri, API și `runtime`: browser, raport, profil rezolvat, mapping network și pregătirea clientului; fără JUnit/Kit |
+| AutoEx `src/test/java` | teste business, suite și adaptoare JUnit în `atf.ui.tests.autoex.extension`; testele nu apelează alte clase de test |
 | `atf-test-kit.lifecycle` | `TestRunInitialization`, cleanup și compensare; este pachet în Kit-ul existent, nu modul nou |
 | `atf-ui` | `UiNetworkInspector.observationCursor()` / `observationsSince(...)` și `UiScreenAudit`: observație terminală și validare PNG comune; nu calculează verdictul aplicației |
+
+### Runtime în main și granița JUnit
+
+`atf.ui.autoex.support` nu mai găzduiește clase în test. Capabilitățile
+reutilizabile au inputuri explicite și sunt publicate în main:
+
+| Pachet / clasă | Responsabilitate |
+|---|---|
+| `runtime.AutoExE2eRun` | fațada browser/checkpoint, fără context de runner |
+| `runtime.AutoExReportSession` | sesiunea de raport și metadata mediului; callerul deține durata ei |
+| `runtime.AutoExObservedExchangeMapper` | bridge explicit UI → Reporting, cu headere observate și disponibilitatea body-ului |
+| `runtime.AutoExRunLifecycle` | port de finalizare cu callback-uri tipizate; păstrează runtime-ul independent de Kit |
+| `runtime.config` | rădăcina proiectului și profilul cu enum-uri Reporting deja rezolvate |
+| `runtime.account.AutoExCustomerApiSetup` | pregătirea API a clientului cu cleanup armat înaintea mutației |
+
+`extension.AutoExE2eExtension` păstrează condiția, Store-ul și ParameterResolver-ul.
+`AutoExRunFactory` rezolvă adnotările și folosește `TestRunInitialization`;
+`AutoExRunLifecycleAdapter` deleagă ordinea captură/cleanup/close către Kit.
+`AutoExEvidenceProfileAdapter` convertește declarațiile Kit înainte de main.
+
+Dependențele Kit și Console rămân test-scoped; nu există JUnit/Kit în main.
+
+`AutoExRunLifecycleAdapterComponentTest` verifică eroarea primară, toate erorile
+suprimate și închiderea după eșec. `AutoExRuntimeBoundaryComponentTest` probează
+mapperul și publică prin runtime un raport cu DOM local, acțiuni și captură reală;
+aceasta nu este o execuție a site-ului remote.
+
+- Journey-ul nu se copiază pentru alt profil; UI+API adaugă dovezi și precondiții
+  explicite, nu înlocuiește confirmarea comenzii/facturii.
+- `AutoExE2eSuite` păstrează selecția completă. Reducerea purchase-urilor
+  repetate pentru evidence cere întâi probe de adaptor pe succes și failure.
+
+Criteriile și matricea de configurare urmărită sunt în
+[feedback-ul refactorizării](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md).

@@ -8,6 +8,9 @@ import atf.api.testkit.channel.TestChannel;
 import atf.api.testkit.evidence.AtfUiEvidence;
 import atf.api.testkit.evidence.AtfUiEvidenceFlow;
 import atf.api.testkit.evidence.AtfUiScreenshotPolicy;
+import atf.api.testkit.scope.ScopedTestValue;
+import atf.api.testkit.scope.TestRunScope;
+import atf.ui.tests.practiceshop.suites.ShopE2eSuite;
 import atf.api.reporting.evidence.ReportScreenshotPolicy;
 import atf.api.reporting.evidence.profile.ReportEvidenceCaptureSource;
 import atf.api.reporting.evidence.profile.ReportEvidenceFlowMode;
@@ -29,7 +32,6 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -231,10 +233,16 @@ class ShopE2eTestSupportTest {
     }
 
     @Test
-    void suiteExecutionIsDetectedFromItsJUnitPlatformRootWithoutVmProperties() {
-        assertTrue(ShopTestSupport.suiteModeEnabled(
-                "[engine:junit-platform-suite]/[suite:ShopE2eSuite]/[engine:junit-jupiter]"));
-        assertFalse(ShopTestSupport.suiteModeEnabled("[engine:junit-jupiter]"));
+    void suiteExecutionDeclaresItsScopeWithoutInspectingJUnitRootNames() {
+        var parameters = java.util.Arrays.stream(ShopE2eSuite.class.getAnnotationsByType(
+                        org.junit.platform.suite.api.ConfigurationParameter.class))
+                .collect(java.util.stream.Collectors.toMap(
+                        org.junit.platform.suite.api.ConfigurationParameter::key,
+                        org.junit.platform.suite.api.ConfigurationParameter::value));
+        assertEquals("suite", parameters.get(TestRunScope.CONFIGURATION_PARAMETER));
+        assertEquals("org.junit.jupiter.api.ClassOrderer$OrderAnnotation",
+                parameters.get("junit.jupiter.testclass.order.default"));
+        assertEquals("false", parameters.get("junit.jupiter.execution.parallel.enabled"));
     }
 
     @Test
@@ -281,15 +289,17 @@ class ShopE2eTestSupportTest {
     private static class ConfiguredEvidence { }
 
     @Test
-    void classRunRegistrationCacheCreatesOnceAndReturnsTheSameCredentials() {
-        var cache = new ShopAuthenticatedAccountTestSupport.ClassRunAccountCache();
+    void classRunRegistrationValueCreatesOnceAndReturnsTheSameCredentials() {
+        var account = new ScopedTestValue<ShopCredentials>();
         var first = new ShopCredentials("live@practice-shop.invalid-domain", "secret", "ATF", "One");
         var second = new ShopCredentials("live-two@practice-shop.invalid-domain", "secret", "ATF", "Two");
 
-        assertNull(cache.get("class-run"));
-        assertSame(first, cache.putIfAbsent("class-run", first));
-        assertSame(first, cache.putIfAbsent("class-run", second));
-        assertSame(first, cache.get("class-run"));
+        assertTrue(account.current().isEmpty());
+        assertSame(first, account.getOrCreate(() -> first).value());
+        assertSame(first, account.getOrCreate(() -> second).value());
+        assertSame(first, account.current().orElseThrow());
+        account.close();
+        assertTrue(account.current().isEmpty());
     }
 
     @Test

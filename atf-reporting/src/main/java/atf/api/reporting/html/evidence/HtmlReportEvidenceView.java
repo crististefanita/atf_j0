@@ -127,6 +127,7 @@ public final class HtmlReportEvidenceView {
         if (execution == null) return;
         html.append(ReportEvidenceMarkup.disclosureStart(
                         EXECUTION_EVIDENCE.value(), AtfReportLabels.executionEvidence(execution.attempts())))
+                .append(openTag(DIV, ReportEvidenceMarkup.executionAttributes(execution, redactor)))
                 .append(AtfReportMarkup.tableHtml(
                         AtfReportHtmlVocabulary.classList(HELM_EVIDENCE_TABLE, EXECUTION_TABLE),
                         ReportExecutionSummary.table(execution, redactor)
@@ -150,7 +151,7 @@ public final class HtmlReportEvidenceView {
                             execution.trace().fields().entrySet().stream()
                                     .map(entry -> List.of(entry.getKey(), entry.getValue())).toList())));
         }
-        html.append(ReportEvidenceMarkup.disclosureEnd());
+        html.append(closeTag(DIV)).append(ReportEvidenceMarkup.disclosureEnd());
     }
 
     public void renderNetworkAggregate(StringBuilder html,

@@ -1,4 +1,7 @@
 package atf.api.reporting.ui.audit.section;
+import atf.api.reporting.api.evidence.ReportBodyAvailability;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import atf.api.reporting.contract.AtfAssertion;
 import atf.api.reporting.audit.ReportAuditChecks;
 import atf.api.reporting.audit.ValidationResult;
@@ -15,22 +18,26 @@ public final class JsonEvidenceValidator {
 
     public ValidationResult validate(ReportAuditSnapshot.JsonEvidence snapshot) {
         Objects.requireNonNull(snapshot, "snapshot");
-        List<atf.api.reporting.contract.AtfAssertion> assertions = new ArrayList<>();
-        assertions.add(ReportAuditChecks.check("Request JSON", "valid JSON document (null = no payload)",
-                snapshot.requestBody(), validJson(snapshot.requestBody())));
-        assertions.add(ReportAuditChecks.check("Response JSON", "valid JSON document (null = no payload)",
-                snapshot.responseBody(), validJson(snapshot.responseBody())));
+        List<AtfAssertion> assertions = new ArrayList<>();
+        assertions.add(ReportAuditChecks.check("Request JSON", "valid JSON document or confirmed absent body",
+                snapshot.requestAvailability() + ": " + snapshot.requestBody(),
+                validBody(snapshot.requestBody(), snapshot.requestAvailability())));
+        assertions.add(ReportAuditChecks.check("Response JSON", "valid JSON document or confirmed absent body",
+                snapshot.responseAvailability() + ": " + snapshot.responseBody(),
+                validBody(snapshot.responseBody(), snapshot.responseAvailability())));
         assertions.add(ReportAuditChecks.check("Extraction violations", "0",
                 snapshot.violations().toString(), snapshot.violations().isEmpty()));
         return ValidationResult.of(assertions);
     }
 
-    private static boolean validJson(String value) {
+    private static boolean validBody(String value, ReportBodyAvailability availability) {
+        if (availability == ReportBodyAvailability.ABSENT) return value.isEmpty();
+        if (availability != ReportBodyAvailability.AVAILABLE) return false;
         if (value == null || value.isBlank()) return false;
         try {
-            JSON.readTree(value);
-            return true;
-        } catch (Exception ignored) {
+            return JSON.reader().with(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+                    .readTree(value) != null;
+        } catch (JsonProcessingException error) {
             return false;
         }
     }

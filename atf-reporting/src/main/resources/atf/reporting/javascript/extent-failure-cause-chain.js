@@ -30,25 +30,9 @@ function scopeFailureContextToPhase(item, context) {
   if (!context.ui && requests.length) {
     var request = requests[requests.length - 1];
     context.request = text(request, '.card-title a.node');
-    var durationRow = q(
-      '.helm-trace-table tbody tr,.execution-table tbody tr',
-      request
-    ).find(function (row) {
-      var label = String(text(row.cells && row.cells[0], ''))
-        .trim()
-        .toUpperCase();
-      return (
-        label === 'RESPONSE DURATION' ||
-        label === 'RESPONSE DURATION (MS)' ||
-        label === 'RESPONSE.DURATION.MS'
-      );
-    });
-    if (durationRow) {
-      var rawDuration = text(durationRow.cells[1], '');
-      var durationMs = atfDurationValue(rawDuration);
-      context.duration =
-        durationMs === null ? rawDuration : atfFormatDuration(durationMs);
-    }
+    var measured = { message: '', duration: '' };
+    failureTransportEvidence(request, measured);
+    context.duration = measured.duration || context.duration;
   }
   if (validations.length)
     context.validation = text(

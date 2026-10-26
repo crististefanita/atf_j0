@@ -123,7 +123,11 @@ public final class ApiReportJsonEvidenceAuditor {
 
     private static JsonNode parse(String source) {
         try {
-            return JSON.readTree(source == null || source.isBlank() ? "null" : source);
+            if (source == null || source.isBlank()) {
+                throw new IllegalArgumentException("Missing JSON bytes; confirmed absence requires the capture-aware contract auditor");
+            }
+            return JSON.reader().with(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+                    .readTree(source);
         } catch (IOException error) {
             throw new IllegalArgumentException(error.getMessage(), error);
         }

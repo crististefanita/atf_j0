@@ -1,6 +1,7 @@
 package atf.ui.tests.practiceshop.support.reporting;
 
 import atf.ui.practiceshop.config.ShopConfiguration;
+import atf.ui.practiceshop.reporting.ShopScreenshotPolicy;
 import atf.api.core.config.ApiTransportMode;
 import atf.api.reporting.configuration.ReportingSettings;
 import atf.api.reporting.configuration.ReportEnvironmentField;

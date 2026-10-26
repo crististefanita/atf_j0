@@ -1,4 +1,5 @@
 package atf.api.reporting.api.contract;
+import atf.api.reporting.api.evidence.ReportBodyAvailability;
 
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,24 @@ public record ApiReportContractInput(
         List<String> evidenceViolations,
         Map<String, String> requestFields,
         Map<String, String> responseFields,
-        Map<String, String> executionFields) {
+        Map<String, String> executionFields,
+        ReportBodyAvailability requestAvailability,
+        ReportBodyAvailability responseAvailability) {
+
+    public ApiReportContractInput(String requestTitle, String requestUrl, int actualStatus,
+                                  String requestBody, String responseBody, List<String> evidenceViolations,
+                                  Map<String, String> requestFields, Map<String, String> responseFields,
+                                  Map<String, String> executionFields) {
+        this(requestTitle, requestUrl, actualStatus, requestBody, responseBody, evidenceViolations,
+                requestFields, responseFields, executionFields,
+                documentAvailability(requestBody), documentAvailability(responseBody));
+    }
+
+    private static ReportBodyAvailability documentAvailability(String body) {
+        return body == null || body.isBlank()
+                ? ReportBodyAvailability.NOT_CAPTURED
+                : ReportBodyAvailability.AVAILABLE;
+    }
 
     public ApiReportContractInput {
         requestTitle = requestTitle == null ? "" : requestTitle;
@@ -25,6 +43,8 @@ public record ApiReportContractInput(
         requestFields = copy(requestFields);
         responseFields = copy(responseFields);
         executionFields = copy(executionFields);
+        Objects.requireNonNull(requestAvailability, "requestAvailability");
+        Objects.requireNonNull(responseAvailability, "responseAvailability");
     }
 
     public static ApiReportContractInput of(String requestTitle, String requestUrl,

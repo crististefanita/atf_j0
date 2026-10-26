@@ -14,37 +14,19 @@ function statusDisplay(value) {
     };
   return map[key] || key;
 }
+function failureCells(row) {
+  return Array.from(row.cells || [], cell => text(cell, ''));
+}
 function failedSetupEvidence(card) {
-  var zone = card.querySelector(
-    '.atf-setup-evidence[data-atf-evidence-status="fail"]'
-  );
+  var zone = card.querySelector('.atf-setup-evidence[data-atf-evidence-status="fail"]');
   if (!zone) return null;
-  var rows = q('tbody tr', zone),
-    row = rows.find(function (candidate) {
-      return String(candidate.textContent || '').indexOf('❌') >= 0;
-    });
+  var row = q('tbody tr', zone).find(candidate => text(candidate, '').indexOf('❌') >= 0);
   if (!row) return null;
-  var cells = Array.prototype.slice.call(row.cells || []).map(function (cell) {
-    return text(cell, '');
-  });
+  var cells = failureCells(row);
   return {
-    ui: true,
-    step: 'Setup',
-    validation: 'Setup evidence',
-    assertion:
-      'Setup check · ' +
-      (cells[0] || 'unknown') +
-      ' → ' +
-      (cells[1] || '') +
-      ' → ' +
-      (cells[2] || ''),
-    message:
-      'Setup check failed: ' +
-      (cells[0] || 'unknown') +
-      ' expected ' +
-      (cells[1] || '') +
-      ', actual ' +
-      (cells[2] || '')
+    ui: true, step: 'Setup', validation: 'Setup evidence',
+    assertion: 'Setup check · ' + (cells[0] || 'unknown') + ' → ' + (cells[1] || '') + ' → ' + (cells[2] || ''),
+    message: 'Setup check failed: ' + (cells[0] || 'unknown') + ' expected ' + (cells[1] || '') + ', actual ' + (cells[2] || '')
   };
 }
 function failedUiEvidence(card) {
@@ -52,47 +34,21 @@ function failedUiEvidence(card) {
     'details[data-atf-evidence-status="fail"], .atf-ui-assertions[data-atf-evidence-status="fail"], details.step-detail.assertion-evidence',
     card
   );
-  for (var index = 0; index < zones.length; index++) {
-    var zone = zones[index];
-    if (zone.closest('.card') !== card || zone.getAttribute('data-atf-evidence-owner') === 'api') continue;
-    var rows = q('tbody tr', zone),
-      row = rows.find(function (candidate) {
-        return (
-          !!candidate.querySelector('.atf-ui-action-result-fail') ||
-          String(candidate.textContent || '').indexOf('❌') >= 0
-        );
-      });
+  for (var zone of zones) {
+    var owner = zone.closest('[data-atf-evidence-owner]');
+    if (zone.closest('.card') !== card || (owner && owner.getAttribute('data-atf-evidence-owner') === 'api')) continue;
+    var row = q('tbody tr', zone).find(candidate =>
+      candidate.querySelector('.atf-ui-action-result-fail') || text(candidate, '').indexOf('❌') >= 0);
     if (!row) continue;
-    var cells = Array.prototype.slice
-        .call(row.cells || [])
-        .map(function (cell) {
-          return text(cell, '');
-        }),
-      observation = zone.classList.contains('atf-ui-observations'),
-      assertion =
-        zone.classList.contains('atf-ui-assertions') ||
-        zone.classList.contains('assertion-evidence'),
-      label = observation
-        ? 'Audit observation'
-        : assertion
-          ? 'UI assertion'
-          : 'Playwright action';
+    var cells = failureCells(row);
+    var assertion = zone.classList.contains('atf-ui-assertions') || zone.classList.contains('assertion-evidence');
+    var label = zone.classList.contains('atf-ui-observations') ? 'Audit observation' :
+      assertion ? 'UI assertion' : 'Playwright action';
     return {
-      ui: true,
-      step: label,
-      validation: text(card, '.card-title a.node'),
-      assertion:
-        label +
-        ' · ' +
-        (cells[0] || 'unknown') +
-        ' → ' +
-        (cells[1] || '') +
-        ' → ' +
-        (cells[2] || '') +
-        ' → ' +
-        (cells[3] || ''),
-      message:
-        label + ' failed: ' + (cells[3] || 'see the concrete evidence row')
+      ui: true, step: label, validation: text(card, '.card-title a.node'),
+      assertion: label + ' · ' + (cells[0] || 'unknown') + ' → ' +
+        (cells[1] || '') + ' → ' + (cells[2] || '') + ' → ' + (cells[3] || ''),
+      message: label + ' failed: ' + (cells[3] || 'see the concrete evidence row')
     };
   }
   return null;
@@ -100,59 +56,19 @@ function failedUiEvidence(card) {
 function failureEvidenceCandidate(card) {
   var title = text(card, '.card-title a.node');
   if (title.toLowerCase() !== 'failure evidence') return null;
-  var actionZone = card.querySelector(
-      '.atf-ui-action-sequence[data-atf-evidence-status="fail"]'
-    ),
-    actionRow = actionZone
-      ? q('tbody tr', actionZone).find(function (row) {
-          return !!row.querySelector('.atf-ui-action-result-fail');
-        })
-      : null,
-    assertionZone = card.querySelector(
-      '.atf-ui-assertions[data-atf-evidence-status="fail"]'
-    ),
-    assertionRow = assertionZone
-      ? q('tbody tr', assertionZone).find(function (row) {
-          return String(row.textContent || '').indexOf('❌') >= 0;
-        })
-      : null,
-    row = actionRow || assertionRow;
+  var actions = card.querySelector('.atf-ui-action-sequence[data-atf-evidence-status="fail"]');
+  var assertions = card.querySelector('.atf-ui-assertions[data-atf-evidence-status="fail"]');
+  var action = actions && q('tbody tr', actions).find(row => row.querySelector('.atf-ui-action-result-fail'));
+  var row = action || (assertions && q('tbody tr', assertions).find(row => text(row, '').indexOf('❌') >= 0));
   if (!row) return null;
-  var cells = Array.prototype.slice.call(row.cells || []).map(function (cell) {
-    return text(cell, '');
-  });
-  if (actionRow) {
-    var observed = cells[3] || 'see the concrete action evidence';
-    return {
-      ui: true,
-      step: 'Failure evidence',
-      validation: title,
-      assertion:
-        'Playwright action · ' +
-        (cells[0] || 'unknown') +
-        ' → ' +
-        (cells[1] || '') +
-        ' → ' +
-        observed,
-      message: 'Failure evidence: ' + observed
-    };
-  }
+  var cells = failureCells(row);
+  var observed = cells[3] || 'see the concrete action evidence';
   return {
-    ui: true,
-    step: 'Failure evidence',
-    validation: title,
-    assertion:
-      'Failure cause · ' +
-      (cells[0] || 'unknown') +
-      ' → ' +
-      (cells[1] || '') +
-      ' → ' +
-      (cells[2] || '') +
-      ' → ' +
-      (cells[3] || ''),
-    message:
-      'Failure evidence: ' +
-      (cells[2] || 'see the concrete failure evidence')
+    ui: true, step: 'Failure evidence', validation: title,
+    assertion: action ?
+      'Playwright action · ' + (cells[0] || 'unknown') + ' → ' + (cells[1] || '') + ' → ' + observed :
+      'Failure cause · ' + (cells[0] || 'unknown') + ' → ' + (cells[1] || '') + ' → ' + (cells[2] || '') + ' → ' + (cells[3] || ''),
+    message: 'Failure evidence: ' + (action ? observed : cells[2] || 'see the concrete failure evidence')
   };
 }
 function failedAssertionRows(item) {

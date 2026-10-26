@@ -2,6 +2,7 @@ package atf.ui.tests.practiceshop.support;
 
 import atf.api.core.config.ApiTransportMode;
 import atf.api.testkit.AtfComponentTest;
+import atf.api.testkit.scope.ScopedTestValue;
 import atf.ui.practiceshop.config.api.ShopApiPrecondition;
 import atf.ui.practiceshop.config.ShopConfiguration;
 import atf.ui.practiceshop.config.ShopConfigurationLoader;
@@ -168,17 +169,13 @@ class ShopAuthenticatedLaunchProfileTest {
                         Class.forName("atf.ui.tests.practiceshop.e2e.ShopUiOnlyPurchaseE2eTest"),
                         Class.forName("atf.ui.tests.practiceshop.e2e.ShopUiOnlySingleFlowPurchaseE2eTest")},
                 selected.value());
-        assertEquals("root-id::practice-shop-authenticated-purchase-suite",
-                ShopAuthenticatedAccountTestSupport.suiteAccountScope("root-id"),
-                "suite children use one shared run-scoped account key");
-
-        var cache = new ShopAuthenticatedAccountTestSupport.ClassRunAccountCache();
-        String scope = ShopAuthenticatedAccountTestSupport.suiteAccountScope("contract-root");
+        var account = new ScopedTestValue<ShopCredentials>();
         var generatedAccount = new ShopCredentials(
                 "customer@practice-shop.dev", "secret", "Test", "Customer");
-        cache.putIfAbsent(scope, generatedAccount);
-
-        assertSame(generatedAccount, cache.get(scope));
+        account.getOrCreate(() -> generatedAccount);
+        assertSame(generatedAccount, account.current().orElseThrow());
+        account.close();
+        assertTrue(account.current().isEmpty());
     }
 
     @Test

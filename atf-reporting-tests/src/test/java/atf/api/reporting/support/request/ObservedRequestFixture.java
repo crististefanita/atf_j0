@@ -1,4 +1,11 @@
 package atf.api.reporting.support.request;
+import atf.api.reporting.api.ReportAttemptRecord;
+import atf.api.reporting.api.ReportRetryEvent;
+import atf.ui.tests.extent.support.audit.api.ApiJsonEvidenceAuditor;
+import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.BrowserType;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.AriaRole;
 
 import atf.api.reporting.api.ReportRequest;
 import atf.api.reporting.api.ReportResponse;
@@ -69,13 +76,41 @@ public final class ObservedRequestFixture {
             var response = new ReportResponse(this == EMPTY_RESPONSE ? 204 : 200, this.response,
                     Map.of("Content-Type", "application/json"), Duration.ofMillis(3),
                     "https://fixture.invalid" + request.path(), responseAvailability);
-            return new ReportExecutionEvidence(response, 1, Duration.ofMillis(3), List.of(), List.of(),
+            boolean retried = this == CONFIGURED_DEFAULTS;
+            var history = retried ? List.of(
+                    new ReportAttemptRecord(1, 503, Duration.ofMillis(2), "RETRY", "retryable fixture"),
+                    new ReportAttemptRecord(2, 200, Duration.ofMillis(3), "SUCCESS", "recovered"))
+                    : List.<ReportAttemptRecord>of();
+            var retries = retried ? List.of(new ReportRetryEvent(
+                    1, 503, "Retry-After", Duration.ofMillis(1), "retryable fixture"))
+                    : List.<ReportRetryEvent>of();
+            return new ReportExecutionEvidence(response, retried ? 2 : 1, Duration.ofMillis(retried ? 6 : 3), retries, history,
                     request, ReportTransportProvenance.ACCEPTANCE_MOCK);
         }
     }
 
     public record Published(Path path, String html, AtfReportSemanticSnapshot snapshot) { }
     private ObservedRequestFixture() { }
+
+    public static ApiJsonEvidenceAuditor.Result inspectBody(
+            Published published, Renderer renderer) {
+        try (var playwright = Playwright.create();
+             var browser = playwright.chromium().launch(
+                     new BrowserType.LaunchOptions().setHeadless(true))) {
+            var page = browser.newPage();
+            page.navigate(published.path().toUri().toString() + "#test-view");
+            if (renderer == Renderer.FALLBACK) {
+                page.locator("[data-tab='tests']").click();
+            } else {
+                page.locator("#test-view .test-item").first().click();
+                page.getByRole(AriaRole.BUTTON,
+                        new Page.GetByRoleOptions().setName("Expand all nodes").setExact(true)).click();
+            }
+            var metadata = page.locator("[data-atf-request-method]").first();
+            var request = metadata.locator("xpath=ancestor::*[@data-atf-node-role='request'][1]");
+            return new ApiJsonEvidenceAuditor().inspect(request);
+        }
+    }
 
     public static Published publish(Renderer renderer, List<Sample> samples) throws Exception {
         Path requested = TestReportPaths.report("observed-request-" + renderer + "-" + UUID.randomUUID() + ".html");

@@ -1,4 +1,4 @@
-package atf.ui.autoex.support;
+package atf.ui.autoex.runtime.config;
 
 import java.io.IOException;
 import java.nio.file.Files;

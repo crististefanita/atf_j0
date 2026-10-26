@@ -445,6 +445,11 @@ public final class UiEvidencePublisher {
 
     void publishFailure(String title, String target, Collection<AtfUiActionRecord> actions,
                         Throwable failure, String base64Png) {
+        publishFailure(title, target, actions, failure, base64Png, false);
+    }
+
+    void publishFailure(String title, String target, Collection<AtfUiActionRecord> actions,
+                        Throwable failure, String base64Png, boolean reportedCheckpoint) {
         String safeTitle = !hasText(title) ? "UI audit failure" : title.trim();
         String cause = failureCause(failure, actions);
         var request = phase.startRequest(AtfGherkinKeyword.THEN.text() + " " + safeTitle, "", "");
@@ -466,8 +471,15 @@ public final class UiEvidencePublisher {
                 requireTargetForScreenshot(target);
                 validation.screenshot("UI failure screenshot", base64Png);
             }
-            validation.assertions(List.of(new AtfAssertion(
-                    "Failure cause", "no failure", cause, false)));
+            if (reportedCheckpoint) {
+                validation.uiActions(List.of(new AtfUiActionRecord(sequence + 1,
+                        "Propagated checkpoint failure", "reported UI assertion",
+                        "original failure remains in Fails", cause, 0,
+                        AtfReportStatus.INFO, AtfUiEvidenceSource.OBSERVE)));
+            } else {
+                validation.assertions(List.of(new AtfAssertion(
+                        "Failure cause", "no failure", cause, false)));
+            }
             validation.completeFailure(AtfReportStatus.FAIL);
             request.complete(AtfReportStatus.FAIL);
         } finally {

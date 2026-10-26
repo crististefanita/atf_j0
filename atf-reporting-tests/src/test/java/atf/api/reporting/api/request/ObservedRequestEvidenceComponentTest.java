@@ -7,6 +7,7 @@ import atf.api.reporting.api.evidence.ReportBodyAvailability;
 import atf.api.reporting.contract.evidence.ReportEvidenceOwner;
 import atf.api.reporting.semantic.AtfReportSemanticSnapshot.RequestSnapshot;
 import atf.api.reporting.support.request.ObservedRequestFixture;
+import atf.api.reporting.support.request.LiveClientHeaderProbe;
 import atf.api.reporting.support.request.ObservedRequestFixture.Renderer;
 import atf.api.reporting.support.request.ObservedRequestFixture.Sample;
 import atf.api.testkit.AtfComponentTest;
@@ -22,6 +23,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static atf.api.reporting.markup.vocabulary.AtfReportHtmlVocabulary.escapeHtml;
 
 @AtfComponentTest
 class ObservedRequestEvidenceComponentTest {
@@ -38,12 +40,25 @@ class ObservedRequestEvidenceComponentTest {
                 sample.execution().response().url(), request.bodyText());
         boolean jsonRequest = sample.availability == ReportBodyAvailability.AVAILABLE;
         assertEquals(jsonRequest, exchange.jsonLabels().contains("REQUEST JSON"));
+        assertEquals(jsonRequest, published.html().contains("REQUEST JSON"),
+                "rendered payload availability must match the semantic snapshot");
         assertEquals(sample != Sample.OBSERVED_UNCAPTURED && sample != Sample.EMPTY_RESPONSE,
                 exchange.jsonLabels().contains("RESPONSE JSON"));
+        assertEquals(sample != Sample.OBSERVED_UNCAPTURED && sample != Sample.EMPTY_RESPONSE,
+                published.html().contains("RESPONSE JSON"));
         assertTrue(published.html().contains("Request details"));
         assertFalse(published.html().contains("header-secret"));
         assertFalse(published.html().contains("request-secret"));
         assertEquals(ApiManualReplay.redactedHeaders(request), headers);
+        assertTrue(published.html().contains(headers),
+                "the actual publisher must render the same redacted headers as replay");
+        assertTrue(published.html().contains(
+                escapeHtml(headers)),
+                "rendered Request details must contain the exact sanitized projection");
+        if (sample == Sample.CONFIGURED_DEFAULTS) {
+            assertTrue(published.html().contains("retry-history-table"));
+            assertTrue(published.html().contains("retryable fixture"));
+        }
         if (sample != Sample.OBSERVED_EXPLICIT && sample != Sample.CONFIGURED_DEFAULTS) {
             assertFalse(headers.contains("Content-Type"));
             assertFalse(headers.contains("Accept"));
@@ -65,6 +80,11 @@ class ObservedRequestEvidenceComponentTest {
             assertEquals(ReportEvidenceOwner.API, checkpoint.validations().getFirst().evidenceOwner());
             assertTrue(published.html().contains("data-atf-evidence-owner=\"api\""));
         }
+    }
+
+    @Test
+    void configuredDefaultsMatchHeadersActuallyExecutedByTheClient() throws Exception {
+        LiveClientHeaderProbe.verify();
     }
 
     @Test

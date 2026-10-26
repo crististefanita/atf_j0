@@ -82,27 +82,29 @@ final class ReportEvidenceLocators {
     String responseUrl(Locator request) { return cellValue(executionEvidence(request), ApiReportEvidenceField.RESPONSE_URL); }
 
     Locator requestJsonBodies(Locator request) { return request.locator(classToken(ReportUiContract.JSON_REQUEST_CLASS)); }
+    Locator validationForOwner(Locator scope, atf.api.reporting.contract.evidence.ReportEvidenceOwner owner) {
+        return scope.locator("div[data-atf-node-role='validation']:has([data-atf-evidence-owner='"
+                + owner.attributeValue() + "'])").first();
+    }
     Locator responseJsonBodies(Locator request) { return request.locator(classToken(ReportUiContract.JSON_RESPONSE_CLASS)); }
     Locator requestJsonBody(Locator scope) {
-        return scope.locator(classToken(ReportUiContract.JSON_REQUEST_CLASS) + " "
-                + elementClass("pre", "code-block") + ", "
-                + classToken(ReportUiContract.JSON_REQUEST_CLASS) + " "
-                + elementClass("textarea", "code-block")).first();
+        return requestJsonBodyElements(scope).first();
     }
     Locator requestJsonBodyElements(Locator scope) {
         return scope.locator(classToken(ReportUiContract.JSON_REQUEST_CLASS) + " "
+                + elementClass("pre", "json-code") + ", "
+                + classToken(ReportUiContract.JSON_REQUEST_CLASS) + " "
                 + elementClass("pre", "code-block") + ", "
                 + classToken(ReportUiContract.JSON_REQUEST_CLASS) + " "
                 + elementClass("textarea", "code-block"));
     }
     Locator responseJsonBody(Locator scope) {
-        return scope.locator(classToken(ReportUiContract.JSON_RESPONSE_CLASS) + " "
-                + elementClass("pre", "code-block") + ", "
-                + classToken(ReportUiContract.JSON_RESPONSE_CLASS) + " "
-                + elementClass("textarea", "code-block")).first();
+        return responseJsonBodyElements(scope).first();
     }
     Locator responseJsonBodyElements(Locator scope) {
         return scope.locator(classToken(ReportUiContract.JSON_RESPONSE_CLASS) + " "
+                + elementClass("pre", "json-code") + ", "
+                + classToken(ReportUiContract.JSON_RESPONSE_CLASS) + " "
                 + elementClass("pre", "code-block") + ", "
                 + classToken(ReportUiContract.JSON_RESPONSE_CLASS) + " "
                 + elementClass("textarea", "code-block"));
