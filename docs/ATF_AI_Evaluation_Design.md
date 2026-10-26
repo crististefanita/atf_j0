@@ -1258,7 +1258,7 @@ Implementarea vertical slice analizată live:
 - `atf-ui/src/main/java/atf/api/ui/network/UiNetworkObservation.java`;
 - `atf-ui/src/main/java/atf/api/ui/config/UiNetworkInspectionConfiguration.java`;
 - `atf-ui/src/main/java/atf/api/ui/config/UiNetworkSettlementPolicy.java`;
-- `atf-test-practice-shop/src/main/java/atf/ui/practiceshop/support/ShopApiNetworkJournal.java`;
+- `atf-test-practice-shop/src/main/java/atf/shop/support/ShopApiNetworkJournal.java`;
 - `atf-reporting/src/main/java/atf/api/reporting/ui/network/ReportNetworkInspector.java`.
 
 ## 34. Readiness și dovezi

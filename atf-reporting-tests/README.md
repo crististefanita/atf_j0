@@ -668,14 +668,14 @@ Practice Shop este izolat în modulul dedicat:
 
 ```text
 atf-test-practice-shop/src/test/resources/atf-practice-shop.yaml
-atf-test-practice-shop/src/main/java/atf/ui/practiceshop/
+atf-test-practice-shop/src/main/java/atf/shop/
 ├── api/         client, request factory și screen API flows
 ├── config/      configurare și credențiale typed
 ├── flow/        acțiuni semantice
 ├── locators/    singurul owner al selectorilor
 ├── pages/       page objects
 └── support/     checkpoint-uri, mapare API și reguli Shop
-atf-test-practice-shop/src/test/java/atf/ui/tests/practiceshop/
+atf-test-practice-shop/src/test/java/atf/shop/tests/
 ├── component/       teste rapide de module
 ├── api/component/   variații fake pozitive/negative
 ├── api/integration/ precondiție login live, opt-in

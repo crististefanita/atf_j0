@@ -49,9 +49,9 @@ public class ConsoleDefaultsGovernanceTest {
                 "AtfConsoleReporter.configuredStdout()", "lifecycle.console()");
         require(root, "atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/api/ApiReportAuditSetup.java",
                 "AtfConsoleReporter.configuredStdout()");
-        require(root, "atf-test-practice-shop/src/test/java/atf/ui/tests/practiceshop/support/lifecycle/ShopE2eContext.java",
+        require(root, "atf-test-practice-shop/src/test/java/atf/shop/tests/support/lifecycle/ShopE2eContext.java",
                 "AtfConsoleReporter.configuredStdout()");
-        require(root, "atf-test-practice-shop/src/main/java/atf/ui/practiceshop/api/ShopApiClient.java",
+        require(root, "atf-test-practice-shop/src/main/java/atf/shop/api/ShopApiClient.java",
                 "AtfConsoleReporter.configuredStdout()", "settings.snapshot(), safeConsole(console)");
     }
 

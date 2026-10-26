@@ -52,11 +52,11 @@ flowchart LR
 | Suprafață | Owner în modul | Limită |
 |---|---|---|
 | Configurație | `src/test/resources/atf-practice-shop.yaml`, `ShopConfigurationLoader` | valori și fixture-uri Practice Shop, nu configurare globală ATF |
-| UI | `routes`, `locators`, `pages`, `flow` în `src/main/java/atf/ui/practiceshop` | semantică a aplicației; browserul generic rămâne în `atf-ui` |
+| UI | `routes`, `locators`, `pages`, `flow` în `src/main/java/atf/shop` | semantică a aplicației; browserul generic rămâne în `atf-ui` |
 | API | `api` și `support/api` în același source root | contractele wire și maparea către dovezile Shop; transportul generic rămâne în `atf-core` |
 | Evidence runtime | `src/main/.../{evidence,reporting}` | factory-uri de captură și politică Shop, fără JUnit/Kit; rendererul rămâne în Reporting |
 | Harness consumer | `src/test/.../support/{lifecycle,reporting}` | ownership browser/report, metadata de rulare și integrare JUnit |
-| Teste | `src/test/java/atf/ui/tests/practiceshop` | compun și verifică Shop; testele reutilizabile ATF aparțin modulului care deține contractul generic |
+| Teste | `src/test/java/atf/shop/tests` | compun și verifică Shop; testele reutilizabile ATF aparțin modulului care deține contractul generic |
 
 Comportamentele Shop folosesc `atf-core`, `atf-console`, `atf-reporting` și
 `atf-ui`; `atf-test-kit` este declarat în `test` scope pentru adnotările și
@@ -67,7 +67,7 @@ depinde de Practice Shop.
 <summary><strong>Harta source roots și a responsabilităților locale</strong></summary>
 
 ```text
-src/main/java/atf/ui/practiceshop
+src/main/java/atf/shop
 ├── config/       YAML, modele typed și profile
 ├── api/          request factory, operații, rute și screen APIs
 ├── routes/       rute UI relative
@@ -78,7 +78,7 @@ src/main/java/atf/ui/practiceshop
 ├── reporting/    politica de screenshot din configurația Shop
 └── support/      checkpoint, validation, API report mapping și network journal Shop
 
-src/test/java/atf/ui/tests/practiceshop
+src/test/java/atf/shop/tests
 ├── e2e/          composition roots pentru journey-uri reale
 ├── suites/       selecția și ordinea suitei
 ├── component/    config, catalog, evidence, purchase și adaptoare Shop
@@ -103,7 +103,7 @@ Suita consumatorului rămâne concentrată pe `e2e`, `component` și `api`; `sup
 este infrastructură de test, nu un al treilea tip de test.
 
 `ShopE2eTestSupport` compune testele, iar
-[`ShopE2eContext`](src/test/java/atf/ui/tests/practiceshop/support/lifecycle/ShopE2eContext.java)
+[`ShopE2eContext`](src/test/java/atf/shop/tests/support/lifecycle/ShopE2eContext.java)
 deține resursele browser/report doar pentru rulări E2E. Guvernanța whole-ATF
 verifică source-set-ul harness-ului și al adaptoarelor, limitele locatorilor,
 suitele și dependențele consumerului; paginile, flow-urile și locatoarele rămân
@@ -125,7 +125,7 @@ generic pentru body API indisponibil este în `atf-core`.
 
 `ShopReportSystemMetadata` rămâne în `src/test/support.reporting` și proiectează
 configurația rulării în allowlist-ul System. În runtime,
-`atf.ui.practiceshop.reporting.ShopScreenshotPolicy` transformă politica YAML
+`atf.shop.reporting.ShopScreenshotPolicy` transformă politica YAML
 în `ReportEvidenceProfile`, iar `evidence.ShopBrowserCaptureProvider` aplică
 mascarea Shop înaintea capturii generice UI. Niciunul nu importă JUnit/Kit.
 Contextul folosește direct
@@ -449,13 +449,13 @@ Comenzile de mai jos rulează suitele definite în `src/test`; `-am` construieș
 `ShopComponentSuite` este gate-ul rapid agregat: include suportul consumer,
 contractele API `unit` și `component` și evidence, dar exclude
 journey-urile E2E și integrarea live. Contractele de captură și fidelitate HTTP
-sunt în `atf.ui.tests.practiceshop.api.network`, deja selectat de suită.
+sunt în `atf.shop.tests.api.network`, deja selectat de suită.
 Diagnoza punctuală selectează clase concrete, fără suite paralele.
 
 | Source-set / pachet | Responsabilitate |
 |---|---|
-| main `atf.ui.practiceshop.support.api` | jurnal, selectare, validări și mapping folosite de runtime-ul UI+API și publisher |
-| test `atf.ui.tests.practiceshop.api.network` | contractele jurnalului și fidelității metodei; fixture-uri locale separate de teste |
+| main `atf.shop.support.api` | jurnal, selectare, validări și mapping folosite de runtime-ul UI+API și publisher |
+| test `atf.shop.tests.api.network` | contractele jurnalului și fidelității metodei; fixture-uri locale separate de teste |
 
 - Captură: observațiile intră prin `UiNetworkInspector.capture` și abonamentul
   public; recorderul și aliasul intern de serviciu rămân încapsulate.

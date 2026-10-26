@@ -84,7 +84,7 @@ public class ConstantsOwnershipGovernanceTest {
                 () -> "Reusable vocabulary owner is missing: " + requiredOwners);
 
         Path shopLocators = root.resolve(
-                "atf-test-practice-shop/src/main/java/atf/ui/practiceshop/locators/ShopLocators.java");
+                "atf-test-practice-shop/src/main/java/atf/shop/locators/ShopLocators.java");
         String locatorSource = Files.readString(shopLocators);
         Pattern rawHtmlSelector = Pattern.compile(
                 "\\\"(?:body|nav|span|h1|input|textarea|select|option|button|a|img|form|table|footer)"
@@ -103,9 +103,9 @@ public class ConstantsOwnershipGovernanceTest {
                 "Practice Shop locators must reuse the canonical atf-ui DOM vocabulary");
 
         assertFalse(Files.exists(root.resolve(
-                "atf-test-practice-shop/src/main/java/atf/ui/practiceshop/api/contract/ShopApiAuthType.java")));
+                "atf-test-practice-shop/src/main/java/atf/shop/api/contract/ShopApiAuthType.java")));
         assertFalse(Files.exists(root.resolve(
-                "atf-test-practice-shop/src/main/java/atf/ui/practiceshop/api/contract/ShopApiAuthProfile.java")));
+                "atf-test-practice-shop/src/main/java/atf/shop/api/contract/ShopApiAuthProfile.java")));
     }
 
     @Test

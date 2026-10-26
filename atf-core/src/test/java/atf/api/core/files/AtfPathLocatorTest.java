@@ -81,11 +81,11 @@ class AtfPathLocatorTest {
     void locatesModuleRootFromNestedWorkingDirectory() throws Exception {
         Path project = Files.createDirectories(temp.resolve("project"));
         Path module = Files.createDirectories(project.resolve("atf-test-practice-shop/src/main/java"));
-        Files.createDirectories(module.resolve("atf/ui/practiceshop"));
+        Files.createDirectories(module.resolve("atf/shop"));
 
         assertEquals(project.resolve("atf-test-practice-shop"), AtfPathLocator.locateModuleRoot(
-                module.resolve("atf/ui/practiceshop"), Path.of("atf-test-practice-shop"),
-                Path.of("src/main/java/atf/ui/practiceshop")));
+                module.resolve("atf/shop"), Path.of("atf-test-practice-shop"),
+                Path.of("src/main/java/atf/shop")));
     }
 
     @Test

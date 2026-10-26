@@ -238,7 +238,7 @@ Importurile statice sunt o scurtătură de citire, nu o scurtătură de ownershi
   ascunde domeniul sau ar amesteca două vocabularuri.
 
 ```java
-import static atf.ui.tests.practiceshop.api.support.PracticeShopApiScenarioFixture.PRODUCT_NAME;
+import static atf.shop.tests.api.support.PracticeShopApiScenarioFixture.PRODUCT_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 ```
 

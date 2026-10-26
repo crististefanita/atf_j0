@@ -16,6 +16,7 @@ documentară /10. Nu reprezintă o notă a codului sau un rezultat de test.
 
 | ID | Scor /100 | Intervenție |
 |---|---:|---|
+| `CONSUMER-FLOW-LAYERS-09` | 88 = 36 + 24 + 20 + 8 | business → UI Flow → acțiuni compuse → operații instrumentate; gate-uri și ownership explicite |
 | `CONSUMER-EVIDENCE-CONFIG-04` | 80 = 30 + 22 + 20 + 8 | configurare completă a evidence-ului și Overview fidel profilurilor |
 | `AUTOEX-LIVE-AVAILABILITY-07` | 78 = 30 + 20 + 20 + 8 | corelarea răspunsului mutativ cu UI, fără replay |
 | `CONSUMER-RUNTIME-BOUNDARY-03` | 77 = 31 + 18 + 20 + 8 | separarea responsabilităților rămase în Shop |
@@ -28,6 +29,142 @@ Contractele livrate de scope, runtime și prezentare sunt în README-urile
 [AutoEx](../../atf-test-auto-ex/README.md) și
 [Kit](../../atf-test-kit/README.md). Aici rămân diferențele de implementat.
 
+## CONSUMER-FLOW-LAYERS-09 — business, traseu UI și validare separate
+
+**Prioritate:** 88/100 = impact 36 + lacună 24 + lucrabil 20 + documentare 8.
+**Owner:** Shop/AutoEx pentru business și adaptoare; UI, Reporting și Kit pentru
+capabilitățile neutre existente. Este un contract țintă, încă nelivrat.
+
+```text
+Test E2E → Business Flow → port îngust de operații
+                                  ↓ implementat de
+                               UI Flow → Page Object / acțiune compusă
+                                              ↓
+                                  PlaywrightActionSequence → Playwright
+Observație → snapshot → validator → gate înaintea următoarei mutații
+```
+
+O metodă precum „completează adresa” poate rămâne în Page Object; fiecare
+săgeată nu cere o clasă, un pachet sau un modul nou. Straturile interne nu
+devin automat niveluri suplimentare în raportul Extent.
+
+<details>
+<summary><strong>Constatări în codul curent și limitele concluziei</strong></summary>
+
+| Sursă | Constatare și consecință |
+|---|---|
+| [ShopPurchaseFlow](../../atf-test-practice-shop/src/main/java/atf/shop/flow/ShopPurchaseFlow.java), [ShopPurchaseJourneyContext](../../atf-test-practice-shop/src/main/java/atf/shop/flow/ShopPurchaseJourneyContext.java) | primesc Page, recorder, configurație completă, observer și jurnal API; etapele nu sunt încă un business flow independent de browser/reporting |
+| [AutoExPurchaseSession](../../atf-test-auto-ex/src/main/java/atf/ui/autoex/support/journey/AutoExPurchaseSession.java) | expune operații UI, Page, checkpoint, capturi, API și cleanup; Page Objects primesc un port mai larg decât necesarul lor |
+| [AccountPage](../../atf-test-auto-ex/src/main/java/atf/ui/autoex/page/AccountPage.java), [AutoExPurchaseJourney](../../atf-test-auto-ex/src/main/java/atf/ui/autoex/support/journey/AutoExPurchaseJourney.java) | starea creare/ștergere și callback-ul de cleanup aparțin unei instanțe Page Object, iar journey-ul folosește instanțe diferite; există risc de stare fragmentată, de confirmat prin probă negativă |
+| [CheckoutPage](../../atf-test-auto-ex/src/main/java/atf/ui/autoex/page/CheckoutPage.java) | descarcă și citește factura, aplică reguli business și publică un checkpoint; transportul artifactului, validarea și evidence-ul sunt amestecate |
+| [ShopCheckoutPurchaseStage](../../atf-test-practice-shop/src/main/java/atf/shop/flow/ShopCheckoutPurchaseStage.java) | `apiEvidenceRequired()` alege completarea explicită ori lookup-ul adresei; canalul de evidence modifică traseul UI |
+| [PlaywrightActionSequence](../../atf-ui/src/main/java/atf/api/ui/playwright/PlaywrightActionSequence.java) | operațiile atomice, recorderul și delegarea există; nu justifică încă un wrapper echivalent pentru fiecare click |
+
+- Sunt constatări statice; nu demonstrează un incident nou de ștergere repetată.
+- Mutarea unui Run în main sau redenumirea package-ului nu închide separarea
+  semantică. `CONSUMER-RUNTIME-BOUNDARY-03` privește separat infrastructura rămasă.
+
+</details>
+
+### Contractul țintă al straturilor
+
+| Strat | Input / rezultat | Limită |
+|---|---|---|
+| Test E2E | scenariu, precondiții, așteptări independente și rezultat terminal | exprimă intenția; nu asamblează browser, selectori sau HTML |
+| Business Flow | date business și un port îngust; rezultat tipizat | ordonează pașii și gate-urile; fără Page/Locator, Page Objects, recorder ori sesiune de raport |
+| UI Flow | implementează portul prin navigare și pagini; întoarce snapshot-uri observate | sincronizarea și citirea DOM rămân aici; fără alegerea politicii business din canal |
+| Page Object / acțiune UI compusă | o intenție coerentă de ecran | grupează select/fill/click/wait; nu deține întregul cont, verdictul facturii sau publicarea |
+| Operație atomică instrumentată | țintă UI, acțiune și postcondiție tehnică | reutilizează executori/recorder din UI, cu o singură înregistrare a acțiunii |
+
+Portul poate avea un rol precum `PurchaseOperations`; acesta este un nume
+orientativ, nu un API livrat. Nu expune Run/Context, configurația completă ori
+un `Object` care ascunde aceleași dependențe.
+
+### Validările sunt independente și executate la momentul potrivit
+
+| Categorie | Owner | Rezultat și moment |
+|---|---|---|
+| Tehnică UI | operația / UI Flow | control vizibil/activ, navigare sau modal confirmat; înainte de citire ori continuare |
+| Contract de ecran | cititor DOM + validator de snapshot | structură, câmpuri și identitate observate; validatorul nu navighează și nu publică |
+| Business | validator pur + gate în Business Flow | produs, cantitate, preț/total, client, comandă și factură; înaintea următoarei mutații dependente |
+| API suplimentară | validator API și adaptor de evidence | compară request/response observate; verdict distinct de cel UI, sub checkpoint-ul cauzal |
+
+- Snapshot-ul nu își completează valorile lipsă din expected. Cantitățile,
+  sumele și identitățile au tipuri și proveniență explicite; validarea nu
+  folosește preview-ul trunchiat al raportului ca observație completă.
+- În profilul compact se schimbă publicarea, nu momentul gate-urilor.
+  Verificarea finală confirmă comanda/factura, fără a înlocui validările intermediare.
+- Evaluați contractele neutre existente din Core/Validation înainte de un nou
+  model de verdict. Business-ul nu importă publisheri, Extent/HTML, JUnit ori Playwright.
+
+<details>
+<summary><strong>ToDo-uri în ordinea implementării și probele de acceptanță</strong></summary>
+
+- [ ] **09-A — baseline comportamental.** Inventariați operațiile, observațiile,
+      gate-urile, precondițiile și mutațiile fiecărui traseu guest/autentificat.
+      Păstrați selecțiile de suite și toate cazurile/aserțiunile existente.
+      Includeți de la început proba de cleanup cu instanțe Page Object diferite.
+
+- [ ] **09-B — pilot pe coș.** Extrageți un singur traseu complet:
+      Business Flow → port → UI Flow → Page Object → recorder atomic.
+      Întoarceți un snapshot real al coșului și păstrați temporar fațada existentă;
+      nu creați un BaseE2eTest universal sau un modul nou.
+
+- [ ] **09-C — snapshot și gate pur.** Separați observația de expected și
+      validarea de navigare/publicare. Probați produs greșit, cantitate/total
+      greșit și câmp lipsă; nici checkout-ul, nici plata nu pornesc după gate FAIL.
+
+- [ ] **09-D — politică business independentă de evidence.** Declarați separat
+      completarea explicită/lookup-ul adresei și sursa contului. Pentru același
+      scenariu/politică, UI și UI_API păstrează aceeași intenție și aceleași
+      mutații UI; capturile/gruparea nu aleg traseul.
+      O precondiție API suplimentară este declarată în SETUP, nu ascunsă în flow;
+      nu pretindeți că toate profilurile au același trafic ori aceleași validări.
+
+- [ ] **09-E — checkout și factură.** Migrați Shop după pilot, apoi separați
+      în AutoEx descărcarea/citirea artifactului, snapshot-ul facturii,
+      validatorul pur și publicarea. O plată verificată nu este comandă finală;
+      păstrați Confirm, numărul/confirmarea comenzii și regulile facturii.
+
+- [ ] **09-F — lifecycle de cont pe execuție.** Scoateți ownership-ul și starea
+      creare/ștergere din Page Object. Același owner urmărește toate instanțele
+      paginilor și cleanup-ul; fixture-ul împrumutat nu se șterge.
+      Probați două Page Objects, create incert, identitate greșită, delete început
+      fără confirmare și eșec ulterior: cleanup-ul nu repetă mutația.
+      Nu deduceți idempotency numai din GET/POST ori numele butonului.
+
+- [ ] **09-G — adaptor de evidence separat.** Păstrați identitatea checkpoint-ului,
+      ordinea acțiunilor și fereastra cauzală a exchange-ului. UI/API rămân frați,
+      retry-ul aceluiași exchange rămâne în Execution, iar captura aparține stării
+      observate. Nu dublați evenimentele la fiecare strat și nu creați un card
+      Extent pentru fiecare metodă internă.
+      Dacă publicarea eșuează, păstrați explicit failure-ul de infrastructură;
+      un failure business anterior rămâne primar, fără replay sau PASS fabricat.
+
+- [ ] **09-H — probe și guvernanță înaintea migrării generale.** Business Flow
+      se probează cu un port fals controlat, UI Flow cu DOM/browser local,
+      iar publisherul generic în Reporting Tests cu date neutre.
+      Probați ordinea, gate FAIL, observație lipsă, timeout, mutație incertă și
+      eșec simultan de business/publicare/cleanup.
+      Guard-ul noului strat business respinge importuri și semnături care expun
+      Playwright, UI, JUnit sau Reporting; includeți o probă negativă a guard-ului.
+      Rulați apoi componentele, guvernanța neschimbată și E2E-urile relevante;
+      o probă locală nu certifică aplicația externă.
+
+</details>
+
+### Limita extragerii și închiderea cerinței
+
+- Business/UI Flow și modelele aplicației rămân în main la consumer;
+  extensia, suitele, fixture-urile artificiale și oracolele sunt în test.
+- UI deține mecanica browserului, Reporting publicarea, iar Kit existent
+  lifecycle-ul neutru. Porturile business nu se mută în Kit pentru similitudine de nume.
+- Extrageți o capabilitate comună numai după demonstrarea aceluiași contract;
+  păstrați limita de opt clase per pachet și evitați ierarhii sau clase triviale.
+- Închiderea cere mapare vechi → nou, cazuri/aserțiuni păstrate, failure-path
+  verificat, inventar de suite echivalent și README-uri owner aliniate.
+  Forma raportului urmează contractul livrat, fără copierea ierarhiei codului.
+
 ## CONSUMER-EVIDENCE-CONFIG-04 — același business, configurare completă
 
 **Owner:** consumerii rezolvă configurația și declarațiile; Reporting deține
@@ -35,7 +172,7 @@ modelul și publicarea. Canalul, gruparea, capturile și acțiunile sunt axe dis
 
 | Lacună | Sursa curentă | Criteriu de închidere |
 |---|---|---|
-| Grupare configurată | [AutoExEvidenceProfileAdapter](../../atf-test-auto-ex/src/test/java/atf/ui/tests/autoex/extension/AutoExEvidenceProfileAdapter.java) mapează `CONFIGURED` la `SCREEN_CHECKPOINTS`; [ShopScreenshotPolicy](../../atf-test-practice-shop/src/main/java/atf/ui/practiceshop/reporting/ShopScreenshotPolicy.java) construiește aceeași bază | flow-ul implicit vine din configurația rezolvată, nu dintr-un default ascuns |
+| Grupare configurată | [AutoExEvidenceProfileAdapter](../../atf-test-auto-ex/src/test/java/atf/ui/tests/autoex/extension/AutoExEvidenceProfileAdapter.java) mapează `CONFIGURED` la `SCREEN_CHECKPOINTS`; [ShopScreenshotPolicy](../../atf-test-practice-shop/src/main/java/atf/shop/reporting/ShopScreenshotPolicy.java) construiește aceeași bază | flow-ul implicit vine din configurația rezolvată, nu dintr-un default ascuns |
 | Detaliile acțiunilor | Shop are override prin `@WithE2eHarness`; nu există un plan YAML complet pentru ambii consumeri | configurare per axă, cu precedență și conflict explicit înaintea resurselor |
 | `CONSUMER-OVERVIEW-PROFILE-08` | System-ul raportului Shop partajat păstrează profilul primului scenariu, inclusiv API/capturi, deși frații pot fi UI-only sau unified | valorile comune sunt corecte pentru întregul artifact; diferențele sunt declarate ca mixte sau mutate la scenariul proprietar |
 
@@ -43,12 +180,12 @@ modelul și publicarea. Canalul, gruparea, capturile și acțiunile sunt axe dis
       bază configurată, override explicit, diagnostic și canale permise.
 - [ ] Extindeți YAML-ul numai împreună cu loaderul și mapping-ul verificat.
       `CONFIGURED` moștenește baza reală; canalul declarat nu este suprascris tacit.
+- [ ] Separați și comportamentul de prezentare: alegerea billing explicit/lookup
+      nu aparține canalului API. Contractul și proba diferenței sunt în
+      `CONSUMER-FLOW-LAYERS-09-D`, fără chei YAML pretinse ca deja livrate.
 - [ ] Probați combinațiile și izolarea fraților în același artifact pe succes și
       failure, inclusiv Overview/System. Precondiția API standalone nu dovedește
       autentificarea sesiunii browser.
-- [ ] Pentru compactarea UI-only într-un singur set de tabele cross-phase,
-      păstrați testul existent și urmați [cerința Reporting](ATF_Reporting_Feedback.md#report-unified-tables-01--un-singur-set-de-tabele-pentru-flow-ul-ui-only).
-      Titlul unic și captura finală sunt necesare, dar nu închid agregarea.
 - [ ] Păstrați contractele existente: UI-only fără API evidence/inspector,
       unified fără subpropoziții publicate, captură terminală după comandă și
       UI/API sub checkpoint-ul cauzal. Detaliile sunt în
@@ -75,6 +212,9 @@ configurată sunt livrate în
 capabilitățile neutre. Boundary-ul AutoEx este normat în
 [README-ul său](../../atf-test-auto-ex/README.md#coeziunea-suportului-autoex);
 mutarea acestuia în main nu mai este un ToDo.
+
+Acest gap privește resursele și compoziția harness-ului;
+`CONSUMER-FLOW-LAYERS-09` deține separarea semantică business/UI și validarea.
 
 | Candidat rămas | Separare cerută | Limită |
 |---|---|---|

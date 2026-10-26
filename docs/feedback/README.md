@@ -15,6 +15,8 @@ ownerului; rapoartele și rezultatele unei rulări nu devin documentație perman
 - Consumeri: scope explicit al contului, runtime reutilizabil în main la owner,
   adaptoare JUnit minime și profile UI/UI+API independente; reducerea selecției
   live rămâne condiționată de echivalență.
+- Separarea business → UI Flow → acțiuni compuse este încă nelivrată.
+  Prioritatea este un pilot pe coș, cu snapshot-uri, gate-uri și ownership de cont explicite.
 - Contractele livrate se găsesc în [indexul documentației](../README.md),
   nu în checklist-uri de implementare deja închise.
 
@@ -29,7 +31,7 @@ lor. Gap-urile secundare rămân vizibile în documentul ownerului.
 
 | Ordine | Feedback / owner | Scor /100 | Lacuna care decide ordinea |
 |---:|---|---:|---|
-| 1 | [Consumer — refactorizare E2E](ATF_Consumer_Business_Test_Focus_Feedback.md) | **80** = 30 + 22 + 20 + 8 | evidence și Overview fidel (80), corelare UI/transport AutoEx (78), runtime Shop (77), adnotări compuse (67), launcher Reporting (58), repetare live (57) |
+| 1 | [Consumer — refactorizare E2E](ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-flow-layers-09--business-traseu-ui-și-validare-separate) | **88** = 36 + 24 + 20 + 8 | straturi business/UI și validări (88), evidence/Overview (80), corelare AutoEx (78), runtime Shop (77), adnotări compuse (67), launcher Reporting (58), repetare live (57) |
 | 2 | [ATF UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ; activarea JavaScript explicită nu închide această limită |
 | 3 | [Shop API — diagnostic și randare](ATF_Practice_Shop_API_Test_Design_Feedback.md) | **66** = 25 + 19 + 16 + 6 | timeout înainte de login fără artifact FAIL; separat, auditul interactiv standalone (33) |
 | 4 | [Reporting](ATF_Reporting_Feedback.md) | **64** = 28 + 18 + 14 + 4 | lizibilitatea tabelelor imbricate în panouri înguste |

@@ -251,14 +251,14 @@ rulează separat și reutilizează contul nou în `ShopE2eSuite`.
 
 ```text
 atf-test-practice-shop/src/
-├── main/java/atf/ui/practiceshop/
+├── main/java/atf/shop/
 │   ├── api/         client, request factory și screen API flows
 │   ├── config/      records typed încărcate din YAML
 │   ├── locators/    singurul owner al selectorilor aplicației
 │   ├── pages/       page objects
 │   ├── flow/        pași de business compuși
 │   └── support/     context și evidence adapters
-├── test/java/atf/ui/tests/practiceshop/
+├── test/java/atf/shop/tests/
 │   ├── component/       teste rapide de module
 │   ├── api/component/   variații fake pozitive/negative
 │   ├── api/integration/ precondiție login live, opt-in

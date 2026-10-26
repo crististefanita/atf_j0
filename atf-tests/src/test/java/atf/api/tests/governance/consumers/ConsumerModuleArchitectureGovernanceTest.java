@@ -20,24 +20,24 @@ public class ConsumerModuleArchitectureGovernanceTest {
     @Test
     void shopKeepsJUnitHarnessTestScopedAndRuntimeFactoriesInMain() throws IOException {
         Path module = module("atf-test-practice-shop");
-        Path testRoot = module.resolve("src/test/java/atf/ui/tests/practiceshop");
+        Path testRoot = module.resolve("src/test/java/atf/shop/tests");
         Path context = testRoot.resolve("support/lifecycle/ShopE2eContext.java");
 
         assertTrue(Files.isRegularFile(context), "Shop browser/report context must be test-scoped");
         assertFalse(Files.exists(module.resolve(
-                        "src/main/java/atf/ui/practiceshop/support/ShopE2eContext.java")),
+                        "src/main/java/atf/shop/support/ShopE2eContext.java")),
                 "browser/report lifecycle must not ship with the Shop runtime");
 
         for (String helper : List.of("support/reporting/ShopReportSystemMetadata.java")) {
             assertTrue(Files.isRegularFile(testRoot.resolve(helper)),
                     "Shop reporting adapter must remain test-scoped: " + helper);
-            assertFalse(Files.exists(module.resolve("src/main/java/atf/ui/practiceshop/" + helper)),
+            assertFalse(Files.exists(module.resolve("src/main/java/atf/shop/" + helper)),
                     "Shop reporting adapter must not enter the production artifact: " + helper);
         }
 
         for (String factory : List.of("evidence/ShopBrowserCaptureProvider.java",
                 "reporting/ShopScreenshotPolicy.java")) {
-            Path runtime = module.resolve("src/main/java/atf/ui/practiceshop/" + factory);
+            Path runtime = module.resolve("src/main/java/atf/shop/" + factory);
             assertTrue(Files.isRegularFile(runtime), "Shop runtime factory must have its main owner: " + factory);
             assertFalse(Files.exists(testRoot.resolve("support/" + factory)),
                     "do not restore a duplicate test-scoped runtime factory: " + factory);
@@ -56,8 +56,8 @@ public class ConsumerModuleArchitectureGovernanceTest {
     @Test
     void shopUiSourcesRespectTheLocatorAndSelectorBoundary() throws IOException {
         Path module = module("atf-test-practice-shop");
-        Path sourceRoot = module.resolve("src/main/java/atf/ui/practiceshop");
-        Path testRoot = module.resolve("src/test/java/atf/ui/tests/practiceshop");
+        Path sourceRoot = module.resolve("src/main/java/atf/shop");
+        Path testRoot = module.resolve("src/test/java/atf/shop/tests");
         Path locatorRoot = sourceRoot.resolve("locators").toAbsolutePath().normalize();
 
         for (Path source : javaFiles(sourceRoot, testRoot)) {
@@ -84,34 +84,34 @@ public class ConsumerModuleArchitectureGovernanceTest {
     @Test
     void shopLocalSelectionAndApiAuditKeepExplicitBoundaries() throws IOException {
         Path tests = module("atf-test-practice-shop")
-                .resolve("src/test/java/atf/ui/tests/practiceshop");
+                .resolve("src/test/java/atf/shop/tests");
         String componentSuite = Files.readString(tests.resolve("suites/ShopComponentSuite.java"));
-        for (String selected : List.of("atf.ui.tests.practiceshop.component",
-                "atf.ui.tests.practiceshop.api.component",
-                "atf.ui.tests.practiceshop.api.unit",
-                "atf.ui.tests.practiceshop.api.reporting",
-                "atf.ui.tests.practiceshop.api.network",
-                "atf.ui.tests.practiceshop.support")) {
+        for (String selected : List.of("atf.shop.tests.component",
+                "atf.shop.tests.api.component",
+                "atf.shop.tests.api.unit",
+                "atf.shop.tests.api.reporting",
+                "atf.shop.tests.api.network",
+                "atf.shop.tests.support")) {
             assertTrue(componentSuite.contains("\"" + selected + "\""),
                     "Shop component suite must keep its explicit consumer boundary: " + selected);
         }
-        assertFalse(componentSuite.contains("atf.ui.tests.practiceshop.e2e"));
-        assertFalse(componentSuite.contains("atf.ui.tests.practiceshop.api.integration"));
+        assertFalse(componentSuite.contains("atf.shop.tests.e2e"));
+        assertFalse(componentSuite.contains("atf.shop.tests.api.integration"));
 
-        assertFalse(componentSuite.contains("\"atf.ui.practiceshop.support.api\""),
+        assertFalse(componentSuite.contains("\"atf.shop.support.api\""),
                 "Shop API tests belong to the canonical test namespace");
         Path legacy = module("atf-test-practice-shop").resolve(
-                "src/test/java/atf/ui/practiceshop/support/api");
+                "src/test/java/atf/shop/support/api");
         assertTrue(javaFiles(legacy).isEmpty(), "do not restore tests under the runtime namespace");
         Path network = tests.resolve("api/network");
         for (String contract : List.of("ShopApiNetworkJournalTest", "ShopApiMethodFidelityTest")) {
             String source = Files.readString(network.resolve(contract + ".java"));
-            assertTrue(source.startsWith("package atf.ui.tests.practiceshop.api.network;"));
+            assertTrue(source.startsWith("package atf.shop.tests.api.network;"));
             assertFalse(source.contains(".recordCapturedExchange("),
                     "consumer contracts must exercise public capture subscriptions");
         }
         String journal = Files.readString(module("atf-test-practice-shop").resolve(
-                "src/main/java/atf/ui/practiceshop/support/api/ShopApiNetworkJournal.java"));
+                "src/main/java/atf/shop/support/api/ShopApiNetworkJournal.java"));
         assertTrue(journal.contains("private void recordCapturedExchange("),
                 "moving tests must not widen the runtime recorder");
         String context = Files.readString(tests.resolve("support/lifecycle/ShopE2eContext.java"));
@@ -128,7 +128,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
     @Test
     void shopE2eTestsUseObservedAssertionsAndPerMethodHarnesses() throws IOException {
         Path e2e = module("atf-test-practice-shop")
-                .resolve("src/test/java/atf/ui/tests/practiceshop/e2e");
+                .resolve("src/test/java/atf/shop/tests/e2e");
         for (String name : List.of("ShopPurchaseE2eTest", "ShopUiOnlyPurchaseE2eTest",
                 "ShopUiOnlySingleFlowPurchaseE2eTest", "ShopAuthenticatedPurchaseE2eTest",
                 "ShopNewAccountPurchaseE2eTest")) {
@@ -256,8 +256,8 @@ public class ConsumerModuleArchitectureGovernanceTest {
         for (Path source : javaFiles(kit.resolve("src/main/java"), kit.resolve("src/test/java"),
                 module("atf-reporting-tests").resolve("src/test/java"))) {
             String text = Files.readString(source);
-            assertFalse(text.matches("(?s).*\\bimport\\s+(?:static\\s+)?atf\\.ui\\."
-                            + "(?:practiceshop|autoex|tests\\.(?:practiceshop|autoex))\\..*"),
+            assertFalse(text.matches("(?s).*\\bimport\\s+(?:static\\s+)?"
+                            + "(?:atf\\.shop|atf\\.ui\\.(?:autoex|tests\\.autoex))\\..*"),
                     "neutral support/proofs must not import consumer classes: " + source);
         }
         for (Path source : javaFiles(kit.resolve("src/main/java"), kit.resolve("src/test/java"))) {
@@ -292,7 +292,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
         String run = Files.readString(module("atf-test-auto-ex").resolve(
                 "src/main/java/atf/ui/autoex/runtime/AutoExE2eRun.java"));
         assertTrue(run.contains(".observationsSince(") && run.contains("UiScreenAudit.record("));
-        Path shop = module("atf-test-practice-shop").resolve("src/test/java/atf/ui/tests/practiceshop");
+        Path shop = module("atf-test-practice-shop").resolve("src/test/java/atf/shop/tests");
         String support = Files.readString(shop.resolve("support/ShopE2eTestSupport.java"));
         assertTrue(support.contains("new CloseOnceResource<>("));
         assertFalse(support.contains("class E2eResource"), "close-once must not be duplicated in Shop");
