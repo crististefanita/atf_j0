@@ -30,6 +30,7 @@ public final class ExtentReportSession implements AtfReportPorts.Session, AutoCl
     private final ExtentReports reports;
     private final ExtentReportTree tree;
     private final AtfConsoleSink console;
+    private final SensitiveDataRedactor environmentRedactor;
     private final long ownerThreadId = Thread.currentThread().getId();
     private boolean closed;
 
@@ -79,6 +80,7 @@ public final class ExtentReportSession implements AtfReportPorts.Session, AutoCl
         this.reportPath = Objects.requireNonNull(reportPath, "reportPath").toAbsolutePath().normalize();
         Objects.requireNonNull(settings, "settings");
         Objects.requireNonNull(redactor, "redactor");
+        this.environmentRedactor = redactor;
         this.console = Objects.requireNonNull(console, "console");
         this.publication = ExtentReportSessionPublication.open(this.reportPath);
         var spark = new ExtentReportTimestampReporter(publication.stagedReport().toString());
@@ -138,6 +140,16 @@ public final class ExtentReportSession implements AtfReportPorts.Session, AutoCl
     }
 
     @Override public Path reportPath() { return reportPath; }
+
+    /** Updates operational metadata through the same allowlist and redaction boundary as opening. */
+    public void updateEnvironment(ReportEnvironmentSnapshot snapshot) {
+        ensureOpen();
+        Objects.requireNonNull(snapshot, "snapshot").systemDisplayValues().forEach((name, value) -> {
+            String safe = environmentRedactor.redactField(name, value);
+            reports.getReport().getSystemEnvInfo().removeIf(field -> name.equals(field.getName()));
+            reports.setSystemInfo(name, safe);
+        });
+    }
 
     /** Returns the immutable semantic population recorded by this session. */
     public AtfReportSemanticSnapshot semanticSnapshot() {

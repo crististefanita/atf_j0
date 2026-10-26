@@ -8,9 +8,8 @@ import atf.reporting.evidence.profile.ReportEvidenceProfile;
 import atf.reporting.ui.UiExtentReportSession;
 import atf.testkit.channel.AtfTestChannelResolver;
 import atf.testkit.channel.TestChannel;
-import atf.testkit.evidence.AtfUiEvidence;
-import atf.testkit.evidence.AtfUiEvidenceFlow;
-import atf.testkit.evidence.AtfUiScreenshotPolicy;
+import atf.testkit.evidence.AtfUiEvidencePlan;
+import atf.testkit.evidence.AtfUiEvidenceResolver;
 import atf.testkit.files.AtfTestResourceReader;
 import atf.testkit.lifecycle.TestRunInitialization;
 import atf.testkit.output.ReportOutputDirectory;
@@ -41,15 +40,11 @@ final class AutoExRunFactory {
         if (channel != TestChannel.UI && channel != TestChannel.UI_API) {
             throw new IllegalStateException("AutoEx purchase journey supports UI or UI_API channels only");
         }
-        AtfUiEvidence evidenceAnnotation = context.getRequiredTestClass()
-                .getAnnotation(AtfUiEvidence.class);
-        AtfUiEvidenceFlow flow = evidenceAnnotation == null
-                ? AtfUiEvidenceFlow.CONFIGURED : evidenceAnnotation.flow();
-        AtfUiScreenshotPolicy screenshots = evidenceAnnotation == null
-                ? AtfUiScreenshotPolicy.CONFIGURED : evidenceAnnotation.screenshots();
+        AtfUiEvidencePlan declaration = AtfUiEvidenceResolver.resolve(context.getRequiredTestClass())
+                .orElseGet(AtfUiEvidencePlan::configured);
         var reportConfiguration = AtfReportConfigurationLoader.load();
         ReportEvidenceProfile evidence = AutoExEvidenceProfileAdapter.forRun(
-                flow, screenshots, reportConfiguration.screenshotPolicy());
+                declaration, configuration.evidence().profile(reportConfiguration.screenshotPolicy()));
         ReportEvidenceProfile sessionEvidence = ReportEvidenceProfile.forScreenshotPolicy(
                 reportConfiguration.screenshotPolicy());
         if (channel == TestChannel.UI_API) {

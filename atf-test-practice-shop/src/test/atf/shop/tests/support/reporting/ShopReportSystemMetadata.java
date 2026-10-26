@@ -16,7 +16,7 @@ import java.util.Map;
 
 /** Builds the safe, semantic configuration snapshot shown in Overview/System. */
 public final class ShopReportSystemMetadata {
-    private static final String ENVIRONMENT_PROPERTY = "atf.environment";
+    public static final String DEFAULT_ENVIRONMENT = "LOCAL";
 
     private ShopReportSystemMetadata() {
     }
@@ -28,7 +28,7 @@ public final class ShopReportSystemMetadata {
     /** Builds the allowlisted form consumed by the reporting composition root. */
     public static ReportEnvironmentSnapshot snapshot(ShopConfiguration configuration) {
         if (configuration == null) return ReportEnvironmentSnapshot.empty();
-        return snapshotValues(configuration, configuredEvidenceProfile(configuration)).build();
+        return snapshotValues(configuration, configuredEvidenceProfile(configuration), DEFAULT_ENVIRONMENT).build();
     }
 
     /**
@@ -50,15 +50,24 @@ public final class ShopReportSystemMetadata {
         if (reportingSettings == null) throw new NullPointerException("reportingSettings");
         if (configuration == null) return ReportEnvironmentSnapshot.empty();
         if (evidenceProfile == null) throw new NullPointerException("evidenceProfile");
-        return snapshotValues(configuration, evidenceProfile).build();
+        return snapshot(configuration, evidenceProfile, DEFAULT_ENVIRONMENT);
+    }
+
+    /** Composition roots pass the environment captured for this execution; this projection reads no JVM state. */
+    public static ReportEnvironmentSnapshot snapshot(ShopConfiguration configuration,
+                                                     ReportEvidenceProfile evidenceProfile,
+                                                     String environment) {
+        if (configuration == null) return ReportEnvironmentSnapshot.empty();
+        return snapshotValues(configuration, java.util.Objects.requireNonNull(evidenceProfile, "evidenceProfile"),
+                java.util.Objects.requireNonNull(environment, "environment")).build();
     }
 
     private static ReportEnvironmentSnapshot.Builder snapshotValues(
             ShopConfiguration configuration,
-            ReportEvidenceProfile evidenceProfile) {
+            ReportEvidenceProfile evidenceProfile, String environment) {
         var snapshot = ReportEnvironmentSnapshot.builder()
                 .put(ReportEnvironmentField.ENVIRONMENT,
-                        System.getProperty(ENVIRONMENT_PROPERTY, "LOCAL"))
+                        environment)
                 .put(ReportEnvironmentField.UI_HOST, origin(configuration.baseUrl()))
                 .put(ReportEnvironmentField.CLIENT, "Playwright browser")
                 .put(ReportEnvironmentField.BROWSER, browser(configuration))
@@ -72,6 +81,8 @@ public final class ShopReportSystemMetadata {
                         screenshotPolicy(evidenceProfile.screenshotPolicy()))
                 .put(ReportEnvironmentField.UI_EVIDENCE_LAYOUT,
                         evidenceLayout(evidenceProfile.flowMode()))
+                .put(ReportEnvironmentField.UI_ACTION_DETAILS,
+                        evidenceProfile.actionDetailsMode().configValue())
                 .put(ReportEnvironmentField.UI_TIMEOUT,
                         humanDuration(configuration.browser().timeout()))
                 .put(ReportEnvironmentField.NAVIGATION_TIMEOUT,
@@ -110,7 +121,7 @@ public final class ShopReportSystemMetadata {
 
     private static ReportEvidenceProfile configuredEvidenceProfile(
             ShopConfiguration configuration) {
-        return ShopScreenshotPolicy.profile(configuration.reporting().screenshotPolicy());
+        return ShopScreenshotPolicy.profile(configuration.reporting());
     }
 
     private static String evidenceLayout(ReportEvidenceFlowMode flowMode) {

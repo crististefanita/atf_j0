@@ -4,6 +4,7 @@ import atf.core.config.module.AtfModuleIds;
 import atf.testkit.AtfComponentTest;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,11 +13,52 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static atf.api.tests.governance.AtfGovernanceTestSupport.*;
 
 /** Whole-ATF guard for source imports, Maven direction and process-state ownership. */
 @AtfComponentTest
 public class ArchitectureModuleBoundaryTest {
+    @TempDir Path fixtureRoot;
+
+    @Test
+    void rejectsForbiddenNamespacesBeforeAndAfterSourceMoves() throws Exception {
+        List<String> references = List.of(
+                "import atf.reporting.Widget;", "import static atf.reporting.Widget.VALUE;",
+                "import atf.reporting.*;", "package atf.reporting.misplaced;",
+                "class Bad { atf.reporting.Widget value; }",
+                "class Bad { Object value = atf . reporting . Widget.create(); }",
+                "/* example only */ class Bad { atf.reporting.Widget real; }",
+                "import " + "\\" + "u0061" + "tf.reporting.Widget;",
+                "// example " + "\\" + "u000a" + " import atf.reporting.Widget;");
+        for (String location : List.of("src/test/java/legacy/Example.java",
+                "src/main/java/canonical/Example.java")) {
+            Path file = fixtureRoot.resolve(location);
+            Files.createDirectories(file.getParent());
+            for (String source : references) {
+                Files.writeString(file, source);
+                var violations = new ArrayList<String>();
+                assertNoForbidden(file.getParent(), List.of("atf.reporting"), violations);
+                assertEquals(List.of(file + " contains atf.reporting"), violations, source);
+            }
+        }
+    }
+
+    @Test
+    void permitsConfigurationAndDocumentationButNotAdjacentJavaReferences() throws Exception {
+        Path file = fixtureRoot.resolve("Example.java");
+        String source = "// import atf.reporting.Widget;\n/* atf.reporting.Widget */\n"
+                + "class Good { String key = \"atf.reporting.extent.enabled\";"
+                + " String escaped = \"" + "\\" + "u0061" + "tf.reporting.enabled\";"
+                + " atf.reportingish.Widget allowed; }";
+        Files.writeString(file, source);
+        var violations = new ArrayList<String>();
+        assertNoForbidden(fixtureRoot, List.of("atf.reporting"), violations);
+        assertTrue(violations.isEmpty(), () -> violations.toString());
+        Files.writeString(file, source + "\nclass Bad { atf.reporting.Widget actual; }");
+        assertNoForbiddenReportingCore(fixtureRoot, List.of("atf.reporting"), violations);
+        assertEquals(List.of(file + " contains atf.reporting"), violations);
+    }
     @Test
     void rootPomExposesTheCanonicalReactorModuleCatalog() throws Exception {
         Path root = locateProjectRoot();

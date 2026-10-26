@@ -7,6 +7,13 @@ import atf.testkit.AtfComponentTest;
 import atf.testkit.evidence.AtfUiEvidence;
 import atf.testkit.evidence.AtfUiEvidenceFlow;
 import atf.testkit.evidence.AtfUiScreenshotPolicy;
+import atf.testkit.evidence.AtfUiEvidencePlan;
+import atf.testkit.evidence.AtfUiEvidenceResolver;
+import atf.testkit.evidence.AtfUiActionDetails;
+import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
+import atf.autoex.runtime.config.AutoExEvidenceProfile;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import atf.autoex.tests.e2e.AutoExPurchaseUiFinalScreenshotE2eTest;
 import atf.autoex.tests.extension.AutoExEvidenceProfileAdapter;
 import org.junit.jupiter.api.Test;
@@ -19,6 +26,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** Guards AutoEx flow composition and screenshot-policy mapping without a live site or browser. */
 @AtfComponentTest
 class AutoExEvidenceProfileComponentTest {
+
+    @Test
+    void configuredAxesAndComposedOverridesUseTheActualResolvedBase() {
+        var configured = AutoExEvidenceProfile.forRun(ReportEvidenceFlowMode.UNIFIED_FLOW,
+                ReportScreenshotPolicy.NONE).toBuilder().actionDetailsMode(ReportUiActionDetailsMode.SUMMARY_ONLY).build();
+        assertEquals(configured, AutoExEvidenceProfileAdapter.forRun(AtfUiEvidencePlan.configured(), configured));
+        var selected = AutoExEvidenceProfileAdapter.forRun(
+                AtfUiEvidenceResolver.resolve(ComposedEvidence.class).orElseThrow(), configured);
+        assertEquals(ReportEvidenceFlowMode.UNIFIED_FLOW, selected.flowMode());
+        assertEquals(ReportScreenshotPolicy.FINAL_AND_FAILURE, selected.screenshotPolicy());
+        assertEquals(ReportUiActionDetailsMode.INCLUDED_COLLAPSED, selected.actionDetailsMode());
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @AtfUiEvidence(screenshots = AtfUiScreenshotPolicy.FINAL_AND_FAILURE,
+            actionDetails = AtfUiActionDetails.INCLUDED_COLLAPSED)
+    private @interface TerminalEvidence { }
+    @TerminalEvidence private static class ComposedEvidence { }
 
     @Test
     void annotationOverridesOnlyDeclaredAxesAndConfiguredAxesRemainConfigured() {

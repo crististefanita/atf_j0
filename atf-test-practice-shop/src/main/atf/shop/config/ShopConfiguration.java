@@ -168,7 +168,7 @@ public record ShopConfiguration(
     public ShopConfiguration withScreenshotPolicy(ReportScreenshotPolicy screenshotPolicy) {
         ShopReportConfiguration selectedReporting = new ShopReportConfiguration(
                 reporting.systemBodyPreviewCharacters(), Objects.requireNonNull(screenshotPolicy,
-                        "screenshotPolicy"));
+                        "screenshotPolicy"), reporting.flowMode(), reporting.actionDetailsMode());
         return new ShopConfiguration(baseUrl, accountFile, productName, productPath, checkout,
                 browser, uiRetry, validationProfile, api, uiReportDirectory, apiReportDirectory,
                 authenticatedE2eEnabled, selectedReporting);

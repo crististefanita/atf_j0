@@ -24,6 +24,7 @@ import atf.ui.playwright.PlaywrightActionSequence;
 import atf.ui.playwright.PlaywrightUiSession;
 import atf.ui.playwright.UiScreenValidation;
 import atf.autoex.config.AutoExConfiguration;
+import atf.autoex.support.account.AutoExAccountLifecycle;
 import atf.autoex.runtime.navigation.AutoExReadOnlyNavigation;
 import atf.autoex.locator.AutoExRoutes;
 import atf.autoex.locator.AutoExSelectors;
@@ -43,6 +44,8 @@ import java.util.Objects;
 
 import static atf.core.http.request.HttpMethod.GET;
 import static atf.core.http.request.MediaTypes.APPLICATION_JSON;
+import static atf.ui.network.UiNetworkCapturePolicy.ResourceKind.XHR;
+import static atf.ui.network.UiNetworkCapturePolicy.ResourceKind.FETCH;
 import static atf.autoex.api.AutoExApiJsonField.NAME;
 import static atf.autoex.api.AutoExApiJsonField.PRICE;
 import static atf.autoex.api.AutoExApiJsonField.PRODUCTS;
@@ -59,6 +62,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
     private final boolean apiEnabled;
     private final AutoExRunLifecycle lifecycle;
     private final AutoExReadOnlyNavigation storeNavigation;
+    private final AutoExAccountLifecycle accountLifecycle = new AutoExAccountLifecycle();
     private final List<ReportNetworkInspector.Step> networkSteps = new ArrayList<>();
     private final PlaywrightActionSequence actions;
     private int networkCursor;
@@ -94,10 +98,11 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
                 current.zoomPercent(), current.screenshotOnFailure(), current.retryPolicy(), network);
         return new AutoExConfiguration(source.baseUrl(), source.e2eEnabled(), browser,
                 source.uiReportBaseDirectory(), source.catalog(), source.registration(), source.payment(),
-                source.storeAvailabilityPolicy());
+                source.storeAvailabilityPolicy(), source.evidence());
     }
 
     public AutoExConfiguration configuration() { return configuration; }
+    public AutoExAccountLifecycle accountLifecycle() { return accountLifecycle; }
     public Page page() { return browser.page(); }
     public String currentUrl() { return page().url(); }
 
@@ -350,7 +355,8 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
         String route = AutoExRoutes.ADD_TO_CART.path() + productId;
         browser.networkInspector().awaitAfter(networkCursor,
                 observation -> observation.method().equals(GET.value())
-                        && observation.path().startsWith(route), null)
+                        && observation.path().equals(route)
+                        && (observation.resourceKind() == XHR || observation.resourceKind() == FETCH), null)
                 .orElseThrow(() -> new AssertionError(
                         "The browser did not finish the cart XHR before its UI/API checkpoint: " + route));
     }

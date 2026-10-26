@@ -30,11 +30,10 @@ lor. Gap-urile secundare rămân vizibile în documentul ownerului.
 | Ordine | Feedback / owner | Scor /100 | Lacuna care decide ordinea |
 |---:|---|---:|---|
 | 1 | [Consumer — refactorizare E2E](ATF_Consumer_Business_Test_Focus_Feedback.md) | **88** = 36 + 24 + 20 + 8 | separare business/UI/validare (88), evidence și Overview fidel (80), corelare UI/transport AutoEx (78), runtime Shop (77), adnotări compuse (67), repetare live (57) |
-| 2 | [Guvernanță — namespace-uri](#gov-namespace-match-02--probe-negative-pentru-boundary) | **86** = 35 + 25 + 20 + 6 | matcher-ul schimbat cere probe negative, distincte de scanarea unui checkout conform |
-| 3 | [Reporting](ATF_Reporting_Feedback.md) | **77** = 33 + 24 + 16 + 4 | nesting ilizibil și în API nominal, inclusiv Technical trace (77); launcher browser canonic (58) |
-| 4 | [ATF UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ; activarea JavaScript explicită nu închide această limită |
-| 5 | [Shop API — diagnostic](ATF_Practice_Shop_API_Test_Design_Feedback.md) | **66** = 25 + 19 + 16 + 6 | timeout înainte de login fără artifact FAIL; lizibilitatea comună este urmărită la Reporting |
-| 6 | [Documentație — ancore](#doc-link-anchor-01--validarea-automată-a-ancorelor) | **44** = 14 + 11 + 15 + 4 | guard-ul validează fișierul local, dar elimină fragmentul înaintea verificării; ancora lipsă nu este detectată |
+| 2 | [Reporting](ATF_Reporting_Feedback.md) | **77** = 33 + 24 + 16 + 4 | nesting ilizibil și în API nominal, inclusiv Technical trace |
+| 3 | [ATF UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ; activarea JavaScript explicită nu închide această limită |
+| 4 | [Shop API — diagnostic](ATF_Practice_Shop_API_Test_Design_Feedback.md) | **66** = 25 + 19 + 16 + 6 | timeout înainte de login fără artifact FAIL; lizibilitatea comună este urmărită la Reporting |
+| 5 | [Documentație — ancore](#doc-link-anchor-01--validarea-automată-a-ancorelor) | **44** = 14 + 11 + 15 + 4 | guard-ul validează fișierul local, dar elimină fragmentul înaintea verificării; ancora lipsă nu este detectată |
 
 
 Ordinea nu înlocuiește criteriul de închidere. O componentă verde nu certifică
@@ -48,24 +47,33 @@ Calitatea editorială se evaluează separat prin
 ale workflow-ului propus. Scorurile sale măsoară readiness-ul, nu prioritatea
 operațională de mai sus; nu sunt recalibrate printr-o revizie editorială.
 
-## GOV-NAMESPACE-MATCH-02 — probe negative pentru boundary
+## GOV-NAMESPACE-MATCH-02 — controlul schimbării de teste
 
-**Owner:** `atf-tests` pentru matcher-ul de dependențe și Reporting Tests pentru
-guard-ul API/UI. Refactorizarea folosește acum potrivire pe package/import/FQCN;
-scanarea unui checkout conform nu dovedește că o dependență interzisă este respinsă.
+Probele negative pentru import, package, tip calificat, prefix permis,
+comentariu/literal, escape Unicode și ambele căi ale unei mutări au trecut
+împreună cu guvernanța whole-ATF în staging. Contractul stabil este în
+[arhitectură](../ATF_Architecture.md#namespace-uri-și-rădăcini-de-surse);
+controlul de mai jos rămâne activ pentru diferența Git până la integrare.
 
-- [ ] Probați cu surse controlate import normal/static/wildcard, declarație de
-      package și tip complet calificat în corpul metodei, inclusiv încălcarea
-      introdusă deliberat; afirmați fișierul și regula din diagnostic.
-- [ ] Distingeți namespace-ul interzis de un prefix asemănător permis și de
-      chei de configurare în string-uri; declarați tratamentul comentariilor și
-      verificați că exemplele nu maschează o referință Java reală.
-- [ ] Verificați maparea vechi → nou a fișierelor mutate cu aceleași cazuri de
-      boundary. Schimbarea matcher-ului și a testelor păstrează controale exacte,
-      fără rebazare sau allowlist de evitare.
+<details>
+<summary><strong>Control tehnic activ — matcher namespace</strong></summary>
 
-Contractele stabile sunt în [arhitectură](../ATF_Architecture.md#namespace-uri-și-rădăcini-de-surse)
-și [README-ul ATF Tests](../../atf-tests/README.md#guvernanța-schimbării-testelor).
+```yaml
+testChanges:
+  - id: GOV-NAMESPACE-MATCH-02
+    status: ACTIVE
+    base: 490a0f274d71ec4bb288b01655e60f768daa74ba
+    expires: 2026-11-26
+    reason: Probe negative pe surse controlate pentru importuri, tipuri calificate, mutarea fișierelor și escape-uri Unicode Java; păstrează restricțiile boundary, exclude doar exemplele din comentarii și literali și respinge sursele cu escape invalid.
+    proof: mvn -pl atf-core,atf-reporting-tests,atf-tests -am "-Dtest=AtfJavaSourceReferencesTest,ArchitectureModuleBoundaryTest,ApiTestBoundaryArchitectureTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=490a0f274d71ec4bb288b01655e60f768daa74ba" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-core/src/test/java/atf/core/files/AtfJavaSourceReferencesTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/api/tests/architecture/ApiTestBoundaryArchitectureTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/ArchitectureModuleBoundaryTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/AtfGovernanceTestSupport.java
+```
+
+</details>
 
 ## DOC-LINK-ANCHOR-01 — validarea automată a ancorelor
 

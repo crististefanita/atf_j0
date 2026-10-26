@@ -3,6 +3,7 @@ package atf.api.tests.governance;
 import atf.core.config.module.AtfModuleIds;
 import atf.core.files.AtfFileTree;
 import atf.core.files.AtfJavaSourceInventory;
+import atf.core.files.AtfJavaSourceReferences;
 import atf.core.files.AtfPathLocator;
 
 import java.nio.file.Files;
@@ -11,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -69,8 +69,7 @@ public final class AtfGovernanceTestSupport {
         try (var files = Files.walk(sourceRoot)) {
             for (Path file : files.filter(path -> path.toString().endsWith(JAVA_SUFFIX)).toList()) {
                 String source = Files.readString(file);
-                assertFalse(source.contains("package " + forbiddenPrefix + ".")
-                                || source.contains("import " + forbiddenPrefix + "."),
+                assertFalse(AtfJavaSourceReferences.containsNamespace(source, forbiddenPrefix),
                         () -> file + " contains forbidden Java namespace " + forbiddenPrefix);
             }
         }
@@ -262,13 +261,8 @@ public final class AtfGovernanceTestSupport {
     }
 
     private static boolean containsForbiddenToken(String source, String token) {
-        if (token.startsWith("atf.")) {
-            String packagePrefix = Pattern.quote(token);
-            String declarationOrImport = "(?m)^\\s*(?:package|import)\\s+(?:static\\s+)?"
-                    + packagePrefix + "(?:\\.|;)";
-            String fullyQualifiedType = "(?<![\\w.])" + packagePrefix
-                    + "(?:\\.[a-z][\\w$]*)*\\.[A-Z][\\w$]*\\b";
-            return Pattern.compile(declarationOrImport + "|" + fullyQualifiedType).matcher(source).find();
+        if (token.contains(".") && !token.startsWith("<")) {
+            return AtfJavaSourceReferences.containsNamespace(source, token);
         }
         return source.contains(token);
     }

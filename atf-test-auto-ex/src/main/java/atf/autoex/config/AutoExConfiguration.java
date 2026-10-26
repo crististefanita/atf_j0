@@ -15,7 +15,8 @@ public record AutoExConfiguration(URI baseUrl, boolean e2eEnabled,
                                   UiBrowserConfiguration browser,
                                   Path uiReportBaseDirectory,
                                   Catalog catalog, Registration registration,
-                                  Payment payment, UiRetryPolicy storeAvailabilityPolicy) {
+                                  Payment payment, UiRetryPolicy storeAvailabilityPolicy,
+                                  AutoExEvidenceSettings evidence) {
     public static final UiRetryPolicy DEFAULT_STORE_AVAILABILITY_POLICY = new UiRetryPolicy(
             1, Duration.ZERO, Set.of(UiRetryOperation.NAVIGATE), "store queue full");
 
@@ -24,6 +25,13 @@ public record AutoExConfiguration(URI baseUrl, boolean e2eEnabled,
                                Payment payment) {
         this(baseUrl, e2eEnabled, browser, uiReportBaseDirectory, catalog, registration, payment,
                 DEFAULT_STORE_AVAILABILITY_POLICY);
+    }
+
+    public AutoExConfiguration(URI baseUrl, boolean e2eEnabled, UiBrowserConfiguration browser,
+                               Path uiReportBaseDirectory, Catalog catalog, Registration registration,
+                               Payment payment, UiRetryPolicy storeAvailabilityPolicy) {
+        this(baseUrl, e2eEnabled, browser, uiReportBaseDirectory, catalog, registration, payment,
+                storeAvailabilityPolicy, AutoExEvidenceSettings.defaults());
     }
 
     public AutoExConfiguration {
@@ -37,6 +45,7 @@ public record AutoExConfiguration(URI baseUrl, boolean e2eEnabled,
         catalog = Objects.requireNonNull(catalog, "catalog");
         registration = Objects.requireNonNull(registration, "registration");
         payment = Objects.requireNonNull(payment, "payment");
+        evidence = Objects.requireNonNull(evidence, "evidence");
         storeAvailabilityPolicy = Objects.requireNonNull(storeAvailabilityPolicy, "storeAvailabilityPolicy");
         if (storeAvailabilityPolicy.eligibleOperations().stream()
                 .anyMatch(operation -> operation != UiRetryOperation.NAVIGATE)) {

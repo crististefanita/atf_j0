@@ -3,12 +3,12 @@ package atf.autoex.page;
 import atf.autoex.config.AutoExConfiguration;
 import atf.autoex.locator.AutoExSelectors;
 import atf.autoex.support.checkout.AutoExOrderLine;
-import atf.autoex.support.journey.AutoExPurchaseSession;
+import atf.autoex.ui.AutoExUiActions;
 import atf.autoex.support.validation.AutoExUiText;
 
 /** Cart rows and checkout transition. */
 public final class CartPage extends AutoExPage {
-    public CartPage(AutoExPurchaseSession run) { super(run); }
+    public CartPage(AutoExUiActions ui) { super(ui); }
 
     public void openFromHeader() { click(AutoExSelectors.CART_LINK, "cart page opens"); }
 
@@ -36,7 +36,7 @@ public final class CartPage extends AutoExPage {
 
     public String removeProductAndReadEmptyCart(AutoExConfiguration.Catalog product) {
         click(row(product) + " " + AutoExSelectors.CART_REMOVE, "selected product is removed from the cart");
-        run.waitForText(AutoExSelectors.EMPTY_CART, AutoExUiText.CART_EMPTY.text(),
+        ui.waitForText(AutoExSelectors.EMPTY_CART, AutoExUiText.CART_EMPTY.text(),
                 "cart confirms that its last product was removed");
         return text(AutoExSelectors.EMPTY_CART, "empty-cart confirmation is read");
     }

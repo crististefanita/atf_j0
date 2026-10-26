@@ -1,6 +1,7 @@
 package atf.autoex.support.checkout;
 
 import atf.reporting.contract.AtfAssertion;
+import atf.autoex.business.cart.AutoExCartResult;
 import atf.autoex.config.AutoExConfiguration.Catalog;
 import atf.autoex.config.AutoExConfiguration.Registration;
 
@@ -13,11 +14,17 @@ public final class AutoExCheckoutAssertions {
     private AutoExCheckoutAssertions() { }
 
     public static List<AtfAssertion> orderLine(Catalog product, String expectedTotal, AutoExOrderLine actual) {
-        return List.of(
-                equal("Product", product.productName(), actual.productName()),
-                equal("Unit price", product.unitPrice(), actual.unitPrice()),
-                equal("Quantity", Integer.toString(product.quantity()), actual.quantity()),
-                equal("Line total", expectedTotal, actual.total()));
+        return cart(AutoExCartResult.compare(expectedLine(product, expectedTotal), actual));
+    }
+
+    public static AutoExOrderLine expectedLine(Catalog product, String expectedTotal) {
+        return new AutoExOrderLine(product.productName(), product.unitPrice(),
+                Integer.toString(product.quantity()), expectedTotal);
+    }
+
+    public static List<AtfAssertion> cart(AutoExCartResult result) {
+        return result.checks().stream().map(check -> new AtfAssertion(
+                check.label(), check.expected(), check.actual(), check.passed())).toList();
     }
 
     public static List<AtfAssertion> address(String label, Registration profile, String renderedAddress) {
@@ -37,10 +44,6 @@ public final class AutoExCheckoutAssertions {
     private static AtfAssertion line(String label, String field, String expected, List<String> lines) {
         return new AtfAssertion(label + " — " + field, expected, String.join(" | ", lines),
                 lines.contains(normalize(expected)));
-    }
-
-    private static AtfAssertion equal(String field, String expected, String actual) {
-        return new AtfAssertion(field, expected, actual, expected.equals(actual));
     }
 
     private static String normalize(String value) {

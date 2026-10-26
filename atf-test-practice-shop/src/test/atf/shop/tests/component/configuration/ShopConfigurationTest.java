@@ -27,6 +27,42 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @AtfComponentTest
 class ShopConfigurationTest {
     @Test
+    void malformedEvidenceAndBillingPoliciesCannotSilentlyUseDefaults(@TempDir Path temp) throws Exception {
+        Path yaml = temp.resolve("invalid-policy.yaml");
+        for (String policy : List.of("flowMode: 7", "flowMode: unknown", "actionDetailsMode: false",
+                "screenshotPolicy: ''", "flowMod: unified-flow")) {
+            Files.writeString(yaml, "practiceShop:\n  baseUrl: https://fixture.test\n  reporting:\n    " + policy + "\n");
+            assertThrows(IllegalStateException.class, () -> ShopConfigurationLoader.load(yaml), policy);
+        }
+        Files.writeString(yaml, "practiceShop:\n  baseUrl: https://fixture.test\n  checkout:\n    billingStrategy: 7\n");
+        assertThrows(IllegalStateException.class, () -> ShopConfigurationLoader.load(yaml));
+    }
+    @Test
+    @ResourceLock(ShopConfigurationLoader.CONFIG_PROPERTY)
+    void explicitLaunchConfigurationIsUsedWithoutEditingThePackagedProfile(@TempDir Path temp) throws Exception {
+        String previous = System.getProperty(ShopConfigurationLoader.CONFIG_PROPERTY);
+        Path yaml = temp.resolve("controlled-launch.yaml");
+        Files.writeString(yaml, """
+                practiceShop:
+                  baseUrl: https://controlled.fixture.test
+                  headless: true
+                  reporting:
+                    flowMode: unified-flow
+                """);
+        try {
+            System.setProperty(ShopConfigurationLoader.CONFIG_PROPERTY, yaml.toString());
+            var launch = ShopConfigurationLoader.load();
+            assertEquals("controlled.fixture.test", launch.baseUrl().getHost());
+            assertTrue(launch.browser().headless());
+            assertEquals("unified-flow", launch.reporting().flowMode().configValue());
+            System.setProperty(ShopConfigurationLoader.CONFIG_PROPERTY, temp.resolve("missing.yaml").toString());
+            assertThrows(IllegalStateException.class, ShopConfigurationLoader::load);
+        } finally {
+            if (previous == null) System.clearProperty(ShopConfigurationLoader.CONFIG_PROPERTY);
+            else System.setProperty(ShopConfigurationLoader.CONFIG_PROPERTY, previous);
+        }
+    }
+    @Test
     void yamlDefinesOwnedJourneyAndSyntheticFixtureInSourceResources() {
         var configuration = ShopConfigurationLoader.load();
 

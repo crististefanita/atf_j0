@@ -9,6 +9,7 @@ import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.contract.ReportStatusAggregator;
 import atf.reporting.markup.ExtentReportNodeSupport;
 import atf.reporting.ui.model.AtfUiActionRecord;
+import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
 import atf.reporting.html.HtmlReportSemanticDocument;
 import atf.reporting.semantic.AtfReportSemanticRecorder;
 
@@ -54,6 +55,11 @@ public final class HtmlReportValidationScope implements AtfReportPorts.Validatio
         ensureOpen();
         model.addUiActions(actions);
         semantic.uiActions(actions);
+    }
+
+    @Override public void uiActionDetailsMode(ReportUiActionDetailsMode mode) {
+        ensureOpen();
+        model.uiActionDetailsMode(mode);
     }
 
     @Override

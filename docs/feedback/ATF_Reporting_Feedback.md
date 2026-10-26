@@ -15,7 +15,6 @@ Matricea Extent/fallback/UI_API și probele Fails/deep-link aparțin
 [testelor Reporting](../../atf-reporting-tests/README.md), nu checklist-ului de restanțe.
 
 - Lizibilitatea la lățime mică: **77/100**.
-- Launcher browser canonic: **58/100**.
 - Scorurile folosesc [formula comună de prioritate](README.md#top-feedback-uri-active).
 
 ## REPORT-NARROW-READABILITY-01 — tabele imbricate la lățime mică
@@ -38,30 +37,14 @@ wiring-ul consumerului nu justifică un renderer sau un backlog paralel.
 - [ ] Verificați lățimea utilă a coloanelor, textul vizibil și accesul la ultimul
       rând prin constante explicite, nu numai `scrollWidth <= clientWidth`;
       eșuați și pentru heading-uri ori valori rupte câte o literă pe rând.
+- [ ] La viewport larg, constrângeți separat panoul intern la 591 și 392 px:
+      media query-ul bazat numai pe lățimea ferestrei nu acoperă un card îngust
+      dintr-un layout desktop. Afirmați geometria containerului real.
 - [ ] Reduceți spațiul consumat de nesting sau aplicați o prezentare mobilă;
       păstrați ierarhia, fontul lizibil și expand/collapse, fără a relaxa plafoanele.
       Tabelele scurte nu primesc înălțime goală, iar plafonul de scroll rămâne comun.
 - [ ] Verificați redeschiderea părinților și navigarea Fails → Tests cu detalii
       expandate; comparați fixture-ul neutru, standalone API și checkpoint-ul UI+API.
-
-## REPORTING-LAUNCHER-06 — selecție egală, acoperire numărată o singură dată
-
-**Owner:** Reporting Tests. **Prioritate:** 58/100 = 23 + 14 + 17 + 4.
-Cele două launchere selectează același pachet `e2e`, același tag și aceeași
-excludere de suite.
-
-- [AtfReportingUiAuditSuite](../../atf-reporting-tests/src/test/java/atf/reporting/governance/AtfReportingUiAuditSuite.java)
-  și [ExtentReportingE2eSuite](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/e2e/ExtentReportingE2eSuite.java)
-  nu sunt gate-uri de acoperire disjuncte.
-- Al doilea declară și `@AtfTestChannel(UI)`; diferența de metadata trebuie
-  păstrată, nu confundată cu alt inventar de teste.
-
-- [ ] Alegeți un launcher canonic; celălalt devine alias documentat de
-      compatibilitate ori primește o selecție distinctă, justificată.
-- [ ] Comparați identitățile JUnit, inclusiv invocările parametrizate; nu
-      lansați ambele selecții ca probe disjuncte și nu eliminați cazuri.
-- [ ] Probați selecția și metadata fără browser; păstrați separat verificarea
-      browser a arborelui, capturilor și disclosure-urilor.
 
 ## Controale tehnice încă necesare
 
@@ -75,6 +58,15 @@ fără rebazare, extindere de scope sau relaxarea guard-urilor.
 
 ```yaml
 testChanges:
+  - id: REPORTING-LAUNCHER-06
+    status: ACTIVE
+    base: 490a0f274d71ec4bb288b01655e60f768daa74ba
+    expires: 2026-11-26
+    reason: Declară ExtentReportingE2eSuite drept gate UI canonic și păstrează vechiul launcher ca alias compatibil; proba de discovery compară metodele și template-urile parametrizate fără browser ori reducerea selecției.
+    proof: mvn -pl atf-reporting-tests,atf-tests -am "-Dtest=ReportingUiLauncherSelectionTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=490a0f274d71ec4bb288b01655e60f768daa74ba" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/governance/AtfReportingUiAuditSuite.java
+      - atf-reporting-tests/src/test/java/atf/reporting/governance/ReportingUiLauncherSelectionTest.java
   - id: REPORT-UNIFIED-TABLES-01
     status: ACTIVE
     base: 9d444354620b904f736302a2217f35e38ee5a875

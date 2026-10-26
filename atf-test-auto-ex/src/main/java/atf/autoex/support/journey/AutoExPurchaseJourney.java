@@ -1,10 +1,13 @@
 package atf.autoex.support.journey;
 
 import atf.reporting.contract.AtfAssertion;
+import atf.autoex.business.cart.AutoExCartFlow;
+import atf.autoex.flow.cart.AutoExCartUiFlow;
 import atf.autoex.config.AutoExConfiguration;
 import atf.autoex.support.account.AutoExTestAccount;
 import atf.autoex.support.catalog.AutoExCatalogAssertions;
 import atf.autoex.support.checkout.AutoExCheckoutAssertions;
+import atf.autoex.support.checkout.AutoExInvoiceAssertions;
 import atf.autoex.support.validation.AutoExStoreAssertions;
 import atf.autoex.locator.AutoExRoutes;
 import atf.autoex.page.AccountPage;
@@ -45,10 +48,10 @@ public final class AutoExPurchaseJourney {
                 List.of(AutoExStoreAssertions.cartAddition(added)));
 
         CartPage cart = details.viewCartFromConfirmation();
-        run.checkpoint(AutoExPurchaseTraceStep.CART_VERIFIED,
-                AutoExCheckoutAssertions.orderLine(product, expectedTotal, cart.orderLine(product)));
-
-        cart.proceedToCheckout();
+        AutoExCartFlow.checkout(new AutoExCartUiFlow(cart, product),
+                AutoExCheckoutAssertions.expectedLine(product, expectedTotal),
+                result -> run.checkpoint(AutoExPurchaseTraceStep.CART_VERIFIED,
+                        AutoExCheckoutAssertions.cart(result)));
         AutoExConfiguration.Registration registration = configuration.registration();
         AutoExTestAccount account = AutoExTestAccount.create(registration);
         new AccountPage(run).registerFromCheckout(account);
@@ -81,7 +84,9 @@ public final class AutoExPurchaseJourney {
                         AutoExStoreAssertions.orderPlaced(confirmation),
                         AutoExStoreAssertions.orderConfirmation(confirmationMessage)));
 
-        checkout.downloadInvoice();
+        var invoice = checkout.downloadInvoice();
+        run.checkpoint(AutoExPurchaseTraceStep.INVOICE_DOWNLOADED, AutoExInvoiceAssertions.validate(
+                registration.displayName(), expectedTotal, invoice));
         checkout.continueAfterInvoice();
         String deletion = accountPage.accountDeletionResult(account);
         String landingUrl = run.currentUrl();

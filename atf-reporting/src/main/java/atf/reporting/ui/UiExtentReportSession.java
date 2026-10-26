@@ -22,6 +22,8 @@ import atf.reporting.ui.validation.UiApiValidationEvidence;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -40,6 +42,7 @@ public final class UiExtentReportSession implements AutoCloseable {
 
     private final ExtentReportSession delegate;
     private final ReportEvidenceProfile evidenceProfile;
+    private final List<ReportEnvironmentSnapshot> scenarioEnvironments = new ArrayList<>();
 
     private UiExtentReportSession(ExtentReportSession delegate,
                                   ReportEvidenceProfile evidenceProfile) {
@@ -196,6 +199,14 @@ public final class UiExtentReportSession implements AutoCloseable {
     /** Returns the immutable evidence contract selected by the consumer. */
     public ReportEvidenceProfile evidenceProfile() {
         return evidenceProfile;
+    }
+
+    /** Includes the resolved inputs of a scenario; differing or absent sibling fields become mixed. */
+    public void includeScenarioEnvironment(ReportEnvironmentSnapshot environment) {
+        var next = new ArrayList<>(scenarioEnvironments);
+        next.add(Objects.requireNonNull(environment, "environment"));
+        delegate.updateEnvironment(ReportEnvironmentSnapshot.common(next));
+        scenarioEnvironments.add(environment);
     }
 
     public UiScenario startScenario(String testClass, String testPackage,

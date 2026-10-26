@@ -54,6 +54,7 @@ public class AtfPackageCohesionGovernanceTest {
                 Set.copyOf(inventory.getOrDefault("atf.autoex.support.journey", List.of())));
         assertEquals(Set.of("AutoExAccountCleanupAction.java", "AutoExAccountCleanupDecision.java",
                         "AutoExAccountDeletionAttempt.java", "AutoExAccountDeletionProgress.java",
+                        "AutoExAccountLifecycle.java",
                         "AutoExTestAccount.java"),
                 Set.copyOf(inventory.getOrDefault("atf.autoex.support.account", List.of())));
         assertEquals(Set.of("AutoExCatalogAssertions.java", "AutoExCatalogSnapshot.java"),

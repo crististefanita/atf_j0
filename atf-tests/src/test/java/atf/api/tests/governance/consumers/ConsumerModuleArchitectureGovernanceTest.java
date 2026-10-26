@@ -1,14 +1,17 @@
 package atf.api.tests.governance.consumers;
 
 import atf.core.files.AtfFileTree;
+import atf.core.files.AtfJavaSourceReferences;
 import atf.testkit.AtfIntegrationTest;
 import atf.api.tests.governance.AtfGovernanceTestSupport;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -16,6 +19,43 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @AtfIntegrationTest
 public class ConsumerModuleArchitectureGovernanceTest {
     private static final String JAVA_SUFFIX = ".java";
+
+    @Test
+    void autoExBusinessPortsRemainIndependentOfBrowserConfigurationRunnerAndPublisher() throws Exception {
+        Path business = module("atf-test-auto-ex").resolve("src/main/java/atf/autoex/business");
+        assertTrue(Files.isDirectory(business), "the cart pilot must have a real business owner");
+        assertTrue(businessViolations(business).isEmpty(), () -> "Business dependencies escaped: " + business);
+    }
+
+    @Test
+    void businessBoundaryRejectsAnInjectedImportAndFullyQualifiedSignature(@TempDir Path root) throws Exception {
+        Path source = root.resolve("BusinessFlow.java");
+        for (String code : List.of("import atf.reporting.contract.AtfAssertion;",
+                "interface Bad { com.microsoft.playwright.Page page(); }",
+                "class Bad { atf.ui.playwright.PlaywrightActionSequence actions; }")) {
+            Files.writeString(source, code);
+            var violations = businessViolations(root);
+            assertTrue(violations.size() == 1 && violations.getFirst().startsWith(source.toString()),
+                    () -> "Missing business rule diagnostic: " + violations);
+        }
+        Files.writeString(source, "// atf.reporting is an example\nclass Good { String key = \"atf.ui.timeout\"; }");
+        assertTrue(businessViolations(root).isEmpty());
+    }
+
+    private static List<String> businessViolations(Path root) throws IOException {
+        var violations = new ArrayList<String>();
+        for (Path path : javaFiles(root)) {
+            String source = Files.readString(path);
+            for (String namespace : List.of("atf.reporting", "atf.ui", "com.microsoft.playwright", "org.junit",
+                    "atf.testkit", "atf.autoex.runtime", "atf.autoex.config", "atf.autoex.page",
+                    "atf.autoex.support.journey", "atf.autoex.ui", "atf.autoex.flow")) {
+                if (AtfJavaSourceReferences.containsNamespace(source, namespace)) {
+                    violations.add(path + " violates business dependency rule: " + namespace);
+                }
+            }
+        }
+        return List.copyOf(violations);
+    }
 
     @Test
     void shopKeepsJUnitHarnessTestScopedAndRuntimeFactoriesInMain() throws IOException {

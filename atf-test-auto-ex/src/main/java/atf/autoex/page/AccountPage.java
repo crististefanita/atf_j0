@@ -21,11 +21,8 @@ import static atf.autoex.support.validation.AutoExUiText.ACCOUNT_DELETED;
 
 /** Registration during checkout and deterministic disposal of the synthetic account. */
 public final class AccountPage extends AutoExPage {
-    private boolean creationConfirmed;
-    private boolean creationAttempted;
-    private boolean deletionRequestStarted;
-
-    public AccountPage(AutoExPurchaseSession run) { super(run); }
+    private final AutoExPurchaseSession run;
+    public AccountPage(AutoExPurchaseSession run) { super(run); this.run = run; }
 
     public void registerFromCheckout(AutoExTestAccount account) {
         clickLast(AutoExSelectors.REGISTER_LOGIN, "registration form opens from checkout");
@@ -62,7 +59,7 @@ public final class AccountPage extends AutoExPage {
 
         String result = text(AutoExSelectors.ACCOUNT_RESULT_HEADING, "account-creation result is read");
         AtfAssertion creation = AutoExStoreAssertions.accountCreated(result);
-        creationConfirmed = creation.passed();
+        if (creation.passed()) run.accountLifecycle().creationConfirmed();
         run.checkpoint(AutoExPurchaseTraceStep.ACCOUNT_CREATED,
                 List.of(creation));
         click(AutoExSelectors.CONTINUE, "created account session continues to the store");
@@ -74,8 +71,8 @@ public final class AccountPage extends AutoExPage {
 
     /** Arm before a real UI or API create attempt; both use the same identity-checked UI cleanup. */
     public void trackDisposableAccountCreation(AutoExTestAccount account) {
+        run.accountLifecycle().creationAttempted(account);
         run.onFailureCleanup(() -> deleteIfCreatedAndLoggedIn(account));
-        creationAttempted = true;
     }
 
     public void login(AutoExTestAccount account) {
@@ -116,7 +113,7 @@ public final class AccountPage extends AutoExPage {
             try {
                 return completeDeletion(account, identity, destination, attempt);
             } finally {
-                deletionRequestStarted |= attempt.startedRequests() > 0;
+                if (attempt.startedRequests() > 0) run.accountLifecycle().deletionStarted();
             }
         }
     }
@@ -138,7 +135,10 @@ public final class AccountPage extends AutoExPage {
         boolean reachedDestination = destination.toString().equals(actualUrl);
         var traffic = attempt.traffic();
         boolean singleNavigation = traffic.singleDeletionNavigation();
-        if (deletion.passed() && reachedDestination && singleNavigation) run.clearFailureCleanup();
+        if (deletion.passed() && reachedDestination && singleNavigation) {
+            run.accountLifecycle().deletionConfirmed();
+            run.clearFailureCleanup();
+        }
         run.checkpoint(AutoExPurchaseTraceStep.ACCOUNT_DELETED,
                 List.of(new AtfAssertion("Disposable customer identity", account.signupName(), identity,
                                 account.signupName().equals(identity)),
@@ -152,9 +152,7 @@ public final class AccountPage extends AutoExPage {
 
     private String requireOwnIdentity(AutoExTestAccount account) {
         String identity = loggedInName();
-        if (!account.signupName().equals(identity)) {
-            throw new IllegalStateException("Refusing account deletion: signed-in customer is not this run's identity");
-        }
+        run.accountLifecycle().requireOwner(account, identity);
         return identity;
     }
 
@@ -182,12 +180,16 @@ public final class AccountPage extends AutoExPage {
     }
 
     private void deleteIfCreatedAndLoggedIn(AutoExTestAccount account) {
-        if (deletionWasConfirmed()) {
+        if (run.accountLifecycle().deletionWasConfirmed()) {
             run.clearFailureCleanup();
             return;
         }
         requireDeletionNotStarted();
-        creationConfirmed |= accountCreationWasConfirmed();
+        if (deletionWasConfirmed()) {
+            run.clearFailureCleanup();
+            return;
+        }
+        if (accountCreationWasConfirmed()) run.accountLifecycle().creationConfirmed();
         recoverObservedVignette();
         recoverUnavailableStoreDocument();
         try {
@@ -209,12 +211,12 @@ public final class AccountPage extends AutoExPage {
             run.clearFailureCleanup();
             return;
         }
-        if ((creationConfirmed || creationAttempted) && !visible(AutoExSelectors.DELETE_ACCOUNT)
+        if (run.accountLifecycle().creationWasAttempted() && !visible(AutoExSelectors.DELETE_ACCOUNT)
                 && !accountCreationWasConfirmed()) {
             login(account);
         }
         AutoExAccountCleanupAction action = AutoExAccountCleanupDecision.resolve(
-                creationConfirmed, visible(AutoExSelectors.CONTINUE),
+                run.accountLifecycle().creationWasConfirmed(), visible(AutoExSelectors.CONTINUE),
                 visible(AutoExSelectors.DELETE_ACCOUNT));
         if (action == AutoExAccountCleanupAction.CONTINUE_THEN_DELETE) {
             click(AutoExSelectors.CONTINUE, "finish account setup before failure cleanup");
@@ -242,10 +244,7 @@ public final class AccountPage extends AutoExPage {
     }
 
     private void requireDeletionNotStarted() {
-        if (deletionRequestStarted) {
-            throw new IllegalStateException("Account deletion request already started without a confirmed result; "
-                    + "neither business continuation nor failure cleanup may replay it");
-        }
+        run.accountLifecycle().requireDeletionNotStarted();
     }
 
     private boolean accountResultContains(String expected) {

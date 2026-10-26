@@ -28,6 +28,20 @@ Proba neutră la owner distinge documentul principal de iframe: click-ul normal
 și trece la 100%. Observația privește configurația locală Playwright 1.49.0,
 nu toate versiunile sau toate browserele.
 
+Diagnostic de staging din 2026-10-26:
+
+- Click-ul real pe butonul din iframe `srcdoc` a reprodus
+  `html intercepts pointer events` cu zoom CSS 70% pe documentul părinte.
+- Mutarea aceluiași zoom pe `body` a eșuat identic.
+- `transform: scale(0.7)` pe `body`, cu originea în colțul stânga-sus și
+  fără zoom CSS pe rădăcină, a permis click-ul în aceeași fixture.
+- Experimentul Chromium CDP `Emulation.setPageScaleFactor(0.7)` a păstrat
+  click-ul, dar `visualViewport.scale` a rămas `1`: nu a produs scala cerută
+  și nu este un înlocuitor verificat pentru zoom 70%.
+- Candidatul rămâne experimental: lipsesc probele pentru scroll, captură,
+  focus/tastatură, layout-ul aplicației și iframe-uri cross-origin.
+  Proba exploratorie nu rămâne în suite; mecanismul de producție nu se schimbă.
+
 - Alternativă opt-in: `clickWithJavaScript(..., postcondition)` activează un
   control DOM și verifică efectul înainte de PASS; nu este fallback automat.
 - Limită: activarea programatică nu repară coordonatele pointerului;
@@ -40,12 +54,6 @@ rezolvă această regresie fără proba locală echivalentă.
 
 ### Criterii rămase
 
-- [ ] Întăriți proba harness-ului Reporting pentru viewport și scala efectiv
-      rezolvate, inclusiv override peste default. `UiReportEnvironmentSnapshotFactory`
-      le publică deja; testul său nu afirmă încă aceste valori. Shop are proba
-      `ShopReportSystemMetadataTest`, iar AutoEx publică și el configurația rezolvată;
-      nu este necesară o nouă implementare de renderer în consumer.
-
 - [ ] Alegeți și probați la owner o soluție pentru pointer și iframe la zoom
       non-nativ: compatibilitate driver/browser sau mecanism de scalare cu
       geometrie corectă; nu corecții de coordonate în page objects de produs.
@@ -56,5 +64,23 @@ rezolvă această regresie fără proba locală echivalentă.
       distinct; 100% rămâne scara nativă pentru proba de pointer embedded.
 
 Regulile stabile sunt în [README ATF UI](../../atf-ui/README.md#configurație-generică-fără-flag-redundant).
+
+<details>
+<summary><strong>Control tehnic activ pentru metadata rezolvată</strong></summary>
+
+```yaml
+testChanges:
+  - id: UI-FRAME-POINTER-METADATA-01
+    status: ACTIVE
+    base: 490a0f274d71ec4bb288b01655e60f768daa74ba
+    expires: 2026-11-26
+    reason: Afirmă în proba Reporting viewportul și scala CSS efectiv rezolvate prin override; nu confundă această metadata cu repararea coordonatelor pointerului în iframe.
+    proof: mvn -pl atf-reporting-tests,atf-tests -am "-Dtest=UiReportEnvironmentSnapshotFactoryTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=490a0f274d71ec4bb288b01655e60f768daa74ba" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/config/UiReportEnvironmentSnapshotFactoryTest.java
+```
+
+</details>
+
 Recuperarea contului este normată în
 [contractul AutoEx](../../atf-test-auto-ex/README.md#contul-creat-și-cleanup-ul-sub-vignette).

@@ -13,6 +13,9 @@ import atf.reporting.model.ReportExecutionEvidence;
 import atf.testkit.evidence.AtfUiEvidence;
 import atf.testkit.evidence.AtfUiEvidenceFlow;
 import atf.testkit.evidence.AtfUiScreenshotPolicy;
+import atf.testkit.evidence.AtfUiEvidencePlan;
+import atf.testkit.evidence.AtfUiEvidenceResolver;
+import atf.testkit.evidence.AtfUiActionDetails;
 import atf.console.junit.AtfConsoleTestExtension;
 import atf.console.junit.AtfReportPathOptIn;
 import atf.testkit.AtfConsoleMessages;
@@ -113,8 +116,8 @@ public final class ShopE2eTestSupport {
                     && authenticated.registrationProfile() == ShopTestSupport.RegistrationProfileMode.LOCAL
                     ? ShopConfigurationLoader.resolveRegistrationProfileFile(
                             authenticated.registrationProfileFile()) : null;
-            AtfUiEvidence uiEvidence = context.getRequiredTestClass().getAnnotation(AtfUiEvidence.class);
-            ReportEvidenceProfile presentation = reportProfile(configuration, harness, uiEvidence);
+            ReportEvidenceProfile presentation = reportProfileForOwner(configuration, harness,
+                    context.getRequiredTestClass());
             atf.reporting.console.AtfConsoleSink reportConsole;
             UiExtentReportSession sharedReport = null;
             TestRunScope scope = TestRunScope.selected(context);
@@ -243,24 +246,42 @@ public final class ShopE2eTestSupport {
 
     static ReportEvidenceProfile reportProfile(ShopConfiguration configuration,
                                                WithE2eHarness harness) {
-        return reportProfile(configuration, harness, null);
+        return reportProfile(configuration, harness, AtfUiEvidencePlan.configured());
     }
 
     static ReportEvidenceProfile reportProfile(ShopConfiguration configuration,
                                                WithE2eHarness harness,
                                                AtfUiEvidence evidence) {
+        return reportProfile(configuration, harness, AtfUiEvidencePlan.from(evidence));
+    }
+
+    static ReportEvidenceProfile reportProfileForOwner(ShopConfiguration configuration,
+                                                       WithE2eHarness harness, Class<?> owner) {
+        return reportProfile(configuration, harness, AtfUiEvidenceResolver.resolve(owner)
+                .orElseGet(AtfUiEvidencePlan::configured));
+    }
+
+    private static ReportEvidenceProfile reportProfile(ShopConfiguration configuration,
+                                                       WithE2eHarness harness, AtfUiEvidencePlan evidence) {
         ReportEvidenceProfile configured = ShopScreenshotPolicy.profile(
                 Objects.requireNonNull(configuration, "configuration")
-                        .reporting().screenshotPolicy());
-        AtfUiEvidenceFlow flow = evidence == null
-                ? AtfUiEvidenceFlow.CONFIGURED : evidence.flow();
-        AtfUiScreenshotPolicy screenshots = evidence == null
-                ? AtfUiScreenshotPolicy.CONFIGURED : evidence.screenshots();
+                        .reporting());
+        AtfUiEvidenceFlow flow = evidence.flow();
+        AtfUiScreenshotPolicy screenshots = evidence.screenshots();
         ReportEvidenceProfile.Builder selected = configured.toBuilder()
                 .flowMode(resolve(flow, configured.flowMode()))
                 .screenshotPolicy(resolve(screenshots, configured.screenshotPolicy()));
         if (harness != null) {
             selected.actionDetailsMode(resolve(harness.actionDetails(), configured.actionDetailsMode()));
+        }
+        if (evidence.actionDetails() != AtfUiActionDetails.CONFIGURED) {
+            var details = evidence.actionDetails() == AtfUiActionDetails.SUMMARY_ONLY
+                    ? ReportUiActionDetailsMode.SUMMARY_ONLY : ReportUiActionDetailsMode.INCLUDED_COLLAPSED;
+            if (harness != null && harness.actionDetails() != ActionDetailsMode.CONFIGURED
+                    && resolve(harness.actionDetails(), configured.actionDetailsMode()) != details) {
+                throw new IllegalStateException("Conflicting UI actionDetails in AtfUiEvidence and WithE2eHarness");
+            }
+            selected.actionDetailsMode(details);
         }
         return selected.build();
     }

@@ -229,7 +229,7 @@ public final class HtmlReportEvidenceView {
         var observations = rows.stream().filter(row -> row.source() == AtfUiEvidenceSource.OBSERVE).toList();
         var screenshots = ExtentReportAssets.distinctScreenshotModels(validation.screenshots());
         boolean inlineScreenshot = !actions.isEmpty() && screenshots.size() == 1;
-        html.append(new ExtentUiActionRenderer(settings).markup(actions,
+        html.append(new ExtentUiActionRenderer(settings, validation.actionDetailsMode()).markup(actions,
                         inlineScreenshot ? screenshots : List.of()))
                 .append(new ExtentUiObservationRenderer(settings).markup(observations));
         for (ReportScreenshot screenshot : inlineScreenshot ? List.<ReportScreenshot>of() : screenshots) {

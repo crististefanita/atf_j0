@@ -13,6 +13,11 @@ import atf.autoex.runtime.AutoExReportSession;
 import atf.autoex.runtime.AutoExObservedExchangeMapper;
 import atf.ui.network.UiNetworkObservation;
 import atf.ui.network.UiNetworkCapturePolicy;
+import atf.ui.config.UiBrowserConfiguration;
+import atf.ui.config.UiNetworkSettlementPolicy;
+import atf.autoex.config.AutoExConfiguration;
+import atf.autoex.locator.AutoExRoutes;
+import atf.core.http.request.HttpHeader;
 import atf.reporting.api.request.ReportRequestHeaders;
 import atf.reporting.api.evidence.ReportBodyAvailability;
 import atf.autoex.runtime.config.AutoExEvidenceProfile;
@@ -25,15 +30,69 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.time.Instant;
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static atf.core.http.request.HttpMethod.GET;
+import static atf.core.http.request.HttpMethod.POST;
+import static atf.core.http.request.MediaTypes.APPLICATION_JSON;
+import static atf.ui.network.UiNetworkCapturePolicy.ResourceKind.XHR;
+import static atf.ui.network.UiNetworkCapturePolicy.ResourceKind.DOCUMENT;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 /** Local DOM only: exercises the main runtime without a JUnit context or remote application. */
 @AtfComponentTest
 class AutoExRuntimeBoundaryComponentTest {
+    @Test
+    void cartReadBackRejectsProductIdPrefixesWrongMethodsAndDocumentNeighbors() throws Exception {
+        var source = AutoExE2eRun.withNetworkInspection(AutoExConfigurationLoader.load());
+        var base = source.browser();
+        var network = base.networkInspection().withCapturePolicy(UiNetworkCapturePolicy.asynchronous().includingDocuments())
+                .withSettlementPolicy(UiNetworkSettlementPolicy.bounded(Duration.ofMillis(100), Duration.ofMillis(5)));
+        var browserConfiguration = new UiBrowserConfiguration(base.baseUrl(), base.browser(), true,
+                base.timeout(), base.navigationTimeout(), base.viewportWidth(), base.viewportHeight(), base.zoomPercent(),
+                base.screenshotOnFailure(), base.retryPolicy(), network);
+        var configuration = new AutoExConfiguration(source.baseUrl(), false, browserConfiguration,
+                source.uiReportBaseDirectory(), source.catalog(), source.registration(), source.payment(),
+                source.storeAvailabilityPolicy(), source.evidence());
+        var profile = AutoExEvidenceProfile.forRun(ReportEvidenceFlowMode.SCREEN_CHECKPOINTS, ReportScreenshotPolicy.NONE);
+        Path output = Files.createTempDirectory("autoex-cart-selection-");
+        try (var reports = AutoExReportSession.open(output, AutoExReportSession.fileName("cart-selection"),
+                AtfConsoleSink.noOp(), profile, browserConfiguration)) {
+            var scenario = reports.report().startScenario("CartSelection", getClass().getPackageName(),
+                    "controlled journal neighbors", List.of("component"));
+            var browser = PlaywrightUiSession.open(browserConfiguration, AtfConsoleSink.noOp());
+            var run = new AutoExE2eRun(configuration, browser, scenario, scenario.startPhase("TEST BODY"), profile, true,
+                    AutoExRunLifecycleAdapter.INSTANCE);
+            Throwable failure = null;
+            try {
+                var inspector = browser.networkInspector();
+                assertTrue(inspector.capture(cartObservation(configuration, "10", GET.value(), XHR)).isPresent());
+                assertTrue(inspector.capture(cartObservation(configuration, "1", POST.value(), XHR)).isPresent());
+                assertTrue(inspector.capture(cartObservation(configuration, "1", GET.value(), DOCUMENT)).isPresent());
+                assertThrows(AssertionError.class, () -> run.awaitCartExchange("1"));
+                assertTrue(inspector.capture(cartObservation(configuration, "1", GET.value(), XHR)).isPresent());
+                assertDoesNotThrow(() -> run.awaitCartExchange("1"));
+            } catch (Exception | Error unexpected) {
+                failure = unexpected;
+                throw unexpected;
+            } finally {
+                run.finish(failure);
+            }
+        }
+    }
+
+    private static UiNetworkObservation cartObservation(AutoExConfiguration configuration, String product,
+                                                         String method, UiNetworkCapturePolicy.ResourceKind kind) {
+        String path = AutoExRoutes.ADD_TO_CART.path() + product;
+        var headers = Map.of(HttpHeader.CONTENT_TYPE.value(), APPLICATION_JSON);
+        return new UiNetworkObservation(1, Instant.EPOCH, method, configuration.baseUrl().resolve(path).toString(),
+                path, 200, headers, headers, POST.value().equals(method) ? "{}" : "", "{}", "none", "none",
+                "controlled fixture", "component", "", true, "", kind);
+    }
     @Test
     void mainNetworkBridgeRetainsObservedHeadersBodyAndMissingCapture() {
         String body = " \r\n ";

@@ -11,11 +11,13 @@ import atf.reporting.semantic.AtfReportSemanticRecorder;
 
 import atf.reporting.ui.model.AtfUiActionRecord;
 import atf.reporting.ui.model.AtfUiEvidenceSource;
+import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
 import com.aventstack.extentreports.ExtentTest;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 final class ExtentValidationScope implements AtfReportPorts.Validation {
     private final ExtentReportTree tree;
@@ -26,6 +28,7 @@ final class ExtentValidationScope implements AtfReportPorts.Validation {
     private final ReportStatusAggregator childStatuses = new ReportStatusAggregator();
     private List<AtfAssertion> assertions = List.of();
     private final List<AtfUiActionRecord> uiActions = new ArrayList<>();
+    private ReportUiActionDetailsMode detailsMode;
     private final List<ReportScreenshot> screenshots = new ArrayList<>();
     private final List<ReportScreenshot> mediaScreenshots = new ArrayList<>();
     private boolean completed;
@@ -41,12 +44,13 @@ final class ExtentValidationScope implements AtfReportPorts.Validation {
         this.validation = validation;
         this.validationTitle = validationTitle;
         this.semantic = semantic;
+        this.detailsMode = tree.defaultDetailsMode();
         tree.markStarted(validation);
     }
 
     @Override public void evidenceOwner(ReportEvidenceOwner value) {
         ensureOpen();
-        evidenceOwner = java.util.Objects.requireNonNull(value, "evidenceOwner");
+        evidenceOwner = Objects.requireNonNull(value, "evidenceOwner");
         semantic.evidenceOwner(value);
     }
 
@@ -60,6 +64,11 @@ final class ExtentValidationScope implements AtfReportPorts.Validation {
         ensureOpen();
         if (actions != null) uiActions.addAll(actions);
         semantic.uiActions(actions);
+    }
+
+    @Override public void uiActionDetailsMode(ReportUiActionDetailsMode mode) {
+        ensureOpen();
+        detailsMode = Objects.requireNonNull(mode, "mode");
     }
 
     @Override public void screenshot(String title, String base64Png) {
@@ -88,9 +97,9 @@ final class ExtentValidationScope implements AtfReportPorts.Validation {
         }
         AtfReportStatus effective = AtfReportStatus.worst(childStatuses.aggregate(), status);
         if (screenshotOptional) {
-            tree.renderUiActionsAsMedia(validation, uiActions);
+            tree.renderUiActionsAsMedia(validation, uiActions, detailsMode);
         } else if (mediaScreenshots.isEmpty() && screenshots.size() <= 1) {
-            tree.renderUiActions(validation, uiActions, screenshots);
+            tree.renderUiActions(validation, uiActions, screenshots, detailsMode);
             if (uiActions.stream().noneMatch(action -> action.source() == AtfUiEvidenceSource.ACTION)) {
                 tree.renderScreenshots(validation, screenshots);
             }
@@ -101,7 +110,7 @@ final class ExtentValidationScope implements AtfReportPorts.Validation {
             // A unified flow can aggregate many checkpoint screenshots into one
             // validation. Keep the ordered action table singular and publish all
             // screenshots as separate evidence links after it.
-            tree.renderUiActions(validation, uiActions, List.of());
+            tree.renderUiActions(validation, uiActions, List.of(), detailsMode);
             tree.renderScreenshots(validation,
                     screenshots.isEmpty() ? mediaScreenshots : screenshots);
         }

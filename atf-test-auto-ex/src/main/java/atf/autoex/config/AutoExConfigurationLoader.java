@@ -5,6 +5,9 @@ import atf.ui.config.UiNetworkInspectionConfiguration;
 import atf.ui.network.UiNetworkCapturePolicy;
 import atf.ui.config.UiNetworkSettlementPolicy;
 import atf.ui.config.UiRetryPolicy;
+import atf.reporting.evidence.ReportScreenshotPolicy;
+import atf.reporting.evidence.profile.ReportEvidenceFlowMode;
+import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -18,6 +21,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
 import java.util.Set;
+import java.util.Optional;
 
 /** Reads module-owned YAML once into validated browser and demo data. */
 public final class AutoExConfigurationLoader {
@@ -125,7 +129,7 @@ public final class AutoExConfigurationLoader {
             JsonNode catalog = requiredNode(site, "catalog");
             JsonNode registration = requiredNode(site, "registration");
             JsonNode payment = requiredNode(site, "payment");
-            rejectUnknownFields(reports, "automationExercise.reports", "uiBaseDirectory");
+            rejectUnknownFields(reports, "automationExercise.reports", "uiBaseDirectory", "evidence");
             rejectUnknownFields(catalog, "automationExercise.catalog", "searchTerm", "productId",
                     "productName", "unitPrice", "quantity");
             rejectUnknownFields(registration, "automationExercise.registration", "birthDay", "birthMonth",
@@ -149,7 +153,7 @@ public final class AutoExConfigurationLoader {
                     new AutoExConfiguration.Payment(requiredText(payment, "nameOnCard"),
                             requiredText(payment, "cardNumber"), requiredText(payment, "cvc"),
                             requiredText(payment, "expiryMonth"), requiredText(payment, "expiryYear")),
-                    storeAvailability(browser));
+                    storeAvailability(browser), evidence(reports));
         } catch (IOException | RuntimeException error) {
             if (error instanceof IllegalArgumentException argument) throw argument;
             throw new IllegalStateException("Invalid Automation Exercise configuration", error);
@@ -187,6 +191,23 @@ public final class AutoExConfigurationLoader {
         return new UiRetryPolicy(integer(settings, "maxAttempts", defaults.maxAttempts()),
                 duration(settings, "backoff", defaults.backoff().toString()),
                 defaults.eligibleOperations(), defaults.reason());
+    }
+
+    private static AutoExEvidenceSettings evidence(JsonNode reports) {
+        JsonNode settings = reports.path("evidence");
+        if (!settings.isMissingNode() && !settings.isObject()) {
+            throw new IllegalArgumentException("reports.evidence must be a configuration object");
+        }
+        rejectUnknownFields(settings, "automationExercise.reports.evidence",
+                "flowMode", "screenshotPolicy", "actionDetailsMode");
+        var defaults = AutoExEvidenceSettings.defaults();
+        var screenshots = settings.has("screenshotPolicy")
+                ? Optional.of(ReportScreenshotPolicy.fromConfig(requiredText(settings, "screenshotPolicy")))
+                : Optional.<ReportScreenshotPolicy>empty();
+        return new AutoExEvidenceSettings(
+                ReportEvidenceFlowMode.fromConfig(text(settings, "flowMode", defaults.flowMode().configValue())),
+                screenshots, ReportUiActionDetailsMode.fromConfig(text(settings,
+                        "actionDetailsMode", defaults.actionDetailsMode().configValue())));
     }
 
     private static void rejectUnknownFields(JsonNode node, String path, String... allowedFields) {

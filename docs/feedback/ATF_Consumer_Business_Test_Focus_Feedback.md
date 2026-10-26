@@ -230,6 +230,35 @@ Unificarea journey-ului nu a redus încă numărul de purchase-uri din gate.
 
 ## Închiderea unui increment
 
+- În staging-ul AutoEx, `AutoExComponentSuite` a găsit o probă YAML fals
+  negativă pe Windows: fixture-ul avea CRLF, iar substituția căuta numai LF.
+- Varianta „fără `storeAvailability`” rula de fapt configurația originală.
+  Helperul normalizează liniile și refuză substituția fără sursă; recuperarea
+  absentă trebuie să rămână dezactivată.
+- Inventarul strict al pachetului de cont include acum și lifecycle-ul din
+  snapshotul live; limita de opt clase rămâne aplicată. Proba componentă nu
+  certifică E2E-ul live.
+
+<details>
+<summary><strong>Control tehnic activ — probe componente AutoEx din staging</strong></summary>
+
+```yaml
+testChanges:
+  - id: AUTOEX-CONSUMER-COMPONENT-09
+    status: ACTIVE
+    base: 490a0f274d71ec4bb288b01655e60f768daa74ba
+    expires: 2026-11-26
+    reason: Păstrează probele noi pentru flow-ul coșului și lifecycle-ul contului din snapshotul live; inventarul guvernat include explicit clasa nouă fără a mări limita de opt; repară substituția YAML dependentă de CRLF fără a slăbi aserțiunea pentru recuperarea implicit dezactivată.
+    proof: mvn -pl atf-test-auto-ex,atf-tests -am "-Dtest=AutoExComponentSuite,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=490a0f274d71ec4bb288b01655e60f768daa74ba" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/configuration/AutoExConfigurationLoaderComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExAccountLifecycleComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExCartFlowComponentTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/AtfPackageCohesionGovernanceTest.java
+```
+
+</details>
+
 Criteriile locale de mai sus se verifică împreună cu
 [inventarul executabil](../ATF_Testing_Guide.md#inventarul-executabil-după-mutări-și-reclasificare)
 și [regulile de promovare](README.md#păstrare-promovare-și-verificare).

@@ -37,6 +37,7 @@ public final class ExtentReportTree {
     private final ReportingSettings settings;
     private final SensitiveDataRedactor redactor;
     private final ExtentEvidenceRenderer evidence;
+    private final ReportUiActionDetailsMode defaultDetailsMode;
     private final Runnable ensureSessionOpen;
     private final AtfConsoleSink console;
     private final LifecycleStartProbe startProbe;
@@ -73,6 +74,7 @@ public final class ExtentReportTree {
         this.settings = settings;
         this.redactor = redactor;
         this.evidence = new ExtentEvidenceRenderer(settings, redactor, detailsMode);
+        this.defaultDetailsMode = detailsMode;
         this.ensureSessionOpen = ensureSessionOpen;
         this.console = console == null ? AtfConsoleSink.noOp() : console;
         this.startProbe = startProbe;
@@ -172,6 +174,7 @@ public final class ExtentReportTree {
 
     public ReportingSettings settings() { return settings; }
     public SensitiveDataRedactor redactor() { return redactor; }
+    public ReportUiActionDetailsMode defaultDetailsMode() { return defaultDetailsMode; }
     public AtfReportSemanticSnapshot semanticSnapshot() { return semantic.snapshot(); }
     public ExtentTest classRoot(String className) { return classRoots.get(className); }
 
@@ -244,9 +247,19 @@ public final class ExtentReportTree {
         evidence.renderUiActions(node, actions, screenshots);
     }
 
+    public void renderUiActions(ExtentTest node, List<AtfUiActionRecord> actions,
+                                List<ReportScreenshot> screenshots, ReportUiActionDetailsMode mode) {
+        evidence.renderUiActions(node, actions, screenshots, mode);
+    }
+
     /** Renders a Playwright action table without embedding its screenshot. */
     public void renderUiActionsAsMedia(ExtentTest node, List<AtfUiActionRecord> actions) {
         evidence.renderUiActionsAsMedia(node, actions);
+    }
+
+    public void renderUiActionsAsMedia(ExtentTest node, List<AtfUiActionRecord> actions,
+                                       ReportUiActionDetailsMode mode) {
+        evidence.renderUiActionsAsMedia(node, actions, mode);
     }
 
     public void renderAssertions(ExtentTest node, Collection<AtfAssertion> assertions) {

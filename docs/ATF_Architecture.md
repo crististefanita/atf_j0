@@ -694,6 +694,15 @@ Gate-ul whole-reactor descoperă sursele din `sourceDirectory` și
 Maven `src/main/java` și `src/test/java`. Astfel, un modul cu `src/test` declarat
 nu dispare din inventar doar fiindcă nu folosește layout-ul implicit.
 
+- Guard-ul de dependențe caută referințe Java în importuri, declarații
+  `package` și nume complet calificate din cod.
+- Comentariile și literalii se elimină după traducerea escape-urilor Unicode,
+  în ordinea lexicală Java; un `\u000a` care încheie un comentariu nu poate
+  ascunde un import interzis.
+- Prefixele asemănătoare și exemplele din string-uri nu sunt dependențe.
+  Probele negative verifică și vechea/noua cale a fișierului; o scanare verde
+  a checkout-ului nu înlocuiește această probă.
+
 - Pachetul identifică aplicația/ownerul și responsabilitatea; numele business,
   paginile și porturile aplicației nu se mută în Kit pentru uniformitate.
 - Rename-ul păstrează apelanții, resursele și identitățile cazurilor verificate;

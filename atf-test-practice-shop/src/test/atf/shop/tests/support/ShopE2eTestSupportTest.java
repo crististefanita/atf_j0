@@ -9,6 +9,7 @@ import atf.testkit.channel.TestChannel;
 import atf.testkit.evidence.AtfUiEvidence;
 import atf.testkit.evidence.AtfUiEvidenceFlow;
 import atf.testkit.evidence.AtfUiScreenshotPolicy;
+import atf.testkit.evidence.AtfUiActionDetails;
 import atf.testkit.scope.ScopedTestValue;
 import atf.testkit.scope.TestRunScope;
 import atf.shop.tests.suites.ShopE2eSuite;
@@ -21,6 +22,7 @@ import atf.shop.config.ShopConfigurationLoader;
 import atf.shop.config.model.ShopCredentials;
 import atf.shop.config.ShopReportConfiguration;
 import atf.shop.config.ShopValidationProfile;
+import atf.shop.config.model.ShopBillingStrategy;
 import atf.ui.config.UiBrowserConfiguration;
 import atf.ui.config.UiNetworkInspectionConfiguration;
 import atf.shop.flow.ShopPurchaseFlow;
@@ -30,6 +32,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -39,6 +43,39 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @AtfUnitTest
 class ShopE2eTestSupportTest {
+    @Test
+    void configuredAxesComposedDeclarationsAndBillingStayIndependent(@TempDir Path temp) throws Exception {
+        Path yaml = temp.resolve("configured-evidence.yaml");
+        Files.writeString(yaml, """
+                practiceShop:
+                  baseUrl: https://fixture.test
+                  reporting:
+                    flowMode: unified-flow
+                    screenshotPolicy: none
+                    actionDetailsMode: summary-only
+                  checkout:
+                    billingStrategy: postal-lookup
+                """);
+        var configured = ShopConfigurationLoader.load(yaml);
+        var inherited = ShopE2eTestSupport.reportProfileForOwner(configured, null, ConfiguredEvidence.class);
+        assertEquals(ReportEvidenceFlowMode.UNIFIED_FLOW, inherited.flowMode());
+        assertEquals(ReportScreenshotPolicy.NONE, inherited.screenshotPolicy());
+        assertEquals(ReportUiActionDetailsMode.SUMMARY_ONLY, inherited.actionDetailsMode());
+        var composed = ShopE2eTestSupport.reportProfileForOwner(configured, null, ComposedEvidence.class);
+        assertEquals(ReportEvidenceFlowMode.UNIFIED_FLOW, composed.flowMode());
+        assertEquals(ReportScreenshotPolicy.FINAL_AND_FAILURE, composed.screenshotPolicy());
+        assertEquals(ReportUiActionDetailsMode.INCLUDED_COLLAPSED, composed.actionDetailsMode());
+        assertEquals(configured.checkout(), configured.withValidationProfile(ShopValidationProfile.UI_ONLY).checkout());
+        assertEquals(configured.checkout(), configured.withValidationProfile(ShopValidationProfile.UI_API).checkout());
+        assertEquals(ShopBillingStrategy.POSTAL_LOOKUP, configured.checkout().billingStrategy());
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @AtfUiEvidence(screenshots = AtfUiScreenshotPolicy.FINAL_AND_FAILURE,
+            actionDetails = AtfUiActionDetails.INCLUDED_COLLAPSED)
+    private @interface TerminalEvidence { }
+    @TerminalEvidence private static class ComposedEvidence { }
+
     @AtfTestChannel(TestChannel.UI)
     private static class UiChannel { }
 

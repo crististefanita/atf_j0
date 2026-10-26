@@ -8,6 +8,7 @@ import atf.reporting.model.diagnostic.ReportPhaseDiagnostic;
 import atf.reporting.api.ReportModelAdapters;
 import atf.reporting.ui.model.AtfUiActionRecord;
 import atf.reporting.ui.network.ReportNetworkInspector;
+import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
 import java.nio.file.Path;
 import java.util.Collection;
 
@@ -44,6 +45,8 @@ public final class AtfReportPorts {
         }
         default void screenshot(String title, String base64Png) { }
         default void uiActions(Collection<AtfUiActionRecord> actions) { }
+        /** Disclosure belongs to this scope, independently from sibling scenarios. */
+        default void uiActionDetailsMode(ReportUiActionDetailsMode mode) { }
         default void execution(ReportExecutionEvidence result) { }
         /** Compatibility seam for legacy core execution snapshots during migration. */
         default void execution(Object result) { execution(ReportModelAdapters.execution(result)); }
@@ -68,6 +71,7 @@ public final class AtfReportPorts {
         void assertions(Collection<AtfAssertion> assertions);
         default void completeFailure(AtfReportStatus status) { complete(status); }
         default void uiActions(Collection<AtfUiActionRecord> actions) { }
+        default void uiActionDetailsMode(ReportUiActionDetailsMode mode) { }
         default void screenshot(String title, String base64Png) { }
         default void mediaScreenshot(String title, String base64Png) { }
         void complete(AtfReportStatus status); @Override void close();

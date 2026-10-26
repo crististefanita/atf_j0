@@ -9,6 +9,7 @@ import atf.reporting.api.ReportRequest;
 import atf.reporting.api.evidence.ApiExchangeEvidence;
 import atf.reporting.evidence.ReportScreenshotPolicy;
 import atf.reporting.evidence.profile.ReportEvidenceFlowMode;
+import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
 
 import atf.reporting.model.ReportScreenshot;
 import atf.reporting.ui.model.AtfUiActionRecord;
@@ -36,6 +37,7 @@ public final class UiEvidencePublisher {
 
     private final AtfReportPorts.Phase phase;
     private final ReportScreenshotPolicy screenshotPolicy;
+    private final ReportUiActionDetailsMode detailsMode;
 
     UiEvidencePublisher(AtfReportPorts.Phase phase) {
         this(phase, ReportScreenshotPolicy.EACH_CHECKPOINT);
@@ -43,8 +45,14 @@ public final class UiEvidencePublisher {
 
     UiEvidencePublisher(AtfReportPorts.Phase phase,
                         ReportScreenshotPolicy screenshotPolicy) {
+        this(phase, screenshotPolicy, ReportUiActionDetailsMode.INCLUDED_COLLAPSED);
+    }
+
+    UiEvidencePublisher(AtfReportPorts.Phase phase, ReportScreenshotPolicy screenshotPolicy,
+                        ReportUiActionDetailsMode detailsMode) {
         this.phase = Objects.requireNonNull(phase, "phase");
         this.screenshotPolicy = Objects.requireNonNull(screenshotPolicy, "screenshotPolicy");
+        this.detailsMode = Objects.requireNonNull(detailsMode, "detailsMode");
     }
 
     void publishOutcome(String keyword, String title, String target,
@@ -105,6 +113,7 @@ public final class UiEvidencePublisher {
                                     + " | result=" + assertion.resultStatus().displayValue());
                 }
             }
+            request.uiActionDetailsMode(detailsMode);
             if (actions != null && !actions.isEmpty()) request.uiActions(actions);
             if (screenshot != null) request.screenshot(screenshot.title(), screenshot.base64Png());
             AtfReportStatus effectiveStatus = defaultStatus(status, AtfReportStatus.PASS);
@@ -546,9 +555,10 @@ public final class UiEvidencePublisher {
         }
     }
 
-    private static void publishActions(AtfReportPorts.Validation validation,
+    private void publishActions(AtfReportPorts.Validation validation,
                                        Collection<AtfUiActionRecord> actions) {
         validation.evidenceOwner(ReportEvidenceOwner.UI);
+        validation.uiActionDetailsMode(detailsMode);
         if (actions != null && !actions.isEmpty()) validation.uiActions(actions);
     }
 

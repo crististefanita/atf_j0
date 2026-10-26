@@ -7,6 +7,9 @@ import atf.ui.config.UiNetworkInspectionConfiguration;
 import atf.ui.config.UiNetworkSettlementPolicy;
 import atf.core.config.ApiTransportMode;
 import atf.reporting.evidence.ReportScreenshotPolicy;
+import atf.reporting.evidence.profile.ReportEvidenceFlowMode;
+import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
+import atf.shop.config.model.ShopBillingStrategy;
 import atf.shop.config.api.ShopApiCheckpoint;
 import atf.shop.config.api.ShopApiConfiguration;
 import atf.shop.config.api.ShopApiEvidenceBinding;
@@ -32,11 +35,14 @@ import java.util.LinkedHashSet;
 /** YAML-first setup with an explicit module-owned demo account fixture. */
 public final class ShopConfigurationLoader {
     public static final String RESOURCE = "atf-practice-shop.yaml";
+    public static final String CONFIG_PROPERTY = "atf.practice.config";
     private static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory());
 
     private ShopConfigurationLoader() { }
 
     public static ShopConfiguration load() {
+        String selected = System.getProperty(CONFIG_PROPERTY, "").trim();
+        if (!selected.isEmpty()) return load(Path.of(selected));
         try (var stream = openConfiguration()) {
             if (stream == null) {
                 throw new IllegalStateException("Missing " + RESOURCE
@@ -128,7 +134,9 @@ public final class ShopConfigurationLoader {
                                     text(billing, "street", "Test Street"),
                                     text(billing, "city", "Bucharest"),
                                     text(billing, "state", "Bucharest")),
-                            text(checkout, "paymentMethod", "Cash on Delivery"));
+                            text(checkout, "paymentMethod", "Cash on Delivery"),
+                            ShopBillingStrategy.from(policyText(checkout, "billingStrategy", "configured-fields",
+                                    "practiceShop.checkout.billingStrategy")));
             JsonNode reports = root.path("reports");
             Path uiReports = resolveDirectory(text(reports, "ui", "artifacts/reports/ui"));
             Path apiReports = resolveDirectory(text(reports, "api", "artifacts/reports/api"));
@@ -194,6 +202,13 @@ public final class ShopConfigurationLoader {
 
     private static ShopReportConfiguration reportConfiguration(JsonNode reporting,
                                                                         boolean legacyCheckpointScreenshots) {
+        if (!reporting.isMissingNode() && !reporting.isObject()) {
+            throw new IllegalArgumentException("practiceShop.reporting must be a configuration object");
+        }
+        Set<String> allowed = Set.of("systemBodyPreviewCharacters", "screenshotPolicy", "flowMode", "actionDetailsMode");
+        reporting.fieldNames().forEachRemaining(field -> {
+            if (!allowed.contains(field)) throw new IllegalArgumentException("Unknown configuration key: practiceShop.reporting." + field);
+        });
         String legacyPolicy = legacyCheckpointScreenshots
                 ? ReportScreenshotPolicy.EACH_CHECKPOINT.configValue()
                 : ReportScreenshotPolicy.FAILURE_ONLY.configValue();
@@ -201,7 +216,21 @@ public final class ShopConfigurationLoader {
                 positiveInteger(reporting, "systemBodyPreviewCharacters",
                         ShopReportConfiguration.DEFAULT_SYSTEM_BODY_PREVIEW_CHARACTERS,
                         "practiceShop.reporting.systemBodyPreviewCharacters"),
-                ReportScreenshotPolicy.fromConfig(text(reporting, "screenshotPolicy", legacyPolicy)));
+                ReportScreenshotPolicy.fromConfig(policyText(reporting, "screenshotPolicy", legacyPolicy,
+                        "practiceShop.reporting.screenshotPolicy")),
+                ReportEvidenceFlowMode.fromConfig(policyText(reporting, "flowMode", "screen-checkpoints",
+                        "practiceShop.reporting.flowMode")),
+                ReportUiActionDetailsMode.fromConfig(policyText(reporting, "actionDetailsMode", "included-collapsed",
+                        "practiceShop.reporting.actionDetailsMode")));
+    }
+
+    private static String policyText(JsonNode parent, String name, String fallback, String path) {
+        JsonNode value = parent.path(name);
+        if (value.isMissingNode()) return fallback;
+        if (!value.isTextual() || value.asText().isBlank()) {
+            throw new IllegalArgumentException(path + " must be a non-blank text policy");
+        }
+        return value.asText().trim();
     }
 
     private static Set<String> textSet(JsonNode configured, String path) {

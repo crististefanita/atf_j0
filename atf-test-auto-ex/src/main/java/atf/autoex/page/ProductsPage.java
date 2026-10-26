@@ -2,10 +2,21 @@ package atf.autoex.page;
 
 import atf.autoex.locator.AutoExSelectors;
 import atf.autoex.support.journey.AutoExPurchaseSession;
+import atf.autoex.ui.AutoExUiActions;
+import java.util.Objects;
 
 /** Product search and catalog selection behavior. */
 public final class ProductsPage extends AutoExPage {
-    public ProductsPage(AutoExPurchaseSession run) { super(run); }
+    private final String expectedProductName;
+
+    public ProductsPage(AutoExPurchaseSession run) {
+        this(run, run.configuration().catalog().productName());
+    }
+
+    public ProductsPage(AutoExUiActions ui, String expectedProductName) {
+        super(ui);
+        this.expectedProductName = Objects.requireNonNull(expectedProductName, "expectedProductName");
+    }
 
     public void search(String query) {
         fill(AutoExSelectors.SEARCH_INPUT, query, "search query is entered");
@@ -17,9 +28,9 @@ public final class ProductsPage extends AutoExPage {
     }
 
     public ProductPage openFirstProduct() {
-        run.waitForText(AutoExSelectors.SEARCH_RESULT_PRODUCT_NAME + " >> nth=0",
-                run.configuration().catalog().productName(), "configured search result is ready");
+        ui.waitForText(AutoExSelectors.SEARCH_RESULT_PRODUCT_NAME + " >> nth=0",
+                expectedProductName, "configured search result is ready");
         clickFirst(AutoExSelectors.PRODUCT_DETAILS_LINK, "first matching product details open");
-        return new ProductPage(run);
+        return new ProductPage(ui);
     }
 }

@@ -1,6 +1,7 @@
 package atf.shop.config;
 
 import atf.shop.config.model.ShopBillingAddress;
+import atf.shop.config.model.ShopBillingStrategy;
 import atf.shop.config.model.ShopGuest;
 
 import java.util.Objects;
@@ -10,13 +11,19 @@ public record ShopCheckoutConfiguration(
         int quantity,
         ShopGuest guest,
         ShopBillingAddress billing,
-        String paymentMethod) {
+        String paymentMethod,
+        ShopBillingStrategy billingStrategy) {
+
+    public ShopCheckoutConfiguration(int quantity, ShopGuest guest, ShopBillingAddress billing, String paymentMethod) {
+        this(quantity, guest, billing, paymentMethod, ShopBillingStrategy.CONFIGURED_FIELDS);
+    }
 
     public ShopCheckoutConfiguration {
         if (quantity < 1) throw new IllegalArgumentException("quantity must be positive");
         guest = Objects.requireNonNull(guest, "guest");
         billing = Objects.requireNonNull(billing, "billing");
         paymentMethod = required(paymentMethod, "paymentMethod");
+        billingStrategy = Objects.requireNonNull(billingStrategy, "billingStrategy");
     }
 
     static ShopCheckoutConfiguration defaults() {

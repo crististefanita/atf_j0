@@ -6,7 +6,8 @@ import atf.autoex.support.journey.AutoExPurchaseSession;
 
 /** Store entry and its primary navigation. */
 public final class HomePage extends AutoExPage {
-    public HomePage(AutoExPurchaseSession run) { super(run); }
+    private final AutoExPurchaseSession run;
+    public HomePage(AutoExPurchaseSession run) { super(run); this.run = run; }
 
     public String open() {
         run.navigate(AutoExRoutes.HOME.resolve(run.configuration().baseUrl()));

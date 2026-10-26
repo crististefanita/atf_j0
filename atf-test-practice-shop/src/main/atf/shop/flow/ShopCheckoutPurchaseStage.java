@@ -1,6 +1,7 @@
 package atf.shop.flow;
 
 import atf.shop.config.ShopScreen;
+import atf.shop.config.model.ShopBillingStrategy;
 import atf.shop.config.model.ShopBillingAddress;
 import atf.shop.locators.ShopControl;
 import atf.shop.pages.ShopBillingPage;
@@ -73,7 +74,7 @@ final class ShopCheckoutPurchaseStage {
 
         ShopBillingPage billing = new ShopBillingPage(page, locators, actions);
         var address = configuration.checkout().billing();
-        var billingValidation = configuration.validationProfile().apiEvidenceRequired()
+        var billingValidation = configuration.checkout().billingStrategy() == ShopBillingStrategy.CONFIGURED_FIELDS
                 ? validateConfiguredBilling(billing, context, address)
                 : validateLookupBilling(billing, context, address);
         context.publish(context.checkpoint(ShopPurchaseTraceStep.BILLING,

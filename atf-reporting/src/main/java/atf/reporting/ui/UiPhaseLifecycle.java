@@ -9,6 +9,7 @@ import atf.reporting.contract.AtfReportPorts;
 import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.evidence.ReportScreenshotPolicy;
 import atf.reporting.evidence.profile.ReportEvidenceFlowMode;
+import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
 import atf.reporting.model.ReportExecutionEvidence;
 
 import atf.reporting.ui.model.AtfUiActionRecord;
@@ -35,11 +36,12 @@ public final class UiPhaseLifecycle implements AutoCloseable {
     UiPhaseLifecycle(AtfReportPorts.Phase delegate,
                      ReportScreenshotPolicy screenshotPolicy,
                      ReportEvidenceFlowMode flowMode,
+                     ReportUiActionDetailsMode detailsMode,
                      String scenarioTitle,
                      String phaseName,
                      UiScenarioLifecycle scenario) {
         this.delegate = delegate;
-        this.evidencePublisher = new UiEvidencePublisher(delegate, screenshotPolicy);
+        this.evidencePublisher = new UiEvidencePublisher(delegate, screenshotPolicy, detailsMode);
         this.flowMode = flowMode;
         this.scenarioTitle = scenarioTitle == null ? "" : scenarioTitle.trim();
         this.phaseName = phaseName == null ? "" : phaseName.trim();

@@ -1,6 +1,7 @@
 package atf.reporting.html;
 import atf.reporting.api.ReportModelAdapters;
 import atf.reporting.contract.evidence.ReportEvidenceOwner;
+import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
 import atf.reporting.model.ReportExecutionEvidence;
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfReportStatus;
@@ -213,6 +214,11 @@ public final class HtmlReportSemanticDocument {
     }
 
     public static final class ValidationModel implements NodeModel {
+        ReportUiActionDetailsMode actionDetailsMode = ReportUiActionDetailsMode.INCLUDED_COLLAPSED;
+
+        public void uiActionDetailsMode(ReportUiActionDetailsMode mode) {
+            actionDetailsMode = Objects.requireNonNull(mode, "mode");
+        }
         ReportEvidenceOwner evidenceOwner = ReportEvidenceOwner.UNSPECIFIED;
         final String title;
         List<AtfAssertion> assertions = List.of();

@@ -16,6 +16,7 @@ import atf.reporting.ui.network.ReportNetworkInspector;
 
 import atf.reporting.ui.model.AtfUiActionRecord;
 import atf.reporting.ui.model.AtfUiEvidenceSource;
+import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
 import com.aventstack.extentreports.ExtentTest;
 
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ final class ExtentRequestScope implements AtfReportPorts.Request {
     private final List<ReportJsonBody> json = new ArrayList<>();
     private final List<ReportScreenshot> screenshots = new ArrayList<>();
     private final List<AtfUiActionRecord> uiActions = new ArrayList<>();
+    private ReportUiActionDetailsMode detailsMode;
     private final ReportStatusAggregator statuses = new ReportStatusAggregator();
     private final AtfReportSemanticRecorder.RequestHandle semantic;
     private final Consumer<AtfReportStatus> onComplete;
@@ -55,6 +57,7 @@ final class ExtentRequestScope implements AtfReportPorts.Request {
         this.requestTitle = requestTitle;
         this.semantic = Objects.requireNonNull(semantic, "semantic");
         this.onComplete = Objects.requireNonNull(onComplete, "onComplete");
+        this.detailsMode = tree.defaultDetailsMode();
         tree.markStarted(request);
     }
 
@@ -92,6 +95,11 @@ final class ExtentRequestScope implements AtfReportPorts.Request {
         semantic.uiActions(actions);
     }
 
+    @Override public void uiActionDetailsMode(ReportUiActionDetailsMode mode) {
+        ensureRequestOpen();
+        detailsMode = Objects.requireNonNull(mode, "mode");
+    }
+
     @Override public void execution(ReportExecutionEvidence result) {
         if (result != null) {
             executions.add(result);
@@ -116,15 +124,15 @@ final class ExtentRequestScope implements AtfReportPorts.Request {
         }
         if (isSetupEvidence()) {
             tree.renderSetupEvidence(request, details);
-            tree.renderUiActions(request, uiActions, screenshots);
+            tree.renderUiActions(request, uiActions, screenshots, detailsMode);
         } else if (EvidenceTableFormatter.isCompactUiFlow(details)) {
             tree.renderUiFlowProvenance(request, details);
-            tree.renderUiActions(request, uiActions, screenshots);
+            tree.renderUiActions(request, uiActions, screenshots, detailsMode);
         } else {
             tree.renderRequestDetails(request, details, json);
             tree.renderResponseDetails(request, details, json);
             executions.forEach(execution -> tree.renderExecution(request, execution));
-            tree.renderUiActions(request, uiActions, screenshots);
+            tree.renderUiActions(request, uiActions, screenshots, detailsMode);
             if (uiActions.stream().noneMatch(action -> action.source() == AtfUiEvidenceSource.ACTION)) {
                 tree.renderScreenshots(request, screenshots);
             }

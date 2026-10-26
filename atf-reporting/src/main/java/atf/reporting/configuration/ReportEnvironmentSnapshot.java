@@ -5,6 +5,8 @@ import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Immutable, allowlisted configuration snapshot for Overview/System.
@@ -14,6 +16,7 @@ import java.util.Objects;
  * by {@link ReportEnvironment} at the publication boundary.</p>
  */
 public record ReportEnvironmentSnapshot(Map<ReportEnvironmentField, String> values) {
+    public static final String MIXED_VALUE = "Mixed — varies by scenario";
     public ReportEnvironmentSnapshot {
         Objects.requireNonNull(values, "values");
         var copy = new EnumMap<ReportEnvironmentField, String>(ReportEnvironmentField.class);
@@ -26,6 +29,20 @@ public record ReportEnvironmentSnapshot(Map<ReportEnvironmentField, String> valu
 
     public static ReportEnvironmentSnapshot empty() {
         return new ReportEnvironmentSnapshot(Map.of());
+    }
+
+    /** A shared artifact may claim only metadata common to every included scenario. */
+    public static ReportEnvironmentSnapshot common(Collection<ReportEnvironmentSnapshot> snapshots) {
+        var inputs = List.copyOf(Objects.requireNonNull(snapshots, "snapshots"));
+        var result = new EnumMap<ReportEnvironmentField, String>(ReportEnvironmentField.class);
+        for (var snapshot : inputs) {
+            for (var entry : snapshot.values().entrySet()) {
+                String value = entry.getValue();
+                boolean shared = inputs.stream().allMatch(other -> value.equals(other.values().get(entry.getKey())));
+                result.put(entry.getKey(), shared ? value : MIXED_VALUE);
+            }
+        }
+        return new ReportEnvironmentSnapshot(result);
     }
 
     /** Returns stable display labels without exposing the enum vocabulary. */

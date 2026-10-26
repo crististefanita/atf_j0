@@ -16,11 +16,16 @@ import com.aventstack.extentreports.ExtentTest;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.Objects;
 
 /** Coordinates specialized evidence renderers without owning Extent tree lifecycle. */
 public final class ExtentEvidenceRenderer {
     private final ExtentTransportEvidenceRenderer transport;
     private final ExtentUiEvidenceRenderer ui;
+    private final Map<ReportUiActionDetailsMode, ExtentUiEvidenceRenderer> uiProfiles =
+            new EnumMap<>(ReportUiActionDetailsMode.class);
 
     public ExtentEvidenceRenderer(ReportingSettings settings, SensitiveDataRedactor redactor) {
         this(settings, redactor, ReportUiActionDetailsMode.INCLUDED_COLLAPSED);
@@ -29,7 +34,10 @@ public final class ExtentEvidenceRenderer {
     public ExtentEvidenceRenderer(ReportingSettings settings, SensitiveDataRedactor redactor,
                                   ReportUiActionDetailsMode detailsMode) {
         this.transport = new ExtentTransportEvidenceRenderer(settings, redactor);
-        this.ui = new ExtentUiEvidenceRenderer(settings, redactor, detailsMode);
+        for (var mode : ReportUiActionDetailsMode.values()) {
+            uiProfiles.put(mode, new ExtentUiEvidenceRenderer(settings, redactor, mode));
+        }
+        this.ui = uiProfiles.get(Objects.requireNonNull(detailsMode, "detailsMode"));
     }
 
     public void renderPhaseDiagnostics(ExtentTest scenario, List<ReportPhaseDiagnostic> diagnostics) {
@@ -83,6 +91,16 @@ public final class ExtentEvidenceRenderer {
 
     public void renderUiActionsAsMedia(ExtentTest node, List<AtfUiActionRecord> actions) {
         ui.renderUiActionsAsMedia(node, actions);
+    }
+
+    public void renderUiActions(ExtentTest node, List<AtfUiActionRecord> actions,
+                                List<ReportScreenshot> screenshots, ReportUiActionDetailsMode mode) {
+        uiProfiles.get(Objects.requireNonNull(mode, "mode")).renderUiActions(node, actions, screenshots);
+    }
+
+    public void renderUiActionsAsMedia(ExtentTest node, List<AtfUiActionRecord> actions,
+                                       ReportUiActionDetailsMode mode) {
+        uiProfiles.get(Objects.requireNonNull(mode, "mode")).renderUiActionsAsMedia(node, actions);
     }
 
     public void renderAssertions(ExtentTest node, Collection<AtfAssertion> assertions) {

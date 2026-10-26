@@ -1,5 +1,6 @@
 package atf.reporting.model;
 import atf.reporting.contract.evidence.ReportEvidenceOwner;
+import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
 
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfReportStatus;
@@ -154,7 +155,15 @@ public record ReportExecutionModel(List<Scenario> scenarios) {
     public record Validation(String title, List<AtfAssertion> assertions,
                              AtfReportStatus status, int uiActionCount, int screenshotCount,
                              List<Node> children, List<AtfUiActionRecord> uiActions,
-                             List<ReportScreenshot> screenshots, ReportEvidenceOwner evidenceOwner) implements Node {
+                             List<ReportScreenshot> screenshots, ReportEvidenceOwner evidenceOwner,
+                             ReportUiActionDetailsMode actionDetailsMode) implements Node {
+        public Validation(String title, List<AtfAssertion> assertions,
+                          AtfReportStatus status, int uiActionCount, int screenshotCount,
+                          List<Node> children, List<AtfUiActionRecord> uiActions,
+                          List<ReportScreenshot> screenshots, ReportEvidenceOwner evidenceOwner) {
+            this(title, assertions, status, uiActionCount, screenshotCount, children, uiActions, screenshots,
+                    evidenceOwner, ReportUiActionDetailsMode.INCLUDED_COLLAPSED);
+        }
         public Validation(String title, List<AtfAssertion> assertions,
                           AtfReportStatus status, int uiActionCount, int screenshotCount,
                           List<Node> children, List<AtfUiActionRecord> uiActions, List<ReportScreenshot> screenshots) {
@@ -177,6 +186,7 @@ public record ReportExecutionModel(List<Scenario> scenarios) {
         }
 
         public Validation {
+            actionDetailsMode = Objects.requireNonNull(actionDetailsMode, "actionDetailsMode");
             evidenceOwner = Objects.requireNonNull(evidenceOwner, "evidenceOwner");
             title = title == null ? "" : title;
             assertions = List.copyOf(Objects.requireNonNull(assertions, "assertions"));

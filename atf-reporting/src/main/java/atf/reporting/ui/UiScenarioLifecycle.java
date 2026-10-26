@@ -6,6 +6,7 @@ import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.evidence.ReportScreenshotPolicy;
 import atf.reporting.evidence.profile.ReportEvidenceFlowMode;
 import atf.reporting.evidence.profile.ReportEvidenceProfile;
+import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collection;
@@ -19,6 +20,7 @@ public final class UiScenarioLifecycle implements AutoCloseable {
     private final AtfReportPorts.Scenario delegate;
     private final ReportScreenshotPolicy screenshotPolicy;
     private final ReportEvidenceFlowMode flowMode;
+    private final ReportUiActionDetailsMode detailsMode;
     private final String scenarioTitle;
     private final List<PhaseCheckpoint> phaseCheckpoints = new ArrayList<>();
     private boolean crossPhaseUnifiedFlow;
@@ -42,6 +44,7 @@ public final class UiScenarioLifecycle implements AutoCloseable {
         this.delegate = delegate;
         this.screenshotPolicy = evidenceProfile.screenshotPolicy();
         this.flowMode = evidenceProfile.flowMode();
+        this.detailsMode = evidenceProfile.actionDetailsMode();
         this.scenarioTitle = scenarioTitle == null ? "" : scenarioTitle.trim();
     }
 
@@ -49,7 +52,7 @@ public final class UiScenarioLifecycle implements AutoCloseable {
         ensureOpen();
         phaseStarted = true;
         return new UiPhaseLifecycle(delegate.startPhase(name), screenshotPolicy,
-                flowMode, scenarioTitle, name, this);
+                flowMode, detailsMode, scenarioTitle, name, this);
     }
 
     void unifyAcrossPhases() {

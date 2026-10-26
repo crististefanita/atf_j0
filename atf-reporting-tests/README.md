@@ -386,6 +386,8 @@ Boundary-urile suportului rămân mici și verificabile:
 - `support.api` ține selecția și publicarea precondiției API;
 - `support.config` ține loader-ele, resursele și configurația UI;
 - `support.config.environment` deține snapshot factory-urile typed pentru Overview/System;
+- `UiReportEnvironmentSnapshotFactoryTest` afirmă viewportul și zoom-ul CSS
+  efectiv rezolvate prin override în rândul System, nu doar valorile implicite;
 - Network Inspector aparține `atf.reporting.ui.network`; nu se adaugă excepții de coeziune pentru clase fără legătură;
 - guard-ul whole-ATF limitează fiecare package la maximum opt clase.
 
@@ -582,8 +584,13 @@ Entry-point-urile selectabile direct din IntelliJ sunt separate pe layer:
 | `AtfReportingComponentSuite` | `component` din reporting și UI extent | boundary HTML/CSS/JS, contracte și fixture-uri controlate; snapshot-ul de navigation performance este mapat prin `ReportRuntimePerformanceSnapshot`, iar `ReportRuntimePerformanceBudget` verifică fixture-uri configurabile fără verdict business |
 | `AtfReportingIntegrationSuite` | `integration` din `atf.reporting` | session, publication, replay și contracte de integrare ale librăriei |
 | `AtfReportingApiFixtureSuite` | `integration` din `atf.reporting.api.tests.api` | mock API → core → validation → reporting evidence, fără browser |
-| `AtfReportingUiAuditSuite` | `e2e` din `atf.ui.tests.extent.e2e` | launcher browser/debug; aceeași selecție ca `ExtentReportingE2eSuite` |
-| `ExtentReportingE2eSuite` | același pachet/tag și aceeași excludere de suite | declară suplimentar `@AtfTestChannel(UI)`; nu adaugă alt inventar de probe |
+| `ExtentReportingE2eSuite` | `e2e` din `atf.ui.tests.extent.e2e` | gate-ul UI canonic, cu `@AtfTestChannel(UI)` |
+| `AtfReportingUiAuditSuite` | aceeași selecție | alias de compatibilitate pentru lansările existente; nu se numără ca al doilea gate |
+
+`ReportingUiLauncherSelectionTest` compară prin discovery JUnit identitățile
+metodelor și template-urilor parametrizate ale ambelor launchere fără a porni
+browserul. Invocările parametrizate apar la execuție; ambele launchere selectează
+aceleași definiții și nu se rulează împreună ca probe disjuncte.
 
 Gate-ul API cross-projection este inclus în `AtfReportingComponentSuite` și
 legat de `ReportingCoverageMatrixTest`: contract API direct, aceeași dovadă prin

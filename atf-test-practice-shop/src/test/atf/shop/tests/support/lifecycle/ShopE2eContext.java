@@ -11,7 +11,7 @@ import atf.core.reporting.console.AtfConsoleSink;
 import atf.reporting.contract.AtfGherkinKeyword;
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfReportStatus;
-import atf.reporting.configuration.AtfReportConfigurationLoader;
+import atf.reporting.configuration.ReportEnvironmentSnapshot;
 import atf.reporting.evidence.profile.ReportEvidenceProfile;
 import atf.reporting.evidence.profile.ReportEvidenceFlowMode;
 import atf.reporting.evidence.ReportScreenshotPolicy;
@@ -55,23 +55,25 @@ public final class ShopE2eContext implements AutoCloseable {
     private final PlaywrightUiSession browser;
     private final ShopBrowserCaptureProvider browserCaptureProvider;
     private final ShopApiNetworkJournal apiNetwork;
+    private final ReportEnvironmentSnapshot environment;
 
     private ShopE2eContext(ShopConfiguration configuration,
                                    ReportEvidenceProfile evidenceProfile,
                                    UiExtentReportSession report, PlaywrightUiSession browser,
                                    ShopBrowserCaptureProvider browserCaptureProvider,
                                    boolean ownsReport,
-                                   ShopApiNetworkJournal apiNetwork) {
+                                   ShopApiNetworkJournal apiNetwork,
+                                   ReportEnvironmentSnapshot environment) {
         this.configuration = configuration; this.evidenceProfile = evidenceProfile;
         this.report = report; this.browser = browser;
         this.browserCaptureProvider = browserCaptureProvider;
         this.ownsReport = ownsReport;
         this.apiNetwork = apiNetwork;
+        this.environment = environment;
     }
 
     public static ShopE2eContext open(ShopConfiguration configuration) {
-        return open(configuration, ShopScreenshotPolicy.profile(
-                configuration.reporting().screenshotPolicy()));
+        return open(configuration, ShopScreenshotPolicy.profile(configuration.reporting()));
     }
 
     public static ShopE2eContext open(ShopConfiguration configuration,
@@ -94,11 +96,13 @@ public final class ShopE2eContext implements AutoCloseable {
                                      atf.reporting.console.AtfConsoleSink reportConsole) {
         ReportEvidenceProfile selectedProfile = java.util.Objects.requireNonNull(
                 evidenceProfile, "evidenceProfile");
+        var environment = ShopReportSystemMetadata.snapshot(configuration, selectedProfile,
+                System.getProperty("atf.environment", ShopReportSystemMetadata.DEFAULT_ENVIRONMENT));
         boolean ownsReport = sharedReport == null;
         UiExtentReportSession report = ownsReport
                 ? openReport(configuration, selectedProfile, reportConsole) : sharedReport;
         try {
-            return openBrowser(configuration, selectedProfile, report, ownsReport);
+            return openBrowser(configuration, selectedProfile, report, ownsReport, environment);
         } catch (RuntimeException | Error error) {
             if (ownsReport) FailureAwareCleanup.closeAfterFailure(error, report);
             throw error;
@@ -120,19 +124,19 @@ public final class ShopE2eContext implements AutoCloseable {
         String file = "ui-atf-practice-shop-e2e_"
                 + STAMP.withZone(Clock.systemDefaultZone().getZone()).format(Clock.systemDefaultZone().instant())
                 + ".html";
-        var reportConfiguration = AtfReportConfigurationLoader.load();
         return UiExtentReportSession.openConfiguredResolved(
                 configuration.uiReportDirectory(), file,
                 java.util.Objects.requireNonNull(console, "console"),
                 selectedProfile,
-                ShopReportSystemMetadata.snapshot(configuration,
-                        reportConfiguration.reportingSettings(), selectedProfile));
+                ShopReportSystemMetadata.snapshot(configuration, selectedProfile,
+                        System.getProperty("atf.environment", ShopReportSystemMetadata.DEFAULT_ENVIRONMENT)));
     }
 
     private static ShopE2eContext openBrowser(ShopConfiguration configuration,
                                                        ReportEvidenceProfile evidenceProfile,
                                                        UiExtentReportSession report,
-                                                       boolean ownsReport) {
+                                                       boolean ownsReport,
+                                                       ReportEnvironmentSnapshot environment) {
         AtfConsoleSink console = AtfConsoleTestContext.current() == null
                 ? AtfConsoleReporter.configuredStdout()
                 : AtfConsoleTestContext.configuredSink();
@@ -151,7 +155,7 @@ public final class ShopE2eContext implements AutoCloseable {
             // its response callback is still settling.
             apiNetwork.attach(browser.page());
             return new ShopE2eContext(configuration, evidenceProfile, report, browser, browserCaptureProvider,
-                    ownsReport, apiNetwork);
+                    ownsReport, apiNetwork, environment);
         } catch (RuntimeException | Error error) {
             FailureAwareCleanup.closeAfterFailure(error, browser);
             throw error;
@@ -222,6 +226,7 @@ public final class ShopE2eContext implements AutoCloseable {
     }
 
     private UiExtentReportSession.UiScenario startReportScenario(String reportClass, String overview) {
+        report.includeScenarioEnvironment(environment);
         return startReportScenario(report, evidenceProfile, reportClass, overview);
     }
 

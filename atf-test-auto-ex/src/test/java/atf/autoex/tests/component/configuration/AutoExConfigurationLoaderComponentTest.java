@@ -5,6 +5,9 @@ import atf.ui.config.UiRetryOperation;
 import atf.autoex.config.AutoExConfiguration;
 import atf.autoex.config.AutoExConfigurationLoader;
 import atf.ui.network.UiNetworkCapturePolicy;
+import atf.reporting.evidence.ReportScreenshotPolicy;
+import atf.reporting.evidence.profile.ReportEvidenceFlowMode;
+import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.ResourceAccessMode;
@@ -33,6 +36,27 @@ class AutoExConfigurationLoaderComponentTest {
 
     @TempDir
     Path temporaryDirectory;
+
+    @Test
+    void evidenceAxesAreConfiguredIndependentlyAndUnknownValuesFailBeforeResources() throws IOException {
+        String original = Files.readString(defaultYaml());
+        String evidence = "uiBaseDirectory: artifacts/reports/ui\n"
+                + "    evidence:\n      flowMode: unified-flow\n      screenshotPolicy: none\n"
+                + "      actionDetailsMode: summary-only";
+        Path yaml = temporaryDirectory.resolve("evidence.yaml");
+        Files.writeString(yaml, original.replace("uiBaseDirectory: artifacts/reports/ui", evidence));
+        var profile = AutoExConfigurationLoader.load(yaml).evidence().profile(ReportScreenshotPolicy.EACH_CHECKPOINT);
+        assertEquals(ReportEvidenceFlowMode.UNIFIED_FLOW, profile.flowMode());
+        assertEquals(ReportScreenshotPolicy.NONE, profile.screenshotPolicy());
+        assertEquals(ReportUiActionDetailsMode.SUMMARY_ONLY, profile.actionDetailsMode());
+        var inherited = AutoExConfigurationLoader.load().evidence().profile(ReportScreenshotPolicy.FINAL_AND_FAILURE);
+        assertEquals(ReportScreenshotPolicy.FINAL_AND_FAILURE, inherited.screenshotPolicy());
+        for (String invalid : new String[]{"flowMode: unknown", "actionDetailsMode: unknown", "typo: none"}) {
+            Files.writeString(yaml, original.replace("uiBaseDirectory: artifacts/reports/ui",
+                    "uiBaseDirectory: artifacts/reports/ui\n    evidence:\n      " + invalid));
+            assertThrows(IllegalStateException.class, () -> AutoExConfigurationLoader.load(yaml));
+        }
+    }
 
     @Test
     void packagedTestYamlDefinesTheSafeAndCompleteDefaultProfile() {
@@ -157,7 +181,11 @@ class AutoExConfigurationLoaderComponentTest {
     }
 
     private Path writeVariant(String original, String replacement) throws IOException {
-        String yaml = Files.readString(defaultYaml()).replace(original, replacement);
+        String baseline = Files.readString(defaultYaml()).replace("\r\n", "\n").replace('\r', '\n');
+        if (!baseline.contains(original)) {
+            throw new IllegalStateException("Fixture substitution did not match the default YAML: " + original);
+        }
+        String yaml = baseline.replace(original, replacement);
         Path file = temporaryDirectory.resolve("variant-" + Math.abs(replacement.hashCode()) + ".yaml");
         Files.writeString(file, yaml);
         return file;

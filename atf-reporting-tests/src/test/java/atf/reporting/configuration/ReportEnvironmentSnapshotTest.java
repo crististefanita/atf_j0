@@ -3,6 +3,7 @@ package atf.reporting.configuration;
 import atf.reporting.security.SensitiveDataRedactor;
 import atf.testkit.AtfUnitTest;
 import org.junit.jupiter.api.Test;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -12,6 +13,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** Unit contract for the operational Overview/System projection boundary. */
 @AtfUnitTest
 class ReportEnvironmentSnapshotTest {
+    @Test
+    void sharedMetadataMarksDifferentOrAbsentSiblingFieldsAsMixed() {
+        var first = ReportEnvironmentSnapshot.builder().put(ReportEnvironmentField.CLIENT, "Playwright browser")
+                .put(ReportEnvironmentField.SCREENSHOT_POLICY, "Each checkpoint")
+                .put(ReportEnvironmentField.API_ENDPOINT, "https://api.fixture.test").build();
+        var second = ReportEnvironmentSnapshot.builder().put(ReportEnvironmentField.CLIENT, "Playwright browser")
+                .put(ReportEnvironmentField.SCREENSHOT_POLICY, "None").build();
+        var common = ReportEnvironmentSnapshot.common(List.of(first, second));
+        assertEquals("Playwright browser", common.values().get(ReportEnvironmentField.CLIENT));
+        assertEquals(ReportEnvironmentSnapshot.MIXED_VALUE, common.values().get(ReportEnvironmentField.SCREENSHOT_POLICY));
+        assertEquals(ReportEnvironmentSnapshot.MIXED_VALUE, common.values().get(ReportEnvironmentField.API_ENDPOINT));
+        assertEquals(first, ReportEnvironmentSnapshot.common(List.of(first, first)));
+        assertEquals(ReportEnvironmentSnapshot.empty(), ReportEnvironmentSnapshot.common(List.of()));
+        assertEquals(common, ReportEnvironmentSnapshot.common(List.of(second, first)));
+    }
     @Test
     void genericClientFallbackDoesNotClaimAnApiTransportForUiOnlyRuns() {
         assertEquals("Configured per execution", ReportEnvironment.defaults().get("Client"));

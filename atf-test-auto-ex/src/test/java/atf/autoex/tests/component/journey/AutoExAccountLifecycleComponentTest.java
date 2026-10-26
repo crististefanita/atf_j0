@@ -1,0 +1,85 @@
+package atf.autoex.tests.component.journey;
+
+import atf.autoex.config.AutoExConfigurationLoader;
+import atf.autoex.page.AccountPage;
+import atf.autoex.support.account.AutoExAccountLifecycle;
+import atf.autoex.support.account.AutoExTestAccount;
+import atf.autoex.support.journey.AutoExPurchaseSession;
+import atf.testkit.AtfComponentTest;
+import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Proxy;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@AtfComponentTest
+class AutoExAccountLifecycleComponentTest {
+    @Test
+    void distinctPageObjectsShareTheRunOwnerAndCannotReplayAnUnconfirmedDeletion() {
+        var lifecycle = new AutoExAccountLifecycle();
+        var cleanup = new AtomicReference<AutoExPurchaseSession.AutoExAccountCleanup>();
+        var session = session(lifecycle, cleanup);
+        var account = account();
+        new AccountPage(session).trackDisposableAccountCreation(account);
+        lifecycle.creationConfirmed();
+        assertTrue(lifecycle.creationWasConfirmed());
+        lifecycle.deletionStarted();
+        var failure = assertThrows(IllegalStateException.class,
+                () -> new AccountPage(session).accountDeletionResult(account));
+        assertTrue(failure.getMessage().contains("may replay"));
+        assertThrows(IllegalStateException.class, () -> cleanup.get().run());
+    }
+
+    @Test
+    void uncertainCreationIsOwnedButAnotherIdentityOrBorrowedFixtureCannotBeDeleted() {
+        var lifecycle = new AutoExAccountLifecycle();
+        var owned = account();
+        assertThrows(IllegalStateException.class, () -> lifecycle.requireOwner(owned, owned.signupName()));
+        lifecycle.creationAttempted(owned);
+        assertTrue(lifecycle.creationWasAttempted());
+        assertDoesNotThrow(() -> lifecycle.requireOwner(owned, owned.signupName()));
+        assertThrows(IllegalStateException.class, () -> lifecycle.requireOwner(owned, "another customer"));
+        var other = account();
+        assertThrows(IllegalStateException.class, () -> lifecycle.creationAttempted(other));
+        assertThrows(IllegalStateException.class, () -> lifecycle.requireOwner(other, other.signupName()));
+    }
+
+    @Test
+    void confirmedDeletionIsTerminalAndASeparateExecutionHasNoOwnership() {
+        var lifecycle = new AutoExAccountLifecycle();
+        var owned = account();
+        lifecycle.creationAttempted(owned);
+        lifecycle.deletionStarted();
+        lifecycle.deletionConfirmed();
+        lifecycle.deletionStarted();
+        lifecycle.creationConfirmed();
+        assertTrue(lifecycle.deletionWasConfirmed());
+        assertThrows(IllegalStateException.class, lifecycle::requireDeletionNotStarted);
+        assertThrows(IllegalStateException.class, () -> lifecycle.creationAttempted(owned));
+        assertThrows(IllegalStateException.class,
+                () -> new AutoExAccountLifecycle().requireOwner(owned, owned.signupName()));
+    }
+
+    private static AutoExTestAccount account() {
+        return AutoExTestAccount.create(AutoExConfigurationLoader.load().registration());
+    }
+
+    private static AutoExPurchaseSession session(AutoExAccountLifecycle lifecycle,
+                                                AtomicReference<AutoExPurchaseSession.AutoExAccountCleanup> cleanup) {
+        return (AutoExPurchaseSession) Proxy.newProxyInstance(AutoExPurchaseSession.class.getClassLoader(),
+                new Class<?>[]{AutoExPurchaseSession.class}, (proxy, method, arguments) -> {
+                    switch (method.getName()) {
+                        case "accountLifecycle": return lifecycle;
+                        case "onFailureCleanup": cleanup.set((AutoExPurchaseSession.AutoExAccountCleanup) arguments[0]); return null;
+                        case "currentUrl": return "https://fixture.test/";
+                        case "configuration": return AutoExConfigurationLoader.load();
+                        case "page": throw new AssertionError("No browser or mutation may be reached after deletion started");
+                        default: throw new UnsupportedOperationException(method.getName());
+                    }
+                });
+    }
+}
