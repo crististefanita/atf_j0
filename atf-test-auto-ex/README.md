@@ -78,7 +78,12 @@ Profilul conține numai date sintetice și date de plată demonstrative; nu intr
 în YAML date personale reale, parole sau instrumente de plată reale. Modelul
 redactează câmpurile de înregistrare și plată din reprezentarea textuală.
 
-- `AutoExPurchaseJourney` consumă portul `AutoExPurchaseSession` din `src/main`.
+- `AutoExPurchaseJourney` folosește `AutoExPurchaseSession` drept fațadă de orchestrare;
+  `HomePage`, `CheckoutPage` și `AccountPage` primesc porturi de capabilități
+  (`AutoExHomePagePort`, `AutoExCheckoutPagePort`, `AutoExAccountPagePort`).
+  Căutarea de produse primește numai `AutoExUiActions` și numele așteptat explicit.
+  Testele componente verifică ordinea acțiunilor și oprirea la eșec fără să
+  construiască runtime-ul complet.
 - `AutoExE2eRun` îl implementează în pachetul `runtime` din `src/main/java`,
   fără JUnit sau Test Kit.
 - `AutoExRunFactory` și `AutoExE2eExtension` din `src/test/java`, pachetul `extension`, rezolvă
@@ -201,6 +206,14 @@ aceasta este o probă controlată, distinctă de raportul E2E al magazinului pub
 
 Rularea uzuală selectează `AutoExPurchaseUiE2eTest`: un cont, o comandă demo,
 o factură și cleanup.
+
+Adnotarea locală `@AutoExE2eTest` compune infrastructura identică a celor șase
+clase: marker E2E, extensiile de consolă și runtime, directorul `auto-ex`,
+publicarea căii raportului și execuția secvențială. Canalul `UI`/`UI_API`,
+`@Order` și orice `@AtfUiEvidence` rămân pe clasa concretă; compoziția nu
+selectează scenariul, nu schimbă activarea IntelliJ și nu ascunde politica
+specifică testului. `AutoExEvidenceProfileComponentTest` verifică adnotarea
+reală și lista exactă a suitei.
 
 Celelalte clase se aleg explicit din IntelliJ sau prin `-Dtest=<clasă>` atunci
 când este necesară altă politică de evidence:

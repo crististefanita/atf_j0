@@ -113,7 +113,7 @@ public final class AutoExPurchaseJourney {
         }
 
         new HomePage(run).openProducts();
-        ProductsPage products = new ProductsPage(run);
+        ProductsPage products = new ProductsPage(run, product.productName());
         products.search(product.searchTerm());
         String resultName = products.firstProductName();
         String searchUrl = run.currentUrl();

@@ -1,7 +1,6 @@
 package atf.shop.pages.account;
 
 import atf.ui.playwright.PlaywrightActionSequence;
-import atf.shop.config.ShopConfiguration;
 import atf.shop.config.model.ShopCredentials;
 import atf.shop.config.ShopScreen;
 import atf.shop.locators.ShopControl;
@@ -9,6 +8,8 @@ import atf.shop.locators.ShopLocators;
 import atf.shop.support.ShopPageContract;
 import atf.shop.routes.ShopUiRoutes;
 import com.microsoft.playwright.Page;
+
+import java.net.URI;
 
 /** Login page object; credential values are never recorded as action evidence. */
 @ShopPageContract(screen = ShopScreen.LOGIN, route = ShopUiRoutes.AUTH_LOGIN,
@@ -24,8 +25,8 @@ public final class ShopLoginPage {
         this.page = page; this.locators = locators; this.actions = actions;
     }
 
-    public void open(ShopConfiguration configuration) {
-        actions.navigate(page, configuration.uri(ShopUiRoutes.AUTH_LOGIN), "login page is loaded");
+    public void open(URI loginUrl) {
+        actions.navigate(page, loginUrl, "login page is loaded");
         actions.waitForVisible(locators.loginEmail(page));
         actions.waitForVisible(locators.loginPassword(page));
         actions.waitForVisible(locators.loginSubmit(page));

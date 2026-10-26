@@ -1,12 +1,13 @@
 package atf.shop.flow;
 
 import atf.ui.playwright.PlaywrightActionSequence;
-import atf.shop.config.ShopConfiguration;
 import atf.shop.config.model.ShopCredentials;
 import atf.shop.locators.ShopLocators;
 import atf.shop.pages.account.ShopAccountPage;
 import atf.shop.pages.account.ShopLoginPage;
 import com.microsoft.playwright.Page;
+
+import java.net.URI;
 
 /** Reusable authentication flow shared by each external E2E scenario. */
 public final class ShopAccountFlow {
@@ -17,10 +18,10 @@ public final class ShopAccountFlow {
     }
 
     public void loginAndAssertAccount(Page page, PlaywrightActionSequence actions,
-                                      ShopConfiguration configuration,
+                                      URI loginUrl,
                                       ShopCredentials credentials) {
         ShopLoginPage login = new ShopLoginPage(page, locators, actions);
-        login.open(configuration);
+        login.open(loginUrl);
         login.login(credentials);
         new ShopAccountPage(page, locators, actions).assertLoaded(credentials);
     }

@@ -24,7 +24,6 @@ public final class ShopPurchaseFlow {
     private final ShopHomeScreenValidator homeScreenValidator;
     private final ShopPurchaseScreenValidator purchaseScreenValidator;
     private final ShopCatalogPurchaseStage catalogStage = new ShopCatalogPurchaseStage();
-    private final ShopCheckoutPurchaseStage checkoutStage = new ShopCheckoutPurchaseStage();
 
     public ShopPurchaseFlow(ShopLocators locators) {
         this.locators = Objects.requireNonNull(locators, "locators");
@@ -68,11 +67,13 @@ public final class ShopPurchaseFlow {
                                    Consumer<ShopPurchaseCheckpoint> checkpointObserver,
                                    ShopApiNetworkJournal apiNetwork,
                                    boolean authenticated) {
+        var checkpointPublisher = new ShopPurchaseCheckpointPublisher(checkpointObserver);
         var context = new ShopPurchaseJourneyContext(page, actions, configuration,
-                checkpointObserver, apiNetwork, locators, pageValidator,
+                checkpointPublisher, apiNetwork, locators, pageValidator,
                 homeScreenValidator, purchaseScreenValidator);
-        catalogStage.prepareCart(context);
-        return checkoutStage.complete(context, authenticated);
+        catalogStage.prepareCart(context.catalogInputs());
+        return new ShopCheckoutFlow().complete(new ShopCheckoutPurchaseStage(context.checkoutInputs()),
+                checkpointPublisher::report, authenticated);
     }
 
     public record PurchaseResult(String productName, String quantity,

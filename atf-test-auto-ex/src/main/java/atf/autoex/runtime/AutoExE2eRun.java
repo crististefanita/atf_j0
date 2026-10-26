@@ -32,6 +32,7 @@ import atf.autoex.support.browser.AutoExPrivacyConsentHandler;
 import atf.autoex.support.browser.AutoExVignetteHandler;
 import atf.autoex.support.catalog.AutoExCatalogSnapshot;
 import atf.autoex.support.journey.AutoExPurchaseSession;
+import atf.autoex.ui.AutoExAccountPagePort;
 import atf.autoex.support.trace.AutoExTraceStep;
 import com.microsoft.playwright.Page;
 
@@ -69,7 +70,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
     private int causalNetworkBaseline;
     private final AutoExVignetteHandler vignetteHandler = new AutoExVignetteHandler();
     private final AutoExPrivacyConsentHandler privacyConsentHandler = new AutoExPrivacyConsentHandler();
-    private AutoExAccountCleanup failureCleanup;
+    private AutoExAccountPagePort.AccountCleanup failureCleanup;
     private boolean finished;
 
     public AutoExE2eRun(AutoExConfiguration configuration, PlaywrightUiSession browser,
@@ -280,7 +281,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
                 .map(evidence -> new UiApiValidationEvidence.Exchange(evidence, List.of())).toList());
     }
 
-    public void onFailureCleanup(AutoExPurchaseSession.AutoExAccountCleanup cleanup) {
+    public void onFailureCleanup(AutoExAccountPagePort.AccountCleanup cleanup) {
         failureCleanup = Objects.requireNonNull(cleanup, "cleanup");
     }
 

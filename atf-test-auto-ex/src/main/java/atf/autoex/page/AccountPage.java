@@ -9,7 +9,7 @@ import atf.autoex.support.account.AutoExAccountCleanupDecision;
 import atf.autoex.support.account.AutoExAccountDeletionAttempt;
 import atf.autoex.support.account.AutoExTestAccount;
 import atf.autoex.support.trace.AutoExCustomerTraceStep;
-import atf.autoex.support.journey.AutoExPurchaseSession;
+import atf.autoex.ui.AutoExAccountPagePort;
 import atf.autoex.support.journey.AutoExPurchaseTraceStep;
 import atf.autoex.support.validation.AutoExStoreAssertions;
 
@@ -21,8 +21,8 @@ import static atf.autoex.support.validation.AutoExUiText.ACCOUNT_DELETED;
 
 /** Registration during checkout and deterministic disposal of the synthetic account. */
 public final class AccountPage extends AutoExPage {
-    private final AutoExPurchaseSession run;
-    public AccountPage(AutoExPurchaseSession run) { super(run); this.run = run; }
+    private final AutoExAccountPagePort run;
+    public AccountPage(AutoExAccountPagePort run) { super(run); this.run = run; }
 
     public void registerFromCheckout(AutoExTestAccount account) {
         clickLast(AutoExSelectors.REGISTER_LOGIN, "registration form opens from checkout");

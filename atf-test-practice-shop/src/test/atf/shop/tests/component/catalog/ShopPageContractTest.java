@@ -3,6 +3,7 @@ package atf.shop.tests.component.catalog;
 import atf.reporting.contract.AtfAssertion;
 import atf.testkit.AtfComponentTest;
 import atf.shop.config.ShopScreen;
+import atf.shop.config.ShopConfiguration;
 import atf.shop.locators.ShopControl;
 import atf.shop.pages.ShopBillingPage;
 import atf.shop.pages.ShopCartPage;
@@ -10,6 +11,7 @@ import atf.shop.pages.ShopConfirmationPage;
 import atf.shop.pages.ShopGuestCheckoutPage;
 import atf.shop.pages.ShopHomePage;
 import atf.shop.pages.account.ShopLoginPage;
+import atf.shop.pages.account.ShopRegistrationPage;
 import atf.shop.pages.account.ShopAccountPage;
 import atf.shop.pages.ShopPaymentPage;
 import atf.shop.pages.ShopProductPage;
@@ -19,6 +21,7 @@ import atf.shop.routes.ShopUiRoutes;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.net.URI;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,6 +48,16 @@ class ShopPageContractTest {
                 ShopUiRoutes.AUTH_LOGIN, 3);
         assertContract(ShopAccountPage.class, ShopScreen.ACCOUNT,
                 ShopUiRoutes.ACCOUNT, 1);
+    }
+
+    @Test
+    void accountPagesAcceptResolvedRoutesInsteadOfGlobalConfiguration() throws NoSuchMethodException {
+        assertEquals(void.class, ShopLoginPage.class.getMethod("open", URI.class).getReturnType());
+        assertEquals(void.class, ShopRegistrationPage.class.getMethod("open", URI.class).getReturnType());
+        assertThrows(NoSuchMethodException.class,
+                () -> ShopLoginPage.class.getMethod("open", ShopConfiguration.class));
+        assertThrows(NoSuchMethodException.class,
+                () -> ShopRegistrationPage.class.getMethod("open", ShopConfiguration.class));
     }
 
     @Test

@@ -2,12 +2,12 @@ package atf.autoex.page;
 
 import atf.autoex.locator.AutoExRoutes;
 import atf.autoex.locator.AutoExSelectors;
-import atf.autoex.support.journey.AutoExPurchaseSession;
+import atf.autoex.ui.AutoExHomePagePort;
 
 /** Store entry and its primary navigation. */
 public final class HomePage extends AutoExPage {
-    private final AutoExPurchaseSession run;
-    public HomePage(AutoExPurchaseSession run) { super(run); this.run = run; }
+    private final AutoExHomePagePort run;
+    public HomePage(AutoExHomePagePort run) { super(run); this.run = run; }
 
     public String open() {
         run.navigate(AutoExRoutes.HOME.resolve(run.configuration().baseUrl()));

@@ -71,8 +71,11 @@ flowchart LR
 | Etichete Extent / Categories | metadata publicată de consumator; nu rezultă automat din resolverul canalului |
 
 Nivelul selectează stratul piramidei; canalul selectează tipul execuției.
-Auditul browser al unui raport API are canalul `UI`, deoarece verifică pagina
-raportului; setup-ul API rămâne o precondiție separată.
+`@AtfE2eTest` poate fi folosit ca meta-adnotare pentru compoziția infrastructurii
+repetate a unui consumer; canalul și politica specifică scenariului rămân
+declarate pe testul concret. Auditul browser al unui raport API are canalul
+`UI`, deoarece verifică pagina raportului; setup-ul API rămâne o precondiție
+separată.
 
 ```java
 import atf.testkit.AtfE2eTest;

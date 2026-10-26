@@ -12,14 +12,14 @@ import static atf.reporting.audit.ReportAuditChecks.check;
 
 /** Catalog-side business stage: home, product selection and add-to-cart. */
 final class ShopCatalogPurchaseStage {
-    void prepareCart(ShopPurchaseJourneyContext context) {
+    void prepareCart(ShopPurchaseJourneyContext.CatalogInputs context) {
         var page = context.page();
         var actions = context.actions();
         var locators = context.locators();
-        var configuration = context.configuration();
+        var selection = context.selection();
 
         ShopHomePage home = new ShopHomePage(page, locators, actions);
-        home.open(configuration);
+        home.open(selection.homeUrl());
         context.assertVisible(locators.homeNavigation(page), locators.homeBrand(page),
                 locators.homeBanner(page));
         context.publish(context.checkpoint(ShopPurchaseTraceStep.CATALOG_HOME,
@@ -40,15 +40,15 @@ final class ShopCatalogPurchaseStage {
                 context.homeScreenValidator().productGrid(page),
                 context.homeScreenValidator().productGridIntegrity(page), List.of()));
 
-        home.search(configuration.productName());
-        var productLink = configuration.usesDynamicProductPath()
-                ? locators.productLinkFirst(page, configuration.productName())
-                : locators.productLinkByPath(page, configuration.productPath());
-        boolean configuredProductPathFound = configuration.usesDynamicProductPath()
+        home.search(selection.productName());
+        var productLink = selection.usesDynamicProductPath()
+                ? locators.productLinkFirst(page, selection.productName())
+                : locators.productLinkByPath(page, selection.productPath());
+        boolean configuredProductPathFound = selection.usesDynamicProductPath()
                 || productLink.locator().count() > 0;
         if (!configuredProductPathFound) {
             throw new IllegalStateException("Configured Practice Shop product route was not found: "
-                    + configuration.productPath() + "; productName=" + configuration.productName());
+                    + selection.productPath() + "; productName=" + selection.productName());
         }
         String selectedProductPath = productLink.locator().getAttribute("href");
         if (selectedProductPath == null || selectedProductPath.isBlank()) {
@@ -59,27 +59,27 @@ final class ShopCatalogPurchaseStage {
         actions.click(productLink, "matching product opens from search results");
 
         ShopProductPage product = new ShopProductPage(page, locators, actions);
-        String productName = product.assertLoaded(configuration);
+        String productName = product.assertLoaded(selection.productName());
         var productApiAssertions = context.apiNetwork().productReady(
-                configuration.productName(), selectedProductPath);
+                selection.productName(), selectedProductPath);
         var productEvidence = context.apiNetwork().evidence(ShopApiCheckpoint.PRODUCT);
         var apiValidation = ShopApiValidationResult.product(productEvidence, productApiAssertions)
                 .reportingEvidence();
         context.publish(context.checkpoint(ShopPurchaseTraceStep.PRODUCT_PAGE,
                 context.pageValidator().validate(page, ShopProductPage.class,
-                        configuration.productName()),
+                        selection.productName()),
                 List.of(
-                        check("Product name", configuration.productName(), productName,
-                                productName.equalsIgnoreCase(configuration.productName())),
-                        check("Configured product route", configuration.productPathExpectation(),
+                        check("Product name", selection.productName(), productName,
+                                productName.equalsIgnoreCase(selection.productName())),
+                        check("Configured product route", selection.productPathExpectation(),
                                 selectedProductPath,
-                                configuredProductPathFound && configuration.matchesProductPath(selectedProductPath)),
+                                configuredProductPathFound && selection.matchesProductPath(selectedProductPath)),
                         check("Selected product route loaded", selectedProductPath, page.url(),
                                 selectedProductPath != null && page.url().contains(selectedProductPath))),
                 List.of())
                 .withAdditionalAssertions(context.purchaseScreenValidator().product(page))
                 .withApiValidation(apiValidation));
 
-        product.addConfiguredQuantity(configuration);
+        product.addConfiguredQuantity(selection.quantity());
     }
 }

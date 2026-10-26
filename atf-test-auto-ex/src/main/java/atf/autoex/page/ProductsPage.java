@@ -1,17 +1,12 @@
 package atf.autoex.page;
 
 import atf.autoex.locator.AutoExSelectors;
-import atf.autoex.support.journey.AutoExPurchaseSession;
 import atf.autoex.ui.AutoExUiActions;
 import java.util.Objects;
 
 /** Product search and catalog selection behavior. */
 public final class ProductsPage extends AutoExPage {
     private final String expectedProductName;
-
-    public ProductsPage(AutoExPurchaseSession run) {
-        this(run, run.configuration().catalog().productName());
-    }
 
     public ProductsPage(AutoExUiActions ui, String expectedProductName) {
         super(ui);

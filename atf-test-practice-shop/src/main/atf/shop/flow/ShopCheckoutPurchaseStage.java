@@ -1,134 +1,172 @@
 package atf.shop.flow;
 
 import atf.shop.config.ShopScreen;
-import atf.shop.config.model.ShopBillingStrategy;
+import atf.shop.config.api.ShopApiCheckpoint;
 import atf.shop.config.model.ShopBillingAddress;
+import atf.shop.config.model.ShopBillingStrategy;
 import atf.shop.locators.ShopControl;
 import atf.shop.pages.ShopBillingPage;
 import atf.shop.pages.ShopCartPage;
 import atf.shop.pages.ShopConfirmationPage;
 import atf.shop.pages.ShopGuestCheckoutPage;
 import atf.shop.pages.ShopPaymentPage;
-import atf.shop.support.validation.ShopPageValidationResult;
-import atf.shop.config.api.ShopApiCheckpoint;
+import atf.shop.support.ShopPurchaseCheckpoint;
 import atf.shop.support.ShopPurchaseTraceStep;
 import atf.shop.support.api.validation.ShopApiValidationResult;
+import atf.shop.support.validation.ShopPageValidationResult;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static atf.reporting.audit.ReportAuditChecks.check;
 
-/** Checkout-side business stage: cart, identity, billing, payment and confirmation. */
-final class ShopCheckoutPurchaseStage {
-    ShopPurchaseFlow.PurchaseResult complete(ShopPurchaseJourneyContext context,
-                                                      boolean authenticated) {
-        var page = context.page();
-        var actions = context.actions();
-        var locators = context.locators();
-        var configuration = context.configuration();
+/** Playwright adapter that observes checkout screens and performs grouped transitions. */
+final class ShopCheckoutPurchaseStage implements ShopCheckoutFlow.Port {
+    private final ShopPurchaseJourneyContext.CheckoutInputs context;
 
-        ShopCartPage cart = new ShopCartPage(page, locators, actions);
-        cart.open(configuration);
-        ShopCartPage.CartLine line = cart.assertConfiguredLine(configuration);
-        var cartApiAssertions = context.apiNetwork().cartReady(configuration.checkout().quantity());
+    ShopCheckoutPurchaseStage(ShopPurchaseJourneyContext.CheckoutInputs context) {
+        this.context = Objects.requireNonNull(context, "context");
+    }
+
+    @Override
+    public ShopCheckoutFlow.Observation<ShopCartPage.CartLine> observeCart() {
+        var page = context.page();
+        var checkout = context.checkout();
+        ShopCartPage cart = new ShopCartPage(page, context.locators(), context.actions());
+        cart.open(context.cartUrl());
+        ShopCartPage.CartLine line = cart.assertConfiguredLine(context.productName(), checkout.quantity());
+        var cartApiAssertions = context.apiNetwork().cartReady(checkout.quantity());
         var cartApiValidation = ShopApiValidationResult.cart(
                 context.apiNetwork().evidence(ShopApiCheckpoint.CART), cartApiAssertions)
                 .reportingEvidence();
-        context.publish(context.checkpoint(ShopPurchaseTraceStep.CART,
+        var checkpoint = context.checkpoint(ShopPurchaseTraceStep.CART,
                 context.pageValidator().validateValues(page, ShopCartPage.class,
                         Map.of(ShopControl.CART_PRODUCT_QUANTITY,
-                                Integer.toString(configuration.checkout().quantity()))),
+                                Integer.toString(checkout.quantity()))),
                 List.of(
-                        check("Cart product", configuration.productName(), line.productName(),
-                                line.productName().contains(configuration.productName())),
-                        check("Cart quantity", Integer.toString(configuration.checkout().quantity()), line.quantity(),
-                                Integer.toString(configuration.checkout().quantity()).equals(line.quantity()))),
+                        check("Cart product", context.productName(), line.productName(),
+                                line.productName().contains(context.productName())),
+                        check("Cart quantity", Integer.toString(checkout.quantity()), line.quantity(),
+                                Integer.toString(checkout.quantity()).equals(line.quantity()))),
                 List.of())
                 .withAdditionalAssertions(context.purchaseScreenValidator().cart(page))
-                .withApiValidation(cartApiValidation));
-        cart.proceed();
+                .withApiValidation(cartApiValidation);
+        return new ShopCheckoutFlow.Observation<>(line, checkpoint);
+    }
 
+    @Override
+    public void proceedFromCart() {
+        new ShopCartPage(context.page(), context.locators(), context.actions()).proceed();
+    }
+
+    @Override
+    public ShopCheckoutFlow.Observation<Void> observeIdentity(boolean authenticated) {
+        var page = context.page();
+        ShopPurchaseCheckpoint checkpoint;
         if (authenticated) {
-            actions.waitForVisible(locators.authenticatedProceed(page));
-            context.publish(context.checkpoint(ShopPurchaseTraceStep.AUTHENTICATED_CHECKOUT,
-                    new ShopPageValidationResult(
-                            ShopScreen.AUTHENTICATED_CHECKOUT,
+            context.actions().waitForVisible(context.locators().authenticatedProceed(page));
+            checkpoint = context.checkpoint(ShopPurchaseTraceStep.AUTHENTICATED_CHECKOUT,
+                    new ShopPageValidationResult(ShopScreen.AUTHENTICATED_CHECKOUT,
                             context.purchaseScreenValidator().authenticatedCheckout(page)),
-                    List.of(), List.of()));
-            actions.click(locators.authenticatedProceed(page), "authenticated customer proceeds to billing");
+                    List.of(), List.of());
         } else {
-            ShopGuestCheckoutPage guest = new ShopGuestCheckoutPage(page, locators, actions);
-            var guestIdentity = configuration.checkout().guest();
-            guest.fillIdentity(guestIdentity);
-            context.publish(context.checkpoint(ShopPurchaseTraceStep.GUEST_CHECKOUT,
+            var guest = new ShopGuestCheckoutPage(page, context.locators(), context.actions());
+            var identity = context.checkout().guest();
+            guest.fillIdentity(identity);
+            checkpoint = context.checkpoint(ShopPurchaseTraceStep.GUEST_CHECKOUT,
                     context.pageValidator().validateValues(page, ShopGuestCheckoutPage.class, Map.of(
-                            ShopControl.GUEST_EMAIL, guestIdentity.email(),
-                            ShopControl.GUEST_FIRST_NAME, guestIdentity.firstName(),
-                            ShopControl.GUEST_LAST_NAME, guestIdentity.lastName())),
+                            ShopControl.GUEST_EMAIL, identity.email(),
+                            ShopControl.GUEST_FIRST_NAME, identity.firstName(),
+                            ShopControl.GUEST_LAST_NAME, identity.lastName())),
                     List.of(), List.of())
-                    .withAdditionalAssertions(context.purchaseScreenValidator().guestCheckout(page)));
-            guest.submitIdentity();
-            guest.proceedToBilling();
+                    .withAdditionalAssertions(context.purchaseScreenValidator().guestCheckout(page));
         }
+        return observation(checkpoint);
+    }
 
-        ShopBillingPage billing = new ShopBillingPage(page, locators, actions);
-        var address = configuration.checkout().billing();
-        var billingValidation = configuration.checkout().billingStrategy() == ShopBillingStrategy.CONFIGURED_FIELDS
-                ? validateConfiguredBilling(billing, context, address)
-                : validateLookupBilling(billing, context, address);
-        context.publish(context.checkpoint(ShopPurchaseTraceStep.BILLING,
-                billingValidation,
-                List.of(), List.of())
-                .withAdditionalAssertions(context.purchaseScreenValidator().billing(page)));
-        billing.proceedToPayment();
+    @Override
+    public void proceedToBilling(boolean authenticated) {
+        var page = context.page();
+        if (authenticated) {
+            context.actions().click(context.locators().authenticatedProceed(page),
+                    "authenticated customer proceeds to billing");
+            return;
+        }
+        var guest = new ShopGuestCheckoutPage(page, context.locators(), context.actions());
+        guest.submitIdentity();
+        guest.proceedToBilling();
+    }
 
-        ShopPaymentPage payment = new ShopPaymentPage(page, locators, actions);
-        String observedPaymentMethod = payment.chooseMethod(configuration.checkout().paymentMethod());
-        context.publish(context.checkpoint(ShopPurchaseTraceStep.PAYMENT_METHOD,
+    @Override
+    public ShopCheckoutFlow.Observation<Void> observeBilling() {
+        var page = context.page();
+        var configuration = context.checkout();
+        var billing = new ShopBillingPage(page, context.locators(), context.actions());
+        ShopPageValidationResult validation = configuration.billingStrategy() == ShopBillingStrategy.CONFIGURED_FIELDS
+                ? validateConfiguredBilling(billing, configuration.billing())
+                : validateLookupBilling(billing, configuration.billing());
+        var checkpoint = context.checkpoint(ShopPurchaseTraceStep.BILLING, validation, List.of(), List.of())
+                .withAdditionalAssertions(context.purchaseScreenValidator().billing(page));
+        return observation(checkpoint);
+    }
+
+    @Override
+    public void proceedToPayment() {
+        new ShopBillingPage(context.page(), context.locators(), context.actions()).proceedToPayment();
+    }
+
+    @Override
+    public ShopCheckoutFlow.Observation<String> observePaymentMethod() {
+        var page = context.page();
+        var payment = new ShopPaymentPage(page, context.locators(), context.actions());
+        String expected = context.checkout().paymentMethod();
+        String observed = payment.chooseMethod(expected);
+        var checkpoint = context.checkpoint(ShopPurchaseTraceStep.PAYMENT_METHOD,
                 context.pageValidator().validate(page, ShopPaymentPage.class),
-                List.of(check("Payment method", configuration.checkout().paymentMethod(),
-                        observedPaymentMethod,
-                        configuration.checkout().paymentMethod().equals(observedPaymentMethod))), List.of())
-                .withAdditionalAssertions(context.purchaseScreenValidator().payment(page)));
-        String paymentConfirmation = payment.checkPayment();
-        var paymentApiAssertions = context.apiNetwork().paymentConfirmed(
-                configuration.checkout().paymentMethod());
-        var paymentApiValidation = ShopApiValidationResult.payment(
-                context.apiNetwork().evidence(ShopApiCheckpoint.PAYMENT), paymentApiAssertions)
-                .reportingEvidence();
-        context.publish(context.checkpoint(ShopPurchaseTraceStep.PAYMENT_CHECK,
+                List.of(check("Payment method", expected, observed, expected.equals(observed))), List.of())
+                .withAdditionalAssertions(context.purchaseScreenValidator().payment(page));
+        return new ShopCheckoutFlow.Observation<>(observed, checkpoint);
+    }
+
+    @Override
+    public ShopCheckoutFlow.Observation<Void> checkPayment() {
+        var page = context.page();
+        String paymentConfirmation = new ShopPaymentPage(page, context.locators(), context.actions()).checkPayment();
+        var apiAssertions = context.apiNetwork().paymentConfirmed(context.checkout().paymentMethod());
+        var apiValidation = ShopApiValidationResult.payment(
+                context.apiNetwork().evidence(ShopApiCheckpoint.PAYMENT), apiAssertions).reportingEvidence();
+        var checkpoint = context.checkpoint(ShopPurchaseTraceStep.PAYMENT_CHECK,
                 new ShopPageValidationResult(ShopScreen.PAYMENT,
                         List.of(context.pageValidator().validateVisible(page, ShopControl.PAYMENT_SUCCESS))),
                 List.of(check("Payment check", "Payment was successful", paymentConfirmation,
-                        paymentConfirmation.contains("Payment was successful"))),
-                List.of())
+                        paymentConfirmation.contains("Payment was successful"))), List.of())
                 .withAdditionalAssertions(context.purchaseScreenValidator().paymentChecked(page))
-                .withApiValidation(paymentApiValidation));
+                .withApiValidation(apiValidation);
+        return observation(checkpoint);
+    }
 
-        ShopConfirmationPage orderConfirmationPage =
-                new ShopConfirmationPage(page, locators, actions);
-        long orderSequenceFence = context.apiNetwork().sequenceMarker();
-        String confirmation = orderConfirmationPage.confirmOrder();
-        var orderApiAssertions = context.apiNetwork().orderCreated(orderSequenceFence, confirmation);
-        var orderApiValidation = ShopApiValidationResult.order(
-                context.apiNetwork().evidence(ShopApiCheckpoint.ORDER), orderApiAssertions)
-                .reportingEvidence();
-        context.publish(context.checkpoint(ShopPurchaseTraceStep.ORDER_CONFIRMATION,
+    @Override
+    public ShopCheckoutFlow.Observation<String> confirmOrder() {
+        var page = context.page();
+        var confirmationPage = new ShopConfirmationPage(page, context.locators(), context.actions());
+        long sequenceFence = context.apiNetwork().sequenceMarker();
+        String confirmation = confirmationPage.confirmOrder();
+        var apiAssertions = context.apiNetwork().orderCreated(sequenceFence, confirmation);
+        var apiValidation = ShopApiValidationResult.order(
+                context.apiNetwork().evidence(ShopApiCheckpoint.ORDER), apiAssertions).reportingEvidence();
+        var checkpoint = context.checkpoint(ShopPurchaseTraceStep.ORDER_CONFIRMATION,
                 context.pageValidator().validate(page, ShopConfirmationPage.class),
                 List.of(check("Order confirmation", "Thanks for your order! and invoice number",
                         confirmation, confirmation.contains("Thanks for your order!")
-                                && confirmation.contains("INV-"))),
-                List.of())
+                                && confirmation.contains("INV-"))), List.of())
                 .withAdditionalAssertions(context.purchaseScreenValidator().orderConfirmation(page))
-                .withApiValidation(orderApiValidation));
-        return new ShopPurchaseFlow.PurchaseResult(line.productName(), line.quantity(),
-                configuration.checkout().paymentMethod(), confirmation);
+                .withApiValidation(apiValidation);
+        return new ShopCheckoutFlow.Observation<>(confirmation, checkpoint);
     }
 
-    private static ShopPageValidationResult validateConfiguredBilling(
-            ShopBillingPage billing, ShopPurchaseJourneyContext context,
-            ShopBillingAddress address) {
+    private ShopPageValidationResult validateConfiguredBilling(
+            ShopBillingPage billing, ShopBillingAddress address) {
         billing.fill(address);
         return context.pageValidator().validateValues(context.page(), ShopBillingPage.class, Map.of(
                 ShopControl.COUNTRY, address.country(),
@@ -139,14 +177,17 @@ final class ShopCheckoutPurchaseStage {
                 ShopControl.STATE, address.state()));
     }
 
-    private static ShopPageValidationResult validateLookupBilling(
-            ShopBillingPage billing, ShopPurchaseJourneyContext context,
-            ShopBillingAddress address) {
+    private ShopPageValidationResult validateLookupBilling(
+            ShopBillingPage billing, ShopBillingAddress address) {
         billing.fillFromPostalLookup(address);
-        return context.pageValidator().validatePopulatedValues(context.page(), ShopBillingPage.class,
-                Map.of(ShopControl.COUNTRY, address.country(),
+        return context.pageValidator().validatePopulatedValues(context.page(), ShopBillingPage.class, Map.of(
+                        ShopControl.COUNTRY, address.country(),
                         ShopControl.POSTAL_CODE, address.postalCode(),
                         ShopControl.HOUSE_NUMBER, address.houseNumber()),
                 ShopControl.STREET, ShopControl.CITY, ShopControl.STATE);
+    }
+
+    private static ShopCheckoutFlow.Observation<Void> observation(ShopPurchaseCheckpoint checkpoint) {
+        return new ShopCheckoutFlow.Observation<>(null, checkpoint);
     }
 }

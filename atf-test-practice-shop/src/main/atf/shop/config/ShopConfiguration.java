@@ -139,13 +139,16 @@ public record ShopConfiguration(
 
     /** True when the external catalog owns the product id and may rotate it. */
     public boolean usesDynamicProductPath() {
-        return DYNAMIC_PRODUCT_PATH.equalsIgnoreCase(productPath);
+        return catalogSelection().usesDynamicProductPath();
     }
 
     public String productPathExpectation() {
-        return usesDynamicProductPath()
-                ? ShopUiRoutes.PRODUCT_PATTERN + " (dynamic fixture)"
-                : productPath;
+        return catalogSelection().productPathExpectation();
+    }
+
+    /** Projects only the purchase inputs required by the catalog stage. */
+    public CatalogSelection catalogSelection() {
+        return new CatalogSelection(baseUrl, productName, productPath, checkout.quantity());
     }
 
     /** Returns the same runtime fixture with a profile-scoped evidence policy. */
@@ -175,10 +178,39 @@ public record ShopConfiguration(
     }
 
     public boolean matchesProductPath(String selectedPath) {
-        if (selectedPath == null || !selectedPath.startsWith(ShopUiRoutes.PRODUCT_PREFIX)) {
-            return false;
+        return catalogSelection().matchesProductPath(selectedPath);
+    }
+
+    public record CatalogSelection(URI baseUrl, String productName, String productPath, int quantity) {
+        public CatalogSelection {
+            baseUrl = Objects.requireNonNull(baseUrl, "baseUrl");
+            productName = required(productName, "productName");
+            productPath = required(productPath, "productPath");
+            if (quantity < 1) throw new IllegalArgumentException("quantity must be positive");
         }
-        return usesDynamicProductPath() || productPath.equals(selectedPath);
+
+        public URI homeUrl() { return uri(ShopUiRoutes.HOME); }
+
+        public boolean usesDynamicProductPath() {
+            return DYNAMIC_PRODUCT_PATH.equalsIgnoreCase(productPath);
+        }
+
+        public String productPathExpectation() {
+            return usesDynamicProductPath()
+                    ? ShopUiRoutes.PRODUCT_PATTERN + " (dynamic fixture)"
+                    : productPath;
+        }
+
+        public boolean matchesProductPath(String selectedPath) {
+            if (selectedPath == null || !selectedPath.startsWith(ShopUiRoutes.PRODUCT_PREFIX)) return false;
+            return usesDynamicProductPath() || productPath.equals(selectedPath);
+        }
+
+        private URI uri(String path) {
+            String suffix = path == null ? "" : path.trim();
+            if (suffix.isEmpty()) return baseUrl;
+            return baseUrl.resolve(suffix.startsWith("/") ? suffix.substring(1) : suffix);
+        }
     }
 
     private static String required(String value, String name) {

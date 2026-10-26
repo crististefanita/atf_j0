@@ -73,6 +73,13 @@ class ShopConfigurationTest {
         assertTrue(configuration.matchesProductPath(ShopUiRoutes.product("current-external-fixture")));
         assertFalse(configuration.matchesProductPath(ShopUiRoutes.category("pliers")));
         assertEquals(2, configuration.checkout().quantity());
+        var catalog = configuration.catalogSelection();
+        assertEquals(configuration.uri(ShopUiRoutes.HOME), catalog.homeUrl());
+        assertEquals(configuration.productName(), catalog.productName());
+        assertEquals(configuration.productPath(), catalog.productPath());
+        assertEquals(configuration.checkout().quantity(), catalog.quantity());
+        assertTrue(catalog.matchesProductPath(ShopUiRoutes.product("current-external-fixture")));
+        assertFalse(catalog.matchesProductPath(ShopUiRoutes.category("pliers")));
         assertEquals("Cash on Delivery", configuration.checkout().paymentMethod());
         assertEquals("United States of America (the)", configuration.checkout().billing().country());
         assertEquals("53703", configuration.checkout().billing().postalCode());

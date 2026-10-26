@@ -4,7 +4,7 @@ import atf.autoex.config.AutoExConfigurationLoader;
 import atf.autoex.page.AccountPage;
 import atf.autoex.support.account.AutoExAccountLifecycle;
 import atf.autoex.support.account.AutoExTestAccount;
-import atf.autoex.support.journey.AutoExPurchaseSession;
+import atf.autoex.ui.AutoExAccountPagePort;
 import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +21,7 @@ class AutoExAccountLifecycleComponentTest {
     @Test
     void distinctPageObjectsShareTheRunOwnerAndCannotReplayAnUnconfirmedDeletion() {
         var lifecycle = new AutoExAccountLifecycle();
-        var cleanup = new AtomicReference<AutoExPurchaseSession.AutoExAccountCleanup>();
+        var cleanup = new AtomicReference<AutoExAccountPagePort.AccountCleanup>();
         var session = session(lifecycle, cleanup);
         var account = account();
         new AccountPage(session).trackDisposableAccountCreation(account);
@@ -68,13 +68,13 @@ class AutoExAccountLifecycleComponentTest {
         return AutoExTestAccount.create(AutoExConfigurationLoader.load().registration());
     }
 
-    private static AutoExPurchaseSession session(AutoExAccountLifecycle lifecycle,
-                                                AtomicReference<AutoExPurchaseSession.AutoExAccountCleanup> cleanup) {
-        return (AutoExPurchaseSession) Proxy.newProxyInstance(AutoExPurchaseSession.class.getClassLoader(),
-                new Class<?>[]{AutoExPurchaseSession.class}, (proxy, method, arguments) -> {
+    private static AutoExAccountPagePort session(AutoExAccountLifecycle lifecycle,
+                                                AtomicReference<AutoExAccountPagePort.AccountCleanup> cleanup) {
+        return (AutoExAccountPagePort) Proxy.newProxyInstance(AutoExAccountPagePort.class.getClassLoader(),
+                new Class<?>[]{AutoExAccountPagePort.class}, (proxy, method, arguments) -> {
                     switch (method.getName()) {
                         case "accountLifecycle": return lifecycle;
-                        case "onFailureCleanup": cleanup.set((AutoExPurchaseSession.AutoExAccountCleanup) arguments[0]); return null;
+                        case "onFailureCleanup": cleanup.set((AutoExAccountPagePort.AccountCleanup) arguments[0]); return null;
                         case "currentUrl": return "https://fixture.test/";
                         case "configuration": return AutoExConfigurationLoader.load();
                         case "page": throw new AssertionError("No browser or mutation may be reached after deletion started");

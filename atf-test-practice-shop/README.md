@@ -155,10 +155,32 @@ catalog → product → cart → guest checkout → billing → payment → conf
 rezultatul observat; nu duplică selectorii, request factory-ul sau lifecycle-ul
 raportului.
 
-Nu confunda verificarea metodei de plată cu plasarea comenzii: `POST /payment/check`
-confirmă metoda demo, iar acțiunea explicită de confirmare
-creează comanda/invoice-ul. Checkpoint-ul `THEN` verifică mesajul și numărul
-`INV-`; în profilul `UI_API`, răspunsul API și numărul din UI sunt corelate.
+### Gate-uri de checkout
+
+`ShopCheckoutFlow` coordonează fazele fără Playwright; adaptorul Shop deține
+citirile UI și API evidence.
+
+```text
+observe screen → publish checkpoint → PASS gate → grouped transition
+                                      └─ FAIL → stop before next transition
+payment check → PASS gate → explicit Confirm → order confirmation + INV number
+```
+
+`ShopCheckoutFlowComponentTest`, `ShopPurchaseCheckpointPublisherTest` și
+`ShopPurchaseStageInputsComponentTest` probează ordinea, gate-ul, propagarea
+erorilor și granițele stage-urilor fără browser.
+
+- `ShopPurchaseCheckpointPublisher` construiește și publică checkpoint-urile.
+- `ShopConfiguration.CatalogSelection` și `ShopCheckoutConfiguration` furnizează
+  datele strict necesare fiecărui stage; Home/Product/Cart primesc URI, nume și
+  cantitate, iar Login/Registration primesc URI-ul rezolvat la composition root,
+  nu configurația globală.
+- Contextul per journey oferă intrări imutabile separate; checkout-ul nu primește
+  validatorul de home.
+- Coordinatorul păstrează gate-ul PASS/FAIL, separat de observația UI/API.
+- `POST /payment/check` verifică metoda demo. Confirmarea explicită plasează comanda.
+- Checkpoint-ul `THEN` leagă mesajul de confirmare de numărul `INV-`; profilul `UI_API`
+  corelează răspunsul API cu numărul afișat.
 
 ### Contracte de ecran și locatori
 
@@ -225,6 +247,27 @@ pentru variații care nu au nevoie de browser sau de server.
 | 3 | `ShopPurchaseE2eTest` | achiziție guest cu validări UI și API evidence selectată |
 | 4 | `ShopUiOnlyPurchaseE2eTest` | același business journey guest, fără publicarea API evidence |
 | 5 | `ShopUiOnlySingleFlowPurchaseE2eTest` | UI-only, declară `UNIFIED_FLOW`; la configurația YAML curentă agregă flow-ul și păstrează captura reușită la final |
+
+### Baseline pentru separarea flow-ului
+
+Toate cele cinci selecții păstrează aceeași ordine business în
+`ShopPurchaseTraceStep`; diferă numai identitatea/setup-ul contului și politica
+de evidence. Această hartă este baseline-ul pentru migrarea incrementală a
+observației, gate-urilor și publicării:
+
+| Fază | Operații și observații | Gate înainte de continuare | Variație de ownership |
+|---|---|---|---|
+| Setup | configurația guest sau fixture-ul autentificat; login-ul UI este confirmat separat | fixture valid și identitate confirmată înainte de purchase | fixture existent împrumutat; cont sintetic nou doar în `ShopNewAccountPurchaseE2eTest` |
+| Catalog | home, filtre, grid, produs selectat și ruta efectivă | structură, controale și produs/rută corespund configurației | API evidence este observată pasiv doar când canalul și binding-ul o cer |
+| Coș și identitate | produsul și cantitatea din coș; checkout guest sau acțiunea de continuare autentificată | produs/cantitate și forma checkout-ului sunt validate înainte de billing | `ShopPurchaseFlow` conduce UI; `ShopApiNetworkJournal` corelează schimburile observate, fără replay |
+| Billing și payment | adresa configurată sau lookup-ul postal; metoda demo și confirmarea payment check | câmpurile observate și răspunsul business sunt validate înainte de order confirmation | strategia billing este configurație business, independentă de canalul evidence |
+| Order | confirmarea finală și numărul comenzii | pagina și confirmarea order-ului sunt validate | emiterea comenzii rămâne mutație UI reală; nu se compensează prin retrimitere |
+
+`ShopNewAccountPurchaseE2eTest` adaugă o mutație remote de registration înaintea
+flow-ului; `ShopAuthenticatedPurchaseE2eTest` împrumută identitatea existentă.
+Cele trei teste guest păstrează aceeași poveste și diferă doar canalul sau
+prezentarea raportului. Nu se elimină selecții până când adaptorul de fiecare
+variantă și contractele Reporting echivalente sunt probate.
 
 Profilele sunt compuse pe axe distincte, nu prin schimbarea journey-ului:
 
@@ -664,8 +707,10 @@ main. Source-set-urile din tabelul de mai sus descriu implementarea curentă.
 
 - Scope-ul contului și cele două factory-uri runtime au ownerii descriși mai
   sus; nu lărgim dependența Kit ca scurtătură pentru alte mutări.
-- Rămân de separat inputurile metadata și responsabilitățile contextului
-  browser/report, păstrând adaptorul JUnit și probele sale în test.
+- Publisherul checkpoint-urilor și intrările stage-urilor sunt separate; fiecare
+  observație Catalog/Checkout devine checkpoint imutabil, publicat înaintea
+  gate-ului. Contextul păstrează compoziția resurselor comune Page/acțiuni/API/
+  locatori/validare; nu extragem wrapper-e per click.
 - Un journey complet rămâne comun pentru UI pe pași, UI compact cu poză finală
   și UI+API; configurația YAML furnizează acum separat flow-ul și detaliile acțiunilor.
 - Cele trei gate-uri rămân complete până la probele de echivalență; politica

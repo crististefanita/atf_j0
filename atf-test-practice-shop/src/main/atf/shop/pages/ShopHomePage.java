@@ -1,13 +1,13 @@
 package atf.shop.pages;
 
 import atf.ui.playwright.PlaywrightActionSequence;
-import atf.shop.config.ShopConfiguration;
 import atf.shop.config.ShopScreen;
 import atf.shop.locators.ShopControl;
 import atf.shop.locators.ShopLocators;
 import atf.shop.support.ShopPageContract;
 import atf.shop.routes.ShopUiRoutes;
 import com.microsoft.playwright.Page;
+import java.net.URI;
 
 /** Catalog landing page object. */
 @ShopPageContract(screen = ShopScreen.HOME, route = ShopUiRoutes.HOME,
@@ -29,8 +29,8 @@ public final class ShopHomePage {
         this.page = page; this.locators = locators; this.actions = actions;
     }
 
-    public void open(ShopConfiguration configuration) {
-        actions.navigate(page, configuration.uri(ShopUiRoutes.HOME), "catalog home is loaded");
+    public void open(URI homeUrl) {
+        actions.navigate(page, homeUrl, "catalog home is loaded");
         actions.waitForVisible(locators.searchQuery(page));
         actions.waitForVisible(locators.homeProductGridFirst(page));
     }

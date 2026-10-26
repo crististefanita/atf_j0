@@ -202,8 +202,14 @@ public class ConsumerModuleArchitectureGovernanceTest {
         Path test = module.resolve("src/test/java/atf/autoex/tests");
         Path journey = main.resolve("support/journey/AutoExPurchaseJourney.java");
         Path session = main.resolve("support/journey/AutoExPurchaseSession.java");
+        Path accountPort = main.resolve("ui/AutoExAccountPagePort.java");
+        Path checkoutPort = main.resolve("ui/AutoExCheckoutPagePort.java");
+        Path homePort = main.resolve("ui/AutoExHomePagePort.java");
         String journeySource = Files.readString(journey);
         String sessionSource = Files.readString(session);
+        String accountPortSource = Files.readString(accountPort);
+        String checkoutPortSource = Files.readString(checkoutPort);
+        String homePortSource = Files.readString(homePort);
 
         assertTrue(Files.isRegularFile(module.resolve("src/test/resources/atf-auto-ex.yaml")),
                 "site-specific E2E configuration belongs to test resources");
@@ -213,8 +219,26 @@ public class ConsumerModuleArchitectureGovernanceTest {
                 "locator/AutoExSelectors.java")) {
             assertTrue(Files.isRegularFile(main.resolve(path)), "missing AutoEx runtime type: " + path);
         }
-        assertTrue(sessionSource.contains("com.microsoft.playwright.Page"),
-                "the AutoEx runtime port may expose its browser capability");
+        assertTrue(sessionSource.contains("extends AutoExAccountPagePort")
+                        && sessionSource.contains("AutoExCheckoutPagePort")
+                        && sessionSource.contains("AutoExHomePagePort"),
+                "the journey facade must compose its page-specific capability ports");
+        assertFalse(sessionSource.contains("com.microsoft.playwright.Page"),
+                "browser access belongs only to the page ports that need it");
+        assertTrue(accountPortSource.contains("AutoExAccountLifecycle")
+                        && accountPortSource.contains("onFailureCleanup"),
+                "account ownership and cleanup belong to the account-page port");
+        assertTrue(checkoutPortSource.contains("com.microsoft.playwright.Page"),
+                "checkout may access the browser for its invoice download");
+        assertTrue(homePortSource.contains("dismissPrivacyPromptIfPresent"),
+                "optional privacy handling belongs to the home-page port");
+        for (var pagePort : List.of(
+                List.of("page/AccountPage.java", "AutoExAccountPagePort"),
+                List.of("page/CheckoutPage.java", "AutoExCheckoutPagePort"),
+                List.of("page/HomePage.java", "AutoExHomePagePort"))) {
+            assertTrue(Files.readString(main.resolve(pagePort.getFirst())).contains(pagePort.get(1)),
+                    pagePort.getFirst() + " must depend on its page-specific port");
+        }
         assertTrue(sessionSource.contains("atf.reporting.contract.AtfAssertion"),
                 "the AutoEx journey port may expose typed assertions");
         assertFalse(sessionSource.contains("org.junit") || sessionSource.contains("atf.testkit"),

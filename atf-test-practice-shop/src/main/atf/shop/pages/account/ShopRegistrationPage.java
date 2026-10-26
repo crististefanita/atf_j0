@@ -2,7 +2,6 @@ package atf.shop.pages.account;
 
 import atf.core.http.request.HttpMethod;
 import atf.ui.playwright.PlaywrightActionSequence;
-import atf.shop.config.ShopConfiguration;
 import atf.shop.config.model.ShopRegistrationData;
 import atf.shop.config.ShopScreen;
 import atf.shop.locators.ShopControl;
@@ -36,8 +35,8 @@ public final class ShopRegistrationPage {
         this.actions = actions;
     }
 
-    public void open(ShopConfiguration configuration) {
-        actions.navigate(page, configuration.uri(ShopUiRoutes.AUTH_REGISTER), "registration page is loaded");
+    public void open(URI registrationUrl) {
+        actions.navigate(page, registrationUrl, "registration page is loaded");
         actions.waitForText(page, locators.pageBody(page), "Customer registration",
                 "registration form is displayed");
     }

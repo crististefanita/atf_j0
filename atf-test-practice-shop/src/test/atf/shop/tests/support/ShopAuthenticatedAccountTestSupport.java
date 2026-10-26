@@ -11,6 +11,7 @@ import atf.shop.pages.account.ShopAccountPage;
 import atf.shop.pages.account.ShopRegistrationPage;
 import atf.shop.support.validation.ShopPageValidator;
 import atf.shop.support.ShopPurchaseTraceStep;
+import atf.shop.routes.ShopUiRoutes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +43,7 @@ public final class ShopAuthenticatedAccountTestSupport {
         }
 
         new ShopAccountFlow(setup.locators()).loginAndAssertAccount(
-                setup.page(), setup.actions(), setup.configuration(), credentials);
+                setup.page(), setup.actions(), setup.configuration().uri(ShopUiRoutes.AUTH_LOGIN), credentials);
         List<AtfAssertion> assertions = new ArrayList<>(new ShopPageValidator(setup.locators())
                 .validate(setup.page(), ShopAccountPage.class, "My account")
                 .assertions());
@@ -60,7 +61,7 @@ public final class ShopAuthenticatedAccountTestSupport {
         ShopRegistrationData registration = profile.newRegistrationData();
         var registrationPage = new ShopRegistrationPage(
                 setup.page(), setup.locators(), setup.actions());
-        registrationPage.open(setup.configuration());
+        registrationPage.open(setup.configuration().uri(ShopUiRoutes.AUTH_REGISTER));
         registrationPage.fill(registration);
         long sequenceFence = setup.apiNetwork().sequenceMarker();
         int responseStatus;

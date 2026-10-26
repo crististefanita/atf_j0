@@ -4,13 +4,13 @@ import atf.autoex.config.AutoExConfiguration;
 import atf.autoex.locator.AutoExSelectors;
 import atf.autoex.business.invoice.AutoExInvoiceSnapshot;
 import atf.autoex.flow.checkout.AutoExInvoiceReader;
-import atf.autoex.support.journey.AutoExPurchaseSession;
+import atf.autoex.ui.AutoExCheckoutPagePort;
 import com.microsoft.playwright.Download;
 
 /** Checkout review, demo payment, order confirmation and invoice download. */
 public final class CheckoutPage extends AutoExPage {
-    private final AutoExPurchaseSession run;
-    public CheckoutPage(AutoExPurchaseSession run) { super(run); this.run = run; }
+    private final AutoExCheckoutPagePort run;
+    public CheckoutPage(AutoExCheckoutPagePort run) { super(run); this.run = run; }
 
     public String orderTotal() {
         return text(AutoExSelectors.ORDER_TOTAL, "checkout total amount is read");

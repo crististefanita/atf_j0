@@ -29,7 +29,7 @@ public final class AutoExCartJourney {
                 AutoExCheckoutAssertions.orderLine(initial, initial.expectedTotal(), cart.orderLine(initial)));
 
         new HomePage(run).openProducts();
-        products = new ProductsPage(run);
+        products = new ProductsPage(run, configured.productName());
         products.search(configured.searchTerm());
         cart = addProduct(run, products, configured);
         Catalog updated = configured.withQuantity(Math.addExact(initial.quantity(), configured.quantity()));
@@ -56,7 +56,7 @@ public final class AutoExCartJourney {
 
         Catalog product = run.configuration().catalog();
         new HomePage(run).openProducts();
-        var products = new ProductsPage(run);
+        var products = new ProductsPage(run, product.productName());
         products.search(product.searchTerm());
         CartPage cart = addProduct(run, products, product);
         run.checkpoint(AutoExPurchaseTraceStep.CART_VERIFIED,

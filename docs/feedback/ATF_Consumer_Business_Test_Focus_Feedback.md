@@ -11,6 +11,7 @@ clare. Aici rămân numai diferențele față de contractele livrate.
 | Politică de billing independentă de evidence și metadata rezolvată explicit | [Shop](../../atf-test-practice-shop/README.md#raport-partajat--starea-consumerului) |
 | Overview cu valori comune sau mixte, fără a păstra profilul primului frate; detalii de acțiuni per scenariu | [Reporting](../../atf-reporting/README.md) |
 | Pilot de coș cu gate pur, port UI restrâns, lifecycle de cont per execuție și factură observată separat de validare | [AutoEx](../../atf-test-auto-ex/README.md) |
+| Harness E2E compus fără a ascunde canalul, selecția ori evidence-ul specific | [AutoEx](../../atf-test-auto-ex/README.md#suite-și-variante-de-evidence) |
 
 Probele componente acoperă cazuri pozitive și negative controlate. Ele nu
 certifică disponibilitatea magazinelor publice sau migrarea tuturor flow-urilor.
@@ -22,10 +23,9 @@ documentară /10. Nu reprezintă o notă a codului sau un rezultat de test.
 
 | ID | Scor /100 | Diferența rămasă |
 |---|---:|---|
-| `CONSUMER-FLOW-LAYERS-09` | 88 = 36 + 24 + 20 + 8 | extinderea separării business/UI/validare dincolo de pilotul AutoEx |
+| `CONSUMER-FLOW-LAYERS-09` | 88 = 36 + 24 + 20 + 8 | extinderea separării business/UI/validare în etapele AutoEx și Shop rămase |
 | `AUTOEX-LIVE-AVAILABILITY-07` | 78 = 30 + 20 + 20 + 8 | corelarea eșecului unei mutații cu postcondiția UI, fără replay |
 | `CONSUMER-RUNTIME-BOUNDARY-03` | 77 = 31 + 18 + 20 + 8 | responsabilitățile de achiziție, publicare și lifecycle rămase în Shop |
-| `CONSUMER-TEST-INTENT-05` | 67 = 27 + 18 + 16 + 6 | compoziția declarațiilor repetitive din clasele E2E, peste resolverul livrat |
 | `CONSUMER-E2E-PROFILES-01` | 57 = 24 + 10 + 17 + 6 | reducerea repetării live numai după echivalență demonstrată |
 
 ## CONSUMER-FLOW-LAYERS-09 — business, traseu UI și validare separate
@@ -38,23 +38,46 @@ Arhitectura țintă și categoriile de validare sunt în
 
 | Zonă rămasă | Limita actuală | Criteriul următor |
 |---|---|---|
-| `ShopPurchaseFlow` / `ShopPurchaseJourneyContext` | Page, recorder, config completă, observer și API journal în același context | porturi locale pe capabilități, snapshot observat și gate separat |
-| Account/Home/Checkout AutoEx | păstrează încă `AutoExPurchaseSession` larg | păstrarea numai a capabilităților necesare paginii, după modelul Cart/Product |
-| Checkout Shop | observația, validarea și publicarea sunt încă amestecate în etape | extragere incrementală, cu Confirm și numărul comenzii păstrate |
+| `ShopPurchaseFlow` / `ShopPurchaseJourneyContext` | selecția Catalog și checkout-ul primesc proiecții de config; checkpoint-urile sunt snapshot-uri imutabile, publicate înaintea gate-ului | păstrați aceste contracte; evaluați separat celelalte flow-uri Shop/AutoEx, fără wrapper per acțiune |
+| Etapele AutoEx rămase și etapele Shop | paginile Login/Registration primesc acum URI rezolvat; rămân flow-uri care primesc fațade complete | restrângerea următoarelor dependențe numai după inventarierea operațiilor, păstrând raportarea și ordinea |
 | Evidence și cleanup la limita flow-urilor | există publisher și lifecycle comune, dar nu toate traseele au porturi restrânse | păstrarea identității checkpoint-ului, ordinii și cauzei primare |
 
-- [ ] **09-A — baseline pentru următoarea migrare.** Inventariați operațiile,
-      observațiile, gate-urile și mutațiile traseelor Shop guest/autentificat.
-      Păstrați selecțiile, toate cazurile și aserțiunile existente; maparea
-      namespace-urilor nu substituie proba comportamentului.
-- [ ] **09-D — politica sursei contului.** Declarați separat sursa și ownership-ul
-      contului la fiecare consumer. Billing-ul Shop este deja configurat separat;
-      capturile, gruparea ori canalul de evidence nu aleg mutațiile business.
-- [ ] **09-E — checkout Shop.** Separați observația și gate-urile de navigare și
-      publicare. Plata verificată nu este comandă finală: păstrați Confirm,
-      confirmarea și numărul comenzii; factura AutoEx are deja validator pur.
+**Livrat — baseline de migrare (09-A).** Inventarul celor cinci selecții Shop,
+cu faze, gate-uri, mutații și ownership, este păstrat în
+[README-ul Practice Shop](../../atf-test-practice-shop/README.md#baseline-pentru-separarea-flow-ului).
+Selecțiile și aserțiunile rămân neschimbate.
+
+**Livrat — ownership-ul conturilor (09-D).** Shop distinge fixture împrumutat,
+cont sintetic nou și scope de clasă/suită; AutoEx păstrează identitatea creată
+și lifecycle-ul delete per execuție. Politicile sunt în
+[Shop](../../atf-test-practice-shop/README.md#conturile-autentificate) și
+[AutoEx](../../atf-test-auto-ex/README.md#coș-și-continuitatea-sesiunii).
+- **Livrat — checkout Shop (09-E).** [Coordinatorul pur](../../atf-test-practice-shop/README.md#gate-uri-de-checkout)
+  publică și verifică fiecare checkpoint înaintea tranziției următoare; adaptorul
+  Playwright deține observațiile UI și API evidence. `ShopCheckoutFlowComponentTest`
+  probează ordinea, ambele ramuri de identitate, fail-fast și eșecul publisherului.
+  Payment check rămâne distinct de Confirm și de confirmarea finală cu număr `INV-`.
+- **Livrat — porturi de pagină AutoEx (09-G, tranșă).** Account, Home și Checkout
+  nu mai depind de `AutoExPurchaseSession`; fiecare primește numai portul de care
+  are nevoie. `ProductsPage` primește acțiunile UI și produsul așteptat explicit.
+  `AutoExPagePortsComponentTest` probează ordinea navigare/prompt/căutare și
+  checkout/plată, produsul așteptat și fail-fast offline; testul lifecycle
+  folosește portul de cont direct.
+- **Livrat — publisher Shop (09-G, tranșă).** `ShopPurchaseCheckpointPublisher`
+  izolează formarea și publicarea checkpoint-urilor de contextul UI/config/API;
+  componenta verifică FAIL publicat înaintea gate-ului și propagarea intactă a
+  erorii sink-ului. Contextul încă agregă dependențe de browser și configurare.
+- **Livrat — intrări tipizate pe stage Shop (09-G, tranșă).** Catalogul și
+  checkout-ul primesc proiecții imutabile distincte; niciunul nu mai primește
+  `ShopConfiguration` globală, iar checkout-ul nu expune validatorul Home.
+  `ShopPurchaseStageInputsComponentTest` fixează shape-ul; `ShopCheckoutFlowComponentTest`
+  și checkpoint-urile imutabile probează ordinea publish/gate. Resursele UI/API
+  comune rămân la composition root.
+- **Livrat — navigare îngustă pentru contul Shop (09-G, tranșă).** Login și
+  Registration primesc URI rezolvat la composition root; testul de componentă
+  fixează absența `ShopConfiguration` din API-ul page objects.
 - [ ] **09-G — porturi pentru flow-urile rămase.** Restrângeți dependențele
-      Account/Home/Checkout AutoEx și ale etapelor Shop, fără wrapper per click.
+      din journey-urile AutoEx și etapele Shop rămase, fără wrapper per click.
       Păstrați UI/API frați, fereastra cauzală, captura stării observate și cauza
       de infrastructură; un failure business anterior rămâne primar.
 - [ ] **09-H — probe înaintea migrării generale.** Extindeți matricea pilotului
@@ -98,17 +121,6 @@ diferențele de profil sunt agregate corect în raportul partajat.
       [ConsumerModuleArchitectureGovernanceTest](../../atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java),
       fără allowlist sau relaxarea scope-ului Maven.
 
-## CONSUMER-TEST-INTENT-05 — declarații compuse în consumeri
-
-Resolverul neutru și wiring-ul ambilor consumeri sunt livrate și probate pentru
-declarație absentă/directă/compusă, moștenire, axe configurate și conflicte.
-Clasele E2E păstrează încă declarații repetitive care pot fi compuse incremental.
-
-- [ ] Compuneți numai combinațiile efectiv repetitive din consumeri; păstrați
-      selecțiile, canalul și activarea externe explicite, fără achiziții ascunse.
-- [ ] Probați mapping-ul declarației reale a consumerului, override-ul local și
-      conflictul înaintea resurselor; păstrați lansarea manuală din IntelliJ.
-
 ## CONSUMER-E2E-PROFILES-01 — variantele de evidence și acoperirea business
 
 **Stare: parțial implementat.** Suitele și poveștile E2E sunt păstrate.
@@ -140,14 +152,16 @@ flow-urilor rămase.
 testChanges:
   - id: AUTOEX-CONSUMER-COMPONENT-09
     status: ACTIVE
-    base: 490a0f274d71ec4bb288b01655e60f768daa74ba
+    base: fdbafdbaa4bdf617c9fd103ba0b917cc2efdc766
     expires: 2026-11-26
-    reason: Păstrează probele noi pentru flow-ul coșului și lifecycle-ul contului din snapshotul live; inventarul guvernat include explicit clasa nouă fără a mări limita de opt; repară substituția YAML dependentă de CRLF fără a slăbi aserțiunea pentru recuperarea implicit dezactivată.
-    proof: mvn -pl atf-test-auto-ex,atf-tests -am "-Dtest=AutoExComponentSuite,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=490a0f274d71ec4bb288b01655e60f768daa74ba" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    reason: Păstrează probele protejate pentru lifecycle/configurația și porturile Home/Account/Checkout AutoEx; guard-urile verifică ownership-ul capabilităților și limita de opt clase. ShopComponentSuite rulează în aceeași verificare, iar politica de schimbări îl exclude explicit.
+    proof: mvn -pl atf-test-auto-ex,atf-test-practice-shop,atf-tests -am "-Dtest=AutoExComponentSuite,ShopComponentSuite,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=fdbafdbaa4bdf617c9fd103ba0b917cc2efdc766" "-Dsurefire.failIfNoSpecifiedTests=false" test
     paths:
       - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/configuration/AutoExConfigurationLoaderComponentTest.java
       - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExAccountLifecycleComponentTest.java
       - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExCartFlowComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/pages/AutoExPagePortsComponentTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java
       - atf-tests/src/test/java/atf/api/tests/governance/AtfPackageCohesionGovernanceTest.java
 ```
 

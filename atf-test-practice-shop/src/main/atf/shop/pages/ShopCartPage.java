@@ -1,13 +1,13 @@
 package atf.shop.pages;
 
 import atf.ui.playwright.PlaywrightActionSequence;
-import atf.shop.config.ShopConfiguration;
 import atf.shop.config.ShopScreen;
 import atf.shop.locators.ShopControl;
 import atf.shop.locators.ShopLocators;
 import atf.shop.support.ShopPageContract;
 import atf.shop.routes.ShopUiRoutes;
 import com.microsoft.playwright.Page;
+import java.net.URI;
 
 /** Cart page object: product identity and quantity are checked before checkout. */
 @ShopPageContract(screen = ShopScreen.CART, route = ShopUiRoutes.CHECKOUT,
@@ -25,15 +25,15 @@ public final class ShopCartPage {
         this.actions = actions;
     }
 
-    public void open(ShopConfiguration configuration) {
-        actions.navigate(page, configuration.uri(ShopUiRoutes.CHECKOUT), "cart page is loaded");
+    public void open(URI cartUrl) {
+        actions.navigate(page, cartUrl, "cart page is loaded");
         actions.waitForText(page, locators.pageBody(page), "CART", "cart step is displayed");
     }
 
-    public CartLine assertConfiguredLine(ShopConfiguration configuration) {
-        String productName = actions.expectText(locators.cartProductTitle(page), configuration.productName());
+    public CartLine assertConfiguredLine(String expectedProductName, int expectedQuantity) {
+        String productName = actions.expectText(locators.cartProductTitle(page), expectedProductName);
         String quantity = actions.expectValue(locators.cartProductQuantity(page),
-                Integer.toString(configuration.checkout().quantity()));
+                Integer.toString(expectedQuantity));
         return new CartLine(productName, quantity);
     }
 

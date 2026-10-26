@@ -1,7 +1,6 @@
 package atf.shop.pages;
 
 import atf.ui.playwright.PlaywrightActionSequence;
-import atf.shop.config.ShopConfiguration;
 import atf.shop.config.ShopScreen;
 import atf.shop.locators.ShopControl;
 import atf.shop.locators.ShopLocators;
@@ -24,9 +23,9 @@ public final class ShopProductPage {
         this.page = page; this.locators = locators; this.actions = actions;
     }
 
-    public String assertLoaded(ShopConfiguration configuration) {
+    public String assertLoaded(String expectedProductName) {
         actions.waitForVisible(locators.productName(page));
-        String productName = actions.expectText(locators.productName(page), configuration.productName());
+        String productName = actions.expectText(locators.productName(page), expectedProductName);
         actions.assertVisible(locators.productPrice(page));
         actions.assertVisible(locators.productDescription(page));
         actions.assertVisible(locators.productQuantity(page));
@@ -36,8 +35,8 @@ public final class ShopProductPage {
         return productName;
     }
 
-    public void addConfiguredQuantity(ShopConfiguration configuration) {
-        actions.fill(locators.productQuantity(page), Integer.toString(configuration.checkout().quantity()),
+    public void addConfiguredQuantity(int quantity) {
+        actions.fill(locators.productQuantity(page), Integer.toString(quantity),
                 "configured product quantity is set");
         actions.click(locators.addToCart(page), "configured product is added to the cart");
         actions.waitForText(page, locators.pageBody(page), "Product added to shopping cart",

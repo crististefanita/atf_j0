@@ -13,8 +13,10 @@ ownerului; rapoartele și rezultatele unei rulări nu devin documentație perman
   separarea navigării de traficul browser este în [README-ul modulului](../../atf-test-auto-ex/README.md#delete-account--navigare-întreruptă).
   Activarea DOM Close nu repară geometria pointerului; limita generică rămâne deschisă.
 - Consumeri: scope-ul contului și runtime-ul main AutoEx sunt livrate.
-  Pilotul coșului, factura și configurația evidence sunt livrate; rămân
-  flow-urile din afara pilotului, corelarea mutațiilor și contextul Shop.
+  Pilotul coșului, checkout-ul Shop, factura, publisherul checkpoint-urilor și
+  intrările tipizate pe stage Shop și configurația evidence sunt livrate;
+  porturile Account/Home/Checkout AutoEx sunt livrate parțial; rămân etapele
+  de flow AutoEx/Shop, corelarea mutațiilor și snapshot-ul de context Shop.
   Reducerea selecției live cere echivalență demonstrată.
 - Contractele livrate se găsesc în [indexul documentației](../README.md),
   nu în checklist-uri de implementare deja închise.
@@ -30,7 +32,7 @@ lor. Gap-urile secundare rămân vizibile în documentul ownerului.
 
 | Ordine | Feedback / owner | Scor /100 | Lacuna care decide ordinea |
 |---:|---|---:|---|
-| 1 | [Consumer — refactorizare E2E](ATF_Consumer_Business_Test_Focus_Feedback.md) | **88** = 36 + 24 + 20 + 8 | flow-uri din afara pilotului (88), corelare UI/transport AutoEx (78), runtime Shop (77), declarații repetitive (67), repetare live (57) |
+| 1 | [Consumer — refactorizare E2E](ATF_Consumer_Business_Test_Focus_Feedback.md) | **88** = 36 + 24 + 20 + 8 | flow-uri din afara pilotului (88), corelare UI/transport AutoEx (78), runtime Shop (77), repetare live (57) |
 | 2 | [Reporting](ATF_Reporting_Feedback.md) | **77** = 33 + 24 + 16 + 4 | nesting ilizibil și în API nominal, inclusiv Technical trace |
 | 3 | [ATF UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ; activarea JavaScript explicită nu închide această limită |
 | 4 | [Shop API — diagnostic](ATF_Practice_Shop_API_Test_Design_Feedback.md) | **66** = 25 + 19 + 16 + 6 | timeout înainte de login fără artifact FAIL; lizibilitatea comună este urmărită la Reporting |

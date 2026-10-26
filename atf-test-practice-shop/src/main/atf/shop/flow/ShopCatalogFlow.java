@@ -18,24 +18,25 @@ public final class ShopCatalogFlow {
 
     public void searchAndOpenConfiguredProduct(Page page, PlaywrightActionSequence actions,
                                                 ShopConfiguration configuration) {
+        var selection = configuration.catalogSelection();
         ShopHomePage home = new ShopHomePage(page, locators, actions);
-        home.open(configuration);
-        home.search(configuration.productName());
-        AtfLocator configuredProduct = configuration.usesDynamicProductPath()
-                ? locators.productLinkFirst(page, configuration.productName())
-                : locators.productLinkByPath(page, configuration.productPath());
-        boolean configuredPathFound = configuration.usesDynamicProductPath()
+        home.open(selection.homeUrl());
+        home.search(selection.productName());
+        AtfLocator configuredProduct = selection.usesDynamicProductPath()
+                ? locators.productLinkFirst(page, selection.productName())
+                : locators.productLinkByPath(page, selection.productPath());
+        boolean configuredPathFound = selection.usesDynamicProductPath()
                 || configuredProduct.locator().count() > 0;
         AtfLocator product = configuredProduct;
         String selectedPath = product.locator().getAttribute("href");
-        if (!configuredPathFound || !configuration.matchesProductPath(selectedPath)) {
-            throw new IllegalStateException("Configured productPath '" + configuration.productPath()
-                    + "' was not found for product '" + configuration.productName()
+        if (!configuredPathFound || !selection.matchesProductPath(selectedPath)) {
+            throw new IllegalStateException("Configured productPath '" + selection.productPath()
+                    + "' was not found for product '" + selection.productName()
                     + "'; selected route='" + selectedPath + "'");
         }
         actions.waitForVisible(product);
         actions.click(product, "matching product opens from search results");
-        new ShopProductPage(page, locators, actions).assertLoaded(configuration);
+        new ShopProductPage(page, locators, actions).assertLoaded(selection.productName());
     }
 }
 
