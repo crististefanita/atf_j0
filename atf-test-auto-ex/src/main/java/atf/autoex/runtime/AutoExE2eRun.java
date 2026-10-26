@@ -39,6 +39,7 @@ import com.microsoft.playwright.Page;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -90,8 +91,19 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
     }
 
     public static AutoExConfiguration withNetworkInspection(AutoExConfiguration source) {
+        return withNetworkInspection(source, List.of());
+    }
+
+    /** Enables bounded browser inspection and optionally includes selected document routes. */
+    public static AutoExConfiguration withNetworkInspection(AutoExConfiguration source,
+                                                            Collection<String> documentRoutes) {
         UiBrowserConfiguration current = source.browser();
+        var capturePolicy = current.networkInspection().capturePolicy();
+        if (documentRoutes != null && !documentRoutes.isEmpty()) {
+            capturePolicy = capturePolicy.includingDocumentsFor(documentRoutes);
+        }
         var network = current.networkInspection().withEnabled(true)
+                .withCapturePolicy(capturePolicy)
                 .withSettlementPolicy(UiNetworkSettlementPolicy.bounded(
                         Duration.ofSeconds(5), Duration.ofMillis(50)));
         var browser = new UiBrowserConfiguration(current.baseUrl(), current.browser(), current.headless(),
