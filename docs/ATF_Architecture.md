@@ -170,7 +170,7 @@ Limitele de compoziție și ownership sunt:
 
 ## Limitele de responsabilitate ale testelor API și auditului UI
 
-`atf.api.tests.api` este exclusiv pentru teste API: resurse, request-uri,
+`atf.reporting.api.tests.api` este exclusiv pentru teste API: resurse, request-uri,
 headere, contracte, scenarii stateful și lifecycle. Nu poate importa browser,
 Playwright, `Page`, `Locator`, DOM, screenshot sau Debug UI.
 
@@ -668,6 +668,45 @@ Responsabilități obligatorii:
 - lifecycle-ul închide fazele și aplică precedence-ul verdictului;
 - reporting-ul redă structura fără să modifice verdictul;
 - cleanup-ul deține resursele create și rulează best effort în ordine inversă.
+
+## Namespace-uri și rădăcini de surse
+
+Numele pachetului vine din declarația `package`; rădăcina surselor vine din
+POM-ul modulului. Nu deducem una din cealaltă și nu reconstruim inventarul din
+namespace-uri istorice.
+
+Coordonatele Maven au alt rol: `groupId` poate rămâne `atf.api` fără ca pachetele
+Java să păstreze acest prefix. Rename-ul unui namespace nu redenumește implicit artifactul.
+
+| Owner | Namespace runtime / teste | Rădăcini Maven curente |
+|---|---|---|
+| [Shop](../atf-test-practice-shop/README.md) | `atf.shop` / `atf.shop.tests` | `src/main` / `src/test`, declarate în POM |
+| [AutoEx](../atf-test-auto-ex/README.md) | `atf.autoex` / `atf.autoex.tests` | `src/main/java` / `src/test/java`, convenția Maven implicită |
+
+Structura se reia din surse la fiecare refactorizare:
+
+```text
+POM → rădăcini surse → declarații package → apelanți și suite → README owner
+```
+
+Gate-ul whole-reactor descoperă sursele din `sourceDirectory` și
+`testSourceDirectory` declarate per POM; dacă lipsesc, folosește convențiile
+Maven `src/main/java` și `src/test/java`. Astfel, un modul cu `src/test` declarat
+nu dispare din inventar doar fiindcă nu folosește layout-ul implicit.
+
+- Pachetul identifică aplicația/ownerul și responsabilitatea; numele business,
+  paginile și porturile aplicației nu se mută în Kit pentru uniformitate.
+- Rename-ul păstrează apelanții, resursele și identitățile cazurilor verificate;
+  mutarea fizică nu demonstrează separarea semantică a flow-urilor.
+- Inventarul folosește fișierele curente, fără `target`, artifacte sau copii de
+  staging. Adnotarea layer-ului clasifică testul, nu numele directorului.
+- Linkurile către surse și exemplele de import se actualizează împreună;
+  path-urile istorice din controalele `testChanges` își păstrează baza aprobată.
+
+Verificarea unei mutări urmează
+[inventarul executabil](ATF_Testing_Guide.md#inventarul-executabil-după-mutări-și-reclasificare)
+și [guvernanța consumerilor](../atf-tests/README.md). Rădăcinile declarate în POM
+au prioritate față de presupunerea că fiecare modul folosește convenția implicită.
 
 ## Reguli OOP
 

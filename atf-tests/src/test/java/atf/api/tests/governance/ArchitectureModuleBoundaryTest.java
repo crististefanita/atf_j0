@@ -70,10 +70,10 @@ public class ArchitectureModuleBoundaryTest {
         assertTrue(Files.notExists(root.resolve("atf-execution")),
                 "the retired concrete atf-execution module must not return");
         assertTrue(Files.isRegularFile(root.resolve(
-                        "atf-core/src/main/java/atf/api/core/lifecycle/CleanupRegistry.java")),
+                        "atf-core/src/main/java/atf/core/lifecycle/CleanupRegistry.java")),
                 "generic lifecycle cleanup belongs to core");
         assertTrue(Files.isRegularFile(root.resolve(
-                        "atf-reporting-tests/src/test/java/atf/api/execution/ApiModule.java")),
+                        "atf-reporting-tests/src/test/java/atf/reporting/api/execution/ApiModule.java")),
                 "concrete API fixtures belong to reporting-tests test scope");
     }
 

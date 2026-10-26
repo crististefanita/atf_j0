@@ -179,7 +179,7 @@ class ExtentReportDurationRuntimeComponentTest {
 
     private static Path sourceFile(String fileName) {
         return AtfPathLocator.locateSourceFile(Path.of(System.getProperty("user.dir", ".")),
-                Path.of("atf/reporting/api/reporting/runtime/core", fileName),
+                Path.of("atf/reporting/runtime/core", fileName),
                 List.of(Path.of("src/main/java"), Path.of("atf-reporting/src/main/java")));
     }
 

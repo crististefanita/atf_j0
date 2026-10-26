@@ -1,5 +1,11 @@
 # ATF UI — geometria browserului și iframe-uri
 
+## Pe scurt
+
+Ownerul este `atf-ui`: coordonatele pointerului în iframe la zoom CSS non-nativ.
+Recuperarea AutoEx prin activare DOM și publicarea configurației sunt contracte
+distincte; succesul unui journey nu certifică geometria click-ului.
+
 ## UI-FRAME-POINTER-01 — coordonate corecte la zoom CSS non-nativ
 
 **Prioritate:** 72/100 = impact 31 + lacună 25 + lucrabil 10 + documentare 6,

@@ -1095,6 +1095,14 @@ hidden`).
 
 ## Verificare pentru contribuții
 
+Gate-ul nativ `mvn -f atf-reporting/pom.xml test` selectează explicit pachetul
+`atf.reporting.standalone` și implicit eșuează dacă nu descoperă teste.
+Un `BUILD SUCCESS` fără clase/cazuri executate nu dovedește contractul librăriei.
+
+Selecția reactorului poate omite modulul prin opțiunea documentată
+`-Dsurefire.failIfNoSpecifiedTests=false`; omiterea unui modul fără testul cerut
+nu este o execuție a gate-ului nativ.
+
 ```text
 cod live curent
   → staging extern nou (target/artifacts excluse)

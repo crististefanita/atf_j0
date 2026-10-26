@@ -1,8 +1,9 @@
-package atf.reporting.markup;
+package atf.reporting.html;
 
 import atf.reporting.asset.ReportAssetComposer;
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.markup.ExtentReportCategoryMarkup;
 import atf.reporting.html.HtmlReportCategoryView;
 import atf.reporting.html.HtmlReportFailsView;
 import atf.reporting.html.HtmlReportSemanticDocument;

@@ -128,6 +128,11 @@ concretă rămân în README-ul ownerului fiecărui consumer.
 - Adaptoarele dependente de JUnit rămân minime la granița de execuție;
   extinderea unui API comun nu introduce dependențe UI/Reporting în Kit.
 
+Flow-ul business, flow-ul UI, acțiunile compuse și operația Playwright atomică
+au contracte diferite; validarea produce rezultate tipizate înaintea proiecției
+în raport. Boundary-urile și probele țintă sunt în
+[ghidul de testare](ATF_Testing_Guide.md#separarea-flow-urilor-business-ui-și-a-validărilor).
+
 Cerințele încă neimplementate și ordinea sunt în
 [feedback-ul refactorizării](feedback/ATF_Consumer_Business_Test_Focus_Feedback.md).
 

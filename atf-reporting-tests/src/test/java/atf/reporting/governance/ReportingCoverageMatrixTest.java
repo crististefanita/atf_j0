@@ -157,7 +157,7 @@ class ReportingCoverageMatrixTest {
         assertEquals("atf.reporting",
                 AtfReportingIntegrationSuite.class.getAnnotation(org.junit.platform.suite.api.SelectPackages.class)
                         .value()[0]);
-        assertEquals("atf.api.tests.api",
+        assertEquals("atf.reporting.api.tests.api",
                 AtfReportingApiFixtureSuite.class.getAnnotation(org.junit.platform.suite.api.SelectPackages.class)
                         .value()[0]);
         assertEquals("atf.ui.tests.extent.e2e",

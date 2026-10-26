@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @AtfUnitTest
 class ExtentReportContractCohesionArchitectureTest {
     private static final String TEST_JAVA = "src/test/java";
-    private static final String EXTENT_SESSION_PACKAGE = "atf/reporting/api/reporting/extent/session";
+    private static final String EXTENT_SESSION_PACKAGE = "atf/reporting/extent/session";
     private static final Path INTERACTION = Path.of(
             TEST_JAVA, EXTENT_SESSION_PACKAGE, "ExtentReportInteractionContractTest.java");
     private static final Path FAILURE = Path.of(

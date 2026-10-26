@@ -22,7 +22,7 @@ public class ArchitectureOwnershipBoundaryTest {
     private static final String MAIN_JAVA = "src/main/java";
     private static final String TEST_JAVA = "src/test/java";
     private static final String TESTS_GOVERNANCE_PACKAGE = "atf/api/tests/governance";
-    private static final String REPORTING_TESTS_PACKAGE = "atf/api/tests";
+    private static final String REPORTING_TESTS_PACKAGE = "atf/reporting/api/tests";
     private static final String REPORTING_UI_TESTS_PACKAGE = "atf/ui/tests/extent";
 
     @Test
@@ -44,9 +44,9 @@ public class ArchitectureOwnershipBoundaryTest {
                         "atf-tests must not own executable API tests"),
                 () -> assertFalse(containsJavaFileNamed(testModule.resolve(TEST_JAVA), "SelectedApiTestsReportUiTest.java"),
                         "atf-tests must not own reporting UI E2E tests"),
-                () -> requireFile(reportingTests.resolve("atf/api/tests/api/users/UsersApiScenarios.java"),
+                () -> requireFile(reportingTests.resolve("atf/reporting/api/tests/api/users/UsersApiScenarios.java"),
                         "UsersApiScenarios belongs to atf-reporting test scope"),
-                () -> requireFile(reportingTests.resolve("atf/api/tests/api/posts/PostsApiScenarios.java"),
+                () -> requireFile(reportingTests.resolve("atf/reporting/api/tests/api/posts/PostsApiScenarios.java"),
                         "PostsApiScenarios belongs to atf-reporting test scope"),
                 () -> requireFile(modulePath(root, AtfModuleIds.REPORTING_TESTS, TEST_JAVA,
                                 "atf/reporting/api/acceptance/ApiAcceptancePublisher.java"),
@@ -65,11 +65,11 @@ public class ArchitectureOwnershipBoundaryTest {
                         "UI audit lifecycle belongs to reporting infrastructure"),
                 () -> assertFalse(Files.exists(testModule.resolve("src/main/atf/ui/tests/extent/support/lifecycle/UiAuditLifecycle.java")),
                         "atf-tests must not own reporting lifecycle infrastructure"),
-                () -> requireFile(reportingTests.resolve("atf/api/tests/support/setup/ApiScenarioSetupCatalog.java"),
+                () -> requireFile(reportingTests.resolve("atf/reporting/api/tests/support/setup/ApiScenarioSetupCatalog.java"),
                         "scenario-coupled API setup catalog belongs to reporting test support"),
-                () -> requireFile(reportingTests.resolve("atf/api/tests/api/users/UsersApiTests.java"),
+                () -> requireFile(reportingTests.resolve("atf/reporting/api/tests/api/users/UsersApiTests.java"),
                         "UsersApiTests belongs to reporting test scope"),
-                () -> requireFile(reportingTests.resolve("atf/api/tests/api/posts/PostsApiTests.java"),
+                () -> requireFile(reportingTests.resolve("atf/reporting/api/tests/api/posts/PostsApiTests.java"),
                         "PostsApiTests belongs to reporting test scope"),
                 () -> requireFile(reportingTests.resolve(REPORTING_UI_TESTS_PACKAGE)
                                 .resolve("support/section/runtime/SectionAuditDynamicEngine.java"),
@@ -83,9 +83,9 @@ public class ArchitectureOwnershipBoundaryTest {
                 () -> requireFile(modulePath(root, AtfModuleIds.CORE, MAIN_JAVA,
                                 "atf/core/testing/http/RecordingApiTransport.java"),
                         "reusable request capture belongs to atf-core"),
-                () -> assertFalse(Files.exists(testModule.resolve("src/main/atf/api/tests/support/setup/ApiBootstrapConfigurationLoader.java")),
+                () -> assertFalse(Files.exists(testModule.resolve("src/main/atf/reporting/api/tests/support/setup/ApiBootstrapConfigurationLoader.java")),
                         "configuration loader must remain in atf-core"),
-                () -> assertFalse(Files.exists(reportingTests.resolve("atf/api/tests/support/junit/RecordingApiTransport.java")),
+                () -> assertFalse(Files.exists(reportingTests.resolve("atf/reporting/api/tests/support/junit/RecordingApiTransport.java")),
                         "request capture must remain in atf-core"),
                 () -> requireFile(modulePath(root, AtfModuleIds.REPORTING, MAIN_JAVA,
                                 "atf/reporting/ui/contract/UiReportArtifactContract.java"),
@@ -118,10 +118,10 @@ public class ArchitectureOwnershipBoundaryTest {
                                 .resolve("support/section/fixtures/MissingApiSetupDeclaration.java"),
                         "invalid source declarations belong to an explicit fixtures namespace"),
                 () -> requireFile(modulePath(root, AtfModuleIds.MOCK, TEST_JAVA,
-                                "atf/api/mock/fixtures/MockTransportTestFixtures.java"),
+                                "atf/mock/fixtures/MockTransportTestFixtures.java"),
                         "mock transport vocabulary belongs to an explicit test fixtures namespace"),
                 () -> assertFalse(Files.isRegularFile(modulePath(root, AtfModuleIds.MOCK, TEST_JAVA,
-                                "atf/api/mock/MockTransportTestFixtures.java")),
+                                "atf/mock/MockTransportTestFixtures.java")),
                         "mock transport fixtures must not be mixed with production-package tests"));
     }
 

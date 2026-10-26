@@ -1,5 +1,7 @@
 # ATF Reporting — lacune active
 
+## Pe scurt
+
 Aici rămân lacunele deschise și controalele tehnice încă necesare.
 Contractele stabile aparțin [Reporting](../../atf-reporting/README.md),
 [Reporting Tests](../../atf-reporting-tests/README.md),
@@ -12,21 +14,54 @@ sunt contracte livrate, documentate la
 Matricea Extent/fallback/UI_API și probele Fails/deep-link aparțin
 [testelor Reporting](../../atf-reporting-tests/README.md), nu checklist-ului de restanțe.
 
+- Lizibilitatea la lățime mică: **77/100**.
+- Launcher browser canonic: **58/100**.
+- Scorurile folosesc [formula comună de prioritate](README.md#top-feedback-uri-active).
 
 ## REPORT-NARROW-READABILITY-01 — tabele imbricate la lățime mică
 
-**Prioritate:** 64/100 = impact 28 + lacună 18 + lucrabil 14 + documentare 4.
-În viewport-uri înguste, inclusiv la 591 px și aproximativ 392 px,
-`Failure evidence` cu observații și aserțiuni deschise comprimă coloanele până
-devin ilizibile. Absența overflow-ului orizontal nu dovedește lizibilitatea;
-gate-urile existente nu acoperă suficient această adâncime de imbricare.
+**Prioritate:** 77/100 = impact 33 + lacună 24 + lucrabil 16 + documentare 4.
+Problema afectează și un caz API nominal: după expandarea
+`Request → Response → Execution`, tabelul `Technical trace` poate comprima
+celulele până la câte o literă pe rând.
 
-- [ ] Adăugați o fixture neutră cu aceeași adâncime și texte scurte/lungi,
-      verificată la lățime standard, 591 px și lățime de panou îngust.
+În panouri înguste, inclusiv la aproximativ 392 px, același efect apare în
+`Failure evidence` cu observații și aserțiuni deschise. Scroll-ul vertical și
+absența overflow-ului orizontal nu dovedesc lizibilitatea.
+
+**Owner:** layout-ul comun `atf-reporting`, cu probe neutre în Reporting Tests;
+wiring-ul consumerului nu justifică un renderer sau un backlog paralel.
+
+- [ ] Adăugați fixture neutră nominală și negativă cu nesting complet,
+      texte scurte/lungi, request/response/execution și failure evidence.
+      Verificați lățime standard, 591 px și un panou îngust comparabil.
 - [ ] Verificați lățimea utilă a coloanelor, textul vizibil și accesul la ultimul
-      rând prin constante explicite, nu numai `scrollWidth <= clientWidth`.
+      rând prin constante explicite, nu numai `scrollWidth <= clientWidth`;
+      eșuați și pentru heading-uri ori valori rupte câte o literă pe rând.
 - [ ] Reduceți spațiul consumat de nesting sau aplicați o prezentare mobilă;
       păstrați ierarhia, fontul lizibil și expand/collapse, fără a relaxa plafoanele.
+      Tabelele scurte nu primesc înălțime goală, iar plafonul de scroll rămâne comun.
+- [ ] Verificați redeschiderea părinților și navigarea Fails → Tests cu detalii
+      expandate; comparați fixture-ul neutru, standalone API și checkpoint-ul UI+API.
+
+## REPORTING-LAUNCHER-06 — selecție egală, acoperire numărată o singură dată
+
+**Owner:** Reporting Tests. **Prioritate:** 58/100 = 23 + 14 + 17 + 4.
+Cele două launchere selectează același pachet `e2e`, același tag și aceeași
+excludere de suite.
+
+- [AtfReportingUiAuditSuite](../../atf-reporting-tests/src/test/java/atf/reporting/governance/AtfReportingUiAuditSuite.java)
+  și [ExtentReportingE2eSuite](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/e2e/ExtentReportingE2eSuite.java)
+  nu sunt gate-uri de acoperire disjuncte.
+- Al doilea declară și `@AtfTestChannel(UI)`; diferența de metadata trebuie
+  păstrată, nu confundată cu alt inventar de teste.
+
+- [ ] Alegeți un launcher canonic; celălalt devine alias documentat de
+      compatibilitate ori primește o selecție distinctă, justificată.
+- [ ] Comparați identitățile JUnit, inclusiv invocările parametrizate; nu
+      lansați ambele selecții ca probe disjuncte și nu eliminați cazuri.
+- [ ] Probați selecția și metadata fără browser; păstrați separat verificarea
+      browser a arborelui, capturilor și disclosure-urilor.
 
 ## Controale tehnice încă necesare
 

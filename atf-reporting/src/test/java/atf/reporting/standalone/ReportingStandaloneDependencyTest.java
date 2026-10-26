@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** Fail-closed guard for the standalone reporting artifact boundary. */
 class ReportingStandaloneDependencyTest {
     private static final Pattern EXTERNAL_ATF_IMPORT = Pattern.compile(
-            "\\bimport\\s+atf\\.api\\.(core|mock|execution|validation|console|ui|debug|testkit)\\b");
+            "\\bimport\\s+atf\\.(core|mock|execution|validation|console|ui|debugui|testkit)(?:\\.|;)");
 
     @Test
     void productionSourceDoesNotImportAnotherAtfModule() throws Exception {

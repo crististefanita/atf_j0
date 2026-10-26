@@ -581,7 +581,7 @@ Entry-point-urile selectabile direct din IntelliJ sunt separate pe layer:
 | `AtfReportingUnitSuite` | `unit` din `atf.reporting` | model, policy, parser, renderer seam și vocabular |
 | `AtfReportingComponentSuite` | `component` din reporting și UI extent | boundary HTML/CSS/JS, contracte și fixture-uri controlate; snapshot-ul de navigation performance este mapat prin `ReportRuntimePerformanceSnapshot`, iar `ReportRuntimePerformanceBudget` verifică fixture-uri configurabile fără verdict business |
 | `AtfReportingIntegrationSuite` | `integration` din `atf.reporting` | session, publication, replay și contracte de integrare ale librăriei |
-| `AtfReportingApiFixtureSuite` | `integration` din `atf.api.tests.api` | mock API → core → validation → reporting evidence, fără browser |
+| `AtfReportingApiFixtureSuite` | `integration` din `atf.reporting.api.tests.api` | mock API → core → validation → reporting evidence, fără browser |
 | `AtfReportingUiAuditSuite` | `e2e` din `atf.ui.tests.extent.e2e` | launcher browser/debug; aceeași selecție ca `ExtentReportingE2eSuite` |
 | `ExtentReportingE2eSuite` | același pachet/tag și aceeași excludere de suite | declară suplimentar `@AtfTestChannel(UI)`; nu adaugă alt inventar de probe |
 

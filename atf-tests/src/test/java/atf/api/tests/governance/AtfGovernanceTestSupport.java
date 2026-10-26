@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -229,7 +230,7 @@ public final class AtfGovernanceTestSupport {
             files.filter(path -> path.toString().endsWith(JAVA_SUFFIX)).forEach(path -> {
                 try {
                     String source = Files.readString(path);
-                    forbidden.stream().filter(source::contains).forEach(token ->
+                    forbidden.stream().filter(token -> containsForbiddenToken(source, token)).forEach(token ->
                             violations.add(path + " contains " + token));
                 } catch (Exception error) {
                     violations.add("cannot read " + path + ": " + error.getMessage());
@@ -251,12 +252,24 @@ public final class AtfGovernanceTestSupport {
                     .forEach(path -> {
                         try {
                             String source = Files.readString(path);
-                            forbidden.stream().filter(source::contains).forEach(token ->
+                            forbidden.stream().filter(token -> containsForbiddenToken(source, token)).forEach(token ->
                                     violations.add(path + " contains " + token));
                         } catch (Exception error) {
                             violations.add("cannot read " + path + ": " + error.getMessage());
                         }
                     });
         }
+    }
+
+    private static boolean containsForbiddenToken(String source, String token) {
+        if (token.startsWith("atf.")) {
+            String packagePrefix = Pattern.quote(token);
+            String declarationOrImport = "(?m)^\\s*(?:package|import)\\s+(?:static\\s+)?"
+                    + packagePrefix + "(?:\\.|;)";
+            String fullyQualifiedType = "(?<![\\w.])" + packagePrefix
+                    + "(?:\\.[a-z][\\w$]*)*\\.[A-Z][\\w$]*\\b";
+            return Pattern.compile(declarationOrImport + "|" + fullyQualifiedType).matcher(source).find();
+        }
+        return source.contains(token);
     }
 }

@@ -18,12 +18,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @AtfComponentTest
 public class ConstantsOwnershipGovernanceTest {
     private static final List<String> REVIEWED_SOURCES = List.of(
-            "atf-mock/src/main/java/atf/api/mock/AtfMockConfiguration.java",
-            "atf-validation/src/main/java/atf/api/validation/contract/ContractValidators.java",
-            "atf-validation/src/main/java/atf/api/validation/contract/ResponseContractRuleSet.java",
-            "atf-mock/src/test/java/atf/api/mock/AtfMockTransportTest.java",
-            "atf-mock/src/test/java/atf/api/mock/MockRouteIdentityTest.java",
-            "atf-reporting-tests/src/test/java/atf/api/tests/api/flows/ApiFlowAssertions.java");
+            "atf-mock/src/main/java/atf/mock/AtfMockConfiguration.java",
+            "atf-validation/src/main/java/atf/validation/contract/ContractValidators.java",
+            "atf-validation/src/main/java/atf/validation/contract/ResponseContractRuleSet.java",
+            "atf-mock/src/test/java/atf/mock/AtfMockTransportTest.java",
+            "atf-mock/src/test/java/atf/mock/MockRouteIdentityTest.java",
+            "atf-reporting-tests/src/test/java/atf/reporting/api/tests/api/flows/ApiFlowAssertions.java");
     private static final List<Pattern> FORBIDDEN_CANONICALS = List.of(
             Pattern.compile("(?s)new\\s+MockRoute\\([^;]*?\\\"/public/v2/"),
             Pattern.compile("new\\s+ApiRoute\\([^;]*?\\\"(?:GET|POST|PUT)\\\""),
@@ -36,7 +36,7 @@ public class ConstantsOwnershipGovernanceTest {
     private static final List<String> LITERAL_OWNER_EXEMPTIONS = List.of(
             "atf-tests/src/test/java/atf/api/tests/governance/ConstantsOwnershipGovernanceTest.java",
             "atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/architecture/DeclarativeUiTestArchitectureTest.java",
-            "atf-reporting-tests/src/test/java/atf/api/reporting/support/ApiReportTestUrls.java");
+            "atf-reporting-tests/src/test/java/atf/reporting/support/ApiReportTestUrls.java");
 
     @Test
     void canonicalProtocolAndRouteValuesHaveSemanticOwners() throws Exception {
@@ -58,28 +58,28 @@ public class ConstantsOwnershipGovernanceTest {
     void coreKeepsPathMechanicsGenericAndLeavesConcreteCatalogsAtTheirBoundaries() {
         Path root = locateProjectRoot();
         assertTrue(Files.isRegularFile(root.resolve(
-                        "atf-core/src/main/java/atf/api/core/routing/ApiPathTemplate.java")),
+                        "atf-core/src/main/java/atf/core/routing/ApiPathTemplate.java")),
                 "core must expose the generic path-template mechanism");
         assertTrue(!Files.exists(root.resolve(
-                        "atf-core/src/main/java/atf/api/core/routing/ApiPaths.java")),
+                        "atf-core/src/main/java/atf/core/routing/ApiPaths.java")),
                 "core must not own a concrete product route catalog");
         assertTrue(Files.isRegularFile(root.resolve(
-                        "atf-reporting-tests/src/test/java/atf/api/execution/routing/RoutePaths.java")));
+                        "atf-reporting-tests/src/test/java/atf/reporting/api/execution/routing/RoutePaths.java")));
         assertTrue(Files.isRegularFile(root.resolve(
-                        "atf-mock/src/main/java/atf/api/mock/MockRoutePaths.java")));
+                        "atf-mock/src/main/java/atf/mock/MockRoutePaths.java")));
     }
 
     @Test
     void reusableProtocolDomAuthAndDiagnosticVocabularyStayWithPlatformOwners() throws Exception {
         Path root = locateProjectRoot();
         List<String> requiredOwners = List.of(
-                "atf-core/src/main/java/atf/api/core/http/protocol/ApiUris.java",
-                "atf-core/src/main/java/atf/api/core/http/protocol/HttpHeaderProfiles.java",
-                "atf-core/src/main/java/atf/api/core/http/auth/AuthProfiles.java",
-                "atf-core/src/main/java/atf/api/core/diagnostics/ThrowableDiagnostics.java",
-                "atf-ui/src/main/java/atf/api/ui/dom/HtmlElement.java",
-                "atf-ui/src/main/java/atf/api/ui/dom/HtmlAttribute.java",
-                "atf-ui/src/main/java/atf/api/ui/dom/CssPseudoClass.java");
+                "atf-core/src/main/java/atf/core/http/protocol/ApiUris.java",
+                "atf-core/src/main/java/atf/core/http/protocol/HttpHeaderProfiles.java",
+                "atf-core/src/main/java/atf/core/http/auth/AuthProfiles.java",
+                "atf-core/src/main/java/atf/core/diagnostics/ThrowableDiagnostics.java",
+                "atf-ui/src/main/java/atf/ui/dom/HtmlElement.java",
+                "atf-ui/src/main/java/atf/ui/dom/HtmlAttribute.java",
+                "atf-ui/src/main/java/atf/ui/dom/CssPseudoClass.java");
         assertTrue(requiredOwners.stream().map(root::resolve).allMatch(Files::isRegularFile),
                 () -> "Reusable vocabulary owner is missing: " + requiredOwners);
 

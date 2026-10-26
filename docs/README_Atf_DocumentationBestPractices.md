@@ -492,6 +492,24 @@ să concureze cu README-urile stabile.
 - [ ] conflictul sau drift-ul live/staging devine feedback auditabil, nu
       overwrite implicit.
 
+### Rubrica reviziei editoriale
+
+Nota editorială măsoară documentul verificat, nu readiness-ul codului și nici
+prioritatea backlog-ului. Aceeași rubrică se aplică tuturor documentelor din
+setul revizuit; un rezultat peste 90 nu închide un ToDo nedemonstrat.
+
+| Criteriu | Maximum | Dovadă urmărită |
+|---|---:|---|
+| Fidelitate factuală | 20 | surse live și teste; ținta de design este marcată explicit |
+| Ownership și limite | 20 | owner unic, contract stabil separat de gap și control tehnic |
+| Navigare | 20 | fișiere și fragmente locale valide; promovările nu lasă trimiteri vechi |
+| Lizibilitate | 20 | primul ecran clar, proză scurtă, tabele/scheme și detalii proporționate |
+| Verificabilitate | 20 | acceptanță reproductibilă și boundary de probă; limitările sunt explicite |
+
+Revizia indică setul evaluat, punctajele și verificările executate în răspunsul
+de livrare. Documentele normative păstrează rubrica și contractele, fără note
+datate, istorice de rulări sau artifacte locale.
+
 ## Criterii de finalizare
 
 - [ ] primul ecran este self-explanatory;

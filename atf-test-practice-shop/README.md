@@ -511,6 +511,15 @@ Contractul live păstrează următoarele protecții:
 - fixture-ul autentificat este precondiție, nu garanție permanentă; un 401
   oprește flow-ul, iar credentialele nu ajung în documentație sau raport.
 
+Auditul interactiv folosește artifactul nou produs de adaptorul Shop cu
+transport controlat, fără a repeta mutații remote pentru a verifica rendererul.
+Se compară cu UI+API schema `Request → Response → Execution`,
+`AUTH PROFILE`/`AUTH TYPE`, JSON-ul redactat și starea disclosures.
+
+Scroll-ul local, glyph/ARIA, redeschiderea părinților și Fails → Tests se verifică
+în MCP/ATF Debug. Lizibilitatea la lățime mică este un contract al layout-ului
+Reporting, separat de succesul HTTP și de mapping-ul Shop.
+
 ### Limita dintre testele Shop și testele Reporting
 
 Aplicăm [regula comună de ownership](../docs/ATF_Testing_Guide.md#owner-ul-testului-business-adaptor-sau-infrastructură);
@@ -639,8 +648,8 @@ copiate aici ca reguli paralele.
 
 | Owner | Conține |
 |---|---|
-| Shop `src/main/java` | pagini, flow-uri, payload-uri, captură/politică Shop și validarea terminală `ShopPurchaseConfirmation`; fără JUnit/Test Kit |
-| Shop `src/test/java` | teste business, fixture-uri și adaptoare JUnit/report specifice Shop |
+| Shop `src/main` | pagini, flow-uri, payload-uri, captură/politică Shop și validarea terminală `ShopPurchaseConfirmation`; fără JUnit/Test Kit |
+| Shop `src/test` | teste business, fixture-uri și adaptoare JUnit/report specifice Shop |
 | `atf-test-kit` | lifecycle neutru; nu primește browser, Reporting sau business |
 | `atf-ui` / `atf-reporting-tests` | auditul neutru de ecran / contractele generice de randare |
 
@@ -660,3 +669,8 @@ main. Source-set-urile din tabelul de mai sus descriu implementarea curentă.
 
 Candidatele concrete, limitările guard-ului și acceptanța sunt în
 [feedback-ul refactorizării](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md).
+
+Etapele catalog/checkout din `ShopPurchaseFlow` sunt implementate; separarea
+business → flow UI → acțiuni compuse → Playwright este încă țintă de design.
+[Ghidul de testare](../docs/ATF_Testing_Guide.md#separarea-flow-urilor-business-ui-și-a-validărilor)
+definește boundary-urile și proba de componentă pentru primul increment.

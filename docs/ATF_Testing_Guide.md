@@ -164,6 +164,77 @@ Contractul generic de evidence este în
 condițiile înaintea mutărilor sunt în
 [feedback-ul consumerilor](feedback/ATF_Consumer_Business_Test_Focus_Feedback.md).
 
+### Separarea flow-urilor business, UI și a validărilor
+
+Aceasta este arhitectura țintă a refactorizării, nu inventarul unor API-uri
+deja livrate. Shop are etape catalog/checkout, iar AutoEx are journey-uri și
+page objects; orchestration, acțiuni, validări și publicare sunt încă amestecate.
+
+```text
+Test E2E: precondiție → intenție business → rezultat așteptat
+  BusinessFlow: ordinea operațiilor și regulile aplicației
+    UiFlow: tranziții între ecrane pentru o operație
+      Acțiune UI compusă: pagină/componentă + locatori
+        PlaywrightActionSequence: o operație atomică instrumentată
+  Validatori: snapshot observat + expected independent → rezultat tipizat
+  Adaptor evidence: rezultat + interval de acțiuni/exchange-uri → raport
+```
+
+Traseul arată responsabilități, nu impune o clasă pentru fiecare nivel sau
+click. Se păstrează fațada existentă și se extrage numai o responsabilitate
+care poate fi probată separat.
+
+| Boundary țintă | Contract și dovadă minimă |
+|---|---|
+| Test → business | scenariu cu input explicit și assertion terminală; testul nu construiește locatori ori markup |
+| Business → UI | port mic, specific aplicației; componenta probează ordinea, datele și oprirea la failure cu vecini controlați |
+| UI flow → pagină/componentă | acțiuni semantice compuse și sincronizare explicită; nu primește întregul harness, raport sau configurație |
+| Pagină → Playwright | operațiile folosesc fațada instrumentată existentă; proba locală verifică target-ul, rezultatul și erorile |
+| Validare → rezultat | așteptarea este independentă de observație; cazuri nominale, mismatch și stare incompletă, fără verdict calculat din textul raportului |
+| Rezultat → evidence | adaptorul păstrează identitatea checkpoint-ului, ordinea acțiunilor și exchange-ul cauzal; probe la consumer pentru mapping și la Reporting pentru proiecție |
+
+- Se separă sincronizarea tehnică, contractul ecranului și regula business;
+  validările intermediare rămân fail-fast, iar testul păstrează oracolul terminal.
+- Capturile, canalul UI/API și compactarea schimbă dovezile publicate, nu ramura
+  business. O diferență reală de checkout primește o strategie explicită.
+- Acțiunile de creare cont, coș, comandă și cleanup nu se reiau ca efect al unei
+  recuperări de afișare sau al eșecului publisherului; cauza inițială se păstrează.
+- Primul increment este o operație delimitată, de exemplu adăugarea în coș;
+  autentificarea și cleanup-ul se migrează după demonstrarea acestui boundary.
+
+Flow-urile și paginile specifice rămân la consumer. UI deține instrumentarea
+browserului, Reporting deține proiecția, iar Kit primește numai primitive neutre,
+fără vocabularul aplicației sau un motor generic de workflow.
+
+Acceptanța implementării este urmărită o singură dată în
+[feedback-ul consumerilor](feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-flow-layers-09--business-traseu-ui-și-validare-separate).
+
+<details>
+<summary><strong>Porturi, snapshot-uri și validări în arhitectura țintă</strong></summary>
+
+Portul poate avea un rol precum `PurchaseOperations`; acesta este un nume
+orientativ, nu un API livrat. Nu expune Run/Context, configurația completă ori
+un `Object` care ascunde aceleași dependențe.
+
+### Validările sunt independente și executate la momentul potrivit
+
+| Categorie | Owner | Rezultat și moment |
+|---|---|---|
+| Tehnică UI | operația / UI Flow | control vizibil/activ, navigare sau modal confirmat; înainte de citire ori continuare |
+| Contract de ecran | cititor DOM + validator de snapshot | structură, câmpuri și identitate observate; validatorul nu navighează și nu publică |
+| Business | validator pur + gate în Business Flow | produs, cantitate, preț/total, client, comandă și factură; înaintea următoarei mutații dependente |
+| API suplimentară | validator API și adaptor de evidence | compară request/response observate; verdict distinct de cel UI, sub checkpoint-ul cauzal |
+
+- Snapshot-ul nu își completează valorile lipsă din expected. Cantitățile,
+  sumele și identitățile au tipuri și proveniență explicite; validarea nu
+  folosește preview-ul trunchiat al raportului ca observație completă.
+- În profilul compact se schimbă publicarea, nu momentul gate-urilor.
+  Verificarea finală confirmă comanda/factura, fără a înlocui validările intermediare.
+- Evaluați contractele neutre existente din Core/Validation înainte de un nou
+  model de verdict. Business-ul nu importă publisheri, Extent/HTML, JUnit ori Playwright.
+
+</details>
+
 ### Inventarul executabil după mutări și reclasificare
 
 - Rulați entry point-urile reale ale suitelor, fără selectarea încă o dată a
@@ -264,7 +335,8 @@ SETUP
   `atf-ui`; consumerul stabilește baseline-ul cauzal. Auditul `UiScreenAudit`
   are același owner, fără o a doua implementare în Kit.
 - `AutoExPurchaseSession` rămâne API intern al runtime-ului consumer; nu este
-  precedent pentru un port generic și nu are TODO activ de extracție.
+  precedent pentru un port generic în Kit. Separarea sa în porturi locale mici
+  este o țintă distinctă de mutarea source-set-ului deja livrată.
 - Boundary-ul AutoEx este descris în [README-ul Automation Exercise](../atf-test-auto-ex/README.md),
   iar regula cross-consumer în [README-ul Test Kit](../atf-test-kit/README.md).
 

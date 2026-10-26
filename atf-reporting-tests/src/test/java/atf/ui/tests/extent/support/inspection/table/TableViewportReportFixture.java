@@ -25,6 +25,8 @@ import java.time.Duration;
 import java.util.*;
 import java.util.stream.IntStream;
 
+import static atf.reporting.contract.AtfReportStatus.PASS;
+
 /** Neutral public-port fixtures, never application E2E data or DOM-cloned table rows. */
 public final class TableViewportReportFixture {
     public static final int LONG_ROWS = 40;

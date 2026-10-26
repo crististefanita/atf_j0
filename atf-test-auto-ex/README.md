@@ -791,3 +791,8 @@ aceasta nu este o execuție a site-ului remote.
 
 Criteriile și matricea de configurare urmărită sunt în
 [feedback-ul refactorizării](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md).
+
+`AutoExPurchaseSession` grupează încă browser, checkpoint, trafic și cleanup;
+page objects primesc acest contract larg. Separarea viitoare folosește porturi
+locale mici conform [ghidului de testare](../docs/ATF_Testing_Guide.md#separarea-flow-urilor-business-ui-și-a-validărilor),
+păstrând confirmarea comenzii, factura și cleanup-ul contului.

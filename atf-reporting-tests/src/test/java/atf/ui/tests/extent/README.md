@@ -87,7 +87,7 @@ E2E: tab, click, collapse, computed-style, wrapping, screenshot, consolă
 
 - selectează metodele prin `@ApiTestRef` și construiește fixture-ul;
 - deleagă secțiunile către engine/publisher;
-- nu clonează testul per tab și nu introduce `Page` în `atf.api.tests.api`;
+- nu clonează testul per tab și nu introduce `Page` în `atf.reporting.api.tests.api`;
 - aserțiunile fără efect de browser rămân la component/integration pentru
   rulare rapidă și deterministă.
 

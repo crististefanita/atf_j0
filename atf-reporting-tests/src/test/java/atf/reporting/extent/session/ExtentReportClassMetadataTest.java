@@ -24,14 +24,14 @@ class ExtentReportClassMetadataTest {
         try (var session = new ExtentReportSession(report)) {
             var scenario = session.startScenario(
                     "ApiHeadersAndEdgeCasesTests",
-                    "atf.api.tests.api.headers",
+                    "atf.reporting.api.tests.api.headers",
                     ApiOperationLabel.format(HttpMethod.GET, MockRoutePaths.CATALOG, "request + response headers"),
                     List.of("api", "headers"));
             scenario.complete(AtfReportStatus.PASS);
         }
 
         String html = Files.readString(report);
-        assertTrue(html.contains("atf.api.tests.api.headers"),
+        assertTrue(html.contains("atf.reporting.api.tests.api.headers"),
                 "the package must travel with the Extent class root");
         assertTrue(html.contains("function normalizeTestPackageMetadata()"),
                 "the Tests tab must project the package into the central detail header");

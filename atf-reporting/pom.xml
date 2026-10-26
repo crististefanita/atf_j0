@@ -13,6 +13,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>5.11.0</junit.version>
         <jackson.version>2.17.2</jackson.version>
+        <surefire.failIfNoSpecifiedTests>true</surefire.failIfNoSpecifiedTests>
     </properties>
     <dependencies>
         <dependency>
@@ -50,6 +51,7 @@
                 <version>3.5.2</version>
                 <configuration>
                     <argLine>-Xms64m -Xmx256m -XX:MaxMetaspaceSize=128m</argLine>
+                    <failIfNoTests>${surefire.failIfNoSpecifiedTests}</failIfNoTests>
                     <!--
                         atf-reporting is intentionally parentless.  Keep its
                         native test discovery scoped to the standalone test
@@ -59,7 +61,7 @@
                         change here and in the standalone boundary test.
                     -->
                     <includes>
-                        <include>atf/api/reporting/standalone/**/*Test.java</include>
+                        <include>atf/reporting/standalone/**/*Test.java</include>
                     </includes>
                 </configuration>
             </plugin>

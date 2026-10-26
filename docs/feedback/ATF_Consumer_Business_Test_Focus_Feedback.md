@@ -1,5 +1,7 @@
 # ATF — teste business simple și suport la owner
 
+## Pe scurt
+
 Ținta este un test scurt care exprimă intenția, un runtime reutilizabil și
 suite ușor de lansat. Aceasta este o cerință de refactorizare, nu o mutare deja
 implementată și nici reducerea verificărilor business.
@@ -21,7 +23,6 @@ documentară /10. Nu reprezintă o notă a codului sau un rezultat de test.
 | `AUTOEX-LIVE-AVAILABILITY-07` | 78 = 30 + 20 + 20 + 8 | corelarea răspunsului mutativ cu UI, fără replay |
 | `CONSUMER-RUNTIME-BOUNDARY-03` | 77 = 31 + 18 + 20 + 8 | separarea responsabilităților rămase în Shop |
 | `CONSUMER-TEST-INTENT-05` | 67 = 27 + 18 + 16 + 6 | compoziție declarativă cu resolver de evidence verificat |
-| `REPORTING-LAUNCHER-06` | 58 = 23 + 14 + 17 + 4 | un launcher canonic pentru aceeași selecție browser |
 | `CONSUMER-E2E-PROFILES-01` | 57 = 24 + 10 + 17 + 6 | reducerea repetării live numai după echivalență demonstrată |
 
 Contractele livrate de scope, runtime și prezentare sunt în README-urile
@@ -35,18 +36,9 @@ Contractele livrate de scope, runtime și prezentare sunt în README-urile
 **Owner:** Shop/AutoEx pentru business și adaptoare; UI, Reporting și Kit pentru
 capabilitățile neutre existente. Este un contract țintă, încă nelivrat.
 
-```text
-Test E2E → Business Flow → port îngust de operații
-                                  ↓ implementat de
-                               UI Flow → Page Object / acțiune compusă
-                                              ↓
-                                  PlaywrightActionSequence → Playwright
-Observație → snapshot → validator → gate înaintea următoarei mutații
-```
-
-O metodă precum „completează adresa” poate rămâne în Page Object; fiecare
-săgeată nu cere o clasă, un pachet sau un modul nou. Straturile interne nu
-devin automat niveluri suplimentare în raportul Extent.
+Arhitectura țintă, porturile și categoriile de validare sunt în
+[ghidul oficial](../ATF_Testing_Guide.md#separarea-flow-urilor-business-ui-și-a-validărilor).
+Aici rămân constatările și criteriile încă neimplementate.
 
 <details>
 <summary><strong>Constatări în codul curent și limitele concluziei</strong></summary>
@@ -66,37 +58,6 @@ devin automat niveluri suplimentare în raportul Extent.
 
 </details>
 
-### Contractul țintă al straturilor
-
-| Strat | Input / rezultat | Limită |
-|---|---|---|
-| Test E2E | scenariu, precondiții, așteptări independente și rezultat terminal | exprimă intenția; nu asamblează browser, selectori sau HTML |
-| Business Flow | date business și un port îngust; rezultat tipizat | ordonează pașii și gate-urile; fără Page/Locator, Page Objects, recorder ori sesiune de raport |
-| UI Flow | implementează portul prin navigare și pagini; întoarce snapshot-uri observate | sincronizarea și citirea DOM rămân aici; fără alegerea politicii business din canal |
-| Page Object / acțiune UI compusă | o intenție coerentă de ecran | grupează select/fill/click/wait; nu deține întregul cont, verdictul facturii sau publicarea |
-| Operație atomică instrumentată | țintă UI, acțiune și postcondiție tehnică | reutilizează executori/recorder din UI, cu o singură înregistrare a acțiunii |
-
-Portul poate avea un rol precum `PurchaseOperations`; acesta este un nume
-orientativ, nu un API livrat. Nu expune Run/Context, configurația completă ori
-un `Object` care ascunde aceleași dependențe.
-
-### Validările sunt independente și executate la momentul potrivit
-
-| Categorie | Owner | Rezultat și moment |
-|---|---|---|
-| Tehnică UI | operația / UI Flow | control vizibil/activ, navigare sau modal confirmat; înainte de citire ori continuare |
-| Contract de ecran | cititor DOM + validator de snapshot | structură, câmpuri și identitate observate; validatorul nu navighează și nu publică |
-| Business | validator pur + gate în Business Flow | produs, cantitate, preț/total, client, comandă și factură; înaintea următoarei mutații dependente |
-| API suplimentară | validator API și adaptor de evidence | compară request/response observate; verdict distinct de cel UI, sub checkpoint-ul cauzal |
-
-- Snapshot-ul nu își completează valorile lipsă din expected. Cantitățile,
-  sumele și identitățile au tipuri și proveniență explicite; validarea nu
-  folosește preview-ul trunchiat al raportului ca observație completă.
-- În profilul compact se schimbă publicarea, nu momentul gate-urilor.
-  Verificarea finală confirmă comanda/factura, fără a înlocui validările intermediare.
-- Evaluați contractele neutre existente din Core/Validation înainte de un nou
-  model de verdict. Business-ul nu importă publisheri, Extent/HTML, JUnit ori Playwright.
-
 <details>
 <summary><strong>ToDo-uri în ordinea implementării și probele de acceptanță</strong></summary>
 
@@ -104,6 +65,9 @@ un `Object` care ascunde aceleași dependențe.
       gate-urile, precondițiile și mutațiile fiecărui traseu guest/autentificat.
       Păstrați selecțiile de suite și toate cazurile/aserțiunile existente.
       Includeți de la început proba de cleanup cu instanțe Page Object diferite.
+      Reluați pachetele și rădăcinile din surse/POM conform
+      [arhitecturii](../ATF_Architecture.md#namespace-uri-și-rădăcini-de-surse);
+      nu reintroduceți namespace-uri vechi în importuri ori în linkuri.
 
 - [ ] **09-B — pilot pe coș.** Extrageți un singur traseu complet:
       Business Flow → port → UI Flow → Page Object → recorder atomic.
@@ -186,10 +150,11 @@ modelul și publicarea. Canalul, gruparea, capturile și acțiunile sunt axe dis
 - [ ] Probați combinațiile și izolarea fraților în același artifact pe succes și
       failure, inclusiv Overview/System. Precondiția API standalone nu dovedește
       autentificarea sesiunii browser.
-- [ ] Păstrați contractele existente: UI-only fără API evidence/inspector,
-      unified fără subpropoziții publicate, captură terminală după comandă și
-      UI/API sub checkpoint-ul cauzal. Detaliile sunt în
-      [contractul de captură](../ATF_Evidence_Capture_Contract.md).
+
+Compactarea UI-only cross-phase este livrată și nu mai este un ToDo.
+Contractul și limitele sale sunt în
+[README-ul Shop](../../atf-test-practice-shop/README.md#raport-partajat--starea-consumerului)
+și [politica Reporting](../../atf-reporting/README.md#politică-tipizată-pentru-dovezile-de-captură).
 
 ## AUTOEX-LIVE-AVAILABILITY-07 — indisponibilitatea nu este drift de selector
 
@@ -244,24 +209,6 @@ nu sunt un al doilea checklist de implementat.
 - [ ] Abia apoi compuneți declarațiile repetitive ale consumerilor. Adnotarea
       clasifică ori configurează; efectele externe și activarea rămân explicite.
 
-## REPORTING-LAUNCHER-06 — selecție egală, acoperire numărată o singură dată
-
-**Owner:** Reporting Tests. Cele două launchere aleg același pachet `e2e`,
-același tag și aceeași excludere de suite; numele lor nu separă probele.
-
-- [AtfReportingUiAuditSuite](../../atf-reporting-tests/src/test/java/atf/reporting/governance/AtfReportingUiAuditSuite.java)
-  și [ExtentReportingE2eSuite](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/e2e/ExtentReportingE2eSuite.java)
-  nu sunt gate-uri de acoperire disjuncte.
-- Al doilea declară și `@AtfTestChannel(UI)`; această diferență de metadata
-  trebuie păstrată/verificată, nu confundată cu alt inventar de teste.
-
-- [ ] Alegeți un launcher canonic; celălalt devine alias documentat de
-      compatibilitate ori primește o selecție realmente distinctă, justificată.
-- [ ] Nu lansați ambele în același gate; comparați identitățile JUnit descoperite,
-      inclusiv invocările parametrizate, nu numai totalurile.
-- [ ] Probați selecția și metadata canalului fără browser; păstrați separat
-      proba browser care atestă randarea. Nu eliminați teste pentru a elimina un alias.
-
 ## CONSUMER-E2E-PROFILES-01 — variantele de evidence și acoperirea business
 
 **Stare: parțial implementat.** Există trei gate-uri principale per consumer,
@@ -281,18 +228,10 @@ Unificarea journey-ului nu a redus încă numărul de purchase-uri din gate.
       `ConsumerSuiteCoverageGovernanceTest` și `ConsumerModuleArchitectureGovernanceTest`
       nu se relaxează pentru a ascunde clase eliminate.
 
-## Criteriul comun de închidere
+## Închiderea unui increment
 
-- [ ] Testele business și componentele de adaptor păstrează inputurile,
-      assertions și cazurile negative; mutările au mapare vechi → nou.
-- [ ] Runtime-ul și helper-ele au owner și dependențe corecte; `src/test` nu
-      devine depozit de infrastructură și `src/main` nu ascunde un runner.
-- [ ] Fiecare test executabil aparține unui singur gate principal per consumer;
-      limita de opt clase se păstrează și în main, și în test.
-- [ ] Compilarea/reactorul, probele ownerilor și guvernanța sunt verzi;
-      randarea este verificată pentru arbore, capturi, cauzalitate și failure.
-- [ ] Contractul livrat se mută în README-ul ownerului; aici rămâne numai
-      diferența încă neimplementată, fără istoric de rulări.
-
-Regulile stabile sunt în [ghidul de testare](../ATF_Testing_Guide.md),
-[bunele practici](../README_Atf_CodeBestPractices.md) și README-urile ownerilor.
+Criteriile locale de mai sus se verifică împreună cu
+[inventarul executabil](../ATF_Testing_Guide.md#inventarul-executabil-după-mutări-și-reclasificare)
+și [regulile de promovare](README.md#păstrare-promovare-și-verificare).
+Limita de pachet și guard-urile existente rămân obligatorii, fără un al doilea
+checklist de implementare pentru reguli deja normate.

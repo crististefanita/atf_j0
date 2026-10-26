@@ -28,11 +28,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @AtfComponentTest
 class ApiRouteCoverageMatrixTest {
-    private static final String USERS_OWNER = "atf.api.tests.api.users.UsersApiTests";
-    private static final String POSTS_OWNER = "atf.api.tests.api.posts.PostsApiTests";
-    private static final String REQUESTS_OWNER = "atf.api.tests.api.requests.RequestVariantsApiTests";
-    private static final String HEADERS_OWNER = "atf.api.tests.api.headers.ApiHeadersAndEdgeCasesTests";
-    private static final String NEGATIVE_OWNER = "atf.api.tests.api.negative.ApiNegativeMatrixTests";
+    private static final String USERS_OWNER = "atf.reporting.api.tests.api.users.UsersApiTests";
+    private static final String POSTS_OWNER = "atf.reporting.api.tests.api.posts.PostsApiTests";
+    private static final String REQUESTS_OWNER = "atf.reporting.api.tests.api.requests.RequestVariantsApiTests";
+    private static final String HEADERS_OWNER = "atf.reporting.api.tests.api.headers.ApiHeadersAndEdgeCasesTests";
+    private static final String NEGATIVE_OWNER = "atf.reporting.api.tests.api.negative.ApiNegativeMatrixTests";
     private static final Map<String, String> OWNERS = owners();
 
     @Test

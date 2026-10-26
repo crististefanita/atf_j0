@@ -24,7 +24,7 @@ public final class ApiNegativeScenarios {
     public static final String NEGATIVE_MATRIX = "negativeMatrix";
     public static final String NEGATIVE_MATRIX_TITLE = "Negative API wire contract matrix";
     public static final List<String> REPORT_SCENARIO_TITLES = List.of(NEGATIVE_MATRIX_TITLE);
-    private static final String PACKAGE = "atf.api.tests.api.negative";
+    private static final String PACKAGE = "atf.reporting.api.tests.api.negative";
 
     private ApiNegativeScenarios() { }
 

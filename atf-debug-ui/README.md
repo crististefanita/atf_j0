@@ -124,10 +124,19 @@ rezervarea heap-ului implicit al JVM-ului:
 
 ```text
 java -Xms16m -Xmx128m -XX:MaxMetaspaceSize=64m \
-  -cp atf-debug-ui/target/classes \
+  -cp <resolved-debug-runtime-classpath> \
   atf.debugui.AtfDebugUiLauncher \
   --html <configured-report-path> --port 0
 ```
+
+Classpath-ul rezolvat include clasele `atf-debug-ui`, `atf-console` și
+dependențele lor runtime tranzitive. Numai `atf-debug-ui/target/classes` este
+insuficient: launcher-ul folosește consola, care încarcă și bibliotecile de configurare.
+
+- IntelliJ: selectează classpath-ul modulului `atf-debug-ui`; IDE-ul rezolvă
+  dependențele Maven.
+- Terminal: folosește classpath-ul runtime rezolvat de build/IDE pentru acel
+  modul, cu separatorul platformei.
 
 Nu se opresc procesele altui agent. Dacă hostul este deja saturat, testele
 reporting pot fi rulate izolat cu `-DforkCount=0`; acest mod este o măsură de

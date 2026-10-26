@@ -16,7 +16,7 @@ class DomInspectorMigrationBoundaryTest {
         Path root = projectRoot();
         Path test = root.resolve("atf-reporting-tests/src/test/java/atf/ui/tests/extent");
         Path main = root.resolve("atf-reporting/src/main/java/atf/ui/tests/extent");
-        Path reporting = root.resolve("atf-reporting/src/main/java/atf/api/reporting/ui/audit/section");
+        Path reporting = root.resolve("atf-reporting/src/main/java/atf/reporting/ui/audit/section");
         assertTrue(Files.isRegularFile(test.resolve("support/section/extract/EvidenceSectionExtractor.java")));
         assertTrue(Files.isRegularFile(test.resolve("support/section/extract/ApiReportStructureExtractor.java")));
         assertTrue(Files.isRegularFile(test.resolve("support/section/extract/FilterSectionExtractor.java")));

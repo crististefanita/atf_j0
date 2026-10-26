@@ -25,7 +25,7 @@ class ApiTestBoundaryArchitectureTest {
     void apiTestNamespaceDoesNotImportUiOrBrowserConcerns() throws Exception {
         Path root = ArchitectureTestSupport.locateProjectRoot();
         Path apiTests = root.resolve(AtfModuleIds.REPORTING_TESTS)
-                .resolve("src/test/java/atf/api/tests/api");
+                .resolve("src/test/java/atf/reporting/api/tests/api");
         List<String> violations = new ArrayList<>();
         try (var files = Files.walk(apiTests)) {
             files.filter(path -> path.toString().endsWith(".java")).forEach(path -> {
@@ -35,7 +35,8 @@ class ApiTestBoundaryArchitectureTest {
                         if (source.lines()
                                 .map(String::strip)
                                 .filter(line -> line.startsWith("import "))
-                                .anyMatch(line -> line.contains(forbidden))) {
+                                .anyMatch(line -> line.matches("import\\s+(?:static\\s+)?"
+                                        + java.util.regex.Pattern.quote(forbidden) + "(?:\\.|;).*"))) {
                             violations.add(root.relativize(path) + " contains API/UI boundary token: " + forbidden);
                         }
                     }

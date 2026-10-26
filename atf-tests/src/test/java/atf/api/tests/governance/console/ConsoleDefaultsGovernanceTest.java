@@ -45,7 +45,7 @@ public class ConsoleDefaultsGovernanceTest {
         Path root = locateProjectRoot();
         require(root, "atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/audit/ReportAuditContext.java",
                 "ReportingTestConsole.configured()", "console.reporting()", "console.core()");
-        require(root, "atf-reporting-tests/src/test/java/atf/api/tests/support/junit/ApiTestFixture.java",
+        require(root, "atf-reporting-tests/src/test/java/atf/reporting/api/tests/support/junit/ApiTestFixture.java",
                 "AtfConsoleReporter.configuredStdout()", "lifecycle.console()");
         require(root, "atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/api/ApiReportAuditSetup.java",
                 "AtfConsoleReporter.configuredStdout()");
