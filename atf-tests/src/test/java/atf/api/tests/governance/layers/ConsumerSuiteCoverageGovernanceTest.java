@@ -1,6 +1,6 @@
 package atf.api.tests.governance.layers;
 
-import atf.api.testkit.AtfIntegrationTest;
+import atf.testkit.AtfIntegrationTest;
 import atf.api.tests.governance.AtfGovernanceTestSupport;
 import org.junit.jupiter.api.Test;
 

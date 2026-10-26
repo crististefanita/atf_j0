@@ -1,18 +1,18 @@
 package atf.ui.tests.extent.support.inspection.layout;
 
-import atf.api.reporting.api.ReportRequest;
-import atf.api.reporting.api.ReportAttemptRecord;
-import atf.api.reporting.api.ReportResponse;
-import atf.api.reporting.api.ReportTraceMetadata;
-import atf.api.reporting.api.ReportTransportProvenance;
-import atf.api.reporting.console.AtfConsoleSink;
-import atf.api.reporting.contract.AtfAssertion;
-import atf.api.reporting.contract.AtfReportStatus;
-import atf.api.reporting.model.ReportExecutionEvidence;
-import atf.api.reporting.ui.model.AtfUiActionRecord;
-import atf.api.reporting.contract.AtfGherkinKeyword;
-import atf.api.reporting.ui.UiExtentReportOptions;
-import atf.api.reporting.ui.UiExtentReportSession;
+import atf.reporting.api.ReportRequest;
+import atf.reporting.api.ReportAttemptRecord;
+import atf.reporting.api.ReportResponse;
+import atf.reporting.api.ReportTraceMetadata;
+import atf.reporting.api.ReportTransportProvenance;
+import atf.reporting.console.AtfConsoleSink;
+import atf.reporting.contract.AtfAssertion;
+import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.model.ReportExecutionEvidence;
+import atf.reporting.ui.model.AtfUiActionRecord;
+import atf.reporting.contract.AtfGherkinKeyword;
+import atf.reporting.ui.UiExtentReportOptions;
+import atf.reporting.ui.UiExtentReportSession;
 
 import java.nio.file.Path;
 import java.time.Duration;
@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
-import static atf.api.reporting.ui.validation.UiApiValidationFixtures.observedExchanges;
+import static atf.reporting.ui.validation.UiApiValidationFixtures.observedExchanges;
 
 /** Creates authentic Extent artifacts with bounded or overflowing table data for browser proof. */
 public final class ScrollableTableReportFixture {

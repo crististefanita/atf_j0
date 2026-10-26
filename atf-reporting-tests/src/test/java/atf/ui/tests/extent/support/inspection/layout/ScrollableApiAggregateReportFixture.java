@@ -1,11 +1,11 @@
 package atf.ui.tests.extent.support.inspection.layout;
 
-import atf.api.reporting.configuration.ExtentReportConfiguration;
-import atf.api.reporting.contract.AtfReportPorts;
-import atf.api.reporting.contract.AtfReportStatus;
-import atf.api.reporting.extent.session.ExtentReportSession;
-import atf.api.reporting.model.ReportExecutionEvidence;
-import atf.api.reporting.ui.network.ReportNetworkInspector;
+import atf.reporting.configuration.ExtentReportConfiguration;
+import atf.reporting.contract.AtfReportPorts;
+import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.extent.session.ExtentReportSession;
+import atf.reporting.model.ReportExecutionEvidence;
+import atf.reporting.ui.network.ReportNetworkInspector;
 
 import java.nio.file.Path;
 import java.util.ArrayList;

@@ -1,6 +1,6 @@
 package atf.api.tests.governance.changes;
 
-import atf.api.core.config.module.AtfModuleIds;
+import atf.core.config.module.AtfModuleIds;
 
 import java.nio.file.Path;
 import java.time.LocalDate;

@@ -1,8 +1,8 @@
 package atf.api.tests.governance;
 
-import atf.api.core.config.module.AtfModuleIds;
-import atf.api.core.files.AtfPathLocator;
-import atf.api.testkit.AtfComponentTest;
+import atf.core.config.module.AtfModuleIds;
+import atf.core.files.AtfPathLocator;
+import atf.testkit.AtfComponentTest;
 
 import org.junit.jupiter.api.Test;
 
@@ -51,15 +51,15 @@ public class AtfPackageCohesionGovernanceTest {
         Map<String, List<String>> inventory = productionPackageClassInventory(locateProjectRoot());
         assertEquals(Set.of("AutoExCatalogApiPrecondition.java", "AutoExPurchaseJourney.java",
                         "AutoExPurchaseSession.java", "AutoExPurchaseTraceStep.java"),
-                Set.copyOf(inventory.getOrDefault("atf.ui.autoex.support.journey", List.of())));
+                Set.copyOf(inventory.getOrDefault("atf.autoex.support.journey", List.of())));
         assertEquals(Set.of("AutoExAccountCleanupAction.java", "AutoExAccountCleanupDecision.java",
                         "AutoExAccountDeletionAttempt.java", "AutoExAccountDeletionProgress.java",
                         "AutoExTestAccount.java"),
-                Set.copyOf(inventory.getOrDefault("atf.ui.autoex.support.account", List.of())));
+                Set.copyOf(inventory.getOrDefault("atf.autoex.support.account", List.of())));
         assertEquals(Set.of("AutoExCatalogAssertions.java", "AutoExCatalogSnapshot.java"),
-                Set.copyOf(inventory.getOrDefault("atf.ui.autoex.support.catalog", List.of())));
+                Set.copyOf(inventory.getOrDefault("atf.autoex.support.catalog", List.of())));
         assertEquals(Set.of("AutoExPrivacyConsentHandler.java", "AutoExVignetteHandler.java"),
-                Set.copyOf(inventory.getOrDefault("atf.ui.autoex.support.browser", List.of())));
+                Set.copyOf(inventory.getOrDefault("atf.autoex.support.browser", List.of())));
     }
 
     @Test
@@ -74,13 +74,13 @@ public class AtfPackageCohesionGovernanceTest {
                         "AiEvaluationValues.java",
                         "AiFieldComparison.java",
                         "AiFieldExpectation.java"),
-                Set.copyOf(inventory.getOrDefault("atf.api.validation.ai", List.of())));
+                Set.copyOf(inventory.getOrDefault("atf.validation.ai", List.of())));
         assertEquals(Set.of("AiGroundingObservation.java", "AiGroundingRequirement.java",
                         "AiSourceReference.java"),
-                Set.copyOf(inventory.getOrDefault("atf.api.validation.ai.grounding", List.of())));
+                Set.copyOf(inventory.getOrDefault("atf.validation.ai.grounding", List.of())));
         assertEquals(List.of("AiInvocationEvidence.java"),
-                inventory.getOrDefault("atf.api.validation.ai.invocation", List.of()));
-        assertFalse(inventory.containsKey("atf.api.validation.ai.support"),
+                inventory.getOrDefault("atf.validation.ai.invocation", List.of()));
+        assertFalse(inventory.containsKey("atf.validation.ai.support"),
                 "internal AI defensive-copy helpers must not become a public support package");
     }
 

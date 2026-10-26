@@ -1,12 +1,12 @@
 package atf.ui.tests.extent.component.architecture;
-import atf.api.testkit.AtfComponentTest;
+import atf.testkit.AtfComponentTest;
 import atf.ui.tests.extent.support.api.ApiReportAuditSetup;
 import atf.ui.tests.extent.support.config.ApiReportEnvironmentSnapshotFactory;
 import atf.ui.tests.extent.support.data.UiTestData;
 
-import atf.api.ui.config.UiBrowserConfiguration;
+import atf.ui.config.UiBrowserConfiguration;
 import atf.ui.tests.extent.support.config.UiConfiguration;
-import atf.api.ui.config.UiScreenValidationConfiguration;
+import atf.ui.config.UiScreenValidationConfiguration;
 import atf.ui.tests.extent.support.api.ApiReportSetupDeclarations;
 import org.junit.jupiter.api.Test;
 

@@ -1,22 +1,23 @@
 package atf.ui.tests.extent.support.api;
-import atf.api.console.AtfConsoleReporter;
+import atf.console.AtfConsoleReporter;
+import atf.core.config.ApiTransportMode;
 import atf.ui.tests.extent.support.config.ReportingTestResources;
 import atf.ui.tests.extent.support.config.ApiReportEnvironmentSnapshotFactory;
-import atf.api.core.config.source.ApiBootstrapConfigurationLoader;
-import atf.api.core.testing.api.ApiScenarioSelection;
-import atf.api.testkit.setup.api.ApiScenarioSetup;
-import atf.api.tests.support.setup.ApiScenarioSetupCatalog;
+import atf.core.config.source.ApiBootstrapConfigurationLoader;
+import atf.core.testing.api.ApiScenarioSelection;
+import atf.testkit.setup.api.ApiScenarioSetup;
+import atf.reporting.api.tests.support.setup.ApiScenarioSetupCatalog;
 import atf.ui.tests.extent.support.data.UiTestData;
 
-import atf.api.execution.ApiModule;
-import atf.api.execution.ApiModuleFactory;
-import atf.api.core.lifecycle.ApiScenarioLifecycleRunner;
-import atf.api.mock.AtfMockConfiguration;
-import atf.api.mock.AtfMockTransport;
+import atf.reporting.api.execution.ApiModule;
+import atf.reporting.api.execution.ApiModuleFactory;
+import atf.core.lifecycle.ApiScenarioLifecycleRunner;
+import atf.mock.AtfMockConfiguration;
+import atf.mock.AtfMockTransport;
 
-import atf.api.reporting.extent.session.ExtentReportSession;
-import atf.api.reporting.configuration.AtfReportConfigurationLoader;
-import atf.api.reporting.support.CoreReportPortsAdapter;
+import atf.reporting.extent.session.ExtentReportSession;
+import atf.reporting.configuration.AtfReportConfigurationLoader;
+import atf.reporting.support.CoreReportPortsAdapter;
 import atf.ui.tests.extent.support.config.UiConfiguration;
 import atf.ui.tests.extent.support.config.UiAuditSuiteConfiguration;
 import atf.ui.tests.extent.component.plan.ApiScenarioManifest;
@@ -168,7 +169,7 @@ public class ApiReportAuditSetup {
 
     private static ApiModule acceptanceApi(AtfMockTransport transport) {
         var bootstrap = ApiBootstrapConfigurationLoader.load();
-        if (bootstrap.transportPolicy().mode() != atf.api.core.config.ApiTransportMode.ACCEPTANCE) {
+        if (bootstrap.transportPolicy().mode() != ApiTransportMode.ACCEPTANCE) {
             throw new IllegalStateException("UI API setup requires the acceptance transport; live is never implicit");
         }
         return ApiModuleFactory.bootstrap(bootstrap, transport, null, AtfConsoleReporter.configuredStdout());

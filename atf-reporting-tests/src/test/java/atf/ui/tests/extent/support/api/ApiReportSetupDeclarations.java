@@ -1,7 +1,7 @@
 package atf.ui.tests.extent.support.api;
-import atf.api.testkit.setup.api.ApiScenarioSetup;
-import atf.api.testkit.setup.api.ApiTestRef;
-import atf.api.tests.api.posts.PostsApiScenarios;
+import atf.testkit.setup.api.ApiScenarioSetup;
+import atf.testkit.setup.api.ApiTestRef;
+import atf.reporting.api.tests.api.posts.PostsApiScenarios;
 
 
 /** Annotation-only classes used to test API-family setup resolution. */

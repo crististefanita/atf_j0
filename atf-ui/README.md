@@ -272,7 +272,7 @@ markup și randare este în
 
 ### Audit comun al ecranului
 
-- `atf.api.ui.audit.UiScreenAudit` înregistrează observația de ecran și poate
+- `atf.ui.audit.UiScreenAudit` înregistrează observația de ecran și poate
   transfera secvența de acțiuni printr-un singur `drain`.
 - Primește numărul aserțiunilor și verdictul consumerului; nu cunoaște Shop,
   AutoEx, JUnit sau Reporting și nu calculează verdictul business.

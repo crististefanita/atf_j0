@@ -54,7 +54,7 @@ Fiecare clasă executabilă declară exact un nivel:
 ### Verificări de compoziție
 
 - `AtfModuleTest`/`AtfModuleTestCondition` rămân specifice suitei
-  `atf-reporting-tests`, în `atf.api.reporting.test`;
+  `atf-reporting-tests`, în `atf.reporting.test`;
 - un modul lipsă poate produce `SKIPPED` prin gate-ul dedicat;
 - kit-ul nu introduce o booleană UI paralelă.
 
@@ -62,17 +62,17 @@ Fiecare clasă executabilă declară exact un nivel:
 
 | Package | API | Aplicare |
 |---|---|---|
-| `atf.api.testkit.channel` | `AtfTestChannel`, `TestChannelPlan`, resolver | canal UI/API/UI_API, separat de tag-ul JUnit al nivelului |
-| `atf.api.testkit` + `.console` | `AtfConsoleMessages`, `AtfConsoleMessagePolicyResolver` | politică typed de consolă; `atf-console` o aplică fără sink/formatter duplicat |
-| `atf.api.testkit.reporting` | `AtfReportPath`, `AtfReportPathPolicyResolver` | opt-in separat pentru calea raportului publicat |
-| `atf.api.testkit.output` | adnotările de director și `ReportOutputDirectory` | ancoră UI prin adnotare sau path project-relative validat pentru un artifact |
-| `atf.api.testkit.setup.api` | `ApiScenarioSetup`, `ApiTestRef` | declarații; catalogul și executarea rămân la consumator |
-| `atf.api.testkit.documentation` | `DocumentationTarget` repeatable | selecție de documente; validatorii rămân în ATF Tests |
-| `atf.api.testkit.evidence` | `AtfUiEvidence`, `AtfUiEvidenceFlow`, `AtfUiScreenshotPolicy` | declară independent gruparea flow-ului și intenția capturilor; adaptorii consumer le mapează în profilul Reporting |
-| `atf.api.testkit.lifecycle` | `TestRunInitialization`, `CloseOnceResource`, `ArmedCleanup`, `FailureAwareCleanup`, `FailureEvidenceCleanup`, `AtfE2eActivationPolicy` | achiziție/rollback, cleanup și activare E2E neutre; fără API UI/Reporting |
-| `atf.api.testkit.scope` | `TestRunScope`, `ScopedTestValue<T>` | ownership explicit în Store-ul JUnit, fără cache static sau resurse UI |
+| `atf.testkit.channel` | `AtfTestChannel`, `TestChannelPlan`, resolver | canal UI/API/UI_API, separat de tag-ul JUnit al nivelului |
+| `atf.testkit` + `.console` | `AtfConsoleMessages`, `AtfConsoleMessagePolicyResolver` | politică typed de consolă; `atf-console` o aplică fără sink/formatter duplicat |
+| `atf.testkit.reporting` | `AtfReportPath`, `AtfReportPathPolicyResolver` | opt-in separat pentru calea raportului publicat |
+| `atf.testkit.output` | adnotările de director și `ReportOutputDirectory` | ancoră UI prin adnotare sau path project-relative validat pentru un artifact |
+| `atf.testkit.setup.api` | `ApiScenarioSetup`, `ApiTestRef` | declarații; catalogul și executarea rămân la consumator |
+| `atf.testkit.documentation` | `DocumentationTarget` repeatable | selecție de documente; validatorii rămân în ATF Tests |
+| `atf.testkit.evidence` | `AtfUiEvidence`, `AtfUiEvidenceFlow`, `AtfUiScreenshotPolicy` | declară independent gruparea flow-ului și intenția capturilor; adaptorii consumer le mapează în profilul Reporting |
+| `atf.testkit.lifecycle` | `TestRunInitialization`, `CloseOnceResource`, `ArmedCleanup`, `FailureAwareCleanup`, `FailureEvidenceCleanup`, `AtfE2eActivationPolicy` | achiziție/rollback, cleanup și activare E2E neutre; fără API UI/Reporting |
+| `atf.testkit.scope` | `TestRunScope`, `ScopedTestValue<T>` | ownership explicit în Store-ul JUnit, fără cache static sau resurse UI |
 
-`atf.api.testkit.lifecycle` este un pachet al modulului existent
+`atf.testkit.lifecycle` este un pachet al modulului existent
 `atf-test-kit`, nu un modul nou. Nu introduce dependențe către UI sau Reporting.
 
 | Contract | Comportament și probă |
@@ -162,7 +162,7 @@ Nu se creează un modul UI nou și nu se mută harness-urile consumerilor ca ata
 Ținta este eliminarea infrastructurii duplicate din consumeri, nu mutarea
 browserului sau raportului în Kit. Primitivele din `lifecycle` există deja.
 
-- Scope-ul neutru există în `atf.api.testkit.scope`; Shop îl consumă pentru
+- Scope-ul neutru există în `atf.testkit.scope`; Shop îl consumă pentru
   referința contului, păstrând înregistrarea și autentificarea la ownerul aplicației.
   Un adaptor JUnit suplimentar cere un contract comun demonstrat.
 - Runtime-ul specific aplicației se separă în consumer; fixture-urile și
@@ -185,7 +185,7 @@ Diferențele rămase și probele cerute sunt în
 module tests → atf-test-kit (test scope)
 atf-test-kit -X-> production
 atf-console --optional--> atf-test-kit (JUnit policy bridge only)
-reporting composition test scope → atf.api.reporting.test
+reporting composition test scope → atf.reporting.test
 atf-reporting-tests --test--> atf-reporting production
 ```
 

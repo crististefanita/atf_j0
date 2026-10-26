@@ -1,10 +1,10 @@
 package atf.ui.tests.extent.support.config.output;
 
-import atf.api.testkit.AtfUnitTest;
-import atf.api.testkit.output.UiReportSubdirectory;
-import atf.api.testkit.output.ProjectRelativeUiReportDirectory;
-import atf.api.testkit.channel.AtfTestChannel;
-import atf.api.testkit.channel.TestChannel;
+import atf.testkit.AtfUnitTest;
+import atf.testkit.output.UiReportSubdirectory;
+import atf.testkit.output.ProjectRelativeUiReportDirectory;
+import atf.testkit.channel.AtfTestChannel;
+import atf.testkit.channel.TestChannel;
 import atf.ui.tests.extent.support.config.ReportingTestResources;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +12,7 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static atf.api.testkit.output.ReportOutputDirectory.resolve;
+import static atf.testkit.output.ReportOutputDirectory.resolve;
 
 @AtfUnitTest
 class UiReportSubdirectoryTest {

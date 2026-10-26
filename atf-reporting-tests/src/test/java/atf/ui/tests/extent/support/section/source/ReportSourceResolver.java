@@ -1,11 +1,11 @@
 package atf.ui.tests.extent.support.section.source;
-import atf.api.reporting.artifact.ReportArtifactIdentity;
-import atf.api.reporting.artifact.ReportArtifactInspector;
+import atf.reporting.artifact.ReportArtifactIdentity;
+import atf.reporting.artifact.ReportArtifactInspector;
 import atf.ui.tests.extent.support.config.UiConfiguration;
-import atf.api.reporting.ui.audit.plan.SectionAuditSpec;
-import atf.api.reporting.ui.audit.plan.UiExtentReportSource;
-import atf.api.reporting.ui.audit.input.ReportAuditInput;
-import atf.api.reporting.ui.audit.source.ResolvedReportSource;
+import atf.reporting.ui.audit.plan.SectionAuditSpec;
+import atf.reporting.ui.audit.plan.UiExtentReportSource;
+import atf.reporting.ui.audit.input.ReportAuditInput;
+import atf.reporting.ui.audit.source.ResolvedReportSource;
 
 import java.io.IOException;
 import java.io.InputStream;

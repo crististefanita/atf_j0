@@ -1,9 +1,9 @@
 package atf.ui.tests.extent.support.inspection.duration;
-import atf.api.reporting.audit.ReportAuditChecks;
-import atf.api.reporting.ui.contract.ReportUiContract;
+import atf.reporting.audit.ReportAuditChecks;
+import atf.reporting.ui.contract.ReportUiContract;
 import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
 
-import atf.api.reporting.audit.ReportAuditSnapshot;
+import atf.reporting.audit.ReportAuditSnapshot;
 import com.microsoft.playwright.Page;
 
 import java.util.ArrayList;

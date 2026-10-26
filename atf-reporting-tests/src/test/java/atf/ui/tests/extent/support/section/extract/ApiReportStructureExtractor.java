@@ -1,12 +1,11 @@
 package atf.ui.tests.extent.support.section.extract;
 
 import atf.ui.tests.extent.support.uireport.browser.UiComputedStyleColorEvidence;
-import atf.api.reporting.audit.ReportAuditChecks;
-import atf.api.reporting.contract.AtfReportStatus;
-import atf.api.reporting.ui.contract.ReportUiContract;
+import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.ui.contract.ReportUiContract;
 import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
 
-import atf.api.reporting.audit.ReportAuditSnapshot;
+import atf.reporting.audit.ReportAuditSnapshot;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;

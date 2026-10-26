@@ -1,7 +1,7 @@
 package atf.ui.tests.extent.support.uireport.contract;
-import atf.api.reporting.ui.contract.UiReportContractSpec;
-import atf.api.reporting.artifact.ReportArtifactIdentity;
-import atf.api.reporting.artifact.ReportArtifactInspector;
+import atf.reporting.ui.contract.UiReportContractSpec;
+import atf.reporting.artifact.ReportArtifactIdentity;
+import atf.reporting.artifact.ReportArtifactInspector;
 import atf.ui.tests.extent.support.config.UiConfiguration;
 
 import java.io.IOException;

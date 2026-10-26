@@ -1,11 +1,11 @@
 package atf.ui.tests.extent.support.inspection.disclosure;
 
-import atf.api.reporting.api.ReportRequest;
-import atf.api.reporting.api.ReportResponse;
-import atf.api.reporting.api.ReportTransportProvenance;
-import atf.api.reporting.extent.session.ExtentReportSession;
-import atf.api.reporting.model.ReportExecutionEvidence;
-import atf.api.reporting.support.TestReportPaths;
+import atf.reporting.api.ReportRequest;
+import atf.reporting.api.ReportResponse;
+import atf.reporting.api.ReportTransportProvenance;
+import atf.reporting.extent.session.ExtentReportSession;
+import atf.reporting.model.ReportExecutionEvidence;
+import atf.reporting.support.TestReportPaths;
 import atf.ui.tests.extent.support.locators.disclosure.ReportDisclosureLocators;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserType;
@@ -19,10 +19,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static atf.api.reporting.contract.AtfReportStatus.PASS;
-import static atf.api.reporting.markup.vocabulary.AtfReportHtmlVocabulary.CssClass.EXECUTION_EVIDENCE;
-import static atf.api.reporting.markup.vocabulary.AtfReportHtmlVocabulary.CssClass.REQUEST_EVIDENCE;
-import static atf.api.reporting.markup.vocabulary.AtfReportHtmlVocabulary.CssClass.RESPONSE_EVIDENCE;
+import static atf.reporting.contract.AtfReportStatus.PASS;
+import static atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary.CssClass.EXECUTION_EVIDENCE;
+import static atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary.CssClass.REQUEST_EVIDENCE;
+import static atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary.CssClass.RESPONSE_EVIDENCE;
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

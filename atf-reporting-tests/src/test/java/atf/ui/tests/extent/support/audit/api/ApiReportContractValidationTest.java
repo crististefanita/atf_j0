@@ -1,6 +1,6 @@
 package atf.ui.tests.extent.support.audit.api;
 
-import atf.api.testkit.AtfUnitTest;
+import atf.testkit.AtfUnitTest;
 import atf.ui.tests.extent.support.data.UiTestData;
 import org.junit.jupiter.api.Test;
 

@@ -1,13 +1,14 @@
 package atf.ui.tests.extent.support.section.module;
-import atf.api.reporting.ui.audit.runtime.SectionAuditCheckExecutor;
-import atf.api.reporting.audit.ValidationResult;
+import atf.reporting.ui.audit.plan.ExtentSectionCheck;
+import atf.reporting.ui.audit.runtime.SectionAuditCheckExecutor;
+import atf.reporting.audit.ValidationResult;
 
-import atf.api.reporting.audit.ReportAuditSnapshot;
-import atf.api.reporting.ui.audit.plan.ExtentSection;
-import atf.api.reporting.ui.audit.plan.SectionAuditSpec;
+import atf.reporting.audit.ReportAuditSnapshot;
+import atf.reporting.ui.audit.plan.ExtentSection;
+import atf.reporting.ui.audit.plan.SectionAuditSpec;
 import atf.ui.tests.extent.support.section.runtime.SectionAuditFixture;
-import atf.api.reporting.ui.audit.result.SectionAuditResult;
-import atf.api.reporting.ui.audit.section.EvidenceSectionValidator;
+import atf.reporting.ui.audit.result.SectionAuditResult;
+import atf.reporting.ui.audit.section.EvidenceSectionValidator;
 
 
 /** Evidence browser adapter; request/response JSON is validated as one contract. */
@@ -22,11 +23,11 @@ public final class EvidenceSectionAuditModule implements ExtentSectionAuditModul
         var page = fixture.flow().openTests();
         ReportAuditSnapshot.RequestEvidence snapshot =
                 fixture.exploration().inspectFirstRequestWithEvidence(page);
-        ValidationResult result = (spec.hasCheck(atf.api.reporting.ui.audit.plan.ExtentSectionCheck.STRUCTURE)
-                || spec.hasCheck(atf.api.reporting.ui.audit.plan.ExtentSectionCheck.JSON_CONTRACT))
+        ValidationResult result = (spec.hasCheck(ExtentSectionCheck.STRUCTURE)
+                || spec.hasCheck(ExtentSectionCheck.JSON_CONTRACT))
                 ? validator.validate(snapshot) : ValidationResult.empty();
         if (fixture.setup() != null && spec.hasCheck(
-                atf.api.reporting.ui.audit.plan.ExtentSectionCheck.MOCK_RECONCILIATION)) {
+                ExtentSectionCheck.MOCK_RECONCILIATION)) {
             result = result.merge(fixture.reconcileMockContracts(page));
         }
         SectionAuditCheckExecutor.Execution execution = checkExecutor.execute(section(), spec, result);

@@ -1,7 +1,7 @@
 package atf.ui.tests.extent.support.inspection.disclosure;
 
-import atf.api.reporting.extent.session.ExtentReportSession;
-import atf.api.reporting.support.TestReportPaths;
+import atf.reporting.extent.session.ExtentReportSession;
+import atf.reporting.support.TestReportPaths;
 import atf.ui.tests.extent.support.locators.disclosure.ReportBulkDisclosureLocators;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserType;
@@ -10,7 +10,7 @@ import com.microsoft.playwright.Playwright;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import static atf.api.reporting.contract.AtfReportStatus.PASS;
+import static atf.reporting.contract.AtfReportStatus.PASS;
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;

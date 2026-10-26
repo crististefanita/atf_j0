@@ -1,17 +1,18 @@
 package atf.ui.tests.extent.component.section.contract;
-import atf.api.testkit.AtfComponentTest;
-import atf.api.reporting.ui.audit.input.ReportAuditInputKind;
+import atf.reporting.ui.audit.plan.ExtentJourney;
+import atf.testkit.AtfComponentTest;
+import atf.reporting.ui.audit.input.ReportAuditInputKind;
 
-import atf.api.ui.config.UiBrowserConfiguration;
+import atf.ui.config.UiBrowserConfiguration;
 import atf.ui.tests.extent.support.config.UiConfiguration;
-import atf.api.ui.config.UiScreenValidationConfiguration;
-import atf.api.reporting.ui.audit.plan.ExtentSection;
-import atf.api.reporting.ui.audit.plan.ExtentSectionCheck;
-import atf.api.reporting.ui.audit.plan.SectionAuditSpec;
-import atf.api.reporting.ui.audit.plan.UiExtentReportSource;
+import atf.ui.config.UiScreenValidationConfiguration;
+import atf.reporting.ui.audit.plan.ExtentSection;
+import atf.reporting.ui.audit.plan.ExtentSectionCheck;
+import atf.reporting.ui.audit.plan.SectionAuditSpec;
+import atf.reporting.ui.audit.plan.UiExtentReportSource;
 import atf.ui.tests.extent.support.section.fixtures.MissingApiSetupDeclaration;
 import atf.ui.tests.extent.support.section.source.ReportSourceResolver;
-import atf.api.reporting.ui.audit.source.ResolvedReportSource;
+import atf.reporting.ui.audit.source.ResolvedReportSource;
 import atf.ui.tests.extent.support.section.runtime.SectionAuditPreconditions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -73,6 +74,6 @@ class SectionSourceResolverTest {
         return new SectionAuditSpec("source-test", source, "", property,
                 java.util.Set.of(ExtentSection.TESTS),
                 java.util.Set.of(ExtentSectionCheck.STRUCTURE),
-                atf.api.reporting.ui.audit.plan.ExtentJourney.NONE);
+                ExtentJourney.NONE);
     }
 }

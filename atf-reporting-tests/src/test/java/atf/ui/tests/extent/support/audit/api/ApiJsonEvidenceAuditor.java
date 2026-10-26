@@ -1,12 +1,12 @@
 package atf.ui.tests.extent.support.audit.api;
-import atf.api.reporting.api.evidence.ReportBodyAvailability;
-import atf.api.reporting.audit.ReportAuditSnapshot;
-import atf.api.reporting.audit.ValidationResult;
+import atf.reporting.api.evidence.ReportBodyAvailability;
+import atf.reporting.audit.ReportAuditSnapshot;
+import atf.reporting.audit.ValidationResult;
 
 import com.microsoft.playwright.Locator;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
 import atf.ui.tests.extent.support.section.extract.ApiJsonEvidenceExtractor;
-import atf.api.reporting.ui.audit.section.JsonEvidenceValidator;
+import atf.reporting.ui.audit.section.JsonEvidenceValidator;
 
 import java.util.List;
 

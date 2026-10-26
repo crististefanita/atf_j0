@@ -1,13 +1,13 @@
 package atf.ui.tests.extent.component.plan;
 
-import atf.api.core.http.request.HttpMethod;
-import atf.api.testkit.setup.api.ApiScenarioSetup;
-import atf.api.testkit.setup.api.ApiTestRef;
-import atf.api.mock.MockRoutePaths;
-import atf.api.reporting.artifact.ReportArtifactInspector;
-import atf.api.reporting.contract.AtfReportStatus;
-import atf.api.testkit.AtfComponentTest;
-import atf.api.tests.api.posts.PostsApiScenarios;
+import atf.core.http.request.HttpMethod;
+import atf.testkit.setup.api.ApiScenarioSetup;
+import atf.testkit.setup.api.ApiTestRef;
+import atf.mock.MockRoutePaths;
+import atf.reporting.artifact.ReportArtifactInspector;
+import atf.reporting.contract.AtfReportStatus;
+import atf.testkit.AtfComponentTest;
+import atf.reporting.api.tests.api.posts.PostsApiScenarios;
 import atf.ui.tests.extent.support.api.ApiReportAuditSetup;
 import atf.ui.tests.extent.support.api.ApiReportSetupDeclarations;
 import atf.ui.tests.extent.support.config.ReportingTestResources;
@@ -15,10 +15,9 @@ import atf.ui.tests.extent.support.config.UiConfiguration;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Instant;
 
-import static atf.api.core.http.response.JsonBodyPolicy.validDocument;
+import static atf.core.http.response.JsonBodyPolicy.validDocument;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

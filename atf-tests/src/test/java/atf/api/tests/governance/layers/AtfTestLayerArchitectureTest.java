@@ -1,6 +1,6 @@
 package atf.api.tests.governance.layers;
 
-import atf.api.testkit.AtfIntegrationTest;
+import atf.testkit.AtfIntegrationTest;
 import atf.api.tests.governance.AtfGovernanceTestSupport;
 
 import org.junit.jupiter.api.Test;
@@ -96,7 +96,7 @@ public class AtfTestLayerArchitectureTest {
             String source = Files.readString(file);
             assertFalse(LAYER_ANNOTATIONS.stream().anyMatch(source::contains),
                     () -> "standalone reporting exception must not silently claim a reactor layer: " + file);
-            assertTrue(source.contains("atf.api.reporting"),
+            assertTrue(source.contains("atf.reporting"),
                     () -> "standalone reporting test must exercise the public reporting API: " + file);
             assertFalse(source.lines().anyMatch(line -> line.matches(
                             "\\s*import\\s+atf\\.api\\.(core|execution|validation|mock|console|ui|debugui|testkit)\\..*")),

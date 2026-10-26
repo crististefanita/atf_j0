@@ -1,9 +1,9 @@
 package atf.ui.tests.extent.component.support;
-import atf.api.testkit.AtfComponentTest;
-import atf.api.reporting.ui.audit.input.ReportAuditInput;
-import atf.api.reporting.ui.audit.input.ReportAuditInputKind;
+import atf.testkit.AtfComponentTest;
+import atf.reporting.ui.audit.input.ReportAuditInput;
+import atf.reporting.ui.audit.input.ReportAuditInputKind;
 import atf.ui.tests.extent.support.audit.ReportAuditInputs;
-import atf.api.reporting.ui.contract.ReportUiContract;
+import atf.reporting.ui.contract.ReportUiContract;
 
 import atf.ui.tests.extent.support.config.UiConfiguration;
 import org.junit.jupiter.api.Test;

@@ -1,12 +1,11 @@
 package atf.ui.tests.extent.component.section.architecture;
-import atf.api.testkit.AtfComponentTest;
-import atf.api.reporting.ui.audit.section.VisualEvidenceValidator;
-import atf.api.reporting.audit.ValidationResult;
+import atf.testkit.AtfComponentTest;
+import atf.reporting.ui.audit.section.VisualEvidenceValidator;
 
-import atf.api.reporting.audit.ReportAuditSnapshot;
-import atf.api.reporting.ui.audit.section.CategoriesSectionValidator;
-import atf.api.reporting.ui.audit.section.EvidenceSectionValidator;
-import atf.api.reporting.ui.audit.section.JsonEvidenceValidator;
+import atf.reporting.audit.ReportAuditSnapshot;
+import atf.reporting.ui.audit.section.CategoriesSectionValidator;
+import atf.reporting.ui.audit.section.EvidenceSectionValidator;
+import atf.reporting.ui.audit.section.JsonEvidenceValidator;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

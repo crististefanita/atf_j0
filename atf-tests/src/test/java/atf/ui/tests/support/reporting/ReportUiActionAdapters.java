@@ -1,8 +1,8 @@
 package atf.ui.tests.support.reporting;
 
-import atf.api.reporting.contract.AtfReportStatus;
-import atf.api.reporting.ui.model.AtfUiActionRecord;
-import atf.api.reporting.ui.model.AtfUiEvidenceSource;
+import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.ui.model.AtfUiActionRecord;
+import atf.reporting.ui.model.AtfUiEvidenceSource;
 
 import java.util.Collection;
 import java.util.List;
@@ -12,7 +12,7 @@ public final class ReportUiActionAdapters {
     private ReportUiActionAdapters() { }
 
     public static List<AtfUiActionRecord> from(
-            Collection<? extends atf.api.core.ui.AtfUiActionRecord> actions) {
+            Collection<? extends atf.core.ui.AtfUiActionRecord> actions) {
         if (actions == null || actions.isEmpty()) return List.of();
         return actions.stream().map(action -> new AtfUiActionRecord(
                 action.sequence(), action.operation(), action.target(), action.expected(),
@@ -20,7 +20,7 @@ public final class ReportUiActionAdapters {
                 AtfUiEvidenceSource.valueOf(action.source().name()))).toList();
     }
 
-    private static AtfReportStatus status(atf.api.core.reporting.contract.AtfReportStatus status) {
+    private static AtfReportStatus status(atf.core.reporting.contract.AtfReportStatus status) {
         return AtfReportStatus.valueOf(status.name());
     }
 }

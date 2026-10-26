@@ -1,11 +1,11 @@
 package atf.ui.tests.extent.support.section.extract;
 import atf.ui.tests.extent.support.audit.screen.ExistingReportStructureAuditor;
-import atf.api.reporting.ui.contract.ReportUiContract;
+import atf.reporting.ui.contract.ReportUiContract;
 import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
 
-import atf.api.ui.playwright.AtfLocator;
+import atf.ui.playwright.AtfLocator;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
-import atf.api.reporting.audit.ReportAuditSnapshot;
+import atf.reporting.audit.ReportAuditSnapshot;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 

@@ -1,8 +1,8 @@
 package atf.ui.tests.extent.component.inspection;
-import atf.api.testkit.AtfComponentTest;
+import atf.testkit.AtfComponentTest;
 import atf.ui.tests.extent.component.inspection.duration.ApiReportDurationProjectionPolicy;
 
-import atf.api.reporting.audit.ReportAuditSnapshot;
+import atf.reporting.audit.ReportAuditSnapshot;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

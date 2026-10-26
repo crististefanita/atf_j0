@@ -1,9 +1,9 @@
 package atf.ui.tests.extent.support.config;
 
-import atf.api.ui.config.UiBrowserConfiguration;
-import atf.api.ui.config.UiScreenValidationConfiguration;
-import atf.api.ui.config.UiRetryOperation;
-import atf.api.ui.config.UiRetryPolicy;
+import atf.ui.config.UiBrowserConfiguration;
+import atf.ui.config.UiScreenValidationConfiguration;
+import atf.ui.config.UiRetryOperation;
+import atf.ui.config.UiRetryPolicy;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

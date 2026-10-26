@@ -1,14 +1,14 @@
 package atf.ui.tests.extent.support.uireport.browser;
 import atf.ui.tests.extent.support.audit.ReportAuditContext;
-import atf.api.reporting.ui.audit.input.ReportAuditInput;
+import atf.reporting.ui.audit.input.ReportAuditInput;
 import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
-import atf.api.reporting.ui.contract.UiReportContractSpec;
+import atf.reporting.ui.contract.UiReportContractSpec;
 import atf.ui.tests.extent.support.uireport.contract.UiReportInput;
 import atf.ui.tests.extent.support.uireport.contract.UiReportInputResolver;
-import atf.api.reporting.ui.audit.vocabulary.UiAuditGherkin;
+import atf.reporting.ui.audit.vocabulary.UiAuditGherkin;
 
 import atf.ui.tests.extent.support.config.UiConfiguration;
-import atf.api.reporting.ui.contract.ReportUiContract;
+import atf.reporting.ui.contract.ReportUiContract;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
 import atf.ui.tests.extent.support.section.extract.ScreenValidationSectionExtractor;
 

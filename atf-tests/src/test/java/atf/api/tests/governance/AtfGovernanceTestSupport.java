@@ -1,9 +1,9 @@
 package atf.api.tests.governance;
 
-import atf.api.core.config.module.AtfModuleIds;
-import atf.api.core.files.AtfFileTree;
-import atf.api.core.files.AtfJavaSourceInventory;
-import atf.api.core.files.AtfPathLocator;
+import atf.core.config.module.AtfModuleIds;
+import atf.core.files.AtfFileTree;
+import atf.core.files.AtfJavaSourceInventory;
+import atf.core.files.AtfPathLocator;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,17 +22,17 @@ public final class AtfGovernanceTestSupport {
     static final List<String> PRODUCTION_MODULES = AtfModuleIds.SOURCE_GOVERNED_MODULES;
     /** Reviewed exceptions are explicit seams, never a blanket package-size waiver. */
     static final Map<String, String> REVIEWED_COHESION_EXCEPTIONS = Map.of(
-            "atf.api.core.http.response",
+            "atf.core.http.response",
             "core HTTP response vocabulary and typed operation descriptors share one response boundary",
-            "atf.api.reporting.api",
+            "atf.reporting.api",
             "standalone reporting contracts, evidence adapters and JSON policy share the public reporting boundary",
-            "atf.api.reporting.runtime.core",
+            "atf.reporting.runtime.core",
             "runtime core fragments share the single generated-script publication boundary",
-            "atf.api.reporting.runtime.section",
+            "atf.reporting.runtime.section",
             "Extent runtime section facades and their typed JS fragments share one publication boundary",
-            "atf.api.reporting.evidence",
+            "atf.reporting.evidence",
             "typed evidence table normalization and HTML evidence rendering share one stable reporting boundary",
-            "atf.api.reporting.html",
+            "atf.reporting.html",
             "HTML shell, semantic snapshot, overview, tests and fails views share one artifact projection boundary");
     /** The whole-reactor suite is intentionally kept together as one readable gate. */
     static final Map<String, String> REVIEWED_TEST_COHESION_EXCEPTIONS = Map.of();
@@ -244,7 +244,7 @@ public final class AtfGovernanceTestSupport {
             violations.add("missing source root: " + sourceRoot);
             return;
         }
-        Path acceptanceAdapter = sourceRoot.resolve("atf/api/reporting/api/acceptance");
+        Path acceptanceAdapter = sourceRoot.resolve("atf/reporting/api/acceptance");
         try (var files = Files.walk(sourceRoot)) {
             files.filter(path -> path.toString().endsWith(JAVA_SUFFIX))
                     .filter(path -> !path.startsWith(acceptanceAdapter))

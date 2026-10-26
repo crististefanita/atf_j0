@@ -1,7 +1,7 @@
 package atf.api.tests.governance.consumers;
 
-import atf.api.core.files.AtfFileTree;
-import atf.api.testkit.AtfIntegrationTest;
+import atf.core.files.AtfFileTree;
+import atf.testkit.AtfIntegrationTest;
 import atf.api.tests.governance.AtfGovernanceTestSupport;
 import org.junit.jupiter.api.Test;
 
@@ -20,29 +20,29 @@ public class ConsumerModuleArchitectureGovernanceTest {
     @Test
     void shopKeepsJUnitHarnessTestScopedAndRuntimeFactoriesInMain() throws IOException {
         Path module = module("atf-test-practice-shop");
-        Path testRoot = module.resolve("src/test/java/atf/shop/tests");
+        Path testRoot = module.resolve("src/test/atf/shop/tests");
         Path context = testRoot.resolve("support/lifecycle/ShopE2eContext.java");
 
         assertTrue(Files.isRegularFile(context), "Shop browser/report context must be test-scoped");
         assertFalse(Files.exists(module.resolve(
-                        "src/main/java/atf/shop/support/ShopE2eContext.java")),
+                        "src/main/atf/shop/support/ShopE2eContext.java")),
                 "browser/report lifecycle must not ship with the Shop runtime");
 
         for (String helper : List.of("support/reporting/ShopReportSystemMetadata.java")) {
             assertTrue(Files.isRegularFile(testRoot.resolve(helper)),
                     "Shop reporting adapter must remain test-scoped: " + helper);
-            assertFalse(Files.exists(module.resolve("src/main/java/atf/shop/" + helper)),
+            assertFalse(Files.exists(module.resolve("src/main/atf/shop/" + helper)),
                     "Shop reporting adapter must not enter the production artifact: " + helper);
         }
 
         for (String factory : List.of("evidence/ShopBrowserCaptureProvider.java",
                 "reporting/ShopScreenshotPolicy.java")) {
-            Path runtime = module.resolve("src/main/java/atf/shop/" + factory);
+            Path runtime = module.resolve("src/main/atf/shop/" + factory);
             assertTrue(Files.isRegularFile(runtime), "Shop runtime factory must have its main owner: " + factory);
             assertFalse(Files.exists(testRoot.resolve("support/" + factory)),
                     "do not restore a duplicate test-scoped runtime factory: " + factory);
             String source = Files.readString(runtime);
-            assertFalse(source.contains("org.junit") || source.contains("atf.api.testkit"),
+            assertFalse(source.contains("org.junit") || source.contains("atf.testkit"),
                     "runtime factories must not pull JUnit or Test Kit into Shop main: " + factory);
         }
 
@@ -56,8 +56,8 @@ public class ConsumerModuleArchitectureGovernanceTest {
     @Test
     void shopUiSourcesRespectTheLocatorAndSelectorBoundary() throws IOException {
         Path module = module("atf-test-practice-shop");
-        Path sourceRoot = module.resolve("src/main/java/atf/shop");
-        Path testRoot = module.resolve("src/test/java/atf/shop/tests");
+        Path sourceRoot = module.resolve("src/main/atf/shop");
+        Path testRoot = module.resolve("src/test/atf/shop/tests");
         Path locatorRoot = sourceRoot.resolve("locators").toAbsolutePath().normalize();
 
         for (Path source : javaFiles(sourceRoot, testRoot)) {
@@ -76,15 +76,15 @@ public class ConsumerModuleArchitectureGovernanceTest {
         assertTrue(locators.contains("DATA_TEST.equalsSelector(\"login-submit\")"));
         assertTrue(locators.contains("DATA_TEST.equalsSelector(\"register-submit\")"));
         assertFalse(locators.contains("input#"), "ID shorthand must not be the default selector form");
-        assertTrue(locators.contains("atf.api.ui.dom.HtmlElement")
-                        && locators.contains("atf.api.ui.dom.HtmlAttribute"),
+        assertTrue(locators.contains("atf.ui.dom.HtmlElement")
+                        && locators.contains("atf.ui.dom.HtmlAttribute"),
                 "Shop must reuse the typed DOM vocabulary from atf-ui");
     }
 
     @Test
     void shopLocalSelectionAndApiAuditKeepExplicitBoundaries() throws IOException {
         Path tests = module("atf-test-practice-shop")
-                .resolve("src/test/java/atf/shop/tests");
+                .resolve("src/test/atf/shop/tests");
         String componentSuite = Files.readString(tests.resolve("suites/ShopComponentSuite.java"));
         for (String selected : List.of("atf.shop.tests.component",
                 "atf.shop.tests.api.component",
@@ -101,7 +101,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
         assertFalse(componentSuite.contains("\"atf.shop.support.api\""),
                 "Shop API tests belong to the canonical test namespace");
         Path legacy = module("atf-test-practice-shop").resolve(
-                "src/test/java/atf/shop/support/api");
+                "src/test/atf/shop/support/api");
         assertTrue(javaFiles(legacy).isEmpty(), "do not restore tests under the runtime namespace");
         Path network = tests.resolve("api/network");
         for (String contract : List.of("ShopApiNetworkJournalTest", "ShopApiMethodFidelityTest")) {
@@ -111,7 +111,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
                     "consumer contracts must exercise public capture subscriptions");
         }
         String journal = Files.readString(module("atf-test-practice-shop").resolve(
-                "src/main/java/atf/shop/support/api/ShopApiNetworkJournal.java"));
+                "src/main/atf/shop/support/api/ShopApiNetworkJournal.java"));
         assertTrue(journal.contains("private void recordCapturedExchange("),
                 "moving tests must not widen the runtime recorder");
         String context = Files.readString(tests.resolve("support/lifecycle/ShopE2eContext.java"));
@@ -128,7 +128,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
     @Test
     void shopE2eTestsUseObservedAssertionsAndPerMethodHarnesses() throws IOException {
         Path e2e = module("atf-test-practice-shop")
-                .resolve("src/test/java/atf/shop/tests/e2e");
+                .resolve("src/test/atf/shop/tests/e2e");
         for (String name : List.of("ShopPurchaseE2eTest", "ShopUiOnlyPurchaseE2eTest",
                 "ShopUiOnlySingleFlowPurchaseE2eTest", "ShopAuthenticatedPurchaseE2eTest",
                 "ShopNewAccountPurchaseE2eTest")) {
@@ -158,8 +158,8 @@ public class ConsumerModuleArchitectureGovernanceTest {
     @Test
     void autoExKeepsRuntimeInMainAndJUnitAtTheExecutionBoundary() throws IOException {
         Path module = module("atf-test-auto-ex");
-        Path main = module.resolve("src/main/java/atf/ui/autoex");
-        Path test = module.resolve("src/test/java/atf/ui/tests/autoex");
+        Path main = module.resolve("src/main/java/atf/autoex");
+        Path test = module.resolve("src/test/java/atf/autoex/tests");
         Path journey = main.resolve("support/journey/AutoExPurchaseJourney.java");
         Path session = main.resolve("support/journey/AutoExPurchaseSession.java");
         String journeySource = Files.readString(journey);
@@ -175,9 +175,9 @@ public class ConsumerModuleArchitectureGovernanceTest {
         }
         assertTrue(sessionSource.contains("com.microsoft.playwright.Page"),
                 "the AutoEx runtime port may expose its browser capability");
-        assertTrue(sessionSource.contains("atf.api.reporting.contract.AtfAssertion"),
+        assertTrue(sessionSource.contains("contract.atf.reporting.AtfAssertion"),
                 "the AutoEx journey port may expose typed assertions");
-        assertFalse(sessionSource.contains("org.junit") || sessionSource.contains("atf.api.testkit"),
+        assertFalse(sessionSource.contains("org.junit") || sessionSource.contains("atf.testkit"),
                 "JUnit and generic test-kit concerns must remain outside runtime code");
         assertTrue(journeySource.contains("AutoExPurchaseTraceStep."));
         assertFalse(journeySource.contains("checkpoint(AtfGherkinKeyword"),
@@ -185,14 +185,14 @@ public class ConsumerModuleArchitectureGovernanceTest {
 
         for (Path source : javaFiles(main)) {
             String text = Files.readString(source);
-            assertFalse(text.contains("org.junit") || text.contains("atf.api.testkit"),
+            assertFalse(text.contains("org.junit") || text.contains("atf.testkit"),
                     "JUnit/test-kit imports must not leak into AutoEx main sources: " + source);
         }
         assertTrue(Files.isDirectory(test), "AutoEx test source root must exist");
         for (String runtime : List.of("AutoExE2eRun", "AutoExReportSession", "AutoExRunLifecycle")) {
             assertTrue(Files.isRegularFile(main.resolve("runtime/" + runtime + ".java")));
         }
-        Path legacy = module.resolve("src/test/java/atf/ui/autoex/support");
+        Path legacy = module.resolve("src/test/java/atf/autoex/support");
         for (String misplaced : List.of("AutoExE2eRun", "AutoExConsoleBridge", "AutoExCustomerApiSetup",
                 "AutoExProjectRoot", "AutoExEvidenceProfile", "AutoExE2eExtension")) {
             assertFalse(Files.exists(legacy.resolve(misplaced + ".java")),
@@ -207,9 +207,9 @@ public class ConsumerModuleArchitectureGovernanceTest {
 
     @Test
     void autoExSuitesKeepComponentPurchaseAndLiveApiExecutionSeparate() throws IOException {
-        Path tests = module("atf-test-auto-ex").resolve("src/test/java/atf/ui/tests/autoex");
+        Path tests = module("atf-test-auto-ex").resolve("src/test/java/atf/autoex/tests");
         String component = Files.readString(tests.resolve("suites/AutoExComponentSuite.java"));
-        assertTrue(component.contains("@SelectPackages(\"atf.ui.tests.autoex.component\")"));
+        assertTrue(component.contains("@SelectPackages(\"atf.autoex.tests.component\")"));
 
         String purchase = Files.readString(tests.resolve("suites/AutoExE2eSuite.java"));
         for (String test : List.of("AutoExPurchaseUiE2eTest.class",
@@ -243,13 +243,13 @@ public class ConsumerModuleArchitectureGovernanceTest {
                 "generic acquisition and rollback belong to Test Kit");
         Path autoEx = module("atf-test-auto-ex");
         assertFalse(Files.exists(autoEx.resolve(
-                "src/test/java/atf/ui/autoex/support/lifecycle/AutoExE2eInitialization.java")),
+                "src/test/java/atf/autoex/support/lifecycle/AutoExE2eInitialization.java")),
                 "do not recreate a consumer copy of generic initialization");
         assertFalse(Files.exists(autoEx.resolve(
-                "src/test/java/atf/ui/tests/autoex/component/lifecycle/AutoExE2eInitializationComponentTest.java")),
+                "src/test/java/atf/autoex/tests/component/lifecycle/AutoExE2eInitializationComponentTest.java")),
                 "factory-only rollback proofs belong next to the Test Kit primitive");
         assertTrue(Files.readString(autoEx.resolve(
-                "src/test/java/atf/ui/tests/autoex/extension/AutoExRunFactory.java"))
+                "src/test/java/atf/autoex/tests/extension/AutoExRunFactory.java"))
                 .contains("TestRunInitialization.create("),
                 "AutoEx must wire its browser/report callbacks into shared initialization");
 
@@ -257,7 +257,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
                 module("atf-reporting-tests").resolve("src/test/java"))) {
             String text = Files.readString(source);
             assertFalse(text.matches("(?s).*\\bimport\\s+(?:static\\s+)?"
-                            + "(?:atf\\.shop|atf\\.ui\\.(?:autoex|tests\\.autoex))\\..*"),
+                            + "(?:atf\\.shop|atf\\.autoex)\\..*"),
                     "neutral support/proofs must not import consumer classes: " + source);
         }
         for (Path source : javaFiles(kit.resolve("src/main/java"), kit.resolve("src/test/java"))) {
@@ -282,17 +282,17 @@ public class ConsumerModuleArchitectureGovernanceTest {
             assertTrue(Files.isRegularFile(kit.resolve("src/test/java/atf/api/testkit/" + primitive + "Test.java")));
         }
         Path autoEx = module("atf-test-auto-ex").resolve("src/test/java");
-        for (String duplicate : List.of("atf/ui/autoex/support/AutoExApiTrafficWindow.java",
-                "atf/ui/autoex/support/AutoExScreenAuditObservations.java",
-                "atf/ui/tests/autoex/api/AutoExApiAccountCleanup.java",
-                "atf/ui/tests/autoex/api/AutoExApiResponseAssertions.java")) {
+        for (String duplicate : List.of("atf/autoex/support/AutoExApiTrafficWindow.java",
+                "atf/autoex/support/AutoExScreenAuditObservations.java",
+                "atf/autoex/tests/api/AutoExApiAccountCleanup.java",
+                "atf/autoex/tests/api/AutoExApiResponseAssertions.java")) {
             assertFalse(Files.exists(autoEx.resolve(duplicate)),
                     "do not restore extracted or misplaced consumer support: " + duplicate);
         }
         String run = Files.readString(module("atf-test-auto-ex").resolve(
-                "src/main/java/atf/ui/autoex/runtime/AutoExE2eRun.java"));
+                "src/main/java/atf/autoex/runtime/AutoExE2eRun.java"));
         assertTrue(run.contains(".observationsSince(") && run.contains("UiScreenAudit.record("));
-        Path shop = module("atf-test-practice-shop").resolve("src/test/java/atf/shop/tests");
+        Path shop = module("atf-test-practice-shop").resolve("src/test/atf/shop/tests");
         String support = Files.readString(shop.resolve("support/ShopE2eTestSupport.java"));
         assertTrue(support.contains("new CloseOnceResource<>("));
         assertFalse(support.contains("class E2eResource"), "close-once must not be duplicated in Shop");

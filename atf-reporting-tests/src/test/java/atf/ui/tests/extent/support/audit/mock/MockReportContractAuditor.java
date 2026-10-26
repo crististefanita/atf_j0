@@ -1,11 +1,11 @@
 package atf.ui.tests.extent.support.audit.mock;
 
-import atf.api.mock.AtfMockConfiguration;
-import atf.api.mock.MockRoute;
-import atf.api.reporting.api.contract.ApiReportContractAuditor;
-import atf.api.reporting.api.contract.ApiReportContractCatalog;
-import atf.api.reporting.api.contract.ApiReportContractInput;
-import atf.api.reporting.api.contract.ApiReportRouteContract;
+import atf.mock.AtfMockConfiguration;
+import atf.mock.MockRoute;
+import atf.reporting.api.contract.ApiReportContractAuditor;
+import atf.reporting.api.contract.ApiReportContractCatalog;
+import atf.reporting.api.contract.ApiReportContractInput;
+import atf.reporting.api.contract.ApiReportRouteContract;
 import atf.ui.tests.extent.support.audit.api.ApiJsonEvidenceAuditor;
 
 import java.util.List;

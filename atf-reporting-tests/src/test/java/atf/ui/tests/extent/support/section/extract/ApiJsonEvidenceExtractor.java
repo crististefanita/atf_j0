@@ -1,9 +1,9 @@
 package atf.ui.tests.extent.support.section.extract;
 
-import atf.api.ui.dom.HtmlElement;
+import atf.ui.dom.HtmlElement;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
-import atf.api.reporting.audit.ReportAuditSnapshot;
-import atf.api.reporting.api.evidence.ReportBodyAvailability;
+import atf.reporting.audit.ReportAuditSnapshot;
+import atf.reporting.api.evidence.ReportBodyAvailability;
 import com.microsoft.playwright.Locator;
 
 import java.util.ArrayList;

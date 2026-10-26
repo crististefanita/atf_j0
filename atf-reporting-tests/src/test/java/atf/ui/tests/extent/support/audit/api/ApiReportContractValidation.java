@@ -2,11 +2,11 @@ package atf.ui.tests.extent.support.audit.api;
 import atf.ui.tests.extent.support.audit.mock.MockReportContractAuditor;
 import atf.ui.tests.extent.support.api.ApiReportUiFlow;
 import atf.ui.tests.extent.support.data.UiTestData;
-import atf.api.reporting.audit.ReportAuditChecks;
-import atf.api.reporting.audit.ValidationResult;
+import atf.reporting.audit.ReportAuditChecks;
+import atf.reporting.audit.ValidationResult;
 
-import atf.api.reporting.contract.AtfAssertion;
-import atf.api.reporting.contract.AtfReportStatus;
+import atf.reporting.contract.AtfAssertion;
+import atf.reporting.contract.AtfReportStatus;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
 import com.microsoft.playwright.Locator;
 

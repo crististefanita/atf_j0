@@ -1,18 +1,16 @@
 package atf.ui.tests.extent.support.section.runtime;
 
-import atf.api.reporting.contract.AtfAssertion;
-import atf.api.reporting.audit.ReportAuditChecks;
-import atf.api.reporting.audit.ValidationResult;
-import atf.api.reporting.ui.contract.ReportUiContract;
+import atf.reporting.contract.AtfAssertion;
+import atf.reporting.audit.ReportAuditChecks;
+import atf.reporting.ui.contract.ReportUiContract;
 import atf.ui.tests.extent.support.section.module.SectionAuditRegistry;
-import atf.api.reporting.ui.audit.plan.ExtentSectionGherkin;
+import atf.reporting.ui.audit.plan.ExtentSectionGherkin;
 import atf.ui.tests.extent.support.section.publish.ExtentSectionAuditPublisher;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
 import atf.ui.tests.extent.support.audit.screen.OverviewSecondaryContractValidator;
 import atf.ui.tests.extent.support.uireport.browser.UiReportStyleValidator;
 import atf.ui.tests.extent.support.performance.ReportRuntimePerformanceBrowserProbe;
 import com.microsoft.playwright.Page;
-import atf.ui.tests.extent.support.section.runtime.SectionAuditFixture;
 import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.DynamicTest;
@@ -21,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static atf.api.reporting.audit.ReportAuditChecks.status;
+import static atf.reporting.audit.ReportAuditChecks.status;
 
 /**
  * JUnit adapter for section audits; the audit plan and modules remain

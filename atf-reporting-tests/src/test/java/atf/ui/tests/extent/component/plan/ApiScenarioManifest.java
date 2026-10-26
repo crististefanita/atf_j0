@@ -1,21 +1,19 @@
 package atf.ui.tests.extent.component.plan;
-import atf.api.core.testing.api.ApiScenarioSelection;
-import atf.api.reporting.ui.audit.plan.ReportProjection;
-import atf.api.reporting.api.ReportScenarioSelection;
-import atf.api.reporting.contract.AtfReportStatus;
+import atf.core.testing.api.ApiScenarioSelection;
+import atf.reporting.ui.audit.plan.ReportProjection;
+import atf.reporting.api.ReportScenarioSelection;
+import atf.reporting.contract.AtfReportStatus;
 import atf.ui.tests.extent.support.data.UiTestData;
 
-import atf.api.mock.AtfMockConfiguration;
-import atf.api.mock.MockRoute;
-import atf.api.core.http.request.HttpMethod;
+import atf.mock.AtfMockConfiguration;
+import atf.mock.MockRoute;
+import atf.core.http.request.HttpMethod;
 
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * Renderer-neutral expected projection for one API collection.

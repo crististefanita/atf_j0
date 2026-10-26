@@ -4,7 +4,7 @@ import atf.api.tests.governance.changes.TestChangePolicyTest;
 import atf.api.tests.governance.changes.GitTestChangesTest;
 import atf.api.tests.governance.console.ConsoleDefaultsGovernanceTest;
 
-import atf.api.testkit.AtfIntegrationTest;
+import atf.testkit.AtfIntegrationTest;
 import atf.api.tests.governance.documentation.DocumentationDiagramGovernanceTest;
 import atf.api.tests.governance.documentation.DocumentationProseGovernanceTest;
 import atf.api.tests.governance.documentation.DocumentationReadmeStructureGovernanceTest;

@@ -1,8 +1,5 @@
 package atf.ui.tests.extent.component.architecture;
-import atf.api.testkit.AtfComponentTest;
-import atf.ui.tests.extent.support.inspection.duration.ApiReportDurationDomInspector;
-import atf.ui.tests.extent.support.inspection.duration.ApiReportDurationInspector;
-import atf.ui.tests.extent.support.inspection.duration.ApiReportDurationResponsiveInspector;
+import atf.testkit.AtfComponentTest;
 
 import org.junit.jupiter.api.Test;
 

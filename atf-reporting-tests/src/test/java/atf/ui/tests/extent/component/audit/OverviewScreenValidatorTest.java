@@ -1,10 +1,10 @@
 package atf.ui.tests.extent.component.audit;
-import atf.api.testkit.AtfComponentTest;
+import atf.testkit.AtfComponentTest;
 import atf.ui.tests.extent.support.audit.screen.OverviewScreenValidator;
 import atf.ui.tests.extent.support.data.UiTestData;
 
-import atf.api.reporting.contract.AtfAssertion;
-import atf.api.mock.AtfMockConfiguration;
+import atf.reporting.contract.AtfAssertion;
+import atf.mock.AtfMockConfiguration;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

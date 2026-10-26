@@ -1,8 +1,5 @@
 package atf.ui.tests.extent.support.config;
 
-import atf.api.ui.config.UiBrowserConfiguration;
-import atf.api.ui.config.UiScreenValidationConfiguration;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;

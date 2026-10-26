@@ -150,7 +150,7 @@ var module = ApiModuleFactory.create(config, console);
 ```
 
 Suportul JUnit este opțional și se află în subpachetul
-`atf.api.console.junit` din același artefact; folosește loaderul consolei și nu
+`atf.console.junit` din același artefact; folosește loaderul consolei și nu
 importă `atf-reporting`. `HtmlReportSession` și
 `ExtentReportSession` acceptă în continuare un `AtfConsoleSink` explicit, dar
 constructorii lor impliciți folosesc `noOp`.

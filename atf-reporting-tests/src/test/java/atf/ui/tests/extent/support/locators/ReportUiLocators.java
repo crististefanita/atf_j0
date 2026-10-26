@@ -1,7 +1,8 @@
 package atf.ui.tests.extent.support.locators;
 
-import atf.api.reporting.ui.contract.ReportUiContract;
-import atf.api.ui.playwright.AtfLocator;
+import atf.reporting.ui.contract.ReportUiContract;
+import atf.reporting.contract.evidence.ReportEvidenceOwner;
+import atf.ui.playwright.AtfLocator;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 
@@ -291,7 +292,7 @@ public final class ReportUiLocators {
     }
 
     public Locator requestDetails(Locator request) { return evidence.requestDetails(request); }
-    public Locator validationForOwner(Locator scope, atf.api.reporting.contract.evidence.ReportEvidenceOwner owner) {
+    public Locator validationForOwner(Locator scope, ReportEvidenceOwner owner) {
         return evidence.validationForOwner(scope, owner);
     }
     public Locator httpEvidenceDisclosures(Locator scope) { return evidence.httpEvidenceDisclosures(scope); }

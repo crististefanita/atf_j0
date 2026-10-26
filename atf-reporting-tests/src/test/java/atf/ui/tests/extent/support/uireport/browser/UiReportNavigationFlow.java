@@ -1,4 +1,5 @@
 package atf.ui.tests.extent.support.uireport.browser;
+import atf.ui.playwright.AtfLocator;
 import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
 
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
@@ -41,7 +42,7 @@ public final class UiReportNavigationFlow {
         }
     }
 
-    private void expand(Locator card, atf.api.ui.playwright.AtfLocator action, String description) {
+    private void expand(Locator card, AtfLocator action, String description) {
         if (card.count() == 0 || !card.isVisible()) return;
         String state = card.getAttribute(locators.nodeOpenAttribute(card));
         if (!"true".equals(state)) audit.actions().click(action, description);

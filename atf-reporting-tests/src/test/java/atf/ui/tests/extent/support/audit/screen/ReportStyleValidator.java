@@ -1,5 +1,5 @@
 package atf.ui.tests.extent.support.audit.screen;
-import atf.api.reporting.audit.ValidationResult;
+import atf.reporting.audit.ValidationResult;
 
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
 import com.microsoft.playwright.Locator;

@@ -1,11 +1,11 @@
 package atf.ui.tests.extent.support.config;
 
-import atf.api.mock.AtfMockConfiguration;
-import atf.api.mock.AtfMockConfigurationLoader;
-import atf.api.mock.AtfMockTransport;
-import atf.api.testkit.output.ReportOutputDirectory;
-import atf.api.testkit.channel.AtfTestChannelResolver;
-import atf.api.testkit.channel.TestChannel;
+import atf.mock.AtfMockConfiguration;
+import atf.mock.AtfMockConfigurationLoader;
+import atf.mock.AtfMockTransport;
+import atf.testkit.output.ReportOutputDirectory;
+import atf.testkit.channel.AtfTestChannelResolver;
+import atf.testkit.channel.TestChannel;
 
 import java.net.URISyntaxException;
 import java.net.URL;

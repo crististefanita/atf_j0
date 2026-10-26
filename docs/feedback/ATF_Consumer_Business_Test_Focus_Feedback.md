@@ -53,12 +53,12 @@ devin automat niveluri suplimentare în raportul Extent.
 
 | Sursă | Constatare și consecință |
 |---|---|
-| [ShopPurchaseFlow](../../atf-test-practice-shop/src/main/java/atf/shop/flow/ShopPurchaseFlow.java), [ShopPurchaseJourneyContext](../../atf-test-practice-shop/src/main/java/atf/shop/flow/ShopPurchaseJourneyContext.java) | primesc Page, recorder, configurație completă, observer și jurnal API; etapele nu sunt încă un business flow independent de browser/reporting |
-| [AutoExPurchaseSession](../../atf-test-auto-ex/src/main/java/atf/ui/autoex/support/journey/AutoExPurchaseSession.java) | expune operații UI, Page, checkpoint, capturi, API și cleanup; Page Objects primesc un port mai larg decât necesarul lor |
-| [AccountPage](../../atf-test-auto-ex/src/main/java/atf/ui/autoex/page/AccountPage.java), [AutoExPurchaseJourney](../../atf-test-auto-ex/src/main/java/atf/ui/autoex/support/journey/AutoExPurchaseJourney.java) | starea creare/ștergere și callback-ul de cleanup aparțin unei instanțe Page Object, iar journey-ul folosește instanțe diferite; există risc de stare fragmentată, de confirmat prin probă negativă |
-| [CheckoutPage](../../atf-test-auto-ex/src/main/java/atf/ui/autoex/page/CheckoutPage.java) | descarcă și citește factura, aplică reguli business și publică un checkpoint; transportul artifactului, validarea și evidence-ul sunt amestecate |
-| [ShopCheckoutPurchaseStage](../../atf-test-practice-shop/src/main/java/atf/shop/flow/ShopCheckoutPurchaseStage.java) | `apiEvidenceRequired()` alege completarea explicită ori lookup-ul adresei; canalul de evidence modifică traseul UI |
-| [PlaywrightActionSequence](../../atf-ui/src/main/java/atf/api/ui/playwright/PlaywrightActionSequence.java) | operațiile atomice, recorderul și delegarea există; nu justifică încă un wrapper echivalent pentru fiecare click |
+| [ShopPurchaseFlow](../../atf-test-practice-shop/src/main/atf/shop/flow/ShopPurchaseFlow.java), [ShopPurchaseJourneyContext](../../atf-test-practice-shop/src/main/atf/shop/flow/ShopPurchaseJourneyContext.java) | primesc Page, recorder, configurație completă, observer și jurnal API; etapele nu sunt încă un business flow independent de browser/reporting |
+| [AutoExPurchaseSession](../../atf-test-auto-ex/src/main/java/atf/autoex/support/journey/AutoExPurchaseSession.java) | expune operații UI, Page, checkpoint, capturi, API și cleanup; Page Objects primesc un port mai larg decât necesarul lor |
+| [AccountPage](../../atf-test-auto-ex/src/main/java/atf/autoex/page/AccountPage.java), [AutoExPurchaseJourney](../../atf-test-auto-ex/src/main/java/atf/autoex/support/journey/AutoExPurchaseJourney.java) | starea creare/ștergere și callback-ul de cleanup aparțin unei instanțe Page Object, iar journey-ul folosește instanțe diferite; există risc de stare fragmentată, de confirmat prin probă negativă |
+| [CheckoutPage](../../atf-test-auto-ex/src/main/java/atf/autoex/page/CheckoutPage.java) | descarcă și citește factura, aplică reguli business și publică un checkpoint; transportul artifactului, validarea și evidence-ul sunt amestecate |
+| [ShopCheckoutPurchaseStage](../../atf-test-practice-shop/src/main/atf/shop/flow/ShopCheckoutPurchaseStage.java) | `apiEvidenceRequired()` alege completarea explicită ori lookup-ul adresei; canalul de evidence modifică traseul UI |
+| [PlaywrightActionSequence](../../atf-ui/src/main/java/atf/ui/playwright/PlaywrightActionSequence.java) | operațiile atomice, recorderul și delegarea există; nu justifică încă un wrapper echivalent pentru fiecare click |
 
 - Sunt constatări statice; nu demonstrează un incident nou de ștergere repetată.
 - Mutarea unui Run în main sau redenumirea package-ului nu închide separarea
@@ -172,7 +172,7 @@ modelul și publicarea. Canalul, gruparea, capturile și acțiunile sunt axe dis
 
 | Lacună | Sursa curentă | Criteriu de închidere |
 |---|---|---|
-| Grupare configurată | [AutoExEvidenceProfileAdapter](../../atf-test-auto-ex/src/test/java/atf/ui/tests/autoex/extension/AutoExEvidenceProfileAdapter.java) mapează `CONFIGURED` la `SCREEN_CHECKPOINTS`; [ShopScreenshotPolicy](../../atf-test-practice-shop/src/main/java/atf/shop/reporting/ShopScreenshotPolicy.java) construiește aceeași bază | flow-ul implicit vine din configurația rezolvată, nu dintr-un default ascuns |
+| Grupare configurată | [AutoExEvidenceProfileAdapter](../../atf-test-auto-ex/src/test/java/atf/autoex/tests/extension/AutoExEvidenceProfileAdapter.java) mapează `CONFIGURED` la `SCREEN_CHECKPOINTS`; [ShopScreenshotPolicy](../../atf-test-practice-shop/src/main/atf/shop/reporting/ShopScreenshotPolicy.java) construiește aceeași bază | flow-ul implicit vine din configurația rezolvată, nu dintr-un default ascuns |
 | Detaliile acțiunilor | Shop are override prin `@WithE2eHarness`; nu există un plan YAML complet pentru ambii consumeri | configurare per axă, cu precedență și conflict explicit înaintea resurselor |
 | `CONSUMER-OVERVIEW-PROFILE-08` | System-ul raportului Shop partajat păstrează profilul primului scenariu, inclusiv API/capturi, deși frații pot fi UI-only sau unified | valorile comune sunt corecte pentru întregul artifact; diferențele sunt declarate ca mixte sau mutate la scenariul proprietar |
 
@@ -249,7 +249,7 @@ nu sunt un al doilea checklist de implementat.
 **Owner:** Reporting Tests. Cele două launchere aleg același pachet `e2e`,
 același tag și aceeași excludere de suite; numele lor nu separă probele.
 
-- [AtfReportingUiAuditSuite](../../atf-reporting-tests/src/test/java/atf/api/reporting/governance/AtfReportingUiAuditSuite.java)
+- [AtfReportingUiAuditSuite](../../atf-reporting-tests/src/test/java/atf/reporting/governance/AtfReportingUiAuditSuite.java)
   și [ExtentReportingE2eSuite](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/e2e/ExtentReportingE2eSuite.java)
   nu sunt gate-uri de acoperire disjuncte.
 - Al doilea declară și `@AtfTestChannel(UI)`; această diferență de metadata

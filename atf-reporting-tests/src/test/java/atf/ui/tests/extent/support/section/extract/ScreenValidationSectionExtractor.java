@@ -1,12 +1,12 @@
 package atf.ui.tests.extent.support.section.extract;
-import atf.api.reporting.ui.contract.ReportUiContract;
-import atf.api.reporting.theme.tokens.AtfReportThemeTokens;
-import atf.api.ui.playwright.AtfLocator;
+import atf.reporting.ui.contract.ReportUiContract;
+import atf.reporting.theme.tokens.AtfReportThemeTokens;
+import atf.ui.playwright.AtfLocator;
 import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
 
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
 import atf.ui.tests.extent.support.inspection.layout.ValidationTableLayoutInspector;
-import atf.api.reporting.audit.ReportAuditSnapshot;
+import atf.reporting.audit.ReportAuditSnapshot;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 

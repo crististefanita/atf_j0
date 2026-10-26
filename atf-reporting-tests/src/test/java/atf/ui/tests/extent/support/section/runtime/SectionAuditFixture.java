@@ -6,16 +6,16 @@ import atf.ui.tests.extent.support.api.ApiReportUiFlow;
 import atf.ui.tests.extent.support.audit.ReportAuditContext;
 import atf.ui.tests.extent.support.data.UiTestData;
 import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
-import atf.api.reporting.audit.ValidationResult;
+import atf.reporting.audit.ValidationResult;
 
 import atf.ui.tests.extent.support.config.UiConfiguration;
 import atf.ui.tests.extent.support.api.ApiReportAuditSetup;
-import atf.api.reporting.ui.audit.plan.SectionAuditSpec;
-import atf.api.reporting.ui.audit.plan.UiExtentReportSource;
+import atf.reporting.ui.audit.plan.SectionAuditSpec;
+import atf.reporting.ui.audit.plan.UiExtentReportSource;
 import atf.ui.tests.extent.support.section.source.ReportSourceResolver;
-import atf.api.reporting.ui.audit.source.ResolvedReportSource;
-import atf.api.reporting.ui.audit.plan.ReportProjection;
-import atf.api.reporting.ui.audit.vocabulary.UiAuditGherkin;
+import atf.reporting.ui.audit.source.ResolvedReportSource;
+import atf.reporting.ui.audit.plan.ReportProjection;
+import atf.reporting.ui.audit.vocabulary.UiAuditGherkin;
 import com.microsoft.playwright.Page;
 
 import java.util.ArrayList;

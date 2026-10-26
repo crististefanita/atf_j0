@@ -1,7 +1,7 @@
 package atf.ui.tests.extent.support.performance;
 
-import atf.api.reporting.runtime.performance.ReportRuntimePerformanceBudget;
-import atf.api.reporting.runtime.performance.ReportRuntimePerformanceSnapshot;
+import atf.reporting.runtime.performance.ReportRuntimePerformanceBudget;
+import atf.reporting.runtime.performance.ReportRuntimePerformanceSnapshot;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
 import atf.ui.tests.extent.support.section.runtime.SectionAuditFixture;
 import com.microsoft.playwright.Locator;

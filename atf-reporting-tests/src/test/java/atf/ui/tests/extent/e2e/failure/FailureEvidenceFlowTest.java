@@ -1,26 +1,24 @@
 package atf.ui.tests.extent.e2e.failure;
-import atf.api.testkit.AtfE2eTest;
-import atf.api.testkit.channel.AtfTestChannel;
-import atf.api.testkit.channel.TestChannel;
-import atf.api.testkit.setup.api.ApiScenarioSetup;
-import atf.api.reporting.contract.AtfGherkinKeyword;
-import atf.api.reporting.audit.ReportAuditChecks;
+import atf.testkit.AtfE2eTest;
+import atf.testkit.channel.AtfTestChannel;
+import atf.testkit.channel.TestChannel;
+import atf.testkit.setup.api.ApiScenarioSetup;
 import atf.ui.tests.extent.support.audit.ReportAuditContext;
-import atf.api.reporting.ui.UiAuditLifecycle;
-import atf.api.reporting.ui.audit.vocabulary.UiAuditGherkin;
+import atf.reporting.ui.UiAuditLifecycle;
+import atf.reporting.ui.audit.vocabulary.UiAuditGherkin;
 
-import atf.api.reporting.contract.AtfReportStatus;
-import atf.api.reporting.ui.UiExtentReportSession;
-import atf.api.reporting.ui.contract.ReportUiContract;
+import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.ui.UiExtentReportSession;
+import atf.reporting.ui.contract.ReportUiContract;
 import atf.ui.tests.extent.support.config.ReportingTestResources;
 import atf.ui.tests.extent.support.config.UiConfiguration;
-import atf.api.testkit.output.ProjectRelativeUiReportDirectory;
+import atf.testkit.output.ProjectRelativeUiReportDirectory;
 import atf.ui.tests.extent.support.audit.ReportAuditInputs;
 import atf.ui.tests.extent.support.audit.ReportUiActionAdapters;
-import atf.api.ui.playwright.PlaywrightActionSequence;
-import atf.api.ui.playwright.UiScreenValidation;
-import atf.api.core.config.module.AtfModule;
-import atf.api.reporting.test.AtfModuleTest;
+import atf.ui.playwright.PlaywrightActionSequence;
+import atf.ui.playwright.UiScreenValidation;
+import atf.core.config.module.AtfModule;
+import atf.reporting.test.AtfModuleTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -33,8 +31,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import static atf.api.reporting.audit.ReportAuditChecks.check;
-import static atf.api.reporting.contract.AtfGherkinKeyword.GIVEN;
+import static atf.reporting.audit.ReportAuditChecks.check;
+import static atf.reporting.contract.AtfGherkinKeyword.GIVEN;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**

@@ -1,10 +1,9 @@
 package atf.ui.tests.extent.support.inspection.failure;
-import atf.ui.tests.extent.support.api.ApiReportUiFlow;
-import atf.api.reporting.ui.contract.ReportUiContract;
+import atf.reporting.ui.contract.ReportUiContract;
 import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
 
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
-import atf.api.reporting.audit.ReportAuditSnapshot;
+import atf.reporting.audit.ReportAuditSnapshot;
 import atf.ui.tests.extent.support.section.extract.OverviewSectionExtractor;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;

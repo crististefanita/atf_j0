@@ -1,7 +1,7 @@
 package atf.ui.tests.extent.support.inspection.reconciliation;
 
-import atf.api.reporting.support.failurecorrelation.UiFailureCorrelationFixture;
-import atf.api.reporting.ui.contract.ReportUiContract;
+import atf.reporting.support.failurecorrelation.UiFailureCorrelationFixture;
+import atf.reporting.ui.contract.ReportUiContract;
 import atf.ui.tests.extent.support.audit.ReportAuditContext;
 import atf.ui.tests.extent.support.api.ApiReportUiFlow;
 import atf.ui.tests.extent.support.config.UiConfiguration;
@@ -9,9 +9,9 @@ import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
 import java.nio.file.Path;
 import java.util.List;
-import static atf.api.reporting.contract.AtfReportStatus.PASS;
+import static atf.reporting.contract.AtfReportStatus.PASS;
 
-import static atf.api.reporting.audit.ReportAuditChecks.check;
+import static atf.reporting.audit.ReportAuditChecks.check;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

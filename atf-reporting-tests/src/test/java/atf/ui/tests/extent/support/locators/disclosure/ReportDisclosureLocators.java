@@ -1,7 +1,7 @@
 package atf.ui.tests.extent.support.locators.disclosure;
 
-import atf.api.reporting.markup.vocabulary.AtfReportHtmlVocabulary.CssClass;
-import atf.api.reporting.ui.contract.ReportUiContract;
+import atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary.CssClass;
+import atf.reporting.ui.contract.ReportUiContract;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;

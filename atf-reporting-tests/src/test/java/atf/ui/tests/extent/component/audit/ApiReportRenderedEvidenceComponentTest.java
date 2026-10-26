@@ -1,6 +1,6 @@
 package atf.ui.tests.extent.component.audit;
 
-import atf.api.testkit.AtfComponentTest;
+import atf.testkit.AtfComponentTest;
 import atf.ui.tests.extent.support.inspection.reconciliation.ApiReportRenderedEvidenceProbe;
 import org.junit.jupiter.api.Test;
 

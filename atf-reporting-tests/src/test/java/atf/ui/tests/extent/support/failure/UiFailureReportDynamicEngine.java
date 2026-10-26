@@ -1,9 +1,8 @@
 package atf.ui.tests.extent.support.failure;
 
 import atf.ui.tests.extent.support.inspection.failure.UiFailureReportInspector;
-import atf.api.reporting.contract.AtfReportStatus;
-import atf.api.reporting.audit.ReportAuditChecks;
-import atf.api.reporting.ui.failure.UiFailureSurface;
+import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.audit.ReportAuditChecks;
 import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.DynamicNode;
 import org.junit.jupiter.api.DynamicTest;

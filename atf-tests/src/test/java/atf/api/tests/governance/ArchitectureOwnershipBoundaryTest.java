@@ -1,7 +1,7 @@
 package atf.api.tests.governance;
 
-import atf.api.core.config.module.AtfModuleIds;
-import atf.api.testkit.AtfComponentTest;
+import atf.core.config.module.AtfModuleIds;
+import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -49,10 +49,10 @@ public class ArchitectureOwnershipBoundaryTest {
                 () -> requireFile(reportingTests.resolve("atf/api/tests/api/posts/PostsApiScenarios.java"),
                         "PostsApiScenarios belongs to atf-reporting test scope"),
                 () -> requireFile(modulePath(root, AtfModuleIds.REPORTING_TESTS, TEST_JAVA,
-                                "atf/api/reporting/api/acceptance/ApiAcceptancePublisher.java"),
+                                "atf/reporting/api/acceptance/ApiAcceptancePublisher.java"),
                         "API acceptance publisher belongs to the reporting test composition boundary"),
                 () -> requireFile(modulePath(root, AtfModuleIds.REPORTING_TESTS, TEST_JAVA,
-                                "atf/api/reporting/api/acceptance/ApiAcceptancePlanBuilder.java"),
+                                "atf/reporting/api/acceptance/ApiAcceptancePlanBuilder.java"),
                         "API acceptance plan builder belongs to the reporting test composition boundary"),
                 () -> requireFile(reportingTests.resolve(REPORTING_UI_TESTS_PACKAGE)
                                 .resolve("support/locators/ReportUiLocators.java"),
@@ -61,7 +61,7 @@ public class ArchitectureOwnershipBoundaryTest {
                                 .resolve("support/audit/ReportAuditContext.java"),
                         "report audit context belongs to reporting test support"),
                 () -> requireFile(modulePath(root, AtfModuleIds.REPORTING, MAIN_JAVA,
-                                "atf/api/reporting/ui/UiAuditLifecycle.java"),
+                                "atf/reporting/ui/UiAuditLifecycle.java"),
                         "UI audit lifecycle belongs to reporting infrastructure"),
                 () -> assertFalse(Files.exists(testModule.resolve("src/main/atf/ui/tests/extent/support/lifecycle/UiAuditLifecycle.java")),
                         "atf-tests must not own reporting lifecycle infrastructure"),
@@ -78,20 +78,20 @@ public class ArchitectureOwnershipBoundaryTest {
                                 .resolve("section/SectionAuditDynamicEngine.java")),
                         "test orchestration must not be mixed with the section model package"),
                 () -> requireFile(modulePath(root, AtfModuleIds.CORE, MAIN_JAVA,
-                                "atf/api/core/config/source/ApiBootstrapConfigurationLoader.java"),
+                                "atf/core/config/source/ApiBootstrapConfigurationLoader.java"),
                         "generic YAML API configuration loader belongs to atf-core"),
                 () -> requireFile(modulePath(root, AtfModuleIds.CORE, MAIN_JAVA,
-                                "atf/api/core/testing/http/RecordingApiTransport.java"),
+                                "atf/core/testing/http/RecordingApiTransport.java"),
                         "reusable request capture belongs to atf-core"),
                 () -> assertFalse(Files.exists(testModule.resolve("src/main/atf/api/tests/support/setup/ApiBootstrapConfigurationLoader.java")),
                         "configuration loader must remain in atf-core"),
                 () -> assertFalse(Files.exists(reportingTests.resolve("atf/api/tests/support/junit/RecordingApiTransport.java")),
                         "request capture must remain in atf-core"),
                 () -> requireFile(modulePath(root, AtfModuleIds.REPORTING, MAIN_JAVA,
-                                "atf/api/reporting/ui/contract/UiReportArtifactContract.java"),
+                                "atf/reporting/ui/contract/UiReportArtifactContract.java"),
                         "static UI artifact contract belongs to atf-reporting"),
                 () -> requireFile(modulePath(root, AtfModuleIds.REPORTING_TESTS, TEST_JAVA,
-                                "atf/api/reporting/ui/contract/UiReportArtifactContractTest.java"),
+                                "atf/reporting/ui/contract/UiReportArtifactContractTest.java"),
                         "static UI artifact coverage belongs to reporting tests"),
                 () -> assertFalse(Files.exists(reportingTests.resolve(REPORTING_UI_TESTS_PACKAGE)
                                 .resolve("section/scenarios/StaticScreenValidationReportUiTest.java")),
@@ -100,7 +100,7 @@ public class ArchitectureOwnershipBoundaryTest {
                                 .resolve("e2e/uireport/StaticUiExtentReportContractTest.java"),
                         "one configurable browser boundary belongs to reporting test scope"),
                 () -> requireFile(modulePath(root, AtfModuleIds.REPORTING_TESTS, TEST_JAVA,
-                                "atf/api/reporting/support/MockApiReportContractFixtures.java"),
+                                "atf/reporting/support/MockApiReportContractFixtures.java"),
                         "reporting mock contract fixture data belongs to reporting test scope"),
                 () -> requireFile(reportingTests.resolve(REPORTING_UI_TESTS_PACKAGE)
                                 .resolve("support/configurable/CategoryCardinalityFixture.java"),
@@ -128,7 +128,7 @@ public class ArchitectureOwnershipBoundaryTest {
     @Test
     void uiConfigurationOwnershipKeepsAtfUiGeneric() throws Exception {
         Path root = locateProjectRoot();
-        Path genericUiConfig = modulePath(root, AtfModuleIds.UI, MAIN_JAVA, "atf/api/ui/config");
+        Path genericUiConfig = modulePath(root, AtfModuleIds.UI, MAIN_JAVA, "atf/ui/config");
         Path reportingUiConfig = modulePath(root, AtfModuleIds.REPORTING_TESTS, TEST_JAVA,
                 "atf/ui/tests/extent/support/config");
         assertAll(
@@ -170,7 +170,7 @@ public class ArchitectureOwnershipBoundaryTest {
     @Test
     void reportingSemanticPackagesHaveOneArtifactAndThemeOwner() throws Exception {
         Path reporting = modulePath(locateProjectRoot(), AtfModuleIds.REPORTING, MAIN_JAVA,
-                "atf/api/reporting");
+                "atf/reporting");
         assertAll(
                 () -> forbidFile(reporting.resolve("ReportArtifactInspector.java"),
                         "artifact inspector must not be duplicated in the reporting facade package"),
@@ -187,7 +187,7 @@ public class ArchitectureOwnershipBoundaryTest {
     @Test
     void reportingOwnsRendererNeutralAuditKernel() throws Exception {
         Path root = locateProjectRoot();
-        Path reporting = modulePath(root, AtfModuleIds.REPORTING, MAIN_JAVA, "atf/api/reporting");
+        Path reporting = modulePath(root, AtfModuleIds.REPORTING, MAIN_JAVA, "atf/reporting");
         Path globalTests = modulePath(root, AtfModuleIds.TESTS, TEST_JAVA);
         assertAll(
                 () -> requireFile(reporting.resolve("audit/ValidationResult.java"),
@@ -204,7 +204,7 @@ public class ArchitectureOwnershipBoundaryTest {
                         "resolved report source belongs to atf-reporting"),
                 () -> forbidFile(globalTests.resolve("atf/ui/tests/extent"),
                         "atf-tests governance must not absorb reporting UI test infrastructure"),
-                () -> forbidFile(globalTests.resolve("atf/api/reporting"),
+                () -> forbidFile(globalTests.resolve("atf/reporting"),
                         "atf-tests governance must not absorb reporting production models"));
     }
 

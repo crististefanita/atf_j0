@@ -1,16 +1,16 @@
 package atf.ui.tests.extent.support.sanity;
-import atf.api.reporting.console.AtfConsoleSink;
-import atf.api.reporting.contract.AtfReportStatus;
-import atf.api.reporting.ui.UiExtentReportSession;
-import atf.api.reporting.ui.contract.ReportUiContract;
-import atf.api.reporting.ui.UiExtentReportOptions;
+import atf.reporting.console.AtfConsoleSink;
+import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.ui.UiExtentReportSession;
+import atf.reporting.ui.contract.ReportUiContract;
+import atf.reporting.ui.UiExtentReportOptions;
 import atf.ui.tests.extent.support.config.environment.UiReportEnvironmentSnapshotFactory;
 
 
 import java.nio.file.Path;
 import java.util.List;
 
-import static atf.api.reporting.contract.AtfGherkinKeyword.THEN;
+import static atf.reporting.contract.AtfGherkinKeyword.THEN;
 
 /** Standalone Extent inputs for the THEN disclosure sanity tests. */
 public final class UiThenDisclosureReportFixtures {

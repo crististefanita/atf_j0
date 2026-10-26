@@ -1,10 +1,9 @@
 package atf.ui.tests.extent.support.audit.screen;
-import atf.api.reporting.audit.ReportAuditChecks;
-import atf.api.reporting.ui.audit.category.CategoryFilterContract;
-import atf.api.reporting.ui.contract.ReportUiContract;
+import atf.reporting.ui.audit.category.CategoryFilterContract;
+import atf.reporting.ui.contract.ReportUiContract;
 import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
 
-import atf.api.ui.playwright.AtfLocator;
+import atf.ui.playwright.AtfLocator;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
@@ -12,7 +11,7 @@ import com.microsoft.playwright.Page;
 import java.util.ArrayList;
 import java.util.List;
 
-import static atf.api.reporting.audit.ReportAuditChecks.count;
+import static atf.reporting.audit.ReportAuditChecks.count;
 
 /**
  * Owns the DOM mechanics for one Categories-filter interaction.

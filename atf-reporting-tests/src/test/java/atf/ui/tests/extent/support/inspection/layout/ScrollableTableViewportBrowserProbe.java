@@ -1,8 +1,8 @@
 package atf.ui.tests.extent.support.inspection.layout;
 
-import atf.api.reporting.ui.contract.ReportUiContract;
-import atf.api.reporting.theme.tokens.AtfReportThemeTokens;
-import atf.api.ui.config.UiBrowserConfiguration;
+import atf.reporting.ui.contract.ReportUiContract;
+import atf.reporting.theme.tokens.AtfReportThemeTokens;
+import atf.ui.config.UiBrowserConfiguration;
 import atf.ui.tests.extent.support.api.ApiReportUiFlow;
 import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;

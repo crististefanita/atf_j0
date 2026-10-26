@@ -1,14 +1,14 @@
 package atf.ui.tests.extent.support.section.module;
-import atf.api.reporting.ui.audit.runtime.SectionAuditCheckExecutor;
-import atf.api.reporting.audit.ValidationResult;
+import atf.reporting.ui.audit.runtime.SectionAuditCheckExecutor;
+import atf.reporting.audit.ValidationResult;
 
-import atf.api.reporting.audit.ReportAuditSnapshot;
-import atf.api.reporting.ui.audit.plan.ExtentSection;
-import atf.api.reporting.ui.audit.plan.ExtentSectionCheck;
-import atf.api.reporting.ui.audit.plan.SectionAuditSpec;
-import atf.api.reporting.ui.audit.result.SectionAuditResult;
+import atf.reporting.audit.ReportAuditSnapshot;
+import atf.reporting.ui.audit.plan.ExtentSection;
+import atf.reporting.ui.audit.plan.ExtentSectionCheck;
+import atf.reporting.ui.audit.plan.SectionAuditSpec;
+import atf.reporting.ui.audit.result.SectionAuditResult;
 import atf.ui.tests.extent.support.section.runtime.SectionAuditFixture;
-import atf.api.reporting.ui.audit.section.TestsSectionValidator;
+import atf.reporting.ui.audit.section.TestsSectionValidator;
 import atf.ui.tests.extent.support.audit.screen.ApiReportDurationAuditor;
 import com.microsoft.playwright.Page;
 

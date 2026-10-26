@@ -1,6 +1,6 @@
 package atf.ui.tests.extent.component.architecture;
-import atf.api.core.files.AtfPathLocator;
-import atf.api.testkit.AtfComponentTest;
+import atf.core.files.AtfPathLocator;
+import atf.testkit.AtfComponentTest;
 
 import org.junit.jupiter.api.Test;
 

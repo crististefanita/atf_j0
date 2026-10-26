@@ -1,7 +1,7 @@
 package atf.ui.tests.extent.component.support;
 
-import atf.api.testkit.AtfComponentTest;
-import atf.api.testkit.output.ProjectRelativeUiReportDirectory;
+import atf.testkit.AtfComponentTest;
+import atf.testkit.output.ProjectRelativeUiReportDirectory;
 import atf.ui.tests.extent.support.config.ReportingTestResources;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;

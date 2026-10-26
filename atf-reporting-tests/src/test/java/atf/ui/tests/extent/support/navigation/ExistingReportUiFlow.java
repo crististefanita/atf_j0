@@ -1,15 +1,15 @@
 package atf.ui.tests.extent.support.navigation;
 import atf.ui.tests.extent.support.audit.screen.ExistingReportStructureAuditor;
 import atf.ui.tests.extent.support.audit.screen.FailsScreenValidator;
-import atf.api.reporting.ui.audit.section.VisualEvidenceValidator;
-import atf.api.reporting.ui.contract.ReportUiContract;
+import atf.reporting.ui.audit.section.VisualEvidenceValidator;
+import atf.reporting.ui.contract.ReportUiContract;
 import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
 
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
-import atf.api.reporting.audit.ReportAuditSnapshot;
+import atf.reporting.audit.ReportAuditSnapshot;
 import atf.ui.tests.extent.support.section.extract.CategoriesSectionExtractor;
 import atf.ui.tests.extent.support.section.extract.VisualEvidenceSectionExtractor;
-import atf.api.reporting.ui.audit.section.CategoriesSectionValidator;
+import atf.reporting.ui.audit.section.CategoriesSectionValidator;
 import com.microsoft.playwright.Page;
 
 /** Semantic flow for the read-only audit of an already published Extent file. */

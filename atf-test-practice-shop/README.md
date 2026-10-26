@@ -52,11 +52,11 @@ flowchart LR
 | Suprafață | Owner în modul | Limită |
 |---|---|---|
 | Configurație | `src/test/resources/atf-practice-shop.yaml`, `ShopConfigurationLoader` | valori și fixture-uri Practice Shop, nu configurare globală ATF |
-| UI | `routes`, `locators`, `pages`, `flow` în `src/main/java/atf/shop` | semantică a aplicației; browserul generic rămâne în `atf-ui` |
+| UI | `routes`, `locators`, `pages`, `flow` în `src/main/atf/shop` | semantică a aplicației; browserul generic rămâne în `atf-ui` |
 | API | `api` și `support/api` în același source root | contractele wire și maparea către dovezile Shop; transportul generic rămâne în `atf-core` |
 | Evidence runtime | `src/main/.../{evidence,reporting}` | factory-uri de captură și politică Shop, fără JUnit/Kit; rendererul rămâne în Reporting |
 | Harness consumer | `src/test/.../support/{lifecycle,reporting}` | ownership browser/report, metadata de rulare și integrare JUnit |
-| Teste | `src/test/java/atf/shop/tests` | compun și verifică Shop; testele reutilizabile ATF aparțin modulului care deține contractul generic |
+| Teste | `src/test/atf/shop/tests` | compun și verifică Shop; testele reutilizabile ATF aparțin modulului care deține contractul generic |
 
 Comportamentele Shop folosesc `atf-core`, `atf-console`, `atf-reporting` și
 `atf-ui`; `atf-test-kit` este declarat în `test` scope pentru adnotările și
@@ -67,7 +67,9 @@ depinde de Practice Shop.
 <summary><strong>Harta source roots și a responsabilităților locale</strong></summary>
 
 ```text
-src/main/java/atf/shop
+POM source roots: src/main, src/test
+
+src/main/atf/shop
 ├── config/       YAML, modele typed și profile
 ├── api/          request factory, operații, rute și screen APIs
 ├── routes/       rute UI relative
@@ -78,7 +80,7 @@ src/main/java/atf/shop
 ├── reporting/    politica de screenshot din configurația Shop
 └── support/      checkpoint, validation, API report mapping și network journal Shop
 
-src/test/java/atf/shop/tests
+src/test/atf/shop/tests
 ├── e2e/          composition roots pentru journey-uri reale
 ├── suites/       selecția și ordinea suitei
 ├── component/    config, catalog, evidence, purchase și adaptoare Shop
@@ -103,7 +105,7 @@ Suita consumatorului rămâne concentrată pe `e2e`, `component` și `api`; `sup
 este infrastructură de test, nu un al treilea tip de test.
 
 `ShopE2eTestSupport` compune testele, iar
-[`ShopE2eContext`](src/test/java/atf/shop/tests/support/lifecycle/ShopE2eContext.java)
+[`ShopE2eContext`](src/test/atf/shop/tests/support/lifecycle/ShopE2eContext.java)
 deține resursele browser/report doar pentru rulări E2E. Guvernanța whole-ATF
 verifică source-set-ul harness-ului și al adaptoarelor, limitele locatorilor,
 suitele și dependențele consumerului; paginile, flow-urile și locatoarele rămân
@@ -123,7 +125,8 @@ captura, profilele, maparea API și regulile de business. Primitivele neutre nu
 se dublează aici: escaping-ul selectorilor este în `atf-ui`, iar diagnosticul
 generic pentru body API indisponibil este în `atf-core`.
 
-`ShopReportSystemMetadata` rămâne în `src/test/support.reporting` și proiectează
+`ShopReportSystemMetadata` rămâne în
+`src/test/atf/shop/tests/support/reporting` și proiectează
 configurația rulării în allowlist-ul System. În runtime,
 `atf.shop.reporting.ShopScreenshotPolicy` transformă politica YAML
 în `ReportEvidenceProfile`, iar `evidence.ShopBrowserCaptureProvider` aplică

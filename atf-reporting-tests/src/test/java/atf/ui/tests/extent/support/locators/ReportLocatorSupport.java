@@ -1,7 +1,7 @@
 package atf.ui.tests.extent.support.locators;
 
-import atf.api.reporting.theme.tokens.AtfReportCssSelectors;
-import atf.api.reporting.ui.contract.ReportUiContract;
+import atf.reporting.theme.tokens.AtfReportCssSelectors;
+import atf.reporting.ui.contract.ReportUiContract;
 import com.microsoft.playwright.Locator;
 
 import java.util.Objects;

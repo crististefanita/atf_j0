@@ -1,6 +1,6 @@
 package atf.api.tests.governance;
 
-import atf.api.testkit.AtfComponentTest;
+import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -21,7 +21,7 @@ public class AtfSourceReadabilityGovernanceTest {
     private static final Pattern FULLY_QUALIFIED_ATF_INVOCATION =
             Pattern.compile("\\batf\\.api\\.[A-Za-z0-9_.]+\\(");
     private static final Set<String> REVIEWED_ADAPTERS = Set.of(
-            "atf/api/reporting/support/CoreReportPortsAdapter.java",
+            "atf/reporting/support/CoreReportPortsAdapter.java",
             "atf/ui/tests/extent/support/audit/ReportAuditContext.java",
             "atf/ui/tests/extent/support/audit/ReportUiActionAdapters.java");
 

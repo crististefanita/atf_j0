@@ -1,8 +1,8 @@
 package atf.ui.tests.extent.component.layout;
 
-import atf.api.reporting.runtime.evidence.ExtentReportRuntimeEvidenceTableLayout;
-import atf.api.reporting.theme.evidence.AtfReportEvidenceTableCss;
-import atf.api.testkit.AtfComponentTest;
+import atf.reporting.runtime.evidence.ExtentReportRuntimeEvidenceTableLayout;
+import atf.reporting.theme.evidence.AtfReportEvidenceTableCss;
+import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertAll;

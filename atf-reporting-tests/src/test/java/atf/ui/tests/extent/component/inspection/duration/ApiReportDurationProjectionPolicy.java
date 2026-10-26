@@ -1,7 +1,7 @@
 package atf.ui.tests.extent.component.inspection.duration;
-import atf.api.reporting.audit.ValidationResult;
+import atf.reporting.audit.ValidationResult;
 
-import atf.api.reporting.audit.ReportAuditSnapshot;
+import atf.reporting.audit.ReportAuditSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;

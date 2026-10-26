@@ -1,8 +1,8 @@
 package atf.ui.tests.extent.component.audit;
 
-import atf.api.reporting.contract.AtfReportStatus;
-import atf.api.reporting.audit.ValidationResult;
-import atf.api.testkit.AtfComponentTest;
+import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.audit.ValidationResult;
+import atf.testkit.AtfComponentTest;
 import atf.ui.tests.extent.support.audit.screen.CategoryOutcomeFlowAuditor;
 import org.junit.jupiter.api.Test;
 

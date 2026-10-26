@@ -1,6 +1,6 @@
 package atf.api.tests.governance.documentation;
 
-import atf.api.testkit.AtfComponentTest;
+import atf.testkit.AtfComponentTest;
 
 import org.junit.jupiter.api.Test;
 

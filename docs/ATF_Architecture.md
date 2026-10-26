@@ -177,14 +177,14 @@ Playwright, `Page`, `Locator`, DOM, screenshot sau Debug UI.
 Auditul API→UI este împărțit astfel:
 
 - browser audit: `atf.ui.tests.extent` din `atf-reporting-tests/src/test/java`;
-- contract pur: snapshot-uri, verdicturi, reconciliere, planuri, checks, validatori și failure surfaces în `atf.api.reporting.audit` și `atf.api.reporting.ui.audit.*`;
+- contract pur: snapshot-uri, verdicturi, reconciliere, planuri, checks, validatori și failure surfaces în `atf.reporting.audit` și `atf.reporting.ui.audit.*`;
 - browser generic și captură: `atf-ui`;
 - configurație output, audit suite și input report: `atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/config`;
 - servire read-only pentru TAB MCP: `atf-debug-ui`;
 - singura fațadă pentru precondiția API: `ApiReportAuditSetup`;
 - lifecycle și contracte pure de secțiune: `atf-reporting`;
 - DOM, computed-style, click, collapse și randare: browser test scope;
-- acceptance plan și publisher API→Extent: `atf.api.reporting.api.acceptance`.
+- acceptance plan și publisher API→Extent: `atf.reporting.api.acceptance`.
 
 Contractul raportului API are un boundary suplimentar, fără browser:
 
@@ -210,7 +210,7 @@ Există două niveluri pentru contractul UI, cu browserul doar în composition s
 | Pachet | Input | Scop |
 |---|---|---|
 | `atf.ui.tests.extent.e2e.section` | raport API generat sau static | setup/mock, projection, request/response evidence, paritate API în browser |
-| `atf.api.reporting.ui.contract` | annotation, spec, check-uri, snapshot și validator pur | reguli structurale fără DOM/browser |
+| `atf.reporting.ui.contract` | annotation, spec, check-uri, snapshot și validator pur | reguli structurale fără DOM/browser |
 | `atf.ui.tests.extent.e2e.uireport` | raport UI anterior, static | rezolvare input, tab-uri, structură DOM, stil, collapsed state, Fails și Screen validation |
 
 Al doilea nu citește expected business values din YAML și nu cere request-uri
@@ -619,7 +619,7 @@ injectabil prin `HtmlReportScript`, implementat de `HtmlReportNavigationScript`.
 Markup-ul semantic, lifecycle-ul și JavaScript-ul au seam-uri independente fără
 browser sau DOM în modelul de raportare.
 
-În `atf.api.reporting.html.scope`, `HtmlReportScenarioScope`,
+În `atf.reporting.html.scope`, `HtmlReportScenarioScope`,
 `HtmlReportPhaseScope`, `HtmlReportRequestScope` și `HtmlReportValidationScope`
 implementează porturile `AtfReportPorts`. Sesiunea creează scope-urile, modelul
 semantic oferă numai mutații controlate, iar renderer-ul nu primește câmpuri

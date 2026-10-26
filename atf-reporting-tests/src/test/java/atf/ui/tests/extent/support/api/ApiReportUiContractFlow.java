@@ -1,7 +1,6 @@
 package atf.ui.tests.extent.support.api;
-import atf.api.reporting.ui.contract.ReportUiContract;
 
-import atf.api.reporting.contract.AtfReportStatus;
+import atf.reporting.contract.AtfReportStatus;
 import com.microsoft.playwright.Page;
 
 import java.util.List;

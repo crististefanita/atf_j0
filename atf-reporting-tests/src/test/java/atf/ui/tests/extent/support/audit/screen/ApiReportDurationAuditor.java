@@ -1,6 +1,6 @@
 package atf.ui.tests.extent.support.audit.screen;
-import atf.api.reporting.audit.ReportAuditChecks;
-import atf.api.reporting.audit.ValidationResult;
+import atf.reporting.audit.ReportAuditChecks;
+import atf.reporting.audit.ValidationResult;
 
 import com.microsoft.playwright.Page;
 

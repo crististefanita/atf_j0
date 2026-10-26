@@ -1254,12 +1254,12 @@ metodologie paralelă.
 
 Implementarea vertical slice analizată live:
 
-- `atf-ui/src/main/java/atf/api/ui/network/UiNetworkInspector.java`;
-- `atf-ui/src/main/java/atf/api/ui/network/UiNetworkObservation.java`;
-- `atf-ui/src/main/java/atf/api/ui/config/UiNetworkInspectionConfiguration.java`;
-- `atf-ui/src/main/java/atf/api/ui/config/UiNetworkSettlementPolicy.java`;
-- `atf-test-practice-shop/src/main/java/atf/shop/support/ShopApiNetworkJournal.java`;
-- `atf-reporting/src/main/java/atf/api/reporting/ui/network/ReportNetworkInspector.java`.
+- `../atf-ui/src/main/java/atf/ui`;
+- `../atf-ui/src/main/java/atf/ui`;
+- `../atf-ui/src/main/java/atf/ui`;
+- `../atf-ui/src/main/java/atf/ui`;
+- `../atf-test-practice-shop/src/main/atf/shop`;
+- `../atf-reporting/src/main/java/atf/reporting`.
 
 ## 34. Readiness și dovezi
 

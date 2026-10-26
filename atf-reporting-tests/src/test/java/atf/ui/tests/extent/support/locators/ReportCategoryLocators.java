@@ -1,7 +1,7 @@
 package atf.ui.tests.extent.support.locators;
 
-import atf.api.reporting.theme.tokens.AtfReportCssSelectors;
-import atf.api.ui.playwright.AtfLocator;
+import atf.reporting.theme.tokens.AtfReportCssSelectors;
+import atf.ui.playwright.AtfLocator;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 

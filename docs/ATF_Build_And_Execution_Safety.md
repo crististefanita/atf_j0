@@ -255,7 +255,7 @@ schimbă staging-ul privat al sesiunii.
 Fiecare staging Extent este marcat printr-un fișier versionat și ținut sub un
 lease exclusiv cât timp sesiunea este activă. După o întrerupere forțată,
 operatorul poate rula explicit sweeper-ul bounded din
-`atf.api.reporting.publication.ReportStagingWorkspace`, de exemplu:
+`atf.reporting.publication.ReportStagingWorkspace`, de exemplu:
 
 ```java
 var result = ReportStagingWorkspace.sweep(

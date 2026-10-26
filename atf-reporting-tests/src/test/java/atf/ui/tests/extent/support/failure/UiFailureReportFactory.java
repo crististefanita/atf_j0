@@ -1,12 +1,12 @@
 package atf.ui.tests.extent.support.failure;
 
-import atf.api.reporting.console.AtfConsoleSink;
-import atf.api.reporting.contract.AtfAssertion;
-import atf.api.reporting.contract.AtfReportStatus;
-import atf.api.reporting.ui.model.AtfUiActionRecord;
-import atf.api.reporting.ui.model.AtfUiEvidenceSource;
-import atf.api.reporting.ui.UiExtentReportSession;
-import atf.api.reporting.ui.contract.ReportUiContract;
+import atf.reporting.console.AtfConsoleSink;
+import atf.reporting.contract.AtfAssertion;
+import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.ui.model.AtfUiActionRecord;
+import atf.reporting.ui.model.AtfUiEvidenceSource;
+import atf.reporting.ui.UiExtentReportSession;
+import atf.reporting.ui.contract.ReportUiContract;
 import atf.ui.tests.extent.support.config.UiConfiguration;
 import atf.ui.tests.extent.support.config.environment.UiReportEnvironmentSnapshotFactory;
 
@@ -14,7 +14,7 @@ import java.nio.file.Path;
 import java.time.Clock;
 import java.util.List;
 
-import static atf.api.reporting.contract.AtfGherkinKeyword.GIVEN;
+import static atf.reporting.contract.AtfGherkinKeyword.GIVEN;
 
 /** Creates a real Extent artifact containing one intentional failure per UI channel. */
 public final class UiFailureReportFactory {

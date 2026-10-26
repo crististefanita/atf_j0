@@ -1,7 +1,7 @@
 package atf.ui.tests.extent.support.config.environment;
 
-import atf.api.reporting.configuration.ReportEnvironmentField;
-import atf.api.reporting.configuration.ReportEnvironmentSnapshot;
+import atf.reporting.configuration.ReportEnvironmentField;
+import atf.reporting.configuration.ReportEnvironmentSnapshot;
 import atf.ui.tests.extent.support.config.UiConfiguration;
 
 import java.util.Objects;

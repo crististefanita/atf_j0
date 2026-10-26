@@ -1,18 +1,18 @@
 package atf.ui.tests.extent.e2e.uireport;
-import atf.api.testkit.AtfE2eTest;
-import atf.api.testkit.channel.AtfTestChannel;
-import atf.api.testkit.channel.TestChannel;
-import atf.api.reporting.artifact.ReportArtifactIdentity;
+import atf.testkit.AtfE2eTest;
+import atf.testkit.channel.AtfTestChannel;
+import atf.testkit.channel.TestChannel;
+import atf.reporting.artifact.ReportArtifactIdentity;
 import atf.ui.tests.extent.support.uireport.UiReportContractDynamicEngine;
 import atf.ui.tests.extent.support.uireport.browser.UiReportContractFixture;
-import atf.api.reporting.ui.contract.UiExtentReportContract;
+import atf.reporting.ui.contract.UiExtentReportContract;
 
 import atf.ui.tests.extent.support.config.ReportingTestResources;
 import atf.ui.tests.extent.support.config.UiConfiguration;
-import atf.api.testkit.output.ProjectRelativeUiReportDirectory;
+import atf.testkit.output.ProjectRelativeUiReportDirectory;
 import atf.ui.tests.extent.support.uireport.browser.UiReportContractInputFactory;
-import atf.api.core.config.module.AtfModule;
-import atf.api.reporting.test.AtfModuleTest;
+import atf.core.config.module.AtfModule;
+import atf.reporting.test.AtfModuleTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;

@@ -1,8 +1,8 @@
 package atf.ui.tests.extent.support.inspection.failure;
 
 import atf.ui.tests.extent.support.failure.UiFailureReportFixture;
-import atf.api.reporting.ui.failure.UiFailureSurface;
-import atf.api.reporting.ui.contract.ReportUiContract;
+import atf.reporting.ui.failure.UiFailureSurface;
+import atf.reporting.ui.contract.ReportUiContract;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 

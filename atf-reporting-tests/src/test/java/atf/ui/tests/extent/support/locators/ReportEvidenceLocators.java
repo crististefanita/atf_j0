@@ -1,9 +1,10 @@
 package atf.ui.tests.extent.support.locators;
-import atf.api.reporting.ui.contract.ReportUiContract;
-import atf.api.reporting.api.contract.ApiReportEvidenceField;
-import atf.api.reporting.theme.tokens.AtfReportCssSelectors;
+import atf.reporting.ui.contract.ReportUiContract;
+import atf.reporting.api.contract.ApiReportEvidenceField;
+import atf.reporting.theme.tokens.AtfReportCssSelectors;
 
-import atf.api.ui.playwright.AtfLocator;
+import atf.reporting.contract.evidence.ReportEvidenceOwner;
+import atf.ui.playwright.AtfLocator;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 
@@ -82,7 +83,7 @@ final class ReportEvidenceLocators {
     String responseUrl(Locator request) { return cellValue(executionEvidence(request), ApiReportEvidenceField.RESPONSE_URL); }
 
     Locator requestJsonBodies(Locator request) { return request.locator(classToken(ReportUiContract.JSON_REQUEST_CLASS)); }
-    Locator validationForOwner(Locator scope, atf.api.reporting.contract.evidence.ReportEvidenceOwner owner) {
+    Locator validationForOwner(Locator scope, ReportEvidenceOwner owner) {
         return scope.locator("div[data-atf-node-role='validation']:has([data-atf-evidence-owner='"
                 + owner.attributeValue() + "'])").first();
     }

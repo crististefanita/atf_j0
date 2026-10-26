@@ -1,9 +1,9 @@
 package atf.api.tests.governance.console;
 
-import atf.api.console.AtfConsoleConfigurationContext;
-import atf.api.console.AtfConsoleConfigurationLoader;
-import atf.api.console.ConsoleSettings;
-import atf.api.testkit.AtfComponentTest;
+import atf.console.AtfConsoleConfigurationContext;
+import atf.console.AtfConsoleConfigurationLoader;
+import atf.console.ConsoleSettings;
+import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -49,9 +49,9 @@ public class ConsoleDefaultsGovernanceTest {
                 "AtfConsoleReporter.configuredStdout()", "lifecycle.console()");
         require(root, "atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/api/ApiReportAuditSetup.java",
                 "AtfConsoleReporter.configuredStdout()");
-        require(root, "atf-test-practice-shop/src/test/java/atf/shop/tests/support/lifecycle/ShopE2eContext.java",
+        require(root, "atf-test-practice-shop/src/test/atf/shop/tests/support/lifecycle/ShopE2eContext.java",
                 "AtfConsoleReporter.configuredStdout()");
-        require(root, "atf-test-practice-shop/src/main/java/atf/shop/api/ShopApiClient.java",
+        require(root, "atf-test-practice-shop/src/main/atf/shop/api/ShopApiClient.java",
                 "AtfConsoleReporter.configuredStdout()", "settings.snapshot(), safeConsole(console)");
     }
 

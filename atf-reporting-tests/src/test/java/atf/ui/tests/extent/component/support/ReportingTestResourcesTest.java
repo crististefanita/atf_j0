@@ -1,9 +1,9 @@
 package atf.ui.tests.extent.component.support;
-import atf.api.testkit.AtfComponentTest;
+import atf.testkit.AtfComponentTest;
 
-import atf.api.core.http.request.HttpMethod;
-import atf.api.mock.MockRoute;
-import atf.api.mock.MockRequestBodyMode;
+import atf.core.http.request.HttpMethod;
+import atf.mock.MockRoute;
+import atf.mock.MockRequestBodyMode;
 import atf.ui.tests.extent.support.config.ReportingTestResources;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;

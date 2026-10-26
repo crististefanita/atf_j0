@@ -1,10 +1,9 @@
 package atf.ui.tests.extent.support.uireport;
-import atf.api.reporting.audit.ReportAuditChecks;
-import atf.api.reporting.audit.ValidationResult;
+import atf.reporting.audit.ReportAuditChecks;
+import atf.reporting.audit.ValidationResult;
 import atf.ui.tests.extent.support.uireport.browser.UiReportContractFixture;
-import atf.api.reporting.ui.contract.ReportUiContract;
-import atf.api.reporting.ui.contract.UiReportContractValidator;
-import atf.api.reporting.ui.contract.UiReportTabSnapshot;
+import atf.reporting.ui.contract.UiReportContractValidator;
+import atf.reporting.ui.contract.UiReportTabSnapshot;
 import atf.ui.tests.extent.support.uireport.browser.UiReportTabInspector;
 
 import org.junit.jupiter.api.DynamicContainer;

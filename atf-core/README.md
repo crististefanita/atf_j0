@@ -72,7 +72,7 @@ acceptat în loc să reproducă bucla de ancestor-walk în fiecare test.
 
 ## Ciclu de viață generic și reutilizabil
 
-Pachetul `atf.api.core.lifecycle` deține mecanica neutră a scenariului:
+Pachetul `atf.core.lifecycle` deține mecanica neutră a scenariului:
 
 - plan și orchestration: `ApiScenarioPlan`, `ApiScenarioLifecycleRunner`,
   `ApiScenarioPhaseExecutor`;
@@ -204,7 +204,7 @@ core → UsersService / PostsService
 
 Modelul `ApiScenarioSelection` din `atf-core` este neutru față de consumer:
 
-- declarațiile `@ApiScenarioSetup` și `@ApiTestRef` sunt în `atf.api.testkit.setup.api`, consumate în test scope;
+- declarațiile `@ApiScenarioSetup` și `@ApiTestRef` sunt în `atf.testkit.setup.api`, consumate în test scope;
 - `ApiScenarioSelection` transmite snapshot-ul immutable către composition root;
 - UI testele, acceptance runner-ele și alți consumatori pot reutiliza contractul;
 - catalogul concret al testelor nu intră în `atf-core`.

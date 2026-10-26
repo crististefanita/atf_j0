@@ -1,6 +1,6 @@
 package atf.ui.tests.extent.support.locators.table;
 
-import atf.api.reporting.markup.table.ReportTableViewport;
+import atf.reporting.markup.table.ReportTableViewport;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;

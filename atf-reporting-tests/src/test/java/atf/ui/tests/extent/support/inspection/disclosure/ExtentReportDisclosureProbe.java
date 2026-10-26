@@ -1,18 +1,19 @@
 package atf.ui.tests.extent.support.inspection.disclosure;
 
-import atf.api.reporting.contract.AtfReportStatus;
-import atf.api.reporting.contract.AtfAssertion;
-import atf.api.reporting.api.ReportAttemptRecord;
-import atf.api.reporting.api.ReportRequest;
-import atf.api.reporting.api.ReportResponse;
-import atf.api.reporting.api.ReportTransportProvenance;
-import atf.api.reporting.console.AtfConsoleSink;
-import atf.api.reporting.extent.session.ExtentReportSession;
-import atf.api.reporting.model.ReportExecutionEvidence;
-import atf.api.reporting.support.ReportTestScreenshots;
-import atf.api.reporting.support.TestReportPaths;
-import atf.api.reporting.ui.UiExtentReportSession;
-import atf.api.reporting.ui.model.AtfUiActionRecord;
+import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.contract.AtfAssertion;
+import atf.reporting.api.ReportAttemptRecord;
+import atf.reporting.api.ReportRequest;
+import atf.reporting.api.ReportResponse;
+import atf.reporting.api.ReportTransportProvenance;
+import atf.reporting.console.AtfConsoleSink;
+import atf.reporting.evidence.ReportScreenshotPolicy;
+import atf.reporting.extent.session.ExtentReportSession;
+import atf.reporting.model.ReportExecutionEvidence;
+import atf.reporting.support.ReportTestScreenshots;
+import atf.reporting.support.TestReportPaths;
+import atf.reporting.ui.UiExtentReportSession;
+import atf.reporting.ui.model.AtfUiActionRecord;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
 import atf.ui.tests.extent.support.locators.disclosure.ReportDisclosureLocators;
 import com.microsoft.playwright.Browser;
@@ -27,12 +28,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static atf.api.reporting.ui.validation.UiApiValidationFixtures.observedExchanges;
-import static atf.api.reporting.contract.AtfGherkinKeyword.AND;
-import static atf.api.reporting.markup.vocabulary.AtfReportHtmlVocabulary.CssClass.EXECUTION_EVIDENCE;
-import static atf.api.reporting.markup.vocabulary.AtfReportHtmlVocabulary.CssClass.PHASE_DETAILS;
-import static atf.api.reporting.markup.vocabulary.AtfReportHtmlVocabulary.CssClass.REQUEST_EVIDENCE;
-import static atf.api.reporting.markup.vocabulary.AtfReportHtmlVocabulary.CssClass.RESPONSE_EVIDENCE;
+import static atf.reporting.ui.validation.UiApiValidationFixtures.observedExchanges;
+import static atf.reporting.contract.AtfGherkinKeyword.AND;
+import static atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary.CssClass.EXECUTION_EVIDENCE;
+import static atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary.CssClass.PHASE_DETAILS;
+import static atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary.CssClass.REQUEST_EVIDENCE;
+import static atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary.CssClass.RESPONSE_EVIDENCE;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -288,7 +289,7 @@ public final class ExtentReportDisclosureProbe {
                         "product name", "Pliers", 2, status);
                 phase.step(AND, CATALOG_CHECKPOINT, UI_TARGET, ReportTestScreenshots.ONE_PIXEL_PNG,
                         List.of(assertion), List.of(action),
-                        observedExchanges(status == AtfReportStatus.PASS ? List.of(checkpointExchange()) : List.of()), atf.api.reporting.evidence.ReportScreenshotPolicy.CapturePoint.CHECKPOINT, status);
+                        observedExchanges(status == AtfReportStatus.PASS ? List.of(checkpointExchange()) : List.of()), ReportScreenshotPolicy.CapturePoint.CHECKPOINT, status);
                 phase.complete(status);
                 scenario.complete(status);
             }

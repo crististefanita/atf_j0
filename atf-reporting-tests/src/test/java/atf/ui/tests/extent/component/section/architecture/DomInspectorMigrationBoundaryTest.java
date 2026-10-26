@@ -1,5 +1,5 @@
 package atf.ui.tests.extent.component.section.architecture;
-import atf.api.testkit.AtfComponentTest;
+import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;

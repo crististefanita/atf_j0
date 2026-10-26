@@ -1,12 +1,12 @@
 package atf.ui.tests.extent.support.data;
 
-import atf.api.tests.api.flows.ApiRequestFlowScenarios;
-import atf.api.tests.api.headers.ApiHeadersAndEdgeCaseScenarios;
-import atf.api.tests.api.lifecycle.LifecycleApiScenarios;
-import atf.api.tests.api.negative.ApiNegativeScenarios;
-import atf.api.tests.api.posts.PostsApiScenarios;
-import atf.api.tests.api.requests.RequestVariantsApiScenarios;
-import atf.api.tests.api.users.UsersApiScenarios;
+import atf.reporting.api.tests.api.flows.ApiRequestFlowScenarios;
+import atf.reporting.api.tests.api.headers.ApiHeadersAndEdgeCaseScenarios;
+import atf.reporting.api.tests.api.lifecycle.LifecycleApiScenarios;
+import atf.reporting.api.tests.api.negative.ApiNegativeScenarios;
+import atf.reporting.api.tests.api.posts.PostsApiScenarios;
+import atf.reporting.api.tests.api.requests.RequestVariantsApiScenarios;
+import atf.reporting.api.tests.api.users.UsersApiScenarios;
 
 import java.util.List;
 import java.util.Locale;

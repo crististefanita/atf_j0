@@ -1,6 +1,7 @@
 package atf.ui.tests.extent.component.plan;
+import atf.reporting.ui.audit.plan.SectionAuditSpec;
 import atf.ui.tests.extent.support.api.ApiReportAuditSetup;
-import atf.api.reporting.ui.audit.vocabulary.UiAuditGherkin;
+import atf.reporting.ui.audit.vocabulary.UiAuditGherkin;
 import atf.ui.tests.extent.support.data.UiTestData;
 
 import atf.ui.tests.extent.support.config.UiConfiguration;
@@ -13,7 +14,7 @@ import java.util.Objects;
 /**
  * Compatibility lifecycle input for the API-report fixture.
  *
- * <p>Section selection belongs to {@link atf.api.reporting.ui.audit.plan.SectionAuditSpec}.
+ * <p>Section selection belongs to {@link SectionAuditSpec}.
  * This record only carries report-session metadata needed by the two approved
  * API-to-UI contract profiles and the golden exploratory wiring.</p>
  */

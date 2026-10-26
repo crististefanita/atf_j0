@@ -60,7 +60,7 @@ Acest README deține matricea probelor și responsabilitățile suitei; nu
 redefinește regulile vizuale în feedback sau în fixture-uri.
 
 Helper-ele reutilizate de probele HTML UI stau în
-`atf.api.reporting.ui.support`, nu în pachetul testelor de renderer. De exemplu,
+`atf.reporting.ui.support`, nu în pachetul testelor de renderer. De exemplu,
 `ExtentReportUiEvidenceTestSupport` centralizează fixture-ul și verificările
 comune fără să devină un test sau să mute ownership-ul din
 `atf-reporting-tests`. Limita de coeziune per pachet rămâne verificată de
@@ -228,7 +228,7 @@ date ale fixture-ului, nu motive de a dezactiva verificări sau de a inventa PAS
 4. `atf-tests` — boundary și guvernanță whole-reactor, inclusiv verificările
    globale de documentație, ownership, coeziune și vocabular.
 
-`atf-reporting-tests/src/test/java/atf/api/tests/architecture` rămâne limitat la
+`src/test/java/atf/reporting/api` rămâne limitat la
 verificări care au ca subiect compoziția reporting. Nu duplică guard-uri de
 reactor și nu validează README-urile întregului proiect; acestea sunt executate
 central prin [`WholeAtfGovernanceSuiteTest`](../atf-tests/README.md#suita-whole-atf-și-reziduul-de-compatibilitate).
@@ -386,7 +386,7 @@ Boundary-urile suportului rămân mici și verificabile:
 - `support.api` ține selecția și publicarea precondiției API;
 - `support.config` ține loader-ele, resursele și configurația UI;
 - `support.config.environment` deține snapshot factory-urile typed pentru Overview/System;
-- Network Inspector aparține `atf.api.reporting.ui.network`; nu se adaugă excepții de coeziune pentru clase fără legătură;
+- Network Inspector aparține `atf.reporting.ui.network`; nu se adaugă excepții de coeziune pentru clase fără legătură;
 - guard-ul whole-ATF limitează fiecare package la maximum opt clase.
 
 `ReportingCoverageMatrixTest` este harta executabilă a seam-urilor publice:
@@ -578,9 +578,9 @@ Entry-point-urile selectabile direct din IntelliJ sunt separate pe layer:
 
 | Entry point | Include | Rol |
 |---|---|---|
-| `AtfReportingUnitSuite` | `unit` din `atf.api.reporting` | model, policy, parser, renderer seam și vocabular |
+| `AtfReportingUnitSuite` | `unit` din `atf.reporting` | model, policy, parser, renderer seam și vocabular |
 | `AtfReportingComponentSuite` | `component` din reporting și UI extent | boundary HTML/CSS/JS, contracte și fixture-uri controlate; snapshot-ul de navigation performance este mapat prin `ReportRuntimePerformanceSnapshot`, iar `ReportRuntimePerformanceBudget` verifică fixture-uri configurabile fără verdict business |
-| `AtfReportingIntegrationSuite` | `integration` din `atf.api.reporting` | session, publication, replay și contracte de integrare ale librăriei |
+| `AtfReportingIntegrationSuite` | `integration` din `atf.reporting` | session, publication, replay și contracte de integrare ale librăriei |
 | `AtfReportingApiFixtureSuite` | `integration` din `atf.api.tests.api` | mock API → core → validation → reporting evidence, fără browser |
 | `AtfReportingUiAuditSuite` | `e2e` din `atf.ui.tests.extent.e2e` | launcher browser/debug; aceeași selecție ca `ExtentReportingE2eSuite` |
 | `ExtentReportingE2eSuite` | același pachet/tag și aceeași excludere de suite | declară suplimentar `@AtfTestChannel(UI)`; nu adaugă alt inventar de probe |
@@ -637,7 +637,7 @@ Ancorele de output sunt:
 
 | Politica de output | Responsabilitate |
 |---|---|
-| `atf.api.testkit.output` | Adnotări și resolver neutru; baza UI și rădăcina proiectului sunt primite explicit |
+| `atf.testkit.output` | Adnotări și resolver neutru; baza UI și rădăcina proiectului sunt primite explicit |
 | `ReportingTestResources` | Deleagă alegerea directorului după încărcarea configurației |
 | Probe unitare | Director implicit și E2E păstrate; valori goale, absolute sau cu traversare respinse |
 
@@ -668,14 +668,14 @@ Practice Shop este izolat în modulul dedicat:
 
 ```text
 atf-test-practice-shop/src/test/resources/atf-practice-shop.yaml
-atf-test-practice-shop/src/main/java/atf/shop/
+atf-test-practice-shop/src/main/atf/shop/
 ├── api/         client, request factory și screen API flows
 ├── config/      configurare și credențiale typed
 ├── flow/        acțiuni semantice
 ├── locators/    singurul owner al selectorilor
 ├── pages/       page objects
 └── support/     checkpoint-uri, mapare API și reguli Shop
-atf-test-practice-shop/src/test/java/atf/shop/tests/
+atf-test-practice-shop/src/test/atf/shop/tests/
 ├── component/       teste rapide de module
 ├── api/component/   variații fake pozitive/negative
 ├── api/integration/ precondiție login live, opt-in

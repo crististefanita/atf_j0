@@ -1,6 +1,6 @@
 package atf.ui.tests.extent.support.section.module;
 
-import atf.api.reporting.ui.audit.plan.ExtentSection;
+import atf.reporting.ui.audit.plan.ExtentSection;
 
 import java.util.EnumMap;
 import java.util.Map;

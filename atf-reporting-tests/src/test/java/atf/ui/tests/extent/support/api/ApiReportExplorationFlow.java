@@ -1,11 +1,11 @@
 package atf.ui.tests.extent.support.api;
 import atf.ui.tests.extent.support.inspection.duration.ApiReportDurationInspector;
 import atf.ui.tests.extent.support.inspection.projection.ReportProjectionMatrixInspector;
-import atf.api.reporting.ui.contract.ReportUiContract;
+import atf.reporting.ui.contract.ReportUiContract;
 import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
 
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
-import atf.api.reporting.audit.ReportAuditSnapshot;
+import atf.reporting.audit.ReportAuditSnapshot;
 import atf.ui.tests.extent.support.section.extract.ApiReportStructureExtractor;
 import atf.ui.tests.extent.support.section.extract.EvidenceSectionExtractor;
 import atf.ui.tests.extent.support.section.extract.FilterSectionExtractor;
@@ -96,7 +96,7 @@ public final class ApiReportExplorationFlow {
     }
 
     public ReportProjectionMatrixInspector.Observation inspectProjection(Page page,
-            atf.api.reporting.ui.contract.ReportUiContract.Tab tab) {
+            ReportUiContract.Tab tab) {
         return projectionMatrixInspector.inspect(page, tab);
     }
 

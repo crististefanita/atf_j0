@@ -1,17 +1,16 @@
 package atf.ui.tests.extent.support.lifecycle;
-import atf.api.reporting.contract.AtfAssertion;
-import atf.api.reporting.contract.AtfGherkinKeyword;
-import atf.api.reporting.contract.AtfReportStatus;
-import atf.api.reporting.ui.contract.ReportUiContract;
-import atf.api.reporting.ui.UiExtentReportSession;
-import atf.api.reporting.ui.UiAuditLifecycle;
-import atf.api.reporting.audit.ReportAuditChecks;
+import atf.reporting.contract.AtfAssertion;
+import atf.reporting.contract.AtfGherkinKeyword;
+import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.ui.contract.ReportUiContract;
+import atf.reporting.ui.UiExtentReportSession;
+import atf.reporting.ui.UiAuditLifecycle;
+import atf.reporting.audit.ReportAuditChecks;
 import atf.ui.tests.extent.support.audit.ReportAuditContext;
-import atf.api.reporting.ui.model.AtfUiActionRecord;
 import atf.ui.tests.extent.support.audit.ReportUiActionAdapters;
 import atf.ui.tests.extent.support.config.UiConfiguration;
-import atf.api.ui.playwright.PlaywrightActionSequence;
-import atf.api.ui.playwright.UiScreenValidation;
+import atf.ui.playwright.PlaywrightActionSequence;
+import atf.ui.playwright.UiScreenValidation;
 import com.microsoft.playwright.Page;
 
 import java.util.Collection;
@@ -19,8 +18,8 @@ import java.util.List;
 import java.util.Objects;
 import java.nio.file.Files;
 
-import static atf.api.reporting.contract.AtfGherkinKeyword.GIVEN;
-import static atf.api.reporting.contract.AtfGherkinKeyword.THEN;
+import static atf.reporting.contract.AtfGherkinKeyword.GIVEN;
+import static atf.reporting.contract.AtfGherkinKeyword.THEN;
 
 /**
  * Typed orchestration boundary shared by UI report audits.

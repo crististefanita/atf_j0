@@ -1,14 +1,14 @@
 package atf.ui.tests.extent.support.uireport.browser;
 
-import atf.api.reporting.console.AtfConsoleSink;
-import atf.api.reporting.contract.AtfAssertion;
-import atf.api.reporting.contract.AtfGherkinKeyword;
-import atf.api.reporting.contract.AtfReportStatus;
-import atf.api.reporting.ui.UiExtentReportOptions;
-import atf.api.reporting.ui.UiExtentReportSession;
-import atf.api.reporting.ui.contract.ReportUiContract;
-import atf.api.reporting.ui.model.AtfUiActionRecord;
-import atf.api.reporting.ui.model.AtfUiEvidenceSource;
+import atf.reporting.console.AtfConsoleSink;
+import atf.reporting.contract.AtfAssertion;
+import atf.reporting.contract.AtfGherkinKeyword;
+import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.ui.UiExtentReportOptions;
+import atf.reporting.ui.UiExtentReportSession;
+import atf.reporting.ui.contract.ReportUiContract;
+import atf.reporting.ui.model.AtfUiActionRecord;
+import atf.reporting.ui.model.AtfUiEvidenceSource;
 import atf.ui.tests.extent.support.config.UiConfiguration;
 import atf.ui.tests.extent.support.config.environment.UiReportEnvironmentSnapshotFactory;
 

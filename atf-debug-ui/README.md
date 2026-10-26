@@ -54,7 +54,7 @@ Responsabilitățile rămân separate:
 
 ## Pornire
 
-Din IntelliJ rulează `atf.api.debugui.AtfDebugUiLauncher` cu argumentele:
+Din IntelliJ rulează `atf.debugui.AtfDebugUiLauncher` cu argumentele:
 
 ```text
 --html <configured-report-path>
@@ -125,7 +125,7 @@ rezervarea heap-ului implicit al JVM-ului:
 ```text
 java -Xms16m -Xmx128m -XX:MaxMetaspaceSize=64m \
   -cp atf-debug-ui/target/classes \
-  atf.api.debugui.AtfDebugUiLauncher \
+  atf.debugui.AtfDebugUiLauncher \
   --html <configured-report-path> --port 0
 ```
 
@@ -144,7 +144,7 @@ mvn -q -pl atf-debug-ui dependency:build-classpath '-Dmdep.outputFile=target/deb
 $runtimeDependencies = Get-Content -Raw 'atf-debug-ui/target/debug-classpath.txt'
 $launcherClasspath = 'atf-debug-ui/target/classes;atf-console/target/classes;atf-core/target/classes;' + $runtimeDependencies
 $report = '<report-path>'
-java -Xms16m -Xmx128m -XX:MaxMetaspaceSize=64m -cp $launcherClasspath atf.api.debugui.AtfDebugUiLauncher --html $report --port 0
+java -Xms16m -Xmx128m -XX:MaxMetaspaceSize=64m -cp $launcherClasspath atf.debugui.AtfDebugUiLauncher --html $report --port 0
 ```
 
 În IntelliJ, o configurație `Application` pentru `AtfDebugUiLauncher` include

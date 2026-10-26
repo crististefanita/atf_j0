@@ -1,12 +1,13 @@
 package atf.ui.tests.extent.support.inspection.failure;
 
-import atf.api.ui.dom.HtmlElement;
-import atf.api.reporting.audit.RetryEvidenceValidator;
+import atf.ui.dom.HtmlElement;
+import atf.reporting.audit.RetryEvidenceValidator;
+import atf.ui.playwright.AtfLocator;
 import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
 
-import atf.api.core.http.request.HttpMethod;
+import atf.core.http.request.HttpMethod;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
-import atf.api.reporting.audit.RetryEvidenceSnapshot;
+import atf.reporting.audit.RetryEvidenceSnapshot;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 
@@ -99,7 +100,7 @@ public final class FailureTransportEvidenceInspector {
     }
 
     private void openDisclosure(Page page, Locator request, Locator summary,
-                                atf.api.ui.playwright.AtfLocator action, String name) {
+                                AtfLocator action, String name) {
         if (summary.count() == 0) return;
         Locator disclosure = locators.parentDisclosure(summary);
         if (disclosure.getAttribute("open") == null) {

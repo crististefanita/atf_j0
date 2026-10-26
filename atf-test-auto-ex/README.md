@@ -189,7 +189,7 @@ Clasele concrete rămân selecția pentru un singur flow, fără suite suprapuse
 Aplică [regula comună de ownership](../docs/ATF_Testing_Guide.md#owner-ul-testului-business-adaptor-sau-infrastructură);
 punctele următoare descriu numai ce afirmă testele specifice Automation Exercise.
 
-- selectează testele componente din `atf.ui.tests.autoex.component`;
+- selectează testele componente din `atf.autoex.tests.component`;
 - acestea acoperă decizii și adaptoare specifice consumerului;
 - testele de catalog, contract API, cleanup de cont, răspunsuri și traffic window
   rămân aici chiar dacă folosesc fixture-uri, fiindcă afirmă reguli Automation
@@ -754,13 +754,13 @@ rămân în adaptorul test-scoped; browserul și publicarea aparțin runtime-ulu
 | Owner | Contract |
 |---|---|
 | AutoEx `src/main/java` | pagini, journey-uri, API și `runtime`: browser, raport, profil rezolvat, mapping network și pregătirea clientului; fără JUnit/Kit |
-| AutoEx `src/test/java` | teste business, suite și adaptoare JUnit în `atf.ui.tests.autoex.extension`; testele nu apelează alte clase de test |
+| AutoEx `src/test/java` | teste business și suite în `atf.autoex.tests`; adaptoarele JUnit sunt în `atf.autoex.tests.extension`; testele nu apelează alte clase de test |
 | `atf-test-kit.lifecycle` | `TestRunInitialization`, cleanup și compensare; este pachet în Kit-ul existent, nu modul nou |
 | `atf-ui` | `UiNetworkInspector.observationCursor()` / `observationsSince(...)` și `UiScreenAudit`: observație terminală și validare PNG comune; nu calculează verdictul aplicației |
 
 ### Runtime în main și granița JUnit
 
-`atf.ui.autoex.support` nu mai găzduiește clase în test. Capabilitățile
+`atf.autoex.support` nu mai găzduiește clase în test. Capabilitățile
 reutilizabile au inputuri explicite și sunt publicate în main:
 
 | Pachet / clasă | Responsabilitate |

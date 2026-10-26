@@ -1,6 +1,6 @@
 package atf.ui.tests.extent.component.locators;
-import atf.api.core.files.AtfPathLocator;
-import atf.api.testkit.AtfComponentTest;
+import atf.core.files.AtfPathLocator;
+import atf.testkit.AtfComponentTest;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
 
 import org.junit.jupiter.api.Test;
@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

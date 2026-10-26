@@ -62,7 +62,7 @@ flowchart LR
   ATF în production;
 - `src/test` poate verifica boundary-ul standalone fără să contamineze JAR-ul;
 - `atf-reporting` este renderer-neutral și publică HTML prin API-ul
-  `atf.api.reporting.*`: contracte, records immutable, porturi, evidence,
+  `atf.reporting.*`: contracte, records immutable, porturi, evidence,
   snapshot și renderer;
 - `ReportModelAdapters` este adaptorul public generic, reflection-only pentru request,
   execution/retry/provenance, assertions, UI actions și statusuri; decodarea URI
@@ -540,7 +540,7 @@ Contractul de trace se citește astfel:
   propoziție Gherkin suplimentară.
 
 Contractul este verificat de testul component
-[`keepsUiAndApiValidationUnderOneGherkinCheckpoint`](../atf-reporting-tests/src/test/java/atf/api/reporting/ui/ExtentReportUiEvidencePublishingTest.java):
+[`keepsUiAndApiValidationUnderOneGherkinCheckpoint`](../atf-reporting-tests/src/test/java/atf/reporting/ui/ExtentReportUiEvidencePublishingTest.java):
 titlul Gherkin apare o singură dată, iar validările UI/API și exchange evidence
 coexistă sub acel checkpoint. Un card Gherkin duplicat este regresie a acestui
 contract, nu un ToDo activ.
@@ -559,7 +559,7 @@ contract, nu un ToDo activ.
 <summary><strong>Detaliu — harta internă și split-ul CSS/JavaScript</strong></summary>
 
 ```text
-atf.api.reporting
+atf.reporting
 ├── semantic/       snapshot, recorder facade, lifecycle orchestrator și state aggregate mutation intern
 ├── model/          execution tree și evidence POJO
 ├── markup/         Extent nodes, assets și vocabulary bridge

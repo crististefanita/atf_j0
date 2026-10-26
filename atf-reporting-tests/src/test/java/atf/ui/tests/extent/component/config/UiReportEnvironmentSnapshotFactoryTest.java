@@ -1,15 +1,15 @@
 package atf.ui.tests.extent.component.config;
 
-import atf.api.testkit.AtfComponentTest;
+import atf.testkit.AtfComponentTest;
 import atf.ui.tests.extent.support.config.UiConfiguration;
 import atf.ui.tests.extent.support.config.environment.UiReportEnvironmentSnapshotFactory;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 
-import static atf.api.reporting.configuration.ReportEnvironmentField.API_EVIDENCE;
-import static atf.api.reporting.configuration.ReportEnvironmentField.REPORT_ARTIFACT;
-import static atf.api.reporting.configuration.ReportEnvironmentField.SUITE;
+import static atf.reporting.configuration.ReportEnvironmentField.API_EVIDENCE;
+import static atf.reporting.configuration.ReportEnvironmentField.REPORT_ARTIFACT;
+import static atf.reporting.configuration.ReportEnvironmentField.SUITE;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

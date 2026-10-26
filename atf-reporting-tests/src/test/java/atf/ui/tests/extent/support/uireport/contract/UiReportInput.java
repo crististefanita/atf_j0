@@ -1,5 +1,5 @@
 package atf.ui.tests.extent.support.uireport.contract;
-import atf.api.reporting.artifact.ReportArtifactIdentity;
+import atf.reporting.artifact.ReportArtifactIdentity;
 
 import java.nio.file.Path;
 import java.util.Objects;

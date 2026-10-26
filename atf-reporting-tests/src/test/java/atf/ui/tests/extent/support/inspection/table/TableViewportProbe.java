@@ -1,7 +1,7 @@
 package atf.ui.tests.extent.support.inspection.table;
 
 import atf.ui.tests.extent.support.locators.table.TableViewportLocators;
-import atf.api.reporting.support.TestReportPaths;
+import atf.reporting.support.TestReportPaths;
 import com.microsoft.playwright.*;
 
 import java.nio.file.Path;

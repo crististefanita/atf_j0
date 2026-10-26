@@ -1,22 +1,21 @@
 package atf.ui.tests.extent.support.section.module;
-import atf.api.reporting.ui.audit.runtime.SectionAuditCheckExecutor;
-import atf.api.reporting.audit.ReportAuditChecks;
-import atf.api.reporting.ui.contract.ReportUiContract;
-import atf.api.reporting.audit.ValidationResult;
+import atf.reporting.ui.audit.runtime.SectionAuditCheckExecutor;
+import atf.reporting.ui.contract.ReportUiContract;
+import atf.reporting.audit.ValidationResult;
 
-import atf.api.reporting.ui.audit.plan.ReportProjection;
-import atf.api.reporting.audit.ReportAuditSnapshot;
-import atf.api.reporting.ui.audit.plan.ExtentSection;
-import atf.api.reporting.ui.audit.plan.ExtentSectionCheck;
-import atf.api.reporting.ui.audit.plan.SectionAuditSpec;
+import atf.reporting.ui.audit.plan.ReportProjection;
+import atf.reporting.audit.ReportAuditSnapshot;
+import atf.reporting.ui.audit.plan.ExtentSection;
+import atf.reporting.ui.audit.plan.ExtentSectionCheck;
+import atf.reporting.ui.audit.plan.SectionAuditSpec;
 import atf.ui.tests.extent.support.section.runtime.SectionAuditFixture;
 import atf.ui.tests.extent.support.audit.screen.OverviewSecondaryContractValidator;
-import atf.api.reporting.ui.audit.result.SectionAuditResult;
-import atf.api.reporting.ui.audit.section.OverviewSectionValidator;
+import atf.reporting.ui.audit.result.SectionAuditResult;
+import atf.reporting.ui.audit.section.OverviewSectionValidator;
 import java.util.List;
 import java.util.Set;
 
-import static atf.api.reporting.audit.ReportAuditChecks.check;
+import static atf.reporting.audit.ReportAuditChecks.check;
 
 /** Overview browser adapter; the projection expectation is built before DOM observation. */
 public final class OverviewSectionAuditModule implements ExtentSectionAuditModule {

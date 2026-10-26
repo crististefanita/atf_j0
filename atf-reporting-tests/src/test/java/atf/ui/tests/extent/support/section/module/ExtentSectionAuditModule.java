@@ -1,12 +1,11 @@
 package atf.ui.tests.extent.support.section.module;
-import atf.api.reporting.ui.contract.ReportUiContract;
-import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
+import atf.reporting.ui.contract.ReportUiContract;
 
-import atf.api.reporting.ui.audit.plan.ExtentSection;
-import atf.api.reporting.ui.audit.plan.ExtentSectionGherkin;
-import atf.api.reporting.ui.audit.plan.SectionAuditSpec;
+import atf.reporting.ui.audit.plan.ExtentSection;
+import atf.reporting.ui.audit.plan.ExtentSectionGherkin;
+import atf.reporting.ui.audit.plan.SectionAuditSpec;
 import atf.ui.tests.extent.support.section.runtime.SectionAuditFixture;
-import atf.api.reporting.ui.audit.result.SectionAuditResult;
+import atf.reporting.ui.audit.result.SectionAuditResult;
 import com.microsoft.playwright.Page;
 
 /** One plug-and-play vertical slice for one report section. */

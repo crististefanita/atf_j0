@@ -1,21 +1,21 @@
 package atf.ui.tests.extent.support.audit;
 
-import atf.api.reporting.ui.audit.input.ReportAuditInput;
-import atf.api.tests.support.console.ReportingTestConsole;
-import atf.api.reporting.ui.audit.input.ReportAuditInputKind;
-import atf.api.debugui.DebugUiConfiguration;
-import atf.api.debugui.DebugUiServer;
-import atf.api.reporting.artifact.ReportArtifactInspector;
-import atf.api.reporting.artifact.ReportArtifactIdentity;
-import atf.api.reporting.ui.UiExtentReportSession;
+import atf.reporting.ui.audit.input.ReportAuditInput;
+import atf.reporting.api.tests.support.console.ReportingTestConsole;
+import atf.reporting.ui.audit.input.ReportAuditInputKind;
+import atf.debugui.DebugUiConfiguration;
+import atf.debugui.DebugUiServer;
+import atf.reporting.artifact.ReportArtifactInspector;
+import atf.reporting.artifact.ReportArtifactIdentity;
+import atf.reporting.ui.UiExtentReportSession;
 import atf.ui.tests.extent.support.config.UiConfiguration;
 import atf.ui.tests.extent.support.config.environment.UiReportEnvironmentSnapshotFactory;
-import atf.api.ui.config.UiScreenValidationConfiguration;
-import atf.api.ui.playwright.PlaywrightActionSequence;
-import atf.api.ui.playwright.PlaywrightUiSession;
-import atf.api.ui.playwright.UiScreenValidation;
+import atf.ui.config.UiScreenValidationConfiguration;
+import atf.ui.playwright.PlaywrightActionSequence;
+import atf.ui.playwright.PlaywrightUiSession;
+import atf.ui.playwright.UiScreenValidation;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
-import atf.api.reporting.ui.contract.ReportUiContract;
+import atf.reporting.ui.contract.ReportUiContract;
 import com.microsoft.playwright.Page;
 
 import java.net.URI;

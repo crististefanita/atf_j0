@@ -1,23 +1,22 @@
 package atf.ui.tests.extent.e2e.navigation;
-import atf.api.testkit.AtfE2eTest;
-import atf.api.testkit.channel.AtfTestChannel;
-import atf.api.testkit.channel.TestChannel;
-import atf.api.testkit.setup.api.ApiScenarioSetup;
-import atf.api.reporting.contract.AtfAssertion;
+import atf.reporting.contract.AtfAssertion;
+import atf.testkit.AtfE2eTest;
+import atf.testkit.channel.AtfTestChannel;
+import atf.testkit.channel.TestChannel;
+import atf.testkit.setup.api.ApiScenarioSetup;
 import atf.ui.tests.extent.support.navigation.ReportNavigationFlow;
-import atf.api.reporting.audit.ReportAuditChecks;
 import atf.ui.tests.extent.support.audit.ReportAuditContext;
 import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
-import atf.api.reporting.ui.audit.vocabulary.UiAuditGherkin;
+import atf.reporting.ui.audit.vocabulary.UiAuditGherkin;
 
 import atf.ui.tests.extent.support.config.ReportingTestResources;
 import atf.ui.tests.extent.support.config.UiConfiguration;
-import atf.api.testkit.output.ProjectRelativeUiReportDirectory;
+import atf.testkit.output.ProjectRelativeUiReportDirectory;
 import atf.ui.tests.extent.support.audit.ReportAuditInputs;
-import atf.api.ui.playwright.UiScreenValidation;
-import atf.api.reporting.ui.audit.section.OverviewSectionValidator;
-import atf.api.core.config.module.AtfModule;
-import atf.api.reporting.test.AtfModuleTest;
+import atf.ui.playwright.UiScreenValidation;
+import atf.reporting.ui.audit.section.OverviewSectionValidator;
+import atf.core.config.module.AtfModule;
+import atf.reporting.test.AtfModuleTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -31,8 +30,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import static atf.api.reporting.audit.ReportAuditChecks.check;
-import static atf.api.reporting.audit.ReportAuditChecks.status;
+import static atf.reporting.audit.ReportAuditChecks.check;
+import static atf.reporting.audit.ReportAuditChecks.status;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -87,7 +86,7 @@ class ReportNavigationAggregationFlowTest {
                     && snapshot.combinedScenarioCount() >= 0 && snapshot.tagCombinationValid()
                     && snapshot.clearRestoresBaseline() && category.valid() && overview.valid()
                     && evidence.hasScreenshotPayload();
-            List<atf.api.reporting.contract.AtfAssertion> assertions = new ArrayList<>(overview.assertions());
+            List<AtfAssertion> assertions = new ArrayList<>(overview.assertions());
             assertions.add(0, check("Tests baseline", "owners/scenarios > 0", baseline.classCount() + "/" + baseline.scenarioCount(), baseline.classCount() > 0 && baseline.scenarioCount() > 0));
             assertions.add(check("Pass filter", "selected and non-negative", snapshot.passSelected() + " / " + snapshot.passScenarioCount(), snapshot.passSelected() && snapshot.passScenarioCount() >= 0));
             assertions.add(check("Dynamic tag combination",

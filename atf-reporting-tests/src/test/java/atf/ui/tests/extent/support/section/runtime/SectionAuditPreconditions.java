@@ -1,8 +1,8 @@
 package atf.ui.tests.extent.support.section.runtime;
 
-import atf.api.testkit.setup.api.ApiScenarioSetup;
-import atf.api.reporting.ui.audit.plan.SectionAuditSpec;
-import atf.api.reporting.ui.audit.plan.UiExtentReportSource;
+import atf.testkit.setup.api.ApiScenarioSetup;
+import atf.reporting.ui.audit.plan.SectionAuditSpec;
+import atf.reporting.ui.audit.plan.UiExtentReportSource;
 
 import java.util.Objects;
 

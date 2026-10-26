@@ -4,10 +4,10 @@ import atf.ui.tests.extent.support.config.UiConfiguration;
 import atf.ui.tests.extent.support.api.ApiReportUiFlow;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
 import atf.ui.tests.extent.support.audit.ReportAuditContext;
-import atf.api.reporting.ui.audit.input.ReportAuditInput;
-import atf.api.reporting.ui.contract.ReportUiContract;
-import atf.api.reporting.ui.failure.UiFailureReportInput;
-import atf.api.reporting.ui.failure.UiFailureReportSpec;
+import atf.reporting.ui.audit.input.ReportAuditInput;
+import atf.reporting.ui.contract.ReportUiContract;
+import atf.reporting.ui.failure.UiFailureReportInput;
+import atf.reporting.ui.failure.UiFailureReportSpec;
 import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
 import com.microsoft.playwright.Page;
 

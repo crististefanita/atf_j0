@@ -242,7 +242,7 @@ a verifica un transport care este deja observabil prin modele și răspunsuri.
 
 | Layer | Locație | Dovezi principale |
 |---|---|---|
-| component | `src/test/java/atf/api/mock` | loader YAML, matching, fallback, response |
+| component | `src/test/java/atf/mock` | loader YAML, matching, fallback, response |
 | support | `.../mock/fixtures` | payload-uri, rute și request-uri reutilizabile |
 | consumer integration | `atf-reporting-tests/src/test` | adaptarea datelor către reporting |
 | browser/E2E | în afara `atf-mock` | efect observabil în consumer, dacă este necesar |

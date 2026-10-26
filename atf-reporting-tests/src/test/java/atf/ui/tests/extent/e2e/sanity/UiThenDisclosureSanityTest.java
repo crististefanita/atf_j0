@@ -1,18 +1,18 @@
 package atf.ui.tests.extent.e2e.sanity;
-import atf.api.testkit.AtfE2eTest;
-import atf.api.testkit.channel.AtfTestChannel;
-import atf.api.testkit.channel.TestChannel;
+import atf.testkit.AtfE2eTest;
+import atf.testkit.channel.AtfTestChannel;
+import atf.testkit.channel.TestChannel;
 import atf.ui.tests.extent.support.navigation.ThenDisclosureFlow;
-import atf.api.reporting.ui.contract.ReportUiContract;
+import atf.reporting.ui.contract.ReportUiContract;
 
-import atf.api.debugui.DebugUiConfiguration;
-import atf.api.debugui.DebugUiServer;
+import atf.debugui.DebugUiConfiguration;
+import atf.debugui.DebugUiServer;
 import atf.ui.tests.extent.support.config.ReportingTestResources;
 import atf.ui.tests.extent.support.config.UiConfiguration;
-import atf.api.ui.playwright.PlaywrightUiSession;
+import atf.ui.playwright.PlaywrightUiSession;
 import atf.ui.tests.extent.support.sanity.UiThenDisclosureReportFixtures;
-import atf.api.core.config.module.AtfModule;
-import atf.api.reporting.test.AtfModuleTest;
+import atf.core.config.module.AtfModule;
+import atf.reporting.test.AtfModuleTest;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;

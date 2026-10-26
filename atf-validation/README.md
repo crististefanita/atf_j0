@@ -168,7 +168,7 @@ Validarea vizuală a artifactului rămâne responsabilitatea suitei din
 
 ## Comparatorul AI — contract implementat
 
-`atf.api.validation.ai` evaluează output-ul furnizat de consumer. Expected-ul
+`atf.validation.ai` evaluează output-ul furnizat de consumer. Expected-ul
 versionat se construiește separat, iar evaluatorul produce un instantaneu
 `COMPLETE` fără să invoce un model sau un renderer.
 

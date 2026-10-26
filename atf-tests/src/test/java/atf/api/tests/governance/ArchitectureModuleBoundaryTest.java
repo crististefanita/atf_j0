@@ -1,7 +1,7 @@
 package atf.api.tests.governance;
 
-import atf.api.core.config.module.AtfModuleIds;
-import atf.api.testkit.AtfComponentTest;
+import atf.core.config.module.AtfModuleIds;
+import atf.testkit.AtfComponentTest;
 
 import org.junit.jupiter.api.Test;
 
@@ -60,7 +60,7 @@ public class ArchitectureModuleBoundaryTest {
         assertNoForbiddenReportingCore(moduleSource(root, AtfModuleIds.REPORTING, false),
                 AtfGovernanceRules.REPORTING_FORBIDDEN_PRODUCTION_PACKAGES, violations);
         assertNoForbidden(moduleSource(root, AtfModuleIds.CONSOLE, false),
-                List.of("atf.api.reporting", "com.aventstack"), violations);
+                List.of("atf.reporting", "com.aventstack"), violations);
         assertTrue(violations.isEmpty(), () -> "Reporting boundary violations: " + violations);
     }
 

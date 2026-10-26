@@ -1,11 +1,11 @@
 package atf.ui.tests.extent.support.audit.screen;
 
-import atf.api.reporting.contract.AtfAssertion;
-import atf.api.reporting.contract.AtfReportStatus;
-import atf.api.reporting.audit.ReportAuditChecks;
-import atf.api.reporting.audit.ValidationResult;
-import atf.api.reporting.ui.contract.ReportUiContract;
-import atf.api.ui.playwright.AtfLocator;
+import atf.reporting.contract.AtfAssertion;
+import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.audit.ReportAuditChecks;
+import atf.reporting.audit.ValidationResult;
+import atf.reporting.ui.contract.ReportUiContract;
+import atf.ui.playwright.AtfLocator;
 import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
 import com.microsoft.playwright.Locator;

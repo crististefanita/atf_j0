@@ -1,16 +1,17 @@
 package atf.ui.tests.extent.support.section.module;
-import atf.api.reporting.ui.audit.runtime.SectionAuditCheckExecutor;
-import atf.api.reporting.audit.ValidationResult;
+import atf.reporting.ui.audit.plan.ExtentSectionCheck;
+import atf.reporting.ui.audit.runtime.SectionAuditCheckExecutor;
+import atf.reporting.audit.ValidationResult;
 
-import atf.api.reporting.audit.ReportAuditSnapshot;
-import atf.api.reporting.ui.audit.plan.ExtentSection;
-import atf.api.reporting.ui.audit.plan.SectionAuditSpec;
+import atf.reporting.audit.ReportAuditSnapshot;
+import atf.reporting.ui.audit.plan.ExtentSection;
+import atf.reporting.ui.audit.plan.SectionAuditSpec;
 import atf.ui.tests.extent.support.section.runtime.SectionAuditFixture;
-import atf.api.reporting.ui.audit.result.SectionAuditResult;
-import atf.api.reporting.ui.audit.section.CategoriesSectionValidator;
+import atf.reporting.ui.audit.result.SectionAuditResult;
+import atf.reporting.ui.audit.section.CategoriesSectionValidator;
 import atf.ui.tests.extent.support.audit.screen.CategoryOutcomeFlowAuditor;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
-import atf.api.reporting.ui.contract.ReportUiContract;
+import atf.reporting.ui.contract.ReportUiContract;
 import com.microsoft.playwright.Page;
 
 
@@ -26,10 +27,10 @@ public final class CategoriesSectionAuditModule implements ExtentSectionAuditMod
     public SectionAuditResult audit(SectionAuditFixture fixture, SectionAuditSpec spec) {
         var filters = fixture.exploration().inspectFiltersAndFailures();
         ReportAuditSnapshot.Annotations snapshot = filters.annotations();
-        ValidationResult result = (spec.hasCheck(atf.api.reporting.ui.audit.plan.ExtentSectionCheck.STRUCTURE)
-                || spec.hasCheck(atf.api.reporting.ui.audit.plan.ExtentSectionCheck.STYLE))
+        ValidationResult result = (spec.hasCheck(ExtentSectionCheck.STRUCTURE)
+                || spec.hasCheck(ExtentSectionCheck.STYLE))
                 ? validator.validate(snapshot) : ValidationResult.empty();
-        if (spec.hasCheck(atf.api.reporting.ui.audit.plan.ExtentSectionCheck.CROSS_SECTION)) {
+        if (spec.hasCheck(ExtentSectionCheck.CROSS_SECTION)) {
             Page categoryPage = fixture.audit().openTab(ReportUiContract.Tab.CATEGORIES.hash());
             CategoryOutcomeFlowAuditor auditor = new CategoryOutcomeFlowAuditor(fixture.audit(), locators);
             CategoryOutcomeFlowAuditor.Observation outcomes = auditor.inspect(categoryPage);

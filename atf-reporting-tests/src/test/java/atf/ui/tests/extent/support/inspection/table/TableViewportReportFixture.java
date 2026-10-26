@@ -1,27 +1,29 @@
 package atf.ui.tests.extent.support.inspection.table;
 
-import atf.api.reporting.api.*;
-import atf.api.reporting.console.AtfConsoleSink;
-import atf.api.reporting.configuration.ReportingSettings;
-import atf.api.reporting.contract.*;
-import atf.api.reporting.extent.session.ExtentReportSession;
-import atf.api.reporting.html.HtmlReportSession;
-import atf.api.reporting.markup.AtfReportEvidenceKeys;
-import atf.api.reporting.markup.AtfReportMarkup;
-import atf.api.reporting.markup.table.ReportTableViewport;
-import atf.api.reporting.model.ReportExecutionEvidence;
-import atf.api.reporting.security.SensitiveDataRedactor;
-import atf.api.reporting.support.TestReportPaths;
-import atf.api.reporting.theme.AtfReportTheme;
-import atf.api.reporting.ui.model.AtfUiActionRecord;
-import atf.api.reporting.ui.model.AtfUiEvidenceSource;
+import atf.reporting.api.ReportAttemptRecord;
+import atf.reporting.api.ReportRequest;
+import atf.reporting.api.ReportResponse;
+import atf.reporting.api.ReportTransportProvenance;
+import atf.reporting.console.AtfConsoleSink;
+import atf.reporting.configuration.ReportingSettings;
+import atf.reporting.contract.AtfAssertion;
+import atf.reporting.contract.AtfReportPorts;
+import atf.reporting.extent.session.ExtentReportSession;
+import atf.reporting.html.HtmlReportSession;
+import atf.reporting.markup.AtfReportEvidenceKeys;
+import atf.reporting.markup.AtfReportMarkup;
+import atf.reporting.markup.table.ReportTableViewport;
+import atf.reporting.model.ReportExecutionEvidence;
+import atf.reporting.security.SensitiveDataRedactor;
+import atf.reporting.support.TestReportPaths;
+import atf.reporting.theme.AtfReportTheme;
+import atf.reporting.ui.model.AtfUiActionRecord;
+import atf.reporting.ui.model.AtfUiEvidenceSource;
 
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.IntStream;
-
-import static atf.api.reporting.contract.AtfReportStatus.*;
 
 /** Neutral public-port fixtures, never application E2E data or DOM-cloned table rows. */
 public final class TableViewportReportFixture {

@@ -131,7 +131,7 @@ Testul țintit apelează aceleași validatoare ca suita whole-ATF: structură,
 stil, proză, diagrame, relocatabilitate și nume de artifacte.
 
 Declarația repeatable `DocumentationTarget` aparține
-`atf.api.testkit.documentation`; lista țintelor și validatorii rămân aici.
+`atf.testkit.documentation`; lista țintelor și validatorii rămân aici.
 [Contractul adnotărilor](../docs/ATF_Test_Infrastructure_Annotations.md) explică
 ownership-ul și limitele de compoziție.
 

@@ -1,6 +1,6 @@
 package atf.api.tests.governance;
 
-import atf.api.core.config.module.AtfModuleIds;
+import atf.core.config.module.AtfModuleIds;
 
 import java.util.List;
 
@@ -9,16 +9,16 @@ final class AtfGovernanceRules {
     static final List<SourceRule> PRODUCTION_SOURCE_RULES = List.of(
             source(AtfModuleIds.CORE, "com.aventstack", "org.junit"),
             source(AtfModuleIds.MOCK, "com.aventstack", "org.junit",
-                    "atf.api.validation", "atf.api.reporting"),
+                    "atf.validation", "atf.reporting"),
             source(AtfModuleIds.VALIDATION, "com.aventstack", "org.junit", "<style", "<script",
-                    "atf.api.reporting"),
-            source(AtfModuleIds.UI, "atf.api.validation", "atf.api.reporting",
-                    "atf.api.mock", "org.junit", "<style", "<script"),
-            source(AtfModuleIds.DEBUG_UI, "atf.api.validation", "atf.api.reporting",
-                    "atf.api.mock", "org.junit", "<style", "<script"),
-            source(AtfModuleIds.AUTOMATION_EXERCISE, "org.junit", "atf.api.testkit"),
-            source(AtfModuleIds.REPORTING, "atf.api.core",
-                    "atf.api.validation", "atf.api.console", "org.junit"));
+                    "atf.reporting"),
+            source(AtfModuleIds.UI, "atf.validation", "atf.reporting",
+                    "atf.mock", "org.junit", "<style", "<script"),
+            source(AtfModuleIds.DEBUG_UI, "atf.validation", "atf.reporting",
+                    "atf.mock", "org.junit", "<style", "<script"),
+            source(AtfModuleIds.AUTOMATION_EXERCISE, "org.junit", "atf.testkit"),
+            source(AtfModuleIds.REPORTING, "atf.core",
+                    "atf.validation", "atf.console", "org.junit"));
 
     static final List<DependencyRule> MODULE_DEPENDENCY_RULES = List.of(
             dependency(AtfModuleIds.CORE, AtfModuleIds.VALIDATION, false),
@@ -37,9 +37,9 @@ final class AtfGovernanceRules {
 
     /** Every ATF module dependency declared by reporting must remain test-only. */
     static final List<String> REPORTING_FORBIDDEN_PRODUCTION_PACKAGES = List.of(
-            "atf.api.core", "atf.api.validation", "atf.api.mock",
-            "atf.api.console", "atf.api.ui", "atf.api.debugui", "atf.api.tests",
-            "atf.api.testkit", "org.junit");
+            "atf.core", "atf.validation", "atf.mock",
+            "atf.console", "atf.ui", "atf.debugui", "atf.api.tests",
+            "atf.testkit", "org.junit");
 
     private AtfGovernanceRules() {
     }

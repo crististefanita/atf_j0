@@ -1,8 +1,8 @@
 package atf.api.tests.governance.documentation;
 
-import atf.api.testkit.documentation.DocumentationTarget;
+import atf.testkit.documentation.DocumentationTarget;
 
-import atf.api.testkit.AtfComponentTest;
+import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;

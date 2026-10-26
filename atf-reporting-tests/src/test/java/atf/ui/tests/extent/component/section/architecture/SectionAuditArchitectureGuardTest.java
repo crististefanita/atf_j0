@@ -1,13 +1,11 @@
 package atf.ui.tests.extent.component.section.architecture;
-import atf.api.core.files.AtfPathLocator;
-import atf.api.testkit.AtfComponentTest;
-import atf.api.reporting.audit.ReportAuditChecks;
+import atf.core.files.AtfPathLocator;
+import atf.testkit.AtfComponentTest;
 
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;

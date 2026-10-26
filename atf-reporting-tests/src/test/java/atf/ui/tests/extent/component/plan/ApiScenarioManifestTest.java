@@ -1,16 +1,16 @@
 package atf.ui.tests.extent.component.plan;
 
-import atf.api.core.testing.api.ApiScenarioSelection;
-import atf.api.testkit.setup.api.ApiScenarioSetup;
-import atf.api.testkit.setup.api.ApiTestRef;
-import atf.api.mock.AtfMockConfiguration;
-import atf.api.reporting.audit.ReportAuditSnapshot;
-import atf.api.reporting.contract.AtfReportStatus;
-import atf.api.reporting.ui.audit.plan.ReportProjection;
-import atf.api.testkit.AtfComponentTest;
-import atf.api.tests.api.lifecycle.LifecycleApiScenarios;
-import atf.api.tests.api.posts.PostsApiScenarios;
-import atf.api.tests.api.users.UsersApiScenarios;
+import atf.core.testing.api.ApiScenarioSelection;
+import atf.testkit.setup.api.ApiScenarioSetup;
+import atf.testkit.setup.api.ApiTestRef;
+import atf.mock.AtfMockConfiguration;
+import atf.reporting.audit.ReportAuditSnapshot;
+import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.ui.audit.plan.ReportProjection;
+import atf.testkit.AtfComponentTest;
+import atf.reporting.api.tests.api.lifecycle.LifecycleApiScenarios;
+import atf.reporting.api.tests.api.posts.PostsApiScenarios;
+import atf.reporting.api.tests.api.users.UsersApiScenarios;
 import atf.ui.tests.extent.support.api.ApiReportAuditSetup;
 import atf.ui.tests.extent.support.config.ReportingTestResources;
 import atf.ui.tests.extent.support.config.UiConfiguration;
@@ -125,10 +125,10 @@ class ApiScenarioManifestTest {
                 UiTestData.USERS_FAMILY, UsersApiScenarios.REPORT_OWNER,
                 UsersApiScenarios.GET_COLLECTION_TITLE,
                 List.of("positive branch", "skipped branch", "failed branch", "warning branch"),
-                List.of(atf.api.core.reporting.contract.AtfReportStatus.PASS,
-                        atf.api.core.reporting.contract.AtfReportStatus.SKIP,
-                        atf.api.core.reporting.contract.AtfReportStatus.FAIL,
-                        atf.api.core.reporting.contract.AtfReportStatus.WARNING));
+                List.of(atf.core.reporting.contract.AtfReportStatus.PASS,
+                        atf.core.reporting.contract.AtfReportStatus.SKIP,
+                        atf.core.reporting.contract.AtfReportStatus.FAIL,
+                        atf.core.reporting.contract.AtfReportStatus.WARNING));
 
         ReportProjection projection = ApiScenarioManifest.from(
                 List.of(UiTestData.USERS_FAMILY), ReportingTestResources.mockConfiguration(),

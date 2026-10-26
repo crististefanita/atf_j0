@@ -1,6 +1,6 @@
 package atf.ui.tests.extent.support.audit;
 
-import atf.api.reporting.ui.audit.input.ReportAuditInput;
+import atf.reporting.ui.audit.input.ReportAuditInput;
 import atf.ui.tests.extent.support.api.ApiReportAuditSetup;
 import atf.ui.tests.extent.support.config.ReportingTestResources;
 import atf.ui.tests.extent.support.config.UiConfiguration;

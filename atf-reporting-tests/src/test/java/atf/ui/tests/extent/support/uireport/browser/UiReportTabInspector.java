@@ -1,10 +1,10 @@
 package atf.ui.tests.extent.support.uireport.browser;
-import atf.api.reporting.ui.contract.ReportUiContract;
-import atf.api.reporting.ui.contract.UiReportCheck;
-import atf.api.reporting.ui.contract.UiReportTabSnapshot;
+import atf.reporting.ui.contract.ReportUiContract;
+import atf.reporting.ui.contract.UiReportCheck;
+import atf.reporting.ui.contract.UiReportTabSnapshot;
 
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
-import atf.api.reporting.audit.ReportAuditSnapshot;
+import atf.reporting.audit.ReportAuditSnapshot;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 
@@ -58,7 +58,7 @@ public final class UiReportTabInspector {
                     phases = locators.phases(detail).count();
                     validations = locators.validationTables(detail).count();
                     Locator setup = locators.visiblePhase(detail,
-                            atf.api.reporting.ui.contract.ReportUiContract.Phase.SETUP);
+                            ReportUiContract.Phase.SETUP);
                     setupValidations = setup.count() == 0 ? 0 : locators.validationNodes(setup).count();
                 }
             }

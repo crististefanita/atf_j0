@@ -1,9 +1,9 @@
 package atf.ui.tests.extent.component.section.contract;
-import atf.api.testkit.AtfComponentTest;
+import atf.testkit.AtfComponentTest;
 
 import atf.ui.tests.extent.support.section.module.SectionAuditRegistry;
-import atf.api.reporting.ui.audit.plan.ExtentSection;
-import atf.api.reporting.ui.audit.plan.ExtentSectionGherkin;
+import atf.reporting.ui.audit.plan.ExtentSection;
+import atf.reporting.ui.audit.plan.ExtentSectionGherkin;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;

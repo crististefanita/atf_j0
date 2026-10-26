@@ -1,5 +1,5 @@
 package atf.ui.tests.extent.support.api;
-import atf.api.reporting.ui.audit.vocabulary.UiAuditGherkin;
+import atf.reporting.ui.audit.vocabulary.UiAuditGherkin;
 
 import java.util.List;
 import java.util.Objects;

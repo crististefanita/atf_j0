@@ -1,8 +1,8 @@
 package atf.ui.tests.extent.support.config;
-import atf.api.testkit.AtfUnitTest;
+import atf.testkit.AtfUnitTest;
 
-import atf.api.ui.config.UiBrowserConfiguration;
-import atf.api.ui.config.UiScreenValidationConfiguration;
+import atf.ui.config.UiBrowserConfiguration;
+import atf.ui.config.UiScreenValidationConfiguration;
 
 import org.junit.jupiter.api.Test;
 

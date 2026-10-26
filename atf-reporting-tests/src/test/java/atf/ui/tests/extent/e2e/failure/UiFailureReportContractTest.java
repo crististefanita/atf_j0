@@ -1,16 +1,16 @@
 package atf.ui.tests.extent.e2e.failure;
-import atf.api.testkit.AtfE2eTest;
-import atf.api.testkit.channel.AtfTestChannel;
-import atf.api.testkit.channel.TestChannel;
+import atf.testkit.AtfE2eTest;
+import atf.testkit.channel.AtfTestChannel;
+import atf.testkit.channel.TestChannel;
 import atf.ui.tests.extent.support.failure.UiFailureReportDynamicEngine;
 import atf.ui.tests.extent.support.failure.UiFailureReportFixture;
 
-import atf.api.reporting.ui.failure.UiFailureReportAudit;
+import atf.reporting.ui.failure.UiFailureReportAudit;
 import atf.ui.tests.extent.support.config.ReportingTestResources;
 import atf.ui.tests.extent.support.config.UiConfiguration;
-import atf.api.testkit.output.ProjectRelativeUiReportDirectory;
-import atf.api.core.config.module.AtfModule;
-import atf.api.reporting.test.AtfModuleTest;
+import atf.testkit.output.ProjectRelativeUiReportDirectory;
+import atf.core.config.module.AtfModule;
+import atf.reporting.test.AtfModuleTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;

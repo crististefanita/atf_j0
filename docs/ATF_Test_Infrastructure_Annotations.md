@@ -18,7 +18,7 @@ consumatorul deține resursele, execuția și publicarea dovezilor.
 | Setup API | `setup.api.ApiScenarioSetup`, `ApiTestRef` | metode exacte sau familii definite de consumator |
 | Documentație | `documentation.DocumentationTarget` și containerul repeatable | documente selectate pentru validatoarele consumatorului |
 
-Prefixul comun este `atf.api.testkit`. Kit-ul definește API de infrastructură a
+Prefixul comun este `atf.testkit`. Kit-ul definește API de infrastructură a
 testelor, însă scope-ul Maven este o proprietate a fiecărei muchii din POM, nu a
 adnotării. `atf-reporting` rămâne utilizabil independent de Test Kit.
 
@@ -75,11 +75,11 @@ Auditul browser al unui raport API are canalul `UI`, deoarece verifică pagina
 raportului; setup-ul API rămâne o precondiție separată.
 
 ```java
-import atf.api.testkit.AtfE2eTest;
-import atf.api.testkit.channel.AtfTestChannel;
-import atf.api.testkit.output.ProjectRelativeUiReportDirectory;
+import atf.testkit.AtfE2eTest;
+import channel.atf.testkit.AtfTestChannel;
+import output.atf.testkit.ProjectRelativeUiReportDirectory;
 
-import static atf.api.testkit.channel.TestChannel.UI;
+import static channel.atf.testkit.TestChannel.UI;
 
 @AtfE2eTest
 @AtfTestChannel(UI)
