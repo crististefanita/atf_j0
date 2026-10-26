@@ -467,6 +467,14 @@ clasei trebuie să fie aceeași; o durată brută Extent care include deja
 scenariile nu se recopiază peste suma lor.
 Valoarea auth este profilul/modul, niciodată secretul.
 
+- Timeline din Overview folosește aceleași durate canonice ale claselor ca Tests,
+  fiecare clasă o singură dată; nu însumează durate native care includ timpul suitei.
+- Barele graficului, modelul Timeline și atributele accesibile se actualizează
+  împreună. Durata măsurată zero este validă; datele native sunt fallback când
+  totalurile canonice nu sunt încă disponibile.
+- Repetarea proiecției nu reinițializează graficul și nu modifică graficele de
+  status. Numele de clasă identice păstrează intrări distincte prin identitatea rădăcinii.
+
 Request JSON și Response JSON sunt blocuri de cod autonome. Liniile se rup sau
 se derulează în interiorul blocului; pagina nu trebuie să dobândească scroll
 orizontal din cauza unui payload. Dacă payload-ul este mic, blocul rămâne

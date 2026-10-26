@@ -46,6 +46,8 @@ class ExtentReportDurationRuntimeComponentTest {
             "aggregateNodeDurations",
             "scenarioCardFor",
             "normalizeCategoryDurations",
+            "overviewTimelineEntries",
+            "publishOverviewTimeline",
             "normalizeOverviewDuration",
             "normalizeFailsDurations",
             "normalizeProjectedDurations",

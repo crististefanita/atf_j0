@@ -231,9 +231,9 @@ Profilele sunt compuse pe axe distincte, nu prin schimbarea journey-ului:
 | Axă | Owner / valoare live | Efect |
 |---|---|---|
 | Canal | `@AtfTestChannel(UI)` sau `UI_API` pe clasă | `UI` nu publică API evidence; `UI_API` cere inspector allowlisted și checkpoint-uri selectate înainte de deschiderea browserului |
-| Formă | `@AtfUiEvidence(flow = UNIFIED_FLOW)` pe `ShopUiOnlySingleFlowPurchaseE2eTest`; `CONFIGURED` păstrează baza `SCREEN_CHECKPOINTS` construită de `ShopScreenshotPolicy`, nu citește un flow YAML | schimbă gruparea evidence-ului, nu pașii business sau verdictul; valoarea explicită se aplică per scenariu și în raportul partajat |
+| Formă | `reporting.flowMode` furnizează baza; `@AtfUiEvidence(flow = UNIFIED_FLOW)` o poate suprascrie | schimbă gruparea evidence-ului, nu pașii business sau verdictul; `CONFIGURED` moștenește baza reală |
 | Capturi | YAML `reporting.screenshotPolicy: each-checkpoint`; `@AtfUiEvidence(screenshots = ...)` poate suprascrie explicit valoarea pentru scenariul propriu | politica efectivă determină capturile admise, fără scurgere între scenarii-surori |
-| Detalii acțiuni | `@WithE2eHarness(actionDetails = CONFIGURED)` implicit | păstrează setarea profilului, fără a opri capturarea acțiunilor |
+| Detalii acțiuni | `reporting.actionDetailsMode`, apoi override explicit din harness ori `@AtfUiEvidence` | valorile explicite contradictorii eșuează înainte de resurse; alegerea nu oprește capturarea acțiunilor |
 
 `UI_ONLY` oprește capturarea/publicarea API evidence, nu request-urile browserului.
 `@AtfUiEvidence` declară intenția clasei; consumerul rezolvă axele lăsate
@@ -297,8 +297,8 @@ publicare eșuată și două lansări succesive; aceste probe locale nu înlocui
 | Parte a contractului | Stare și owner |
 |---|---|
 | Profilul scenariului | `ShopE2eContext` transmite profilul rezolvat la publicarea în sesiunea comună; config-ul furnizează baza, iar adnotarea poate suprascrie axele declarate. |
-| Izolarea scenariilor-surori | Probată generic în `atf-reporting-tests`; `ShopE2eContextEvidenceProfileTest` verifică override-ul peste YAML, dar nu publică doi frați cu profile diferite. |
-| Overview/System | Snapshot-ul sesiunii comune provine din primul profil deschis; încă nu sintetizează diferențele UI/UI_API, flow și capturi dintre frați. Această limită nu schimbă profilul aplicat fiecărui scenariu. |
+| Izolarea scenariilor-surori | `ShopE2eContextEvidenceProfileTest` publică frați cu profile diferite pe succes și failure; probele neutre Reporting protejează proiecția și capturile. |
+| Overview/System | Fiecare scenariu contribuie cu snapshot-ul rezolvat. Valorile comune rămân exacte; un câmp diferit ori absent la un frate devine `Mixed — varies by scenario`. Mapperul primește explicit environment-ul capturat de composition root și nu citește starea JVM. |
 | Agregarea fazelor | În profilul `UNIFIED_FLOW`, Shop activează acumularea pe scenariu: `SETUP` și `TEST BODY` păstrează statusurile de fază, iar un singur nod Gherkin din faza terminală redă checkpoint-urile în ordine, cu provenance, assertions și API validation lângă checkpoint-ul lor. Un setup eșuat finalizează flow-ul în `SETUP`, fără `TEST BODY` sau captură terminală inventată. Profilurile `SCREEN_CHECKPOINTS` păstrează publicarea pe faze. |
 
 Contractul generic de lifecycle și randare este deținut de
@@ -332,6 +332,9 @@ checkout-ul modulului.
 | `reports.ui`, `reports.api` | `artifacts/reports/ui`, `artifacts/reports/api` | destinații distincte, relative la rădăcina reactorului |
 | `reporting.systemBodyPreviewCharacters` | `100` | limita preview-ului furnizat de Shop pentru Overview/System |
 | `reporting.screenshotPolicy` | `each-checkpoint` | profilul de captură de bază; limita profilurilor class-level în raportul partajat este descrisă mai sus |
+| `reporting.flowMode` | `screen-checkpoints` | baza pentru `CONFIGURED`; alternativ `unified-flow` |
+| `reporting.actionDetailsMode` | `included-collapsed` | baza pentru `CONFIGURED`; alternativ `summary-only` |
+| `checkout.billingStrategy` | `configured-fields` | `configured-fields` sau `postal-lookup`; alegere business independentă de canal |
 | `authenticatedE2eEnabled` | `false` | default-ul YAML rămâne guest; profilul `@AuthenticatedE2e` activează explicit clasa autentificată |
 | `productName`, `productPath`, `checkout` | `Pliers`, `auto`, cantitate 2, Cash on Delivery | fixture-ul business al demo-ului; produsul este căutat după nume, nu după ID rotativ |
 
@@ -363,6 +366,7 @@ ale claselor E2E.
 | `atf.practice.product-name` | — | produsul selectat după nume |
 | `atf.practice.product-path` | — | rută exactă sau `auto` |
 | `atf.practice.validation-profile` | — | `ui-only` sau `ui-api` pentru harness-ul configurat |
+| `atf.practice.config` | YAML-ul modulului | fișier YAML alternativ explicit; lipsa lui eșuează, fără fallback la fixture-ul implicit |
 | `atf.practice.api-evidence-checkpoints` | — | listă CSV de checkpoint-uri API |
 | `atf.practice.api-endpoint` | — | host API |
 | `atf.practice.api-mode` | — | modul de transport API |
@@ -399,10 +403,10 @@ ale claselor E2E.
 - `ShopBrowserCaptureProvider` maschează în screenshot controalele `input`,
   `textarea`, `select` și `[contenteditable]`; nu dezactiva această mască pentru
   a obține o captură mai lizibilă a datelor introduse.
-- Pentru billing, profilul `UI_ONLY` introduce țara, codul poștal și numărul
-  casei, apoi lasă aplicația să completeze strada/orașul/statul și validează
-  valorile observate. `UI_API` introduce și verifică valorile explicite din
-  fixture, pentru a putea afirma determinist request-ul asociat checkpoint-ului.
+- `checkout.billingStrategy` alege completarea adreselor. `configured-fields`
+  introduce și verifică valorile fixture-ului; `postal-lookup` introduce țara,
+  codul poștal și numărul casei și validează câmpurile completate de aplicație.
+  Aceeași strategie este păstrată în UI și UI_API; evidence-ul nu alege traseul.
 - Meta-adnotarea `@WithE2eHarness` include `@AtfConsoleMessages(DETAILS)` și
   `@AtfReportPath`; după publicare, calea absolută Extent este trimisă la consolă
   când output-ul este activ. `reporting.console.enabled: false` rămâne
@@ -663,7 +667,7 @@ main. Source-set-urile din tabelul de mai sus descriu implementarea curentă.
 - Rămân de separat inputurile metadata și responsabilitățile contextului
   browser/report, păstrând adaptorul JUnit și probele sale în test.
 - Un journey complet rămâne comun pentru UI pe pași, UI compact cu poză finală
-  și UI+API; cheia YAML pentru flow nu este încă un contract livrat al adaptorului.
+  și UI+API; configurația YAML furnizează acum separat flow-ul și detaliile acțiunilor.
 - Cele trei gate-uri rămân complete până la probele de echivalență; politica
   capturilor nu justifică o a doua poveste business.
 

@@ -134,14 +134,68 @@ trebuie demonstrată comportamental în ambii consumatori.
   și politica de captură; adaptorul AutoEx îl mapează în profilul Reporting.
   Varianta cu o captură la succes folosește `FINAL_AND_FAILURE`: nu adaugă
   capturi la checkpoint-uri, dar păstrează captura terminală și una la failure.
-  Pentru `CONFIGURED`, capturile moștenesc politica Reporting, iar flow-ul
-  rămâne `SCREEN_CHECKPOINTS` în `AutoExEvidenceProfileAdapter.forRun`; un flow YAML
-  nu este încă rezolvat aici. Declarația este direct pe clasa E2E; metadata nu pornește
+  `CONFIGURED` moștenește axa reală din `reports.evidence`; capturile absente
+  acolo moștenesc politica Reporting. Declarațiile directe și compuse sunt
+  rezolvate înainte de resurse, cu diagnostic de conflict; metadata nu pornește
   singură browserul sau lifecycle-ul.
 - `@UiReportSubdirectory("auto-ex")` și `@AtfConsoleMessages(DETAILS)` păstrează
   output-ul și diagnosticul consumerului în locația/politica stabilite.
 - `AutoExE2eExtension` compune sesiunea per test; `AutoExE2eSuite` rulează
   clasele secvențial și partajează raportul.
+
+### Configurarea evidence-ului
+
+| Cheie sub `automationExercise.reports.evidence` | Default | Efect |
+|---|---|---|
+| `flowMode` | `screen-checkpoints` | `screen-checkpoints` sau `unified-flow` |
+| `screenshotPolicy` | moștenește Reporting | `each-checkpoint`, `final-only`, `failure-only`, `final-and-failure`, `none` |
+| `actionDetailsMode` | `included-collapsed` | `included-collapsed` sau `summary-only` |
+
+Precedența este configurație → axă explicită din `@AtfUiEvidence`, directă ori
+compusă. Alegerea canalului rămâne separată; configurația evidence-ului nu
+activează API-ul, nu alege pași business și nu permite replay-ul unei mutații.
+Cheile și valorile necunoscute sunt respinse înaintea browserului.
+
+### Gate-ul coșului și ownerul contului
+
+```mermaid
+flowchart LR
+    Journey[Purchase journey] -->|cere checkout| Business[AutoExCartFlow]
+    Business -->|observă| Port[AutoExCartPort]
+    Port -->|implementat de| UI[AutoExCartUiFlow]
+    UI -->|citește și acționează| Page[CartPage]
+    Page -->|instrumentează| Recorder[PlaywrightActionSequence]
+    Business -->|compară| Snapshot[Expected + observed order line]
+    Business -->|publică rezultatul| Adapter[AutoExCheckoutAssertions]
+```
+
+<details>
+<summary><strong>Legendă — gate și lifecycle fără ownership în pagini</strong></summary>
+
+- `AutoExCartFlow` nu importă browser, JUnit, configurație sau Reporting.
+  Citește un snapshot, compară produs/preț/cantitate/total și permite checkout-ul
+  numai după gate PASS și publicarea rezultatului. Lipsa observației eșuează.
+- `AutoExCartUiFlow` implementează portul prin `CartPage`; mapperul de evidence
+  păstrează cele patru aserțiuni și checkpoint-ul existent. Timeout-ul ori
+  publicarea eșuată nu autorizează continuarea sau repetarea mutației.
+- `AutoExAccountLifecycle` aparține `AutoExE2eRun`. Toate instanțele
+  `AccountPage` și cleanup-ul văd aceeași identitate și aceeași stare de ștergere.
+  O creare incertă rămâne urmărită; altă identitate sau un cont împrumutat nu
+  primește drept de ștergere. O ștergere începută fără confirmare nu se repetă.
+- Pilotul privește review-ul coșului. Restul separării business/UI este urmărit
+  în feedback; mutarea stării nu pretinde migrarea întregului journey.
+
+</details>
+
+| Probă locală | Ce demonstrează |
+|---|---|
+| `AutoExCartFlowComponentTest` | ordinea observație/gate/publicare/checkout; câmp greșit, lipsă, timeout și cauză primară păstrată |
+| `AutoExCartDomComponentTest` | portul folosește pagina și recorderul real; prețul greșit blochează click-ul și produce un singur failure corelat în Extent |
+| `AutoExAccountLifecycleComponentTest` | owner comun paginilor, create incert, identitate diferită și delete început fără confirmare |
+
+Raportul componentei DOM conține intenționat un scenariu PASS și unul FAIL.
+Testul trece numai dacă ambele rezultate și blocarea checkout-ului sunt corecte;
+aceasta este o probă controlată, distinctă de raportul E2E al magazinului public.
 
 ## Suite și variante de evidence
 
@@ -236,7 +290,10 @@ sub pragul comun de opt clase:
 | `support.journey` | coordonarea purchase-ului, trace și precondiția API read-only a catalogului |
 | `support.account` | cont sintetic și cleanup |
 | `support.catalog` | snapshot și aserțiuni de catalog |
-| `support.checkout` | date observate și reguli business pentru adresă, rândul comenzii și factură |
+| `support.checkout` | observații de adresă/comandă și mapping-ul rezultatelor business în aserțiuni |
+| `business.cart` / `business.invoice` | snapshot-uri și gate-uri pure, fără UI, Reporting sau JUnit |
+| `flow.cart` / `flow.checkout` | adaptorul coșului și citirea artifactului facturii |
+| `ui.AutoExUiActions` | port local de operații UI instrumentate |
 | `support.browser` | consimțământ și tratarea vignette-ului |
 | `api` | rute, request factory și cont API typed; folosit de probele API directe |
 
@@ -291,11 +348,16 @@ cu [Test Case 24 — Download Invoice after purchase](https://automationexercise
 4. finalizează plata demo, verifică confirmarea și descarcă factura;
 5. șterge contul sintetic și verifică starea terminală.
 
-`CheckoutPage.downloadInvoice()` citește acum fișierul descărcat;
-`AutoExInvoiceAssertions` verifică numele `invoice.txt`, clientul și suma față
-de comanda configurată. Probe pozitive și negative sunt în
-`AutoExPurchaseBusinessComponentTest`; journey-ul UI exercită aceleași reguli
-pe comanda și factura obținute de la magazinul public.
+`CheckoutPage.downloadInvoice()` transmite numele și calea artifactului către
+`AutoExInvoiceReader`, care citește conținutul observat fără browser sau verdict.
+`AutoExInvoiceValidator` compară numele, clientul, suma și disponibilitatea;
+`AutoExInvoiceAssertions` doar convertește rezultatele pentru Reporting.
+
+| Limită | Probă componentă |
+|---|---|
+| Citire UTF-8, artifact absent și eroare IO păstrată | `AutoExInvoiceComponentTest` |
+| Identitate/sumă/fișier greșit, fără completarea observației din expected | `AutoExInvoiceComponentTest`, `AutoExPurchaseBusinessComponentTest` |
+| Comanda și factura remote | journey-ul E2E; componentele nu certifică serviciul public |
 
 | Etapă | Așteptare business | Sursa așteptării |
 |---|---|---|
@@ -312,8 +374,8 @@ spațiilor de prezentare și folosește aceeași regulă pentru rândul din coș
 checkout. Un nume corect nu poate ascunde un cod poștal, telefon, preț sau
 cantitate greșite.
 
-`AutoExInvoiceAssertions` verifică textul facturii; un fișier
-existent, dar gol ori al altei comenzi, produce FAIL. Aceste reguli sunt probate
+`AutoExInvoiceValidator` verifică textul facturii; mapperul păstrează rezultatul.
+Un fișier existent, dar gol ori al altei comenzi, produce FAIL. Aceste reguli sunt probate
 cu date business pozitive și negative în `AutoExPurchaseBusinessComponentTest`.
 
 - Catalogul, identitatea și plata folosesc valori demo din YAML; emailul și
@@ -504,7 +566,7 @@ Un selector Surefire de metodă (`Clasă#metodă`) se execută separat de clasel
 - Extracții: se mută doar un API neutru, cu același comportament probat în
   consumatorii relevanți; business-ul nu se transferă în infrastructură.
 - Increment curent: se refolosesc primitivele comune existente; regulile de
-  adresă, comandă și factură rămân în `support.checkout` AutoEx.
+  adresă rămân în `support.checkout`; coșul și factura au reguli pure în `business`.
 
 ## API direct și limita evidence-ului UI/API
 
@@ -603,6 +665,13 @@ profil fictiv. Capturile terminale pot publica și exchange-urile finale.
 Probele de selecție/buget/cursor aparțin `atf-ui`; prezentarea și snapshot-ul
 aparțin `atf-reporting-tests`. AutoEx verifică YAML-ul, ruta reală a coșului,
 precondiția catalogului și journey-ul business, fără teste generice de renderer.
+
+- `awaitCartExchange` așteaptă pasiv un GET de tip XHR/FETCH pentru calea URI
+  exactă a produsului. Query-ul de cantitate rămâne redactat în evidence și nu
+  intră în egalitatea căii; produsul prefixat, altă metodă sau un document nu corespund.
+- Așteptarea nu trimite o cerere nouă și nu dovedește singură succesul mutației.
+  Postcondiția UI și validările exchange-ului păstrează verdictul; corelarea
+  diagnosticului la mutație refuzată sau fără răspuns rămâne în feedback.
 
 ### Pregătirea clientului existent
 
@@ -792,7 +861,9 @@ aceasta nu este o execuție a site-ului remote.
 Criteriile și matricea de configurare urmărită sunt în
 [feedback-ul refactorizării](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md).
 
-`AutoExPurchaseSession` grupează încă browser, checkpoint, trafic și cleanup;
-page objects primesc acest contract larg. Separarea viitoare folosește porturi
-locale mici conform [ghidului de testare](../docs/ATF_Testing_Guide.md#separarea-flow-urilor-business-ui-și-a-validărilor),
+`AutoExUiActions` este portul restrâns folosit de Cart/Product/Products:
+acțiuni și citiri instrumentate, fără Page, API, configurare sau publisher.
+Account/Home/Checkout păstrează încă sesiunea largă pentru capabilitățile necesare.
+
+Restul migrării urmează [ghidul de testare](../docs/ATF_Testing_Guide.md#separarea-flow-urilor-business-ui-și-a-validărilor),
 păstrând confirmarea comenzii, factura și cleanup-ul contului.

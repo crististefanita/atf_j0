@@ -5,13 +5,7 @@
 - `atf-tests` este modulul de control al proiectului ATF;
 - verifică reactorul, boundary-urile Maven/source și gate-urile de arhitectură;
 - nu este owner pentru teste de produs;
-- nu conține locatori, page objects sau flow-uri Practice Shop;
-- adaptorul de compatibilitate
-  [`ReportUiActionAdapters`](src/test/java/atf/ui/tests/support/reporting/ReportUiActionAdapters.java)
-  este suport în source-set-ul de test, nu test executabil și nu cod de producție;
-- existența adaptorului nu transferă către `atf-tests` ownership-ul testelor UI
-  sau al reportingului; ownership-ul whole-reactor este protejat de
-  `ArchitectureOwnershipBoundaryTest`.
+- nu conține locatori, page objects sau flow-uri de aplicație.
 
 ```mermaid
 flowchart LR
@@ -43,6 +37,12 @@ flowchart LR
 | reporting contract/API/UI composition | `atf-reporting-tests` | nu se mută în governance |
 
 ## Suita whole-ATF și reziduul de compatibilitate
+
+[`ReportUiActionAdapters`](src/test/java/atf/ui/tests/support/reporting/ReportUiActionAdapters.java)
+este suport de compatibilitate în source-set-ul de test, nu test executabil sau
+cod de producție. Prezența lui nu transferă ownership-ul testelor UI ori al
+reportingului către `atf-tests`; `ArchitectureOwnershipBoundaryTest` protejează
+această limită.
 
 ```text
 src/test/java/atf/api/tests/governance/

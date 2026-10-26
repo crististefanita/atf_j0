@@ -74,7 +74,9 @@ class AutoExRuntimeBoundaryComponentTest {
                 assertTrue(inspector.capture(cartObservation(configuration, "1", POST.value(), XHR)).isPresent());
                 assertTrue(inspector.capture(cartObservation(configuration, "1", GET.value(), DOCUMENT)).isPresent());
                 assertThrows(AssertionError.class, () -> run.awaitCartExchange("1"));
-                assertTrue(inspector.capture(cartObservation(configuration, "1", GET.value(), XHR)).isPresent());
+                var completed = inspector.capture(cartObservation(configuration, "1?quantity=2", GET.value(), XHR))
+                        .orElseThrow();
+                assertTrue(completed.url().endsWith("?redacted-query"));
                 assertDoesNotThrow(() -> run.awaitCartExchange("1"));
             } catch (Exception | Error unexpected) {
                 failure = unexpected;

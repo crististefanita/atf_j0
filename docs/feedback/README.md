@@ -5,16 +5,17 @@ ownerului; rapoartele și rezultatele unei rulări nu devin documentație perman
 
 ## Pe scurt
 
-- Reporting: lizibilitatea tabelelor imbricate în panouri înguste rămâne
-  deschisă. Flow-ul UI-only cu un singur set de tabele și corelarea eșecurilor
-  sunt livrate la [owner](../../atf-reporting/README.md).
+- Reporting: Timeline folosește duratele canonice din Tests; contractul și
+  inspectorul comun sunt livrate la [owner](../../atf-reporting/README.md).
+  Lizibilitatea tabelelor imbricate în panouri înguste rămâne deschisă.
 
 - AutoEx: contractul livrat pentru Delete account, Close JavaScript la 70% și
   separarea navigării de traficul browser este în [README-ul modulului](../../atf-test-auto-ex/README.md#delete-account--navigare-întreruptă).
   Activarea DOM Close nu repară geometria pointerului; limita generică rămâne deschisă.
 - Consumeri: scope-ul contului și runtime-ul main AutoEx sunt livrate.
-  Separarea business/UI/validare, contextul Shop și configurația completă de
-  evidence rămân deschise; reducerea selecției live cere echivalență demonstrată.
+  Pilotul coșului, factura și configurația evidence sunt livrate; rămân
+  flow-urile din afara pilotului, corelarea mutațiilor și contextul Shop.
+  Reducerea selecției live cere echivalență demonstrată.
 - Contractele livrate se găsesc în [indexul documentației](../README.md),
   nu în checklist-uri de implementare deja închise.
 
@@ -29,12 +30,11 @@ lor. Gap-urile secundare rămân vizibile în documentul ownerului.
 
 | Ordine | Feedback / owner | Scor /100 | Lacuna care decide ordinea |
 |---:|---|---:|---|
-| 1 | [Consumer — refactorizare E2E](ATF_Consumer_Business_Test_Focus_Feedback.md) | **88** = 36 + 24 + 20 + 8 | separare business/UI/validare (88), evidence și Overview fidel (80), corelare UI/transport AutoEx (78), runtime Shop (77), adnotări compuse (67), repetare live (57) |
+| 1 | [Consumer — refactorizare E2E](ATF_Consumer_Business_Test_Focus_Feedback.md) | **88** = 36 + 24 + 20 + 8 | flow-uri din afara pilotului (88), corelare UI/transport AutoEx (78), runtime Shop (77), declarații repetitive (67), repetare live (57) |
 | 2 | [Reporting](ATF_Reporting_Feedback.md) | **77** = 33 + 24 + 16 + 4 | nesting ilizibil și în API nominal, inclusiv Technical trace |
 | 3 | [ATF UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ; activarea JavaScript explicită nu închide această limită |
 | 4 | [Shop API — diagnostic](ATF_Practice_Shop_API_Test_Design_Feedback.md) | **66** = 25 + 19 + 16 + 6 | timeout înainte de login fără artifact FAIL; lizibilitatea comună este urmărită la Reporting |
 | 5 | [Documentație — ancore](#doc-link-anchor-01--validarea-automată-a-ancorelor) | **44** = 14 + 11 + 15 + 4 | guard-ul validează fișierul local, dar elimină fragmentul înaintea verificării; ancora lipsă nu este detectată |
-
 
 Ordinea nu înlocuiește criteriul de închidere. O componentă verde nu certifică
 un flow remote, iar succesul live nu certifică toate politicile sau randarea.
@@ -46,34 +46,6 @@ Calitatea editorială se evaluează separat prin
 [Feedback-ul AI](README_AI_Evaluation.md) păstrează gap-urile evaluatorului și
 ale workflow-ului propus. Scorurile sale măsoară readiness-ul, nu prioritatea
 operațională de mai sus; nu sunt recalibrate printr-o revizie editorială.
-
-## GOV-NAMESPACE-MATCH-02 — controlul schimbării de teste
-
-Probele negative pentru import, package, tip calificat, prefix permis,
-comentariu/literal, escape Unicode și ambele căi ale unei mutări au trecut
-împreună cu guvernanța whole-ATF în staging. Contractul stabil este în
-[arhitectură](../ATF_Architecture.md#namespace-uri-și-rădăcini-de-surse);
-controlul de mai jos rămâne activ pentru diferența Git până la integrare.
-
-<details>
-<summary><strong>Control tehnic activ — matcher namespace</strong></summary>
-
-```yaml
-testChanges:
-  - id: GOV-NAMESPACE-MATCH-02
-    status: ACTIVE
-    base: 490a0f274d71ec4bb288b01655e60f768daa74ba
-    expires: 2026-11-26
-    reason: Probe negative pe surse controlate pentru importuri, tipuri calificate, mutarea fișierelor și escape-uri Unicode Java; păstrează restricțiile boundary, exclude doar exemplele din comentarii și literali și respinge sursele cu escape invalid.
-    proof: mvn -pl atf-core,atf-reporting-tests,atf-tests -am "-Dtest=AtfJavaSourceReferencesTest,ArchitectureModuleBoundaryTest,ApiTestBoundaryArchitectureTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=490a0f274d71ec4bb288b01655e60f768daa74ba" "-Dsurefire.failIfNoSpecifiedTests=false" test
-    paths:
-      - atf-core/src/test/java/atf/core/files/AtfJavaSourceReferencesTest.java
-      - atf-reporting-tests/src/test/java/atf/reporting/api/tests/architecture/ApiTestBoundaryArchitectureTest.java
-      - atf-tests/src/test/java/atf/api/tests/governance/ArchitectureModuleBoundaryTest.java
-      - atf-tests/src/test/java/atf/api/tests/governance/AtfGovernanceTestSupport.java
-```
-
-</details>
 
 ## DOC-LINK-ANCHOR-01 — validarea automată a ancorelor
 

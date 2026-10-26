@@ -6,12 +6,10 @@ import atf.autoex.flow.checkout.AutoExInvoiceReader;
 import atf.autoex.support.checkout.AutoExInvoiceAssertions;
 import atf.reporting.contract.AtfAssertion;
 import atf.testkit.AtfComponentTest;
-import com.microsoft.playwright.Download;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.UncheckedIOException;
-import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.charset.CharacterCodingException;
@@ -33,7 +31,7 @@ class AutoExInvoiceComponentTest {
     void artifactReaderAndPureValidatorPreserveAllFourPublishedChecks() throws Exception {
         Path file = temporary.resolve("received-invoice.txt");
         Files.writeString(file, CONTENTS);
-        var snapshot = AutoExInvoiceReader.read(download("invoice.txt", file));
+        var snapshot = AutoExInvoiceReader.read("invoice.txt", file);
         assertEquals(new AutoExInvoiceSnapshot("invoice.txt", CONTENTS, true), snapshot);
         assertTrue(AutoExInvoiceValidator.validate(CUSTOMER, TOTAL, snapshot).stream()
                 .allMatch(AutoExInvoiceValidator.Check::passed));
@@ -45,7 +43,7 @@ class AutoExInvoiceComponentTest {
 
     @Test
     void missingArtifactCannotBeCompletedFromTheExpectedIdentityAndAmount() {
-        var snapshot = AutoExInvoiceReader.read(download("invoice.txt", null));
+        var snapshot = AutoExInvoiceReader.read("invoice.txt", null);
         assertFalse(snapshot.available());
         assertEquals("", snapshot.contents());
         var checks = AutoExInvoiceValidator.validate(CUSTOMER, TOTAL, snapshot);
@@ -67,17 +65,9 @@ class AutoExInvoiceComponentTest {
         Path invalid = temporary.resolve("invalid-utf8.txt");
         Files.write(invalid, new byte[]{(byte) 0xC3});
         var failure = assertThrows(UncheckedIOException.class,
-                () -> AutoExInvoiceReader.read(download("invoice.txt", invalid)));
+                () -> AutoExInvoiceReader.read("invoice.txt", invalid));
         assertTrue(failure.getMessage().contains("Cannot read the downloaded invoice"));
         assertTrue(failure.getCause() instanceof CharacterCodingException);
     }
 
-    private static Download download(String name, Path file) {
-        return (Download) Proxy.newProxyInstance(Download.class.getClassLoader(), new Class<?>[]{Download.class},
-                (proxy, method, arguments) -> switch (method.getName()) {
-                    case "suggestedFilename" -> name;
-                    case "path" -> file;
-                    default -> throw new UnsupportedOperationException(method.getName());
-                });
-    }
 }

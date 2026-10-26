@@ -216,6 +216,16 @@ Regulile snapshot-ului typed sunt explicite:
   `displayValues()` (context typed) de `systemDisplayValues()` (allowlist-ul
   operațional pentru `Overview/System`). `ReportEnvironment` aplică redaction la
   boundary-ul Extent.
+- Pentru o sesiune partajată, composition root-ul apelează
+  `includeScenarioEnvironment(snapshot)` cu datele rezolvate ale fiecărui
+  scenariu. `ReportEnvironmentSnapshot.common(...)` păstrează valorile comune;
+  diferențele sau câmpurile absente la un frate devin `Mixed — varies by scenario`.
+  Primul scenariu nu reprezintă implicit întreaga suită.
+- `ReportEvidenceProfile.actionDetailsMode` se transmite până la scope-ul care
+  publică acțiunile, inclusiv setup, unified flow și failure. Frații pot alege
+  independent `included-collapsed` și `summary-only`; modelele fallback de
+  validation păstrează aceeași politică. Selectarea summary-ului nu șterge
+  acțiunile înregistrate și nu elimină screenshot-ul permis.
 - Overload-urile vechi cu `Map<String,String>` rămân pentru compatibilitate și
   migrare. Codul nou preferă snapshot-ul typed, evitând chei arbitrare, duplicate
   și valori tehnice neacționabile în `System/Environment`.
@@ -743,6 +753,11 @@ Durata este emisă de seams cu owner unic, compuse de facade-ul public
 | `ExtentReportDurationProjectionPublication` | badge-uri, summary și publicarea class duration | output consistent în toate tab-urile |
 | `ExtentReportDurationScheduling` / `Lifecycle` | scheduling, click hooks, observer și boot | activare idempotentă și ready marker |
 | `ExtentReportDurationVocabulary` | contract typed pentru atribute, selectori și funcții | cardinalitate și unicitate verificate static |
+
+- Overview proiectează duratele canonice ale claselor în total, model și barele
+  Timeline; nu folosește totalul nativ al unei clase deja încheiate în timpul suitei.
+- `OverviewDurationProjectionComponentTest` execută asset-ul real și verifică
+  zero, fallback, nume identice, refresh și izolarea graficelor de status.
 
 Navigation are și un asset separat, `extent-navigation-performance.js`, compus
 prin `ExtentReportRuntimeNavigationPerformance`. El nu decide verdictul și nu

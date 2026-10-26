@@ -45,7 +45,7 @@ public final class CheckoutPage extends AutoExPage {
     public AutoExInvoiceSnapshot downloadInvoice() {
         Download download = run.page().waitForDownload(
                 () -> click(AutoExSelectors.DOWNLOAD_INVOICE, "invoice download is requested"));
-        return AutoExInvoiceReader.read(download);
+        return AutoExInvoiceReader.read(download.suggestedFilename(), download.path());
     }
 
     public void continueAfterInvoice() {

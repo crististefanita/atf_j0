@@ -166,9 +166,13 @@ condițiile înaintea mutărilor sunt în
 
 ### Separarea flow-urilor business, UI și a validărilor
 
-Aceasta este arhitectura țintă a refactorizării, nu inventarul unor API-uri
-deja livrate. Shop are etape catalog/checkout, iar AutoEx are journey-uri și
-page objects; orchestration, acțiuni, validări și publicare sunt încă amestecate.
+Arhitectura de mai jos ghidează migrarea pe operații. AutoEx livrează pilotul
+review coș → gate → checkout prin `AutoExCartFlow` și `AutoExCartPort`, cu
+snapshot pur, adaptor UI și mapper de evidence. Ownerul contului este per
+execuție, comun instanțelor Page Object.
+
+Restul Shop/AutoEx nu este declarat
+migrat doar pentru că această operație este separată.
 
 ```text
 Test E2E: precondiție → intenție business → rezultat așteptat

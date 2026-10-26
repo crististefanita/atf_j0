@@ -28,19 +28,18 @@ Proba neutră la owner distinge documentul principal de iframe: click-ul normal
 și trece la 100%. Observația privește configurația locală Playwright 1.49.0,
 nu toate versiunile sau toate browserele.
 
-Diagnostic de staging din 2026-10-26:
+<details>
+<summary><strong>Candidați explorați, fără verdict de implementare</strong></summary>
 
-- Click-ul real pe butonul din iframe `srcdoc` a reprodus
-  `html intercepts pointer events` cu zoom CSS 70% pe documentul părinte.
-- Mutarea aceluiași zoom pe `body` a eșuat identic.
-- `transform: scale(0.7)` pe `body`, cu originea în colțul stânga-sus și
-  fără zoom CSS pe rădăcină, a permis click-ul în aceeași fixture.
-- Experimentul Chromium CDP `Emulation.setPageScaleFactor(0.7)` a păstrat
-  click-ul, dar `visualViewport.scale` a rămas `1`: nu a produs scala cerută
-  și nu este un înlocuitor verificat pentru zoom 70%.
-- Candidatul rămâne experimental: lipsesc probele pentru scroll, captură,
-  focus/tastatură, layout-ul aplicației și iframe-uri cross-origin.
-  Proba exploratorie nu rămâne în suite; mecanismul de producție nu se schimbă.
+În fixture-ul neutru, mutarea `zoom: 70%` de pe rădăcină pe `body` nu a reparat
+click-ul din iframe. `transform: scale(0.7)` pe `body` a permis click-ul în
+același caz, dar nu are încă probe pentru scroll, captură, focus/tastatură,
+layout-ul aplicației și iframe-uri cross-origin. Experimentul CDP
+`Emulation.setPageScaleFactor(0.7)` a păstrat click-ul, însă
+`visualViewport.scale` a rămas `1`, deci nu a demonstrat scala cerută. Niciunul
+nu schimbă mecanismul de producție sau verdictul deschis.
+
+</details>
 
 - Alternativă opt-in: `clickWithJavaScript(..., postcondition)` activează un
   control DOM și verifică efectul înainte de PASS; nu este fallback automat.

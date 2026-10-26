@@ -76,10 +76,10 @@ raportului; setup-ul API rămâne o precondiție separată.
 
 ```java
 import atf.testkit.AtfE2eTest;
-import channel.atf.testkit.AtfTestChannel;
-import output.atf.testkit.ProjectRelativeUiReportDirectory;
+import atf.testkit.channel.AtfTestChannel;
+import atf.testkit.output.ProjectRelativeUiReportDirectory;
 
-import static channel.atf.testkit.TestChannel.UI;
+import static atf.testkit.channel.TestChannel.UI;
 
 @AtfE2eTest
 @AtfTestChannel(UI)
@@ -150,9 +150,9 @@ nivel eșuează înaintea execuției. Fără adnotare, comportamentul nu se schi
 
 ## Intenția de UI evidence
 
-`@AtfUiEvidence` este o declarație class-level în `atf-test-kit`. Separă două
-decizii care nu trebuie amestecate: forma flow-ului în raport și politica de
-captură. Nu pornește browserul, nu capturează imagini și nu publică evidence.
+`@AtfUiEvidence` este o declarație class-level în `atf-test-kit`. Separă forma
+flow-ului, politica de captură și detaliile acțiunilor. Nu pornește browserul,
+nu capturează imagini și nu publică evidence.
 
 ```java
 @AtfUiEvidence(
@@ -165,16 +165,19 @@ class PurchaseE2eTest { }
 |---|---|---|
 | `flow` | `CONFIGURED`, `SCREEN_CHECKPOINTS`, `UNIFIED_FLOW` | `CONFIGURED` păstrează forma din profilul consumerului; valorile explicite aleg checkpoint-uri separate sau un singur flow |
 | `screenshots` | `CONFIGURED`, `EACH_CHECKPOINT`, `FINAL_ONLY`, `FAILURE_ONLY`, `FINAL_AND_FAILURE`, `NONE` | `CONFIGURED` păstrează politica consumerului/YAML; o valoare explicită o suprascrie numai pentru clasa respectivă |
+| `actionDetails` | `CONFIGURED`, `INCLUDED_COLLAPSED`, `SUMMARY_ONLY` | moștenește baza sau alege disclosure-ul scenariului; acțiunile rămân înregistrate |
 
 Reguli de ownership:
 
-- adnotarea are retenție `RUNTIME` și target `TYPE`; nu există selecție per
+- adnotarea are retenție `RUNTIME` și target `TYPE`/`ANNOTATION_TYPE`; nu există selecție per
   metodă;
-- adaptorul fiecărui consumer citește adnotarea direct de pe clasa concretă și
-  mapează valorile neutre în profilul său de raportare; `atf-test-kit` nu
+- `AtfUiEvidenceResolver` construiește planul imutabil înainte de resurse;
+  adaptorul mapează valorile neutre în profilul său de raportare; `atf-test-kit` nu
   depinde de `atf-reporting`;
-- adnotarea nu are `@Inherited`; nu presupune moștenire, meta-adnotări sau
-  compoziția automată a unui harness. Clasele E2E declară intenția direct;
+- resolverul caută cea mai apropiată clasă declarantă, inclusiv meta-adnotări.
+  Axele explicite complementare se combină; conflictele aceleiași axe eșuează.
+  Declarația locală complet `CONFIGURED` revine la bază. Interfețele și clasele
+  enclosing nu sunt surse implicite și nu există instalare automată a harness-ului;
 - adnotările locale, precum `ShopE2eTestSupport.WithE2eHarness`, păstrează
   resursele și opțiunile specifice consumerului (de exemplu harness-ul și
   detaliile acțiunilor), fără să dubleze axele comune;
@@ -186,10 +189,10 @@ Mapping-ul adnotării este responsabilitatea adaptorului consumer:
 
 | Consumer | Efect implementat |
 |---|---|
-| AutoEx | aplică `flow` și `screenshots` în profilul scenariului |
-| Practice Shop | aplică `flow` și `screenshots` în profilul selectat; `ShopE2eContext.open/openReport` păstrează profilul primit. Într-o suită cu raport partajat, aplicarea izolată a profilului fiecărui scenariu rămâne în lifecycle-ul consumerului |
+| AutoEx | aplică toate axele peste `reports.evidence`; capturile absente în YAML moștenesc Reporting |
+| Shop | aplică toate axele peste `reporting`; conflictul explicit cu harness-ul eșuează. Profilul fiecărui scenariu și Overview-ul comun rămân distincte |
 
-- Adnotarea absentă lasă ambele axe la configurația consumerului.
+- Adnotarea absentă lasă toate axele la configurația consumerului.
 - Mapping-ul și lifecycle-ul raportului partajat sunt documentate în
   [README-ul Shop](../atf-test-practice-shop/README.md#raport-partajat--starea-consumerului).
 - `ShopE2eContextEvidenceProfileTest` verifică profilul explicit și agregarea fazelor;

@@ -52,7 +52,7 @@ flowchart LR
 | configurație typed | `AtfConfiguration`, `AtfRuntimeSnapshot`, `ApiSettings`, `ReportingSettings` și snapshot-uri | nu recitește configurația în fiecare request |
 | source adapters | `config.source.ApiBootstrapConfigurationLoader`, `ApiEnvironment` | nu execută request-uri și nu deține catalogul Users/Posts |
 | statusuri | `AtfReportStatus`, `ReportStatusAggregator` | nu randă badge-uri |
-| file/source discovery | `AtfPathLocator` | nu expune căi absolute sau traversal duplicat către consumatori |
+| file/source discovery | `AtfPathLocator`, `AtfJavaSourceReferences` | nu expune căi absolute și nu confundă exemplele din literali cu dependențe Java |
 | reporting ports | `AtfReportPorts`, `ValidationSink`, `ReportStepScope`, `AtfConsoleEvent`, `AtfConsoleSink` | nu importă Extent, HTML, `System.out` sau implementarea `atf-console` |
 | redaction | `Redactor`, `RedactionContext`, strategiile de redaction | nu modifică input-ul original |
 | selecție API neutră | `ApiScenarioSelection` | declarațiile test-only `ApiScenarioSetup` și `ApiTestRef` aparțin TestKit; catalogul rămâne la consumator |
@@ -69,6 +69,13 @@ către sursa externă; compoziția de test transmite câmpurile evenimentului Re
 candidate, fie când testul pornește din directorul modulului, fie din reactor.
 Validarea respinge căi absolute și traversal; caller-ul declară explicit layout-ul
 acceptat în loc să reproducă bucla de ancestor-walk în fiecare test.
+
+- `AtfJavaSourceReferences.containsNamespace(...)` caută referințe Java reale,
+  cu delimitarea exactă a identificatorilor.
+- Traduce escape-urile Unicode înainte de a exclude comentariile și literalii;
+  un escape invalid este respins.
+- Guard-urile de arhitectură îl refolosesc; [probele controlate](src/test/java/atf/core/files/AtfJavaSourceReferencesTest.java)
+  acoperă importuri, nume calificate și prefixe asemănătoare.
 
 ## Ciclu de viață generic și reutilizabil
 
@@ -314,6 +321,7 @@ Testele din `atf-core` verifică separat:
 - snapshot-uri și precedence-ul configurației;
 - status aggregation și precedența `FAIL > SKIP > WARNING > PASS`;
 - redaction pe JSON, headers, query, path și PII;
+- referințe namespace Java reale față de exemple în comentarii/literali;
 - contractele porturilor fără Extent concret.
 - `ApiScenarioSelection` și contractele de annotation fără JUnit/browser;
 

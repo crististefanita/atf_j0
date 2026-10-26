@@ -131,50 +131,7 @@ public final class ApiReportDurationDomInspector {
                 (List<String>) result.getOrDefault("violations", List.of()));
     }
 
-    @SuppressWarnings("unchecked")
     List<ReportAuditSnapshot.DurationProjection> readDurationProjections(Page page) {
-        Map<String, Object> raw = (Map<String, Object>) page.evaluate("""
-                () => {
-                  const selectors = {
-                    Tests: '#test-view [data-duration-source],#test-view [data-duration-ms]',
-                    Overview: '#dashboard-view [data-duration-source],#dashboard-view [data-duration-ms]',
-                    Categories: '#category-view [data-duration-source],#category-view [data-duration-ms]',
-                    Fails: '#atf-fails-view [data-duration-source],#atf-fails-view [data-duration-ms]'
-                  };
-                  const result = {};
-                  Object.entries(selectors).forEach(([name, selector]) => {
-                    const fields = [...document.querySelectorAll(selector)];
-                    const violations = [];
-                    let valid = 0;
-                    fields.forEach(field => {
-                      const source = field.getAttribute('data-duration-source') || '';
-                      const text = String(field.textContent || '').replace(/\\s+/g, ' ').trim();
-                      const marker = field.getAttribute('data-duration-ms');
-                      const numericMarker = marker !== null
-                        && /^\\d+(?:\\.\\d+)?$/.test(marker);
-                      const formattedText = /^(?:\\d+(?:\\.\\d+)? ms|\\d+(?:\\.\\d+)? s)$/.test(text);
-                      const validMarker = source === 'absent'
-                        ? marker === null && (text === '—'
-                          || /^(?:pass|fail|warning|skip)$/i.test(text))
-                        : numericMarker && (source === 'aggregated'
-                          || source === 'measured'
-                          || formattedText);
-                      if (validMarker) valid++;
-                      else violations.push(name + ': ' + text);
-                    });
-                    result[name] = {fieldCount: fields.length, validCount: valid, violations};
-                  });
-                  return result;
-                }
-                """);
-        List<ReportAuditSnapshot.DurationProjection> result = new ArrayList<>();
-        raw.forEach((name, value) -> {
-            Map<String, Object> projection = (Map<String, Object>) value;
-            result.add(new ReportAuditSnapshot.DurationProjection(name,
-                    ReportAuditChecks.count(projection.get("fieldCount")),
-                    ReportAuditChecks.count(projection.get("validCount")),
-                    (List<String>) projection.getOrDefault("violations", List.of())));
-        });
-        return List.copyOf(result);
+        return ApiReportDurationProjectionAuditor.inspectCurrentDom(page);
     }
 }

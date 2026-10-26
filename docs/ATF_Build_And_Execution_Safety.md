@@ -225,6 +225,13 @@ Folosește un staging nou sau `clean test` numai în staging-ul privat, după
 terminarea build-ului propriu; checkout-ul live și output-ul altor execuții
 nu se curăță. Artifactele deja produse rămân separat de `target`.
 
+- O compilare întreruptă poate lăsa fișiere `.class` incomplete, chiar dacă
+  Maven le consideră actuale. `ClassFormatError` cere verificarea output-ului
+  compilat înaintea schimbării sursei sau a aserțiunilor.
+- După terminarea execuției proprii, reconstruiește output-ul afectat într-un
+  staging nou ori privat, apoi repetă verificarea completă afectată; testele
+  executate cu bytecode incomplet nu certifică sursele live.
+
 </details>
 
 ### Bucla periodică de sync pentru feedback și build

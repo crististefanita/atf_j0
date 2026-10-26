@@ -355,7 +355,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
         String route = AutoExRoutes.ADD_TO_CART.path() + productId;
         browser.networkInspector().awaitAfter(networkCursor,
                 observation -> observation.method().equals(GET.value())
-                        && observation.path().equals(route)
+                        && route.equals(URI.create(observation.url()).getRawPath())
                         && (observation.resourceKind() == XHR || observation.resourceKind() == FETCH), null)
                 .orElseThrow(() -> new AssertionError(
                         "The browser did not finish the cart XHR before its UI/API checkpoint: " + route));

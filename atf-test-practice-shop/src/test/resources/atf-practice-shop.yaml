@@ -57,6 +57,8 @@ practiceShop:
   productName: Pliers
   productPath: auto
   checkout:
+    # Business route, independent of validation channel or evidence policy.
+    billingStrategy: configured-fields
     quantity: 2
     guest:
       email: atf.practice.shop@example.test
@@ -67,8 +69,8 @@ practiceShop:
       postalCode: "53703"
       houseNumber: 10
       # The current demo lookup for this country/postcode resolves this fixture.
-      # UI_ONLY leaves the following fields to the application's lookup; UI_API
-      # keeps explicit values for deterministic request/evidence assertions.
+      # configured-fields uses these values; postal-lookup observes the
+      # application lookup in both UI and UI_API.
       street: Wayne Lock
       city: Cartwrightmouth
       state: Alaska

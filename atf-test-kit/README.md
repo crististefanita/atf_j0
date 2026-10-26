@@ -68,7 +68,7 @@ Fiecare clasă executabilă declară exact un nivel:
 | `atf.testkit.output` | adnotările de director și `ReportOutputDirectory` | ancoră UI prin adnotare sau path project-relative validat pentru un artifact |
 | `atf.testkit.setup.api` | `ApiScenarioSetup`, `ApiTestRef` | declarații; catalogul și executarea rămân la consumator |
 | `atf.testkit.documentation` | `DocumentationTarget` repeatable | selecție de documente; validatorii rămân în ATF Tests |
-| `atf.testkit.evidence` | `AtfUiEvidence`, `AtfUiEvidenceFlow`, `AtfUiScreenshotPolicy` | declară independent gruparea flow-ului și intenția capturilor; adaptorii consumer le mapează în profilul Reporting |
+| `atf.testkit.evidence` | `AtfUiEvidence`, `AtfUiEvidencePlan`, `AtfUiEvidenceResolver` și enum-urile axelor | rezolvă independent flow-ul, capturile și detaliile acțiunilor; adaptorii consumer le mapează în profilul Reporting |
 | `atf.testkit.lifecycle` | `TestRunInitialization`, `CloseOnceResource`, `ArmedCleanup`, `FailureAwareCleanup`, `FailureEvidenceCleanup`, `AtfE2eActivationPolicy` | achiziție/rollback, cleanup și activare E2E neutre; fără API UI/Reporting |
 | `atf.testkit.scope` | `TestRunScope`, `ScopedTestValue<T>` | ownership explicit în Store-ul JUnit, fără cache static sau resurse UI |
 
@@ -133,10 +133,14 @@ Launcher-ul și engine-ul Jupiter sunt dependențe numai de test ale Kit.
   kit-ul nu citește YAML și nu creează profil Reporting;
 - fiecare consumer aplică precedența și mapează valorile în profilul său:
   configurația furnizează baza, iar valoarea explicită din adnotare suprascrie
-  numai axa declarată. AutoEx și Practice Shop aplică ambele axe; izolarea
+  numai axa declarată. AutoEx și Shop aplică toate cele trei axe; izolarea
   profilelor între scenarii dintr-un raport partajat rămâne responsabilitatea
   lifecycle-ului consumerului, nu a Test Kit;
-- adnotarea UI evidence nu este moștenită și nu compune automat harness-uri;
+- `AtfUiEvidenceResolver` analizează declarațiile directe și compuse ale celei
+  mai apropiate clase din ierarhie. Axele explicite complementare se combină;
+  valori explicite diferite pentru aceeași axă eșuează cu owner și numele axei.
+  O declarație locală complet `CONFIGURED` revine la configurație, fără să
+  moștenească override-urile părintelui. Resolverul nu compune automat harness-uri;
 - capture source, publisherul, lifecycle-ul browserului și flow-urile Practice
   Shop rămân la ownerii lor; Test Kit nu depinde de `atf-reporting` sau Playwright;
 - resolverul `AtfReportPathPolicyResolver` gestionează separat meta-adnotările,

@@ -2,21 +2,6 @@
 
 ## Pe scurt
 
-UI și API afișează implicit detalii la consolă atât din IntelliJ, cât și din Maven.
-
-- Auditul UI folosește `ReportingTestConsole` pentru browser și raport.
-- Testele API direct-runnable declară `@AtfConsoleMessages(DETAILS)`; fixture-ul
-  API reutilizează sink-ul lifecycle-ului, astfel încât request/validation apar
-  prin aceeași proiecție `[ATF]`, fără reporter duplicat.
-- API-ul folosește consola configurată și fără lifecycle JUnit curent.
-- `reporting.console.detailsEnabled: false` restrânge detaliile;
-  `enabled: false` oprește proiecția. [ATF Console](../atf-console/README.md)
-  deține politica și output-ul.
-
-Schimbarea testelor, suportului sau resurselor din acest modul cere un control
-tehnic `testChanges` eligibil; [guvernanța whole-ATF](../atf-tests/README.md#guvernanța-schimbării-testelor)
-verifică diferența Git și probele negative ale regulii.
-
 `atf-reporting-tests` verifică `atf-reporting` ca librărie reutilizabilă:
 
 - acoperă setup API/mock, renderer, publisher, browser read-only și ATF Debug;
@@ -24,11 +9,17 @@ verifică diferența Git și probele negative ale regulii.
 - testele business aparțin modulului consumer, precum `atf-test-practice-shop`;
 - `atf-tests` rămâne dedicat guvernanței whole-ATF.
 
+Schimbarea testelor, suportului sau resurselor din acest modul cere un control
+tehnic `testChanges` eligibil; [guvernanța whole-ATF](../atf-tests/README.md#guvernanța-schimbării-testelor)
+verifică diferența Git și probele negative ale regulii.
+
 <details>
 <summary><strong>Harta de lectură</strong></summary>
 
 - [limitele librăriei](#regula-limitelor-de-responsabilitate) — separarea
   harness-ului de codul de producție;
+- [consola](#consola-testelor-de-raportare) — diagnosticul implicit din IntelliJ
+  și Maven;
 - [contractul titlurilor API](#contractul-de-titlu-pentru-request-uri-api) și
   [reconcilierea evidence-ului](#reconcilierea-dovezilor-api-și-navigarea-fazei);
 - [matricea de integrare](#matricea-de-integrare-și-limitele-verificate) —
@@ -144,6 +135,19 @@ Locatorii UI sunt centralizați în `src/test/.../support/locators`:
   markup-ul nu oferă o identitate mai bună;
 - testele, flow-urile și auditorii nu compun direct `page.locator(...)`.
 
+## Consola testelor de raportare
+
+UI și API afișează implicit detalii la consolă atât din IntelliJ, cât și din Maven.
+
+- Auditul UI folosește `ReportingTestConsole` pentru browser și raport.
+- Testele API direct-runnable declară `@AtfConsoleMessages(DETAILS)`; fixture-ul
+  API reutilizează sink-ul lifecycle-ului, astfel încât request/validation apar
+  prin aceeași proiecție `[ATF]`, fără reporter duplicat.
+- API-ul folosește consola configurată și fără lifecycle JUnit curent.
+- `reporting.console.detailsEnabled: false` restrânge detaliile;
+  `enabled: false` oprește proiecția. [ATF Console](../atf-console/README.md)
+  deține politica și output-ul.
+
 ## Contractul de titlu pentru request-uri API
 
 Orice request publicat de un consumer trebuie să fie recognoscibil fără
@@ -202,6 +206,15 @@ identitatea, propagarea wrapped, cleanup-ul și ciclurile de cauze.
 - semantica este în [`ATF_Reporting_Contract.md`](../docs/ATF_Reporting_Contract.md),
   iar forma vizibilă este în
   [`ATF_Reporting_Display_Contract.md`](../docs/ATF_Reporting_Display_Contract.md).
+
+### Durata comună în Tests și Overview
+
+| Boundary | Contract și probă |
+|---|---|
+| Proiecția Timeline | `OverviewDurationProjectionComponentTest` verifică asset-ul real: total, model, bare, zero, fallback, nume duplicate și refresh |
+| Inspecția reutilizabilă | `ApiReportDurationProjectionAuditor.inspectCurrentDom` și readerul DOM folosesc aceeași resursă nativă `inspection/duration-projections.js` |
+| Oracol semantic | totalul, modelul și valorile graficului trebuie să corespundă claselor canonice; markerul numeric singur nu este suficient |
+| Probe negative | componenta corupe separat markerul, modelul și graficul; fiecare inconsistență produce o încălcare explicită |
 
 ## Reconcilierea dovezilor API și navigarea fazei
 

@@ -694,15 +694,6 @@ Gate-ul whole-reactor descoperă sursele din `sourceDirectory` și
 Maven `src/main/java` și `src/test/java`. Astfel, un modul cu `src/test` declarat
 nu dispare din inventar doar fiindcă nu folosește layout-ul implicit.
 
-- Guard-ul de dependențe caută referințe Java în importuri, declarații
-  `package` și nume complet calificate din cod.
-- Comentariile și literalii se elimină după traducerea escape-urilor Unicode,
-  în ordinea lexicală Java; un `\u000a` care încheie un comentariu nu poate
-  ascunde un import interzis.
-- Prefixele asemănătoare și exemplele din string-uri nu sunt dependențe.
-  Probele negative verifică și vechea/noua cale a fișierului; o scanare verde
-  a checkout-ului nu înlocuiește această probă.
-
 - Pachetul identifică aplicația/ownerul și responsabilitatea; numele business,
   paginile și porturile aplicației nu se mută în Kit pentru uniformitate.
 - Rename-ul păstrează apelanții, resursele și identitățile cazurilor verificate;
@@ -711,6 +702,16 @@ nu dispare din inventar doar fiindcă nu folosește layout-ul implicit.
   staging. Adnotarea layer-ului clasifică testul, nu numele directorului.
 - Linkurile către surse și exemplele de import se actualizează împreună;
   path-urile istorice din controalele `testChanges` își păstrează baza aprobată.
+
+`AtfJavaSourceReferences` din Core recunoaște namespace-uri Java în cod,
+inclusiv importuri normale/static/wildcard, declarații package și FQCN în
+semnături sau corpuri de metodă. Separă identificatorii (`atf.ui` nu este
+`atf.uikit`) și ignoră comentarii, string-uri, caractere și text blocks.
+
+- Un exemplu documentar nu maschează o referință reală adiacentă.
+- Guard-urile whole-ATF și API/UI folosesc aceeași regulă; probele controlate
+  introduc încălcări înainte și după mutare și verifică path-ul și regula diagnosticului.
+- Escape-urile Unicode se traduc înaintea separării comentariilor și literalilor.
 
 Verificarea unei mutări urmează
 [inventarul executabil](ATF_Testing_Guide.md#inventarul-executabil-după-mutări-și-reclasificare)
