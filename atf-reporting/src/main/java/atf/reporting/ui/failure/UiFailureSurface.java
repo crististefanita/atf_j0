@@ -13,10 +13,10 @@ public enum UiFailureSurface {
                     "button[data-test='login-submit']", "***REDACTED***")),
     AUDIT_OBSERVATION(
             "Audit observation failure — rendered state",
-            List.of("Screen validation", "Audit observation", "Audit observation failed")),
+            List.of("UI validation", "Audit observation", "Audit observation failed")),
     ASSERTION(
             "Assertion failure — expected versus actual",
-            List.of("Screen validation", "Status badge", "Status badge expected"));
+            List.of("UI validation", "Status badge", "Status badge expected"));
 
     private final String scenarioTitle;
     private final List<String> failsDetailMarkers;

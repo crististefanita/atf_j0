@@ -81,14 +81,20 @@ public record UiNetworkObservation(
                                      UiNetworkInspectionConfiguration configuration) {
         Request request = response.request();
         String url = request.url();
+        UiNetworkCapturePolicy.ResourceKind resourceKind =
+                UiNetworkCapturePolicy.ResourceKind.fromPlaywright(request.resourceType());
         String requestBody = bounded(redactJson(request.postData()),
                 configuration.maxBodyPreviewCharacters());
         String responseBody;
-        boolean bodyAvailable = true;
+        boolean bodyAvailable = configuration.capturePolicy().capturesResponseBody(resourceKind);
         try {
-            response.finished();
-            responseBody = bounded(redactJson(new String(response.body(), StandardCharsets.UTF_8)),
-                    configuration.maxBodyPreviewCharacters());
+            if (bodyAvailable) {
+                response.finished();
+                responseBody = bounded(redactJson(new String(response.body(), StandardCharsets.UTF_8)),
+                        configuration.maxBodyPreviewCharacters());
+            } else {
+                responseBody = "";
+            }
         } catch (RuntimeException unavailable) {
             bodyAvailable = false;
             responseBody = "<unavailable: " + unavailable.getClass().getSimpleName() + ">";
@@ -101,7 +107,7 @@ public record UiNetworkObservation(
                 path(url), response.status(), requestHeaders, responseHeaders, requestBody,
                 responseBody, auth[0], auth[1], host(url), "UI_BROWSER",
                 signature(request.method(), url, requestBody), bodyAvailable, "",
-                UiNetworkCapturePolicy.ResourceKind.fromPlaywright(request.resourceType()));
+                resourceKind);
     }
 
     static UiNetworkObservation fromFailure(Request request, long sequence,

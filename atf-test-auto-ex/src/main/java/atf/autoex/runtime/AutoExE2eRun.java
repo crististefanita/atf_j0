@@ -39,6 +39,7 @@ import com.microsoft.playwright.Page;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -90,8 +91,19 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
     }
 
     public static AutoExConfiguration withNetworkInspection(AutoExConfiguration source) {
+        return withNetworkInspection(source, List.of());
+    }
+
+    /** Enables bounded browser inspection and optionally includes selected document routes. */
+    public static AutoExConfiguration withNetworkInspection(AutoExConfiguration source,
+                                                            Collection<String> documentRoutes) {
         UiBrowserConfiguration current = source.browser();
+        var capturePolicy = current.networkInspection().capturePolicy();
+        if (documentRoutes != null && !documentRoutes.isEmpty()) {
+            capturePolicy = capturePolicy.includingDocumentsFor(documentRoutes);
+        }
         var network = current.networkInspection().withEnabled(true)
+                .withCapturePolicy(capturePolicy)
                 .withSettlementPolicy(UiNetworkSettlementPolicy.bounded(
                         Duration.ofSeconds(5), Duration.ofMillis(50)));
         var browser = new UiBrowserConfiguration(current.baseUrl(), current.browser(), current.headless(),
@@ -351,15 +363,76 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
     public void markCausalApiTrafficBaseline() {
         causalNetworkBaseline = browser.networkInspector().observationCursor();
     }
-    public void awaitCartExchange(String productId) {
-        if (!apiEnabled) return;
+    public AutoExPurchaseSession.CartMutationObservation awaitCartExchange(String productId) {
+        if (!apiEnabled) throw new IllegalStateException("Cart exchange observation requires UI_API evidence");
         String route = AutoExRoutes.ADD_TO_CART.path() + productId;
-        browser.networkInspector().awaitAfter(networkCursor,
-                observation -> observation.method().equals(GET.value())
-                        && route.equals(URI.create(observation.url()).getRawPath())
-                        && (observation.resourceKind() == XHR || observation.resourceKind() == FETCH), null)
-                .orElseThrow(() -> new AssertionError(
-                        "The browser did not finish the cart XHR before its UI/API checkpoint: " + route));
+        var observed = browser.networkInspector().awaitAfter(networkCursor,
+                observation -> isCartExchange(observation, route), null);
+        return observed.map(exchange -> new AutoExPurchaseSession.CartMutationObservation(
+                        productId, true, exchange.status(), exchange.failureReason(), exchange.sequence()))
+                .orElseGet(() -> new AutoExPurchaseSession.CartMutationObservation(productId, false,
+                        -1, "no settled matching GET XHR/FETCH within the bounded wait", -1));
+    }
+
+    /** Publishes transport and modal outcomes together under the click's causal checkpoint. */
+    public void cartAddCheckpoint(AutoExTraceStep step,
+                                  AutoExPurchaseSession.CartMutationObservation mutation,
+                                  List<AtfAssertion> uiAssertions) {
+        if (!apiEnabled) throw new IllegalStateException("Cart API checkpoint requires UI_API evidence");
+        Objects.requireNonNull(step, "step");
+        Objects.requireNonNull(mutation, "mutation");
+        List<AtfAssertion> safeUiAssertions = List.copyOf(uiAssertions == null ? List.of() : uiAssertions);
+        prepareUiInteraction();
+
+        String route = AutoExRoutes.ADD_TO_CART.path() + mutation.productId();
+        List<UiNetworkObservation> observations = browser.networkInspector().observationsSince(networkCursor);
+        networkCursor += observations.size();
+        var matchingExchange = observations.stream()
+                .filter(observation -> isCartExchange(observation, route))
+                .filter(observation -> mutation.responseObserved()
+                        && observation.sequence() == mutation.sequence())
+                .findFirst();
+        String actual = !mutation.responseObserved()
+                ? mutation.diagnostic()
+                : matchingExchange.map(exchange -> exchange.status() < 0
+                        ? "request failed before response: " + exchange.failureReason()
+                        : "HTTP " + exchange.status())
+                .orElse("the observed cart exchange is not present in this checkpoint window");
+        boolean transportPassed = matchingExchange.map(exchange -> exchange.status() >= 200
+                && exchange.status() < 300).orElse(false);
+        var transportAssertion = new AtfAssertion("Cart add response", "HTTP 2xx from GET " + route,
+                actual, transportPassed);
+        var apiValidation = new UiApiValidationEvidence(
+                matchingExchange.isPresent() ? List.of() : List.of(transportAssertion),
+                observations.stream().map(observation -> {
+                    var evidence = AutoExObservedExchangeMapper.map(observation);
+                    return new UiApiValidationEvidence.Exchange(evidence,
+                            matchingExchange.map(exchange -> exchange.sequence() == observation.sequence())
+                                    .orElse(false) ? List.of(transportAssertion) : List.of());
+                }).toList());
+
+        boolean uiPassed = safeUiAssertions.stream().allMatch(AtfAssertion::passed);
+        AtfReportStatus status = AtfReportStatus.worst(
+                uiPassed ? AtfReportStatus.PASS : AtfReportStatus.FAIL, apiValidation.status());
+        String screenshot = evidenceProfile.captures(ReportScreenshotPolicy.CapturePoint.CHECKPOINT)
+                ? capture(step.title()) : "";
+        var actionEvidence = ReportModelAdapters.uiActions(actions.drain());
+        phase.step(step.keyword(), step.title(), currentUrl(), screenshot, safeUiAssertions,
+                actionEvidence, apiValidation, ReportScreenshotPolicy.CapturePoint.CHECKPOINT,
+                uiPassed ? AtfReportStatus.PASS : AtfReportStatus.FAIL);
+        var allAssertions = new ArrayList<AtfAssertion>(safeUiAssertions);
+        allAssertions.add(transportAssertion);
+        networkSteps.add(ReportNetworkInspector.Step.from(step.keyword().text(), step.title(),
+                allAssertions, exchangeEvidence(apiValidation)));
+        if (status == AtfReportStatus.FAIL) {
+            throw new AssertionError("Cart add checkpoint failed: " + failedAssertionSummary(allAssertions));
+        }
+    }
+
+    private static boolean isCartExchange(UiNetworkObservation observation, String route) {
+        return GET.value().equals(observation.method())
+                && route.equals(URI.create(observation.url()).getRawPath())
+                && (observation.resourceKind() == XHR || observation.resourceKind() == FETCH);
     }
     public boolean observesApiTraffic() { return apiEnabled; }
 

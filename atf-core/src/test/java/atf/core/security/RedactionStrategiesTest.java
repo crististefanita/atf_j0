@@ -56,4 +56,22 @@ class RedactionStrategiesTest {
                 () -> assertFalse(safe.contains("api-secret")),
                 () -> assertFalse(safe.contains("token")));
     }
+
+    @Test
+    void redactsCsrfTokensInFormAndStructuredRequestBodies() {
+        var redactor = new SensitiveDataRedactor();
+        String form = redactor.redactText(
+                "csrfmiddlewaretoken=form-secret&email=user%40example.test&password=login-secret");
+        String json = redactor.redactJson(
+                "{\"csrfmiddlewaretoken\":\"json-secret\",\"csrf_token\":\"json-variant\"}");
+
+        assertAll(
+                () -> assertTrue(form.contains("csrfmiddlewaretoken=***REDACTED***")),
+                () -> assertTrue(form.contains("password=***REDACTED***")),
+                () -> assertFalse(form.contains("form-secret")),
+                () -> assertFalse(form.contains("login-secret")),
+                () -> assertFalse(json.contains("json-secret")),
+                () -> assertFalse(json.contains("json-variant")),
+                () -> assertTrue(json.contains("***REDACTED***")));
+    }
 }

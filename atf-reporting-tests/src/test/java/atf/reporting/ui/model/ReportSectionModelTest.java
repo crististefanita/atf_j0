@@ -15,13 +15,13 @@ class ReportSectionModelTest {
     void defaultExtentModelCoversTabsAndEvidenceSurfaces() {
         String html = "id=\"dashboard-view\" id=\"test-view\" id=\"category-view\" "
                 + "id=\"atf-fails-view\" data-atf-evidence-type=\"report-setup\" "
-                + "data-atf-evidence-type=\"screen-validation\"";
+                + "UI validation class=\"atf-ui-action-sequence\"";
 
         assertAll(
                 () -> assertTrue(ReportSectionModel.extentUiDefaults().stream()
                         .allMatch(section -> section.isPresentIn(html))),
-                () -> assertTrue(ReportSectionModel.Section.SCREEN_VALIDATION.displayName()
-                        .contains("Screen")),
+                () -> assertEquals("UI validation",
+                        ReportSectionModel.Section.SCREEN_VALIDATION.displayName()),
                 () -> assertEquals("id=\"test-view\"", ReportSectionMarker.id(
                         AtfReportHtmlVocabulary.ViewId.TESTS)
                         .token()),

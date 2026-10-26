@@ -39,7 +39,7 @@ class UiReportArtifactContractTest {
                     AtfReportStatus.PASS);
             setup.complete(AtfReportStatus.PASS);
             var body = scenario.startPhase(ReportUiContract.Phase.TEST_BODY.displayName());
-            body.screenValidation("Screen validation", "#test-view",
+            body.screenValidation("report is visible", "#test-view",
                     ReportTestScreenshots.ONE_PIXEL_PNG,
                     List.of(new AtfAssertion("Tests tab", "visible", "visible", true)),
                     List.of(
@@ -61,10 +61,50 @@ class UiReportArtifactContractTest {
         assertTrue(evaluation.isCompliant(), () -> "UI artifact violations: "
                 + evaluation.violations());
         assertTrue(evaluation.satisfies("setup evidence is separate"));
-        assertTrue(evaluation.satisfies("screen validation sibling layout"));
+        assertTrue(evaluation.satisfies("UI validation sibling layout"));
+        assertTrue(evaluation.satisfies("legacy validation title absent"));
         assertTrue(evaluation.satisfies("Playwright action table"));
         assertTrue(evaluation.satisfies("inline screenshot link"));
         assertTrue(evaluation.satisfies("long proposition wrapping"));
+    }
+
+    @Test
+    void visualCheckpointsUseOnlyTheCanonicalUiValidationTitle() throws Exception {
+        Path root = Files.createTempDirectory("atf-ui-validation-title-");
+        Path report;
+        try (var session = UiExtentReportSession.openConfigured(root, "ui-title.html",
+                AtfConsoleSink.noOp())) {
+            report = session.reportPath();
+            var scenario = session.startScenario("UiValidationTitle", "atf.reporting.ui",
+                    "visual assertion title contract", List.of("ui", "component"));
+            var setup = scenario.startPhase(ReportUiContract.Phase.SETUP.displayName());
+            setup.setup(GIVEN, "the report fixture is available", "ui-title.html",
+                    List.of(new AtfAssertion("Report", "published", "published", true)),
+                    AtfReportStatus.PASS);
+            setup.complete(AtfReportStatus.PASS);
+            var body = scenario.startPhase("TEST BODY");
+            body.screenValidation("page is ready", "#test-view",
+                    ReportTestScreenshots.ONE_PIXEL_PNG,
+                    List.of(new AtfAssertion("Page", "ready", "ready", true)),
+                    List.of(
+                            new AtfUiActionRecord(1, "Click", "#tests", "Tests tab opens",
+                                    "opened", 4, AtfReportStatus.PASS),
+                            new AtfUiActionRecord(2, "Get text", "h1", "report title is visible",
+                                    AtfReportLabels.REPORT_TITLE, 2, AtfReportStatus.PASS),
+                            new AtfUiActionRecord(3, "Observe", "#test-view",
+                                    "Tests surface remains visible", "visible", 0,
+                                    AtfReportStatus.PASS, AtfUiEvidenceSource.OBSERVE)),
+                    AtfReportStatus.PASS);
+            body.complete(AtfReportStatus.PASS);
+            scenario.complete(AtfReportStatus.PASS);
+        }
+
+        String html = Files.readString(report);
+        assertTrue(html.contains("<span>UI validation</span>"));
+        assertFalse(html.contains("<span>Screen validation</span>"));
+        var evaluation = UiReportArtifactContract.evaluate(html);
+        assertTrue(evaluation.isCompliant(), () -> "UI artifact violations: "
+                + evaluation.violations());
     }
 
     @Test

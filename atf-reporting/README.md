@@ -292,7 +292,7 @@ TestCase
 | setup evidence | tabelul `CHECK / EXPECTED / ACTUAL / RESULT` rezumă precondiția; exchange-urile reale rămân `API validation` distinctă sub același checkpoint `SETUP` |
 | format body | request/response păstrează formatul capturat (JSON, form sau text); un contract JSON este cerut de validatorul consumerului, nu dedus din metoda HTTP |
 | body absent | request/response details rămân prezente; `ABSENT` și `NOT_CAPTURED` au explicații distincte, fără payload inventat; numai JSON literal `null` capturat devine document JSON |
-| UI evidence | `SETUP` este setup; `Screen validation` este în `TEST BODY` după acțiuni și observații |
+| UI evidence | `SETUP` rămâne setup; în `TEST BODY`, acțiunile, observațiile, aserțiunile și verdictul UI sunt publicate sub unicul titlu `UI validation` |
 | UI `UNIFIED_FLOW` peste faze | Consumerul apelează `UiScenario.unifyAcrossPhases()` înainte de prima fază și `UiPhase.completeFinal(status)` la faza terminală. Pe succes UI-only, Reporting publică o singură validare UI cu un tabel ACTION, unul OBSERVE (dacă există observații) și unul assertions (dacă există aserțiuni), păstrând toate rândurile în ordine. Captura `FINAL` permisă apare sub tabelul Playwright, înaintea auditului; fazele/checkpoint-urile și verdictele sunt în `UI flow provenance`, separat de răspunsurile HTTP. UI+API, setup eșuat și politicile explicite cu capturi multiple păstrează validările pe checkpoint. `completeFinal(FAIL)` în `SETUP` nu creează `TEST BODY` sau o captură finală. Fără opt-in, comportamentul existent per fază rămâne valabil. |
 | layout | `＋/−` este inline înaintea propoziției; Request details, Response details și Execution evidence sunt disclosures surori în request; Contract validation este copilul lui; UI/API validations sunt copii surori ale aceluiași checkpoint Gherkin |
 | responsive evidence | până la breakpoint-ul de lucru (`1300px`), action tables se redimensionează și împachetează conținutul fără scrollbar orizontal; padding-ul lateral al wrapperului este eliminat semantic, nu prin crop | 
@@ -442,7 +442,7 @@ Rendererul nu inventează statusuri.
 - Extent și fallback păstrează conținutul acțiunilor și capturilor publicate,
   nu numai contoarele; pasul UI nu primește metadate HTTP fictive.
 
-### Audit terminal în Screen validation
+### Audit terminal în UI validation
 
 - Validarea contractului terminal publică exact o observație `Audit screen
   contract` în `Audit observations`, în aceeași validare cu acțiunile,
@@ -668,7 +668,7 @@ trecere, iar adapterul legacy inspectează doar părintele imediat al tabelului;
 viewport-urile noi sunt deținute de markup-ul Java.
 
 `appendUiFailureEvidence` rulează pe nodurile typed `request` și `validation`:
-request-ul deține failure API, iar validarea Screen validation deține eșecul
+request-ul deține failure API, iar validarea UI deține eșecul
 Playwright/audit/assertion. Leaf-ul `Fail` este atașat tabelului de evenimente
 al aceluiași owner, cu cauza UI concretă; UI-only nu primește disclosures
 Request/Response inventate. `ExtentReportRuntimeEvidenceLifecycle` deține

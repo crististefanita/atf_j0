@@ -37,6 +37,16 @@ class ShopPurchaseStageInputsComponentTest {
         assertFalse(types.contains(ShopConfiguration.class));
     }
 
+    @Test
+    void reusableCatalogFlowAcceptsOnlyTheCatalogProjection() {
+        var method = Arrays.stream(ShopCatalogFlow.class.getMethods())
+                .filter(candidate -> candidate.getName().equals("searchAndOpenConfiguredProduct"))
+                .findFirst().orElseThrow();
+
+        assertEquals(ShopConfiguration.CatalogSelection.class, method.getParameterTypes()[2]);
+        assertFalse(Arrays.asList(method.getParameterTypes()).contains(ShopConfiguration.class));
+    }
+
     private static Set<String> componentNames(Class<?> contract) {
         return Arrays.stream(contract.getRecordComponents())
                 .map(component -> component.getName())

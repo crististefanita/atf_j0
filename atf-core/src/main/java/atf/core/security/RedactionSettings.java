@@ -13,7 +13,8 @@ public record RedactionSettings(boolean enabled, String replacement, boolean red
 
     public static RedactionSettings defaults() {
         return new RedactionSettings(true, "***REDACTED***", true, false,
-                Set.of("password", "token", "access_token", "refresh_token", "client_secret", "api_key",
+                Set.of("password", "token", "csrfmiddlewaretoken", "csrf_token", "csrf-token",
+                        "access_token", "refresh_token", "client_secret", "api_key",
                         "authorization", "x-api-key", "x-auth-token", "proxy-authorization"));
     }
 }

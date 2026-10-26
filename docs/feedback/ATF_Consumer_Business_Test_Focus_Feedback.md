@@ -24,7 +24,6 @@ documentară /10. Nu reprezintă o notă a codului sau un rezultat de test.
 | ID | Scor /100 | Diferența rămasă |
 |---|---:|---|
 | `CONSUMER-FLOW-LAYERS-09` | 88 = 36 + 24 + 20 + 8 | extinderea separării business/UI/validare în etapele AutoEx și Shop rămase |
-| `AUTOEX-LIVE-AVAILABILITY-07` | 78 = 30 + 20 + 20 + 8 | corelarea eșecului unei mutații cu postcondiția UI, fără replay |
 | `CONSUMER-RUNTIME-BOUNDARY-03` | 77 = 31 + 18 + 20 + 8 | responsabilitățile de achiziție, publicare și lifecycle rămase în Shop |
 | `CONSUMER-E2E-PROFILES-01` | 57 = 24 + 10 + 17 + 6 | reducerea repetării live numai după echivalență demonstrată |
 
@@ -66,7 +65,8 @@ cont sintetic nou și scope de clasă/suită; AutoEx păstrează identitatea cre
 - **Livrat — publisher Shop (09-G, tranșă).** `ShopPurchaseCheckpointPublisher`
   izolează formarea și publicarea checkpoint-urilor de contextul UI/config/API;
   componenta verifică FAIL publicat înaintea gate-ului și propagarea intactă a
-  erorii sink-ului. Contextul încă agregă dependențe de browser și configurare.
+  erorii sink-ului. Contextul păstrează compoziția resurselor browser/API comune;
+  inputurile de configurare sunt restrânse separat pe stage.
 - **Livrat — intrări tipizate pe stage Shop (09-G, tranșă).** Catalogul și
   checkout-ul primesc proiecții imutabile distincte; niciunul nu mai primește
   `ShopConfiguration` globală, iar checkout-ul nu expune validatorul Home.
@@ -76,33 +76,44 @@ cont sintetic nou și scope de clasă/suită; AutoEx păstrează identitatea cre
 - **Livrat — navigare îngustă pentru contul Shop (09-G, tranșă).** Login și
   Registration primesc URI rezolvat la composition root; testul de componentă
   fixează absența `ShopConfiguration` din API-ul page objects.
+- **Livrat — intrare îngustă pentru catalogul Shop (09-G, tranșă).**
+  `ShopCatalogFlow` consumă `ShopConfiguration.CatalogSelection`; aceeași probă
+  de componentă respinge configurația globală în API-ul flow-ului.
+- **Livrat — port UI pentru cart stories AutoEx (09-G, tranșă).**
+  `AutoExCartJourney` primește `AutoExCartJourneyPort`, care compune porturile
+  UI necesare contului și catalogului, fără checkout sau inspector API.
+  `AutoExPurchaseJourney` păstrează precondiția API înaintea căutării pentru
+  traseul UI+API; traseul UI-only reutilizează separat `AutoExCatalogSearchPort`.
+  `AutoExPagePortsComponentTest` fixează ordinea și absența capabilităților API.
 - [ ] **09-G — porturi pentru flow-urile rămase.** Restrângeți dependențele
       din journey-urile AutoEx și etapele Shop rămase, fără wrapper per click.
       Păstrați UI/API frați, fereastra cauzală, captura stării observate și cauza
       de infrastructură; un failure business anterior rămâne primar.
 - [ ] **09-H — probe înaintea migrării generale.** Extindeți matricea pilotului
-      la fiecare port nou: observație lipsă, timeout, gate FAIL, mutație incertă
-      și eșec simultan business/publicare/cleanup. Guard-ul business respinge
+      la fiecare port UI rămas: heading/valoare absentă și timeout trebuie să
+      oprească pasul următor fără retry. Gate FAIL, câmpuri coș lipsă, mutația
+      incertă a contului AutoEx și failure precedence pentru publication/cleanup
+      sunt deja probate în suitele componentă. Guard-ul business respinge
       browser, UI, JUnit și Reporting fără excepții sau praguri mărite.
 
-Business-ul și modelele aplicației rămân în main la consumer; fixture-urile,
-suitele și adaptoarele JUnit rămân în test. Limita de opt clase per pachet
-rămâne obligatorie; o extracție comună cere același contract demonstrat.
+- **Livrat — păstrarea cauzei primare (09-H, tranșă).**
+  `ShopE2eFailureBoundaryTest` forțează eșec business, publicare și close simultan;
+  verifică identitatea cauzei primare și ordinea excepțiilor suprimate.
+  `AutoExRunLifecycleAdapterComponentTest` probează toate etapele secundare,
+  inclusiv cleanup, diagnostics, evidence, browser close și închiderea raportului.
+- **Livrat — corelarea mutației de coș AutoEx (07).** `AutoExPurchaseJourney`
+  așteaptă schimbul GET XHR/FETCH al click-ului unic, apoi publică transportul și
+  starea modalului în checkpoint-ul `CART_ADD`. `AutoExRuntimeBoundaryComponentTest`
+  probează 2xx, 503, `requestFailed` și schimb lipsă, plus vecini cu rută, metodă
+  sau resource kind diferit; contractul este în
+  [README-ul AutoEx](../../atf-test-auto-ex/README.md#boundary-ul-cauzal-pentru-ui_api).
+- **Livrat — capturarea traficului de autentificare DOCUMENT în AutoEx (07-B).** Debug-ul E2E a confirmat trei request-uri ale browserului: `GET /login`, `POST /login` form-urlencoded (302) și `GET /delete_account`. Ele nu erau XHR/FETCH, deci filtrul implicit al inspectorului le omitea. `@AutoExNetworkDocuments({"/login", "/delete_account"})` selectează doar aceste rute DOCUMENT; XHR/FETCH rămân capturate după politica existentă. HTML-ul documentelor nu este citit, iar parola și `csrfmiddlewaretoken` sunt redactate. `POST /api/createAccount` este setup API explicit și rămâne separat de traficul browserului. Component tests și `AutoExExistingCustomerUiApiE2eTest` probează selecția și cele trei observații.
 
-## AUTOEX-LIVE-AVAILABILITY-07 — indisponibilitatea nu este drift de selector
-
-**Owner:** AutoEx pentru corelarea răspunsului observat cu starea UI.
-Recuperarea GET document configurată și selecția exactă GET/XHR/FETCH pentru
-readback-ul coșului sunt livrate la [owner](../../atf-test-auto-ex/README.md#limita-disponibilității-serviciului-public).
-
-- [ ] Corelați răspunsul mutației cu postcondiția UI, inclusiv add-to-cart
-      refuzat și modal absent. UI-only păstrează diagnosticul fără API evidence;
-      UI+API păstrează exchange-ul sub acțiunea cauzală.
-- [ ] Probați succes, 5xx observat, request eșuat și lipsă de răspuns, cu vecini
-      controlați. Selecția exactă a unui readback nu închide această matrice;
-      timeout-ul singur nu autorizează inferarea unui 503.
-- [ ] Păstrați FAIL și cauza observată, fără retry de click, creare/ștergere cont
-      ori plată. O execuție nouă nu reia mutația incertă a celei anterioare.
+| Zonă | Responsabilitate |
+|---|---|
+| Main la consumer | business și modele ale aplicației |
+| Test la consumer | fixture-uri, suite și adaptoare JUnit |
+| Pachete | maximum 8 clase; extracția comună cere contract demonstrat |
 
 ## CONSUMER-RUNTIME-BOUNDARY-03 — mai puțin suport local, nu un harness ascuns
 
@@ -154,13 +165,14 @@ testChanges:
     status: ACTIVE
     base: fdbafdbaa4bdf617c9fd103ba0b917cc2efdc766
     expires: 2026-11-26
-    reason: Păstrează probele protejate pentru lifecycle/configurația și porturile Home/Account/Checkout AutoEx; guard-urile verifică ownership-ul capabilităților și limita de opt clase. ShopComponentSuite rulează în aceeași verificare, iar politica de schimbări îl exclude explicit.
+    reason: Păstrează probele protejate pentru lifecycle/configurația, porturile de pagină și portul UI al cart stories AutoEx; guard-urile verifică ownership-ul capabilităților și limita de opt clase. ShopComponentSuite rulează în aceeași verificare, iar politica de schimbări îl exclude explicit.
     proof: mvn -pl atf-test-auto-ex,atf-test-practice-shop,atf-tests -am "-Dtest=AutoExComponentSuite,ShopComponentSuite,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=fdbafdbaa4bdf617c9fd103ba0b917cc2efdc766" "-Dsurefire.failIfNoSpecifiedTests=false" test
     paths:
       - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/configuration/AutoExConfigurationLoaderComponentTest.java
       - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExAccountLifecycleComponentTest.java
       - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExCartFlowComponentTest.java
       - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/pages/AutoExPagePortsComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/lifecycle/AutoExRuntimeBoundaryComponentTest.java
       - atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java
       - atf-tests/src/test/java/atf/api/tests/governance/AtfPackageCohesionGovernanceTest.java
 ```

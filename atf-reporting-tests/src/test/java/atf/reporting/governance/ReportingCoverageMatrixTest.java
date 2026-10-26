@@ -87,7 +87,7 @@ class ReportingCoverageMatrixTest {
             entry("Fails projection rules",
                     "atf.reporting.ui.audit.section.FailsSectionValidatorTest",
                     AtfUnitTest.class),
-            entry("Screen validation rules",
+            entry("UI validation rules",
                     "atf.reporting.ui.audit.section.ScreenValidationSectionValidatorTest",
                     AtfUnitTest.class),
             entry("JSON and visual evidence rules",

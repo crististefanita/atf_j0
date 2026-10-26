@@ -27,7 +27,7 @@ public final class UiReportNavigationFlow {
         return detail;
     }
 
-    /** Expands only structural ancestors needed to inspect Screen validation. */
+    /** Expands only structural ancestors needed to inspect UI validation. */
     public void expandTestStructure(Locator detail) {
         for (int scenarioIndex = 0; scenarioIndex < locators.scenarios(detail).count(); scenarioIndex++) {
             Locator scenario = locators.scenarios(detail).nth(scenarioIndex);

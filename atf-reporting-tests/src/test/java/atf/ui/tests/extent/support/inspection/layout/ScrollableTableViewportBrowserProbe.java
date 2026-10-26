@@ -185,7 +185,7 @@ public final class ScrollableTableViewportBrowserProbe {
             if (card.isVisible() && header.isVisible()
                     && !"true".equals(header.getAttribute("aria-expanded"))) {
                 flow.actions().click(locators.nodeHeaderAction(header),
-                        "screen validation table rows become visible");
+                        "UI validation table rows become visible");
             }
         }
     }

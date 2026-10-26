@@ -33,6 +33,7 @@ import java.util.Optional;
  */
 public final class UiEvidencePublisher {
     private static final String SCREEN_VALIDATION = "Screen validation";
+    private static final String UI_VALIDATION = "UI validation";
     private static final String API_VALIDATION = "API validation";
 
     private final AtfReportPorts.Phase phase;
@@ -73,7 +74,7 @@ public final class UiEvidencePublisher {
      * Publishes precondition checks under SETUP. The compact setup table
      * summarizes readiness; captured UI actions and selected API exchanges
      * remain separate evidence under the same checkpoint. Setup evidence is
-     * not UI or screen validation; screen assertions belong to TEST BODY.
+     * not UI validation; screen assertions belong to TEST BODY.
      */
     void publishSetup(String keyword, String title, String target,
                       Collection<AtfAssertion> assertions, AtfReportStatus status) {
@@ -160,7 +161,7 @@ public final class UiEvidencePublisher {
                                 + screenshotPolicy.configValue());
             }
             if (visualValidation || (uiAssertions != null && !uiAssertions.isEmpty())) {
-                var validation = request.startValidation(validationTitle);
+                var validation = request.startValidation(displayValidationTitle(validationTitle));
                 publishActions(validation, actions);
                 publishScreenshot(validation, target, title, base64Png, uiStatus, "UI assertion", capturePoint);
                 validation.assertions(uiAssertions);
@@ -226,7 +227,7 @@ public final class UiEvidencePublisher {
             }
 
             if (hasUiEvidence) {
-                var validation = flow.startValidation(SCREEN_VALIDATION);
+                var validation = flow.startValidation(UI_VALIDATION);
                 try {
                     publishActions(validation, actions);
                     for (UiUnifiedFlowCheckpoint checkpoint : checkpoints) {
@@ -259,6 +260,10 @@ public final class UiEvidencePublisher {
         return SCREEN_VALIDATION.equals(checkpoint.validationTitle())
                 || !checkpoint.assertions().isEmpty() || !checkpoint.actions().isEmpty()
                 || hasText(checkpoint.base64Png());
+    }
+
+    private static String displayValidationTitle(String title) {
+        return SCREEN_VALIDATION.equals(title) ? UI_VALIDATION : title;
     }
 
     private static AtfReportStatus effectiveStatus(UiUnifiedFlowCheckpoint checkpoint) {
@@ -327,7 +332,8 @@ public final class UiEvidencePublisher {
                 flow.detail(prefix + ".status", checkpointStatus.displayValue());
                 if (compact.isEmpty() && (isUiEvidence(checkpoint)
                         || "Setup validation".equals(checkpoint.validationTitle()))) {
-                    var validation = flow.startValidation(entry.phase() + " · " + checkpoint.validationTitle());
+                    var validation = flow.startValidation(entry.phase() + " · "
+                            + displayValidationTitle(checkpoint.validationTitle()));
                     try {
                         publishActions(validation, checkpoint.actions());
                         publishUnifiedScreenshot(validation, checkpoint, checkpointStatus);
@@ -496,7 +502,7 @@ public final class UiEvidencePublisher {
             request.detail("evidence.type", "screen-validation");
             request.detail("evidence.policy", "one visible Base64 image inside one safe clickable link; policy="
                     + screenshotPolicy.configValue());
-            var validation = request.startValidation(SCREEN_VALIDATION);
+            var validation = request.startValidation(UI_VALIDATION);
             publishActions(validation, actions);
             if (shouldPublish(base64Png, capturePoint)) {
                 requireTargetForScreenshot(target);

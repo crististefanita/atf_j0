@@ -234,7 +234,7 @@ public final class ReportAuditSnapshot {
         }
     }
 
-    /** Renderer-neutral contract for one Screen validation evidence card. */
+    /** Renderer-neutral contract for one UI validation evidence card. */
     public record ScreenValidation(int sectionCount, int actionSequenceCount,
                                    int observationCount, int assertionTableCount,
                                    int zoneRowCount, int screenshotLinkCount,
@@ -261,7 +261,7 @@ public final class ReportAuditSnapshot {
             if (sectionCount < 0 || actionSequenceCount < 0 || observationCount < 0
                     || assertionTableCount < 0 || zoneRowCount < 0
                     || screenshotLinkCount < 0 || canonicalScreenshotLinkCount < 0) {
-                throw new IllegalArgumentException("Screen validation counts must be non-negative");
+                throw new IllegalArgumentException("UI validation counts must be non-negative");
             }
             violations = List.copyOf(Objects.requireNonNull(violations, "violations"));
         }

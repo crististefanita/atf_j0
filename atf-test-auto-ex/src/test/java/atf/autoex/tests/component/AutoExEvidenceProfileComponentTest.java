@@ -1,6 +1,8 @@
 package atf.autoex.tests.component;
 
 import atf.autoex.runtime.config.AutoExEvidenceProfile;
+import atf.autoex.config.AutoExConfigurationLoader;
+import atf.autoex.runtime.AutoExE2eRun;
 import atf.autoex.tests.e2e.AutoExAccountUiE2eTest;
 import atf.autoex.tests.e2e.AutoExCartUiE2eTest;
 import atf.autoex.tests.e2e.AutoExExistingCustomerUiApiE2eTest;
@@ -10,6 +12,7 @@ import atf.autoex.tests.e2e.AutoExPurchaseUiFinalScreenshotE2eTest;
 import atf.autoex.tests.extension.AutoExEvidenceProfileAdapter;
 import atf.autoex.tests.extension.AutoExE2eExtension;
 import atf.autoex.tests.extension.AutoExE2eTest;
+import atf.autoex.tests.extension.AutoExNetworkDocuments;
 import atf.autoex.tests.suites.AutoExE2eSuite;
 import atf.console.junit.AtfConsoleTestExtension;
 import atf.reporting.evidence.ReportScreenshotPolicy;
@@ -29,6 +32,7 @@ import atf.testkit.evidence.AtfUiEvidenceResolver;
 import atf.testkit.evidence.AtfUiScreenshotPolicy;
 import atf.testkit.output.UiReportSubdirectory;
 import atf.testkit.reporting.AtfReportPath;
+import atf.ui.network.UiNetworkCapturePolicy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Execution;
@@ -88,6 +92,30 @@ class AutoExEvidenceProfileComponentTest {
                         testClass.getAnnotation(AtfTestChannel.class).value()).toList());
         assertEquals(AtfUiScreenshotPolicy.FINAL_AND_FAILURE,
                 AutoExPurchaseUiFinalScreenshotE2eTest.class.getAnnotation(AtfUiEvidence.class).screenshots());
+    }
+
+    @Test
+    void existingCustomerNetworkSelectionIncludesOnlyItsDocumentRoutesAndKeepsApiCapture() {
+        var existingCustomer = AutoExExistingCustomerUiApiE2eTest.class;
+        var selection = existingCustomer.getAnnotation(AutoExNetworkDocuments.class);
+        var configuration = AutoExE2eRun.withNetworkInspection(AutoExConfigurationLoader.load(),
+                List.of(selection.value()));
+        var policy = configuration.browser().networkInspection().capturePolicy();
+        String origin = configuration.baseUrl().toString();
+
+        assertAll(
+                () -> assertArrayEquals(new String[]{"/login", "/delete_account"}, selection.value()),
+                () -> assertEquals(TestChannel.UI_API,
+                        existingCustomer.getAnnotation(AtfTestChannel.class).value()),
+                () -> assertTrue(policy.accepts(origin + "/login", UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
+                () -> assertTrue(policy.accepts(origin + "/delete_account", UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
+                () -> assertFalse(policy.accepts(origin + "/", UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
+                () -> assertFalse(policy.accepts(origin + "/login-extra", UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
+                () -> assertTrue(policy.accepts(origin + "/add_to_cart/1", UiNetworkCapturePolicy.ResourceKind.XHR)),
+                () -> assertTrue(policy.accepts(origin + "/api/productsList", UiNetworkCapturePolicy.ResourceKind.FETCH)),
+                () -> assertFalse(policy.capturesResponseBody(UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
+                () -> assertTrue(policy.capturesResponseBody(UiNetworkCapturePolicy.ResourceKind.FETCH)),
+                () -> assertFalse(policy.accepts(origin + "/static/app.js", UiNetworkCapturePolicy.ResourceKind.STATIC)));
     }
 
     @Retention(RetentionPolicy.RUNTIME)

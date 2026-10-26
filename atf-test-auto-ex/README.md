@@ -78,12 +78,15 @@ Profilul conține numai date sintetice și date de plată demonstrative; nu intr
 în YAML date personale reale, parole sau instrumente de plată reale. Modelul
 redactează câmpurile de înregistrare și plată din reprezentarea textuală.
 
-- `AutoExPurchaseJourney` folosește `AutoExPurchaseSession` drept fațadă de orchestrare;
-  `HomePage`, `CheckoutPage` și `AccountPage` primesc porturi de capabilități
-  (`AutoExHomePagePort`, `AutoExCheckoutPagePort`, `AutoExAccountPagePort`).
-  Căutarea de produse primește numai `AutoExUiActions` și numele așteptat explicit.
-  Testele componente verifică ordinea acțiunilor și oprirea la eșec fără să
-  construiască runtime-ul complet.
+- `AutoExPurchaseJourney` folosește `AutoExPurchaseSession` pentru achiziția care
+  poate avea precondiție API; aceasta rămâne înaintea căutării UI. `AutoExCartJourney`
+  primește `AutoExCartJourneyPort`, fără operații de checkout sau inspector API.
+  Catalogul UI comun este expus separat prin `AutoExCatalogSearchPort`.
+- `HomePage`, `CheckoutPage` și `AccountPage` primesc porturile lor de capabilități
+  (`AutoExHomePagePort`, `AutoExCheckoutPagePort`, `AutoExAccountPagePort`), iar
+  căutarea de produs din page object folosește numai `AutoExUiActions` și numele
+  așteptat explicit. `AutoExPagePortsComponentTest` verifică ordinea checkpoint-urilor,
+  căutarea UI fără capabilități API și oprirea la eșec fără runtime complet.
 - `AutoExE2eRun` îl implementează în pachetul `runtime` din `src/main/java`,
   fără JUnit sau Test Kit.
 - `AutoExRunFactory` și `AutoExE2eExtension` din `src/test/java`, pachetul `extension`, rezolvă
@@ -196,6 +199,7 @@ flowchart LR
 |---|---|
 | `AutoExCartFlowComponentTest` | ordinea observație/gate/publicare/checkout; câmp greșit, lipsă, timeout și cauză primară păstrată |
 | `AutoExCartDomComponentTest` | portul folosește pagina și recorderul real; prețul greșit blochează click-ul și produce un singur failure corelat în Extent |
+| `AutoExRuntimeBoundaryComponentTest` | răspunsul 2xx, 503, `requestFailed` și lipsa schimbului; vecini de rută/metodă/resursă, un click și corelarea transport/modal sub `CART_ADD` |
 | `AutoExAccountLifecycleComponentTest` | owner comun paginilor, create incert, identitate diferită și delete început fără confirmare |
 
 Raportul componentei DOM conține intenționat un scenariu PASS și unul FAIL.
@@ -650,13 +654,21 @@ Diagrama comună pentru captură, baseline și publicare este în
 - Validarea API folosește exclusiv `UiApiValidationEvidence`, același contract
   ca Shop. Precondiția catalogului își publică checks sub exchange-ul propriu,
   nu în `UI validation`; verdictul UI nu este copiat pe request-uri.
-- Numărul pașilor UI nu este un oracol pentru numărul de request-uri API.
-  Navigările și formularele de tip document sunt în afara scope-ului implicit;
-  includerea lor este opt-in și nu transformă orice pagină HTML într-un API.
-- `UI_API` așteaptă bounded răspunsul XHR pornit de aceeași acțiune.
-  Confirmarea vizibilă „Added!” este așteptată înainte de citire; template-ul
-  ascuns nu certifică încheierea acțiunii. Nu se reexecută request-ul pentru
-  raport.
+- Numărul pașilor UI nu este un oracol pentru numărul de request-uri observate.
+  XHR/FETCH rămân scope-ul implicit. Navigările și formularele DOCUMENT se
+  includ global numai cu `includeDocuments: true`; pentru o poveste care are
+  nevoie doar de rutele sale, `@AutoExNetworkDocuments` selectează explicit
+  documentele fără a lărgi captura celorlalte teste.
+- `UI_API` așteaptă pasiv, cu timeout bounded, schimbul GET XHR/FETCH exact
+  pornit de click-ul unic pentru produs. Statusul 2xx, refuzul HTTP și
+  `requestFailed` sunt atașate la checkpoint-ul `CART_ADD`; absența unui schimb
+  în fereastra bounded este raportată ca lipsă de observație, niciodată ca 503.
+- După 2xx, confirmarea vizibilă „Added!” este așteptată. Dacă transportul a
+  eșuat ori nu s-a stabilizat, starea modalului este citită fără așteptare;
+  absența confirmării este corelată cu verdictul transportului, iar un modal de
+  succes prezentat după refuz rămâne contradicție UI/API. Timeout-ul modalului
+  după 2xx este publicat în același checkpoint. Niciun caz nu reexecută click-ul
+  sau request-ul pentru raport.
 - Resursele statice nu ocupă jurnalul. `Capture coverage` expune scope,
   accepted/retained/excluded/dropped, plafon și separarea setup/causal.
   `0 exchanges` se interpretează numai în scope-ul și starea capturii.
@@ -671,7 +683,12 @@ Diagrama comună pentru captură, baseline și publicare este în
 | `maxBodyPreviewCharacters` | `12000` | limita capturii; limita mai mică de afișare Reporting se aplică separat |
 
 Profilul UI-only păstrează inspectorul dezactivat; `UI_API` activează aceeași
-configurație validată, fără să-i înlocuiască setările. Headerele/auth și
+configurație validată, fără să-i înlocuiască limitele. Selecția adnotată adaugă
+doar rutele DOCUMENT declarate și păstrează XHR/FETCH pentru restul origin-ului.
+Corpurile response ale documentelor HTML nu sunt citite; metoda, ruta, statusul,
+headerele și clasificarea auth rămân disponibile, iar corpul formularului de
+login este păstrat numai după redactarea parolei și a tokenului CSRF. Corpurile
+XHR/FETCH rămân disponibile în limita configurată. Headerele/auth și
 proveniența originale sunt adaptate typed către Reporting, nu inferate dintr-un
 profil fictiv. Capturile terminale pot publica și exchange-urile finale.
 
@@ -679,12 +696,12 @@ Probele de selecție/buget/cursor aparțin `atf-ui`; prezentarea și snapshot-ul
 aparțin `atf-reporting-tests`. AutoEx verifică YAML-ul, ruta reală a coșului,
 precondiția catalogului și journey-ul business, fără teste generice de renderer.
 
-- `awaitCartExchange` așteaptă pasiv un GET de tip XHR/FETCH pentru calea URI
-  exactă a produsului. Query-ul de cantitate rămâne redactat în evidence și nu
-  intră în egalitatea căii; produsul prefixat, altă metodă sau un document nu corespund.
-- Așteptarea nu trimite o cerere nouă și nu dovedește singură succesul mutației.
-  Postcondiția UI și validările exchange-ului păstrează verdictul; corelarea
-  diagnosticului la mutație refuzată sau fără răspuns rămâne în feedback.
+- `awaitCartExchange` așteaptă pasiv un GET XHR/FETCH pentru calea exactă a
+  produsului. Query-ul de cantitate nu intră în egalitatea căii; produsul
+  prefixat, altă metodă sau un document nu corespund.
+- `cartAddCheckpoint` leagă acel status sau `requestFailed` de confirmarea UI în
+  aceeași acțiune. Lipsa schimbului la expirarea așteptării rămâne explicit
+  „neobservată”; nu se deduce un status HTTP și nu se repetă click-ul.
 
 ### Pregătirea clientului existent
 
@@ -703,8 +720,13 @@ Setup-ul folosește exact același origin configurat ca browserul.
   conform API-ului public, nu convertit artificial în JSON; răspunsul JSON este
   validat independent de headerul MIME primit.
 - Baseline-ul inspectorului este marcat după setup. Login și Delete account
-  sunt navigări/formulare; cu `includeDocuments: false`, un inspector fără
-  XHR/fetch nu înseamnă că acele navigări au fost capturate ca API.
+  sunt request-uri DOCUMENT, nu endpoint-uri `/api/*` sau XHR/FETCH. Clasa
+  declară `@AutoExNetworkDocuments({"/login", "/delete_account"})`, astfel
+  raportul le leagă de checkpoint-urile de login și ștergere; pagina Home,
+  asset-urile și celelalte documente rămân excluse. Răspunsurile HTML nu sunt
+  citite. Login-ul form-urlencoded păstrează parola și `csrfmiddlewaretoken`
+  redactate. `POST /api/createAccount` rămâne schimbul API explicit din GIVEN,
+  separat de baseline-ul traficului browserului și de summary-ul cauzal.
 - Confirmarea UI cere identitatea exactă, ruta de ștergere, heading-ul dedicat
   și un singur request; succesul API de creare nu certifică ștergerea UI.
 

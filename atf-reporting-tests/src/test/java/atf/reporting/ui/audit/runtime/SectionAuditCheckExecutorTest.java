@@ -43,7 +43,7 @@ class SectionAuditCheckExecutorTest {
         SectionAuditSpec spec = spec(ExtentSection.SCREEN_VALIDATION,
                 ExtentSectionCheck.STRUCTURE, ExtentSectionCheck.JSON_CONTRACT);
         ValidationResult collected = ValidationResult.of(List.of(
-                assertion("Screen validation node", true)));
+                assertion("UI validation node", true)));
 
         SectionAuditCheckExecutor.Execution execution = new SectionAuditCheckExecutor()
                 .execute(ExtentSection.SCREEN_VALIDATION, spec, collected);

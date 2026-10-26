@@ -358,20 +358,38 @@ public final class ShopE2eContext implements AutoCloseable {
          * exceptional lifecycle and preserves the original failure.
          */
         public void execute(Page page, PlaywrightActionSequence actions, Runnable testBody) {
-            try {
-                executeWithFailureCapture(testBody, failure -> fail(page, actions, failure));
-            } finally {
-                close();
-            }
+            executeWithFailureCapture(testBody, failure -> fail(page, actions, failure), this::close);
         }
 
         static void executeWithFailureCapture(Runnable testBody, Consumer<Throwable> failureHandler) {
+            executeWithFailureCapture(testBody, failureHandler, () -> { });
+        }
+
+        static void executeWithFailureCapture(Runnable testBody, Consumer<Throwable> failureHandler,
+                                              Runnable closeAction) {
+            Throwable primaryFailure = null;
             try {
                 testBody.run();
             } catch (RuntimeException | AssertionError | LinkageError failure) {
-                failureHandler.accept(failure);
+                primaryFailure = failure;
+                try {
+                    failureHandler.accept(failure);
+                } catch (RuntimeException | Error publicationFailure) {
+                    suppress(failure, publicationFailure);
+                }
                 throw failure;
+            } finally {
+                try {
+                    closeAction.run();
+                } catch (RuntimeException | Error closeFailure) {
+                    if (primaryFailure == null) throw closeFailure;
+                    suppress(primaryFailure, closeFailure);
+                }
             }
+        }
+
+        private static void suppress(Throwable primary, Throwable secondary) {
+            if (primary != secondary) primary.addSuppressed(secondary);
         }
 
         public void checkpoint(Page page, PlaywrightActionSequence actions,

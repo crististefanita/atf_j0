@@ -202,11 +202,17 @@ public class ConsumerModuleArchitectureGovernanceTest {
         Path test = module.resolve("src/test/java/atf/autoex/tests");
         Path journey = main.resolve("support/journey/AutoExPurchaseJourney.java");
         Path session = main.resolve("support/journey/AutoExPurchaseSession.java");
+        Path cartJourney = main.resolve("support/cart/AutoExCartJourney.java");
+        Path cartJourneyPort = main.resolve("support/cart/AutoExCartJourneyPort.java");
+        Path catalogSearchPort = main.resolve("support/journey/AutoExCatalogSearchPort.java");
         Path accountPort = main.resolve("ui/AutoExAccountPagePort.java");
         Path checkoutPort = main.resolve("ui/AutoExCheckoutPagePort.java");
         Path homePort = main.resolve("ui/AutoExHomePagePort.java");
         String journeySource = Files.readString(journey);
         String sessionSource = Files.readString(session);
+        String cartJourneySource = Files.readString(cartJourney);
+        String cartJourneyPortSource = Files.readString(cartJourneyPort);
+        String catalogSearchPortSource = Files.readString(catalogSearchPort);
         String accountPortSource = Files.readString(accountPort);
         String checkoutPortSource = Files.readString(checkoutPort);
         String homePortSource = Files.readString(homePort);
@@ -219,10 +225,18 @@ public class ConsumerModuleArchitectureGovernanceTest {
                 "locator/AutoExSelectors.java")) {
             assertTrue(Files.isRegularFile(main.resolve(path)), "missing AutoEx runtime type: " + path);
         }
-        assertTrue(sessionSource.contains("extends AutoExAccountPagePort")
-                        && sessionSource.contains("AutoExCheckoutPagePort")
-                        && sessionSource.contains("AutoExHomePagePort"),
-                "the journey facade must compose its page-specific capability ports");
+        assertTrue(sessionSource.contains("extends AutoExCartJourneyPort")
+                        && sessionSource.contains("AutoExCheckoutPagePort"),
+                "the purchase session must add checkout to the narrower cart-story port");
+        assertTrue(cartJourneySource.contains("AutoExCartJourneyPort")
+                        && cartJourneyPortSource.contains("AutoExAccountPagePort")
+                        && cartJourneyPortSource.contains("AutoExCatalogSearchPort")
+                        && catalogSearchPortSource.contains("AutoExHomePagePort"),
+                "the UI cart story must compose only account and catalog-search capabilities");
+        assertFalse(cartJourneyPortSource.contains("inspectCatalogApi")
+                        || cartJourneyPortSource.contains("apiCheckpoint")
+                        || cartJourneyPortSource.contains("AutoExCheckoutPagePort"),
+                "UI cart stories must not receive API-inspector or checkout capabilities");
         assertFalse(sessionSource.contains("com.microsoft.playwright.Page"),
                 "browser access belongs only to the page ports that need it");
         assertTrue(accountPortSource.contains("AutoExAccountLifecycle")

@@ -65,7 +65,7 @@ public final class UiReportContractValidator {
         if ((spec.has(UiReportCheck.SCREEN_VALIDATION)
                 || spec.has(UiReportCheck.INLINE_SCREENSHOT))
                 && snapshot.tab() == ReportUiContract.Tab.TESTS) {
-            assertions.add(ReportAuditChecks.check("Screen validation", "valid evidence contract",
+            assertions.add(ReportAuditChecks.check("UI validation", "valid evidence contract",
                     snapshot.screenValidationViolations().isEmpty()
                             ? "valid" : snapshot.screenValidationViolations().toString(),
                     snapshot.screenValidationValid()));

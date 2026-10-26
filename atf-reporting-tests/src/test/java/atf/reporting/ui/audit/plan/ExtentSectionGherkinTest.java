@@ -42,7 +42,7 @@ class ExtentSectionGherkinTest {
             String proposition = ExtentSectionGherkin.proposition(section);
             String statement = ExtentSectionGherkin.thenStatement(section);
             assertTrue(statement.startsWith("the ") || statement.startsWith("request evidence")
-                    || statement.startsWith("screen validation"), statement);
+                    || statement.startsWith("UI validation"), statement);
             assertFalse(statement.startsWith("GIVEN "), statement);
             assertFalse(statement.contains(" WHEN "), statement);
             assertFalse(statement.contains(" THEN "), statement);

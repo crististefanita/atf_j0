@@ -256,7 +256,7 @@ class ExtentReportUiFailureEvidenceTest {
     }
 
     @Test
-    void keepsPlaywrightTableAndScreenshotInsideScreenValidation() throws Exception {
+    void keepsPlaywrightTableAndScreenshotInsideUiValidation() throws Exception {
         Path root = Files.createTempDirectory("atf-ui-validation-evidence-");
         Path report;
 
@@ -274,13 +274,13 @@ class ExtentReportUiFailureEvidenceTest {
         }
 
         String html = Files.readString(report);
-        int validation = html.indexOf(">Screen validation<");
+        int validation = html.indexOf(">UI validation<");
         int actionSequence = html.indexOf("class=\"atf-ui-action-sequence\"");
         int screenshot = html.indexOf("class=\"atf-ui-action-screenshot\"");
         assertAll(
-                () -> assertTrue(validation >= 0, "Screen validation node is missing"),
+                () -> assertTrue(validation >= 0, "UI validation node is missing"),
                 () -> assertTrue(actionSequence > validation,
-                        "Playwright action table must be rendered inside Screen validation"),
+                        "Playwright action table must be rendered inside UI validation"),
                 () -> assertTrue(screenshot > actionSequence,
                         "Screenshot must follow the Playwright action table"),
                 () -> assertTrue(html.contains("href=\"data:image/png;base64," + ReportTestScreenshots.ONE_PIXEL_PNG + "\"")),

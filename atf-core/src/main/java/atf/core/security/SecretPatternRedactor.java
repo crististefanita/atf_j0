@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 /** Redacts credentials in authorization headers, query strings and path segments. */
 final class SecretPatternRedactor implements Redactor {
     private static final String SENSITIVE_NAME =
-            "password|token|access[_-]?token|refresh[_-]?token|client[_-]?secret|api[_-]?key";
+            "csrf(?:[_-]?middleware)?[_-]?token|password|token|access[_-]?token|refresh[_-]?token|client[_-]?secret|api[_-]?key";
     private static final Pattern JSON_SECRET = Pattern.compile(
             "(?i)(\\\"(?:" + SENSITIVE_NAME + ")\\\"\\s*:\\s*\\\")[^\\\"]*(\\\")");
     private static final Pattern AUTH_HEADER = Pattern.compile(

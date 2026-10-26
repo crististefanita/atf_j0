@@ -8,12 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/** Pure contract for the three compact Screen validation evidence zones. */
+/** Pure contract for the three compact UI validation evidence zones. */
 public final class ScreenValidationSectionValidator {
     public ValidationResult validate(ReportAuditSnapshot.ScreenValidation snapshot) {
         Objects.requireNonNull(snapshot, "snapshot");
         List<AtfAssertion> assertions = new ArrayList<>();
-        assertions.add(ReportAuditChecks.check("Screen validation node", "1",
+        assertions.add(ReportAuditChecks.check("UI validation node", "1",
                 String.valueOf(snapshot.sectionCount()), snapshot.sectionCount() == 1));
         assertions.add(ReportAuditChecks.check("Evidence zones", "action + observations + assertions",
                 snapshot.actionSequenceCount() + " + " + snapshot.observationCount() + " + "

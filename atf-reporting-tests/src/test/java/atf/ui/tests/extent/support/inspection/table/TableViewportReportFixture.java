@@ -103,7 +103,7 @@ public final class TableViewportReportFixture {
                     request.screenshot("terminal capture", PNG);
                     for (int i = 1; i <= count; i++) request.detail(AtfReportEvidenceKeys.setupCheck(i),
                             "Check " + i + " | expected=visible | actual=visible | result=PASS");
-                    var validation = request.startValidation("Screen validation");
+                    var validation = request.startValidation("UI validation");
                     validation.uiActions(allActions);
                     validation.screenshot("terminal validation capture", PNG);
                     validation.assertions(IntStream.rangeClosed(1, count).mapToObj(i ->

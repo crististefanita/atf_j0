@@ -23,6 +23,7 @@ import atf.autoex.runtime.config.AutoExProjectRoot;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 
 import static atf.reporting.ui.contract.ReportUiContract.Phase.TEST_BODY;
@@ -48,7 +49,10 @@ final class AutoExRunFactory {
         ReportEvidenceProfile sessionEvidence = ReportEvidenceProfile.forScreenshotPolicy(
                 reportConfiguration.screenshotPolicy());
         if (channel == TestChannel.UI_API) {
-            configuration = AutoExE2eRun.withNetworkInspection(configuration);
+            AutoExNetworkDocuments documentSelection = context.getRequiredTestClass()
+                    .getAnnotation(AutoExNetworkDocuments.class);
+            configuration = AutoExE2eRun.withNetworkInspection(configuration,
+                    documentSelection == null ? List.of() : Arrays.asList(documentSelection.value()));
         }
         var projectRoot = AutoExProjectRoot.discover();
         var uiBase = AtfTestResourceReader.resolveContained(

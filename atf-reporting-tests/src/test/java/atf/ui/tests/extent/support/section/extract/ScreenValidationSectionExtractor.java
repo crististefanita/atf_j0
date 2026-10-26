@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Browser-only adapter for the Screen validation section. It observes the
+ * Browser-only adapter for UI validation. It observes the
  * rendered report and returns a renderer-neutral snapshot; it never asserts.
  */
 public final class ScreenValidationSectionExtractor {
@@ -51,14 +51,14 @@ public final class ScreenValidationSectionExtractor {
         if (allNodes.count() == 0 || node.count() == 0 || !node.isVisible()) {
             return new ReportAuditSnapshot.ScreenValidation(0, 0, 0, 0, 0,
                     0, 0, false, false, false, false, false,
-                    List.of("visible Screen validation node is missing"));
+                    List.of("visible UI validation node is missing"));
         }
 
         Locator card = locators.screenValidationCard(node);
         Locator body = card.locator(":scope > .collapse");
         if (!body.isVisible()) {
             audit.actions().click(locators.screenValidationNodeAction(page),
-                    "Screen validation evidence zones expand");
+                    "UI validation evidence zones expand");
         }
         Locator rows = locators.screenValidationZoneRows(card);
         int actionSequences = locators.screenValidationActionSequences(card).count();
@@ -177,23 +177,23 @@ public final class ScreenValidationSectionExtractor {
                 && labeledScreenshots == screenshots.count()
                 && validPngScreenshots == screenshots.count()
                 && verticallyCenteredScreenshots == screenshots.count();
-        if (allNodes.count() < 1) violations.add("Screen validation node is missing");
+        if (allNodes.count() < 1) violations.add("UI validation node is missing");
         if (actionSequences < 1) {
-            violations.add("Screen validation must expose at least one Playwright action sequence");
+            violations.add("UI validation must expose at least one Playwright action sequence");
         }
         if (observations < 1) {
-            violations.add("Screen validation must expose at least one audit observation zone");
+            violations.add("UI validation must expose at least one audit observation zone");
         }
         if (assertions < 1) {
-            violations.add("Screen validation must expose at least one assertion table");
+            violations.add("UI validation must expose at least one assertion table");
         }
         if (!directSiblings) violations.add("action sequence, observations and assertions are not direct sibling zones");
         if (!semanticActionRows) violations.add("Playwright rows do not expose the dynamic operation/#N identity and semantic time cell");
-        if (!stacked) violations.add("Screen validation zones are not compactly stacked without vertical gaps");
-        if (!noEmptyRows) violations.add("Screen validation contains an empty evidence row");
-        if (!noSeparators) violations.add("Screen validation contains a decorative separator");
+        if (!stacked) violations.add("UI validation zones are not compactly stacked without vertical gaps");
+        if (!noEmptyRows) violations.add("UI validation contains an empty evidence row");
+        if (!noSeparators) violations.add("UI validation contains a decorative separator");
         if (screenshots.count() == 0) {
-            violations.add("Screen validation does not expose a screenshot link; visible nodes="
+            violations.add("UI validation does not expose a screenshot link; visible nodes="
                     + visibleNodes + ", visible nodes with screenshot="
                     + visibleNodesWithScreenshot + ", max visible screenshot links="
                     + maxVisibleScreenshotLinks + ", node id=" + node.getAttribute("id")
@@ -205,20 +205,20 @@ public final class ScreenValidationSectionExtractor {
                     + page.locator("a.atf-ui-action-screenshot-link").count());
         } else {
             if (canonicalScreenshots != screenshots.count()) {
-                violations.add("Screen validation screenshot links are not all canonical Base64 links: "
+                violations.add("UI validation screenshot links are not all canonical Base64 links: "
                         + canonicalScreenshots + "/" + screenshots.count());
             }
             if (labeledScreenshots != screenshots.count()) {
-                violations.add("Screen validation screenshot links are missing the "
+                violations.add("UI validation screenshot links are missing the "
                         + ReportUiContract.SCREENSHOT_MARKER + " label: "
                         + labeledScreenshots + "/" + screenshots.count());
             }
             if (validPngScreenshots != screenshots.count()) {
-                violations.add("Screen validation screenshot links do not all contain valid PNG evidence: "
+                violations.add("UI validation screenshot links do not all contain valid PNG evidence: "
                         + validPngScreenshots + "/" + screenshots.count());
             }
             if (verticallyCenteredScreenshots != screenshots.count()) {
-                violations.add("Screen validation screenshot links are not vertically centered on the evidence row: "
+                violations.add("UI validation screenshot links are not vertically centered on the evidence row: "
                         + verticallyCenteredScreenshots + "/" + screenshots.count());
             }
         }
@@ -328,7 +328,7 @@ public final class ScreenValidationSectionExtractor {
                     case "phase" -> locators.phaseNodeAction(ancestor);
                     default -> locators.requestNodeToggleAction(ancestor);
                 };
-                audit.actions().click(action, "Screen validation structural evidence opens");
+                audit.actions().click(action, "UI validation structural evidence opens");
             }
         }
     }

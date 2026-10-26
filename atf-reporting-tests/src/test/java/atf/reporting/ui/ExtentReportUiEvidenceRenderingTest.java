@@ -101,7 +101,7 @@ class ExtentReportUiEvidenceRenderingTest {
                             "checklist view opens", "click completed", 549, AtfReportStatus.PASS),
                     new AtfUiActionRecord(27, "Get text", "role=heading[name=Quote Checklist]",
                             "heading is visible", "Quote Checklist", 12, AtfReportStatus.PASS)));
-            step.screenshot("Screen validation", ReportTestScreenshots.ONE_PIXEL_PNG);
+            step.screenshot("UI validation", ReportTestScreenshots.ONE_PIXEL_PNG);
             step.complete(AtfReportStatus.PASS);
             phase.complete(AtfReportStatus.PASS);
             scenario.complete(AtfReportStatus.PASS);
@@ -129,7 +129,7 @@ class ExtentReportUiEvidenceRenderingTest {
                         "the screenshot must remain outside the scrollable action-table viewport"),
                 () -> assertTrue(html.contains("class=\"atf-ui-action-screenshot-link\" data-atf-screenshot=\"base64\" href=\"data:image/png;base64," + ReportTestScreenshots.ONE_PIXEL_PNG + "\"")),
                 () -> assertTrue(html.contains(">📷 base64 img</span>")),
-                () -> assertTrue(html.contains("aria-label=\"Open Screen validation\"")),
+                () -> assertTrue(html.contains("aria-label=\"Open UI validation\"")),
                 () -> assertTrue(html.contains("data-featherlight=\"image\"")),
                 () -> assertTrue(html.contains("target=\"_blank\"") && html.contains("rel=\"noopener\"")),
                 () -> assertFalse(html.contains("atf-ui-action-screenshot-image")),
@@ -237,7 +237,7 @@ class ExtentReportUiEvidenceRenderingTest {
                             "retry scheduled: DOM stabilization", 0, AtfReportStatus.INFO),
                     new AtfUiActionRecord(2, "Wait for visible", "#test-view", "state=Visible",
                             "state reached", 7, AtfReportStatus.PASS)));
-            step.screenshot("Screen validation", ReportTestScreenshots.ONE_PIXEL_PNG);
+            step.screenshot("UI validation", ReportTestScreenshots.ONE_PIXEL_PNG);
             step.complete(AtfReportStatus.PASS);
             phase.complete(AtfReportStatus.PASS);
             scenario.complete(AtfReportStatus.PASS);

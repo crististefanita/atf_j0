@@ -1,7 +1,6 @@
 package atf.reporting.ui.model;
 
 import atf.reporting.markup.AtfReportEvidenceKeys;
-import atf.reporting.markup.AtfReportLabels;
 import atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary;
 
 import java.util.List;
@@ -34,7 +33,7 @@ public record ReportSectionModel(Section section, String title,
         CATEGORIES("Categories", AtfReportHtmlVocabulary.ViewId.CATEGORIES),
         FAILS("Fails", AtfReportHtmlVocabulary.ViewId.FAILS),
         SETUP_EVIDENCE("Setup evidence", null),
-        SCREEN_VALIDATION("Screen validation", null);
+        SCREEN_VALIDATION("UI validation", null);
 
         private final String displayName;
         private final AtfReportHtmlVocabulary.ViewId viewId;
@@ -63,15 +62,10 @@ public record ReportSectionModel(Section section, String title,
                         List.of(List.of(ReportSectionMarker.attribute(
                                 AtfReportHtmlVocabulary.Attribute.EVIDENCE_TYPE,
                                 AtfReportEvidenceKeys.REPORT_SETUP)))),
-                new ReportSectionModel(Section.SCREEN_VALIDATION, "Screen validation",
-                        List.of(
-                                List.of(ReportSectionMarker.attribute(
-                                        AtfReportHtmlVocabulary.Attribute.EVIDENCE_TYPE,
-                                        AtfReportEvidenceKeys.SCREEN_VALIDATION)),
-                                 markers(
-                                        ReportSectionMarker.text(AtfReportLabels.EVIDENCE_TYPE),
-                                        ReportSectionMarker.text(AtfReportEvidenceKeys.SCREEN_VALIDATION),
-                                          ReportSectionMarker.text(Section.SCREEN_VALIDATION.displayName())))));
+                new ReportSectionModel(Section.SCREEN_VALIDATION, "UI validation",
+                        List.of(markers(
+                                ReportSectionMarker.text(Section.SCREEN_VALIDATION.displayName()),
+                                ReportSectionMarker.text("class=\"atf-ui-action-sequence\"")))));
     }
 
     private static ReportSectionModel single(Section section, String title) {

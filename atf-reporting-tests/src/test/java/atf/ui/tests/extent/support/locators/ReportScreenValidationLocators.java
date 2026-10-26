@@ -37,8 +37,7 @@ final class ReportScreenValidationLocators {
                 + "[class~='card-title'] a[class~='node']");
         Locator uiValidation = candidates.filter(
                 new Locator.FilterOptions().setHasText("UI validation"));
-        return uiValidation.count() > 0 ? uiValidation : candidates.filter(
-                new Locator.FilterOptions().setHasText("Screen validation"));
+        return uiValidation;
     }
     Locator visibleScreenValidationNode(Page page) {
         Locator nodes = screenValidationNodes(page);
@@ -56,7 +55,7 @@ final class ReportScreenValidationLocators {
     }
     AtfLocator screenValidationNodeAction(Page page) {
         Locator node = visibleScreenValidationNodeWithScreenshot(page);
-        String id = ReportLocatorSupport.requiredAttribute(node, "id", "Screen validation node");
+        String id = ReportLocatorSupport.requiredAttribute(node, "id", "UI validation node");
         return new AtfLocator(node, ReportLocatorSupport.TESTS_VIEW + " " + TEST_CONTENT_DETAIL
                 + " [class~='card-title'] [class~='node'][id='"
                 + ReportLocatorSupport.cssAttribute(id) + "']");

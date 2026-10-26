@@ -159,7 +159,7 @@ class NetworkCaptureEvidenceTest {
             scenario.complete(AtfReportStatus.PASS);
         }
         String html = Files.readString(artifact);
-        assertTrue(html.contains("Screen validation"));
+        assertTrue(html.contains("UI validation"));
         assertTrue(html.contains("API validation"));
         assertTrue(html.contains("GET /account/delete"));
         assertEquals(1, html.split("cleanup is confirmed", -1).length - 1);

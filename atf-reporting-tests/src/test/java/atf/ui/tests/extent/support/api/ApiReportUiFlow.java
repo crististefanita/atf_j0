@@ -39,7 +39,7 @@ public final class ApiReportUiFlow {
      * Records the tab invariant at the boundary of every owner audit after
      * the first one.  The first owner inherits the explicit checkpoint from
      * {@link #openTests()}; later owner validations must remain independently
-     * repeatable from their own Screen validation evidence.
+     * repeatable from their own UI validation evidence.
      */
     public void confirmTestsTabVisible(Page page, String ownerName) {
         Objects.requireNonNull(page, "page");

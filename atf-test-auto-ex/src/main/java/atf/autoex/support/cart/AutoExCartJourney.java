@@ -9,7 +9,6 @@ import atf.autoex.page.ProductsPage;
 import atf.autoex.support.account.AutoExTestAccount;
 import atf.autoex.support.checkout.AutoExCheckoutAssertions;
 import atf.autoex.support.journey.AutoExPurchaseJourney;
-import atf.autoex.support.journey.AutoExPurchaseSession;
 import atf.autoex.support.journey.AutoExPurchaseTraceStep;
 import atf.autoex.support.trace.AutoExCustomerTraceStep;
 import atf.autoex.support.validation.AutoExStoreAssertions;
@@ -20,7 +19,7 @@ import java.util.List;
 public final class AutoExCartJourney {
     private AutoExCartJourney() { }
 
-    public static void recalculatesAndRemovesProduct(AutoExPurchaseSession run) {
+    public static void recalculatesAndRemovesProduct(AutoExCartJourneyPort run) {
         Catalog configured = run.configuration().catalog();
         Catalog initial = configured.withQuantity(1);
         ProductsPage products = AutoExPurchaseJourney.searchConfiguredProduct(run);
@@ -41,7 +40,7 @@ public final class AutoExCartJourney {
         run.finalScreenshot(AutoExCustomerTraceStep.CART_EMPTY, List.of(emptyAssertion));
     }
 
-    public static void preservesGuestCartAfterLogin(AutoExPurchaseSession run) {
+    public static void preservesGuestCartAfterLogin(AutoExCartJourneyPort run) {
         String heading = new HomePage(run).open();
         run.checkpoint(AutoExPurchaseTraceStep.STORE_OPEN,
                 List.of(AutoExStoreAssertions.storeAvailability(heading)));
@@ -71,7 +70,7 @@ public final class AutoExCartJourney {
                 List.of(AutoExStoreAssertions.accountDeleted(deletion)));
     }
 
-    private static CartPage addProduct(AutoExPurchaseSession run, ProductsPage products, Catalog product) {
+    private static CartPage addProduct(AutoExCartJourneyPort run, ProductsPage products, Catalog product) {
         var details = products.openFirstProduct();
         details.addQuantityToCart(product.quantity());
         String confirmation = details.addConfirmation();
@@ -80,7 +79,7 @@ public final class AutoExCartJourney {
         return details.viewCartFromConfirmation();
     }
 
-    private static void verifyIdentity(AutoExPurchaseSession run, AccountPage page, AutoExTestAccount account) {
+    private static void verifyIdentity(AutoExCartJourneyPort run, AccountPage page, AutoExTestAccount account) {
         String identity = page.loggedInName();
         run.checkpoint(AutoExCustomerTraceStep.CUSTOMER_SIGNED_IN,
                 List.of(new AtfAssertion("Customer identity", account.signupName(), identity,

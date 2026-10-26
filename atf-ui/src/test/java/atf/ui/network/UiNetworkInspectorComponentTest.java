@@ -137,6 +137,39 @@ class UiNetworkInspectorComponentTest {
     }
 
     @Test
+    void selectedDocumentRoutesDoNotNarrowAsynchronousApiCaptureOrMatchNeighborRoutes() {
+        var policy = UiNetworkCapturePolicy.asynchronous()
+                .includingDocumentsFor(List.of("/login", "/delete_account"));
+        var inspector = inspector(4, policy);
+        var bodyReads = new AtomicInteger();
+        var login = inspector.capture(response("/login", "document", bodyReads)).orElseThrow();
+        var xhr = inspector.capture(response("/add_to_cart/1", "xhr", bodyReads)).orElseThrow();
+
+        assertAll(
+                () -> assertTrue(policy.accepts("https://service.test/login", UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
+                () -> assertTrue(policy.accepts("https://service.test/login?next=%2F", UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
+                () -> assertTrue(policy.accepts("https://service.test/delete_account", UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
+                () -> assertFalse(policy.accepts("https://service.test/", UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
+                () -> assertFalse(policy.accepts("https://service.test/products", UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
+                () -> assertFalse(policy.accepts("https://service.test/login-extra", UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
+                () -> assertTrue(policy.accepts("https://service.test/api/createAccount", UiNetworkCapturePolicy.ResourceKind.FETCH)),
+                () -> assertTrue(policy.accepts("https://service.test/add_to_cart/1", UiNetworkCapturePolicy.ResourceKind.XHR)),
+                () -> assertFalse(policy.accepts("https://service.test/login", UiNetworkCapturePolicy.ResourceKind.STATIC)),
+                () -> assertFalse(policy.capturesResponseBody(UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
+                () -> assertTrue(policy.capturesResponseBody(UiNetworkCapturePolicy.ResourceKind.XHR)),
+                () -> assertFalse(login.responseBodyAvailable()),
+                () -> assertEquals("", login.responseBody()),
+                () -> assertTrue(xhr.responseBodyAvailable()),
+                () -> assertEquals("<p>accepted</p>", xhr.responseBody()),
+                () -> assertEquals(1, bodyReads.get(), "selected document HTML is not read"),
+                () -> assertTrue(policy.scope().contains("documentPaths=[/login, /delete_account]")),
+                () -> assertTrue(policy.description().contains("selected document routes")),
+                () -> assertTrue(policy.description().contains("response bodies=fetch, xhr")),
+                () -> assertThrows(IllegalArgumentException.class,
+                        () -> UiNetworkCapturePolicy.asynchronous().includingDocumentsFor(List.of("/login?next=/"))));
+    }
+
+    @Test
     void failedXhrKeepsRedactedTypedEvidenceAndDoesNotCollapseRawRetryObservations() {
         var finished = new AtomicReference<Consumer<Request>>();
         var failed = new AtomicReference<Consumer<Request>>();
@@ -294,6 +327,7 @@ class UiNetworkInspectorComponentTest {
                 () -> assertFalse(captured.toString().contains(cookie)),
                 () -> assertFalse(captured.toString().contains(password)),
                 () -> assertTrue(captured.requestBody().contains("item=1")),
+                () -> assertTrue(captured.requestBody().contains("password=***REDACTED***")),
                 () -> assertEquals(form, request.postData(), "Redaction must not mutate the real request"),
                 () -> assertEquals(captured, received.getFirst()));
     }

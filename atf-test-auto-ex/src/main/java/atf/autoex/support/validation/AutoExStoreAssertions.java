@@ -2,6 +2,8 @@ package atf.autoex.support.validation;
 
 import atf.reporting.contract.AtfAssertion;
 
+import java.util.Optional;
+
 import static atf.autoex.support.validation.AutoExUiText.ACCOUNT_CREATED;
 import static atf.autoex.support.validation.AutoExUiText.ACCOUNT_DELETED;
 import static atf.autoex.support.validation.AutoExUiText.CART_ADDED;
@@ -36,6 +38,15 @@ public final class AutoExStoreAssertions {
         boolean passed = observed != null && observed.contains(CART_ADDED.text())
                 && observed.contains(CART_ADDED_DETAIL.text());
         return assertion("Add-to-cart confirmation", expected, observed, passed);
+    }
+
+    public static AtfAssertion cartMutationConfirmation(boolean mutationSucceeded,
+                                                         Optional<String> observed) {
+        Optional<String> confirmation = observed == null ? Optional.empty() : observed;
+        if (mutationSucceeded) return cartAddition(confirmation.orElse(null));
+        String expected = "no success confirmation after a rejected or unobserved cart request";
+        String actual = confirmation.orElse("confirmation absent");
+        return assertion("Add-to-cart confirmation", expected, actual, confirmation.isEmpty());
     }
 
     public static AtfAssertion emptyCart(String observed) {

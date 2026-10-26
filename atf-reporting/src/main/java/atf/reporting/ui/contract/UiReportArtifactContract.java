@@ -38,12 +38,11 @@ public final class UiReportArtifactContract {
                 "data-atf-node-role=\"phase\"", "data-atf-node-role=\"request\"",
                 "data-atf-node-role=\"validation\""));
         checks.put("setup evidence is separate", setupEvidenceIsSeparate(source));
-        checks.put("screen validation evidence", (hasAll(source,
-                "data-atf-evidence-type=\"screen-validation\"", "Screen validation",
-                "class=\"atf-ui-action-sequence\"")
-                || hasAll(source, "EVIDENCE TYPE", "screen-validation",
-                "Screen validation", "class=\"atf-ui-action-sequence\"")));
-        checks.put("screen validation sibling layout", hasAll(source,
+        checks.put("UI validation evidence", hasAll(source,
+                "UI validation", "class=\"atf-ui-action-sequence\""));
+        checks.put("legacy validation title absent", !source.contains("<span>Screen validation</span>")
+                && !source.contains(" · Screen validation"));
+        checks.put("UI validation sibling layout", hasAll(source,
                 ".test-view .test-content-detail .card-body>.table>tbody>tr.event-row:has(details.atf-ui-action-sequence)>td",
                 ".test-view .test-content-detail .card-body>.table>tbody>tr.event-row:has(details.atf-ui-observations)>td",
                 ".test-view .test-content-detail .card-body>.table>tbody>tr.event-row:has(table.helm-validation-table)>td",
@@ -73,7 +72,7 @@ public final class UiReportArtifactContract {
         int end = source.indexOf("</details>", start);
         if (end < 0) return false;
         String setup = source.substring(start, end);
-        return !setup.contains("Screen validation")
+        return !setup.contains("UI validation")
                 && !setup.contains("atf-ui-action-sequence")
                 && !setup.contains("atf-ui-observations");
     }

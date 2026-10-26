@@ -1,6 +1,7 @@
 package atf.autoex.tests.e2e;
 
 import atf.autoex.tests.extension.AutoExE2eTest;
+import atf.autoex.tests.extension.AutoExNetworkDocuments;
 import atf.reporting.contract.AtfAssertion;
 import atf.testkit.channel.AtfTestChannel;
 import atf.testkit.channel.TestChannel;
@@ -22,6 +23,7 @@ import static atf.autoex.support.trace.AutoExCustomerTraceStep.CUSTOMER_SIGNED_I
 /** Existing-customer self-service: real API setup, real UI login and identity-checked UI deletion. */
 @AutoExE2eTest
 @AtfTestChannel(TestChannel.UI_API)
+@AutoExNetworkDocuments({"/login", "/delete_account"})
 
 @DisplayName("Automation Exercise existing customer — UI + API")
 public class AutoExExistingCustomerUiApiE2eTest {

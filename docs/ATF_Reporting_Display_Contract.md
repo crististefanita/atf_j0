@@ -42,11 +42,13 @@ flowchart LR
 | test case | `SETUP` este opțional și rămâne setup; `TEST BODY` conține acțiunea și validarea; `TEARDOWN` este cleanup/read-back când există |
 | checkpoint Gherkin | `UI validation` și `API validation` sunt copii surori ale aceluiași checkpoint; Network Inspector este agregat separat și nu dublează exchange-urile |
 | exchange API | `Request details`, `Response details` și `Execution evidence` sunt disclosures surori; `Contract validation` este copilul exchange-ului care deține contractul |
-| UI validation | acțiunile Playwright, observațiile de audit și aserțiunile aparțin validării UI; setup evidence nu este redenumit `UI validation` |
+| UI validation | acțiunile Playwright, observațiile de audit și aserțiunile aparțin validării UI; acesta este singurul titlu public pentru validarea UI; setup evidence rămâne `Setup evidence` |
 | setup context | cheile interne `request.action`, `request.target`, `evidence.type` și `evidence.policy` pot rămâne în model, dar nu devin tabel HTTP vizibil fără evidence HTTP real |
 
 Titlurile sunt propoziții scurte și explicative. Structura semantică nu depinde
 de textul `Contract validation`, de metoda HTTP sau de numărul de câmpuri.
+`UI validation` este singurul titlu public pentru evidence UI; `screen-validation`
+poate rămâne un discriminator intern tipizat, dar nu se afișează ca al doilea nume.
 
 ## Invariante de interacțiune
 
@@ -81,7 +83,7 @@ navigare, nu statusul sau evidence-ul testelor.
 |---|---|---|
 | API | method/path, request/response details, body capturat sau explicația disponibilității, execution attempts și validarea contractului când aceasta există | request sintetic pentru un pas UI, payload inventat, verdict din status HTTP fără contract, durată `0 ms` pentru o durată necapturată |
 | UI | acțiunile relevante inclusiv `getText`/text extraction, audit observations, assertions și capturi relevante | request/response HTTP pentru setup intern, duplicate de propoziție Gherkin sau verdict business dedus din screenshot |
-| UI+API | cei doi copii de validare, corelarea explicită și un Network Inspector care referă exchange-urile publicate | republicarea aceluiași exchange ca apel nou sau mutarea tuturor aserțiunilor în `Screen validation` |
+| UI+API | cei doi copii de validare, corelarea explicită și un Network Inspector care referă exchange-urile publicate | republicarea aceluiași exchange ca apel nou sau mutarea tuturor aserțiunilor în `UI validation` |
 
 Pentru `POST` și `PUT`, request-ul și response-ul publicate trebuie să păstreze
 body JSON parseable și non-empty atunci când contractul endpointului îl cere.

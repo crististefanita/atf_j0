@@ -397,7 +397,7 @@ public final class UiExtentReportSession implements AutoCloseable {
             lifecycle.screenValidation(title, target, base64Png, assertions, actions, status);
         }
 
-        /** Publishes a screen validation at an explicit checkpoint/final point. */
+        /** Publishes visual UI evidence at an explicit checkpoint/final point. */
         public void screenValidation(String title, String target, String base64Png,
                                      Collection<AtfAssertion> assertions,
                                      Collection<AtfUiActionRecord> actions,

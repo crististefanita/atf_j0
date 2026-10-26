@@ -42,10 +42,18 @@ public final class AutoExPurchaseJourney {
                         AutoExStoreAssertions.stockAvailability(detailText)));
 
         details.addQuantityToCart(product.quantity());
-        String added = details.addConfirmation();
-        if (run.observesApiTraffic()) run.awaitCartExchange(product.productId());
-        run.checkpoint(AutoExPurchaseTraceStep.CART_ADD,
-                List.of(AutoExStoreAssertions.cartAddition(added)));
+        if (run.observesApiTraffic()) {
+            var mutation = run.awaitCartExchange(product.productId());
+            var confirmation = mutation.successfulResponse()
+                    ? details.addConfirmationAfterResponse() : details.addConfirmationIfVisible();
+            run.cartAddCheckpoint(AutoExPurchaseTraceStep.CART_ADD, mutation,
+                    List.of(AutoExStoreAssertions.cartMutationConfirmation(
+                            mutation.successfulResponse(), confirmation)));
+        } else {
+            String added = details.addConfirmation();
+            run.checkpoint(AutoExPurchaseTraceStep.CART_ADD,
+                    List.of(AutoExStoreAssertions.cartAddition(added)));
+        }
 
         CartPage cart = details.viewCartFromConfirmation();
         AutoExCartFlow.checkout(new AutoExCartUiFlow(cart, product),
@@ -100,10 +108,7 @@ public final class AutoExPurchaseJourney {
 
     /** Opens the store, submits the configured search and validates the public UI result and route. */
     public static ProductsPage searchConfiguredProduct(AutoExPurchaseSession run) {
-        AutoExConfiguration.Catalog product = run.configuration().catalog();
-        String homeHeading = new HomePage(run).open();
-        run.checkpoint(AutoExPurchaseTraceStep.STORE_OPEN,
-                List.of(AutoExStoreAssertions.storeAvailability(homeHeading)));
+        AutoExConfiguration.Catalog product = openConfiguredStore(run);
 
         if (run.observesApiTraffic()) {
             AutoExCatalogApiPrecondition.verifyAndMarkBaseline(product.productName(), product.unitPrice(),
@@ -112,6 +117,24 @@ public final class AutoExPurchaseJourney {
                     run::markCausalApiTrafficBaseline);
         }
 
+        return searchCatalog(run, product);
+    }
+
+    /** UI-only catalog path for journeys that do not own API observation. */
+    public static ProductsPage searchConfiguredProduct(AutoExCatalogSearchPort run) {
+        AutoExConfiguration.Catalog product = openConfiguredStore(run);
+        return searchCatalog(run, product);
+    }
+
+    private static AutoExConfiguration.Catalog openConfiguredStore(AutoExCatalogSearchPort run) {
+        AutoExConfiguration.Catalog product = run.configuration().catalog();
+        String homeHeading = new HomePage(run).open();
+        run.checkpoint(AutoExPurchaseTraceStep.STORE_OPEN,
+                List.of(AutoExStoreAssertions.storeAvailability(homeHeading)));
+        return product;
+    }
+
+    private static ProductsPage searchCatalog(AutoExCatalogSearchPort run, AutoExConfiguration.Catalog product) {
         new HomePage(run).openProducts();
         ProductsPage products = new ProductsPage(run, product.productName());
         products.search(product.searchTerm());

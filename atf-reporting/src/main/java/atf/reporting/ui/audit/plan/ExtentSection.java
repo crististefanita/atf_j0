@@ -7,7 +7,7 @@ public enum ExtentSection {
     CATEGORIES("Categories"),
     FAILS("Fails"),
     EVIDENCE("Evidence"),
-    SCREEN_VALIDATION("Screen validation");
+    SCREEN_VALIDATION("UI validation");
 
     private final String displayName;
 

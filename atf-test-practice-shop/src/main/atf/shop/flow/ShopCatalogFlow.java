@@ -17,8 +17,7 @@ public final class ShopCatalogFlow {
     }
 
     public void searchAndOpenConfiguredProduct(Page page, PlaywrightActionSequence actions,
-                                                ShopConfiguration configuration) {
-        var selection = configuration.catalogSelection();
+                                                ShopConfiguration.CatalogSelection selection) {
         ShopHomePage home = new ShopHomePage(page, locators, actions);
         home.open(selection.homeUrl());
         home.search(selection.productName());

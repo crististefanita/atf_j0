@@ -174,7 +174,7 @@ erorilor și granițele stage-urilor fără browser.
 - `ShopConfiguration.CatalogSelection` și `ShopCheckoutConfiguration` furnizează
   datele strict necesare fiecărui stage; Home/Product/Cart primesc URI, nume și
   cantitate, iar Login/Registration primesc URI-ul rezolvat la composition root,
-  nu configurația globală.
+  nu configurația globală. `ShopCatalogFlow` consumă aceeași proiecție Catalog.
 - Contextul per journey oferă intrări imutabile separate; checkout-ul nu primește
   validatorul de home.
 - Coordinatorul păstrează gate-ul PASS/FAIL, separat de observația UI/API.
@@ -591,7 +591,7 @@ distincte `/users/login`.
 | `ShopApiAuthenticationSchemaTest` | profilul/mecanismul prin mapper și browser journal; lipsa credentialelor din ambele artifacte | etichetele HTML canonice și paritatea proiecțiilor: `ApiAuthenticationSchemaContractTest` |
 | `ShopApiCallAuditReportComponentTest` | asocierea intenției/statusului la exchange, lipsa contractului explicit și diagnosticul auditului | retry rendering și proiecția diagnosticelor sunt probate generic în Reporting Tests |
 | `ShopApiBodyRedactionReportTest` | politica Shop pentru înregistrare/adresă, body malformed și ieșirea efectivă a adaptorului | redactarea generică și manual replay sunt probate la ownerii lor |
-| `ShopE2eFailureBoundaryTest` | publicarea unui `LinkageError` de către `ShopE2eContext` și păstrarea erorii inițiale | închiderea inversă prin `FailureAwareCleanup` este probată direct în Test Kit |
+| `ShopE2eFailureBoundaryTest` | eroarea business rămâne primară când publicarea dovezii și close eșuează; secundarele sunt suprimate în ordine | închiderea inversă prin `FailureAwareCleanup` este probată direct în Test Kit |
 | `ShopScreenshotPolicyTest` | maparea politicii și precedența YAML față de opțiunea legacy | filtrarea providerului înainte de captură: `ReportEvidenceProfileTest` în Reporting Tests |
 
 Proba retry locală verifică attempts/history/provenance prin mapper și modelul

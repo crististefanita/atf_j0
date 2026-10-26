@@ -25,7 +25,7 @@ public record UiReportContractSpec(String id, String reportProperty,
                 || checks.contains(UiReportCheck.INLINE_SCREENSHOT)) {
             if (!tabs.contains(ReportUiContract.Tab.TESTS)) {
                 throw new IllegalArgumentException(
-                        "screen validation checks require the TESTS tab");
+                        "UI validation checks require the TESTS tab");
             }
         }
         if (checks.contains(UiReportCheck.FAILS_PROJECTION)

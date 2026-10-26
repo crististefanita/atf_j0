@@ -1,10 +1,16 @@
 package atf.autoex.tests.component.pages;
 
 import atf.autoex.config.AutoExConfigurationLoader;
+import atf.autoex.locator.AutoExRoutes;
 import atf.autoex.locator.AutoExSelectors;
 import atf.autoex.page.CheckoutPage;
 import atf.autoex.page.HomePage;
 import atf.autoex.page.ProductsPage;
+import atf.autoex.support.cart.AutoExCartJourneyPort;
+import atf.autoex.support.journey.AutoExCatalogSearchPort;
+import atf.autoex.support.journey.AutoExPurchaseJourney;
+import atf.autoex.support.journey.AutoExPurchaseTraceStep;
+import atf.autoex.support.trace.AutoExTraceStep;
 import atf.autoex.ui.AutoExCheckoutPagePort;
 import atf.autoex.ui.AutoExHomePagePort;
 import atf.autoex.ui.AutoExUiActions;
@@ -12,10 +18,13 @@ import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -88,6 +97,42 @@ class AutoExPagePortsComponentTest {
 
         assertEquals(List.of("fill-search", "submit-search", "read-result",
                 "wait-for-configured-result:Blue Top", "open-first-result", "read-result"), calls);
+    }
+
+    @Test
+    void uiCatalogSearchUsesNarrowJourneyPortWithoutApiInspectionCapabilities() {
+        var calls = new ArrayList<String>();
+        var configuration = AutoExConfigurationLoader.load();
+        String searchTerm = configuration.catalog().searchTerm();
+        String expectedUrl = "%s?%s=%s".formatted(AutoExRoutes.PRODUCTS.resolve(configuration.baseUrl()),
+                AutoExRoutes.SEARCH_PARAMETER, URLEncoder.encode(searchTerm, StandardCharsets.UTF_8));
+        var search = port(AutoExCatalogSearchPort.class, (method, arguments) -> switch (method) {
+            case "configuration" -> configuration;
+            case "navigate" -> { calls.add("navigate"); yield null; }
+            case "dismissPrivacyPromptIfPresent" -> { calls.add("privacy-prompt"); yield false; }
+            case "textFirst" -> { calls.add("read-store-heading"); yield "Automation Exercise"; }
+            case "click" -> { calls.add("click"); yield null; }
+            case "fill" -> { calls.add("fill"); yield null; }
+            case "text" -> { calls.add("read-search-result"); yield configuration.catalog().productName(); }
+            case "currentUrl" -> { calls.add("read-search-url"); yield expectedUrl; }
+            case "checkpoint" -> {
+                calls.add("checkpoint:" + ((AutoExTraceStep) arguments[0]).title());
+                yield null;
+            }
+            default -> throw new UnsupportedOperationException(method);
+        });
+
+        var products = AutoExPurchaseJourney.searchConfiguredProduct(search);
+
+        assertEquals(configuration.catalog().productName(), products.firstProductName());
+        assertEquals(List.of("navigate", "privacy-prompt", "read-store-heading",
+                "checkpoint:" + AutoExPurchaseTraceStep.STORE_OPEN.title(), "click", "fill", "click",
+                "read-search-result", "read-search-url",
+                "checkpoint:" + AutoExPurchaseTraceStep.PRODUCT_SEARCH.title(), "read-search-result"), calls);
+        assertFalse(List.of(AutoExCartJourneyPort.class.getMethods()).stream()
+                .map(java.lang.reflect.Method::getName)
+                .anyMatch(name -> List.of("inspectCatalogApi", "apiCheckpoint", "observesApiTraffic",
+                        "markCausalApiTrafficBaseline", "cartAddCheckpoint").contains(name)));
     }
 
     @Test

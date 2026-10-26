@@ -228,8 +228,9 @@ Extent assertion / evidence
   overflow-ului, disclosure-uri închise implicit și consola fără erori.
 - `TIME` apare numai în tabelul acțiunilor Playwright; observațiile statice nu
   primesc o durată artificială.
-- Pentru arborele UI, `UI validation` este eticheta canonică; `Screen validation`
-  este acceptată numai ca nume legacy. Se verifică eticheta prezentă, nu ambele.
+- Pentru arborele UI, `UI validation` este singurul titlu public; markerul
+  intern `screen-validation` poate identifica evidence-ul vizual fără să creeze
+  o a doua etichetă în raport.
 - Contractul de densitate este comun: API exchange/aggregate și UI evidence au
   summary de `34px`, padding `9px 12px` și glyph inline de `18px` în Extent și
   fallback; `500px` se aplică numai viewport-urilor de tabele lungi.
@@ -264,7 +265,7 @@ Contractul failure este schematic:
     (`screenshot-n`), nu cu fingerprint-ul intern;
 - un hash izolat fără link și marker vizibil nu este evidence;
 - `Setup evidence` rămâne setup;
-- `Screen validation` apare în `TEST BODY` după acțiunile browser și inspecția
+- `UI validation` apare în `TEST BODY` după acțiunile browser și inspecția
   DOM/style;
 - disclosure-urile sunt colapsate implicit;
 - rama fiecărei zone își închide marginile indiferent de numărul de rânduri.
@@ -338,7 +339,7 @@ raport Extent API
         ↓
 e2e Playwright read-only
         ↓
-validări pe Tests, Overview, Categories, Fails, Evidence și Screen validation
+validări pe Tests, Overview, Categories, Fails, Evidence și UI validation
 ```
 
 ## Rulare directă din IntelliJ
@@ -598,9 +599,9 @@ obligatorie neexecutată.
   în lifecycle;
 - ☐ scenariul și fazele relevante se pot deschide/închide prin click sau
   tastatură, fără să schimbe ordinea sau proprietarul conținutului;
-- ☐ după expandare se văd `THEN` și `Screen validation` atunci când scenariul
+- ☐ după expandare se văd `THEN` și `UI validation` atunci când scenariul
   este UI-backed;
-- ☐ în `Screen validation` se pot urmări acțiunile în ordinea executată,
+- ☐ în `UI validation` se pot urmări acțiunile în ordinea executată,
   inclusiv target, expected, observed, rezultat și durată;
 - ☐ `Audit observations` și `Assertions` sunt secțiuni distincte, lizibile și
   raportate după acțiunile pe care le explică;
@@ -643,7 +644,7 @@ flow-ul, nu o listă de assertions care dublează toate testele unitare:
 1. Deschide artifactul ales de configurația run-ului și pornește din `Tests`.
 2. Selectează un test care are setup și test body; verifică mai întâi starea
    colapsată și apoi deschide scenariul, `SETUP`, `TEST BODY`, `THEN` și
-   `Screen validation`.
+   `UI validation`.
 3. Urmărește acțiunile de la primul `Navigate/Wait` până la ultima validare;
    pentru fiecare verifică target-ul, expected-ul și observed-ul, nu doar textul
    operației.
@@ -667,7 +668,7 @@ regulilor:
 
 | Seam | Owner | Dovadă executabilă |
 |---|---|---|
-| raport static ales explicit | `StaticUiExtentReportContractTest` + `UiReportContractDynamicEngine` | toate cele patru tab-uri, click/collapse în Tests, UI validation (legacy: Screen validation), screenshot, style/render boundary |
+| raport static ales explicit | `StaticUiExtentReportContractTest` + `UiReportContractDynamicEngine` | toate cele patru tab-uri, click/collapse în Tests, UI validation, screenshot, style/render boundary |
 | raport generat din setup API | `SelectedApiTestsReportUiTest` + `SectionAuditRegistry` | mock → API, POST/PUT request/response JSON, owner/scenario/phase, Categories/Overview/Fails/Evidence și render-health pe toate tab-urile |
 | browser render health | `UiReportStyleValidator` + `ReportAuditContext` | overflow document/body/non-scrollable, zero `<hr>`, imagini, glyph `＋/−`, console/page/request diagnostics |
 
@@ -677,9 +678,9 @@ regulilor:
 - un link PNG Base64 valid, direct sau deduplicat prin referință;
 - markerul `📷 base64 img` și alinierea verticală a linkului;
 - prezența reală a zonelor, nu doar numărul de carduri;
-- `UI validation` pe artifactul UI care produce evidence (`Screen validation`
-  rămâne acceptat pentru artifacte legacy);
-- `N/A` pentru inputul API pur, cu render-health API obligatoriu;
+- `UI validation` pe artifactul UI care produce evidence; un al doilea titlu
+  vizibil pentru aceeași categorie este respins pe artifactele generate curent;
+- `N/A` pentru UI validation absentă într-un raport API pur, cu render-health API obligatoriu;
 - zoom-ul configurat de `PlaywrightUiSession` fără dereferențiere înaintea
   existenței `documentElement`;
 - teste component și gate-uri E2E complementare pe artefacte reale.
@@ -806,7 +807,7 @@ tables și nu folosesc acest normalizator.
 | E2E | efectul real în Chromium: tab-uri, click/collapse, evidence, layout, link-uri și consolă | regulile statice ale providerului |
 
 `N/A` este permis numai pentru o suprafață care nu este publicată de acel
-artifact (de exemplu `Screen validation` într-un raport API pur). Nu este permis
+artifact (de exemplu `UI validation` într-un raport API pur). Nu este permis
 pentru o verificare care există în DOM, dar nu a fost explorată.
 
 ### Criteriu de acceptare

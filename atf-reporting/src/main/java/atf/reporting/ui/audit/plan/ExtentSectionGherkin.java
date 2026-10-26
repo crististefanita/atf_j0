@@ -26,7 +26,7 @@ public final class ExtentSectionGherkin {
             case CATEGORIES -> "Categories show counts and working filters";
             case FAILS -> "Fails show failure rows, causes and actionable links";
             case EVIDENCE -> "Request evidence includes request JSON, response JSON and execution evidence";
-            case SCREEN_VALIDATION -> "Screen validation covers actions, observations, assertions and screenshot evidence";
+            case SCREEN_VALIDATION -> "UI validation covers actions, observations, assertions and screenshot evidence";
         };
     }
 
@@ -44,7 +44,7 @@ public final class ExtentSectionGherkin {
             case CATEGORIES -> "the Categories section shows counts and working filters";
             case FAILS -> "the Fails section shows failure rows, causes and actionable links";
             case EVIDENCE -> "request evidence shows request JSON, response JSON and execution evidence";
-            case SCREEN_VALIDATION -> "screen validation shows Playwright actions, audit observations, assertions and screenshot evidence";
+            case SCREEN_VALIDATION -> "UI validation shows Playwright actions, audit observations, assertions and screenshot evidence";
         };
     }
 

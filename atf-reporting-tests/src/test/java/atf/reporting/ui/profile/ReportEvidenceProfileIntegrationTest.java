@@ -75,14 +75,14 @@ class ReportEvidenceProfileIntegrationTest {
                 () -> assertEquals(1, count(html, "<td>EVIDENCE TYPE</td><td>unified-ui-flow</td>")),
                 () -> assertEquals(1, count(html, "<span>THEN purchase is complete</span>")),
                 () -> assertTrue(html.indexOf("SETUP · Setup validation") >= 0
-                        && html.indexOf("TEST BODY · Screen validation")
+                        && html.indexOf("TEST BODY · UI validation")
                                 > html.indexOf("SETUP · Setup validation")),
                 () -> assertTrue(html.indexOf("Fill account") >= 0
                         && html.indexOf("SETUP · API validation") > html.indexOf("Fill account")
-                        && html.indexOf("TEST BODY · Screen validation")
+                        && html.indexOf("TEST BODY · UI validation")
                                 > html.indexOf("SETUP · API validation")
                         && html.indexOf("Confirm purchase")
-                                > html.indexOf("TEST BODY · Screen validation")),
+                                > html.indexOf("TEST BODY · UI validation")),
                 () -> assertTrue(html.contains("FLOW CHECKPOINT 1 PHASE")),
                 () -> assertTrue(html.contains("FLOW CHECKPOINT 2 PHASE")),
                 () -> assertTrue(html.contains("Exchange 1")),
@@ -252,7 +252,7 @@ class ReportEvidenceProfileIntegrationTest {
         }
 
         String html = Files.readString(report);
-        int ui = html.indexOf("Screen validation");
+        int ui = html.indexOf("UI validation");
         int api = html.indexOf("API validation");
         assertAll(
                 () -> assertTrue(ui >= 0 && api > ui),

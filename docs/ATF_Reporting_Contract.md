@@ -206,8 +206,8 @@ dovezile transportului:
 - acțiunile UI și exchange-urile API reale rămân dovezi distincte ale aceluiași
   checkpoint `SETUP`; când API evidence este selectată, `API validation` păstrează
   structura canonică `Exchange → Request → Response → Execution`;
-- setup-ul nu este `UI validation` sau `Screen validation`; aceasta din urmă
-  aparține `TEST BODY`, după acțiunile și observațiile de business;
+- setup-ul rămâne separat; `UI validation` aparține `TEST BODY`, după acțiunile
+  și observațiile de business;
 - transportul nu produce un checkpoint Gherkin duplicat și nu schimbă singur
   verdictul business.
 
@@ -216,7 +216,8 @@ dovezile transportului:
 Într-un checkpoint UI+API, aserțiunile sunt inputuri tipizate separat, nu o
 singură listă clasificată după prefixe din nume:
 
-- `Screen validation` primește numai aserțiunile UI și verdictul UI;
+- `UI validation` primește numai acțiunile, observațiile, aserțiunile UI și
+  verdictul UI; acesta este singurul titlu public pentru evidence UI;
 - `API validation` primește corelările între canale și exchange-uri typed;
 - fiecare exchange deține propriile aserțiuni și status, iar statusul său nu se
   propagă la exchange-urile frate;

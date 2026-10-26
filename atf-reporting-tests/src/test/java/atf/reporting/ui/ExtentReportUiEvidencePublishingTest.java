@@ -131,7 +131,7 @@ class ExtentReportUiEvidencePublishingTest {
                 () -> assertFalse(setupMarkup.contains("Request details")),
                 () -> assertFalse(setupMarkup.contains("Response details")),
                 () -> assertFalse(setupMarkup.contains("UI validation")),
-                () -> assertFalse(setupMarkup.contains("Screen validation")));
+                () -> assertFalse(setupMarkup.contains("UI validation")));
     }
 
     @Test
