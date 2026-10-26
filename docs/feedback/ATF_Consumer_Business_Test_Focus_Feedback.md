@@ -99,8 +99,10 @@ cont sintetic nou și scope de clasă/suită; AutoEx păstrează identitatea cre
 - **Livrat — eșecuri de observație fail-fast (09-H, tranșă).**
   `AutoExPagePortsComponentTest` probează heading-ul Home absent, timeout-ul
   rezultatului de căutare, timeout-ul identității după login și confirmarea plății
-  absentă. În fiecare caz, cauza originală se propagă, nu se continuă pasul și
-  nu se repetă acțiunea.
+  absentă; un heading de plată absent oprește și completarea cardului. Absența
+  heading-ului rezultat după înregistrare păstrează cleanup-ul armat și oprește
+  checkpoint-ul/Continue. În fiecare caz, cauza originală se propagă, pasul următor
+  nu rulează și acțiunea nu se repetă.
   Matricea celorlalte porturi rămâne deschisă până la probe echivalente.
 
 - **Livrat — păstrarea cauzei primare (09-H, tranșă).**
@@ -114,7 +116,19 @@ cont sintetic nou și scope de clasă/suită; AutoEx păstrează identitatea cre
   probează 2xx, 503, `requestFailed` și schimb lipsă, plus vecini cu rută, metodă
   sau resource kind diferit; contractul este în
   [README-ul AutoEx](../../atf-test-auto-ex/README.md#boundary-ul-cauzal-pentru-ui_api).
-- **Livrat — capturarea traficului de autentificare DOCUMENT în AutoEx (07-B).** Debug-ul E2E a confirmat trei request-uri ale browserului: `GET /login`, `POST /login` form-urlencoded (302) și `GET /delete_account`. Ele nu erau XHR/FETCH, deci filtrul implicit al inspectorului le omitea. `@AutoExNetworkDocuments({"/login", "/delete_account"})` selectează doar aceste rute DOCUMENT; XHR/FETCH rămân capturate după politica existentă. HTML-ul documentelor nu este citit, iar parola și `csrfmiddlewaretoken` sunt redactate. `POST /api/createAccount` este setup API explicit și rămâne separat de traficul browserului. Component tests și `AutoExExistingCustomerUiApiE2eTest` probează selecția și cele trei observații.
+- **Livrat — acoperirea Network Inspector pentru journey-urile E2E AutoEx (07-B).**
+  `AutoExE2eSuite` păstrează profile UI-only și include variante UI+API pentru
+  Account, Cart, Existing customer și Purchase. Cele patru variante UI+API
+  selectează toate rutele DOCUMENT first-party prin
+  `@AutoExNetworkDocuments({"/"})`; XHR/FETCH rămân capturate, iar `OTHER` este
+  inclus fără body. Asset-urile statice și host-urile terțe rămân excluse.
+  Setup-ul API de creare cont este separat de traficul browserului cauzal.
+  Diagnosticul purchase a confirmat `GET /download_invoice/1000` cu HTTP 200;
+  `ERR_ABORTED` asociat unui attachment 2xx este păstrat ca răspuns HTTP fără
+  bytes descărcați. Component testele acoperă `OTHER`, body exclusion și această
+  succesiune de download. Gate-ul complet a trecut cu 8 clase/10 teste; cele cinci
+  rapoarte UI+API au avut toate `dropped=0` și `in-flight=0`. Captura completă se
+  afirmă numai în scope-ul first-party configurat, nu pentru asset-uri sau host-uri terțe.
 
 | Zonă | Responsabilitate |
 |---|---|
@@ -145,8 +159,11 @@ diferențele de profil sunt agregate corect în raportul partajat.
 Resolverul și probele Extent/fallback permit izolarea politicilor per scenariu;
 ele nu demonstrează singure echivalența tuturor adaptoarelor consumerilor.
 
-- [ ] Inventariați separat poveștile, canalele și prezentările; UI+API poate
-      avea precondiții/corelări absente în UI-only.
+- **Livrat — inventarul profilurilor AutoEx.** [README-ul modulului](../../atf-test-auto-ex/README.md#profile-uiapi-și-acoperirea-network-inspector)
+  mapează Account, Cart și Purchase UI/UI+API la aceleași intrări de journey,
+  separă politica de screenshot și păstrează Existing customer distinct pentru
+  setup-ul API. Aceasta dovedește reutilizarea codului, nu echivalența rezultatului
+  live sau a evidence-ului randat.
 - [ ] Înaintea reducerii selecției, demonstrați smoke-ul adaptorului pe succes
       și failure, plus contractele generice `ReportEvidenceProfileIntegrationTest`
       și `UiScreenshotPolicyIntegrationTest`.

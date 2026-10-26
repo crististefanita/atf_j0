@@ -26,11 +26,14 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @AtfComponentTest
 class AutoExPagePortsComponentTest {
@@ -193,6 +196,24 @@ class AutoExPagePortsComponentTest {
     }
 
     @Test
+    void missingPaymentPageHeadingStopsBeforeCardEntry() {
+        var calls = new ArrayList<String>();
+        var failure = new IllegalStateException("payment page heading was not found");
+        var checkout = port(AutoExCheckoutPagePort.class, (method, arguments) -> switch (method) {
+            case "fill" -> { calls.add("fill-order-comment"); yield null; }
+            case "click" -> { calls.add("submit-order-review"); yield null; }
+            case "dismissGoogleVignetteIfPresent" -> { calls.add("dismiss-vignette"); yield false; }
+            case "text" -> { calls.add("read-payment-heading"); throw failure; }
+            default -> throw new UnsupportedOperationException(method);
+        });
+
+        assertSame(failure, assertThrows(IllegalStateException.class,
+                () -> new CheckoutPage(checkout).placeOrder("Synthetic test order")));
+        assertEquals(List.of("fill-order-comment", "submit-order-review", "dismiss-vignette",
+                "read-payment-heading"), calls);
+    }
+
+    @Test
     void paymentActionFailureDoesNotReadAnOrderConfirmation() {
         var calls = new ArrayList<String>();
         var failure = new IllegalStateException("payment failed");
@@ -268,6 +289,52 @@ class AutoExPagePortsComponentTest {
                 () -> new AccountPage(page).login(account)));
         assertEquals(List.of("check-login-form", "open-login", "fill-email", "fill-password",
                 "submit-login", "wait-for-signed-in-identity"), calls);
+    }
+
+    @Test
+    void missingAccountCreationResultKeepsCleanupArmedAndStopsBeforeCheckpointOrContinue() {
+        var calls = new ArrayList<String>();
+        var configuration = AutoExConfigurationLoader.load();
+        var account = AutoExTestAccount.create(configuration.registration());
+        var lifecycle = new AutoExAccountLifecycle();
+        var cleanup = new AtomicReference<AutoExAccountPagePort.AccountCleanup>();
+        var failure = new IllegalStateException("account creation result heading was not found");
+        var page = port(AutoExAccountPagePort.class, (method, arguments) -> switch (method) {
+            case "configuration" -> configuration;
+            case "accountLifecycle" -> lifecycle;
+            case "onFailureCleanup" -> {
+                calls.add("arm-cleanup");
+                cleanup.set((AutoExAccountPagePort.AccountCleanup) arguments[0]);
+                yield null;
+            }
+            case "clickLast" -> { calls.add("click-last:" + arguments[0]); yield null; }
+            case "click" -> { calls.add("click:" + arguments[0]); yield null; }
+            case "fill" -> { calls.add("fill:" + arguments[0]); yield null; }
+            case "select" -> { calls.add("select:" + arguments[0]); yield null; }
+            case "text" -> { calls.add("text:" + arguments[0]); throw failure; }
+            case "checkpoint" -> { calls.add("checkpoint"); yield null; }
+            default -> throw new UnsupportedOperationException(method);
+        });
+
+        assertSame(failure, assertThrows(IllegalStateException.class,
+                () -> new AccountPage(page).registerFromStore(account)));
+        assertEquals(List.of("click:" + AutoExSelectors.HEADER_LOGIN,
+                "fill:" + AutoExSelectors.SIGNUP_NAME, "fill:" + AutoExSelectors.SIGNUP_EMAIL,
+                "click:" + AutoExSelectors.SIGNUP_BUTTON,
+                "click:" + AutoExSelectors.ACCOUNT_GENDER_MR,
+                "fill:" + AutoExSelectors.ACCOUNT_PASSWORD,
+                "select:" + AutoExSelectors.ACCOUNT_DAYS, "select:" + AutoExSelectors.ACCOUNT_MONTHS,
+                "select:" + AutoExSelectors.ACCOUNT_YEARS,
+                "fill:" + AutoExSelectors.ACCOUNT_FIRST_NAME, "fill:" + AutoExSelectors.ACCOUNT_LAST_NAME,
+                "fill:" + AutoExSelectors.ACCOUNT_COMPANY, "fill:" + AutoExSelectors.ACCOUNT_ADDRESS_1,
+                "fill:" + AutoExSelectors.ACCOUNT_ADDRESS_2, "select:" + AutoExSelectors.ACCOUNT_COUNTRY,
+                "fill:" + AutoExSelectors.ACCOUNT_STATE, "fill:" + AutoExSelectors.ACCOUNT_CITY,
+                "fill:" + AutoExSelectors.ACCOUNT_POSTAL_CODE, "fill:" + AutoExSelectors.ACCOUNT_MOBILE,
+                "arm-cleanup",
+                "click:" + AutoExSelectors.CREATE_ACCOUNT,
+                "text:" + AutoExSelectors.ACCOUNT_RESULT_HEADING), calls);
+        assertTrue(lifecycle.creationWasAttempted());
+        assertNotNull(cleanup.get());
     }
 
     private static <T> T port(Class<T> type, PageCall call) {

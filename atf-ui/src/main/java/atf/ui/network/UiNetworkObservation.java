@@ -79,6 +79,18 @@ public record UiNetworkObservation(
 
     static UiNetworkObservation from(Response response, long sequence,
                                      UiNetworkInspectionConfiguration configuration) {
+        return from(response, sequence, configuration, true);
+    }
+
+    /** Captures attachment response metadata without reading the downloaded bytes as a body preview. */
+    static UiNetworkObservation fromAttachmentResponse(Response response, long sequence,
+                                                       UiNetworkInspectionConfiguration configuration) {
+        return from(response, sequence, configuration, false);
+    }
+
+    private static UiNetworkObservation from(Response response, long sequence,
+                                             UiNetworkInspectionConfiguration configuration,
+                                             boolean allowResponseBody) {
         Request request = response.request();
         String url = request.url();
         UiNetworkCapturePolicy.ResourceKind resourceKind =
@@ -86,7 +98,8 @@ public record UiNetworkObservation(
         String requestBody = bounded(redactJson(request.postData()),
                 configuration.maxBodyPreviewCharacters());
         String responseBody;
-        boolean bodyAvailable = configuration.capturePolicy().capturesResponseBody(resourceKind);
+        boolean bodyAvailable = allowResponseBody
+                && configuration.capturePolicy().capturesResponseBody(resourceKind);
         try {
             if (bodyAvailable) {
                 response.finished();

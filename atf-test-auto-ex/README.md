@@ -89,8 +89,11 @@ redactează câmpurile de înregistrare și plată din reprezentarea textuală.
   căutarea UI fără capabilități API și oprirea la eșec fără runtime complet.
 - Citirea unui heading absent, un rezultat de căutare care nu apare la timp sau
   identitatea de sesiune ori confirmarea plății absente opresc tranziția înaintea
-  acțiunii următoare; page objects nu repetă automat operația. Probele fail-fast
-  sunt în aceeași componentă.
+  acțiunii următoare; page objects nu repetă automat operația. Heading-ul paginii
+  de plată este verificat înainte de completarea cardului. Dacă heading-ul de
+  rezultat al înregistrării lipsește, cauza se propagă, identitatea rămâne marcată
+  pentru cleanup și checkpoint-ul/Continue nu rulează. Probele fail-fast sunt în
+  aceeași componentă.
 - `AutoExE2eRun` îl implementează în pachetul `runtime` din `src/main/java`,
   fără JUnit sau Test Kit.
 - `AutoExRunFactory` și `AutoExE2eExtension` din `src/test/java`, pachetul `extension`, rezolvă
@@ -652,17 +655,19 @@ Diagrama comună pentru captură, baseline și publicare este în
 - Inspectorul agregă numai schimburile observate după baseline. Precondiția
   rămâne în checkpoint-ul ei `GIVEN`; nu este numărată din nou ca trafic UI/API
   cauzal.
-- Politica implicită selectează XHR/fetch first-party înainte de body capture
-  și buget. XHR-ul real `GET /add_to_cart/1`, cu răspuns `text/html`, rămâne
-  în checkpoint-ul coșului; nu există filtrare după prefix `/api/`.
+- Politica implicită selectează XHR/FETCH first-party înainte de buget și body
+  capture. `includingOtherRequests()` adaugă cererile first-party care nu sunt
+  clasificate drept documente, XHR/FETCH sau asset-uri statice; body-ul `OTHER`
+  rămâne exclus. XHR-ul real `GET /add_to_cart/1`, inclusiv răspunsul `text/html`,
+  rămâne în checkpoint; selecția nu presupune prefixul `/api/`.
 - Validarea API folosește exclusiv `UiApiValidationEvidence`, același contract
   ca Shop. Precondiția catalogului își publică checks sub exchange-ul propriu,
   nu în `UI validation`; verdictul UI nu este copiat pe request-uri.
 - Numărul pașilor UI nu este un oracol pentru numărul de request-uri observate.
-  XHR/FETCH rămân scope-ul implicit. Navigările și formularele DOCUMENT se
-  includ global numai cu `includeDocuments: true`; pentru o poveste care are
-  nevoie doar de rutele sale, `@AutoExNetworkDocuments` selectează explicit
-  documentele fără a lărgi captura celorlalte teste.
+  `@AutoExNetworkDocuments({"/"})` selectează toate rutele DOCUMENT first-party
+  pentru un profil UI+API, fără a activa documentele global pentru profilurile
+  UI-only. Aceste profile păstrează separat setup-ul API de traficul browserului
+  cauzal și publică doar observațiile reținute în fereastra fiecărui checkpoint.
 - `UI_API` așteaptă pasiv, cu timeout bounded, schimbul GET XHR/FETCH exact
   pornit de click-ul unic pentru produs. Statusul 2xx, refuzul HTTP și
   `requestFailed` sunt atașate la checkpoint-ul `CART_ADD`; absența unui schimb
@@ -673,9 +678,12 @@ Diagrama comună pentru captură, baseline și publicare este în
   succes prezentat după refuz rămâne contradicție UI/API. Timeout-ul modalului
   după 2xx este publicat în același checkpoint. Niciun caz nu reexecută click-ul
   sau request-ul pentru raport.
-- Resursele statice nu ocupă jurnalul. `Capture coverage` expune scope,
-  accepted/retained/excluded/dropped, plafon și separarea setup/causal.
-  `0 exchanges` se interpretează numai în scope-ul și starea capturii.
+- Resursele statice și host-urile terțe rămân excluse. `Capture coverage` expune
+  scope-ul, accepted/retained/excluded/dropped, plafonul și separarea setup/causal;
+  capturarea este completă numai în acest scope, nu pentru tot traficul posibil
+  al browserului. Un download cu răspuns 2xx și `Content-Disposition: attachment`
+  poate raporta `requestfailed` cu `ERR_ABORTED` după ce serverul a trimis răspunsul;
+  inspectorul păstrează statusul și headerele HTTP fără să citească bytes descărcați.
 - Când există schimburi cauzale, acestea rămân legate de fereastra și
   checkpoint-ul observat; căutarea UI navighează la `/products?search=...` și
   nu este confundată cu endpoint-ul direct `POST /api/searchProduct`.
@@ -688,11 +696,12 @@ Diagrama comună pentru captură, baseline și publicare este în
 
 - Profilul UI-only păstrează inspectorul dezactivat; `UI_API` activează aceeași
   configurație validată, fără să-i înlocuiască limitele.
-- Selecția adnotată adaugă doar rutele DOCUMENT declarate și păstrează XHR/FETCH
-  pentru restul origin-ului.
-- Response body-urile documentelor HTML nu sunt citite. Metoda, ruta, statusul,
-  headerele și clasificarea auth rămân disponibile; corpul formularului login
-  este păstrat numai după redactarea parolei și a tokenului CSRF.
+- Selecția adnotată adaugă rutele DOCUMENT declarate și păstrează XHR/FETCH/OTHER
+  first-party pentru origin; asset-urile statice și terțe rămân excluse.
+- Body-urile DOCUMENT și OTHER nu sunt citite. Metoda, ruta, statusul, headerele
+  și clasificarea auth rămân disponibile; corpul formularului login este păstrat
+  numai după redactarea parolei și a tokenului CSRF. Răspunsurile attachment cu
+  `ERR_ABORTED` după un HTTP 2xx sunt înregistrate ca răspunsuri HTTP, fără bytes.
 - Body-urile XHR/FETCH rămân disponibile în limita configurată. Headerele,
   autentificarea și proveniența observate sunt adaptate typed către Reporting.
 - Capturile terminale pot publica și exchange-urile finale.
@@ -707,6 +716,31 @@ precondiția catalogului și journey-ul business, fără teste generice de rende
 - `cartAddCheckpoint` leagă acel status sau `requestFailed` de confirmarea UI în
   aceeași acțiune. Lipsa schimbului la expirarea așteptării rămâne explicit
   „neobservată”; nu se deduce un status HTTP și nu se repetă click-ul.
+
+#### Profile UI+API și acoperirea Network Inspector
+
+`AutoExE2eSuite` include variante UI+API pentru Account, Cart, Existing customer
+și Purchase. Toate selectează documentele first-party cu
+`@AutoExNetworkDocuments({"/"})`, păstrează capturarea XHR/FETCH și includ
+request-urile first-party OTHER fără body. Variantele UI-only rămân fără
+Network Inspector. Asset-urile statice și host-urile terțe sunt excluse explicit.
+
+| Poveste / prezentare | Intrare comună | Diferența dintre profile |
+|---|---|---|
+| Account UI și UI+API | `AutoExAccountJourney.registersAndDeletesOwnAccount` | canalul adaugă observațiile browserului în UI+API |
+| Cart UI și UI+API | aceleași două metode `AutoExCartJourney` | canalul adaugă observațiile browserului în UI+API |
+| Purchase UI, UI+API și final screenshot | `AutoExPurchaseJourney.execute` | canalul sau politica de screenshot schimbă evidence-ul, nu acțiunile business |
+| Existing customer UI+API | `AutoExExistingCustomerUiApiE2eTest` | precondiția API creează clientul existent; nu este echivalentă cu înregistrarea UI |
+
+Wrapper-ele E2E aleg canalul și evidence-ul; journey-urile comune de Account,
+Cart și Purchase păstrează același traseu business. Scenariul Existing customer
+rămâne separat deoarece începe cu o identitate creată prin API.
+
+La ultima rulare a suitei complete: 8 clase, 10 teste, fără failure/error/skip.
+Cele cinci rapoarte UI+API au raportat captură completă în scope, `dropped=0` și
+`in-flight=0`; request-ul de download al facturii a fost păstrat ca HTTP 200 cu
+headerele attachment, fără capturarea conținutului descărcat. `OTHER` nu promite
+captură globală: se aplică aceeași limită first-party și aceleași limite de buget.
 
 ### Pregătirea clientului existent
 

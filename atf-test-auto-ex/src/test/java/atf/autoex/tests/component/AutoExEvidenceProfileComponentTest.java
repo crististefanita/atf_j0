@@ -4,7 +4,9 @@ import atf.autoex.runtime.config.AutoExEvidenceProfile;
 import atf.autoex.config.AutoExConfigurationLoader;
 import atf.autoex.runtime.AutoExE2eRun;
 import atf.autoex.tests.e2e.AutoExAccountUiE2eTest;
+import atf.autoex.tests.e2e.AutoExAccountUiApiE2eTest;
 import atf.autoex.tests.e2e.AutoExCartUiE2eTest;
+import atf.autoex.tests.e2e.AutoExCartUiApiE2eTest;
 import atf.autoex.tests.e2e.AutoExExistingCustomerUiApiE2eTest;
 import atf.autoex.tests.e2e.AutoExPurchaseUiApiE2eTest;
 import atf.autoex.tests.e2e.AutoExPurchaseUiE2eTest;
@@ -81,39 +83,48 @@ class AutoExEvidenceProfileComponentTest {
                         annotation.getAnnotation(Execution.class).value()));
         Class<?>[] selected = {
                 AutoExPurchaseUiE2eTest.class, AutoExCartUiE2eTest.class,
-                AutoExAccountUiE2eTest.class, AutoExExistingCustomerUiApiE2eTest.class,
+                AutoExAccountUiE2eTest.class, AutoExAccountUiApiE2eTest.class,
+                AutoExCartUiApiE2eTest.class, AutoExExistingCustomerUiApiE2eTest.class,
                 AutoExPurchaseUiApiE2eTest.class, AutoExPurchaseUiFinalScreenshotE2eTest.class};
         assertArrayEquals(selected, AutoExE2eSuite.class.getAnnotation(SelectClasses.class).value());
         assertTrue(Arrays.stream(selected)
                 .allMatch(testClass -> testClass.isAnnotationPresent(AutoExE2eTest.class)));
         assertEquals(List.of(TestChannel.UI, TestChannel.UI, TestChannel.UI,
-                        TestChannel.UI_API, TestChannel.UI_API, TestChannel.UI),
+                        TestChannel.UI_API, TestChannel.UI_API, TestChannel.UI_API,
+                        TestChannel.UI_API, TestChannel.UI),
                 Arrays.stream(selected).map(testClass ->
                         testClass.getAnnotation(AtfTestChannel.class).value()).toList());
+        assertFalse(AutoExAccountUiE2eTest.class.isAnnotationPresent(AutoExNetworkDocuments.class));
+        assertFalse(AutoExCartUiE2eTest.class.isAnnotationPresent(AutoExNetworkDocuments.class));
         assertEquals(AtfUiScreenshotPolicy.FINAL_AND_FAILURE,
                 AutoExPurchaseUiFinalScreenshotE2eTest.class.getAnnotation(AtfUiEvidence.class).screenshots());
     }
 
     @Test
-    void existingCustomerNetworkSelectionIncludesOnlyItsDocumentRoutesAndKeepsApiCapture() {
-        var existingCustomer = AutoExExistingCustomerUiApiE2eTest.class;
-        var selection = existingCustomer.getAnnotation(AutoExNetworkDocuments.class);
-        var configuration = AutoExE2eRun.withNetworkInspection(AutoExConfigurationLoader.load(),
-                List.of(selection.value()));
+    void everyUiApiProfileSelectsAllFirstPartyDocumentsAndKeepsApiCapture() {
+        List<Class<?>> networkProfiles = List.of(AutoExAccountUiApiE2eTest.class,
+                AutoExCartUiApiE2eTest.class, AutoExExistingCustomerUiApiE2eTest.class,
+                AutoExPurchaseUiApiE2eTest.class);
+        networkProfiles.forEach(testClass -> assertAll(testClass.getSimpleName(),
+                () -> assertEquals(TestChannel.UI_API,
+                        testClass.getAnnotation(AtfTestChannel.class).value()),
+                () -> assertArrayEquals(new String[]{"/"},
+                        testClass.getAnnotation(AutoExNetworkDocuments.class).value())));
+
+        var configuration = AutoExE2eRun.withNetworkInspection(AutoExConfigurationLoader.load(), List.of("/"));
         var policy = configuration.browser().networkInspection().capturePolicy();
         String origin = configuration.baseUrl().toString();
 
         assertAll(
-                () -> assertArrayEquals(new String[]{"/login", "/delete_account"}, selection.value()),
-                () -> assertEquals(TestChannel.UI_API,
-                        existingCustomer.getAnnotation(AtfTestChannel.class).value()),
                 () -> assertTrue(policy.accepts(origin + "/login", UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
                 () -> assertTrue(policy.accepts(origin + "/delete_account", UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
-                () -> assertFalse(policy.accepts(origin + "/", UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
-                () -> assertFalse(policy.accepts(origin + "/login-extra", UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
+                () -> assertTrue(policy.accepts(origin + "/", UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
+                () -> assertTrue(policy.accepts(origin + "/login-extra", UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
                 () -> assertTrue(policy.accepts(origin + "/add_to_cart/1", UiNetworkCapturePolicy.ResourceKind.XHR)),
                 () -> assertTrue(policy.accepts(origin + "/api/productsList", UiNetworkCapturePolicy.ResourceKind.FETCH)),
+                () -> assertTrue(policy.accepts(origin + "/events", UiNetworkCapturePolicy.ResourceKind.OTHER)),
                 () -> assertFalse(policy.capturesResponseBody(UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
+                () -> assertFalse(policy.capturesResponseBody(UiNetworkCapturePolicy.ResourceKind.OTHER)),
                 () -> assertTrue(policy.capturesResponseBody(UiNetworkCapturePolicy.ResourceKind.FETCH)),
                 () -> assertFalse(policy.accepts(origin + "/static/app.js", UiNetworkCapturePolicy.ResourceKind.STATIC)));
     }

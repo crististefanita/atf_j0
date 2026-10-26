@@ -84,6 +84,14 @@ public record UiNetworkCapturePolicy(Set<ResourceKind> resourceKinds, List<Strin
         return new UiNetworkCapturePolicy(kinds, pathPrefixes, selected, bodyKinds);
     }
 
+    /** Includes first-party request kinds that are not classified as XHR, fetch, document or static assets. */
+    public UiNetworkCapturePolicy includingOtherRequests() {
+        var kinds = new LinkedHashSet<>(resourceKinds);
+        kinds.add(ResourceKind.OTHER);
+        return new UiNetworkCapturePolicy(kinds, pathPrefixes, documentPathPrefixes,
+                responseBodyResourceKinds);
+    }
+
     public UiNetworkCapturePolicy forPaths(Collection<String> prefixes) {
         return new UiNetworkCapturePolicy(resourceKinds, List.copyOf(prefixes), documentPathPrefixes,
                 responseBodyResourceKinds);

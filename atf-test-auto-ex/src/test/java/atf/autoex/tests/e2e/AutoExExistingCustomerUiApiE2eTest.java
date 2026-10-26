@@ -23,7 +23,7 @@ import static atf.autoex.support.trace.AutoExCustomerTraceStep.CUSTOMER_SIGNED_I
 /** Existing-customer self-service: real API setup, real UI login and identity-checked UI deletion. */
 @AutoExE2eTest
 @AtfTestChannel(TestChannel.UI_API)
-@AutoExNetworkDocuments({"/login", "/delete_account"})
+@AutoExNetworkDocuments({"/"})
 
 @DisplayName("Automation Exercise existing customer — UI + API")
 public class AutoExExistingCustomerUiApiE2eTest {

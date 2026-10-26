@@ -1,6 +1,7 @@
 package atf.autoex.tests.e2e;
 
 import atf.autoex.tests.extension.AutoExE2eTest;
+import atf.autoex.tests.extension.AutoExNetworkDocuments;
 import atf.testkit.channel.AtfTestChannel;
 import atf.testkit.channel.TestChannel;
 import atf.autoex.runtime.AutoExE2eRun;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 /** Same purchase journey, augmented with redacted API exchanges from its browser session. */
 @AutoExE2eTest
 @AtfTestChannel(TestChannel.UI_API)
+@AutoExNetworkDocuments({"/"})
 
 @Order(2)
 @DisplayName("Automation Exercise purchase — UI + API")

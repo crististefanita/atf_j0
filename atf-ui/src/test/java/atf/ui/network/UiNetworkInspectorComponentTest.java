@@ -138,12 +138,13 @@ class UiNetworkInspectorComponentTest {
 
     @Test
     void selectedDocumentRoutesDoNotNarrowAsynchronousApiCaptureOrMatchNeighborRoutes() {
-        var policy = UiNetworkCapturePolicy.asynchronous()
+        var policy = UiNetworkCapturePolicy.asynchronous().includingOtherRequests()
                 .includingDocumentsFor(List.of("/login", "/delete_account"));
         var inspector = inspector(4, policy);
         var bodyReads = new AtomicInteger();
         var login = inspector.capture(response("/login", "document", bodyReads)).orElseThrow();
         var xhr = inspector.capture(response("/add_to_cart/1", "xhr", bodyReads)).orElseThrow();
+        var other = inspector.capture(response("/events", "other", bodyReads)).orElseThrow();
 
         assertAll(
                 () -> assertTrue(policy.accepts("https://service.test/login", UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
@@ -154,6 +155,7 @@ class UiNetworkInspectorComponentTest {
                 () -> assertFalse(policy.accepts("https://service.test/login-extra", UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
                 () -> assertTrue(policy.accepts("https://service.test/api/createAccount", UiNetworkCapturePolicy.ResourceKind.FETCH)),
                 () -> assertTrue(policy.accepts("https://service.test/add_to_cart/1", UiNetworkCapturePolicy.ResourceKind.XHR)),
+                () -> assertTrue(policy.accepts("https://service.test/events", UiNetworkCapturePolicy.ResourceKind.OTHER)),
                 () -> assertFalse(policy.accepts("https://service.test/login", UiNetworkCapturePolicy.ResourceKind.STATIC)),
                 () -> assertFalse(policy.capturesResponseBody(UiNetworkCapturePolicy.ResourceKind.DOCUMENT)),
                 () -> assertTrue(policy.capturesResponseBody(UiNetworkCapturePolicy.ResourceKind.XHR)),
@@ -161,6 +163,8 @@ class UiNetworkInspectorComponentTest {
                 () -> assertEquals("", login.responseBody()),
                 () -> assertTrue(xhr.responseBodyAvailable()),
                 () -> assertEquals("<p>accepted</p>", xhr.responseBody()),
+                () -> assertEquals(UiNetworkCapturePolicy.ResourceKind.OTHER, other.resourceKind()),
+                () -> assertFalse(other.responseBodyAvailable()),
                 () -> assertEquals(1, bodyReads.get(), "selected document HTML is not read"),
                 () -> assertTrue(policy.scope().contains("documentPaths=[/login, /delete_account]")),
                 () -> assertTrue(policy.description().contains("selected document routes")),
@@ -203,6 +207,54 @@ class UiNetworkInspectorComponentTest {
                 () -> assertEquals(2, inspector.observations().size()),
                 () -> assertEquals(1, inspector.presentationObservations().size()),
                 () -> assertEquals(2, inspector.signatureCounts().values().iterator().next()),
+                () -> assertTrue(inspector.statistics().complete()));
+        inspector.close();
+    }
+
+    @Test
+    void abortedAttachmentResponseIsCapturedAsHttpResponseWithoutReadingDownloadedBytes() {
+        var failed = new AtomicReference<Consumer<Request>>();
+        Page page = proxy(Page.class, (name, args) -> {
+            if (name.equals("onRequestFailed")) failed.set(callback(args));
+            return null;
+        });
+        var bodyReads = new AtomicInteger();
+        var responseRef = new AtomicReference<Response>();
+        Request request = proxy(Request.class, (name, args) -> switch (name) {
+            case "url" -> "https://service.test/download/report.csv";
+            case "resourceType" -> "other";
+            case "method" -> "GET";
+            case "headers" -> Map.of("accept", "text/csv");
+            case "postData" -> null;
+            case "failure" -> "net::ERR_ABORTED";
+            case "response" -> responseRef.get();
+            default -> null;
+        });
+        Response response = proxy(Response.class, (name, args) -> switch (name) {
+            case "request" -> request;
+            case "status" -> 200;
+            case "headers" -> Map.of("Content-Disposition", "attachment; filename=report.csv",
+                    "content-type", "text/csv");
+            case "body" -> { bodyReads.incrementAndGet(); yield new byte[]{1, 2, 3}; }
+            default -> null;
+        });
+        responseRef.set(response);
+
+        var inspector = inspector(2, UiNetworkCapturePolicy.allResources());
+        var received = new ArrayList<UiNetworkObservation>();
+        inspector.attach(page, received::add);
+        failed.get().accept(request);
+
+        var captured = received.getFirst();
+        assertAll(
+                () -> assertEquals(1, received.size()),
+                () -> assertEquals(200, captured.status()),
+                () -> assertFalse(captured.requestFailed()),
+                () -> assertEquals("attachment; filename=report.csv",
+                        captured.responseHeaders().get("Content-Disposition")),
+                () -> assertFalse(captured.responseBodyAvailable()),
+                () -> assertEquals("", captured.responseBody()),
+                () -> assertEquals(0, bodyReads.get(), "attachment bytes are not copied into body evidence"),
                 () -> assertTrue(inspector.statistics().complete()));
         inspector.close();
     }

@@ -265,10 +265,28 @@ public final class UiNetworkInspector implements AutoCloseable {
         if (request == null) return;
         try {
             captureSelected(request.url(), UiNetworkCapturePolicy.ResourceKind.fromPlaywright(request.resourceType()),
-                    next -> UiNetworkObservation.fromFailure(request, next, configuration));
+                    next -> {
+                        Response response = request.response();
+                        if (isAbortedAttachment(request.failure(), response)) {
+                            return UiNetworkObservation.fromAttachmentResponse(response, next, configuration);
+                        }
+                        return UiNetworkObservation.fromFailure(request, next, configuration);
+                    });
         } catch (RuntimeException transientBrowserState) {
             // Evidence collection cannot replace the UI action's original outcome.
         }
+    }
+
+    private static boolean isAbortedAttachment(String failure, Response response) {
+        if (response == null || response.status() < 200 || response.status() >= 300
+                || failure == null || !failure.toUpperCase(java.util.Locale.ROOT).contains("ERR_ABORTED")) {
+            return false;
+        }
+        return response.headers().entrySet().stream()
+                .filter(entry -> "content-disposition".equalsIgnoreCase(entry.getKey()))
+                .map(Map.Entry::getValue)
+                .filter(Objects::nonNull)
+                .anyMatch(value -> value.stripLeading().regionMatches(true, 0, "attachment", 0, 10));
     }
 
     private static void notifySafely(Consumer<UiNetworkObservation> subscriber,

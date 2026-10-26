@@ -98,7 +98,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
     public static AutoExConfiguration withNetworkInspection(AutoExConfiguration source,
                                                             Collection<String> documentRoutes) {
         UiBrowserConfiguration current = source.browser();
-        var capturePolicy = current.networkInspection().capturePolicy();
+        var capturePolicy = current.networkInspection().capturePolicy().includingOtherRequests();
         if (documentRoutes != null && !documentRoutes.isEmpty()) {
             capturePolicy = capturePolicy.includingDocumentsFor(documentRoutes);
         }
