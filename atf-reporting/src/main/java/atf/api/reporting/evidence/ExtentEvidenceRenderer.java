@@ -46,6 +46,10 @@ public final class ExtentEvidenceRenderer {
         transport.renderResponseDetails(node, details, json);
     }
 
+    public void renderUiFlowProvenance(ExtentTest node, List<ReportField> details) {
+        transport.renderUiFlowProvenance(node, details);
+    }
+
     public void renderSetupEvidence(ExtentTest node, List<ReportField> details) {
         transport.renderSetupEvidence(node, details);
     }

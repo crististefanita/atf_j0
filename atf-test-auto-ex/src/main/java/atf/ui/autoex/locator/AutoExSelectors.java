@@ -5,6 +5,8 @@ import atf.api.ui.dom.HtmlElement;
 
 /** CSS vocabulary for the public practice site; tests and page objects do not embed selectors. */
 public final class AutoExSelectors {
+    public static final String STORE_BUSY_MESSAGE = "This website is under heavy load (queue full)";
+    public static final String STORE_BUSY_MESSAGE_LOCATOR = "body :text-is('%s')".formatted(STORE_BUSY_MESSAGE);
     public static final String STORE_HEADING = "#slider-carousel h2";
     public static final String PRIVACY_DIALOG = ".fc-consent-root";
     public static final String PRIVACY_MANAGE_OPTIONS = ".fc-consent-root button:has-text('Manage options')";
@@ -19,7 +21,7 @@ public final class AutoExSelectors {
     public static final String ACCOUNT_RESULT_HEADING = "h2.title.text-center";
     public static final String ACCOUNT_DELETED_HEADING = "h2[data-qa='account-deleted']";
     public static final String SEARCH_RESULT_PRODUCT_NAME = ".features_items .productinfo p";
-    public static final String PRODUCT_DETAILS_LINK = "a[href^='/product_details/']";
+    public static final String PRODUCT_DETAILS_LINK = "a[href^='%s']".formatted(AutoExRoutes.PRODUCT_DETAILS.path());
     public static final String PRODUCT_INFORMATION = ".product-information";
     public static final String QUANTITY = "#quantity";
     public static final String ADD_TO_CART = "button.cart";

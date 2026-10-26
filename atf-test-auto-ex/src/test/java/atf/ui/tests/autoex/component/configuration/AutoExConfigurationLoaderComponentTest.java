@@ -1,6 +1,7 @@
 package atf.ui.tests.autoex.component.configuration;
 
 import atf.api.testkit.AtfComponentTest;
+import atf.api.ui.config.UiRetryOperation;
 import atf.ui.autoex.config.AutoExConfiguration;
 import atf.ui.autoex.config.AutoExConfigurationLoader;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.util.Set;
 
 import static atf.ui.autoex.config.AutoExSite.PUBLIC_BASE_URI;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -124,6 +127,32 @@ class AutoExConfigurationLoaderComponentTest {
                         .payment().toString()),
                 () -> assertEquals("Registration[configured=true]", AutoExConfigurationLoader.load()
                         .registration().toString()));
+    }
+
+    @Test
+    void storeQueueRecoveryIsConfiguredSeparatelyFromOrdinaryActionRetries() throws IOException {
+        var defaults = AutoExConfigurationLoader.load();
+        assertEquals(3, defaults.storeAvailabilityPolicy().maxAttempts());
+        assertEquals(Duration.ofSeconds(2), defaults.storeAvailabilityPolicy().backoff());
+        assertEquals(Set.of(UiRetryOperation.NAVIGATE),
+                defaults.storeAvailabilityPolicy().eligibleOperations());
+        assertFalse(defaults.browser().retryPolicy().enabled());
+        var once = AutoExConfigurationLoader.load(writeVariant("maxAttempts: 3", "maxAttempts: 1"));
+        assertFalse(once.storeAvailabilityPolicy().enabled());
+        var unconfigured = AutoExConfigurationLoader.load(writeVariant(
+                "    storeAvailability:\n      maxAttempts: 3\n      backoff: PT2S\n", ""));
+        assertFalse(unconfigured.storeAvailabilityPolicy().enabled(),
+                "absence of the explicit YAML section must not enable recovery");
+    }
+
+    @Test
+    void invalidStoreQueuePolicyCannotSilentlyFallBack() throws IOException {
+        assertThrows(IllegalStateException.class, () -> AutoExConfigurationLoader.load(
+                writeVariant("maxAttempts: 3", "maxAttempts: 0")));
+        assertThrows(IllegalStateException.class, () -> AutoExConfigurationLoader.load(
+                writeVariant("backoff: PT2S", "backoff: PT-1S")));
+        assertThrows(IllegalStateException.class, () -> AutoExConfigurationLoader.load(
+                writeVariant("maxAttempts: 3", "maxAttemps: 3")));
     }
 
     private Path writeVariant(String original, String replacement) throws IOException {

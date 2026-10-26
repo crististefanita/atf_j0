@@ -79,7 +79,10 @@ Profilul conține numai date sintetice și date de plată demonstrative; nu intr
 redactează câmpurile de înregistrare și plată din reprezentarea textuală.
 
 - `AutoExPurchaseJourney` consumă portul `AutoExPurchaseSession` din `src/main`.
-- `AutoExE2eRun` îl adaptează în `src/test` la browser, raport și lifecycle JUnit.
+- `AutoExE2eRun` îl implementează în pachetul `runtime` din `src/main/java`,
+  fără JUnit sau Test Kit.
+- `AutoExRunFactory` și `AutoExE2eExtension` din `src/test/java`, pachetul `extension`, rezolvă
+  declarațiile JUnit și dețin achiziția resurselor.
 - `AutoExConsoleBridge` transmite câmpurile Reporting fabricii neutre
   `AtfConsoleEvent.fromExternalEnums(...)` din Core; Console rămâne independent
   de Reporting, iar compatibilitatea lor este probată în Reporting Tests.
@@ -103,9 +106,10 @@ redactează câmpurile de înregistrare și plată din reprezentarea textuală.
   componente AutoEx verifică profilul și wiring-ul adaptorului, fără să dubleze
   primitivele generice.
 
-`AutoExE2eRun` folosește `TestRunInitialization` din Test Kit pentru achiziția
-cu factory-uri injectabile. Ownerul generic și `TestRunInitializationTest`
-garantează ordinea și păstrarea cauzei; AutoEx furnizează callback-urile:
+`AutoExRunFactory` folosește `TestRunInitialization` din Test Kit pentru
+achiziția cu factory-uri injectabile. Runtime-ul primește portul
+`AutoExRunLifecycle`; `AutoExRunLifecycleAdapter` îl leagă în test de cleanup-ul
+neutru din Kit. `TestRunInitializationTest` protejează ordinea și cauza:
 
 - eșec după fiecare handle dobândit: doar faza/scenariul disponibile sunt
   marcate FAIL, apoi browserul este închis;
@@ -227,6 +231,8 @@ sub pragul comun de opt clase:
 
 | Pachet | Responsabilitate |
 |---|---|
+| `runtime`, `runtime.config`, `runtime.account` în main | sesiunea raportului, run-ul, maparea observațiilor și capabilitățile specifice aplicației; fără JUnit/Kit |
+| `extension` în test | Store, activare, achiziție prin Kit și adaptarea adnotărilor; nu dublează rendererul sau cleanup-ul generic |
 | `support.journey` | coordonarea purchase-ului, trace și precondiția API read-only a catalogului |
 | `support.account` | cont sintetic și cleanup |
 | `support.catalog` | snapshot și aserțiuni de catalog |
@@ -249,6 +255,30 @@ specifice AutoEx. Primitivele comune se promovează numai după demonstrarea
 aceluiași contract în consumatorii relevanți și păstrarea unui API neutru;
 boundary-ul Test Kit este descris în [README-ul ownerului](../atf-test-kit/README.md)
 și în [arhitectura ATF](../docs/ATF_Architecture.md).
+
+### Limita disponibilității serviciului public
+
+Mesajul vizibil exact `This website is under heavy load (queue full)` indică
+indisponibilitatea documentului, nu schimbarea locatorilor.
+
+| Control | Contract |
+|---|---|
+| Recunoaștere | mesajul vizibil, independent de tag-ul HTML; fără catch general de timeout |
+| Document | navigare observată în frame-ul principal: GET, același origin și același path/query |
+| Rute eligibile | Home, Products/search și un detaliu de produs |
+| Excluderi | POST, cont, logout, checkout, adăugare în coș, origin diferit sau metodă necunoscută |
+| Buget YAML | `browser.storeAvailability.maxAttempts` include prima încărcare; modulul configurează 3 și backoff PT2S |
+| Opt-in | secțiune absentă sau `maxAttempts: 1`: diagnostic explicit, fără repetare |
+| Evidence | fiecare recuperare: Navigate și observație Store availability; UI-only nu activează inspectorul API |
+| Epuizare | `AutoExStoreUnavailableException`, FAIL și captura reală; fără PASS/SKIP fabricat |
+
+- Politica tipizată `UiRetryPolicy` este separată de retry-ul acțiunilor obișnuite;
+  nu reexecută click-uri, căutarea, testul, crearea contului ori plata.
+- Add-to-cart refuzat cu `503` nu confirmă modificarea coșului. În UI+API,
+  inspectorul păstrează răspunsul; o mutație incertă nu se repetă automat.
+- `AutoExStoreAvailabilityComponentTest` folosește documente interceptate în
+  browser: recuperare, epuizare, GET cu efect lateral, POST, origin străin și
+  element absent. Proba live rămâne în suita E2E.
 
 ## Journey-ul de cumpărare
 

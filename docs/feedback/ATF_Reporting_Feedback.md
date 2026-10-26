@@ -12,11 +12,6 @@ sunt contracte livrate, documentate la
 Matricea Extent/fallback/UI_API și probele Fails/deep-link aparțin
 [testelor Reporting](../../atf-reporting-tests/README.md), nu checklist-ului de restanțe.
 
-- [x] `REPORT-UI-FAILURE-DUPLICATION-01`: corelare explicită prin
-      `UiCheckpointFailure` și identitatea aserțiunilor UI din scenariul curent.
-      Nouă scenarii neutre în două moduri de flow păstrează 16 cauze distincte
-      și toate cele 32 de replay-uri Open in Tests; capturile și diagnosticul
-      terminal rămân accesibile. Ambele artefacte verificate în TAB MCP.
 
 ## REPORT-NARROW-READABILITY-01 — tabele imbricate la lățime mică
 
@@ -45,6 +40,14 @@ fără rebazare, extindere de scope sau relaxarea guard-urilor.
 
 ```yaml
 testChanges:
+  - id: REPORT-UNIFIED-TABLES-01
+    status: ACTIVE
+    base: 9d444354620b904f736302a2217f35e38ee5a875
+    expires: 2026-11-26
+    reason: Adaugă numai probe componente noi pentru agregarea UI-only cross-phase, paritatea Extent/fallback, captură terminală, policy fără captură și regresiile failure/UI+API; testele existente rămân intacte.
+    proof: mvn -pl atf-reporting-tests,atf-tests -am "-Dtest=UiCrossPhaseCompactFlowComponentTest,ReportEvidenceProfileIntegrationTest,ExtentUnifiedFlowMultipleScreenshotTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=9d444354620b904f736302a2217f35e38ee5a875" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/api/reporting/ui/profile/UiCrossPhaseCompactFlowComponentTest.java
   - id: REPORT-UI-FAILURE-CORRELATION-10
     status: ACTIVE
     base: 9b0860bfc734df570c7512b76aa5dbb559527b7d

@@ -16,6 +16,9 @@ import static atf.api.reporting.markup.AtfReportEvidenceKeys.EVIDENCE_TYPE;
 import static atf.api.reporting.markup.AtfReportEvidenceKeys.EVIDENCE_POLICY;
 import static atf.api.reporting.markup.AtfReportEvidenceKeys.SCREEN_VALIDATION;
 import static atf.api.reporting.markup.AtfReportEvidenceKeys.UI_FAILURE;
+import static atf.api.reporting.markup.AtfReportEvidenceKeys.UNIFIED_UI_FLOW;
+import static atf.api.reporting.markup.AtfReportEvidenceKeys.FLOW_PRESENTATION;
+import static atf.api.reporting.markup.AtfReportEvidenceKeys.COMPACT_UI_ONLY;
 
 /** Gives request evidence one stable, human-readable vocabulary. */
 public final class EvidenceTableFormatter {
@@ -57,6 +60,7 @@ public final class EvidenceTableFormatter {
     /** Canonical typed serializer for Extent evidence tables. */
     public static List<ReportField> technicalTraceFields(List<ReportField> details) {
         if (details == null || details.isEmpty()) return List.of();
+        if (isCompactUiFlow(details)) return List.of();
         boolean checkpoint = details.stream().anyMatch(detail -> detail != null
                 && isUiEvidenceType(detail.name(), detail.value()));
         return details.stream()
@@ -65,6 +69,23 @@ public final class EvidenceTableFormatter {
                 .filter(detail -> !checkpoint || !isUiCheckpointPolicy(detail.name()))
                 .filter(detail -> !isRequestDetail(detail.name()))
                 .filter(detail -> !isExecutionSummaryField(detail.name()))
+                .toList();
+    }
+
+    /** Cross-phase UI provenance is rendered by its own disclosure, never as an HTTP response. */
+    public static boolean isCompactUiFlow(List<ReportField> details) {
+        return details != null && details.stream().anyMatch(detail -> detail != null
+                && EVIDENCE_TYPE.equalsIgnoreCase(detail.name())
+                && UNIFIED_UI_FLOW.equalsIgnoreCase(detail.value()))
+                && details.stream().anyMatch(detail -> detail != null
+                && FLOW_PRESENTATION.equalsIgnoreCase(detail.name())
+                && COMPACT_UI_ONLY.equalsIgnoreCase(detail.value()));
+    }
+
+    public static List<ReportField> uiFlowProvenanceFields(List<ReportField> details) {
+        if (!isCompactUiFlow(details)) return List.of();
+        return details.stream().filter(detail -> detail != null
+                && !FLOW_PRESENTATION.equalsIgnoreCase(detail.name()))
                 .toList();
     }
 

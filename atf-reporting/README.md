@@ -283,7 +283,7 @@ TestCase
 | format body | request/response păstrează formatul capturat (JSON, form sau text); un contract JSON este cerut de validatorul consumerului, nu dedus din metoda HTTP |
 | body absent | request/response details rămân prezente; `ABSENT` și `NOT_CAPTURED` au explicații distincte, fără payload inventat; numai JSON literal `null` capturat devine document JSON |
 | UI evidence | `SETUP` este setup; `Screen validation` este în `TEST BODY` după acțiuni și observații |
-| UI `UNIFIED_FLOW` peste faze | Consumerul apelează `UiScenario.unifyAcrossPhases()` înainte de prima fază și `UiPhase.completeFinal(status)` la faza terminală. Un singur nod Gherkin publică checkpoint-urile în ordine, cu faza și verdictul fiecăruia; UI/API validations rămân lângă checkpoint-ul proprietar. `completeFinal(FAIL)` în `SETUP` nu creează `TEST BODY` sau o captură finală. Fără opt-in, comportamentul existent per fază rămâne valabil. |
+| UI `UNIFIED_FLOW` peste faze | Consumerul apelează `UiScenario.unifyAcrossPhases()` înainte de prima fază și `UiPhase.completeFinal(status)` la faza terminală. Pe succes UI-only, Reporting publică o singură validare UI cu un tabel ACTION, unul OBSERVE (dacă există observații) și unul assertions (dacă există aserțiuni), păstrând toate rândurile în ordine. Captura `FINAL` permisă apare sub tabelul Playwright, înaintea auditului; fazele/checkpoint-urile și verdictele sunt în `UI flow provenance`, separat de răspunsurile HTTP. UI+API, setup eșuat și politicile explicite cu capturi multiple păstrează validările pe checkpoint. `completeFinal(FAIL)` în `SETUP` nu creează `TEST BODY` sau o captură finală. Fără opt-in, comportamentul existent per fază rămâne valabil. |
 | layout | `＋/−` este inline înaintea propoziției; Request details, Response details și Execution evidence sunt disclosures surori în request; Contract validation este copilul lui; UI/API validations sunt copii surori ale aceluiași checkpoint Gherkin |
 | responsive evidence | până la breakpoint-ul de lucru (`1300px`), action tables se redimensionează și împachetează conținutul fără scrollbar orizontal; padding-ul lateral al wrapperului este eliminat semantic, nu prin crop | 
 | tabele cu derulare | containerele folosesc `height:auto` și `max-height:var(--atf-table-scroll-height)`, derivat din `AtfReportThemeTokens.TABLE_SCROLL_HEIGHT` (`500px` în prezent); conținutul scurt nu rezervă spațiu gol, conținutul lung derulează sub antetul fix, iar panourile JSON/cod nu intră în acest contract |
@@ -303,6 +303,12 @@ Această ierarhie API nu trebuie confundată cu raportarea UI: acolo `UI validat
 și `API validation` sunt copii semantici ai aceluiași checkpoint Gherkin, iar
 fiecare `API validation` își deține exchange-urile. Verdictul unei metode JUnit
 nu este un request API și nu trebuie introdus ca metodă `ASSERT`/rută sintetică.
+
+- Compactarea este o proiecție de prezentare pentru flow-ul UI-only reușit;
+  modelul reține obiectele originale de acțiune/aserțiune, proveniența și verdictul.
+  Detaliile tehnice ale request-urilor API rămân în canalul lor, iar problema
+  de lizibilitate la lățime îngustă este urmărită separat în
+  [feedback](../docs/feedback/ATF_Reporting_Feedback.md#report-narrow-readability-01--tabele-imbricate-la-lățime-mică).
 
 ### Context de fază și diagnostic de execuție
 

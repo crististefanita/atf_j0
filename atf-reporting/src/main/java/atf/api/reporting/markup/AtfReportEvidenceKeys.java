@@ -18,6 +18,9 @@ public final class AtfReportEvidenceKeys {
     public static final String FLOW_MODE = "flow.mode";
     public static final String FLOW_SCENARIO = "flow.scenario";
     public static final String FLOW_PHASE = "flow.phase";
+    /** Selects the UI-only cross-phase projection without changing the evidence model. */
+    public static final String FLOW_PRESENTATION = "flow.presentation";
+    public static final String COMPACT_UI_ONLY = "compact-ui-only";
     public static final String FLOW_CHECKPOINT_COUNT = "flow.checkpoint.count";
     public static final String FLOW_CHECKPOINT_PREFIX = "flow.checkpoint.";
     public static final String SETUP_RESULT = "setup.result";

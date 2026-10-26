@@ -316,7 +316,7 @@ flowchart LR
   schimbarea capturii; rendererul nu execută acțiuni UI.
 - `ReportEvidenceProfileIntegrationTest` dovedește provider mock → sesiune → HTML local pentru ambele flow mode-uri.
 - Aceeași clasă verifică profile diferite pentru scenarii-surori dintr-o sesiune partajată și repetă proba cu ordinea inversată; profilul nu se scurge între scenarii.
-- `UNIFIED_FLOW` păstrează un singur request cu propoziția Gherkin finală, fără checkpoint-uri numerotate sau Gherkin duplicat; UI actions și assertions sunt agregate, iar `API validation` este soră cu `UI validation` sub același checkpoint Gherkin și deține exchange-urile sale. Sub `FINAL_ONLY` se publică doar captura `FINAL`.
+- `UNIFIED_FLOW` păstrează un singur request cu propoziția Gherkin finală, fără checkpoint-uri numerotate sau Gherkin duplicat; în proiecția per fază, UI actions și assertions sunt agregate, iar `API validation` este soră cu `UI validation` sub același checkpoint Gherkin și deține exchange-urile sale. Sub `FINAL_ONLY` se publică doar captura `FINAL`.
 - `SCREEN_CHECKPOINTS` păstrează request-urile Gherkin independente.
 - Profilul typed combină flow mode, screenshot policy, capture source și action-details mode.
   Grouping-ul aparține lifecycle/publisher-ului din `atf-reporting`; alegerea modului
@@ -331,6 +331,14 @@ sesiunii. Wiring-ul Practice Shop pentru rapoarte partajate și agregarea fazelo
 
 `ExtentUnifiedFlowMultipleScreenshotTest` verifică regresia generică de
 publicare; mapping-ul local rămâne în probele Shop, fără copierea rendererului.
+
+- `UiCrossPhaseCompactFlowComponentTest` publică un scenariu UI-only prin
+  lifecycle-ul Extent și verifică proiecția tipizată echivalentă în fallback,
+  cu `SETUP`, două checkpoint-uri `TEST BODY` și `CLEANUP`:
+  verifică un singur tabel per familie, ordinea acțiunilor, captura terminală
+  sub tabel, politica `NONE`, proveniența UI separată de `Response details` și
+  absența unui body inventat după setup eșuat. Regresiile existente pentru
+  UI+API și capturi multiple rămân neschimbate.
 
 | Componentă | Contract verificat | Invariantă |
 |---|---|---|

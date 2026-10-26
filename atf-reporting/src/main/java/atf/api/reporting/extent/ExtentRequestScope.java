@@ -7,6 +7,7 @@ import atf.api.reporting.contract.ReportStatusAggregator;
 import atf.api.reporting.extent.session.ExtentReportTree;
 import atf.api.reporting.markup.AtfReportEvidenceKeys;
 import atf.api.reporting.model.ReportField;
+import atf.api.reporting.evidence.EvidenceTableFormatter;
 import atf.api.reporting.model.ReportJsonBody;
 import atf.api.reporting.model.ReportScreenshot;
 import atf.api.reporting.semantic.AtfReportSemanticRecorder;
@@ -115,6 +116,9 @@ final class ExtentRequestScope implements AtfReportPorts.Request {
         }
         if (isSetupEvidence()) {
             tree.renderSetupEvidence(request, details);
+            tree.renderUiActions(request, uiActions, screenshots);
+        } else if (EvidenceTableFormatter.isCompactUiFlow(details)) {
+            tree.renderUiFlowProvenance(request, details);
             tree.renderUiActions(request, uiActions, screenshots);
         } else {
             tree.renderRequestDetails(request, details, json);

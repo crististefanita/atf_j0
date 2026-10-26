@@ -25,7 +25,8 @@ import java.util.Map;
 public final class ShopApiEvidenceMapper {
     private ShopApiEvidenceMapper() { }
 
-    static ReportExecutionEvidence toExecution(ShopApiNetworkJournal.Exchange exchange) {
+    /** Converts a sanitized observed value; capture and checkpoint selection remain the journal's responsibility. */
+    public static ReportExecutionEvidence toExecution(ShopApiNetworkJournal.Exchange exchange) {
         return toExecution(exchange, "");
     }
 

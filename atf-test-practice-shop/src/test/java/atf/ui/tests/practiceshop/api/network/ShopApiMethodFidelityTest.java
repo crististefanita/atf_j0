@@ -1,4 +1,4 @@
-package atf.ui.practiceshop.support.api;
+package atf.ui.tests.practiceshop.api.network;
 
 import atf.api.core.http.response.ApiBodyEvidence;
 import atf.api.core.http.request.HttpMethod;
@@ -6,6 +6,7 @@ import atf.api.reporting.api.ReportRequestSignature;
 import atf.api.testkit.AtfComponentTest;
 import atf.ui.practiceshop.api.ShopApiOperation;
 import atf.ui.practiceshop.api.ShopApiRoutes;
+import atf.ui.practiceshop.support.api.ShopApiEvidenceMapper;
 import atf.ui.tests.practiceshop.support.ShopReportHtmlTestSupport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -13,8 +14,9 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.time.Duration;
 
-import static atf.ui.practiceshop.support.api.ShopApiMethodFidelityFixture.QUERY;
-import static atf.ui.practiceshop.support.api.ShopApiMethodFidelityFixture.REQUEST_JSON;
+import static atf.ui.tests.practiceshop.api.network.ShopApiMethodFidelityFixture.QUERY;
+import static atf.ui.tests.practiceshop.api.network.ShopApiMethodFidelityFixture.REQUEST_JSON;
+import static atf.api.reporting.api.evidence.ReportBodyAvailability.NOT_CAPTURED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,7 +32,7 @@ class ShopApiMethodFidelityTest {
         assertNull(unknown.attemptHistory().getFirst().duration());
         var unavailable = ShopApiMethodFidelityFixture.exchange(QUERY).withResponseBody(
                 ApiBodyEvidence.unavailable("Browser", "body not exposed"));
-        assertEquals(atf.api.reporting.api.evidence.ReportBodyAvailability.NOT_CAPTURED,
+        assertEquals(NOT_CAPTURED,
                 ShopApiEvidenceMapper.toExecution(unavailable).response().bodyAvailability());
     }
     @Test

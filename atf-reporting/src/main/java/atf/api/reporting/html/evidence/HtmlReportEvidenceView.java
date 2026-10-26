@@ -12,6 +12,7 @@ import atf.api.reporting.security.SensitiveDataRedactor;
 import atf.api.reporting.evidence.EvidenceTableFormatter;
 import atf.api.reporting.evidence.ReportEvidenceTable;
 import atf.api.reporting.evidence.markup.ReportEvidenceMarkup;
+import atf.api.reporting.evidence.markup.UiFlowProvenanceMarkup;
 import atf.api.reporting.markup.AtfReportLabels;
 import atf.api.reporting.markup.AtfReportMarkup;
 import atf.api.reporting.markup.table.ReportTableViewport;
@@ -21,6 +22,7 @@ import atf.api.reporting.markup.vocabulary.AtfReportHtmlVocabulary;
 import atf.api.reporting.model.ReportExecutionModel;
 import atf.api.reporting.model.ReportField;
 import atf.api.reporting.model.ReportJsonBody;
+import atf.api.reporting.model.ReportScreenshot;
 import atf.api.reporting.api.ReportModelAdapters;
 import atf.api.reporting.ui.network.ReportNetworkAggregateMarkup;
 import atf.api.reporting.ui.network.ReportNetworkInspector;
@@ -100,6 +102,10 @@ public final class HtmlReportEvidenceView {
         renderTable(html, AtfReportHtmlVocabulary.classList(HELM_EVIDENCE_TABLE, HELM_TRACE_TABLE), details);
         renderJsonBodies(html, json, RESPONSE_JSON_BODY);
         html.append(closeTag(DIV)).append(ReportEvidenceMarkup.disclosureEnd());
+    }
+
+    public void renderUiFlowProvenance(StringBuilder html, ReportExecutionModel.Request request) {
+        html.append(UiFlowProvenanceMarkup.render(request.details(), redactor));
     }
 
     private void renderTable(StringBuilder html, String cssClass, List<ReportField> details) {
@@ -188,7 +194,8 @@ public final class HtmlReportEvidenceView {
                 .append(ReportEvidenceMarkup.statusBadge(validation.status()))
                 .append(closeTag(DIV));
         renderUiEvidence(html, validation);
-        html.append(ReportTableViewport.ASSERTIONS.open())
+        if (!validation.assertions().isEmpty()) {
+            html.append(ReportTableViewport.ASSERTIONS.open())
                 .append(openTag(TABLE, classAttribute(ASSERTIONS)))
                 .append(openTag(THEAD)).append(openTag(TR))
                 .append(openTag(TH)).append(AtfReportLabels.ASSERTION).append(closeTag(TH))
@@ -196,16 +203,17 @@ public final class HtmlReportEvidenceView {
                 .append(openTag(TH)).append(AtfReportLabels.ACTUAL).append(closeTag(TH))
                 .append(openTag(TH)).append(AtfReportLabels.RESULT).append(closeTag(TH))
                 .append(closeTag(TR)).append(closeTag(THEAD)).append(openTag(TBODY));
-        for (AtfAssertion row : validation.assertions()) {
-            html.append(openTag(TR)).append(openTag(TD)).append(escape(redactor.redactText(row.name())))
-                    .append(closeTag(TD)).append(openTag(TD))
-                    .append(escape(redactor.redactField(row.name(), row.expected()))).append(closeTag(TD))
-                    .append(openTag(TD)).append(escape(redactor.redactField(row.name(), row.actual())))
-                    .append(closeTag(TD)).append(openTag(TD))
-                    .append(ReportEvidenceMarkup.statusBadge(row.resultStatus()))
-                    .append(closeTag(TD)).append(closeTag(TR));
+            for (AtfAssertion row : validation.assertions()) {
+                html.append(openTag(TR)).append(openTag(TD)).append(escape(redactor.redactText(row.name())))
+                        .append(closeTag(TD)).append(openTag(TD))
+                        .append(escape(redactor.redactField(row.name(), row.expected()))).append(closeTag(TD))
+                        .append(openTag(TD)).append(escape(redactor.redactField(row.name(), row.actual())))
+                        .append(closeTag(TD)).append(openTag(TD))
+                        .append(ReportEvidenceMarkup.statusBadge(row.resultStatus()))
+                        .append(closeTag(TD)).append(closeTag(TR));
+            }
+            html.append(closeTag(TBODY)).append(closeTag(TABLE)).append(closeTag(DIV));
         }
-        html.append(closeTag(TBODY)).append(closeTag(TABLE)).append(closeTag(DIV));
         validation.children().forEach(child -> {
             if (child instanceof ReportExecutionModel.Request request) {
                 renderNestedRequest(html, request);
@@ -221,9 +229,12 @@ public final class HtmlReportEvidenceView {
                 action.durationMillis(), action.status(), action.source())).toList();
         var actions = rows.stream().filter(row -> row.source() == AtfUiEvidenceSource.ACTION).toList();
         var observations = rows.stream().filter(row -> row.source() == AtfUiEvidenceSource.OBSERVE).toList();
-        html.append(new ExtentUiActionRenderer(settings).markup(actions, List.of()))
+        var screenshots = ExtentReportAssets.distinctScreenshotModels(validation.screenshots());
+        boolean inlineScreenshot = !actions.isEmpty() && screenshots.size() == 1;
+        html.append(new ExtentUiActionRenderer(settings).markup(actions,
+                        inlineScreenshot ? screenshots : List.of()))
                 .append(new ExtentUiObservationRenderer(settings).markup(observations));
-        for (var screenshot : ExtentReportAssets.distinctScreenshotModels(validation.screenshots())) {
+        for (ReportScreenshot screenshot : inlineScreenshot ? List.<ReportScreenshot>of() : screenshots) {
             html.append(ExtentReportAssets.base64ScreenshotLink(
                     AtfReportHtmlVocabulary.CssClass.ATF_UI_ACTION_SCREENSHOT_LINK.value(),
                     redactor.redactText(screenshot.title()), screenshot.base64Png()));

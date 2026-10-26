@@ -1,43 +1,45 @@
-package atf.ui.practiceshop.support.api;
+package atf.ui.tests.practiceshop.api.network;
 
 import atf.api.core.http.protocol.ApiUris;
-import atf.api.core.http.protocol.HttpHeaderProfiles;
 import atf.api.core.http.request.HttpMethod;
 import atf.api.testkit.AtfComponentTest;
+import atf.api.reporting.contract.AtfAssertion;
+import atf.ui.practiceshop.support.api.ShopApiNetworkJournal;
+import atf.ui.practiceshop.support.api.ShopApiEvidenceMapper;
 import atf.api.reporting.ui.network.ReportNetworkAggregateMarkup;
 import atf.api.reporting.ui.network.ReportNetworkInspector;
 import atf.api.ui.config.UiNetworkInspectionConfiguration;
 import atf.api.ui.network.UiNetworkInspector;
 import atf.api.ui.network.UiNetworkObservation;
 import atf.ui.practiceshop.api.ShopApiRoutes;
-import atf.api.core.http.request.HttpHeader;
-import atf.api.core.http.request.MediaTypes;
 import atf.ui.practiceshop.config.api.ShopApiCheckpoint;
 import atf.ui.practiceshop.config.api.ShopApiEvidenceBinding;
 import atf.ui.practiceshop.config.ShopValidationProfile;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.time.Instant;
 
+import static atf.ui.tests.practiceshop.api.network.ShopApiJournalFixture.capture;
+import static atf.ui.tests.practiceshop.api.network.ShopApiJournalFixture.exchange;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @AtfComponentTest
 class ShopApiNetworkJournalTest {
-    private static final Map<String, String> JSON = HttpHeaderProfiles.JSON_CONTENT;
 
     @Test
     void selectedEvidencePublishesOnlyConfiguredAndValidatedCheckpointsInCaptureOrder() {
         var journal = new ShopApiNetworkJournal(ShopValidationProfile.UI_API,
                 ShopApiEvidenceBinding.fromCsv(ShopValidationProfile.UI_API, "product"));
-        journal.recordCapturedExchange(exchange(HttpMethod.GET.value(), "/session/status", "{}", "{}"));
-        journal.recordCapturedExchange(exchange(HttpMethod.GET.value(), "/session/status", "{}", "{}"));
-        journal.recordCapturedExchange(exchange(HttpMethod.GET.value(), "/products/search?q=Widget",
+        capture(journal, exchange(HttpMethod.GET.value(), "/session/status", "{}", "{}"));
+        capture(journal, exchange(HttpMethod.GET.value(), "/session/status", "{}", "{}"));
+        capture(journal, exchange(HttpMethod.GET.value(), "/products/search?q=Widget",
                 "", "{\"data\":[{\"id\":\"p1\",\"name\":\"Widget\"}]}"));
-        journal.recordCapturedExchange(exchange(HttpMethod.GET.value(), ShopApiRoutes.product("p1"),
+        capture(journal, exchange(HttpMethod.GET.value(), ShopApiRoutes.product("p1"),
                 "", "{\"id\":\"p1\",\"name\":\"Widget\"}"));
 
         journal.productReady("Widget", null);
@@ -47,18 +49,30 @@ class ShopApiNetworkJournalTest {
                 .map(evidence -> evidence.trace().eventId()).toList());
         assertTrue(selected.stream().allMatch(evidence ->
                 evidence.request().path().startsWith("/products")));
-        assertEquals(List.of("/session/status", "/session/status", "/products/search?q=Widget",
+        assertEquals(List.of("/session/status", "/session/status", "/products/search?redacted-query",
                         "/products/p1"), journal.allEvidence().stream()
                 .map(evidence -> evidence.request().path()).toList());
         assertEquals(4, journal.allEvidence().size());
     }
 
     @Test
+    void observedValueMappingRetainsTheCapturedPathBeforeInspectorRedaction() {
+        String capturedPath = "/products/search?q=Widget";
+        var observed = exchange(HttpMethod.GET.value(), capturedPath, "", "{}");
+
+        var evidence = ShopApiEvidenceMapper.toExecution(observed);
+
+        assertEquals(capturedPath, evidence.request().path());
+        assertEquals("Widget", evidence.request().query().get("q"));
+        assertEquals(capturedPath, observed.path());
+    }
+
+    @Test
     void unboundRequestsAreRetainedButNotPublishedRegardlessOfTheirRoute() {
         var journal = new ShopApiNetworkJournal(ShopValidationProfile.UI_API,
                 ShopApiEvidenceBinding.fromCsv(ShopValidationProfile.UI_API, "product"));
-        journal.recordCapturedExchange(exchange(HttpMethod.GET.value(), "/session/status", "{}", "{}"));
-        journal.recordCapturedExchange(exchange(HttpMethod.GET.value(), "/session/status", "{}", "{}"));
+        capture(journal, exchange(HttpMethod.GET.value(), "/session/status", "{}", "{}"));
+        capture(journal, exchange(HttpMethod.GET.value(), "/session/status", "{}", "{}"));
 
         assertTrue(journal.selectedEvidence().isEmpty());
         assertEquals(List.of("/session/status", "/session/status"), journal.allEvidence().stream()
@@ -70,7 +84,7 @@ class ShopApiNetworkJournalTest {
     void orderEvidenceIsSelectedOnlyAtTheFinalOrderCheckpoint() {
         var journal = new ShopApiNetworkJournal(ShopValidationProfile.UI_API,
                 ShopApiEvidenceBinding.fromCsv(ShopValidationProfile.UI_API, "order"));
-        journal.recordCapturedExchange(exchange(HttpMethod.POST.value(), ShopApiRoutes.GUEST_INVOICE_CREATE, "{}",
+        capture(journal, exchange(HttpMethod.POST.value(), ShopApiRoutes.GUEST_INVOICE_CREATE, "{}",
                 "{\"id\":\"order-1\",\"invoice_number\":\"INV-1\",\"total\":24.02}"));
 
         var assertions = journal.orderCreated(0L, "Thanks for your order! Invoice INV-1");
@@ -86,7 +100,7 @@ class ShopApiNetworkJournalTest {
     void authenticatedOrderRouteIsSelectedByTheSameBusinessOperation() {
         var journal = new ShopApiNetworkJournal(ShopValidationProfile.UI_API,
                 ShopApiEvidenceBinding.fromCsv(ShopValidationProfile.UI_API, "order"));
-        journal.recordCapturedExchange(exchange(HttpMethod.POST.value(), ShopApiRoutes.INVOICE_CREATE, "{}",
+        capture(journal, exchange(HttpMethod.POST.value(), ShopApiRoutes.INVOICE_CREATE, "{}",
                 "{\"id\":\"order-2\",\"invoice_number\":\"INV-2\",\"total\":24.02}"));
 
         var assertions = journal.orderCreated(0L, "Thanks for your order! Invoice INV-2");
@@ -102,14 +116,14 @@ class ShopApiNetworkJournalTest {
     void orderEvidenceCannotReuseAnOrderCapturedBeforeTheConfirmFence() {
         var journal = new ShopApiNetworkJournal(ShopValidationProfile.UI_API,
                 ShopApiEvidenceBinding.fromCsv(ShopValidationProfile.UI_API, "order"));
-        journal.recordCapturedExchange(exchange(HttpMethod.POST.value(), ShopApiRoutes.GUEST_INVOICE_CREATE, "{}",
+        capture(journal, exchange(HttpMethod.POST.value(), ShopApiRoutes.GUEST_INVOICE_CREATE, "{}",
                 "{\"id\":\"old\",\"invoice_number\":\"INV-OLD\",\"total\":24.02}"));
         long fence = journal.sequenceMarker();
 
         var assertions = journal.orderCreated(fence,
                 "Thanks for your order! Your invoice number is INV-NEW.");
 
-        assertFalse(assertions.stream().anyMatch(atf.api.reporting.contract.AtfAssertion::passed));
+        assertFalse(assertions.stream().anyMatch(AtfAssertion::passed));
         assertTrue(journal.evidence(ShopApiCheckpoint.ORDER).isEmpty());
     }
 
@@ -118,7 +132,7 @@ class ShopApiNetworkJournalTest {
         var journal = new ShopApiNetworkJournal(ShopValidationProfile.UI_API,
                 ShopApiEvidenceBinding.fromCsv(ShopValidationProfile.UI_API, "registration"));
         long fence = journal.sequenceMarker();
-        journal.recordCapturedExchange(exchange("api.practicesoftwaretesting.com", HttpMethod.POST.value(), "/users/register",
+        capture(journal, exchange("api.practicesoftwaretesting.com", HttpMethod.POST.value(), "/users/register",
                 "{\"first_name\":\"Ada\",\"last_name\":\"Lovelace\","
                         + "\"email\":\"ada@owned.example\",\"password\":\"Secret!123\","
                         + "\"street\":\"Secret Street\",\"phone\":\"0700000000\"}",
@@ -129,7 +143,7 @@ class ShopApiNetworkJournalTest {
         var evidence = journal.evidence(ShopApiCheckpoint.REGISTRATION).getFirst();
         String published = evidence.request().bodyText() + evidence.response().body();
 
-        assertTrue(assertions.stream().allMatch(atf.api.reporting.contract.AtfAssertion::passed));
+        assertTrue(assertions.stream().allMatch(AtfAssertion::passed));
         assertEquals("account-setup", evidence.trace().phase());
         assertEquals("/users/register", evidence.request().path());
         for (String personalValue : List.of("Ada", "Lovelace", "ada@owned.example", "Secret!123",
@@ -144,18 +158,18 @@ class ShopApiNetworkJournalTest {
         var journal = new ShopApiNetworkJournal(ShopValidationProfile.UI_API,
                 ShopApiEvidenceBinding.fromCsv(ShopValidationProfile.UI_API, "registration,login"));
         long registrationFence = journal.sequenceMarker();
-        journal.recordCapturedExchange(exchange("api.practicesoftwaretesting.com", HttpMethod.POST.value(),
+        capture(journal, exchange("api.practicesoftwaretesting.com", HttpMethod.POST.value(),
                 "/users/register", "{}", "{\"id\":\"user-1\"}"));
         var registration = journal.registrationConfirmed(registrationFence,
                 ApiUris.httpsEndpoint("api.practicesoftwaretesting.com"));
-        journal.recordCapturedExchange(exchange("api.practicesoftwaretesting.com", HttpMethod.POST.value(),
+        capture(journal, exchange("api.practicesoftwaretesting.com", HttpMethod.POST.value(),
                 ShopApiRoutes.LOGIN,
                 "{\"email\":\"user@example.test\",\"password\":\"secret\"}",
                 "{\"access_token\":\"redacted\"}"));
         var login = journal.loginConfirmed(null, null);
 
-        assertTrue(registration.stream().allMatch(atf.api.reporting.contract.AtfAssertion::passed));
-        assertTrue(login.stream().allMatch(atf.api.reporting.contract.AtfAssertion::passed));
+        assertTrue(registration.stream().allMatch(AtfAssertion::passed));
+        assertTrue(login.stream().allMatch(AtfAssertion::passed));
         assertEquals(1, journal.evidence(ShopApiCheckpoint.REGISTRATION).size());
         assertEquals(1, journal.evidence(ShopApiCheckpoint.LOGIN).size());
         assertEquals(List.of("E1", "E2"), journal.selectedEvidence().stream()
@@ -171,7 +185,7 @@ class ShopApiNetworkJournalTest {
         var secondScenario = new ShopApiNetworkJournal(ShopValidationProfile.UI_API,
                 ShopApiEvidenceBinding.fromCsv(ShopValidationProfile.UI_API, "login"));
         for (var journal : List.of(firstScenario, secondScenario)) {
-            journal.recordCapturedExchange(exchange(HttpMethod.POST.value(), ShopApiRoutes.LOGIN,
+            capture(journal, exchange(HttpMethod.POST.value(), ShopApiRoutes.LOGIN,
                     "{}", "{\"access_token\":\"redacted\"}"));
             journal.loginConfirmed(null, null);
         }
@@ -186,7 +200,7 @@ class ShopApiNetworkJournalTest {
     void ordinaryApiExchangesRedactIdentityFieldsBeforeEnteringTheJournal() {
         var journal = new ShopApiNetworkJournal(ShopValidationProfile.UI_API,
                 ShopApiEvidenceBinding.fromCsv(ShopValidationProfile.UI_API, "order"));
-        journal.recordCapturedExchange(exchange(HttpMethod.POST.value(), ShopApiRoutes.GUEST_INVOICE_CREATE,
+        capture(journal, exchange(HttpMethod.POST.value(), ShopApiRoutes.GUEST_INVOICE_CREATE,
                 "{\"firstName\":\"Ada\",\"email\":\"ada.private@example.test\","
                         + "\"address\":{\"city\":\"Hidden City\",\"postalCode\":\"10101\"}}",
                 "{\"phone\":\"0700000000\",\"result\":\"accepted\"}"));
@@ -205,9 +219,9 @@ class ShopApiNetworkJournalTest {
         var journal = new ShopApiNetworkJournal(ShopValidationProfile.UI_API,
                 ShopApiEvidenceBinding.fromCsv(ShopValidationProfile.UI_API, "registration"));
         long fence = journal.sequenceMarker();
-        journal.recordCapturedExchange(exchange("api.practicesoftwaretesting.com", HttpMethod.POST.value(),
+        capture(journal, exchange("api.practicesoftwaretesting.com", HttpMethod.POST.value(),
                 "/users/register", "{}", "{}"));
-        journal.recordCapturedExchange(exchange("api.practicesoftwaretesting.com", HttpMethod.POST.value(),
+        capture(journal, exchange("api.practicesoftwaretesting.com", HttpMethod.POST.value(),
                 "/users/register", "{}", "{}"));
 
         var assertions = journal.registrationConfirmed(fence,
@@ -223,15 +237,15 @@ class ShopApiNetworkJournalTest {
         var journal = new ShopApiNetworkJournal(ShopValidationProfile.UI_API,
                 ShopApiEvidenceBinding.fromCsv(ShopValidationProfile.UI_API, "registration"));
         long fence = journal.sequenceMarker();
-        journal.recordCapturedExchange(exchange("telemetry.test", HttpMethod.POST.value(), "/events", "{}", "{}"));
-        journal.recordCapturedExchange(exchange("api.practicesoftwaretesting.com", HttpMethod.POST.value(),
+        capture(journal, exchange("telemetry.test", HttpMethod.POST.value(), "/events", "{}", "{}"));
+        capture(journal, exchange("api.practicesoftwaretesting.com", HttpMethod.POST.value(),
                 "/dynamic-registration-route", "{}", "{}"));
 
         var assertions = journal.registrationConfirmed(fence,
-                java.net.URI.create(ApiUris.httpsUrl(
+                URI.create(ApiUris.httpsUrl(
                         "api.practicesoftwaretesting.com", "/v1")));
 
-        assertTrue(assertions.stream().allMatch(atf.api.reporting.contract.AtfAssertion::passed));
+        assertTrue(assertions.stream().allMatch(AtfAssertion::passed));
         assertEquals(1, journal.evidence(ShopApiCheckpoint.REGISTRATION).size());
         assertEquals("/dynamic-registration-route", journal.evidence(ShopApiCheckpoint.REGISTRATION)
                 .getFirst().request().path());
@@ -264,9 +278,9 @@ class ShopApiNetworkJournalTest {
         var journal = new ShopApiNetworkJournal(ShopValidationProfile.UI_API,
                 ShopApiEvidenceBinding.fromCsv(ShopValidationProfile.UI_API, "product"),
                 host -> "shop.test".equals(host) ? "Practice Shop API" : host);
-        journal.recordCapturedExchange(exchange(HttpMethod.GET.value(), "/products/search?q=Widget",
+        capture(journal, exchange(HttpMethod.GET.value(), "/products/search?q=Widget",
                 "", "{\"data\":[{\"id\":\"p1\",\"name\":\"Widget\"}]}") );
-        journal.recordCapturedExchange(exchange(HttpMethod.GET.value(), ShopApiRoutes.product("p1"),
+        capture(journal, exchange(HttpMethod.GET.value(), ShopApiRoutes.product("p1"),
                 "", "{\"id\":\"p1\",\"name\":\"Widget\"}"));
 
         journal.productReady("Widget", null);
@@ -304,19 +318,4 @@ class ShopApiNetworkJournalTest {
         assertTrue(markup.contains("net::ERR_CONNECTION_RESET"));
     }
 
-    private static ShopApiNetworkJournal.Exchange exchange(String method, String path,
-                                                                    String requestBody, String responseBody) {
-        return new ShopApiNetworkJournal.Exchange(method, path,
-                ApiUris.httpsUrl("shop.test", path), 200,
-                requestBody, responseBody,
-                Map.of(HttpHeader.ACCEPT.value(), MediaTypes.APPLICATION_JSON), JSON);
-    }
-
-    private static ShopApiNetworkJournal.Exchange exchange(String host, String method, String path,
-                                                                    String requestBody, String responseBody) {
-        return new ShopApiNetworkJournal.Exchange(method, path,
-                ApiUris.httpsUrl(host, path), 200,
-                requestBody, responseBody,
-                Map.of(HttpHeader.ACCEPT.value(), MediaTypes.APPLICATION_JSON), JSON);
-    }
 }

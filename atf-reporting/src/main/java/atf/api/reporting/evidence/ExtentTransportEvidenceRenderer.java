@@ -11,6 +11,7 @@ import atf.api.reporting.markup.ExtentReportAssets;
 import atf.api.reporting.markup.vocabulary.AtfReportHtmlVocabulary;
 import atf.api.reporting.contract.AtfReportStatus;
 import atf.api.reporting.evidence.markup.ReportEvidenceMarkup;
+import atf.api.reporting.evidence.markup.UiFlowProvenanceMarkup;
 import atf.api.reporting.evidence.markup.ReportEvidenceDisclosure;
 import atf.api.reporting.evidence.markup.ReportEvidenceJsonFormatter;
 import atf.api.reporting.evidence.diagnostic.ReportPhaseDiagnosticMarkup;
@@ -66,6 +67,11 @@ public final class ExtentTransportEvidenceRenderer {
                 AtfReportHtmlVocabulary.CssClass.RESPONSE_EVIDENCE.value(),
                 AtfReportLabels.responseDetails(responseDetails.size()),
                 responseEvidenceMarkup(responseDetails, responseJson)));
+    }
+
+    void renderUiFlowProvenance(ExtentTest node, List<ReportField> details) {
+        String markup = UiFlowProvenanceMarkup.render(details, redactor);
+        if (!markup.isBlank()) node.info(markup);
     }
 
     void renderSetupEvidence(ExtentTest node, List<ReportField> details) {

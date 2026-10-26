@@ -298,8 +298,9 @@ src/test/java/<owner>/
 - [ ] Fiecare clasă executabilă declară exact un layer prin adnotare.
 - [ ] Adnotarea este sursa de adevăr; path-ul este doar convenție și diagnostic.
 - [ ] Nu se creează directoare goale pentru layere inexistente.
-- [ ] Support-ul nu devine layer executabil; lifecycle-ul browserului aparține
-      unui harness explicit din `src/test`, nu suportului livrat în `src/main`.
+- [ ] Support-ul nu devine layer executabil. Store-ul și extensia JUnit sunt
+      test-only; runtime-ul main poate deține resurse prin porturi explicite,
+      fără dependențe JUnit/Kit și cu probe pentru achiziție și cleanup.
 - [ ] E2E rămâne mic, configurabil și selectează scenarii punctuale prin
       adnotări/configurație typed.
 - [ ] Combinațiile exhaustive sunt coborâte în unit/component/integration.

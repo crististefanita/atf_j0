@@ -98,9 +98,22 @@ public class ConsumerModuleArchitectureGovernanceTest {
         assertFalse(componentSuite.contains("atf.ui.tests.practiceshop.e2e"));
         assertFalse(componentSuite.contains("atf.ui.tests.practiceshop.api.integration"));
 
-        String localApi = "atf.ui.practiceshop.support.api";
-        assertTrue(componentSuite.contains("\"" + localApi + "\""),
-                "package-private API adapter contracts must not be orphaned");
+        assertFalse(componentSuite.contains("\"atf.ui.practiceshop.support.api\""),
+                "Shop API tests belong to the canonical test namespace");
+        Path legacy = module("atf-test-practice-shop").resolve(
+                "src/test/java/atf/ui/practiceshop/support/api");
+        assertTrue(javaFiles(legacy).isEmpty(), "do not restore tests under the runtime namespace");
+        Path network = tests.resolve("api/network");
+        for (String contract : List.of("ShopApiNetworkJournalTest", "ShopApiMethodFidelityTest")) {
+            String source = Files.readString(network.resolve(contract + ".java"));
+            assertTrue(source.startsWith("package atf.ui.tests.practiceshop.api.network;"));
+            assertFalse(source.contains(".recordCapturedExchange("),
+                    "consumer contracts must exercise public capture subscriptions");
+        }
+        String journal = Files.readString(module("atf-test-practice-shop").resolve(
+                "src/main/java/atf/ui/practiceshop/support/api/ShopApiNetworkJournal.java"));
+        assertTrue(journal.contains("private void recordCapturedExchange("),
+                "moving tests must not widen the runtime recorder");
         String context = Files.readString(tests.resolve("support/lifecycle/ShopE2eContext.java"));
         assertTrue(context.contains("ReportModelAdapters.uiActions("),
                 "the consumer must call the canonical typed mapper");

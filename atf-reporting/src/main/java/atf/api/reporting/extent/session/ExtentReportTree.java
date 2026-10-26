@@ -208,6 +208,10 @@ public final class ExtentReportTree {
         evidence.renderResponseDetails(node, details, json);
     }
 
+    public void renderUiFlowProvenance(ExtentTest node, List<ReportField> details) {
+        evidence.renderUiFlowProvenance(node, details);
+    }
+
     public void renderSetupEvidence(ExtentTest node, List<ReportField> details) {
         evidence.renderSetupEvidence(node, details);
     }

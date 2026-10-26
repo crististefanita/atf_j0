@@ -5,8 +5,9 @@ ownerului; rapoartele și rezultatele unei rulări nu devin documentație perman
 
 ## Pe scurt
 
-- Reporting: lizibilitatea tabelelor foarte imbricate în panouri înguste.
-  Corelarea aserțiunii UI cu excepția propagată este livrată la owner.
+- Reporting: lizibilitatea tabelelor imbricate în panouri înguste rămâne
+  deschisă. Flow-ul UI-only cu un singur set de tabele și corelarea eșecurilor
+  sunt livrate la [owner](../../atf-reporting/README.md).
 
 - AutoEx: contractul livrat pentru Delete account, Close JavaScript la 70% și
   separarea navigării de traficul browser este în [README-ul modulului](../../atf-test-auto-ex/README.md#delete-account--navigare-întreruptă).
@@ -28,11 +29,12 @@ lor. Gap-urile secundare rămân vizibile în documentul ownerului.
 
 | Ordine | Feedback / owner | Scor /100 | Lacuna care decide ordinea |
 |---:|---|---:|---|
-| 1 | [Consumer — refactorizare E2E](ATF_Consumer_Business_Test_Focus_Feedback.md) | **82** = 31 + 23 + 20 + 8 | separarea responsabilităților runtime rămase; apoi configurare evidence (80), intenții lizibile (67), launcher Reporting (58) și reducerea repetării live (57) |
+| 1 | [Consumer — refactorizare E2E](ATF_Consumer_Business_Test_Focus_Feedback.md) | **80** = 30 + 22 + 20 + 8 | evidence și Overview fidel (80), corelare UI/transport AutoEx (78), runtime Shop (77), adnotări compuse (67), launcher Reporting (58), repetare live (57) |
 | 2 | [ATF UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ; activarea JavaScript explicită nu închide această limită |
-| 3 | [Reporting](ATF_Reporting_Feedback.md) | **64** = 28 + 18 + 14 + 4 | lizibilitatea nesting-ului îngust |
-| 4 | [Documentație — ancore](#doc-link-anchor-01--validarea-automată-a-ancorelor) | **44** = 14 + 11 + 15 + 4 | guard-ul validează fișierul local, dar elimină fragmentul înaintea verificării; ancora lipsă nu este detectată |
-| 5 | [Shop API — audit standalone](ATF_Practice_Shop_API_Test_Design_Feedback.md) | **33** = 10 + 5 + 15 + 3 | HTTP este probat; randarea interactivă a raportului consumerului trebuie încă atestată |
+| 3 | [Shop API — diagnostic și randare](ATF_Practice_Shop_API_Test_Design_Feedback.md) | **66** = 25 + 19 + 16 + 6 | timeout înainte de login fără artifact FAIL; separat, auditul interactiv standalone (33) |
+| 4 | [Reporting](ATF_Reporting_Feedback.md) | **64** = 28 + 18 + 14 + 4 | lizibilitatea tabelelor imbricate în panouri înguste |
+| 5 | [Documentație — ancore](#doc-link-anchor-01--validarea-automată-a-ancorelor) | **44** = 14 + 11 + 15 + 4 | guard-ul validează fișierul local, dar elimină fragmentul înaintea verificării; ancora lipsă nu este detectată |
+
 
 Ordinea nu înlocuiește criteriul de închidere. O componentă verde nu certifică
 un flow remote, iar succesul live nu certifică toate politicile sau randarea.

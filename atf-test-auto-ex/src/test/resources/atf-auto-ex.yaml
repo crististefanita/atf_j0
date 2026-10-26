@@ -11,6 +11,10 @@ automationExercise:
       height: 1000
     # Only the visible vignette Close opts into JavaScript; ordinary business clicks remain pointer actions.
     zoomPercent: 70
+    # Total document attempts, including the first load; only explicit queue-full GET reads may recover.
+    storeAvailability:
+      maxAttempts: 3
+      backoff: PT2S
     networkInspection:
       includeDocuments: false
       maxObservations: 256

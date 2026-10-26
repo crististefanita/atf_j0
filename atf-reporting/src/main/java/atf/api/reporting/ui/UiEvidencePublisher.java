@@ -19,6 +19,7 @@ import atf.api.reporting.markup.AtfReportEvidenceKeys;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Publishes the concrete UI evidence attached to one report phase.
@@ -285,6 +286,7 @@ public final class UiEvidencePublisher {
                                       List<UiScenarioLifecycle.PhaseCheckpoint> entries,
                                       AtfReportStatus finalStatus) {
         if (entries.isEmpty()) return;
+        Optional<CompactUiFlow> compact = compactUiOnlyFlow(entries, finalStatus);
         List<UiUnifiedFlowCheckpoint> checkpoints = entries.stream()
                 .map(UiScenarioLifecycle.PhaseCheckpoint::checkpoint).toList();
         var flow = phase.startRequest(unifiedProposition(checkpoints), "", "");
@@ -293,6 +295,10 @@ public final class UiEvidencePublisher {
                     AtfReportEvidenceKeys.UNIFIED_UI_FLOW);
             flow.detail(AtfReportEvidenceKeys.FLOW_MODE,
                     ReportEvidenceFlowMode.UNIFIED_FLOW.configValue());
+            if (compact.isPresent()) {
+                flow.detail(AtfReportEvidenceKeys.FLOW_PRESENTATION,
+                        AtfReportEvidenceKeys.COMPACT_UI_ONLY);
+            }
             if (hasText(scenarioTitle)) flow.detail(AtfReportEvidenceKeys.FLOW_SCENARIO, scenarioTitle);
             flow.detail(AtfReportEvidenceKeys.FLOW_PHASE,
                     entries.stream().map(UiScenarioLifecycle.PhaseCheckpoint::phase)
@@ -309,7 +315,8 @@ public final class UiEvidencePublisher {
                 flow.detail(prefix + ".phaseStatus", AtfReportStatus.orInfo(entry.phaseStatus()).displayValue());
                 flow.detail(prefix + ".step", checkpoint.gherkinTitle());
                 flow.detail(prefix + ".status", checkpointStatus.displayValue());
-                if (isUiEvidence(checkpoint) || "Setup validation".equals(checkpoint.validationTitle())) {
+                if (compact.isEmpty() && (isUiEvidence(checkpoint)
+                        || "Setup validation".equals(checkpoint.validationTitle()))) {
                     var validation = flow.startValidation(entry.phase() + " · " + checkpoint.validationTitle());
                     try {
                         publishActions(validation, checkpoint.actions());
@@ -330,11 +337,62 @@ public final class UiEvidencePublisher {
                     }
                 }
             }
+            if (compact.isPresent()) {
+                CompactUiFlow evidence = compact.orElseThrow();
+                var validation = flow.startValidation("UI validation");
+                try {
+                    publishActions(validation, evidence.actions());
+                    if (evidence.terminalScreenshot() != null) {
+                        publishUnifiedScreenshot(validation, evidence.terminalScreenshot(), evidence.status());
+                    }
+                    validation.assertions(evidence.assertions());
+                    validation.complete(evidence.status());
+                } finally {
+                    validation.close();
+                }
+            }
             flow.complete(aggregate);
         } finally {
             flow.close();
         }
     }
+
+    /** Preserve source objects and encounter order; only their visual projection is joined. */
+    private Optional<CompactUiFlow> compactUiOnlyFlow(
+            List<UiScenarioLifecycle.PhaseCheckpoint> entries, AtfReportStatus finalStatus) {
+        if (finalStatus != AtfReportStatus.PASS
+                || entries.stream().map(UiScenarioLifecycle.PhaseCheckpoint::phase).distinct().count() < 2
+                || entries.stream().noneMatch(entry -> "TEST BODY".equals(entry.phase()))
+                || entries.stream().noneMatch(entry -> isUiEvidence(entry.checkpoint()))) {
+            return Optional.empty();
+        }
+        var actions = new java.util.ArrayList<AtfUiActionRecord>();
+        var assertions = new java.util.ArrayList<AtfAssertion>();
+        UiUnifiedFlowCheckpoint terminalScreenshot = null;
+        for (var entry : entries) {
+            UiUnifiedFlowCheckpoint checkpoint = entry.checkpoint();
+            if (entry.phaseStatus() != AtfReportStatus.PASS || checkpoint.status() != AtfReportStatus.PASS
+                    || !checkpoint.apiValidation().isEmpty()
+                    || checkpoint.actions().stream().anyMatch(action ->
+                            action.status().severity() > AtfReportStatus.PASS.severity())
+                    || checkpoint.assertions().stream().anyMatch(assertion ->
+                            assertion.resultStatus() != AtfReportStatus.PASS)) return Optional.empty();
+            actions.addAll(checkpoint.actions());
+            assertions.addAll(checkpoint.assertions());
+            if (shouldPublish(checkpoint.base64Png(), checkpoint.capturePoint())) {
+                if (terminalScreenshot != null
+                        || checkpoint.capturePoint() != ReportScreenshotPolicy.CapturePoint.FINAL
+                        || !"TEST BODY".equals(entry.phase())
+                        || checkpoint.mediaScreenshot()) return Optional.empty();
+                terminalScreenshot = checkpoint;
+            }
+        }
+        return Optional.of(new CompactUiFlow(List.copyOf(actions), List.copyOf(assertions),
+                terminalScreenshot, AtfReportStatus.PASS));
+    }
+
+    private record CompactUiFlow(List<AtfUiActionRecord> actions, List<AtfAssertion> assertions,
+                                 UiUnifiedFlowCheckpoint terminalScreenshot, AtfReportStatus status) { }
 
     /** Publishes an explicit standalone API trace with nested exchange evidence. */
     void publishApiTrace(String keyword, String title, String target,

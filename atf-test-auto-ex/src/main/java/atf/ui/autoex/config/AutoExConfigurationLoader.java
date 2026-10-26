@@ -110,7 +110,7 @@ public final class AutoExConfigurationLoader {
             }
             JsonNode browser = requiredNode(site, "browser");
             rejectUnknownFields(browser, "automationExercise.browser", "engine", "headless", "timeout",
-                    "navigationTimeout", "viewport", "zoomPercent", "networkInspection");
+                    "navigationTimeout", "viewport", "zoomPercent", "networkInspection", "storeAvailability");
             JsonNode viewport = requiredNode(browser, "viewport");
             rejectUnknownFields(viewport, "automationExercise.browser.viewport", "width", "height");
             UiBrowserConfiguration browserConfiguration = new UiBrowserConfiguration(baseUrl,
@@ -148,7 +148,8 @@ public final class AutoExConfigurationLoader {
                             requiredText(registration, "mobileNumber")),
                     new AutoExConfiguration.Payment(requiredText(payment, "nameOnCard"),
                             requiredText(payment, "cardNumber"), requiredText(payment, "cvc"),
-                            requiredText(payment, "expiryMonth"), requiredText(payment, "expiryYear")));
+                            requiredText(payment, "expiryMonth"), requiredText(payment, "expiryYear")),
+                    storeAvailability(browser));
         } catch (IOException | RuntimeException error) {
             if (error instanceof IllegalArgumentException argument) throw argument;
             throw new IllegalStateException("Invalid Automation Exercise configuration", error);
@@ -174,6 +175,18 @@ public final class AutoExConfigurationLoader {
                 integer(network, "maxObservations", 256),
                 integer(network, "maxBodyPreviewCharacters", 12000), true,
                 UiNetworkSettlementPolicy.disabled(), policy);
+    }
+
+    private static UiRetryPolicy storeAvailability(JsonNode browser) {
+        JsonNode settings = browser.path("storeAvailability");
+        if (!settings.isMissingNode() && !settings.isObject()) {
+            throw new IllegalArgumentException("storeAvailability must be a configuration object");
+        }
+        rejectUnknownFields(settings, "automationExercise.browser.storeAvailability", "maxAttempts", "backoff");
+        var defaults = AutoExConfiguration.DEFAULT_STORE_AVAILABILITY_POLICY;
+        return new UiRetryPolicy(integer(settings, "maxAttempts", defaults.maxAttempts()),
+                duration(settings, "backoff", defaults.backoff().toString()),
+                defaults.eligibleOperations(), defaults.reason());
     }
 
     private static void rejectUnknownFields(JsonNode node, String path, String... allowedFields) {

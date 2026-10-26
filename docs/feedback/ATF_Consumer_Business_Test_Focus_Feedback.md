@@ -16,125 +16,93 @@ documentară /10. Nu reprezintă o notă a codului sau un rezultat de test.
 
 | ID | Scor /100 | Intervenție |
 |---|---:|---|
-| `CONSUMER-RUNTIME-BOUNDARY-03` | 82 = 31 + 23 + 20 + 8 | runtime în main la owner, adaptor JUnit minim |
-| `CONSUMER-EVIDENCE-CONFIG-04` | 80 = 30 + 22 + 20 + 8 | un journey, axe de evidence independente și configurabile |
-| `CONSUMER-TEST-INTENT-05` | 67 = 27 + 18 + 16 + 6 | teste declarative și contracte mici, fără mascarea aserțiunilor |
+| `CONSUMER-EVIDENCE-CONFIG-04` | 80 = 30 + 22 + 20 + 8 | configurare completă a evidence-ului și Overview fidel profilurilor |
+| `AUTOEX-LIVE-AVAILABILITY-07` | 78 = 30 + 20 + 20 + 8 | corelarea răspunsului mutativ cu UI, fără replay |
+| `CONSUMER-RUNTIME-BOUNDARY-03` | 77 = 31 + 18 + 20 + 8 | separarea responsabilităților rămase în Shop |
+| `CONSUMER-TEST-INTENT-05` | 67 = 27 + 18 + 16 + 6 | compoziție declarativă cu resolver de evidence verificat |
 | `REPORTING-LAUNCHER-06` | 58 = 23 + 14 + 17 + 4 | un launcher canonic pentru aceeași selecție browser |
 | `CONSUMER-E2E-PROFILES-01` | 57 = 24 + 10 + 17 + 6 | reducerea repetării live numai după echivalență demonstrată |
 
-Ordinea urmărește ownership → runtime → configurare → intenții → selecții.
-Nu optimizăm numărul de clase înainte de a proteja scope-ul și verdictul.
+Contractele livrate de scope, runtime și prezentare sunt în README-urile
+[Shop](../../atf-test-practice-shop/README.md),
+[AutoEx](../../atf-test-auto-ex/README.md) și
+[Kit](../../atf-test-kit/README.md). Aici rămân diferențele de implementat.
+
+## CONSUMER-EVIDENCE-CONFIG-04 — același business, configurare completă
+
+**Owner:** consumerii rezolvă configurația și declarațiile; Reporting deține
+modelul și publicarea. Canalul, gruparea, capturile și acțiunile sunt axe distincte.
+
+| Lacună | Sursa curentă | Criteriu de închidere |
+|---|---|---|
+| Grupare configurată | [AutoExEvidenceProfileAdapter](../../atf-test-auto-ex/src/test/java/atf/ui/tests/autoex/extension/AutoExEvidenceProfileAdapter.java) mapează `CONFIGURED` la `SCREEN_CHECKPOINTS`; [ShopScreenshotPolicy](../../atf-test-practice-shop/src/main/java/atf/ui/practiceshop/reporting/ShopScreenshotPolicy.java) construiește aceeași bază | flow-ul implicit vine din configurația rezolvată, nu dintr-un default ascuns |
+| Detaliile acțiunilor | Shop are override prin `@WithE2eHarness`; nu există un plan YAML complet pentru ambii consumeri | configurare per axă, cu precedență și conflict explicit înaintea resurselor |
+| `CONSUMER-OVERVIEW-PROFILE-08` | System-ul raportului Shop partajat păstrează profilul primului scenariu, inclusiv API/capturi, deși frații pot fi UI-only sau unified | valorile comune sunt corecte pentru întregul artifact; diferențele sunt declarate ca mixte sau mutate la scenariul proprietar |
+
+- [ ] Rezolvați un plan imutabil per scenariu înainte de browser/report/mutații:
+      bază configurată, override explicit, diagnostic și canale permise.
+- [ ] Extindeți YAML-ul numai împreună cu loaderul și mapping-ul verificat.
+      `CONFIGURED` moștenește baza reală; canalul declarat nu este suprascris tacit.
+- [ ] Probați combinațiile și izolarea fraților în același artifact pe succes și
+      failure, inclusiv Overview/System. Precondiția API standalone nu dovedește
+      autentificarea sesiunii browser.
+- [ ] Pentru compactarea UI-only într-un singur set de tabele cross-phase,
+      păstrați testul existent și urmați [cerința Reporting](ATF_Reporting_Feedback.md#report-unified-tables-01--un-singur-set-de-tabele-pentru-flow-ul-ui-only).
+      Titlul unic și captura finală sunt necesare, dar nu închid agregarea.
+- [ ] Păstrați contractele existente: UI-only fără API evidence/inspector,
+      unified fără subpropoziții publicate, captură terminală după comandă și
+      UI/API sub checkpoint-ul cauzal. Detaliile sunt în
+      [contractul de captură](../ATF_Evidence_Capture_Contract.md).
+
+## AUTOEX-LIVE-AVAILABILITY-07 — indisponibilitatea nu este drift de selector
+
+**Owner:** AutoEx pentru corelarea răspunsului observat cu starea UI.
+Recunoașterea documentului queue-full, diagnosticul tipizat și recuperarea GET
+configurată sunt livrate în
+[README-ul modulului](../../atf-test-auto-ex/README.md#limita-disponibilității-serviciului-public).
+
+- [ ] Corelați explicit răspunsul XHR al mutației cu postcondiția UI, inclusiv
+      add-to-cart refuzat și modal absent. UI-only păstrează diagnosticul fără
+      API evidence; UI+API păstrează exchange-ul sub acțiunea cauzală.
+- [ ] Probați răspuns reușit, 5xx observat, request eșuat și lipsă de răspuns,
+      cu vecini controlați. Numai timeout-ul nu autorizează inferarea unui 503.
+- [ ] Păstrați FAIL și cauza observată, fără retry de click, creare/ștergere cont
+      ori plată. O execuție nouă cu identitate separată nu reia mutația incertă.
 
 ## CONSUMER-RUNTIME-BOUNDARY-03 — mai puțin suport local, nu un harness ascuns
 
-**Owner:** consumerul pentru runtime specific, Kit/UI/Reporting pentru
-capabilitățile neutre. Mutarea de fișiere fără separarea responsabilităților
-doar ascunde complexitatea.
+**Owner:** Shop pentru runtime-ul aplicației; Kit/UI/Reporting pentru
+capabilitățile neutre. Boundary-ul AutoEx este normat în
+[README-ul său](../../atf-test-auto-ex/README.md#coeziunea-suportului-autoex);
+mutarea acestuia în main nu mai este un ToDo.
 
-| Candidat live | Destinație de evaluat | Condiție înainte de mutare |
+| Candidat rămas | Separare cerută | Limită |
 |---|---|---|
-| `ShopReportSystemMetadata` | runtime/config Shop în main numai după separarea inputurilor | fără citire implicită a stării JVM, JUnit sau Kit |
-| `AutoExEvidenceProfile` | factory cu input Reporting la owner; bridge de adnotări minim | importă enum-uri Kit: nu poate fi mutat neschimbat în main AutoEx |
-| `ShopE2eContext` | runtime mic plus adaptor JUnit subțire | separați achiziția, observarea, publicarea și cleanup-ul, păstrând fațada |
-| scope-uri, inițializare, cleanup neutru | `atf-test-kit/src/main` existent | callbacks tipizate; fără Playwright, Reporting sau clase ale aplicației |
+| `ShopReportSystemMetadata` | inputuri rezolvate explicit, fără citire implicită a stării JVM; snapshot de sesiune distinct de profilul scenariului | fără JUnit/Kit în runtime; fidelitatea Overview este în `CONSUMER-EVIDENCE-CONFIG-04` |
+| `ShopE2eContext` | achiziție, publicare și lifecycle cu contracte mici, păstrând fațada business | nu mutați mecanic întregul context și nu dublați primitivele Kit |
 
-Separarea curentă este protejată de
-[ConsumerModuleArchitectureGovernanceTest](../../atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java).
-Acesta păstrează harness-ul și metadata Shop în test, cere cele două factory-uri
-pure în main și interzice JUnit/Kit în runtime-ul consumerilor. Ownership-ul
-livrat este în [README-ul Shop](../../atf-test-practice-shop/README.md#ce-deține-modulul).
+- [ ] Extrageți o responsabilitate odată; declarațiile, Store-ul și
+      ParameterResolver-ul rămân la granița JUnit.
+- [ ] Reutilizați primitivele din Kit existent, cu callbacks tipizate și fără
+      dependențe Kit către browser, Reporting sau aplicații.
+- [ ] Verificați achiziție parțială și eșec la captură, summary, publish și close;
+      cauza inițială și erorile secundare rămân disponibile.
+- [ ] Păstrați probele adaptorului și boundary-ul întărit de
+      [ConsumerModuleArchitectureGovernanceTest](../../atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java),
+      fără allowlist, prag mărit sau relaxarea scope-ului Maven.
 
-Runtime-ul AutoEx și profilul rezolvat sunt descrise în
-[README-ul AutoEx](../../atf-test-auto-ex/README.md#runtime-în-main-și-granița-junit).
-Guard-ul cere runtime-ul AutoEx în main și adaptoarele JUnit în `extension`;
-aici rămân numai responsabilitățile de separat.
+## CONSUMER-TEST-INTENT-05 — compoziție declarativă fără efecte ascunse
 
-- [ ] Extrageți câte o responsabilitate, păstrând testele business și API-ul
-      fațadei până când ambele adaptoare dovedesc noul contract.
-- [ ] Reutilizați `TestRunInitialization`, `CloseOnceResource`,
-      `FailureAwareCleanup`, `FailureEvidenceCleanup` și `ArmedCleanup`;
-      nu creați al doilea lifecycle sau un `BaseE2eTest` universal.
-- [ ] Păstrați condițiile JUnit, Store-ul și ParameterResolver-ul la granița de
-      execuție; promovați în Kit numai o extensie neutră cu contract comun demonstrat.
-- [ ] Nu lărgiți scope-ul Maven al Kit doar ca să compileze un helper mutat.
-      Reporting rămâne standalone; Kit și UI nu capătă dependențe circulare.
-- [ ] Pentru mapping-ul network → Reporting, păstrați un bridge explicit:
-      UI nu importă Reporting, iar biblioteca Reporting nu importă UI/Core.
-      Nu copiați mapperul între journey-uri și nu mutați bridge-ul în Kit.
-- [ ] Probați achiziție parțială și eșecuri la captură, publish, summary și close;
-      browserul se închide, resursa împrumutată nu se închide prematur.
-- [ ] Modificați guard-ul de source-set numai într-un increment explicit,
-      cu contractul echivalent și probele negative; fără allowlist sau prag mărit.
+**Owner:** Kit pentru vocabular/resolver neutru; consumerul pentru wiring.
+Regulile testului scurt sunt în [bunele practici](../README_Atf_CodeBestPractices.md);
+nu sunt un al doilea checklist de implementat.
 
-## CONSUMER-EVIDENCE-CONFIG-04 — același business, altă prezentare
-
-**Owner:** consumerii pentru rezolvare și wiring; Reporting pentru model și
-publicare. Canalul, gruparea, capturile și detaliul acțiunilor sunt axe diferite.
-
-| Axă | Opțiuni urmărite | Ce nu trebuie să schimbe |
-|---|---|---|
-| Canal | `UI` / `UI_API` | pașii și rezultatul business |
-| Grupare | `SCREEN_CHECKPOINTS` / `UNIFIED_FLOW` | executarea validărilor intermediare |
-| Capturi | `EACH_CHECKPOINT` / `FINAL_ONLY` / `FINAL_AND_FAILURE` | proveniența imaginii și verdictul |
-| Acțiuni | incluse colapsat / sumar | înregistrarea acțiunilor și cauza eșecului |
-
-<details>
-<summary><strong>Ce există și unde configurarea este incompletă</strong></summary>
-
-- [AtfUiEvidence](../../atf-test-kit/src/main/java/atf/api/testkit/evidence/AtfUiEvidence.java)
-  declară flow și capturi; `AtfTestChannel` declară separat canalul.
-- Shop și AutoEx mapează capturile `CONFIGURED` din politica Reporting;
-  gruparea implicită este construită ca `SCREEN_CHECKPOINTS`.
-- [AutoExEvidenceProfileAdapter.forRun](../../atf-test-auto-ex/src/test/java/atf/ui/tests/autoex/extension/AutoExEvidenceProfileAdapter.java)
-  tratează `CONFIGURED` și `SCREEN_CHECKPOINTS` identic: nu primește un flow YAML.
-- Shop construiește baza prin
-  [ShopScreenshotPolicy](../../atf-test-practice-shop/src/main/java/atf/ui/practiceshop/reporting/ShopScreenshotPolicy.java),
-  apoi aplică adnotarea în `ShopE2eTestSupport.reportProfile`.
-- Clasele exemplu schimbă aceste axe, dar nu există încă un plan rezolvat comun
-  care să garanteze toate combinațiile din YAML în ambii consumatori.
-
-</details>
-
-- [ ] Definiți la owner un plan imutabil, rezolvat o singură dată înainte de
-      resurse: configurație de bază, override explicit per axă și diagnostic.
-      Nu documentați chei YAML noi ca și cum ar fi deja implementate.
-- [ ] Expuneți gruparea și detaliile acțiunilor prin configurație, nu prin
-      ramuri în fiecare test. `CONFIGURED` citește baza reală; conflictele
-      explicite se resping înainte de browser, report sau mutații.
-- [ ] Canalul declarat nu este suprascris în tăcere de YAML. Orice profil de
-      lansare configurabil trebuie validat față de canalele permise ale testului.
-- [ ] UI per pas atașează starea capturată la checkpoint-ul său; nu copiază
-      ultima poză la toate nodurile. Stări identice pot avea imagini identice.
-- [ ] UI cu `FINAL_ONLY` produce o captură la succes, după confirmarea comenzii;
-      `FINAL_AND_FAILURE` păstrează separat și captura unui eșec.
-- [ ] `UNIFIED_FLOW` păstrează toate verificările și acțiunile colapsate, fără
-      subpropoziții Gherkin publicate; forma compactă nu scurtează purchase-ul.
-- [ ] UI-only nu publică API validation, exchange-uri sau journey inspector și
-      nu execută precondiții API ascunse. Nu înseamnă blocarea rețelei aplicației.
-- [ ] UI+API păstrează exchange-ul la checkpoint-ul cauzal, validări UI/API
-      distincte și sumarul terminal. Retry-ul aceluiași exchange rămâne în Execution;
-      request-uri legitime diferite nu se comasează numai după metodă și rută.
-- [ ] Probați configurație/adnotare → plan → captură/publicare pe succes și
-      failure, inclusiv profile diferite în același raport partajat.
-
-## CONSUMER-TEST-INTENT-05 — teste scurte, intenție completă
-
-**Owner:** Shop/AutoEx pentru business, ownerul capabilității pentru suport.
-Mai puține linii nu înseamnă mai puține aserțiuni sau un `execute()` opac.
-
-- [ ] Testul declară scenariul, precondiția, canalul și rezultatul urmărit;
-      runtime-ul pregătește resursele, journey-ul de business execută traseul.
-- [ ] Compoziția adnotărilor reduce repetiția fără să ascundă efectele externe.
-      Resolverul de evidence trebuie probat înainte de a muta declarații directe
-      în meta-adnotări; simpla citire prin `getAnnotation` nu le traversează.
-- [ ] Reutilizați constructori/factory-uri și assertion-uri cu input observat;
-      static imports îmbunătățesc lectura, nu ascund starea ori accesul la rețea.
-- [ ] Nu introduceți JSON parsing, selectori, format HTML, retry sau close în
-      metodele de test; păstrați-le la capabilitatea care deține contractul.
-- [ ] Păstrați componentele business chiar cu transport mock. Rendererul generic,
-      disclosure-urile și capturile neutre se probează în Reporting Tests, nu în Shop.
-- [ ] Probați același journey până la confirmarea comenzii/facturii pentru
-      profilurile compatibile; `payment check` singur nu este purchase complet.
+- [ ] Rezolvați `@AtfUiEvidence` și prin adnotări compuse, cu diagnostic de
+      conflict; adaptorii curenți citesc direct `getAnnotation` pe clasă.
+- [ ] Probați declarație absentă/directă/compusă, axă configurată și conflict
+      înainte de resurse; păstrați resolverul canalului separat.
+- [ ] Abia apoi compuneți declarațiile repetitive ale consumerilor. Adnotarea
+      clasifică ori configurează; efectele externe și activarea rămân explicite.
 
 ## REPORTING-LAUNCHER-06 — selecție egală, acoperire numărată o singură dată
 

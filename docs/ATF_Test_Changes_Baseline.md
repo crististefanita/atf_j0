@@ -99,6 +99,25 @@ flowchart LR
 
 ```yaml
 testChanges:
+  - id: AUTOEX-STORE-AVAILABILITY-12
+    status: VERIFIED
+    base: 9b0860bfc734df570c7512b76aa5dbb559527b7d
+    expires: 2026-11-25
+    reason: Adaugă numai recuperare bounded pentru pagina queue-full pe document GET observat, origin și rute de citire validate. Păstrează toate scenariile și aserțiunile E2E; nu repetă click-uri, POST, operații de cont, coș sau plată. Probe componente pentru recuperare și epuizare, origin străin, element absent și non-replay, plus configurare strictă.
+    proof: mvn -pl atf-test-auto-ex,atf-tests -am "-Dtest=AutoExComponentSuite,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=9b0860bfc734df570c7512b76aa5dbb559527b7d" "-Datf.test.heap.max=384m" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-auto-ex/src/test/java/atf/ui/tests/autoex/component/navigation/AutoExAvailabilityFixture.java
+      - atf-test-auto-ex/src/test/java/atf/ui/tests/autoex/component/navigation/AutoExStoreAvailabilityComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/ui/tests/autoex/component/configuration/AutoExConfigurationLoaderComponentTest.java
+      - atf-test-auto-ex/src/test/resources/atf-auto-ex.yaml
+  - id: CONSUMER-SHOP-API-TEST-11
+    status: VERIFIED
+    base: 9b0860bfc734df570c7512b76aa5dbb559527b7d
+    expires: 2026-11-25
+    reason: Mută cele două contracte API și fixture-ul în namespace-ul canonic api.network, păstrând cele 19 metode și decodarea query-ului. Fixture-ul introduce observații prin inspectorul public; o probă nouă distinge query-ul redactat la captură de path-ul și query-ul valorii convertite. Recorderul runtime devine privat; fațada mapperului convertește observații și execuții Core, fără a expune callback-ul sau aliasul intern. Suita păstrează selecția și guvernanța protejează granița nouă; preia unic guard-ul de la CONSUMER-AUTOEX-RUNTIME-10 la aceeași bază.
+    proof: mvn -pl atf-test-practice-shop,atf-tests -am "-Dtest=ShopComponentSuite,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=9b0860bfc734df570c7512b76aa5dbb559527b7d" "-Datf.test.heap.max=384m" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java
   - id: CONSUMER-AUTOEX-RUNTIME-10
     status: VERIFIED
     base: 9b0860bfc734df570c7512b76aa5dbb559527b7d
@@ -127,7 +146,6 @@ testChanges:
       - atf-test-auto-ex/src/test/java/atf/ui/tests/autoex/extension/AutoExEvidenceProfileAdapter.java
       - atf-test-auto-ex/src/test/java/atf/ui/tests/autoex/extension/AutoExRunFactory.java
       - atf-test-auto-ex/src/test/java/atf/ui/tests/autoex/extension/AutoExRunLifecycleAdapter.java
-      - atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java
   - id: CONSUMER-ACCOUNT-SCOPE-02
     status: VERIFIED
     base: 9b0860bfc734df570c7512b76aa5dbb559527b7d

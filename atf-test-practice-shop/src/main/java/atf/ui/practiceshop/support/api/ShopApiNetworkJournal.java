@@ -89,8 +89,8 @@ public final class ShopApiNetworkJournal {
         inspector.subscribe(this::recordCapturedObservation);
     }
 
-    /** Internal composition seam for deterministic component tests; browser capture remains the live path. */
-    void recordCapturedExchange(Exchange exchange) {
+    /** Records a sanitized exchange supplied by one of the public capture subscriptions. */
+    private void recordCapturedExchange(Exchange exchange) {
         Objects.requireNonNull(exchange, "exchange");
         exchanges.add(exchange.withTrace(sequence.incrementAndGet(), Instant.now(), phase(exchange.path())));
     }

@@ -149,7 +149,8 @@ Nu se creează un modul UI nou și nu se mută harness-urile consumerilor ca ata
 | Contract | Owner / limită |
 |---|---|
 | `FailureAwareCleanup`: închiderea inversă a resurselor dobândite și agregarea eșecurilor | implementat în `atf-test-kit`; probat direct și prin adaptoarele Shop/AutoEx, fără API UI/Reporting |
-| Browser/report lifecycle și extensia JUnit | adaptorul `src/test` al consumerului; nu intră în Test Kit |
+| Store, adnotări, extensie JUnit și wiring către primitivele Kit | adaptorul `src/test` al consumerului |
+| Runtime-ul browser/report specific aplicației | poate fi în main cu inputuri/porturi explicite, fără JUnit/Kit; nu intră în Test Kit |
 | Configurație, captură și mapping specifice aplicației fără JUnit/Kit | runtime-ul `src/main` al consumerului; browserul generic rămâne în UI, rendererul în Reporting |
 | Lifecycle-ul sau extensia JUnit UI | rămân locale până când ambele consumatoare demonstrează același contract; `atf-ui` consumă deja Test Kit în test scope, deci dependența inversă ar crea ciclu |
 | Scope-ul Shop pentru Test Kit | importurile și dependența Maven sunt în `test` scope; verificat de `ConsumerModuleArchitectureGovernanceTest` din `atf-tests` |
@@ -166,6 +167,10 @@ browserului sau raportului în Kit. Primitivele din `lifecycle` există deja.
   Un adaptor JUnit suplimentar cere un contract comun demonstrat.
 - Runtime-ul specific aplicației se separă în consumer; fixture-urile și
   oracolele artificiale nu devin API-uri main numai pentru a goli `src/test`.
+- AutoEx folosește `AutoExRunFactory` și `AutoExRunLifecycleAdapter` în test
+  pentru a lega runtime-ul main de inițializarea și cleanup-ul Kit. Shop
+  păstrează deocamdată contextul browser/report în test; nu impunem o mutare
+  mecanică pentru simetrie.
 - Nu introducem dependențe Playwright/Reporting sau un modul UI nou;
   configurația și declarațiile sunt rezolvate înainte de achiziția resurselor.
 - `@AtfUiEvidence` declară intenția, nu garantează că adaptorul citește o cheie

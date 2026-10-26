@@ -24,6 +24,7 @@ import atf.api.ui.playwright.PlaywrightActionSequence;
 import atf.api.ui.playwright.PlaywrightUiSession;
 import atf.api.ui.playwright.UiScreenValidation;
 import atf.ui.autoex.config.AutoExConfiguration;
+import atf.ui.autoex.runtime.navigation.AutoExReadOnlyNavigation;
 import atf.ui.autoex.locator.AutoExRoutes;
 import atf.ui.autoex.locator.AutoExSelectors;
 import atf.ui.autoex.support.browser.AutoExPrivacyConsentHandler;
@@ -57,6 +58,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
     private final ReportEvidenceProfile evidenceProfile;
     private final boolean apiEnabled;
     private final AutoExRunLifecycle lifecycle;
+    private final AutoExReadOnlyNavigation storeNavigation;
     private final List<ReportNetworkInspector.Step> networkSteps = new ArrayList<>();
     private final PlaywrightActionSequence actions;
     private int networkCursor;
@@ -78,6 +80,8 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
         this.apiEnabled = apiEnabled;
         this.lifecycle = Objects.requireNonNull(lifecycle, "lifecycle");
         this.actions = browser.newActionSequence();
+        this.storeNavigation = new AutoExReadOnlyNavigation(browser.page(), actions,
+                configuration.baseUrl(), configuration.storeAvailabilityPolicy());
     }
 
     public static AutoExConfiguration withNetworkInspection(AutoExConfiguration source) {
@@ -89,7 +93,8 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
                 current.timeout(), current.navigationTimeout(), current.viewportWidth(), current.viewportHeight(),
                 current.zoomPercent(), current.screenshotOnFailure(), current.retryPolicy(), network);
         return new AutoExConfiguration(source.baseUrl(), source.e2eEnabled(), browser,
-                source.uiReportBaseDirectory(), source.catalog(), source.registration(), source.payment());
+                source.uiReportBaseDirectory(), source.catalog(), source.registration(), source.payment(),
+                source.storeAvailabilityPolicy());
     }
 
     public AutoExConfiguration configuration() { return configuration; }
@@ -123,6 +128,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
 
     public void navigate(URI uri) {
         actions.navigate(page(), Objects.requireNonNull(uri, "uri"), "requested page is loaded");
+        storeNavigation.recoverIfBusy();
     }
 
     public void click(String selector, String expected) {
@@ -374,8 +380,10 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
     }
 
     private void prepareUiInteraction() {
+        storeNavigation.recoverIfBusy();
         dismissPrivacyPromptIfPresent();
         dismissGoogleVignetteIfPresent();
+        storeNavigation.recoverIfBusy();
     }
 
     private static String failedAssertionSummary(List<AtfAssertion> assertions) {

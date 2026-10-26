@@ -295,15 +295,20 @@ publicare eșuată și două lansări succesive; aceste probe locale nu înlocui
 |---|---|
 | Profilul scenariului | `ShopE2eContext` transmite profilul rezolvat la publicarea în sesiunea comună; config-ul furnizează baza, iar adnotarea poate suprascrie axele declarate. |
 | Izolarea scenariilor-surori | Probată generic în `atf-reporting-tests`; `ShopE2eContextEvidenceProfileTest` verifică override-ul peste YAML, dar nu publică doi frați cu profile diferite. |
+| Overview/System | Snapshot-ul sesiunii comune provine din primul profil deschis; încă nu sintetizează diferențele UI/UI_API, flow și capturi dintre frați. Această limită nu schimbă profilul aplicat fiecărui scenariu. |
 | Agregarea fazelor | În profilul `UNIFIED_FLOW`, Shop activează acumularea pe scenariu: `SETUP` și `TEST BODY` păstrează statusurile de fază, iar un singur nod Gherkin din faza terminală redă checkpoint-urile în ordine, cu provenance, assertions și API validation lângă checkpoint-ul lor. Un setup eșuat finalizează flow-ul în `SETUP`, fără `TEST BODY` sau captură terminală inventată. Profilurile `SCREEN_CHECKPOINTS` păstrează publicarea pe faze. |
 
 Contractul generic de lifecycle și randare este deținut de
 [`atf-reporting`](../atf-reporting/README.md#politică-tipizată-pentru-dovezile-de-captură).
-Probe generice verifică izolarea profilurilor; probele Shop verifică mapping-ul
-și integrarea. Auditul browser urmărește ordinea fazelor și ownership-ul API,
-inclusiv setup eșuat fără `TEST BODY`; acest contract este închis și păstrat în
-[documentația Reporting](../atf-reporting/README.md#contractul-raportului), nu ca
-TODO de implementare în feedback.
+
+- Probele generice verifică izolarea profilurilor; probele Shop verifică
+  mapping-ul și integrarea. Lifecycle-ul, ordinea fazelor și setup-ul eșuat
+  fără `TEST BODY` sunt descrise la [owner](../atf-reporting/README.md#contractul-raportului).
+- `ShopUiOnlySingleFlowPurchaseE2eTest` păstrează aceeași adnotare și același
+  flow business. La succes UI-only, ownerul Reporting proiectează acțiunile,
+  observațiile și aserțiunile cross-phase într-o validare UI comună, cu o
+  captură terminală permisă sub tabelul Playwright. Proveniența fazelor rămâne
+  într-un disclosure UI; eșecul de setup și scenariile UI+API nu sunt compactate.
 
 ## Configurația modulului
 
@@ -443,9 +448,22 @@ Comenzile de mai jos rulează suitele definite în `src/test`; `-am` construieș
 
 `ShopComponentSuite` este gate-ul rapid agregat: include suportul consumer,
 contractele API `unit` și `component` și evidence, dar exclude
-journey-urile E2E și integrarea live. Include și testele package-private din
-`atf.ui.practiceshop.support.api`; numele pachetului nu le exclude din gate.
+journey-urile E2E și integrarea live. Contractele de captură și fidelitate HTTP
+sunt în `atf.ui.tests.practiceshop.api.network`, deja selectat de suită.
 Diagnoza punctuală selectează clase concrete, fără suite paralele.
+
+| Source-set / pachet | Responsabilitate |
+|---|---|
+| main `atf.ui.practiceshop.support.api` | jurnal, selectare, validări și mapping folosite de runtime-ul UI+API și publisher |
+| test `atf.ui.tests.practiceshop.api.network` | contractele jurnalului și fidelității metodei; fixture-uri locale separate de teste |
+
+- Captură: observațiile intră prin `UiNetworkInspector.capture` și abonamentul
+  public; recorderul și aliasul intern de serviciu rămân încapsulate.
+- Conversie: `ShopApiEvidenceMapper` acceptă valori observate și execuții Core,
+  fără să dețină captură sau selecție.
+- Query: inspectorul îl redactează înainte de abonament; proba converterului
+  păstrează separat path-ul și decodarea valorii primite.
+- Fixture-uri: fără rețea; rapoartele declară proveniența controlată.
 
 Guvernanța arhitecturii consumerului rulează separat în `atf-tests`, prin
 `ConsumerModuleArchitectureGovernanceTest`; ea nu mai este un test de business

@@ -1,17 +1,31 @@
 package atf.ui.autoex.config;
 
 import atf.api.ui.config.UiBrowserConfiguration;
+import atf.api.ui.config.UiRetryPolicy;
+import atf.api.ui.config.UiRetryOperation;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Objects;
+import java.util.Set;
 
 /** Immutable consumer settings; site data stays outside reusable ATF libraries. */
 public record AutoExConfiguration(URI baseUrl, boolean e2eEnabled,
                                   UiBrowserConfiguration browser,
                                   Path uiReportBaseDirectory,
                                   Catalog catalog, Registration registration,
-                                  Payment payment) {
+                                  Payment payment, UiRetryPolicy storeAvailabilityPolicy) {
+    public static final UiRetryPolicy DEFAULT_STORE_AVAILABILITY_POLICY = new UiRetryPolicy(
+            1, Duration.ZERO, Set.of(UiRetryOperation.NAVIGATE), "store queue full");
+
+    public AutoExConfiguration(URI baseUrl, boolean e2eEnabled, UiBrowserConfiguration browser,
+                               Path uiReportBaseDirectory, Catalog catalog, Registration registration,
+                               Payment payment) {
+        this(baseUrl, e2eEnabled, browser, uiReportBaseDirectory, catalog, registration, payment,
+                DEFAULT_STORE_AVAILABILITY_POLICY);
+    }
+
     public AutoExConfiguration {
         baseUrl = Objects.requireNonNull(baseUrl, "baseUrl");
         if (baseUrl.getHost() == null || !("https".equalsIgnoreCase(baseUrl.getScheme())
@@ -23,6 +37,11 @@ public record AutoExConfiguration(URI baseUrl, boolean e2eEnabled,
         catalog = Objects.requireNonNull(catalog, "catalog");
         registration = Objects.requireNonNull(registration, "registration");
         payment = Objects.requireNonNull(payment, "payment");
+        storeAvailabilityPolicy = Objects.requireNonNull(storeAvailabilityPolicy, "storeAvailabilityPolicy");
+        if (storeAvailabilityPolicy.eligibleOperations().stream()
+                .anyMatch(operation -> operation != UiRetryOperation.NAVIGATE)) {
+            throw new IllegalArgumentException("Store availability recovery only supports navigation");
+        }
     }
 
     private static Path safeRelative(Path path) {

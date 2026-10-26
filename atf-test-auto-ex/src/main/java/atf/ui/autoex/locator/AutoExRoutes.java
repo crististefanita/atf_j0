@@ -8,6 +8,7 @@ import java.net.URI;
 public enum AutoExRoutes {
     HOME("/"),
     PRODUCTS("/products"),
+    PRODUCT_DETAILS("/product_details/"),
     PRODUCTS_API(AutoExApiRoute.PRODUCTS_LIST.path()),
     CART("/view_cart"),
     ADD_TO_CART("/add_to_cart/"),

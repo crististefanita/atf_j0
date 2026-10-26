@@ -1,4 +1,4 @@
-package atf.ui.practiceshop.support.api;
+package atf.ui.tests.practiceshop.api.network;
 
 import atf.api.reporting.ui.validation.UiApiValidationEvidence;
 
@@ -22,6 +22,9 @@ import atf.ui.practiceshop.api.ShopApiRoutes;
 import atf.ui.practiceshop.api.ShopApiOperation;
 import atf.ui.practiceshop.config.ShopConfigurationLoader;
 import atf.ui.practiceshop.support.reporting.ShopApiReportPublisher;
+import atf.ui.practiceshop.support.api.ShopApiNetworkJournal;
+import atf.ui.practiceshop.support.api.ShopApiEvidenceMapper;
+import atf.ui.practiceshop.support.api.ShopApiReportValidation;
 
 import java.net.http.HttpRequest;
 import java.nio.file.Path;
@@ -32,6 +35,7 @@ import java.util.Map;
 import java.util.ArrayList;
 
 import static atf.api.reporting.contract.AtfGherkinKeyword.THEN;
+import static atf.api.reporting.evidence.ReportScreenshotPolicy.CapturePoint.CHECKPOINT;
 import static atf.api.reporting.contract.AtfReportStatus.FAIL;
 import static atf.api.reporting.contract.AtfReportStatus.PASS;
 
@@ -118,11 +122,12 @@ final class ShopApiMethodFidelityFixture {
                         ShopApiMethodFidelityFixture.class.getPackageName(),
                         "Component fixture — captured " + method, TAGS);
                 var phase = scenario.startPhase("TEST BODY");
+                var validation = new UiApiValidationEvidence(List.of(),
+                        List.of(new UiApiValidationEvidence.Exchange(evidence, List.of())));
                 phase.step(THEN, "captured " + method + " is preserved by the API evidence adapter",
                         "component-fixture", null,
                         List.of(new AtfAssertion("Captured method", method,
-                                evidence.request().method(), preserved)), List.of(), new UiApiValidationEvidence(List.of(), (List.of(evidence)).stream()
-                            .map(exchange -> new UiApiValidationEvidence.Exchange(exchange, List.of())).toList()), atf.api.reporting.evidence.ReportScreenshotPolicy.CapturePoint.CHECKPOINT, status);
+                                evidence.request().method(), preserved)), List.of(), validation, CHECKPOINT, status);
                 phase.complete(status);
                 scenario.complete(status);
             }

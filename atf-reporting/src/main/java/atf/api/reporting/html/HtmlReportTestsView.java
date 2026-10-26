@@ -143,8 +143,12 @@ public final class HtmlReportTestsView {
                                 request.title(), request.method(), request.path()))))
                 .append(status(request.status()))
                 .append(AtfReportHtmlVocabulary.closeTag(AtfReportHtmlVocabulary.Tag.DIV));
-        evidence.renderRequestDetails(html, request);
-        evidence.renderResponseDetails(html, request);
+        if (atf.api.reporting.evidence.EvidenceTableFormatter.isCompactUiFlow(request.details())) {
+            evidence.renderUiFlowProvenance(html, request);
+        } else {
+            evidence.renderRequestDetails(html, request);
+            evidence.renderResponseDetails(html, request);
+        }
         evidence.renderNetworkAggregateSubstep(html, request.networkAggregate());
         request.executions().forEach(execution -> evidence.renderExecution(html, execution));
         request.children().forEach(child -> renderNode(html, child));

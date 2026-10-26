@@ -239,7 +239,11 @@ SETUP
   propoziție de business; nu dubla titlul Gherkin pentru a le separa;
 - diagnosticele runtime nu devin pași Gherkin și nu schimbă verdictul business.
 
-- Lifecycle-ul browser/report rămâne în harness-ul test-only al consumerului.
+- Store-ul și extensiile JUnit rămân în test. Runtime-ul aplicației poate deține
+  browser/report în main prin porturi explicite, fără JUnit sau Test Kit.
+- AutoEx separă `AutoExE2eRun`/`AutoExReportSession` de factory-ul și adaptorul
+  JUnit; Shop păstrează `ShopE2eContext` în test. Ownerul rezultă din contract
+  și dependențe, nu din numele directorului `support`.
 - `FailureAwareCleanup` din `atf-test-kit` oferă cleanup neutru, închidere inversă
   și agregarea erorilor.
 - `TestRunInitialization` deține achiziția cu factory-uri și rollback-ul
