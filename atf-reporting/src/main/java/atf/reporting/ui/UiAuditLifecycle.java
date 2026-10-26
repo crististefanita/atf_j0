@@ -27,11 +27,11 @@ public final class UiAuditLifecycle {
         this.body = Objects.requireNonNull(body, "body");
     }
 
-    public void screenValidation(String title, String target, String screenshot,
+    public void uiValidation(String title, String target, String screenshot,
                                  Collection<AtfAssertion> assertions,
                                  Collection<AtfUiActionRecord> actions,
                                  AtfReportStatus status) {
-        body.screenValidation(title, target, screenshot,
+        body.uiValidation(title, target, screenshot,
                 assertions == null ? List.of() : assertions,
                 actions == null ? List.of() : actions, status);
     }

@@ -12,7 +12,7 @@ import java.util.List;
 /** Immutable checkpoint buffered until its unified business flow is published. */
 record UiUnifiedFlowCheckpoint(String keyword, String title, String target,
                                String base64Png, List<AtfAssertion> assertions,
-                               AtfReportStatus status, String validationTitle,
+                               AtfReportStatus status, UiValidationKind validationKind,
                                List<AtfUiActionRecord> actions,
                                UiApiValidationEvidence apiValidation,
                                ReportScreenshotPolicy.CapturePoint capturePoint,
@@ -24,7 +24,7 @@ record UiUnifiedFlowCheckpoint(String keyword, String title, String target,
         base64Png = base64Png == null ? "" : base64Png;
         assertions = assertions == null ? List.of() : List.copyOf(assertions);
         status = status == null ? AtfReportStatus.PASS : status;
-        validationTitle = validationTitle == null ? "" : validationTitle.trim();
+        java.util.Objects.requireNonNull(validationKind, "validationKind");
         actions = actions == null ? List.of() : List.copyOf(actions);
         java.util.Objects.requireNonNull(apiValidation, "apiValidation");
         capturePoint = capturePoint == null

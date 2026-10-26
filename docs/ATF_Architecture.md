@@ -211,7 +211,7 @@ Există două niveluri pentru contractul UI, cu browserul doar în composition s
 |---|---|---|
 | `atf.ui.tests.extent.e2e.section` | raport API generat sau static | setup/mock, projection, request/response evidence, paritate API în browser |
 | `atf.reporting.ui.contract` | annotation, spec, check-uri, snapshot și validator pur | reguli structurale fără DOM/browser |
-| `atf.ui.tests.extent.e2e.uireport` | raport UI anterior, static | rezolvare input, tab-uri, structură DOM, stil, collapsed state, Fails și Screen validation |
+| `atf.ui.tests.extent.e2e.uireport` | raport UI anterior, static | rezolvare input, tab-uri, structură DOM, stil, collapsed state, Fails și UI validation |
 
 Al doilea nu citește expected business values din YAML și nu cere request-uri
 API. El este pornit cu `@UiExtentReportContract` și `-Datf.ui.report=...`, apoi
@@ -251,8 +251,8 @@ Regula pentru `SETUP` este:
   rămân `API validation` sub același checkpoint `SETUP`, cu request, response
   și execution evidence canonicală;
 - acțiunile de pregătire nu devin `UI validation`, iar setup-ul nu primește
-  `Screen validation`;
-- `Screen validation` există numai în `TEST BODY`, după acțiunile reale de browser.
+  `UI validation`;
+- `UI validation` există numai în `TEST BODY`, după acțiunile reale de browser.
 
 ## Capturarea și selecția traficului UI
 
@@ -540,7 +540,7 @@ Reconcilierea curentă separă contractul implementat de riscurile de evoluție:
 
 | Contract verificat | Implementare | Dovadă |
 |---|---|---|
-| secțiuni `Overview`, `Tests`, `Categories`, `Fails`, `Evidence`, `Screen validation` | `SectionAuditCheckExecutor` → `SectionAuditCheckPolicy` → `SectionAuditResult` | `ExtentSectionAuditPublisher` + teste component/E2E |
+| secțiuni `Overview`, `Tests`, `Categories`, `Fails`, `Evidence`, `UI validation` | `SectionAuditCheckExecutor` → `SectionAuditCheckPolicy` → `SectionAuditResult` | `ExtentSectionAuditPublisher` + teste component/E2E |
 | raport UI read-only pe tab-urile principale | `@UiExtentReportContract` și `StaticUiExtentReportContractTest` | `atf-reporting-tests` |
 | HTML/CSS/JavaScript și asset manifest | contracte pure în `atf-reporting` | `UiReportArtifactContractTest` |
 | direcție module, ownership constante/CSS, output și import graph | boundary-uri Maven/source | `atf-tests` + architecture tests |

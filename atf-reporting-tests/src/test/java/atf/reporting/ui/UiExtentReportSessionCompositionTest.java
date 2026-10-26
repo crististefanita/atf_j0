@@ -30,7 +30,7 @@ class UiExtentReportSessionCompositionTest {
                 () -> assertTrue(source.contains("UiPhaseLifecycle")),
                 () -> assertFalse(source.contains("new UiEvidencePublisher")),
                 () -> assertFalse(source.contains("delegateScenario.startPhase")),
-                () -> assertTrue(source.contains("lifecycle.screenValidationAsMedia")),
+                () -> assertTrue(source.contains("lifecycle.uiValidationAsMedia")),
                 () -> assertTrue(source.contains("openConfigured(UiExtentReportOptions options)")),
                 () -> assertTrue(source.contains("return open(configuration, options)")));
     }

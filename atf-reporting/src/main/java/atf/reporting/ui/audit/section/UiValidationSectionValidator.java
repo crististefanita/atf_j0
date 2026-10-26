@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Objects;
 
 /** Pure contract for the three compact UI validation evidence zones. */
-public final class ScreenValidationSectionValidator {
-    public ValidationResult validate(ReportAuditSnapshot.ScreenValidation snapshot) {
+public final class UiValidationSectionValidator {
+    public ValidationResult validate(ReportAuditSnapshot.UiValidation snapshot) {
         Objects.requireNonNull(snapshot, "snapshot");
         List<AtfAssertion> assertions = new ArrayList<>();
         assertions.add(ReportAuditChecks.check("UI validation node", "1",

@@ -3,14 +3,18 @@ package atf.autoex.tests.component.pages;
 import atf.autoex.config.AutoExConfigurationLoader;
 import atf.autoex.locator.AutoExRoutes;
 import atf.autoex.locator.AutoExSelectors;
+import atf.autoex.page.AccountPage;
 import atf.autoex.page.CheckoutPage;
 import atf.autoex.page.HomePage;
 import atf.autoex.page.ProductsPage;
+import atf.autoex.support.account.AutoExAccountLifecycle;
+import atf.autoex.support.account.AutoExTestAccount;
 import atf.autoex.support.cart.AutoExCartJourneyPort;
 import atf.autoex.support.journey.AutoExCatalogSearchPort;
 import atf.autoex.support.journey.AutoExPurchaseJourney;
 import atf.autoex.support.journey.AutoExPurchaseTraceStep;
 import atf.autoex.support.trace.AutoExTraceStep;
+import atf.autoex.ui.AutoExAccountPagePort;
 import atf.autoex.ui.AutoExCheckoutPagePort;
 import atf.autoex.ui.AutoExHomePagePort;
 import atf.autoex.ui.AutoExUiActions;
@@ -152,6 +156,26 @@ class AutoExPagePortsComponentTest {
     }
 
     @Test
+    void missingStoreHeadingStopsCatalogJourneyBeforeCheckpointOrSearch() {
+        var calls = new ArrayList<String>();
+        var failure = new IllegalStateException("store heading was not found");
+        var configuration = AutoExConfigurationLoader.load();
+        var search = port(AutoExCatalogSearchPort.class, (method, arguments) -> switch (method) {
+            case "configuration" -> configuration;
+            case "navigate" -> { calls.add("navigate"); yield null; }
+            case "dismissPrivacyPromptIfPresent" -> { calls.add("privacy-prompt"); yield false; }
+            case "textFirst" -> { calls.add("read-store-heading"); throw failure; }
+            case "checkpoint" -> { calls.add("checkpoint"); yield null; }
+            case "click", "fill" -> { calls.add(method); yield null; }
+            default -> throw new UnsupportedOperationException(method);
+        });
+
+        assertSame(failure, assertThrows(IllegalStateException.class,
+                () -> AutoExPurchaseJourney.searchConfiguredProduct(search)));
+        assertEquals(List.of("navigate", "privacy-prompt", "read-store-heading"), calls);
+    }
+
+    @Test
     void checkoutActionFailureDoesNotDismissPromptOrReadPaymentState() {
         var calls = new ArrayList<String>();
         var failure = new IllegalStateException("submit failed");
@@ -183,6 +207,67 @@ class AutoExPagePortsComponentTest {
                 () -> new CheckoutPage(checkout).payWithDemoCard(
                         AutoExConfigurationLoader.load().payment())));
         assertEquals(List.of("fill", "fill", "fill", "fill", "fill", "click"), calls);
+    }
+
+    @Test
+    void missingSearchResultTimesOutBeforeOpeningProductWithoutRetry() {
+        var calls = new ArrayList<String>();
+        var timeout = new IllegalStateException("timed out waiting for configured search result");
+        var ui = port(AutoExUiActions.class, (method, arguments) -> switch (method) {
+            case "waitForText" -> { calls.add("wait-for-configured-result"); throw timeout; }
+            case "clickFirst" -> { calls.add("open-first-result"); yield null; }
+            default -> throw new UnsupportedOperationException(method);
+        });
+
+        var products = new ProductsPage(ui, "Blue Top");
+        assertSame(timeout, assertThrows(IllegalStateException.class, products::openFirstProduct));
+        assertEquals(List.of("wait-for-configured-result"), calls);
+    }
+
+    @Test
+    void missingPaymentConfirmationStopsCheckoutBeforeTheCallerCanContinue() {
+        var calls = new ArrayList<String>();
+        var failure = new IllegalStateException("payment confirmation was not found");
+        var checkout = port(AutoExCheckoutPagePort.class, (method, arguments) -> switch (method) {
+            case "fill" -> { calls.add("fill"); yield null; }
+            case "click" -> { calls.add("pay-and-confirm"); yield null; }
+            case "text" -> { calls.add("read-confirmation"); throw failure; }
+            default -> throw new UnsupportedOperationException(method);
+        });
+
+        assertSame(failure, assertThrows(IllegalStateException.class,
+                () -> new CheckoutPage(checkout).payWithDemoCard(
+                        AutoExConfigurationLoader.load().payment())));
+        assertEquals(List.of("fill", "fill", "fill", "fill", "fill",
+                "pay-and-confirm", "read-confirmation"), calls);
+    }
+
+    @Test
+    void missingSignedInIdentityStopsAccountFlowAfterOneBoundedWait() {
+        var calls = new ArrayList<String>();
+        var configuration = AutoExConfigurationLoader.load();
+        var account = AutoExTestAccount.create(configuration.registration());
+        var timeout = new IllegalStateException("timed out waiting for signed-in identity");
+        var page = port(AutoExAccountPagePort.class, (method, arguments) -> switch (method) {
+            case "accountLifecycle" -> new AutoExAccountLifecycle();
+            case "configuration" -> configuration;
+            case "visible" -> { calls.add("check-login-form"); yield false; }
+            case "click" -> {
+                calls.add(AutoExSelectors.HEADER_LOGIN.equals(arguments[0]) ? "open-login" : "submit-login");
+                yield null;
+            }
+            case "fill" -> {
+                calls.add(AutoExSelectors.LOGIN_EMAIL.equals(arguments[0]) ? "fill-email" : "fill-password");
+                yield null;
+            }
+            case "waitForText" -> { calls.add("wait-for-signed-in-identity"); throw timeout; }
+            default -> throw new UnsupportedOperationException(method);
+        });
+
+        assertSame(timeout, assertThrows(IllegalStateException.class,
+                () -> new AccountPage(page).login(account)));
+        assertEquals(List.of("check-login-form", "open-login", "fill-email", "fill-password",
+                "submit-login", "wait-for-signed-in-identity"), calls);
     }
 
     private static <T> T port(Class<T> type, PageCall call) {

@@ -65,7 +65,7 @@ public final class SectionAuditCheckPolicy {
             case EVIDENCE -> check == ExtentSectionCheck.STRUCTURE
                     || check == ExtentSectionCheck.JSON_CONTRACT
                     || check == ExtentSectionCheck.MOCK_RECONCILIATION;
-            case SCREEN_VALIDATION -> check == ExtentSectionCheck.STRUCTURE
+            case UI_VALIDATION -> check == ExtentSectionCheck.STRUCTURE
                     || check == ExtentSectionCheck.SCREENSHOT_LINK
                     || check == ExtentSectionCheck.INLINE_ALIGNMENT;
         };
@@ -89,7 +89,7 @@ public final class SectionAuditCheckPolicy {
                     ? (check == ExtentSectionCheck.JSON_CONTRACT
                     || check == ExtentSectionCheck.MOCK_RECONCILIATION)
                     : check == ExtentSectionCheck.STRUCTURE;
-            case SCREEN_VALIDATION -> (name.equals("Inline screenshot")
+            case UI_VALIDATION -> (name.equals("Inline screenshot")
                     ? check == ExtentSectionCheck.SCREENSHOT_LINK
                     : (name.equals("Sibling rows") || name.equals("Vertical composition"))
                     ? check == ExtentSectionCheck.INLINE_ALIGNMENT

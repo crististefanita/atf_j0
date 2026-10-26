@@ -46,7 +46,7 @@ public final class UiReportContractInputFactory {
             setup.complete(AtfReportStatus.PASS);
 
             var body = scenario.startPhase(ReportUiContract.Phase.TEST_BODY.displayName());
-            body.screenValidation("The report exposes replayable UI evidence", "#test-view",
+            body.uiValidation("The report exposes replayable UI evidence", "#test-view",
                     SCREENSHOT_PNG,
                     List.of(new AtfAssertion("Evidence surface", "visible", "visible", true)),
                     List.of(

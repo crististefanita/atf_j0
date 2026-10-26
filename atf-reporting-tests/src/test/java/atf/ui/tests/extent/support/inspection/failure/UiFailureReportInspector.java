@@ -242,10 +242,10 @@ public final class UiFailureReportInspector {
                     fixture.locators().actionSequences(detail), violations,
                     "Playwright action failure evidence is rendered as Info instead of Fail");
             case AUDIT_OBSERVATION -> validateActionZones(
-                    fixture.locators().screenValidationObservations(detail), violations,
+                    fixture.locators().uiValidationObservations(detail), violations,
                     "audit observation failure evidence is rendered as Info instead of Fail");
             case ASSERTION -> {
-                Locator tables = fixture.locators().screenValidationAssertionTables(detail);
+                Locator tables = fixture.locators().uiValidationAssertionTables(detail);
                 for (int index = 0; index < tables.count(); index++) {
                     Locator table = tables.nth(index);
                     if (fixture.locators().failedAssertionRows(table).count() > 0
@@ -278,7 +278,7 @@ public final class UiFailureReportInspector {
 
     private int failedObservationRows(Locator detail) {
         int count = 0;
-        Locator observations = fixture.locators().screenValidationObservations(detail);
+        Locator observations = fixture.locators().uiValidationObservations(detail);
         for (int index = 0; index < observations.count(); index++) {
             count += fixture.locators().failedObservationRows(observations.nth(index)).count();
         }
@@ -287,7 +287,7 @@ public final class UiFailureReportInspector {
 
     private int failedAssertionRows(Locator detail) {
         int count = 0;
-        Locator tables = fixture.locators().screenValidationAssertionTables(detail);
+        Locator tables = fixture.locators().uiValidationAssertionTables(detail);
         for (int index = 0; index < tables.count(); index++) {
             count += fixture.locators().failedAssertionRows(tables.nth(index)).count();
         }

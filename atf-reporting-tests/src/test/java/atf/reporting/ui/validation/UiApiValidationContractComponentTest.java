@@ -56,10 +56,14 @@ class UiApiValidationContractComponentTest {
 
     @Test
     void publicValidationEntrypointsCannotAcceptRawExchangeCollections() {
-        var methods = Arrays.stream(UiExtentReportSession.UiPhase.class.getDeclaredMethods())
-                .filter(method -> List.of("step", "setup", "screenValidation", "apiTrace")
+        var declaredMethods = Arrays.stream(UiExtentReportSession.UiPhase.class.getDeclaredMethods()).toList();
+        assertFalse(declaredMethods.stream().anyMatch(method -> method.getName().equals("screenValidation")),
+                "The report API must expose UI validation semantics, not a separate screen-validation route");
+        var methods = declaredMethods.stream()
+                .filter(method -> List.of("step", "setup", "uiValidation", "apiTrace")
                         .contains(method.getName())).toList();
         assertFalse(methods.isEmpty());
+        assertTrue(methods.stream().anyMatch(method -> method.getName().equals("uiValidation")));
         methods.forEach(UiApiValidationContractComponentTest::assertNoRawExchangeParameter);
         assertEquals(1, methods.stream().filter(method -> method.getName().equals("step"))
                 .filter(method -> Arrays.asList(method.getParameterTypes())
@@ -120,7 +124,7 @@ class UiApiValidationContractComponentTest {
                         ReportScreenshotPolicy.CapturePoint.CHECKPOINT, uiStatus);
                 case SETUP -> phase.setup(THEN, "the setup owns its API checks", "/setup",
                         uiChecks, List.of(), api, uiStatus);
-                case FINAL -> phase.screenValidation("the terminal checkpoint owns both channels", "/screen",
+                case FINAL -> phase.uiValidation("the terminal checkpoint owns both channels", "/screen",
                         "", uiChecks, List.of(), api, ReportScreenshotPolicy.CapturePoint.FINAL, uiStatus);
             }
             phase.complete(AtfReportStatus.FAIL);

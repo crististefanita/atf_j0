@@ -363,7 +363,7 @@ UI checkpoint
   rămân în model și în diagnosticul configurat, dar nu se publică în tabelele
   request/response. `EvidenceTableFormatter` aplică aceeași proiecție Extent,
   fallback și legacy, cu potrivire exactă a cheilor, indiferent de casing;
-- tipul `screen-validation` delimitează filtrarea politicii; contractele explicite
+- tipul `ui-validation` delimitează filtrarea politicii; contractele explicite
   `api-trace`/`unified-ui-flow` și diagnosticul capturii `ui-failure` rămân neschimbate;
 - checkpoint-ul UI nu primește `Request details`, `Response details` sau un
   tabel introductiv `Status / Details / Info` pentru identitate ori politică.
@@ -490,7 +490,7 @@ Fără metadatele opționale, API-ul anterior nu inventează completitudinea.
 | Captură cu overflow sau în curs | `Incomplete within scope`, cu totalurile explicite | verdict business FAIL sau request-uri fabricate |
 | Setup + trafic cauzal | setup rămâne la precondiție; agregatul numără numai causal | dublarea precondiției în totalul cauzal |
 
-`screenValidation(..., apiEvidence, capturePoint, status)` păstrează
+`uiValidation(..., apiEvidence, capturePoint, status)` păstrează
 exchange-urile terminale alături de ecranul final, ca frați ai validării UI,
 fără repetarea propoziției Gherkin. Probe: `NetworkCaptureEvidenceTest` în
 `atf-reporting-tests`, inclusiv artifact și browser local.

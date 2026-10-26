@@ -78,7 +78,7 @@ public final class UiFailureReportFactory {
                 "Audit observation failure — rendered state", TAGS);
         passSetup(scenario);
         var body = scenario.startPhase(ReportUiContract.Phase.TEST_BODY.displayName());
-        body.screenValidation("Audit observed an invalid visual state", "#failure-audit",
+        body.uiValidation("Audit observed an invalid visual state", "#failure-audit",
                 ONE_PIXEL_PNG, List.of(), List.of(new AtfUiActionRecord(
                         1, "Audit observation", "#failure-audit", "badge is visible",
                         "badge is missing", 0, AtfReportStatus.FAIL, AtfUiEvidenceSource.OBSERVE)),
@@ -92,7 +92,7 @@ public final class UiFailureReportFactory {
                 "Assertion failure — expected versus actual", TAGS);
         passSetup(scenario);
         var body = scenario.startPhase(ReportUiContract.Phase.TEST_BODY.displayName());
-        body.screenValidation("Assertion contract is not satisfied", "#failure-assertion",
+        body.uiValidation("Assertion contract is not satisfied", "#failure-assertion",
                 ONE_PIXEL_PNG, List.of(new AtfAssertion("Status badge", "Fail", "Pass", false)),
                 List.of(), AtfReportStatus.FAIL);
         body.complete(AtfReportStatus.FAIL);

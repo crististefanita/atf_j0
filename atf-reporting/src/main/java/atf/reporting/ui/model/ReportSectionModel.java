@@ -33,7 +33,7 @@ public record ReportSectionModel(Section section, String title,
         CATEGORIES("Categories", AtfReportHtmlVocabulary.ViewId.CATEGORIES),
         FAILS("Fails", AtfReportHtmlVocabulary.ViewId.FAILS),
         SETUP_EVIDENCE("Setup evidence", null),
-        SCREEN_VALIDATION("UI validation", null);
+        UI_VALIDATION("UI validation", null);
 
         private final String displayName;
         private final AtfReportHtmlVocabulary.ViewId viewId;
@@ -62,9 +62,9 @@ public record ReportSectionModel(Section section, String title,
                         List.of(List.of(ReportSectionMarker.attribute(
                                 AtfReportHtmlVocabulary.Attribute.EVIDENCE_TYPE,
                                 AtfReportEvidenceKeys.REPORT_SETUP)))),
-                new ReportSectionModel(Section.SCREEN_VALIDATION, "UI validation",
+                new ReportSectionModel(Section.UI_VALIDATION, "UI validation",
                         List.of(markers(
-                                ReportSectionMarker.text(Section.SCREEN_VALIDATION.displayName()),
+                                ReportSectionMarker.text(Section.UI_VALIDATION.displayName()),
                                 ReportSectionMarker.text("class=\"atf-ui-action-sequence\"")))));
     }
 

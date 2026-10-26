@@ -235,7 +235,7 @@ public final class ReportAuditSnapshot {
     }
 
     /** Renderer-neutral contract for one UI validation evidence card. */
-    public record ScreenValidation(int sectionCount, int actionSequenceCount,
+    public record UiValidation(int sectionCount, int actionSequenceCount,
                                    int observationCount, int assertionTableCount,
                                    int zoneRowCount, int screenshotLinkCount,
                                    int canonicalScreenshotLinkCount,
@@ -244,7 +244,7 @@ public final class ReportAuditSnapshot {
                                    boolean noDecorativeSeparators, boolean inlineScreenshot,
                                    List<String> violations) {
         /** Backward-compatible bridge for the pre-section-module evidence contract. */
-        public ScreenValidation(int actionZoneCount, int observationZoneCount,
+        public UiValidation(int actionZoneCount, int observationZoneCount,
                                 int assertionZoneCount, int zoneRowCount,
                                 int horizontalRuleCount, boolean zonesShareEventTable,
                                 boolean zonesAreContiguous, boolean inlineScreenshotLink,
@@ -257,7 +257,7 @@ public final class ReportAuditSnapshot {
                     screenshotOpened ? List.of() : List.of("screenshot was not opened"));
         }
 
-        public ScreenValidation {
+        public UiValidation {
             if (sectionCount < 0 || actionSequenceCount < 0 || observationCount < 0
                     || assertionTableCount < 0 || zoneRowCount < 0
                     || screenshotLinkCount < 0 || canonicalScreenshotLinkCount < 0) {

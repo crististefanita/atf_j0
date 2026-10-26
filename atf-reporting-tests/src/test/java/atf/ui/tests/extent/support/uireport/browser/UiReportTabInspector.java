@@ -40,13 +40,13 @@ public final class UiReportTabInspector {
         int phases = 0;
         int validations = 0;
         int setupValidations = 0;
-        int screenNodes = 0;
+        int uiValidationNodes = 0;
         int categories = 0;
         boolean categoryList = false;
         int failures = 0;
         boolean emptyFailures = false;
-        boolean screenValid = true;
-        List<String> screenViolations = List.of();
+        boolean uiValidationValid = true;
+        List<String> uiValidationViolations = List.of();
 
         if (tab == ReportUiContract.Tab.TESTS) {
             owners = locators.testOwners(view).count();
@@ -62,13 +62,13 @@ public final class UiReportTabInspector {
                     setupValidations = setup.count() == 0 ? 0 : locators.validationNodes(setup).count();
                 }
             }
-            screenNodes = locators.screenValidationNodes(page).count();
-            if (fixture.spec().has(UiReportCheck.SCREEN_VALIDATION)
+            uiValidationNodes = locators.uiValidationNodes(page).count();
+            if (fixture.spec().has(UiReportCheck.UI_VALIDATION)
                     || fixture.spec().has(UiReportCheck.INLINE_SCREENSHOT)) {
-                ReportAuditSnapshot.ScreenValidation screen = fixture.screenValidation().inspect(page);
-                screenValid = screen.inlineScreenshot() && screen.zonesAreDirectSiblings()
-                        && screen.zonesStacked() && screen.noDecorativeSeparators();
-                screenViolations = screen.violations();
+                ReportAuditSnapshot.UiValidation uiValidation = fixture.uiValidation().inspect(page);
+                uiValidationValid = uiValidation.inlineScreenshot() && uiValidation.zonesAreDirectSiblings()
+                        && uiValidation.zonesStacked() && uiValidation.noDecorativeSeparators();
+                uiValidationViolations = uiValidation.violations();
             }
         } else if (tab == ReportUiContract.Tab.CATEGORIES) {
             categoryList = locators.categoryList(page).count() == 1;
@@ -84,7 +84,7 @@ public final class UiReportTabInspector {
         return new UiReportTabSnapshot(tab, visible, box != null && box.width > 0 && box.height > 0,
                 navigationTabs, owners, scenarios, phases, validations, setupValidations,
                 categories, categoryList,
-                failures, emptyFailures, openDisclosures, screenNodes, renderViolations.isEmpty(),
-                renderViolations, screenValid, screenViolations);
+                failures, emptyFailures, openDisclosures, uiValidationNodes, renderViolations.isEmpty(),
+                renderViolations, uiValidationValid, uiValidationViolations);
     }
 }

@@ -19,21 +19,21 @@ public record UiReportTabSnapshot(
         int failureItemCount,
         boolean failureEmptyState,
         int openDisclosureCount,
-        int screenValidationNodeCount,
+        int uiValidationNodeCount,
         boolean styleValid,
         List<String> styleViolations,
-        boolean screenValidationValid,
-        List<String> screenValidationViolations) {
+        boolean uiValidationValid,
+        List<String> uiValidationViolations) {
     public UiReportTabSnapshot {
         tab = Objects.requireNonNull(tab, "tab");
         if (navigationTabCount < 0 || ownerCount < 0 || scenarioCount < 0
                 || phaseCount < 0 || validationCount < 0 || setupValidationCount < 0
                 || categoryItemCount < 0 || failureItemCount < 0 || openDisclosureCount < 0
-                || screenValidationNodeCount < 0) {
+                || uiValidationNodeCount < 0) {
             throw new IllegalArgumentException("UI report snapshot counts must be non-negative");
         }
         styleViolations = List.copyOf(styleViolations == null ? List.of() : styleViolations);
-        screenValidationViolations = List.copyOf(
-                screenValidationViolations == null ? List.of() : screenValidationViolations);
+        uiValidationViolations = List.copyOf(
+                uiValidationViolations == null ? List.of() : uiValidationViolations);
     }
 }

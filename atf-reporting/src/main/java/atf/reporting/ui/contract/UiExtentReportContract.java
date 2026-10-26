@@ -31,7 +31,7 @@ public @interface UiExtentReportContract {
             UiReportCheck.COLLAPSED_BY_DEFAULT,
             UiReportCheck.SETUP_EVIDENCE,
             UiReportCheck.CROSS_TAB,
-            UiReportCheck.SCREEN_VALIDATION,
+            UiReportCheck.UI_VALIDATION,
             UiReportCheck.INLINE_SCREENSHOT,
             UiReportCheck.FAILS_PROJECTION
     };

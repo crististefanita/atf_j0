@@ -96,6 +96,13 @@ cont sintetic nou și scope de clasă/suită; AutoEx păstrează identitatea cre
       sunt deja probate în suitele componentă. Guard-ul business respinge
       browser, UI, JUnit și Reporting fără excepții sau praguri mărite.
 
+- **Livrat — eșecuri de observație fail-fast (09-H, tranșă).**
+  `AutoExPagePortsComponentTest` probează heading-ul Home absent, timeout-ul
+  rezultatului de căutare, timeout-ul identității după login și confirmarea plății
+  absentă. În fiecare caz, cauza originală se propagă, nu se continuă pasul și
+  nu se repetă acțiunea.
+  Matricea celorlalte porturi rămâne deschisă până la probe echivalente.
+
 - **Livrat — păstrarea cauzei primare (09-H, tranșă).**
   `ShopE2eFailureBoundaryTest` forțează eșec business, publicare și close simultan;
   verifică identitatea cauzei primare și ordinea excepțiilor suprimate.

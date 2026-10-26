@@ -439,7 +439,7 @@ ale claselor E2E.
   nu auditul complet ținut de journal.
 - Metadatele System provin dintr-o allowlist Shop și descriu mediul/configurația
   relevantă, nu suite, clase de test sau pași de business.
-- Captura terminală `Screen validation` include observația `Audit screen contract`
+- Captura terminală `UI validation` include observația `Audit screen contract`
   înregistrată înainte de drenarea evidence-ului; aceasta rămâne `OBSERVE`, nu
   acțiune Playwright sau verdict. Fallback-ul fără screenshot nu pretinde
   evidence vizuală.

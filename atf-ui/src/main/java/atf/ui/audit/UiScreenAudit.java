@@ -34,7 +34,7 @@ public final class UiScreenAudit {
 
     public static void requireScreenshot(UiScreenValidation.Evidence screenshot) {
         if (!Objects.requireNonNull(screenshot, "screenshot").hasScreenshotPayload()) {
-            throw new IllegalStateException("Screen validation cannot be published without a valid PNG screenshot");
+            throw new IllegalStateException("UI validation cannot be published without a valid PNG screenshot");
         }
     }
 }

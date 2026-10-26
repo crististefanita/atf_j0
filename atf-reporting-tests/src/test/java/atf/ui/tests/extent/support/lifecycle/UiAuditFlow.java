@@ -157,7 +157,7 @@ public final class UiAuditFlow {
 
         public void step(String keyword, String title, String target, String screenshot,
                          Collection<AtfAssertion> assertions, AtfReportStatus status) {
-            lifecycle.screenValidation(title, target, screenshot, assertions,
+            lifecycle.uiValidation(title, target, screenshot, assertions,
                     ReportUiActionAdapters.from(actions == null ? List.of() : actions.drain()), status);
         }
 

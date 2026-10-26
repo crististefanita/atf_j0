@@ -16,7 +16,7 @@ public final class SectionAuditRegistry {
         register(configured, new CategoriesSectionAuditModule());
         register(configured, new FailsSectionAuditModule());
         register(configured, new EvidenceSectionAuditModule());
-        register(configured, new ScreenValidationSectionAuditModule());
+        register(configured, new UiValidationSectionAuditModule());
         modules = Map.copyOf(configured);
     }
 

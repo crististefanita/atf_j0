@@ -9,7 +9,7 @@ import atf.reporting.audit.ReportAuditSnapshot;
 import atf.ui.tests.extent.support.section.extract.ApiReportStructureExtractor;
 import atf.ui.tests.extent.support.section.extract.EvidenceSectionExtractor;
 import atf.ui.tests.extent.support.section.extract.FilterSectionExtractor;
-import atf.ui.tests.extent.support.section.extract.ScreenValidationSectionExtractor;
+import atf.ui.tests.extent.support.section.extract.UiValidationSectionExtractor;
 import atf.ui.tests.extent.support.section.extract.OverviewSectionExtractor;
 import com.microsoft.playwright.Page;
 
@@ -29,7 +29,7 @@ public final class ApiReportExplorationFlow {
     private final FilterSectionExtractor filterExtractor;
     private final EvidenceSectionExtractor evidenceExtractor;
     private final ReportProjectionMatrixInspector projectionMatrixInspector;
-    private final ScreenValidationSectionExtractor screenValidationExtractor;
+    private final UiValidationSectionExtractor uiValidationExtractor;
     private final OverviewSectionExtractor overviewSectionExtractor;
 
     public ApiReportExplorationFlow(UiAuditFlow auditFlow) {
@@ -43,7 +43,7 @@ public final class ApiReportExplorationFlow {
         this.filterExtractor = new FilterSectionExtractor(auditFlow, structureExtractor, locators);
         this.evidenceExtractor = new EvidenceSectionExtractor(auditFlow, locators);
         this.projectionMatrixInspector = new ReportProjectionMatrixInspector(locators);
-        this.screenValidationExtractor = new ScreenValidationSectionExtractor(auditFlow, locators);
+        this.uiValidationExtractor = new UiValidationSectionExtractor(auditFlow, locators);
         this.overviewSectionExtractor = new OverviewSectionExtractor(locators);
     }
 
@@ -87,8 +87,8 @@ public final class ApiReportExplorationFlow {
         return evidenceExtractor.extractFirstRequestWithEvidence(page);
     }
 
-    public ReportAuditSnapshot.ScreenValidation inspectScreenValidation(Page page) {
-        return screenValidationExtractor.inspect(page);
+    public ReportAuditSnapshot.UiValidation inspectUiValidation(Page page) {
+        return uiValidationExtractor.inspect(page);
     }
 
     public ReportAuditSnapshot.Overview inspectOverviewSnapshot(Page page, boolean includeHierarchy) {

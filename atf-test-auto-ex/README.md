@@ -15,7 +15,7 @@ browserul și raportarea sunt furnizate de modulele ATF.
   publicarea evidence-ului.
 - `@AtfUiEvidence(flow = UNIFIED_FLOW, screenshots = FINAL_AND_FAILURE)` produce o
   secvență unificată de acțiuni și o captură
-  terminală la succes și captură la failure; `Screen validation` include observația `Audit screen contract`,
+  terminală la succes și captură la failure; `UI validation` include observația `Audit screen contract`,
   înregistrată înainte de drenarea secvenței. Aceasta declară separat numărul
   aserțiunilor și starea capturii, fără să devină acțiune Playwright sau sursă
   de verdict.
@@ -87,6 +87,10 @@ redactează câmpurile de înregistrare și plată din reprezentarea textuală.
   căutarea de produs din page object folosește numai `AutoExUiActions` și numele
   așteptat explicit. `AutoExPagePortsComponentTest` verifică ordinea checkpoint-urilor,
   căutarea UI fără capabilități API și oprirea la eșec fără runtime complet.
+- Citirea unui heading absent, un rezultat de căutare care nu apare la timp sau
+  identitatea de sesiune ori confirmarea plății absente opresc tranziția înaintea
+  acțiunii următoare; page objects nu repetă automat operația. Probele fail-fast
+  sunt în aceeași componentă.
 - `AutoExE2eRun` îl implementează în pachetul `runtime` din `src/main/java`,
   fără JUnit sau Test Kit.
 - `AutoExRunFactory` și `AutoExE2eExtension` din `src/test/java`, pachetul `extension`, rezolvă
@@ -682,15 +686,16 @@ Diagrama comună pentru captură, baseline și publicare este în
 | `maxObservations` | `256` | plafon pentru traficul selectat; overflow-ul rămâne vizibil |
 | `maxBodyPreviewCharacters` | `12000` | limita capturii; limita mai mică de afișare Reporting se aplică separat |
 
-Profilul UI-only păstrează inspectorul dezactivat; `UI_API` activează aceeași
-configurație validată, fără să-i înlocuiască limitele. Selecția adnotată adaugă
-doar rutele DOCUMENT declarate și păstrează XHR/FETCH pentru restul origin-ului.
-Corpurile response ale documentelor HTML nu sunt citite; metoda, ruta, statusul,
-headerele și clasificarea auth rămân disponibile, iar corpul formularului de
-login este păstrat numai după redactarea parolei și a tokenului CSRF. Corpurile
-XHR/FETCH rămân disponibile în limita configurată. Headerele/auth și
-proveniența originale sunt adaptate typed către Reporting, nu inferate dintr-un
-profil fictiv. Capturile terminale pot publica și exchange-urile finale.
+- Profilul UI-only păstrează inspectorul dezactivat; `UI_API` activează aceeași
+  configurație validată, fără să-i înlocuiască limitele.
+- Selecția adnotată adaugă doar rutele DOCUMENT declarate și păstrează XHR/FETCH
+  pentru restul origin-ului.
+- Response body-urile documentelor HTML nu sunt citite. Metoda, ruta, statusul,
+  headerele și clasificarea auth rămân disponibile; corpul formularului login
+  este păstrat numai după redactarea parolei și a tokenului CSRF.
+- Body-urile XHR/FETCH rămân disponibile în limita configurată. Headerele,
+  autentificarea și proveniența observate sunt adaptate typed către Reporting.
+- Capturile terminale pot publica și exchange-urile finale.
 
 Probele de selecție/buget/cursor aparțin `atf-ui`; prezentarea și snapshot-ul
 aparțin `atf-reporting-tests`. AutoEx verifică YAML-ul, ruta reală a coșului,

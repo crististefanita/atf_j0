@@ -54,7 +54,7 @@ window.atfOpenTest = function (id, scenarioIndex, expansion) {
           card = detailCards[index];
         if (card) {
           openScenarioCard(card);
-          if (expansion === 'screen-validation') openScenarioAuditPath(card);
+          if (expansion === 'ui-validation') openScenarioAuditPath(card);
         }
       }, 120);
     }

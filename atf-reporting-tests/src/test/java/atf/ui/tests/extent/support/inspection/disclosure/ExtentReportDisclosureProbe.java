@@ -107,9 +107,9 @@ public final class ExtentReportDisclosureProbe {
             var locators = new ReportUiLocators();
             page.setContent(markup.formatted(customTitle,
                     "<details class=\"atf-ui-action-sequence\"></details>"));
-            assertEquals(customTitle, locators.screenValidationNodes(page).innerText());
+            assertEquals(customTitle, locators.uiValidationNodes(page).innerText());
             page.setContent(markup.formatted(customTitle, "<details class=\"request-evidence\"></details>"));
-            assertEquals(0, locators.screenValidationNodes(page).count(),
+            assertEquals(0, locators.uiValidationNodes(page).count(),
                     "an API-only validation is not a UI action-evidence section");
         }
     }

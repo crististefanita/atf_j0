@@ -13,14 +13,14 @@ import java.util.Map;
  *
  * <p>The facade deliberately keeps the existing consumer API stable while
  * semantic selector ownership lives in page, tree, evidence, category,
- * failure and screen-validation ports.</p>
+ * failure and ui-validation ports.</p>
  */
 public final class ReportUiLocators {
     private final ReportPageLocators pages = new ReportPageLocators();
     private final ReportEvidenceLocators evidence = new ReportEvidenceLocators();
     private final ReportTreeLocators tree = new ReportTreeLocators(pages);
-    private final ReportScreenValidationLocators screen =
-            new ReportScreenValidationLocators(pages, evidence);
+    private final ReportUiValidationLocators screen =
+            new ReportUiValidationLocators(pages, evidence);
     private final ReportCategoryLocators categories = new ReportCategoryLocators();
     private final ReportFailureLocators failures = new ReportFailureLocators();
 
@@ -104,17 +104,17 @@ public final class ReportUiLocators {
         return pages.overviewCategoryCells(overview);
     }
 
-    public Locator screenValidationNodes(Page page) { return screen.screenValidationNodes(page); }
-    public Locator visibleScreenValidationNode(Page page) {
-        return screen.visibleScreenValidationNode(page);
+    public Locator uiValidationNodes(Page page) { return screen.uiValidationNodes(page); }
+    public Locator visibleUiValidationNode(Page page) {
+        return screen.visibleUiValidationNode(page);
     }
-    public Locator visibleScreenValidationNodeWithScreenshot(Page page) {
-        return screen.visibleScreenValidationNodeWithScreenshot(page);
+    public Locator visibleUiValidationNodeWithScreenshot(Page page) {
+        return screen.visibleUiValidationNodeWithScreenshot(page);
     }
-    public AtfLocator screenValidationNodeAction(Page page) {
-        return screen.screenValidationNodeAction(page);
+    public AtfLocator uiValidationNodeAction(Page page) {
+        return screen.uiValidationNodeAction(page);
     }
-    public Locator screenValidationCard(Locator node) { return screen.screenValidationCard(node); }
+    public Locator uiValidationCard(Locator node) { return screen.uiValidationCard(node); }
 
     public Locator testOwners(Page page) { return tree.testOwners(page); }
     public Locator testOwners(Locator tests) { return tree.testOwners(tests); }
@@ -244,29 +244,29 @@ public final class ReportUiLocators {
     public Locator validationCardForEvidence(Locator evidenceLocator) {
         return screen.validationCardForEvidence(evidenceLocator);
     }
-    public Locator firstCompleteScreenValidationCard(Locator scope) {
-        return screen.firstCompleteScreenValidationCard(scope);
+    public Locator firstCompleteUiValidationCard(Locator scope) {
+        return screen.firstCompleteUiValidationCard(scope);
     }
-    public Locator screenValidationActionZones(Locator scope) { return screen.screenValidationActionZones(scope); }
-    public Locator screenValidationObservationZones(Locator scope) {
-        return screen.screenValidationObservationZones(scope);
+    public Locator uiValidationActionZones(Locator scope) { return screen.uiValidationActionZones(scope); }
+    public Locator uiValidationObservationZones(Locator scope) {
+        return screen.uiValidationObservationZones(scope);
     }
-    public Locator screenValidationAssertionZones(Locator scope) {
-        return screen.screenValidationAssertionZones(scope);
+    public Locator uiValidationAssertionZones(Locator scope) {
+        return screen.uiValidationAssertionZones(scope);
     }
-    public Locator screenValidationZones(Locator scope) { return screen.screenValidationZones(scope); }
-    public Locator screenValidationZoneRows(Locator scope) { return screen.screenValidationZoneRows(scope); }
-    public Locator screenValidationActionSequences(Locator card) {
-        return screen.screenValidationActionSequences(card);
+    public Locator uiValidationZones(Locator scope) { return screen.uiValidationZones(scope); }
+    public Locator uiValidationZoneRows(Locator scope) { return screen.uiValidationZoneRows(scope); }
+    public Locator uiValidationActionSequences(Locator card) {
+        return screen.uiValidationActionSequences(card);
     }
-    public Locator screenValidationObservations(Locator card) {
-        return screen.screenValidationObservations(card);
+    public Locator uiValidationObservations(Locator card) {
+        return screen.uiValidationObservations(card);
     }
-    public Locator screenValidationAssertionTables(Locator card) {
-        return screen.screenValidationAssertionTables(card);
+    public Locator uiValidationAssertionTables(Locator card) {
+        return screen.uiValidationAssertionTables(card);
     }
-    public Locator screenValidationEvidenceTables(Locator card) {
-        return screen.screenValidationEvidenceTables(card);
+    public Locator uiValidationEvidenceTables(Locator card) {
+        return screen.uiValidationEvidenceTables(card);
     }
     public Locator setupEvidence(Locator scope) { return screen.setupEvidence(scope); }
     public Locator setupEvidenceRows(Locator evidenceLocator) {
@@ -281,14 +281,14 @@ public final class ReportUiLocators {
     public Locator uiFailureEvidenceFor(Locator evidenceLocator) {
         return screen.uiFailureEvidenceFor(evidenceLocator);
     }
-    public Locator screenValidationScreenshotLinks(Locator card) {
-        return screen.screenValidationScreenshotLinks(card);
+    public Locator uiValidationScreenshotLinks(Locator card) {
+        return screen.uiValidationScreenshotLinks(card);
     }
-    public Locator screenValidationScreenshotLabels(Locator card) {
-        return screen.screenValidationScreenshotLabels(card);
+    public Locator uiValidationScreenshotLabels(Locator card) {
+        return screen.uiValidationScreenshotLabels(card);
     }
-    public Locator screenValidationSeparators(Locator scope) {
-        return screen.screenValidationSeparators(scope);
+    public Locator uiValidationSeparators(Locator scope) {
+        return screen.uiValidationSeparators(scope);
     }
 
     public Locator requestDetails(Locator request) { return evidence.requestDetails(request); }

@@ -204,7 +204,7 @@ class ExtentReportUiEvidenceRenderingTest {
             var scenario = session.startScenario("UiTest", EXTENT_UI_TEST_PACKAGE,
                     "summary-only action disclosure", List.of("ui"));
             var body = scenario.startPhase("TEST BODY");
-            body.screenValidation("the final state is visible", "#test-view",
+            body.uiValidation("the final state is visible", "#test-view",
                     ReportTestScreenshots.ONE_PIXEL_PNG, List.of(), List.of(
                             new AtfUiActionRecord(1, "Click", "#tests",
                                     "Tests opens", "click completed", 4, AtfReportStatus.PASS)),
@@ -301,7 +301,7 @@ class ExtentReportUiEvidenceRenderingTest {
             report = session.reportPath();
             var scenario = session.startScenario("UiTest", EXTENT_UI_TEST_PACKAGE, "observation split", List.of("ui"));
             var body = scenario.startPhase("TEST BODY");
-            body.screenValidation("report state", "#test-view", ReportTestScreenshots.ONE_PIXEL_PNG, List.of(
+            body.uiValidation("report state", "#test-view", ReportTestScreenshots.ONE_PIXEL_PNG, List.of(
                     new AtfAssertion("report state", "ready", "ready", true)), List.of(
                     new AtfUiActionRecord(1, "Click", "#tests", "tests opens", "click completed", 4, AtfReportStatus.PASS),
                     new AtfUiActionRecord(2, "Audit screen contract", "purchase confirmation",

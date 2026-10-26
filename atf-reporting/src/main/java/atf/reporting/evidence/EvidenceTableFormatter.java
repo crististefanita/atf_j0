@@ -14,7 +14,7 @@ import static atf.reporting.markup.AtfReportEvidenceKeys.REQUEST_ACTION;
 import static atf.reporting.markup.AtfReportEvidenceKeys.REQUEST_TARGET;
 import static atf.reporting.markup.AtfReportEvidenceKeys.EVIDENCE_TYPE;
 import static atf.reporting.markup.AtfReportEvidenceKeys.EVIDENCE_POLICY;
-import static atf.reporting.markup.AtfReportEvidenceKeys.SCREEN_VALIDATION;
+import static atf.reporting.markup.AtfReportEvidenceKeys.UI_VALIDATION;
 import static atf.reporting.markup.AtfReportEvidenceKeys.UI_FAILURE;
 import static atf.reporting.markup.AtfReportEvidenceKeys.UNIFIED_UI_FLOW;
 import static atf.reporting.markup.AtfReportEvidenceKeys.FLOW_PRESENTATION;
@@ -137,7 +137,7 @@ public final class EvidenceTableFormatter {
 
     private static boolean isUiEvidenceType(String key, String value) {
         return key != null && value != null && EVIDENCE_TYPE.equalsIgnoreCase(key.trim())
-                && (SCREEN_VALIDATION.equalsIgnoreCase(value.trim())
+                && (UI_VALIDATION.equalsIgnoreCase(value.trim())
                 || UI_FAILURE.equalsIgnoreCase(value.trim()));
     }
 

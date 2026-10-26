@@ -11,7 +11,7 @@ public final class AtfReportEvidenceKeys {
     public static final String EVIDENCE_TYPE = "evidence.type";
     public static final String EVIDENCE_POLICY = "evidence.policy";
     public static final String REPORT_SETUP = "report-setup";
-    public static final String SCREEN_VALIDATION = "screen-validation";
+    public static final String UI_VALIDATION = "ui-validation";
     public static final String API_TRACE = "api-trace";
     public static final String UI_FAILURE = "ui-failure";
     public static final String UNIFIED_UI_FLOW = "unified-ui-flow";

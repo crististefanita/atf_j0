@@ -20,66 +20,66 @@ import java.util.Objects;
  * Browser-only adapter for UI validation. It observes the
  * rendered report and returns a renderer-neutral snapshot; it never asserts.
  */
-public final class ScreenValidationSectionExtractor {
+public final class UiValidationSectionExtractor {
     private static final double SUMMARY_GEOMETRY_TOLERANCE_PX = 1.5;
     private final UiAuditFlow audit;
     private final ReportUiLocators locators;
     private final ValidationTableLayoutInspector validationTableLayout = new ValidationTableLayoutInspector();
 
-    public ScreenValidationSectionExtractor(UiAuditFlow audit, ReportUiLocators locators) {
+    public UiValidationSectionExtractor(UiAuditFlow audit, ReportUiLocators locators) {
         this.audit = Objects.requireNonNull(audit, "audit");
         this.locators = Objects.requireNonNull(locators, "locators");
     }
 
-    public ReportAuditSnapshot.ScreenValidation inspect(Page page) {
+    public ReportAuditSnapshot.UiValidation inspect(Page page) {
         Objects.requireNonNull(page, "page");
-        Locator allNodes = locators.screenValidationNodes(page);
-        expandScreenValidationAncestors(allNodes);
-        allNodes = locators.screenValidationNodes(page);
+        Locator allNodes = locators.uiValidationNodes(page);
+        expandUiValidationAncestors(allNodes);
+        allNodes = locators.uiValidationNodes(page);
         int visibleNodes = 0;
         int visibleNodesWithScreenshot = 0;
         int maxVisibleScreenshotLinks = 0;
         for (Locator candidate : allNodes.all()) {
             if (!candidate.isVisible()) continue;
             visibleNodes++;
-            int screenshotLinks = locators.screenValidationScreenshotLinks(
-                    locators.screenValidationCard(candidate)).count();
+            int screenshotLinks = locators.uiValidationScreenshotLinks(
+                    locators.uiValidationCard(candidate)).count();
             maxVisibleScreenshotLinks = Math.max(maxVisibleScreenshotLinks, screenshotLinks);
             if (screenshotLinks > 0) visibleNodesWithScreenshot++;
         }
-        Locator node = locators.visibleScreenValidationNodeWithScreenshot(page);
+        Locator node = locators.visibleUiValidationNodeWithScreenshot(page);
         if (allNodes.count() == 0 || node.count() == 0 || !node.isVisible()) {
-            return new ReportAuditSnapshot.ScreenValidation(0, 0, 0, 0, 0,
+            return new ReportAuditSnapshot.UiValidation(0, 0, 0, 0, 0,
                     0, 0, false, false, false, false, false,
                     List.of("visible UI validation node is missing"));
         }
 
-        Locator card = locators.screenValidationCard(node);
+        Locator card = locators.uiValidationCard(node);
         Locator body = card.locator(":scope > .collapse");
         if (!body.isVisible()) {
-            audit.actions().click(locators.screenValidationNodeAction(page),
+            audit.actions().click(locators.uiValidationNodeAction(page),
                     "UI validation evidence zones expand");
         }
-        Locator rows = locators.screenValidationZoneRows(card);
-        int actionSequences = locators.screenValidationActionSequences(card).count();
-        int observations = locators.screenValidationObservations(card).count();
-        int assertions = locators.screenValidationAssertionTables(card).count();
+        Locator rows = locators.uiValidationZoneRows(card);
+        int actionSequences = locators.uiValidationActionSequences(card).count();
+        int observations = locators.uiValidationObservations(card).count();
+        int assertions = locators.uiValidationAssertionTables(card).count();
         List<String> violations = new ArrayList<>();
         validateCompactDisclosures("Playwright actions",
-                locators.screenValidationActionSequences(card), violations);
+                locators.uiValidationActionSequences(card), violations);
         validateCompactDisclosures("Audit observations",
-                locators.screenValidationObservations(card), violations);
+                locators.uiValidationObservations(card), violations);
         validateCompactDisclosures("Assertions",
-                locators.screenValidationAssertionZones(card), violations);
-        for (Locator evidenceTable : locators.screenValidationEvidenceTables(card).all()) {
+                locators.uiValidationAssertionZones(card), violations);
+        for (Locator evidenceTable : locators.uiValidationEvidenceTables(card).all()) {
             ValidationTableLayoutInspector.Result layout = validationTableLayout.inspect(evidenceTable);
             if (!layout.valid()) {
                 violations.add("Evidence table does not allocate the longest flexible value column dynamically: "
                         + layout.evidence());
             }
         }
-        Locator screenshots = locators.screenValidationScreenshotLinks(card);
-        Locator sequences = locators.screenValidationActionSequences(card);
+        Locator screenshots = locators.uiValidationScreenshotLinks(card);
+        Locator sequences = locators.uiValidationActionSequences(card);
         for (int sequenceIndex = 0; sequenceIndex < sequences.count(); sequenceIndex++) {
             Locator sequence = sequences.nth(sequenceIndex);
             if (!"true".equals(sequence.getAttribute("open"))) {
@@ -88,14 +88,14 @@ public final class ScreenValidationSectionExtractor {
                                 + " > summary"), "screen action evidence expands");
             }
         }
-        screenshots = locators.screenValidationScreenshotLinks(card);
+        screenshots = locators.uiValidationScreenshotLinks(card);
         // The data-atf-screenshot contract is the canonical machine-readable
         // marker; the label check below protects the user-facing emoji text.
         int canonicalScreenshots = screenshots.count();
         int labeledScreenshots = 0;
         int validPngScreenshots = 0;
         int verticallyCenteredScreenshots = 0;
-        for (Locator label : locators.screenValidationScreenshotLabels(card).all()) {
+        for (Locator label : locators.uiValidationScreenshotLabels(card).all()) {
             String text = label.textContent();
             if (text != null && text.contains(ReportUiContract.SCREENSHOT_MARKER)) labeledScreenshots++;
         }
@@ -133,8 +133,8 @@ public final class ScreenValidationSectionExtractor {
                 && rows.nth(2).locator("table.helm-validation-table").count() == 1;
         boolean semanticActionRows = true;
         for (int sequenceIndex = 0;
-             sequenceIndex < locators.screenValidationActionSequences(card).count(); sequenceIndex++) {
-            Locator sequence = locators.screenValidationActionSequences(card).nth(sequenceIndex);
+             sequenceIndex < locators.uiValidationActionSequences(card).count(); sequenceIndex++) {
+            Locator sequence = locators.uiValidationActionSequences(card).nth(sequenceIndex);
             Locator actionRows = locators.actionRows(sequence);
             if (actionRows.count() == 0) semanticActionRows = false;
             for (int rowIndex = 0; rowIndex < actionRows.count(); rowIndex++) {
@@ -198,7 +198,7 @@ public final class ScreenValidationSectionExtractor {
                     + visibleNodesWithScreenshot + ", max visible screenshot links="
                     + maxVisibleScreenshotLinks + ", node id=" + node.getAttribute("id")
                     + ", card count=" + card.count()
-                    + ", action zones=" + locators.screenValidationActionSequences(card).count()
+                    + ", action zones=" + locators.uiValidationActionSequences(card).count()
                     + ", direct screenshot links="
                     + card.locator("a.atf-ui-action-screenshot-link").count()
                     + ", page screenshot links="
@@ -222,7 +222,7 @@ public final class ScreenValidationSectionExtractor {
                         + verticallyCenteredScreenshots + "/" + screenshots.count());
             }
         }
-        return new ReportAuditSnapshot.ScreenValidation(1, actionSequences, observations,
+        return new ReportAuditSnapshot.UiValidation(1, actionSequences, observations,
                 assertions, rows.count(), screenshots.count(), canonicalScreenshots,
                 directSiblings, stacked, noEmptyRows, noSeparators, inlineScreenshot, violations);
     }
@@ -311,7 +311,7 @@ public final class ScreenValidationSectionExtractor {
      * is about the visible evidence, so its structural ancestors must be open
      * before a screenshot link can be inspected.
      */
-    private void expandScreenValidationAncestors(Locator nodes) {
+    private void expandUiValidationAncestors(Locator nodes) {
         for (Locator node : nodes.all()) {
             List<Locator> ancestors = new ArrayList<>(locators.nodeAncestors(node).all());
             for (Locator ancestor : ancestors) {

@@ -35,7 +35,7 @@ class ExtentReportUiScreenshotContractTest {
             report = session.reportPath();
             var scenario = session.startScenario("UiTest", "atf.ui.tests.extent", "media validation", List.of("ui"));
             var body = scenario.startPhase("TEST BODY");
-            body.screenValidationAsMedia("category filter is visible", "#category-view",
+            body.uiValidationAsMedia("category filter is visible", "#category-view",
                     ReportTestScreenshots.ONE_PIXEL_PNG, List.of(new AtfAssertion(
                             "Category title", "visible", "visible", true)),
                     List.of(new AtfUiActionRecord(1, "Click", "category=contract",

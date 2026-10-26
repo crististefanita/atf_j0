@@ -21,7 +21,7 @@ public record UiReportContractSpec(String id, String reportProperty,
         checks = Set.copyOf(checks == null ? Set.of() : checks);
         if (tabs.isEmpty()) throw new IllegalArgumentException("tabs must not be empty");
         if (checks.isEmpty()) throw new IllegalArgumentException("checks must not be empty");
-        if (checks.contains(UiReportCheck.SCREEN_VALIDATION)
+        if (checks.contains(UiReportCheck.UI_VALIDATION)
                 || checks.contains(UiReportCheck.INLINE_SCREENSHOT)) {
             if (!tabs.contains(ReportUiContract.Tab.TESTS)) {
                 throw new IllegalArgumentException(

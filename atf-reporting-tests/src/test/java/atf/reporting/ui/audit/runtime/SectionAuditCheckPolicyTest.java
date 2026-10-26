@@ -34,7 +34,7 @@ class SectionAuditCheckPolicyTest {
         ValidationResult full = ValidationResult.of(List.of(
                 new AtfAssertion("Inline screenshot", "canonical link", "missing", false)));
 
-        ValidationResult selected = SectionAuditCheckPolicy.select(ExtentSection.SCREEN_VALIDATION,
+        ValidationResult selected = SectionAuditCheckPolicy.select(ExtentSection.UI_VALIDATION,
                 EnumSet.of(ExtentSectionCheck.SCREENSHOT_LINK), full);
 
         assertTrue(!selected.valid());

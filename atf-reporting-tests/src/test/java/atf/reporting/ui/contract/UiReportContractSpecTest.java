@@ -26,7 +26,7 @@ class UiReportContractSpecTest {
     void rejectsScreenChecksWithoutTheTestsTab() {
         assertThrows(IllegalArgumentException.class, () -> new UiReportContractSpec(
                 "invalid", "atf.ui.report", Set.of(ReportUiContract.Tab.OVERVIEW),
-                Set.of(UiReportCheck.SCREEN_VALIDATION)));
+                Set.of(UiReportCheck.UI_VALIDATION)));
     }
 
     @UiExtentReportContract

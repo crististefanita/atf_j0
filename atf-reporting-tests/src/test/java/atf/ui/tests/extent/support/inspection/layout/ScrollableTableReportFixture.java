@@ -49,7 +49,7 @@ public final class ScrollableTableReportFixture {
             var scenario = session.startScenario(TEST_CLASS, TEST_PACKAGE,
                     "scroll viewport matrix " + density.name().toLowerCase(), tags(density.categoryCount()));
             var phase = scenario.startPhase("TEST BODY");
-            phase.screenValidation(SCREEN_TITLE, "#test-view", ONE_PIXEL_PNG,
+            phase.uiValidation(SCREEN_TITLE, "#test-view", ONE_PIXEL_PNG,
                     assertions(density.assertionCount()), actions(density.actionCount()),
                     AtfReportStatus.PASS);
             phase.apiTrace(AtfGherkinKeyword.THEN,

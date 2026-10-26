@@ -32,7 +32,6 @@ import java.util.Optional;
  * normal, media and failure paths.</p>
  */
 public final class UiEvidencePublisher {
-    private static final String SCREEN_VALIDATION = "Screen validation";
     private static final String UI_VALIDATION = "UI validation";
     private static final String API_VALIDATION = "API validation";
 
@@ -136,15 +135,15 @@ public final class UiEvidencePublisher {
 
     void publishAction(String keyword, String title, String target, String base64Png,
                        Collection<AtfAssertion> assertions, AtfReportStatus status,
-                       String validationTitle, Collection<AtfUiActionRecord> actions) {
+                       UiValidationKind validationKind, Collection<AtfUiActionRecord> actions) {
         publishAction(keyword, title, target, base64Png, assertions, status,
-                validationTitle, actions, UiApiValidationEvidence.empty(), ReportScreenshotPolicy.CapturePoint.CHECKPOINT);
+                validationKind, actions, UiApiValidationEvidence.empty(), ReportScreenshotPolicy.CapturePoint.CHECKPOINT);
     }
 
     /** Publishes separately owned UI and API verdicts for a single journey checkpoint. */
     void publishAction(String keyword, String title, String target, String base64Png,
                        Collection<AtfAssertion> uiAssertions, AtfReportStatus uiStatus,
-                       String validationTitle, Collection<AtfUiActionRecord> actions,
+                       UiValidationKind validationKind, Collection<AtfUiActionRecord> actions,
                        UiApiValidationEvidence apiValidation,
                        ReportScreenshotPolicy.CapturePoint capturePoint) {
         String stepTitle = stepTitle(keyword, title);
@@ -152,16 +151,16 @@ public final class UiEvidencePublisher {
         try {
             request.detail(AtfReportEvidenceKeys.REQUEST_ACTION, stepTitle);
             detailTarget(request, target);
-            boolean visualValidation = SCREEN_VALIDATION.equals(validationTitle);
+            boolean visualValidation = validationKind.hasVisualEvidence();
             boolean hasApiValidation = !java.util.Objects.requireNonNull(apiValidation, "apiValidation").isEmpty();
             if (visualValidation) {
-                request.detail(AtfReportEvidenceKeys.EVIDENCE_TYPE, AtfReportEvidenceKeys.SCREEN_VALIDATION);
+                request.detail(AtfReportEvidenceKeys.EVIDENCE_TYPE, AtfReportEvidenceKeys.UI_VALIDATION);
                 request.detail(AtfReportEvidenceKeys.EVIDENCE_POLICY,
                         "one Base64 screenshot link per visual state; policy="
                                 + screenshotPolicy.configValue());
             }
             if (visualValidation || (uiAssertions != null && !uiAssertions.isEmpty())) {
-                var validation = request.startValidation(displayValidationTitle(validationTitle));
+                var validation = request.startValidation(validationKind.reportTitle());
                 publishActions(validation, actions);
                 publishScreenshot(validation, target, title, base64Png, uiStatus, "UI assertion", capturePoint);
                 validation.assertions(uiAssertions);
@@ -257,13 +256,9 @@ public final class UiEvidencePublisher {
     }
 
     private static boolean isUiEvidence(UiUnifiedFlowCheckpoint checkpoint) {
-        return SCREEN_VALIDATION.equals(checkpoint.validationTitle())
+        return checkpoint.validationKind().hasVisualEvidence()
                 || !checkpoint.assertions().isEmpty() || !checkpoint.actions().isEmpty()
                 || hasText(checkpoint.base64Png());
-    }
-
-    private static String displayValidationTitle(String title) {
-        return SCREEN_VALIDATION.equals(title) ? UI_VALIDATION : title;
     }
 
     private static AtfReportStatus effectiveStatus(UiUnifiedFlowCheckpoint checkpoint) {
@@ -331,9 +326,9 @@ public final class UiEvidencePublisher {
                 flow.detail(prefix + ".step", checkpoint.gherkinTitle());
                 flow.detail(prefix + ".status", checkpointStatus.displayValue());
                 if (compact.isEmpty() && (isUiEvidence(checkpoint)
-                        || "Setup validation".equals(checkpoint.validationTitle()))) {
+                        || checkpoint.validationKind() == UiValidationKind.SETUP)) {
                     var validation = flow.startValidation(entry.phase() + " · "
-                            + displayValidationTitle(checkpoint.validationTitle()));
+                            + checkpoint.validationKind().reportTitle());
                     try {
                         publishActions(validation, checkpoint.actions());
                         publishUnifiedScreenshot(validation, checkpoint, checkpointStatus);
@@ -481,15 +476,15 @@ public final class UiEvidencePublisher {
         return "Exchange " + number;
     }
 
-    void publishScreenValidationAsMedia(String title, String target, String base64Png,
+    void publishUiValidationAsMedia(String title, String target, String base64Png,
                                         Collection<AtfAssertion> assertions,
                                         Collection<AtfUiActionRecord> actions,
                                         AtfReportStatus status) {
-        publishScreenValidationAsMedia(title, target, base64Png, assertions, actions,
+        publishUiValidationAsMedia(title, target, base64Png, assertions, actions,
                 ReportScreenshotPolicy.CapturePoint.CHECKPOINT, status);
     }
 
-    void publishScreenValidationAsMedia(String title, String target, String base64Png,
+    void publishUiValidationAsMedia(String title, String target, String base64Png,
                                         Collection<AtfAssertion> assertions,
                                         Collection<AtfUiActionRecord> actions,
                                         ReportScreenshotPolicy.CapturePoint capturePoint,
@@ -499,8 +494,9 @@ public final class UiEvidencePublisher {
         try {
             request.detail("request.action", stepTitle);
             detailTarget(request, target);
-            request.detail("evidence.type", "screen-validation");
-            request.detail("evidence.policy", "one visible Base64 image inside one safe clickable link; policy="
+            request.detail(AtfReportEvidenceKeys.EVIDENCE_TYPE, AtfReportEvidenceKeys.UI_VALIDATION);
+            request.detail(AtfReportEvidenceKeys.EVIDENCE_POLICY,
+                    "one visible Base64 image inside one safe clickable link; policy="
                     + screenshotPolicy.configValue());
             var validation = request.startValidation(UI_VALIDATION);
             publishActions(validation, actions);

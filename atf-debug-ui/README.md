@@ -91,7 +91,7 @@ Checklist-ul obligatoriu pentru închiderea unei schimbări de raport:
 - se investighează exact artifactul fresh din staging, nu un raport istoric;
 - se verifică taburile și deep-link-urile, un caz pozitiv și unul negativ,
   expand/collapse, JSON scrollabil și screenshot link;
-- `Screen validation` păstrează acțiuni, observații și assertions ca zone-soră
+- `UI validation` păstrează acțiuni, observații și assertions ca zone-soră
   fără linii orizontale decorative, iar `📷 base64 img` rămâne inline și
   aliniat vertical cu statusul;
 - POST/PUT au request și response JSON valid/nevid, iar statusul, headerele,

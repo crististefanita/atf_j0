@@ -80,7 +80,7 @@ class ExtentReportRuntimeNavigationComponentTest {
                 () -> assertTrue(ExtentReportRuntimeNavigation.script().indexOf("window.__atfReportPerformance")
                         < ExtentReportRuntimeNavigation.script().indexOf("function normalizeTestViewContent(")),
                 () -> assertTrue(controller.contains("function activateFromHash(")),
-                () -> assertTrue(controller.contains("screen-validation")),
+                () -> assertTrue(controller.contains("ui-validation")),
                 () -> assertTrue(controller.contains("atfTestViewReadinessTimers")),
                 () -> assertTrue(controller.contains("requestAnimationFrame")),
                 () -> assertTrue(disclosure.contains("function hasRelevantScenarioNodes(")),

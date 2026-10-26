@@ -146,7 +146,7 @@ class UiCrossPhaseCompactFlowComponentTest {
                                     action(3, "body action", AtfUiEvidenceSource.ACTION),
                                     action(4, "body observation", AtfUiEvidenceSource.OBSERVE)),
                             AtfReportStatus.PASS);
-                    body.screenValidation("purchase is confirmed", "#receipt", TERMINAL_IMAGE,
+                    body.uiValidation("purchase is confirmed", "#receipt", TERMINAL_IMAGE,
                             List.of(new AtfAssertion("terminal assertion", "confirmed", "confirmed", true)),
                             List.of(action(5, "confirmation action", AtfUiEvidenceSource.ACTION)),
                             ReportScreenshotPolicy.CapturePoint.FINAL, AtfReportStatus.PASS);

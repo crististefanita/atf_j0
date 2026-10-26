@@ -40,13 +40,13 @@ class SectionAuditCheckExecutorTest {
 
     @Test
     void checksBelongingToAnotherSectionAreNotReportedAsExecuted() {
-        SectionAuditSpec spec = spec(ExtentSection.SCREEN_VALIDATION,
+        SectionAuditSpec spec = spec(ExtentSection.UI_VALIDATION,
                 ExtentSectionCheck.STRUCTURE, ExtentSectionCheck.JSON_CONTRACT);
         ValidationResult collected = ValidationResult.of(List.of(
                 assertion("UI validation node", true)));
 
         SectionAuditCheckExecutor.Execution execution = new SectionAuditCheckExecutor()
-                .execute(ExtentSection.SCREEN_VALIDATION, spec, collected);
+                .execute(ExtentSection.UI_VALIDATION, spec, collected);
 
         assertEquals(EnumSet.of(ExtentSectionCheck.STRUCTURE), execution.executedChecks());
         assertTrue(execution.validation().valid());

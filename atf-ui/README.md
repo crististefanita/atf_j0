@@ -256,7 +256,7 @@ documentată în
 `atf-ui` este providerul browser, nu owner-ul policy-ului, al YAML-ului consumerului
 sau al publisherului HTML.
 
-Un pas `Screen validation` trebuie să păstreze în aceeași stare vizuală:
+Un pas `UI validation` trebuie să păstreze în aceeași stare vizuală:
 
 ```text
 acțiuni reale Playwright
@@ -319,12 +319,6 @@ flowchart LR
   `forPaths(...)` restrânge opțional scope-ul consumerului. Allowlist-ul de
   host rămâne obligatoriu. Constructorii anteriori păstrează `allResources()`
   pentru compatibilitate; consumerul API configurează explicit politica async.
-- `includingDocumentsFor(...)` selectează doar rutele DOCUMENT declarate, cu
-  limită de segment (`/login` nu acceptă `/login-extra`); XHR/FETCH rămân pe
-  selecția lor existentă. `responseBodies` este o axă separată: politica async
-  capturează body-urile XHR/FETCH, iar selecția DOCUMENT pe rute nu citește
-  body-ul HTML. `includingDocuments()` păstrează comportamentul legacy și
-  permite citirea body-urilor documentelor.
 - `UiNetworkObservation.resourceKind()` păstrează clasificarea Playwright;
   `OTHER` menține compatibilitatea fixture-urilor typed anterioare,
   fără să transforme resursele browser cunoscute în trafic API.

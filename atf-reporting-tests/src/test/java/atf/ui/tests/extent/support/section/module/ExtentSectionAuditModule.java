@@ -34,7 +34,7 @@ public interface ExtentSectionAuditModule {
     default ReportUiContract.Tab evidenceTab() {
         return switch (section()) {
             case OVERVIEW -> ReportUiContract.Tab.OVERVIEW;
-            case TESTS, EVIDENCE, SCREEN_VALIDATION -> ReportUiContract.Tab.TESTS;
+            case TESTS, EVIDENCE, UI_VALIDATION -> ReportUiContract.Tab.TESTS;
             case CATEGORIES -> ReportUiContract.Tab.CATEGORIES;
             case FAILS -> ReportUiContract.Tab.FAILS;
         };

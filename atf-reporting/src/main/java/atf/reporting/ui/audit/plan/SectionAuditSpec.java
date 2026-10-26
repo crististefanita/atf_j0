@@ -60,8 +60,8 @@ public record SectionAuditSpec(String id, UiExtentReportSource source,
     public void validatePlan() {
         if (hasCheck(ExtentSectionCheck.SCREENSHOT_LINK)
                 || hasCheck(ExtentSectionCheck.INLINE_ALIGNMENT)) {
-            requireSection(ExtentSection.SCREEN_VALIDATION,
-                    "screenshot/alignment checks require SCREEN_VALIDATION");
+            requireSection(ExtentSection.UI_VALIDATION,
+                    "screenshot/alignment checks require UI_VALIDATION");
         }
         if (hasCheck(ExtentSectionCheck.JSON_CONTRACT)
                 || hasCheck(ExtentSectionCheck.MOCK_RECONCILIATION)) {

@@ -36,7 +36,7 @@ public final class ReportDisclosureLocators {
         return validation.locator("details[class~='assertion-evidence'] > summary");
     }
     public Locator assertionTables(Locator validation) { return common.validationTables(validation); }
-    public Locator screenshots(Locator validation) { return common.screenValidationScreenshotLinks(validation); }
+    public Locator screenshots(Locator validation) { return common.uiValidationScreenshotLinks(validation); }
     public Locator viewport(Locator disclosure) {
         return disclosure.locator("[class~='" + CssClass.ATF_API_TABLE_WRAP.value() + "']");
     }

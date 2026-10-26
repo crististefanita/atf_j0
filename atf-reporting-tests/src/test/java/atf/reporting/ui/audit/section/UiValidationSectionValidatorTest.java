@@ -10,19 +10,19 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @AtfUnitTest
-class ScreenValidationSectionValidatorTest {
+class UiValidationSectionValidatorTest {
     @Test
     void acceptsExactlyThreeContiguousZonesAndCanonicalInlineImage() {
-        var snapshot = new ReportAuditSnapshot.ScreenValidation(1, 1, 1, 1, 3,
+        var snapshot = new ReportAuditSnapshot.UiValidation(1, 1, 1, 1, 3,
                 1, 1, true, true, true, true, true, List.of());
-        assertTrue(new ScreenValidationSectionValidator().validate(snapshot).valid());
+        assertTrue(new UiValidationSectionValidator().validate(snapshot).valid());
     }
 
     @Test
     void rejectsRepeatedOrSeparatedEvidenceZones() {
-        var snapshot = new ReportAuditSnapshot.ScreenValidation(1, 2, 1, 1, 4,
+        var snapshot = new ReportAuditSnapshot.UiValidation(1, 2, 1, 1, 4,
                 1, 1, false, true, false, false, true,
                 List.of("unexpected separator"));
-        assertFalse(new ScreenValidationSectionValidator().validate(snapshot).valid());
+        assertFalse(new UiValidationSectionValidator().validate(snapshot).valid());
     }
 }

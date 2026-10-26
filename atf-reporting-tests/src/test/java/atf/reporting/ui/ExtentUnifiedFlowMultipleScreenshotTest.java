@@ -34,12 +34,12 @@ class ExtentUnifiedFlowMultipleScreenshotTest {
         var reportPath = report.reportPath();
         var scenario = report.startScenario("PurchaseTest", "atf.tests", "purchase flow", List.of("ui"));
         var phase = scenario.startPhase("TEST BODY");
-        phase.screenValidation("product is selected", "/products/1",
+        phase.uiValidation("product is selected", "/products/1",
                 ReportTestScreenshots.ONE_PIXEL_PNG,
                 List.of(new AtfAssertion("Product", "Blue Top", "Blue Top", true)),
                 List.of(new AtfUiActionRecord(1, "Click", "a.product", "details open",
                         "click completed", 8, AtfReportStatus.PASS)), AtfReportStatus.PASS);
-        phase.screenValidation("cart preserves quantity", "/view_cart",
+        phase.uiValidation("cart preserves quantity", "/view_cart",
                 ReportTestScreenshots.SECOND_PIXEL_PNG,
                 List.of(new AtfAssertion("Quantity", "2", "2", true)),
                 List.of(new AtfUiActionRecord(2, "Click", "a.cart", "cart opens",

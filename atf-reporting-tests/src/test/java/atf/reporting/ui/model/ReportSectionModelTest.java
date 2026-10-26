@@ -21,14 +21,14 @@ class ReportSectionModelTest {
                 () -> assertTrue(ReportSectionModel.extentUiDefaults().stream()
                         .allMatch(section -> section.isPresentIn(html))),
                 () -> assertEquals("UI validation",
-                        ReportSectionModel.Section.SCREEN_VALIDATION.displayName()),
+                        ReportSectionModel.Section.UI_VALIDATION.displayName()),
                 () -> assertEquals("id=\"test-view\"", ReportSectionMarker.id(
                         AtfReportHtmlVocabulary.ViewId.TESTS)
                         .token()),
-                () -> assertEquals("data-atf-evidence-type=\"screen-validation\"",
+                () -> assertEquals("data-atf-evidence-type=\"ui-validation\"",
                         ReportSectionMarker.attribute(
                         AtfReportHtmlVocabulary.Attribute.EVIDENCE_TYPE,
-                        "screen-validation").token()),
+                        "ui-validation").token()),
                 () -> assertTrue(ReportSectionModel.Section.TESTS.viewId()
                         == AtfReportHtmlVocabulary.ViewId.TESTS),
                 () -> assertFalse(new ReportSectionModel(

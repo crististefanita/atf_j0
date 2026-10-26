@@ -95,7 +95,7 @@ public class ArchitectureOwnershipBoundaryTest {
                         "static UI artifact coverage belongs to reporting tests"),
                 () -> assertFalse(Files.exists(reportingTests.resolve(REPORTING_UI_TESTS_PACKAGE)
                                 .resolve("section/scenarios/StaticScreenValidationReportUiTest.java")),
-                        "duplicate static Screen validation E2E must not return"),
+                        "duplicate static UI validation E2E must not return"),
                 () -> requireFile(reportingTests.resolve(REPORTING_UI_TESTS_PACKAGE)
                                 .resolve("e2e/uireport/StaticUiExtentReportContractTest.java"),
                         "one configurable browser boundary belongs to reporting test scope"),
@@ -194,7 +194,7 @@ public class ArchitectureOwnershipBoundaryTest {
                         "renderer-neutral validation result belongs to atf-reporting"),
                 () -> requireFile(reporting.resolve("audit/ReportAuditSnapshot.java"),
                         "renderer-neutral report snapshot belongs to atf-reporting"),
-                () -> requireFile(reporting.resolve("ui/audit/section/ScreenValidationSectionValidator.java"),
+                () -> requireFile(reporting.resolve("ui/audit/section/UiValidationSectionValidator.java"),
                         "pure UI report section validators belong to atf-reporting"),
                 () -> requireFile(reporting.resolve("ui/failure/UiFailureReportAudit.java"),
                         "failure report metadata belongs to atf-reporting"),

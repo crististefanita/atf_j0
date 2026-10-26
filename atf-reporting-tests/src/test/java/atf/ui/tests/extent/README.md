@@ -165,8 +165,8 @@ package-ul `support.section` nu devine un container mixt. În mod similar,
 nu owner-ul tuturor selectorilor. Implementarea este împărțită pe boundary-uri
 coezive: `ReportLocatorSupport` pentru compoziție comună,
 `ReportPageLocators` pentru pagină și tab-uri, `ReportTreeLocators` pentru
-disclosure/card tree și `ReportScreenValidationLocators` pentru suprafețele
-DOM/CSS de screen validation. `ReportEvidenceLocators`,
+disclosure/card tree și `ReportUiValidationLocators` pentru suprafețele
+DOM/CSS de UI validation. `ReportEvidenceLocators`,
 `ReportCategoryLocators` și `ReportFailureLocators` rămân verticale dedicate.
 Astfel testele și flow-urile depind de fațadă/flow, iar schimbarea unei familii
 de selectori nu mai obligă modificarea unei clase monolitice.
@@ -229,13 +229,13 @@ Extent assertion / evidence
 - `TIME` apare numai în tabelul acțiunilor Playwright; observațiile statice nu
   primesc o durată artificială.
 - Pentru arborele UI, `UI validation` este singurul titlu public; markerul
-  intern `screen-validation` poate identifica evidence-ul vizual fără să creeze
+  intern `ui-validation` poate identifica evidence-ul vizual fără să creeze
   o a doua etichetă în raport.
 - Contractul de densitate este comun: API exchange/aggregate și UI evidence au
   summary de `34px`, padding `9px 12px` și glyph inline de `18px` în Extent și
   fallback; `500px` se aplică numai viewport-urilor de tabele lungi.
 - `AtfReportEvidenceCssTest`/`AtfReportThemeTokensTest` verifică tokenii și
-  paritatea CSS; `ScreenValidationSectionExtractor` măsoară computed height,
+  paritatea CSS; `UiValidationSectionExtractor` măsoară computed height,
   padding, glyph, badge și gap-ul dintre acțiuni/observații/assertions pe raportul
   randat. E2E/static contract + Browser MCP confirmă vizual aceeași geometrie
   la viewport normal și îngust.
@@ -537,7 +537,7 @@ Proof-ul este împărțit pe niveluri:
 - `SelectedApiTestsReportUiTest` le execută pe raportul real;
 - scenariul trebuie să arate `Audit observations · 6` și `Assertions · 7`, cu
   rânduri verzi și fără overflow;
-- deep-link-ul este `#test-id=48&scenario-index=6&expand=screen-validation`;
+- deep-link-ul este `#test-id=48&scenario-index=6&expand=ui-validation`;
   restul raportului rămâne închis implicit.
 
 Ordinea evidence-ului este strictă și semantică:
@@ -672,7 +672,7 @@ regulilor:
 | raport generat din setup API | `SelectedApiTestsReportUiTest` + `SectionAuditRegistry` | mock → API, POST/PUT request/response JSON, owner/scenario/phase, Categories/Overview/Fails/Evidence și render-health pe toate tab-urile |
 | browser render health | `UiReportStyleValidator` + `ReportAuditContext` | overflow document/body/non-scrollable, zero `<hr>`, imagini, glyph `＋/−`, console/page/request diagnostics |
 
-`ScreenValidationSectionExtractor` verifică explicit:
+`UiValidationSectionExtractor` verifică explicit:
 
 - zone pentru Playwright actions, Audit observations și Assertions;
 - un link PNG Base64 valid, direct sau deduplicat prin referință;
@@ -696,7 +696,7 @@ Disclosure-urile secundare Overview au acest ciclu verificabil:
 Deep-link-ul pentru dovada completă:
 
 ```text
-#test-id=48&scenario-index=6&expand=screen-validation
+#test-id=48&scenario-index=6&expand=ui-validation
 ```
 
 Acesta deschide `TEST BODY → THEN ATF metadata sections expansion → Screen
@@ -786,7 +786,7 @@ tables și nu folosesc acest normalizator.
 
 - `ValidationTableLayoutComponentTest` — contractul minim pentru politică;
 - `ValidationTableLayoutInspector` — adapter OOP folosit de
-  `ScreenValidationSectionExtractor` pentru toate familiile UI/API de evidence
+  `UiValidationSectionExtractor` pentru toate familiile UI/API de evidence
   tables;
 - metrică — compară `data-atf-content-column-max-px` cu cea mai lată coloană
   flexibilă și verifică suma lățimilor plus overflow-ul;

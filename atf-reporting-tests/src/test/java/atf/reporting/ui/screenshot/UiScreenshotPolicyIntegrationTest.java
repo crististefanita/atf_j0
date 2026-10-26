@@ -63,7 +63,7 @@ class UiScreenshotPolicyIntegrationTest {
                 var scenario = session.startScenario("PolicyTest", "atf.reporting.ui",
                         "missing target", List.of("ui"));
                 var body = scenario.startPhase(ReportUiContract.Phase.TEST_BODY.displayName());
-                body.screenValidation("visual state", " ", ReportTestScreenshots.ONE_PIXEL_PNG,
+                body.uiValidation("visual state", " ", ReportTestScreenshots.ONE_PIXEL_PNG,
                         List.of(), List.of(), AtfReportStatus.PASS);
             }
         });
@@ -82,11 +82,11 @@ class UiScreenshotPolicyIntegrationTest {
                     "screenshot policy", List.of("ui"));
             var body = scenario.startPhase(ReportUiContract.Phase.TEST_BODY.displayName());
             if (checkpoint) {
-                body.screenValidation("checkpoint", "#checkpoint", ReportTestScreenshots.ONE_PIXEL_PNG,
+                body.uiValidation("checkpoint", "#checkpoint", ReportTestScreenshots.ONE_PIXEL_PNG,
                         List.of(), List.of(), AtfReportStatus.PASS);
             }
             if (finalState) {
-                body.screenValidation("final", "#final", ReportTestScreenshots.SECOND_PIXEL_PNG,
+                body.uiValidation("final", "#final", ReportTestScreenshots.SECOND_PIXEL_PNG,
                         List.of(), List.of(), ReportScreenshotPolicy.CapturePoint.FINAL,
                         AtfReportStatus.PASS);
             }

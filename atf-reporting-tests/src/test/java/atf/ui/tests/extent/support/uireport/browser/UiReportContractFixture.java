@@ -10,7 +10,7 @@ import atf.reporting.ui.audit.vocabulary.UiAuditGherkin;
 import atf.ui.tests.extent.support.config.UiConfiguration;
 import atf.reporting.ui.contract.ReportUiContract;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
-import atf.ui.tests.extent.support.section.extract.ScreenValidationSectionExtractor;
+import atf.ui.tests.extent.support.section.extract.UiValidationSectionExtractor;
 
 import java.util.Objects;
 
@@ -21,20 +21,20 @@ public final class UiReportContractFixture implements AutoCloseable {
     private final ReportAuditContext context;
     private final UiAuditFlow audit;
     private final ReportUiLocators locators;
-    private final ScreenValidationSectionExtractor screenValidation;
+    private final UiValidationSectionExtractor uiValidation;
     private final UiReportNavigationFlow navigation;
 
     private UiReportContractFixture(UiReportContractSpec spec, UiReportInput input,
                                     ReportAuditContext context, UiAuditFlow audit,
                                     ReportUiLocators locators,
-                                    ScreenValidationSectionExtractor screenValidation,
+                                    UiValidationSectionExtractor uiValidation,
                                     UiReportNavigationFlow navigation) {
         this.spec = spec;
         this.input = input;
         this.context = context;
         this.audit = audit;
         this.locators = locators;
-        this.screenValidation = screenValidation;
+        this.uiValidation = uiValidation;
         this.navigation = navigation;
     }
 
@@ -61,7 +61,7 @@ public final class UiReportContractFixture implements AutoCloseable {
                 UiAuditGherkin.STATIC_UI_REPORT_READY,
                 "UI Extent contract failed", spec.id());
         return new UiReportContractFixture(spec, input, context, audit, locators,
-                new ScreenValidationSectionExtractor(audit, locators),
+                new UiValidationSectionExtractor(audit, locators),
                 new UiReportNavigationFlow(audit, locators));
     }
 
@@ -70,7 +70,7 @@ public final class UiReportContractFixture implements AutoCloseable {
     public ReportAuditContext context() { return context; }
     public UiAuditFlow audit() { return audit; }
     public ReportUiLocators locators() { return locators; }
-    public ScreenValidationSectionExtractor screenValidation() { return screenValidation; }
+    public UiValidationSectionExtractor uiValidation() { return uiValidation; }
     public UiReportNavigationFlow navigation() { return navigation; }
 
     public com.microsoft.playwright.Page openTab(ReportUiContract.Tab tab) {

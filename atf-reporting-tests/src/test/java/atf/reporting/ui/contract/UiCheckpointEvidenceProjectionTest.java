@@ -16,7 +16,7 @@ import java.util.ArrayList;
 
 import static atf.reporting.markup.AtfReportEvidenceKeys.EVIDENCE_TYPE;
 import static atf.reporting.markup.AtfReportEvidenceKeys.EVIDENCE_POLICY;
-import static atf.reporting.markup.AtfReportEvidenceKeys.SCREEN_VALIDATION;
+import static atf.reporting.markup.AtfReportEvidenceKeys.UI_VALIDATION;
 import static atf.reporting.markup.AtfReportEvidenceKeys.API_TRACE;
 import static atf.reporting.markup.AtfReportEvidenceKeys.UNIFIED_UI_FLOW;
 import static atf.reporting.markup.AtfReportEvidenceKeys.UI_FAILURE;
@@ -39,7 +39,7 @@ class UiCheckpointEvidenceProjectionTest {
         var context = List.of(
                 new ReportField(REQUEST_ACTION, UI_TITLE),
                 new ReportField(" REQUEST.TARGET ", UI_TARGET),
-                new ReportField(EVIDENCE_TYPE, SCREEN_VALIDATION),
+                new ReportField(EVIDENCE_TYPE, UI_VALIDATION),
                 new ReportField(" EVIDENCE.POLICY ", "each-checkpoint"));
         var method = new ReportField("method", "POST");
         var url = new ReportField("url", "https://api.example.test/cart");
@@ -91,7 +91,7 @@ class UiCheckpointEvidenceProjectionTest {
             var request = phase.startRequest(UI_TITLE, "", "");
             request.detail(REQUEST_ACTION, UI_TITLE);
             request.detail(REQUEST_TARGET, UI_TARGET);
-            request.detail(EVIDENCE_TYPE, SCREEN_VALIDATION);
+            request.detail(EVIDENCE_TYPE, UI_VALIDATION);
             request.detail(EVIDENCE_POLICY, "each-checkpoint");
             request.startValidation("UI validation").complete(AtfReportStatus.FAIL);
             request.complete(AtfReportStatus.FAIL);

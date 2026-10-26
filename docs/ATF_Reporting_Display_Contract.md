@@ -47,7 +47,7 @@ flowchart LR
 
 Titlurile sunt propoziții scurte și explicative. Structura semantică nu depinde
 de textul `Contract validation`, de metoda HTTP sau de numărul de câmpuri.
-`UI validation` este singurul titlu public pentru evidence UI; `screen-validation`
+`UI validation` este singurul titlu public pentru evidence UI; `ui-validation`
 poate rămâne un discriminator intern tipizat, dar nu se afișează ca al doilea nume.
 
 ## Invariante de interacțiune

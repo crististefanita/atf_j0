@@ -36,7 +36,7 @@ class ExtentReportUiFailureEvidenceTest {
             var scenario = session.startScenario("UiTest", EXTENT_UI_TEST_PACKAGE,
                     "failure leaves", List.of("ui"));
             var body = scenario.startPhase("TEST BODY");
-            body.screenValidation("disclosure is reached", "#failure-action",
+            body.uiValidation("disclosure is reached", "#failure-action",
                     ReportTestScreenshots.ONE_PIXEL_PNG, List.of(), List.of(
                             new AtfUiActionRecord(1, "Click", "#failure-action",
                                     "disclosure opens", "AssertionError: disclosure remained closed",
@@ -75,7 +75,7 @@ class ExtentReportUiFailureEvidenceTest {
             var auditScenario = session.startScenario("UiTest", EXTENT_UI_TEST_PACKAGE,
                     "audit failure", List.of("ui"));
             var auditBody = auditScenario.startPhase("TEST BODY");
-            auditBody.screenValidation("badge is visible", "#badge", ReportTestScreenshots.ONE_PIXEL_PNG,
+            auditBody.uiValidation("badge is visible", "#badge", ReportTestScreenshots.ONE_PIXEL_PNG,
                     List.of(), List.of(new AtfUiActionRecord(1, "Audit observation", "#badge",
                             "badge is visible", "badge is missing", 0, AtfReportStatus.FAIL,
                             AtfUiEvidenceSource.OBSERVE)), AtfReportStatus.FAIL);
@@ -85,7 +85,7 @@ class ExtentReportUiFailureEvidenceTest {
             var assertionScenario = session.startScenario("UiTest", EXTENT_UI_TEST_PACKAGE,
                     "assertion failure", List.of("ui"));
             var assertionBody = assertionScenario.startPhase("TEST BODY");
-            assertionBody.screenValidation("status is Fail", "#status", ReportTestScreenshots.ONE_PIXEL_PNG,
+            assertionBody.uiValidation("status is Fail", "#status", ReportTestScreenshots.ONE_PIXEL_PNG,
                     List.of(new AtfAssertion(
                             "Status badge", "Fail", "Pass", false)), List.of(), AtfReportStatus.FAIL);
             assertionBody.complete(AtfReportStatus.FAIL);
@@ -265,7 +265,7 @@ class ExtentReportUiFailureEvidenceTest {
             report = session.reportPath();
             var scenario = session.startScenario("UiTest", EXTENT_UI_TEST_PACKAGE, "validation hierarchy", List.of("ui"));
             var body = scenario.startPhase("TEST BODY");
-            body.screenValidation("report is visible", "#test-view", ReportTestScreenshots.ONE_PIXEL_PNG, List.of(
+            body.uiValidation("report is visible", "#test-view", ReportTestScreenshots.ONE_PIXEL_PNG, List.of(
                     new AtfAssertion("Report heading", "visible", "visible", true)),
                     List.of(new AtfUiActionRecord(1, "Get text", "h1", "heading is visible",
                             "Report", 4, AtfReportStatus.PASS)), AtfReportStatus.PASS);

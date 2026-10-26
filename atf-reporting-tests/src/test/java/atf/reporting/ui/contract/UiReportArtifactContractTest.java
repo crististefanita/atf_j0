@@ -39,7 +39,7 @@ class UiReportArtifactContractTest {
                     AtfReportStatus.PASS);
             setup.complete(AtfReportStatus.PASS);
             var body = scenario.startPhase(ReportUiContract.Phase.TEST_BODY.displayName());
-            body.screenValidation("report is visible", "#test-view",
+            body.uiValidation("report is visible", "#test-view",
                     ReportTestScreenshots.ONE_PIXEL_PNG,
                     List.of(new AtfAssertion("Tests tab", "visible", "visible", true)),
                     List.of(
@@ -83,7 +83,7 @@ class UiReportArtifactContractTest {
                     AtfReportStatus.PASS);
             setup.complete(AtfReportStatus.PASS);
             var body = scenario.startPhase("TEST BODY");
-            body.screenValidation("page is ready", "#test-view",
+            body.uiValidation("page is ready", "#test-view",
                     ReportTestScreenshots.ONE_PIXEL_PNG,
                     List.of(new AtfAssertion("Page", "ready", "ready", true)),
                     List.of(

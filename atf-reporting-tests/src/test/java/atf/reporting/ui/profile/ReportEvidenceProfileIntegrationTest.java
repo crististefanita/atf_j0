@@ -61,7 +61,7 @@ class ReportEvidenceProfileIntegrationTest {
                     AtfReportStatus.PASS);
             setup.complete(AtfReportStatus.PASS);
             var body = scenario.startPhase("TEST BODY");
-            body.screenValidation("purchase is complete", "/confirmation",
+            body.uiValidation("purchase is complete", "/confirmation",
                     ReportTestScreenshots.ONE_PIXEL_PNG,
                     List.of(new AtfAssertion("Order", "confirmed", "confirmed", true)),
                     List.of(new AtfUiActionRecord(2, "Confirm purchase", "#confirm",
@@ -180,7 +180,7 @@ class ReportEvidenceProfileIntegrationTest {
                     null, List.of(), List.of(), observedExchanges(List.of(apiEvidence)), ReportScreenshotPolicy.CapturePoint.CHECKPOINT, AtfReportStatus.PASS);
             var finalCapture = profile.capture(ReportScreenshotPolicy.CapturePoint.FINAL,
                     "confirmation is visible", "#confirmation", provider).orElseThrow();
-            body.screenValidation(finalCapture.title(), "#confirmation", finalCapture.base64Png(),
+            body.uiValidation(finalCapture.title(), "#confirmation", finalCapture.base64Png(),
                     List.of(new AtfAssertion("Confirmation", "visible", "visible", true)),
                     List.of(new AtfUiActionRecord(2, "Get text", "#confirmation",
                             "confirmation message", "Order confirmed", 5, AtfReportStatus.PASS)),
@@ -348,7 +348,7 @@ class ReportEvidenceProfileIntegrationTest {
                     List.of(new AtfAssertion("Initial state", "ready", "ready", true)),
                     List.of(new AtfUiActionRecord(1, "Navigate", "/start", "page loaded",
                             "document loaded", 5, AtfReportStatus.PASS)), UiApiValidationEvidence.empty(), ReportScreenshotPolicy.CapturePoint.CHECKPOINT, AtfReportStatus.PASS);
-            finalOnlyBody.screenValidation("terminal state is confirmed", "#confirmation",
+            finalOnlyBody.uiValidation("terminal state is confirmed", "#confirmation",
                     ReportTestScreenshots.SECOND_PIXEL_PNG,
                     List.of(new AtfAssertion("Confirmation", "visible", "visible", true)),
                     List.of(new AtfUiActionRecord(2, "Get text", "#confirmation", "read confirmation",
@@ -430,7 +430,7 @@ class ReportEvidenceProfileIntegrationTest {
                     ReportTestScreenshots.ONE_PIXEL_PNG, List.of(),
                     List.of(new AtfUiActionRecord(1, "Navigate", "/start", "page loaded",
                             "document loaded", 5, AtfReportStatus.PASS)), UiApiValidationEvidence.empty(), ReportScreenshotPolicy.CapturePoint.CHECKPOINT, AtfReportStatus.PASS);
-            finalBody.screenValidation("terminal state appears", "#confirmation",
+            finalBody.uiValidation("terminal state appears", "#confirmation",
                     ReportTestScreenshots.SECOND_PIXEL_PNG, List.of(),
                     List.of(new AtfUiActionRecord(2, "Get text", "#confirmation",
                             "read result", "confirmed", 3, AtfReportStatus.PASS)),

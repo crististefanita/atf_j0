@@ -269,7 +269,7 @@ rendererul fallback:
   tabele request/response, păstrând modelul semantic. Un checkpoint ale cărui
   singure detalii sunt aceste chei nu publică tabelul `Status / Details / Info`
   sau un disclosure gol; validările UI/API rămân copiii propoziției;
-- tipul `screen-validation` delimitează filtrarea politicii; contractele
+- tipul `ui-validation` delimitează filtrarea politicii; contractele
   `api-trace`/`unified-ui-flow` și diagnosticul capturii `ui-failure` se păstrează;
 - filtrarea exactă a acestor chei nu elimină țintele acțiunilor Playwright și nu
   suprimă `Request details`, JSON-ul sau execution evidence ale exchange-urilor

@@ -385,7 +385,7 @@ modulului consumat:
 | reporting API | `MockApiReportIntegrationTest`, `ApiReportArtifactAuditTest`, `ApiManualReplayTest` | fixture API → renderer/publisher → artifact și replay |
 | UI composition | `SelectedApiTestsReportUiTest`, `StaticUiExtentReportContractTest` | artifact → ATF Debug/Playwright → DOM/CSS/disclosure |
 
-`StaticUiExtentReportContractTest` include verificările `SCREEN_VALIDATION` și
+`StaticUiExtentReportContractTest` include verificările `UI_VALIDATION` și
 `INLINE_SCREENSHOT`; inputul trebuie să aibă evidence de screenshot conform
 policy-ului declarat. Un raport cu `Screenshot policy = Disabled` nu este input
 pentru acest screenshot gate și nu se interpretează ca defect al rendererului.
@@ -410,7 +410,7 @@ Boundary-urile suportului rămân mici și verificabile:
 |---|---|---|
 | coverage | fiecare seam are test `unit`, `component`, `integration` sau `e2e` | un seam nou fără dovadă lower-level e regresie de guvernanță |
 | Network Inspector | `ReportNetworkInspectorTest` (`unit`) pentru proiecție/markup; `NetworkInspectorSummaryRoleTest` (`component`) pentru rolul și ordinea summary-ului; `ExtentReportUiEvidencePublishingTest` (`unit`) pentru publicarea aggregate-ului | matricea cere clasele, metodele executabile și adnotările ATF; publicarea rămâne proof separat |
-| audit semantic | `Overview`, `Categories`, `Fails`, `Screen validation` și `ReportExecutionProjections` | `ReportAuditSnapshot` rămâne renderer-neutral; aceleași proiecții typed pot fi verificate fără browser |
+| audit semantic | `Overview`, `Categories`, `Fails`, `UI validation` și `ReportExecutionProjections` | `ReportAuditSnapshot` rămâne renderer-neutral; aceleași proiecții typed pot fi verificate fără browser |
 | convergență | JSON și visual sunt verificate împreună | browserul observă; regulile se verifică fără Playwright |
 | browser proof | `E2eSuiteBudgetArchitectureTest` plafonează la 8 clase `@AtfE2eTest` | orice clasă nouă cere justificare în feedback și modificarea bugetului |
 
@@ -521,7 +521,7 @@ Invarianturile de randare sunt:
   artifactele UI și API selectate; aceasta este dovadă de randare, nu evidence
   publicată în raport;
 - raportul păstrează secțiunile, disclosure-urile collapsed la sosire,
-  `SETUP → TEST BODY → Screen validation`, request/response JSON și glyph-ul
+  `SETUP → TEST BODY → UI validation`, request/response JSON și glyph-ul
   `＋/−` inline înaintea propoziției, fără `<hr>` decorativ.
 
 Artifactele sunt output de run și nu se copiază în README. Sursa `.js`/`.css`

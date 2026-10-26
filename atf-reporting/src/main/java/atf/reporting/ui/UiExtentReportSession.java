@@ -384,44 +384,44 @@ public final class UiExtentReportSession implements AutoCloseable {
             lifecycle.apiTrace(keyword, title, target, apiValidation, status);
         }
 
-        public void screenValidation(String title, String target, String base64Png,
+        public void uiValidation(String title, String target, String base64Png,
                                      Collection<AtfAssertion> assertions,
                                      AtfReportStatus status) {
-            lifecycle.screenValidation(title, target, base64Png, assertions, status);
+            lifecycle.uiValidation(title, target, base64Png, assertions, status);
         }
 
-        public void screenValidation(String title, String target, String base64Png,
+        public void uiValidation(String title, String target, String base64Png,
                                      Collection<AtfAssertion> assertions,
                                      Collection<AtfUiActionRecord> actions,
                                      AtfReportStatus status) {
-            lifecycle.screenValidation(title, target, base64Png, assertions, actions, status);
+            lifecycle.uiValidation(title, target, base64Png, assertions, actions, status);
         }
 
         /** Publishes visual UI evidence at an explicit checkpoint/final point. */
-        public void screenValidation(String title, String target, String base64Png,
+        public void uiValidation(String title, String target, String base64Png,
                                      Collection<AtfAssertion> assertions,
                                      Collection<AtfUiActionRecord> actions,
                                      ReportScreenshotPolicy.CapturePoint capturePoint,
                                      AtfReportStatus status) {
-            lifecycle.screenValidation(title, target, base64Png, assertions, actions,
+            lifecycle.uiValidation(title, target, base64Png, assertions, actions,
                     capturePoint, status);
         }
 
-        public void screenValidationAsMedia(String title, String target, String base64Png,
+        public void uiValidationAsMedia(String title, String target, String base64Png,
                                             Collection<AtfAssertion> assertions,
                                             Collection<AtfUiActionRecord> actions,
                                             AtfReportStatus status) {
-            lifecycle.screenValidationAsMedia(title, target, base64Png, assertions, actions, status);
+            lifecycle.uiValidationAsMedia(title, target, base64Png, assertions, actions, status);
         }
 
         /** Keeps terminal document/form exchanges alongside the screen that caused them. */
-        public void screenValidation(String title, String target, String base64Png,
+        public void uiValidation(String title, String target, String base64Png,
                                      Collection<AtfAssertion> assertions,
                                      Collection<AtfUiActionRecord> actions,
                                      UiApiValidationEvidence apiValidation,
                                      ReportScreenshotPolicy.CapturePoint capturePoint,
                                      AtfReportStatus status) {
-            lifecycle.screenValidation(title, target, base64Png, assertions, actions, apiValidation,
+            lifecycle.uiValidation(title, target, base64Png, assertions, actions, apiValidation,
                     capturePoint, status);
         }
 

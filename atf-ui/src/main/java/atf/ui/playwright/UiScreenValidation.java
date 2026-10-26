@@ -38,7 +38,7 @@ public final class UiScreenValidation {
         Objects.requireNonNull(page, "page");
         Objects.requireNonNull(configuration, "configuration");
         List<Locator> safeMasks = List.copyOf(Objects.requireNonNull(masks, "masks"));
-        String safeTitle = title == null || title.isBlank() ? "Screen validation" : title.trim();
+        String safeTitle = title == null || title.isBlank() ? "UI validation" : title.trim();
         if (!configuration.enabled()) return new Evidence(safeTitle, "", false);
         Page.ScreenshotOptions options = new Page.ScreenshotOptions()
                 .setFullPage(configuration.fullPage())
@@ -61,7 +61,7 @@ public final class UiScreenValidation {
 
     public record Evidence(String title, String base64Png, boolean captured) {
         public Evidence {
-            title = title == null || title.isBlank() ? "Screen validation" : title.trim();
+            title = title == null || title.isBlank() ? "UI validation" : title.trim();
             base64Png = base64Png == null ? "" : base64Png;
         }
 

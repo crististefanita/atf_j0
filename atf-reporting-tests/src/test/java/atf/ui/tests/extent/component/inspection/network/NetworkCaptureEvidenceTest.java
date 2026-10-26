@@ -152,7 +152,7 @@ class NetworkCaptureEvidenceTest {
             artifact = session.reportPath();
             var scenario = session.startScenario("TerminalJourney", "component.network", "Terminal document", List.of("ui"));
             var phase = scenario.startPhase("TEST BODY");
-            phase.screenValidation("cleanup is confirmed", "/account/deleted", "", List.of(), List.of(),
+            phase.uiValidation("cleanup is confirmed", "/account/deleted", "", List.of(), List.of(),
                     observedExchanges(List.of(exchange("/account/delete"))),
                     ReportScreenshotPolicy.CapturePoint.FINAL, AtfReportStatus.PASS);
             phase.complete(AtfReportStatus.PASS);

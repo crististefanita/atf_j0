@@ -434,7 +434,7 @@ public final class ShopE2eContext implements AutoCloseable {
             var actionEvidence = ReportModelAdapters.uiActions(
                     terminalContractEvidence(actions, page, title, assertions, evidence));
             if (evidence.hasScreenshotPayload()) {
-                body.screenValidation(title, page.url(), evidence.base64Png(),
+                body.uiValidation(title, page.url(), evidence.base64Png(),
                         assertions, actionEvidence,
                         ReportScreenshotPolicy.CapturePoint.FINAL, AtfReportStatus.PASS);
             } else {

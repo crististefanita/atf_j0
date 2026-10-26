@@ -62,13 +62,13 @@ public final class UiReportContractValidator {
             assertions.add(ReportAuditChecks.check("Cross-tab navigation", "all four tabs",
                     String.valueOf(snapshot.navigationTabCount()), snapshot.navigationTabCount() == 4));
         }
-        if ((spec.has(UiReportCheck.SCREEN_VALIDATION)
+        if ((spec.has(UiReportCheck.UI_VALIDATION)
                 || spec.has(UiReportCheck.INLINE_SCREENSHOT))
                 && snapshot.tab() == ReportUiContract.Tab.TESTS) {
             assertions.add(ReportAuditChecks.check("UI validation", "valid evidence contract",
-                    snapshot.screenValidationViolations().isEmpty()
-                            ? "valid" : snapshot.screenValidationViolations().toString(),
-                    snapshot.screenValidationValid()));
+                    snapshot.uiValidationViolations().isEmpty()
+                            ? "valid" : snapshot.uiValidationViolations().toString(),
+                    snapshot.uiValidationValid()));
         }
         if (spec.has(UiReportCheck.FAILS_PROJECTION)
                 && snapshot.tab() == ReportUiContract.Tab.FAILS) {

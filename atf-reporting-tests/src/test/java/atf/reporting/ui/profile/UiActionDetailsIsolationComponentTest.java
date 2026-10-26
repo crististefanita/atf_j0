@@ -77,7 +77,7 @@ class UiActionDetailsIsolationComponentTest {
                                     : ReportUiActionDetailsMode.INCLUDED_COLLAPSED).build();
                     var scenario = report.startScenario("Profile" + summary, "atf.tests", "scoped actions", List.of(), profile);
                     var body = scenario.startPhase("TEST BODY");
-                    body.screenValidation("the observed order is confirmed", "/checkout",
+                    body.uiValidation("the observed order is confirmed", "/checkout",
                             summary ? ReportTestScreenshots.ONE_PIXEL_PNG : ReportTestScreenshots.SECOND_PIXEL_PNG,
                             List.of(new AtfAssertion("Order", "confirmed", "confirmed", true)), actions(summary ? 1 : 2),
                             ReportScreenshotPolicy.CapturePoint.FINAL, AtfReportStatus.PASS);
