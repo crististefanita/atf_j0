@@ -23,8 +23,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static atf.testkit.assertions.AuditedAssertions.assertEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertTrue;
 import static atf.shop.tests.support.lifecycle.ShopE2eContext.startReportScenario;
 
 @ShopComponentTest

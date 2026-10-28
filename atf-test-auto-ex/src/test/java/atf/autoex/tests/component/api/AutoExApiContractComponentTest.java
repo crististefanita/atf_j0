@@ -39,10 +39,10 @@ import static atf.autoex.api.AutoExApiOutcome.USER_CREATED;
 import static atf.autoex.api.AutoExApiOutcome.USER_EXISTS;
 import static atf.autoex.api.AutoExApiOutcome.USER_NOT_FOUND;
 import static atf.autoex.api.AutoExApiOutcome.USER_UPDATED;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static atf.testkit.assertions.AuditedAssertions.assertAll;
+import static atf.testkit.assertions.AuditedAssertions.assertEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertFalse;
+import static atf.testkit.assertions.AuditedAssertions.assertTrue;
 
 /** Executes the consumer request catalog through the core executor and a deterministic offline transport. */
 @AutoExComponentTest

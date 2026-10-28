@@ -27,7 +27,7 @@ documentară /10. Nu reprezintă o notă a codului sau un rezultat de test.
 | `CONSUMER-RUNTIME-BOUNDARY-03` | 77 = 31 + 18 + 20 + 8 | responsabilitățile de achiziție, publicare și lifecycle rămase în Shop |
 | `CONSUMER-API-SUITE-AUDIT-01` | 74 = 31 + 23 + 14 + 6 | două artifacte API AutoEx fără un audit Extent comun pentru suita live |
 | `CONSUMER-SHOP-BILLING-STATE-01` | 71 = 29 + 22 + 14 + 6 | diferență de valoare la billing între suita Shop E2E și lansarea individuală |
-| `CONSUMER-COMPONENT-ASSERTIONS-01` | 63 = 25 + 18 + 16 + 4 | extinderea dovezii de aserțiune la alte metode componente cu verificări reale |
+| `CONSUMER-COMPONENT-ASSERTIONS-01` | 63 = 25 + 18 + 16 + 4 | evaluator neutru reutilizabil în Validation pentru componente |
 | `CONSUMER-E2E-PROFILES-01` | 57 = 24 + 10 + 17 + 6 | reducerea repetării live numai după echivalență demonstrată |
 
 ## CONSUMER-API-SUITE-AUDIT-01 — artifactul comun al suitei AutoEx
@@ -50,48 +50,76 @@ rendererul Extent existente.
       dintre clase. Nu mutați evidence HTTP sub un checkpoint UI și nu eliminați
       raportul FAIL când există răspuns HTTP respins.
 
-## CONSUMER-COMPONENT-ASSERTIONS-01 — dovada metodelor componente rămase
+## CONSUMER-COMPONENT-ASSERTIONS-01 — evaluatorul neutru al componentelor
 
-**Owner:** testele componente AutoEx și Shop, cu `RecordedAssertions` comun în
-`atf-test-kit/src/main/java`. Portul tipizat și randările Extent/
-fallback sunt livrate în [Reporting](../../atf-reporting/README.md); metodele
-pilot și limita opt-in sunt descrise în README-urile [AutoEx](../../atf-test-auto-ex/README.md)
-și [Shop](../../atf-test-practice-shop/README.md).
+**Owner al restanței:** Validation pentru evaluarea pură reutilizabilă.
+Fațada JUnit și colectarea comună sunt implementate în
+[Test Kit](../../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră);
+portul tipizat și randările Extent/fallback aparțin
+[Reporting](../../atf-reporting/README.md).
 
-- [ ] Inventariați metodele componente cu aserțiuni JUnit evaluate efectiv și
-      migrați-le treptat la recorderul comun, păstrând expresia și verdictul
-      aceleiași verificări; nu publicați pași sintetici pentru metode fără rânduri.
-- [ ] Pentru fiecare categorie migrată, lansați o metodă individual în stilul
-      IntelliJ și suita care o selectează. Probați raportul per metodă în ambele
-      moduri: pas inițial închis, rânduri complete, expandare cu mouse și
-      tastatură, status FAIL și proiecția Fails. Un status PASS fără comparațiile
-      evaluate rămâne dovadă de execuție, nu audit al aserțiunilor.
-- [ ] Păstrați request-urile și validările API sub ownerul lor, iar UI/E2E sub
-      checkpoint-uri; comparați Extent cu fallback și rulați guvernanța înainte de
-      a declara acoperirea completă. Testele unit nu intră în această migrare.
+Auditul tuturor componentelor și protecția împotriva unui PASS fără aserțiuni
+înregistrate sunt contracte ale [AutoEx](../../atf-test-auto-ex/README.md)
+și [Shop](../../atf-test-practice-shop/README.md). Acestea nu mai sunt o migrare
+opt-in; testele unit rămân în afara obligației de raportare.
+
+### Direcție de design — evaluare pură și raportare în limita configurată
+
+`AuditedAssertions` și `RecordedAssertions` acoperă comparațiile JUnit ale
+componentelor. Un evaluator independent de JUnit se proiectează peste contractele din
+[Validation](../../atf-validation/README.md#limita-față-de-auditul-testelor-componente);
+un evaluator general de componente nu este încă implementat.
+
+| Owner | Responsabilitate urmărită |
+|---|---|
+| Testul consumerului | numele verificării, expected-ul independent, actual-ul observat și regula business |
+| `atf-validation/src/main/java` | evaluare pură și rezultat imutabil cu verdict, comparație și mesaj; reutilizarea `AtfAssertion`/`ValidationDecision` unde contractul se potrivește |
+| `atf-test-kit/src/main/java` | aplicarea politicii JUnit prin valori primitive sau callback-uri; fără dependență către Validation, Core ori Reporting |
+| Adaptorul JUnit al consumerului | colectare per metodă, mapping și publicare înaintea propagării erorii; configurația sesiunii rămâne explicită |
+| `atf-reporting` / `atf-reporting-tests` | proiecția Extent/fallback și probele neutre de model, browser și disclosure |
+
+Diagrama descrie colaborarea dorită la runtime; nu introduce dependențe Maven.
 
 ```mermaid
 flowchart LR
-    J[Comparație JUnit componentă] -->|înregistrează| R[RecordedAssertions · Kit]
-    R -->|furnizează rânduri| Adapter[Extensie consumer]
-    Adapter -->|publică| S[Component assertions]
-    S -->|afișează| T[Tabel expected / actual / result]
-    I[Lansare individuală] -->|creează| A[Raport per metodă]
-    Q[Suita componentă] -->|creează| A
-    A -->|conține| S
+    T[Test componentă] -->|furnizează date| V[Evaluator pur · Validation]
+    V -->|produce| R[Rezultat cu dovadă]
+    R -->|alimentează| A[Adaptor consumer]
+    A -->|aplică verdictul| J[JUnit · Test Kit]
+    A -->|publică| S[AssertionStep · Reporting]
 ```
 
 <details>
-<summary><strong>Legendă — același audit în două lansări</strong></summary>
+<summary><strong>Legendă — direcție de design pentru aserțiuni auditabile</strong></summary>
 
-- Fiecare metodă componentă are propriul artifact, inclusiv când este selectată
-  de suită; suita nu înlocuiește tabelul cu un sumar comun.
-- Recorderul descrie aceeași comparație pe care JUnit o evaluează.
-- Suportul neutru este în main Kit; extensia JUnit adaptează datele pentru
-  Reporting, fără o dependență Kit → Reporting.
-- Testele unit rămân în afara acestei căi de raportare.
+- Evaluatorul general este propus; fațada Kit și portul `AssertionStep` sunt
+  implementate. Nu se introduce un al doilea renderer sau un modul nou.
+- Același rezultat al evaluării alimentează verdictul și raportul; compararea
+  nu se repetă în publisher și mesajele nu sunt construite direct pentru Extent.
+- Core oferă deja un model neutru; Reporting își păstrează contractul standalone,
+  iar adaptorul consumerului face conversia între ele.
+- Fiecare metodă păstrează artifactul și când este selectată de suită; testele
+  unit nu primesc obligația de raportare a componentelor.
 
 </details>
+
+- [ ] Pentru evaluatorul Validation propus, probați un model, un adaptor API și
+      un adaptor UI în ambele module,
+      cu aceleași comparații în lansare individuală și prin suită; extindeți
+      API-ul numai pentru operatorii demonstrați de aceste cazuri.
+- [ ] Evaluați comparația pe valorile integrale și păstrați tipurile necesare
+      dezambiguizării (`null` față de textul `null`, valori numerice cu tipuri
+      diferite); verdictul nu se calculează din preview-ul trunchiat.
+- [ ] Păstrați `maxDisplayedCharacters`, implicit 240, pentru preview-ul actual
+      și mesajele noului layer; `…` intră în plafon, iar expandarea nu îl anulează.
+      Probați pragul implicit, limita configurată și diferența aflată după
+      prefixul afișat; mesajul trebuie să explice concis eșecul în același buget.
+- [ ] Declarați explicit fail-fast sau colectare; raportați numai comparațiile
+      evaluate. Un eșec așteptat prin `assertThrows` trebuie reprezentat prin
+      verificarea așteptării, fără un FAIL business artificial în raport.
+- [ ] Verificați mesajul, cauza originală, rândul FAIL păstrat înaintea erorii
+      JUnit, redacția și izolarea per metodă; în browser, probați ultimul rând,
+      mouse/Enter/Space, Fails și revenirea la tabel, inclusiv valori lungi.
 
 ## CONSUMER-SHOP-BILLING-STATE-01 — valoarea observată în suita E2E
 
@@ -273,6 +301,39 @@ flow-urilor rămase.
 
 ```yaml
 testChanges:
+  - id: CONSUMER-COMPONENT-AUDIT-ALL-02
+    status: ACTIVE
+    base: db5f06c83ede6422b9509350136da9eca6111aa2
+    expires: 2026-11-26
+    reason: Mută numai apelurile JUnit ale componentelor pe fațada auditabilă comună; păstrează overload-urile, expected/actual și verdictul, excepțiile așteptate și izolarea lansărilor imbricate; adaugă probele neutre și guard-ul fără a relaxa regulile existente.
+    proof: mvn -pl atf-test-kit,atf-test-auto-ex,atf-test-practice-shop,atf-tests -am "-Dtest=AuditedAssertionsTest,AuditedAssertionScopeComponentTest,AutoExComponentSuite,ShopComponentSuite,WholeAtfGovernanceSuiteTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/api/AutoExApiContractComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/api/AutoExApiContractReportPublisherComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/api/AutoExApiResponseAssertionsComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/api/AutoExCatalogApiPreconditionComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/AutoExAccountCleanupDecisionComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/AutoExCatalogAssertionsComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/AutoExEvidenceProfileComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/AutoExPrivacyConsentHandlerComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/AutoExPurchaseTraceStepTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/AutoExStoreAssertionsComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/configuration/AutoExConfigurationLoaderComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExAccountDeletionSafetyComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExAccountLifecycleComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExCartDomComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExCartFlowComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExCheckoutAddressComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExInvoiceComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExPurchaseBusinessComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/lifecycle/AutoExRunLifecycleAdapterComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/lifecycle/AutoExRuntimeBoundaryComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/navigation/AutoExStoreAvailabilityComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/pages/AutoExPagePortsComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/extension/AutoExExtentTestExtension.java
+      - atf-test-kit/src/test/java/atf/testkit/assertions/AuditedAssertionScopeComponentTest.java
+      - atf-test-kit/src/test/java/atf/testkit/assertions/AuditedAssertionsTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java
   - id: CONSUMER-COHESION-INVENTORY-01
     status: ACTIVE
     base: 466a045e95a7336b183a7d75e0b369f8deb3082c

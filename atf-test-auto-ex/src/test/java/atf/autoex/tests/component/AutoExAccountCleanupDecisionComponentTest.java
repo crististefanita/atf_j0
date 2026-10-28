@@ -5,7 +5,7 @@ import atf.autoex.support.account.AutoExAccountCleanupAction;
 import atf.autoex.support.account.AutoExAccountCleanupDecision;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertEquals;
 
 @AutoExComponentTest
 class AutoExAccountCleanupDecisionComponentTest {

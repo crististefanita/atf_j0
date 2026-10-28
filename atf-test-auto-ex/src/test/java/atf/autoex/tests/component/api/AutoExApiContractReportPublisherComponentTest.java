@@ -32,10 +32,10 @@ import static atf.core.http.request.MediaTypes.APPLICATION_FORM_URLENCODED;
 import static atf.autoex.tests.support.AutoExApiFixture.BASE_URI;
 import static atf.reporting.ui.contract.ReportUiContract.Phase.TEST_BODY;
 import static atf.autoex.api.AutoExApiOutcome.USER_EXISTS;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static atf.testkit.assertions.AuditedAssertions.assertAll;
+import static atf.testkit.assertions.AuditedAssertions.assertEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertFalse;
+import static atf.testkit.assertions.AuditedAssertions.assertTrue;
 
 /** Protects AutoEx responseCode/message mapping and the consumer's published-data boundary. */
 @AutoExComponentTest
@@ -160,17 +160,17 @@ class AutoExApiContractReportPublisherComponentTest {
                     if (method.getName().equals("close")) throw scenarioFailure;
                     return null;
                 });
-        var thrown = org.junit.jupiter.api.Assertions.assertThrows(AssertionError.class,
+        var thrown = atf.testkit.assertions.AuditedAssertions.assertThrows(AssertionError.class,
                 () -> AutoExApiContractReportExtension.finishRun(scenario, phase, null));
-        org.junit.jupiter.api.Assertions.assertSame(closeFailure, thrown);
-        org.junit.jupiter.api.Assertions.assertArrayEquals(new Throwable[]{scenarioFailure}, thrown.getSuppressed());
+        atf.testkit.assertions.AuditedAssertions.assertSame(closeFailure, thrown);
+        atf.testkit.assertions.AuditedAssertions.assertArrayEquals(new Throwable[]{scenarioFailure}, thrown.getSuppressed());
         assertEquals(List.of("phase.complete", "phase.close", "scenario.complete.FAIL", "scenario.close"), calls);
 
         calls.clear();
         var primary = new IllegalArgumentException("actual business failure");
-        org.junit.jupiter.api.Assertions.assertDoesNotThrow(
+        atf.testkit.assertions.AuditedAssertions.assertDoesNotThrow(
                 () -> AutoExApiContractReportExtension.finishRun(scenario, phase, primary));
-        org.junit.jupiter.api.Assertions.assertArrayEquals(
+        atf.testkit.assertions.AuditedAssertions.assertArrayEquals(
                 new Throwable[]{closeFailure, scenarioFailure}, primary.getSuppressed());
         assertTrue(calls.contains("phase.diagnostic"));
         assertTrue(calls.contains("scenario.close"));

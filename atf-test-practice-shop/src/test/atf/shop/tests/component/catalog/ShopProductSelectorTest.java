@@ -4,8 +4,8 @@ import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.locators.ShopProductSelector;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static atf.testkit.assertions.AuditedAssertions.assertEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertThrows;
 
 @ShopComponentTest
 class ShopProductSelectorTest {

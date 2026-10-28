@@ -13,9 +13,9 @@ import atf.shop.tests.api.support.ShopApiCallComponentTest;
 import atf.shop.tests.api.support.ShopApiCallAuditContextTestSupport;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static atf.testkit.assertions.AuditedAssertions.assertEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertNotNull;
+import static atf.testkit.assertions.AuditedAssertions.assertTrue;
 
 /** Verifies one reusable precondition and four screen boundaries without a browser. */
 @ShopApiCallComponentTest

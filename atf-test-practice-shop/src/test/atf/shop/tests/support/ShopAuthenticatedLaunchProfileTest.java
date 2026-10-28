@@ -15,14 +15,14 @@ import atf.shop.tests.suites.ShopE2eSuite;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static atf.testkit.assertions.AuditedAssertions.assertAll;
+import static atf.testkit.assertions.AuditedAssertions.assertArrayEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertFalse;
+import static atf.testkit.assertions.AuditedAssertions.assertNotNull;
+import static atf.testkit.assertions.AuditedAssertions.assertNull;
+import static atf.testkit.assertions.AuditedAssertions.assertSame;
+import static atf.testkit.assertions.AuditedAssertions.assertTrue;
 
 @ShopComponentTest
 class ShopAuthenticatedLaunchProfileTest {
@@ -187,10 +187,10 @@ class ShopAuthenticatedLaunchProfileTest {
         Path wrongExtension = temp.resolve(
                 "project/atf-test-practice-shop/src/test/resources/registration.properties");
 
-        var moduleFailure = org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+        var moduleFailure = atf.testkit.assertions.AuditedAssertions.assertThrows(IllegalArgumentException.class,
                 () -> ShopConfigurationLoader.resolveRegistrationProfileFile(
                         wrongModule.toString()));
-        var extensionFailure = org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+        var extensionFailure = atf.testkit.assertions.AuditedAssertions.assertThrows(IllegalArgumentException.class,
                 () -> ShopConfigurationLoader.resolveRegistrationProfileFile(
                         wrongExtension.toString()));
 

@@ -17,10 +17,10 @@ import java.time.Duration;
 import static atf.shop.tests.api.network.ShopApiMethodFidelityFixture.QUERY;
 import static atf.shop.tests.api.network.ShopApiMethodFidelityFixture.REQUEST_JSON;
 import static atf.reporting.api.evidence.ReportBodyAvailability.NOT_CAPTURED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static atf.testkit.assertions.AuditedAssertions.assertEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertNotEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertTrue;
+import static atf.testkit.assertions.AuditedAssertions.assertNull;
 
 @ShopComponentTest
 class ShopApiMethodFidelityTest {

@@ -37,16 +37,16 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertFalse;
+import static atf.testkit.assertions.AuditedAssertions.assertTrue;
+import static atf.testkit.assertions.AuditedAssertions.assertEquals;
 import static atf.core.http.request.HttpMethod.GET;
 import static atf.core.http.request.HttpMethod.POST;
 import static atf.core.http.request.MediaTypes.APPLICATION_JSON;
 import static atf.ui.network.UiNetworkCapturePolicy.ResourceKind.XHR;
 import static atf.ui.network.UiNetworkCapturePolicy.ResourceKind.FETCH;
 import static atf.ui.network.UiNetworkCapturePolicy.ResourceKind.DOCUMENT;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static atf.testkit.assertions.AuditedAssertions.assertThrows;
 
 /** Local DOM only: exercises the main runtime without a JUnit context or remote application. */
 @AutoExComponentTest

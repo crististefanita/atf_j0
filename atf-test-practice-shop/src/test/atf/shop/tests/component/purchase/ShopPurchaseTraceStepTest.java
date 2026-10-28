@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertEquals;
 
 @ShopComponentTest
 class ShopPurchaseTraceStepTest {
@@ -39,9 +39,9 @@ class ShopPurchaseTraceStepTest {
         var titles = steps.stream().map(ShopPurchaseTraceStep::title).toList();
 
         assertEquals(steps.size(), Set.copyOf(titles).size());
-        org.junit.jupiter.api.Assertions.assertTrue(steps.stream()
+        atf.testkit.assertions.AuditedAssertions.assertTrue(steps.stream()
                 .allMatch(step -> step.keyword() != null && !step.title().isBlank()));
-        org.junit.jupiter.api.Assertions.assertTrue(steps.stream()
+        atf.testkit.assertions.AuditedAssertions.assertTrue(steps.stream()
                 .anyMatch(step -> step == ShopPurchaseTraceStep.ACCOUNT_SETUP_FAILED));
     }
 }

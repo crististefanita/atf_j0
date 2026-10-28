@@ -391,6 +391,34 @@ public class ConsumerModuleArchitectureGovernanceTest {
         return files;
     }
 
+    @Test
+    void consumerComponentAssertionsUseTheAuditedJUnitBoundary() throws IOException {
+        for (String name : List.of("atf-test-auto-ex", "atf-test-practice-shop")) {
+            for (Path path : javaFiles(module(name).resolve("src/test"))) {
+                String source = Files.readString(path);
+                boolean component = source.matches("(?s).*@(AutoExComponentTest|ShopComponentTest|ShopApiCallComponentTest)\\b.*")
+                        || path.getFileName().toString().equals("ShopReportHtmlTestSupport.java");
+                if (component) assertFalse(hasUnauditedAssertions(source),
+                        "Component assertions must use the shared audited boundary: " + path);
+                if (source.contains("@AtfComponentTest") && !source.contains("@Suite")
+                        && !source.contains("public @interface"))
+                    assertTrue(component, "Consumer component methods need their reporting marker: " + path);
+            }
+        }
+    }
+
+    @Test
+    void auditedAssertionBoundaryDetectsRawCallsWithoutFlaggingComments() {
+        assertTrue(hasUnauditedAssertions("import static org.junit.jupiter.api.Assertions.assertEquals;"));
+        assertTrue(hasUnauditedAssertions("class Bad { void check() { org.junit.jupiter.api.Assertions.assertTrue(true); } }"));
+        assertFalse(hasUnauditedAssertions("// org.junit.jupiter.api.Assertions is only an example\nclass Good {}"));
+        assertFalse(hasUnauditedAssertions("import static atf.testkit.assertions.AuditedAssertions.assertEquals;"));
+    }
+
+    private static boolean hasUnauditedAssertions(String source) {
+        return AtfJavaSourceReferences.containsNamespace(source, "org.junit.jupiter.api.Assertions");
+    }
+
     private static void assertDependencyScope(String pom, String artifact, String expectedScope) {
         String marker = "<artifactId>" + artifact + "</artifactId>";
         int start = pom.indexOf(marker);

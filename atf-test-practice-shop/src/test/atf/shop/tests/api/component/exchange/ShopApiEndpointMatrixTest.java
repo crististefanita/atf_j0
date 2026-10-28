@@ -19,9 +19,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static atf.testkit.assertions.AuditedAssertions.assertEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertNotNull;
+import static atf.testkit.assertions.AuditedAssertions.assertTrue;
 
 /** Audited endpoint/status matrix against deterministic component transports. */
 @ShopApiCallComponentTest

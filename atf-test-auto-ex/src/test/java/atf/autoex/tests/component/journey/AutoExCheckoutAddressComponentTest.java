@@ -10,7 +10,7 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertEquals;
 
 /** Verifies checkout addresses are semantically ready before their text is read. */
 @AutoExComponentTest

@@ -20,8 +20,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.stream.Stream;
 import java.lang.reflect.Proxy;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static atf.testkit.assertions.AuditedAssertions.assertFalse;
+import static atf.testkit.assertions.AuditedAssertions.assertTrue;
 
 /** Proves propagation of customer and order data; no browser or report layout is simulated. */
 @AutoExComponentTest

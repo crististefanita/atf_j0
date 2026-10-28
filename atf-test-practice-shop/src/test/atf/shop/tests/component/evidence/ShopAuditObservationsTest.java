@@ -26,8 +26,8 @@ import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static atf.testkit.assertions.AuditedAssertions.assertEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertTrue;
 
 @ShopComponentTest
 class ShopAuditObservationsTest {

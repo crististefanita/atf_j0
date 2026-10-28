@@ -103,8 +103,26 @@ Playwright check → AtfAssertion → UiExtentReportSession
                  → ASSERTION | EXPECTED | ACTUAL | RESULT
 ```
 
-API și UI împart forma tabelului, nu verdictul: fiecare test publică propriul
-artifact Extent și propriul rezultat.
+API și UI împart forma tabelului; verdictul și ownerul evidence-ului rămân
+specifice verificării. Consumerul alege sesiunea individuală sau partajată de
+suită și păstrează rezultatul fiecărui scenariu.
+
+### Limita față de auditul testelor componente
+
+- `ResponseContract` și `ValidationEvaluator` evaluează contracte API; nu există
+  încă un evaluator general de aserțiuni pentru modele și componente.
+- `ValidationTable` păstrează în rând un preview al valorii actuale, implicit
+  maximum 240 de caractere, inclusiv marcajul `…` la trunchiere; constructorul
+  permite o limită pozitivă explicită. Noul layer trebuie să păstreze plafonul
+  configurat, inclusiv în detaliile expandate.
+- Comparația se face pe valorile integrale; scurtarea textului raportat nu
+  schimbă verdictul. Mesajul auditabil trebuie să explice diferența în limita
+  configurată, inclusiv când diferența este dincolo de preview.
+- Componentele AutoEx și Shop folosesc
+  [fațada JUnit auditabilă din Test Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră),
+  adaptată de consumer la `AssertionStep` Reporting. Direcția evaluatorului pur
+  și criteriile de audit cu valori limitate sunt în
+  [feedback-ul consumerilor](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-component-assertions-01--evaluatorul-neutru-al-componentelor).
 
 ```mermaid
 sequenceDiagram

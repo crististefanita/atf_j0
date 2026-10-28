@@ -686,33 +686,33 @@ Testele cu `@AutoExComponentTest` publică un raport Extent per metodă în
 
 | Caz | Dovadă în raport |
 |---|---|
-| Metodă generică | Scenariu, status JUnit și tag `component`; fără browser sau capturi |
+| Metodă componentă | Comparațiile `AuditedAssertions` apar în `Component assertions` sub `TEST BODY`, cu operator, sursă, expected, actual și rezultat |
 | `AutoExConfigurationLoaderComponentTest#packagedTestYamlDefinesTheSafeAndCompleteDefaultProfile` | Comparațiile evaluate de `RecordedAssertions` din Test Kit apar sub `TEST BODY` în `Component assertions` |
 | `@AutoExE2eTest` | Dovezi UI publicate de harness-ul E2E |
 
-- Pasul de aserțiuni este închis inițial; metodele fără rânduri publicate rămân
-  noduri terminale.
-- Raportul unei metode componente generice confirmă execuția și verdictul, dar
-  nu permite auditul comparațiilor JUnit din interiorul ei.
-- Acoperirea metodelor componente rămase este urmărită în
-  [feedback-ul consumerilor](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-component-assertions-01--dovada-metodelor-componente-rămase).
-  Testele unit sunt în afara acestei cerințe.
+- Pasul standard este închis inițial și păstrează toate comparațiile evaluate;
+  textele respectă limita configurată, implicit 240 de caractere inclusiv `…`.
+- Excepția așteptată este o aserțiune PASS; o lansare JUnit imbricată nu
+  contaminează verdictul metodei care o inspectează.
+- O metodă care ar termina cu PASS fără aserțiuni înregistrate eșuează explicit.
+  Un eșec anterior primei comparații păstrează diagnosticul real; testele unit
+  sunt în afara obligației de raportare.
 
 ```mermaid
 flowchart LR
-    Test[Test configurare AutoEx] -->|evaluează| Check[RecordedAssertions · Kit]
+    Test[Test componentă AutoEx] -->|verifică prin| Check[AuditedAssertions · Kit]
     Check -->|furnizează rânduri| Adapter[Extensie AutoEx]
     Adapter -->|publică în TEST BODY| Step[Component assertions]
     Step -->|afișează| Table[Tabel de aserțiuni]
 ```
 
 <details>
-<summary><strong>Legendă — profilul implicit AutoEx</strong></summary>
+<summary><strong>Legendă — auditul componentelor AutoEx</strong></summary>
 
 - Aceeași comparație alimentează verdictul JUnit și dovada din raport.
 - Recorderul neutru aparține [Test Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră);
   extensia JUnit locală mapează rândurile în portul Reporting.
-- Extensia adaugă pasul numai dacă metoda publică rânduri.
+- Extensia leagă recorderul de metoda curentă și publică rândurile reale.
 - Tabelul este vizibil când utilizatorul deschide pasul.
 
 </details>

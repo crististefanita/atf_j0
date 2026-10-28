@@ -24,9 +24,9 @@ import java.time.Instant;
 
 import static atf.shop.tests.api.network.ShopApiJournalFixture.capture;
 import static atf.shop.tests.api.network.ShopApiJournalFixture.exchange;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static atf.testkit.assertions.AuditedAssertions.assertEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertFalse;
+import static atf.testkit.assertions.AuditedAssertions.assertTrue;
 
 @ShopComponentTest
 class ShopApiNetworkJournalTest {

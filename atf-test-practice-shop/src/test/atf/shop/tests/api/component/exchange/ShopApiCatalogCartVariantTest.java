@@ -16,10 +16,10 @@ import atf.shop.tests.api.support.ShopApiCallComponentTest;
 import atf.shop.tests.api.support.ShopApiCallAuditContextTestSupport;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static atf.testkit.assertions.AuditedAssertions.assertEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertFalse;
+import static atf.testkit.assertions.AuditedAssertions.assertNotNull;
+import static atf.testkit.assertions.AuditedAssertions.assertTrue;
 
 /** Component matrix for catalog variation and cart mutation boundaries. */
 @ShopApiCallComponentTest

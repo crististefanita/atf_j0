@@ -30,7 +30,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static atf.testkit.assertions.AuditedAssertions.*;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 
 /** Exercises the actual Shop scope/condition wiring without a browser or external account mutation. */

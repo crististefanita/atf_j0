@@ -71,7 +71,7 @@ Fiecare clasă executabilă declară exact un nivel:
 | `atf.testkit.evidence` | `AtfUiEvidence`, `AtfUiEvidencePlan`, `AtfUiEvidenceResolver` și enum-urile axelor | rezolvă independent flow-ul, capturile și detaliile acțiunilor; adaptorii consumer le mapează în profilul Reporting |
 | `atf.testkit.lifecycle` | `TestRunInitialization`, `CloseOnceResource`, `ArmedCleanup`, `FailureAwareCleanup`, `FailureEvidenceCleanup`, `AtfE2eActivationPolicy` | achiziție/rollback, cleanup și activare E2E neutre; fără API UI/Reporting |
 | `atf.testkit.scope` | `TestRunScope`, `ScopedTestValue<T>` | ownership explicit în Store-ul JUnit, fără cache static sau resurse UI |
-| `atf.testkit.assertions` | `RecordedAssertions` | comparații JUnit cu dovadă neutră; fără renderer sau reguli business |
+| `atf.testkit.assertions` | `AuditedAssertions`, `AuditedAssertionScope`, `RecordedAssertions` | comparații JUnit cu dovadă neutră per metodă; fără renderer sau reguli business |
 
 `atf.testkit.lifecycle` este un pachet al modulului existent
 `atf-test-kit`, nu un modul nou. Nu introduce dependențe către UI sau Reporting.
@@ -100,9 +100,19 @@ consumerul mapează datele neutre la portul Reporting.
   JUnit, astfel încât și rândul care oprește metoda rămâne disponibil.
 - `checks()` returnează un snapshot imutabil; fiecare metodă de test primește
   propria instanță de la extensia consumerului.
+- `AuditedAssertions` deleagă overload-urile JUnit folosite de componente,
+  inclusiv comparațiile numerice, identitatea, array-urile și `assertAll`.
+  Rândul are operatorul, fișierul/linia și mesajul explicit când există.
+- `AuditedAssertionScope` leagă colectarea de metoda JUnit curentă; lansările
+  Jupiter imbricate sunt izolate. `assertThrows` înregistrează așteptarea
+  excepției, fără FAIL-uri artificiale din corpul verificat.
+- Furnizorii de mesaje păstrează evaluarea leneșă JUnit. Valorile sunt comparate
+  integral, iar textele înregistrate respectă limita configurată, implicit
+  240 de caractere inclusiv `…`; expandarea raportului nu o anulează.
 - Kit nu importă `AtfAssertion`, nu deschide rapoarte și nu alege pași sau
-  capturi. `RecordedAssertionsTest` probează fail-fast și păstrarea rândurilor;
-  randarea Extent/fallback este probată în Reporting Tests.
+  capturi. Probele recorderului și ale fațadei verifică fail-fast, agregarea,
+  limita de caractere și izolarea Jupiter; Extent/fallback se probează în
+  Reporting Tests.
 
 ### Politica pentru calea raportului publicat
 

@@ -598,33 +598,33 @@ lansarea clasei individuale.
 
 | Caz | Dovadă în raport |
 |---|---|
-| Metodă generică | Identitate și status JUnit; fără pași inventați |
+| Metodă componentă | Comparațiile `AuditedAssertions` apar în pasul standard `Component assertions`, cu operator, sursă, expected, actual și rezultat |
 | `ShopConfigurationTest#yamlDefinesOwnedJourneyAndSyntheticFixtureInSourceResources` | Comparațiile evaluate de `RecordedAssertions` din Test Kit apar în `Component assertions` sub `TEST BODY`, în tabelul `ASSERTION / EXPECTED / ACTUAL / RESULT` |
 | Business API și E2E | Exchange-uri și validări API, respectiv evidence de browser, în nodurile lor proprii |
 
-- Pasul de aserțiuni este închis inițial; deschiderea lui nu creează un request
-  HTTP. Metodele fără rânduri rămân noduri terminale.
-- Un nod terminal confirmă identitatea și verdictul JUnit, dar nu permite auditul
-  comparațiilor evaluate în metoda componentă.
-- Migrarea celorlalte metode componente este urmărită în
-  [feedback-ul consumerilor](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-component-assertions-01--dovada-metodelor-componente-rămase).
-  Testele unit selectate de suită sunt în afara acestei cerințe.
+- Pasul standard este închis inițial; textele respectă limita configurată,
+  implicit 240 de caractere inclusiv `…`, și după expandare.
+- Fațada păstrează verdictul JUnit, excepțiile așteptate și izolarea lansărilor
+  imbricate; extensia mapează comparațiile în tabelul comun.
+- O metodă care ar termina cu PASS fără aserțiuni înregistrate eșuează explicit.
+  Eșecul anterior primei comparații păstrează diagnosticul real; testele unit
+  selectate de suită nu au obligația raportării.
 
 ```mermaid
 flowchart LR
-    Test[Test configurare Shop] -->|evaluează| Check[RecordedAssertions · Kit]
+    Test[Test componentă Shop] -->|verifică prin| Check[AuditedAssertions · Kit]
     Check -->|furnizează rânduri| Adapter[Extensie Shop]
     Adapter -->|publică în TEST BODY| Step[Component assertions]
     Step -->|afișează| Table[Tabel de aserțiuni]
 ```
 
 <details>
-<summary><strong>Legendă — comparațiile din configurarea Shop</strong></summary>
+<summary><strong>Legendă — auditul componentelor Shop</strong></summary>
 
 - Același apel verifică valoarea în JUnit și înregistrează rândul raportat.
 - Recorderul neutru aparține [Test Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră);
   extensia locală deține mapping-ul către Reporting și lifecycle-ul JUnit.
-- Extensia publică pasul la finalul metodei numai dacă există rânduri.
+- Extensia publică la finalul metodei toate rândurile evaluate.
 - Disclosure-ul pasului păstrează tabelul ascuns până la expandare.
 
 </details>

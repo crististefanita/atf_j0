@@ -6,9 +6,9 @@ import atf.ui.playwright.PlaywrightUiSession;
 import atf.autoex.support.browser.AutoExPrivacyConsentHandler;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static atf.testkit.assertions.AuditedAssertions.assertEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertFalse;
+import static atf.testkit.assertions.AuditedAssertions.assertTrue;
 
 /** Offline component proof for a consent overlay that may reappear mid-journey. */
 @AutoExComponentTest

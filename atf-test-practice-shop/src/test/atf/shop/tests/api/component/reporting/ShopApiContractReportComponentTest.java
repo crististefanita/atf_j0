@@ -26,8 +26,8 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static atf.testkit.assertions.AuditedAssertions.assertTrue;
+import static atf.testkit.assertions.AuditedAssertions.assertFalse;
 import static atf.shop.tests.api.support.ShopApiScenarioFixture.COUNTRY;
 import static atf.shop.tests.api.support.ShopApiScenarioFixture.HOUSE_NUMBER;
 import static atf.shop.tests.api.support.ShopApiScenarioFixture.POSTCODE;

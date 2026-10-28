@@ -764,6 +764,7 @@ corect la click.
 | Cont, catalog, coș, checkout, confirmare și factură | runtime-ul și testele business Shop/AutoEx |
 | Extensie JUnit și configurarea scenariului aplicației | `src/test/java` al consumerului |
 | Inițializare, close-once și compensare armată | pachetul `lifecycle` din `atf-test-kit`, fără modul nou |
+| Comparații JUnit cu dovada verificărilor evaluate | `RecordedAssertions` în main Test Kit; consumerul adaptează rândurile la Reporting |
 | Audit neutru al ecranului, cursorul observațiilor și validarea capturii | `atf-ui`; fără dependență de Reporting sau JUnit |
 | Failure evidence, replay și profile de randare | `atf-reporting-tests`, cu fixture-uri neutre |
 | Clasificare globală și acoperirea disjunctă a celor trei suite principale | `atf-tests`, în suita whole-ATF |

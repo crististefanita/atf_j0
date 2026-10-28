@@ -1,6 +1,7 @@
 package atf.shop.tests.support.reporting;
 
 import atf.testkit.assertions.RecordedAssertions;
+import atf.testkit.assertions.AuditedAssertionScope;
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.configuration.AtfReportConfigurationLoader;
 import atf.reporting.configuration.ReportEnvironmentField;
@@ -28,7 +29,8 @@ public final class ShopExtentTestExtension implements BeforeEachCallback, AfterE
             ExtensionContext.Namespace.create(ShopExtentTestExtension.class);
     private static final String STATE = "extent-state";
     private record State(ExtentReportSession session, AtfReportPorts.Scenario scenario,
-                         AtfReportPorts.Phase phase, RecordedAssertions assertions) { }
+                         AtfReportPorts.Phase phase, RecordedAssertions assertions,
+                         AuditedAssertionScope audit) { }
 
     @Override public void beforeEach(ExtensionContext context) throws Exception {
         Path output = ShopConfigurationLoader.load().apiReportDirectory()
@@ -52,8 +54,10 @@ public final class ShopExtentTestExtension implements BeforeEachCallback, AfterE
                 context.getDisplayName(), List.of("component", "practice-shop"));
         var phase = scenario.startPhase("TEST BODY");
         phase.detail("Test method", context.getRequiredTestMethod().getName());
-        context.getStore(NS).put(STATE, new State(session, scenario, phase,
-                new RecordedAssertions()));
+        var assertions = new RecordedAssertions();
+        var audit = AuditedAssertionScope.open(context.getRequiredTestMethod().getDeclaringClass().getName(),
+                context.getRequiredTestMethod().getName(), assertions);
+        context.getStore(NS).put(STATE, new State(session, scenario, phase, assertions, audit));
     }
 
     @Override public boolean supportsParameter(ParameterContext parameter, ExtensionContext context) {
@@ -75,6 +79,9 @@ public final class ShopExtentTestExtension implements BeforeEachCallback, AfterE
             var assertions = state.assertions().checks().stream()
                     .map(check -> new AtfAssertion(check.name(), check.expected(), check.actual(), check.passed()))
                     .toList();
+            AssertionError missingAudit = assertions.isEmpty() && status == AtfReportStatus.PASS
+                    ? new AssertionError("Component test passed without an evaluated audited assertion") : null;
+            if (missingAudit != null) status = AtfReportStatus.FAIL;
             if (!assertions.isEmpty()) {
                 var assertionStep = state.phase().startAssertionStep("Component assertions");
                 assertionStep.assertions(assertions);
@@ -85,14 +92,19 @@ public final class ShopExtentTestExtension implements BeforeEachCallback, AfterE
             }
             if (status == AtfReportStatus.FAIL) {
                 state.phase().diagnostic(atf.reporting.model.diagnostic.ReportPhaseDiagnostic.Kind.EXECUTION_FAILURE,
-                        context.getExecutionException().orElseThrow().toString());
+                        (missingAudit == null ? context.getExecutionException().orElseThrow() : missingAudit).toString());
             }
             state.phase().complete(status);
             state.scenario().complete(status);
+            if (missingAudit != null) throw missingAudit;
         } finally {
-            state.phase().close();
-            state.scenario().close();
-            state.session().close();
+            try {
+                state.phase().close();
+                state.scenario().close();
+                state.session().close();
+            } finally {
+                state.audit().close();
+            }
         }
     }
 }
