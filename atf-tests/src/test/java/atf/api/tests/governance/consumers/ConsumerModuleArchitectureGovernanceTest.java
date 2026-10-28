@@ -132,7 +132,8 @@ public class ConsumerModuleArchitectureGovernanceTest {
                 "atf.shop.tests.api.reporting",
                 "atf.shop.tests.api.network",
                 "atf.shop.tests.support")) {
-            assertTrue(componentSuite.contains("\"" + selected + "\""),
+            assertTrue(AtfJavaSourceReferences.annotationArguments(componentSuite, "SelectPackages")
+                            .orElseThrow().contains("\"" + selected + "\""),
                     "Shop component suite must keep its explicit consumer boundary: " + selected);
         }
         assertFalse(componentSuite.contains("atf.shop.tests.e2e"));

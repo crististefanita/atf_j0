@@ -50,6 +50,21 @@ Canalul `UI`/`API`/`UI_API` este separat de nivel și de tag-urile JUnit.
 API-ul implementat pentru canale, output, setup și documentație este în
 [Adnotări de infrastructură pentru teste](ATF_Test_Infrastructure_Annotations.md).
 
+### Auditul componentelor consumerilor
+
+În AutoEx și Shop, componentele folosesc markerul consumerului și publică
+verificările evaluate în pasul standard `Component assertions`. Testele unit
+nu au această obligație; probele rendererului rămân o categorie separată în Reporting Tests.
+
+- `AuditedAssertions` și `RecordedAssertions` păstrează evaluarea JUnit unică;
+  politica de rezultat, fazele și plafonul implicit de 240 de caractere sunt la
+  [Test Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră).
+- Un test componentă reușit cere o verificare auditată; un diagnostic sau un pas
+  HTTP fabricat nu înlocuiește comparația. Așteptările rămân independente de observații.
+- Lansarea individuală și suita folosesc același adaptor al aplicației;
+  validările Extent/fallback și interacțiunea disclosure-ului sunt probate la
+  [Reporting Tests](../atf-reporting-tests/README.md).
+
 ## Matricea detaliată module × nivel de testare
 
 Celulele arată doar nivelurile care există în suitele executabile curente.

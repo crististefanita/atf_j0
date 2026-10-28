@@ -70,7 +70,7 @@ Fiecare clasă executabilă declară exact un nivel:
 | `atf.testkit.documentation` | `DocumentationTarget` repeatable | selecție de documente; validatorii rămân în ATF Tests |
 | `atf.testkit.evidence` | `AtfUiEvidence`, `AtfUiEvidencePlan`, `AtfUiEvidenceResolver` și enum-urile axelor | rezolvă independent flow-ul, capturile și detaliile acțiunilor; adaptorii consumer le mapează în profilul Reporting |
 | `atf.testkit.lifecycle` | `TestRunInitialization`, `CloseOnceResource`, `ArmedCleanup`, `FailureAwareCleanup`, `FailureEvidenceCleanup`, `AtfE2eActivationPolicy` | achiziție/rollback, cleanup și activare E2E neutre; fără API UI/Reporting |
-| `atf.testkit.scope` | `TestRunScope`, `ScopedTestValue<T>` | ownership explicit în Store-ul JUnit, fără cache static sau resurse UI |
+| `atf.testkit.scope` | `TestRunScope`, `ScopedTestValue<T>`, `ScopedTestResource<T>` | ownership explicit în Store-ul JUnit, fără cache static sau resurse UI |
 | `atf.testkit.assertions` | fațadă/recorder, display injectat și protocol componentă | comparații JUnit cu dovadă neutră pe faze și invocări; fără renderer sau reguli business |
 
 `atf.testkit.lifecycle` este un pachet al modulului existent
@@ -123,6 +123,11 @@ dată comparația JUnit. Rândul `Check(name, expected, actual, passed)` este p�
 
 Factory-ul și mapping-ul sunt ale consumerului; Kit nu importă Reporting,
 Validation, Core sau Playwright și nu alege pași ori capturi.
+
+- `ComponentAuditExtension.scoped(...)` partajează numai resursa de publicare;
+  colectorul, fazele și publication-ul rămân per invocare.
+- Erorile `@BeforeAll` / `@AfterAll` primesc diagnostic de clasă, fără comparații inventate.
+
 `AssertionProjectionTest` și `ComponentAuditExtensionComponentTest` probează aceste
 limite; Extent/fallback sunt verificate în Reporting Tests.
 
@@ -140,13 +145,20 @@ limite; Extent/fallback sunt verificate în Reporting Tests.
 
 ### Politica pentru calea raportului publicat
 
-`@AtfReportPath` este `DISABLED` în absență; adnotarea fără valoare sau cu
-`AtfReportPath.Policy.ENABLED` activează notificarea după publicarea artifactului.
-`DISABLED` poate suprascrie o declarație moștenită; meta-adnotările sunt
-acceptate, iar politici contradictorii la același nivel eșuează fail-fast.
-Într-un artifact partajat, agregatorul din `atf-console` primește fiecare owner
-prin `AtfReportPathOptIn.include(owner)` și notifică dacă cel puțin un owner a
-activat opțiunea.
+`@AtfReportPath` controlează notificarea după publicare; Kit nu creează raportul.
+
+- Absență: `DISABLED`; adnotarea fără valoare: `ENABLED`.
+- La cel mai apropiat nivel de clasă, declarația directă suprascrie meta-politicile,
+  inclusiv `DISABLED` peste markerul E2E.
+- Fără declarație directă, meta-politicile opuse eșuează fail-fast; fără politică
+  locală se caută superclass-ul, apoi se aplică default-ul.
+- Agregatorul Console primește fiecare owner prin `AtfReportPathOptIn.include(owner)`;
+  cel puțin un owner activ cere notificarea artifactului comun.
+- Politica aparține clasei Jupiter, inclusiv la lansarea unei metode; adnotarea
+  pe `@Suite` nu se moștenește de către clasele selectate.
+
+Precedența de mai sus este specifică `AtfReportPath`. Contractul complet este în
+[ghidul adnotărilor](../docs/ATF_Test_Infrastructure_Annotations.md#opt-in-pentru-calea-raportului).
 
 ### Valori cu ownership per clasă sau execuție
 
@@ -169,11 +181,16 @@ activat opțiunea.
   nu închide obiectul stocat și nu șterge resursa remote împrumutată.
 - Reprezentările `toString()` nu includ valoarea. Consumerul deține politica
   de redactare și orice operație externă de cleanup.
+- `resource(context, owner, name, type)` folosește un `ScopedTestResource<T>`
+  distinct de `value(...)`: închide obiectul achiziționat la ownerul class/suite,
+  o singură dată, inclusiv când close eșuează. Nu reia factory-ul eșuat.
 
 `ScopedTestValueTest` verifică stările și concurența;
 `TestRunScopeComponentTest` lansează Jupiter real pentru metode, clase,
 execuții repetate, setup/body eșuat și eliberare la închiderea Store-ului.
 Launcher-ul și engine-ul Jupiter sunt dependențe numai de test ale Kit.
+`ScopedTestResourceTest` și `ScopedComponentAuditExtensionComponentTest` verifică
+disposal-ul, izolarea invocărilor, failure-ul de clasă și publicarea eșuată după abort.
 
 ### Limite de responsabilitate
 

@@ -17,6 +17,72 @@
   table-layout: fixed !important;
   margin: 0 !important;
 }
+:is(${TABLE_VIEWPORTS}) { container: atf-evidence / inline-size; }
+.test-content-detail, #tests { container: atf-detail / inline-size; }
+@container atf-detail (max-width: 640px) {
+  .layout { grid-template-columns: minmax(0, 1fr) !important; }
+  :root .test-content-detail .accordion, #tests :is(.request, .validation) {
+    margin-left: 2px !important;
+    margin-right: 2px !important;
+  }
+  :root .test-content-detail .card-body {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+  :root .test-content-detail .table.table-sm > thead { display: none !important; }
+  :root .test-content-detail .table.table-sm > tbody { display: block !important; }
+  :root .test-content-detail .table.table-sm > tbody > tr {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  :root .test-content-detail .table.table-sm > tbody > tr > td:last-child {
+    display: block !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+  }
+}
+/* Narrow evidence keeps every value beside its own heading, at the actual panel width. */
+@container atf-evidence (max-width: 720px) {
+  table:has([data-atf-column-label]) {
+    --atf-table-stacked: 1;
+    display: block !important;
+  }
+  table:has([data-atf-column-label]) > :is(thead, colgroup) {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip-path: inset(50%) !important;
+  }
+  table:has([data-atf-column-label]) > tbody,
+  table:has([data-atf-column-label]) > tbody > tr {
+    display: block !important;
+  }
+  table:has([data-atf-column-label]) > tbody > tr {
+    border-bottom: 2px solid var(--atf-border) !important;
+    padding: 4px 0 !important;
+  }
+  :root body table:has([data-atf-column-label]) > tbody > tr > [data-atf-column-label] {
+    display: block !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    white-space: pre-wrap !important;
+    padding: 6px 5px !important;
+    text-align: left !important;
+    font-size: var(--atf-font-table-cell-size, 12.6px) !important;
+  }
+  :root body table:has([data-atf-column-label]) > tbody > tr > [data-atf-column-label]::before {
+    content: attr(data-atf-column-label);
+    display: block;
+    margin-bottom: 3px;
+    color: var(--atf-muted);
+    font-size: var(--atf-font-table-header-size, 11.2px);
+    line-height: 1.35;
+    font-weight: 400;
+  }
+}
 :is(${TABLE_VIEWPORTS}) > table :is(th, td) {
   overflow-wrap: anywhere !important;
   word-break: break-word !important;

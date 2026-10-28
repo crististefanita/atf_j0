@@ -13,6 +13,8 @@ public final class AtfReportPathPolicyResolver {
         Objects.requireNonNull(testClass, "testClass");
         for (Class<?> current = testClass; current != null && current != Object.class;
              current = current.getSuperclass()) {
+            AtfReportPath direct = current.getDeclaredAnnotation(AtfReportPath.class);
+            if (direct != null) return direct.value();
             Set<AtfReportPath.Policy> policies = new LinkedHashSet<>();
             for (Annotation annotation : current.getDeclaredAnnotations()) {
                 collect(annotation, policies, new LinkedHashSet<>());

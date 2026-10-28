@@ -5,8 +5,14 @@ import java.lang.reflect.Method;
 
 /** Explicit composition of the shared JUnit protocol with a consumer-owned publication factory. */
 public interface ComponentAuditAdapter extends BeforeEachCallback, AfterEachCallback,
-        ParameterResolver, InvocationInterceptor {
+        ParameterResolver, InvocationInterceptor, LifecycleMethodExecutionExceptionHandler {
     ComponentAuditExtension auditExtension();
+    @Override default void handleBeforeAllMethodExecutionException(ExtensionContext context, Throwable failure) throws Throwable {
+        auditExtension().handleBeforeAllMethodExecutionException(context, failure);
+    }
+    @Override default void handleAfterAllMethodExecutionException(ExtensionContext context, Throwable failure) throws Throwable {
+        auditExtension().handleAfterAllMethodExecutionException(context, failure);
+    }
     @Override default void beforeEach(ExtensionContext context) throws Exception { auditExtension().beforeEach(context); }
     @Override default void afterEach(ExtensionContext context) throws Exception { auditExtension().afterEach(context); }
     @Override default boolean supportsParameter(ParameterContext parameter, ExtensionContext context) {

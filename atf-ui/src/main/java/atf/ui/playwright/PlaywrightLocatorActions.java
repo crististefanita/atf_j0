@@ -35,7 +35,7 @@ final class PlaywrightLocatorActions {
     void click(AtfLocator element, String expected) {
         String target = element.selector();
         recorder.run("Click", target, expected, isSensitiveTarget(element), () -> {
-            requireExactlyOne(element, "Click");
+            // The native strict action owns target resolution, actionability and its single timeout.
             element.locator().click();
             return "click completed";
         });
@@ -72,7 +72,6 @@ final class PlaywrightLocatorActions {
         String target = element.selector();
         String displayValue = displayValue(element, value);
         recorder.run("Fill", target, withValue(expected, displayValue, value), isSensitiveTarget(element), () -> {
-            requireExactlyOne(element, "Fill");
             element.locator().fill(value == null ? "" : value);
             return "value entered: " + displayValue;
         });
@@ -83,8 +82,11 @@ final class PlaywrightLocatorActions {
         String displayLabel = displayValue(element, label);
         recorder.run("Select option", target, withValue(expected, displayLabel, label),
                 isSensitiveTarget(element), () -> {
-            requireExactlyOne(element, "Select option");
-            element.locator().selectOption(new SelectOption().setLabel(label));
+            var selected = element.locator().selectOption(new SelectOption().setLabel(label));
+            // A detached select can return an empty result in the pinned driver; absence is not confirmation.
+            if (selected.isEmpty()) {
+                throw new IllegalStateException("Select option returned no confirmed selected value: " + target);
+            }
             return "option selected: " + displayLabel;
         });
     }

@@ -18,24 +18,53 @@ public final class AssertionAuditReport implements AutoCloseable {
     private final AtfReportPorts.Scenario scenario;
     private final SensitiveDataRedactor redactor;
     private final Identity identity;
+    private final boolean ownsSession;
+    private final AssertionAuditRun.PublicationExecutor executor;
     private boolean completed;
+    private volatile boolean closed;
 
     public AssertionAuditReport(AtfReportPorts.Session session, Identity identity, SensitiveDataRedactor redactor) {
+        this(session, identity, redactor, true, AssertionAuditRun.PublicationExecutor.direct());
+    }
+
+    static AssertionAuditReport borrowed(AtfReportPorts.Session session, Identity identity, SensitiveDataRedactor redactor,
+                                         AssertionAuditRun.PublicationExecutor executor) {
+        return new AssertionAuditReport(session, identity, redactor, false, executor);
+    }
+
+    private AssertionAuditReport(AtfReportPorts.Session session, Identity identity, SensitiveDataRedactor redactor,
+                                 boolean ownsSession, AssertionAuditRun.PublicationExecutor executor) {
         this.session = Objects.requireNonNull(session);
         this.identity = Objects.requireNonNull(identity);
         this.redactor = Objects.requireNonNull(redactor);
-        try {
-            scenario = session.startScenario(identity.testClass(), identity.testPackage(),
-                    identity.scenario(), identity.tags());
-        } catch (RuntimeException | Error failure) {
-            try (session) { throw failure; }
-        }
+        this.ownsSession = ownsSession;
+        this.executor = executor;
+        scenario = executor.call(() -> {
+            synchronized (session) {
+                try {
+                    return session.startScenario(identity.testClass(), identity.testPackage(),
+                        identity.scenario(), identity.tags());
+                } catch (RuntimeException | Error failure) {
+                    if (ownsSession) { try (session) { throw failure; } }
+                    throw failure;
+                }
+            }
+        });
     }
 
     /** Called on the full text by the consumer's neutral value-display policy. */
     public String redactField(String name, String text) { return redactor.redactField(name, text); }
 
     public void phase(String name, List<AtfAssertion> assertions, AtfReportStatus status, String diagnostic) {
+        executor.run(() -> {
+            synchronized (session) {
+                requireOpen();
+                publishPhase(name, assertions, status, diagnostic);
+            }
+        });
+    }
+
+    private void publishPhase(String name, List<AtfAssertion> assertions, AtfReportStatus status, String diagnostic) {
         try (var phase = scenario.startPhase(name)) {
             phase.detail("Test method", identity.method());
             if (!assertions.isEmpty()) {
@@ -54,13 +83,35 @@ public final class AssertionAuditReport implements AutoCloseable {
     }
 
     public void complete(AtfReportStatus status) {
-        scenario.complete(status);
-        completed = true;
+        executor.run(() -> {
+            synchronized (session) {
+                requireOpen();
+                scenario.complete(status);
+                completed = true;
+            }
+        });
     }
 
     @Override public void close() {
-        try (session; scenario) {
+        if (closed) return;
+        executor.run(() -> {
+            synchronized (session) {
+                if (closed) return;
+                closed = true;
+                if (ownsSession) {
+                    try (session) { closeScenario(); }
+                } else closeScenario();
+            }
+        });
+    }
+
+    private void closeScenario() {
+        try (scenario) {
             if (!completed) scenario.complete(AtfReportStatus.FAIL);
         }
+    }
+
+    private void requireOpen() {
+        if (closed) throw new IllegalStateException("Assertion audit scenario is closed");
     }
 }

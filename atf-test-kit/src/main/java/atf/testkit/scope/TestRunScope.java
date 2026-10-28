@@ -50,5 +50,18 @@ public enum TestRunScope {
         return candidate;
     }
 
+    /** Owns disposal as well as the reference; unlike value(), this closes the acquired object. */
+    public <T extends AutoCloseable> ScopedTestResource<T> resource(ExtensionContext context, Class<?> namespaceOwner,
+                                                                  String name, Class<T> resourceType) {
+        Objects.requireNonNull(namespaceOwner, "namespaceOwner");
+        Objects.requireNonNull(resourceType, "resourceType");
+        if (name == null || name.isBlank()) throw new IllegalArgumentException("resource name is required");
+        var namespace = ExtensionContext.Namespace.create(TestRunScope.class, this, namespaceOwner, ScopedTestResource.class);
+        @SuppressWarnings("unchecked")
+        ScopedTestResource<T> resource = owner(context).getStore(namespace).getOrComputeIfAbsent(
+                new ValueKey(name, resourceType), ignored -> new ScopedTestResource<T>(), ScopedTestResource.class);
+        return resource;
+    }
+
     private record ValueKey(String name, Class<?> valueType) { }
 }

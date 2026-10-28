@@ -1,43 +1,127 @@
-# ATF Reporting — lacune active
+# ATF Reporting — lacune și controale
 
 ## Pe scurt
 
-Rămâne lizibilitatea tabelelor imbricate la lățime mică (**77/100**).
-Proiecția sigură și plafonul aserțiunilor sunt contracte livrate la
-[Reporting](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor), cu probe în
-[Reporting Tests](../../atf-reporting-tests/README.md).
+Componentele auditate și panourile înguste au probe valide la
+[Reporting Tests](../../atf-reporting-tests/README.md). Rămân două lacune pe
+calea directă E2E a erorilor, plus timing-ul fazelor componente, separat de publicare.
 
-Scorurile folosesc [formula comună](README.md#top-feedback-uri-active);
-nu sunt note ale implementării și nu reprezintă acceptanță vizuală.
+| ID | Scor /100 | Diferența care trebuie rezolvată |
+|---|---:|---|
+| `REPORT-LEGACY-PREVIEW-03` | **86** = 35 + 25 + 19 + 7 | limita 240 devine 286 după adăugarea marcajului de trunchiere |
+| `REPORT-FAILURE-CONTEXT-04` | **80** = 32 + 23 + 18 + 7 | stack trace-ul ocupă preview-ul Fails înaintea contextului acțiunii |
+| `COMPONENT-AUDIT-TIMING-01` | **74** = 31 + 22 + 15 + 6 | fazele sunt publicate fără timing-ul execuției |
 
-## REPORT-NARROW-READABILITY-01 — tabele imbricate la lățime mică
+Scorurile sunt priorități după [formula comună](README.md#top-feedback-uri-active),
+nu note ale implementării. Contractele demonstrate rămân la
+[Reporting](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor).
 
-**Prioritate:** 77/100 = impact 33 + lacună 24 + lucrabil 16 + documentare 4.
-Problema afectează și un caz API nominal: după expandarea
-`Request → Response → Execution`, tabelul `Technical trace` poate comprima
-celulele până la câte o literă pe rând.
+## REPORT-LEGACY-PREVIEW-03 — bugetul include și marcajul
 
-În panouri înguste, inclusiv la aproximativ 392 px, același efect apare în
-`Failure evidence` cu observații și aserțiuni deschise. Scroll-ul vertical și
-absența overflow-ului orizontal nu dovedesc lizibilitatea.
+**Owner:** proiecția comună Reporting, cu probe în Reporting Tests.
+`Component assertions` prin Kit/`AssertionAuditReport` nu este defectul de aici.
 
-**Owner:** layout-ul comun `atf-reporting`, cu probe neutre în Reporting Tests;
-wiring-ul consumerului nu justifică un renderer sau un backlog paralel.
+- **Reproducere:** selectați `AutoExCartUiE2eTest.recalculatesAndRemovesCartProduct`
+  și `AutoExCartUiApiE2eTest.recalculatesAndRemovesCartProduct` într-o suită,
+  cu E2E activ și `assertionMaxDisplayCharacters: 240`.
+- **Observație:** cazul UI+API a eșuat la a doua căutare; valorile `OBSERVED`
+  și `Failure cause` au câte **286 caractere** în HTML, fără markup sau etichete CSS.
+  Valoarea originală de 1357/1358 caractere devine prefix de 240 plus marcaj de 46.
+- **Cauză verificată:** [ExtentReportNodeSupport.truncate](../../atf-reporting/src/main/java/atf/reporting/markup/ExtentReportNodeSupport.java)
+  aplică `substring(0, limit)` și apoi adaugă marcajul. Acesta este un plafon
+  al prefixului, incompatibil cu plafonul cerut întregii valori vizibile.
+- Eșecul remote este intermitent; reproducerea permanentă trebuie să folosească
+  o eroare locală controlată, nu să depindă de magazinul public.
 
-- [ ] Adăugați fixture neutră nominală și negativă cu nesting complet,
-      texte scurte/lungi, request/response/execution și failure evidence.
-      Verificați lățime standard, 591 px și un panou îngust comparabil.
-- [ ] Verificați lățimea utilă a coloanelor, textul vizibil și accesul la ultimul
-      rând prin constante explicite, nu numai `scrollWidth <= clientWidth`;
-      eșuați și pentru heading-uri ori valori rupte câte o literă pe rând.
-- [ ] La viewport larg, constrângeți separat panoul intern la 591 și 392 px:
-      media query-ul bazat numai pe lățimea ferestrei nu acoperă un card îngust
-      dintr-un layout desktop. Afirmați geometria containerului real.
-- [ ] Reduceți spațiul consumat de nesting sau aplicați o prezentare mobilă;
-      păstrați ierarhia, fontul lizibil și expand/collapse, fără a relaxa plafoanele.
-      Tabelele scurte nu primesc înălțime goală, iar plafonul de scroll rămâne comun.
-- [ ] Verificați redeschiderea părinților și navigarea Fails → Tests cu detalii
-      expandate; comparați fixture-ul neutru, standalone API și checkpoint-ul UI+API.
+```mermaid
+flowchart LR
+    Raw["Valoare integrală"] -->|decide| Verdict["Verdict neschimbat"]
+    Raw -->|redactează complet| Safe["Text sigur"]
+    Safe -->|rezervă și marcajul| Budget["Valoare vizibilă ≤ 240"]
+    Budget -->|publică aceeași proiecție| Views["Tests · Fails · fallback"]
+```
+
+<details>
+<summary><strong>Legendă — valoare limitată, diagnostic păstrat separat</strong></summary>
+
+Marcajul intră în bugetul valorii. Metadatele suplimentare despre trunchiere
+pot avea un control separat, fără a reinsera textul brut în valoare, tooltip
+sau atribut HTML. Verdictul folosește datele integrale; redactarea precede tăierea.
+
+</details>
+
+- [ ] Refolosiți o proiecție comună cu buget total, incluzând `…`/marcajul;
+      nu ridicați limita YAML și nu reduceți fontul ca remediere.
+- [ ] Probați o valoare exact la limită, una lungă și o eroare multiline cu
+      secret după poziția 240; verificați valoarea decodată din celulă,
+      Tests/Fails, expandare și paritatea fallback. Nu numărați markup-ul.
+- [ ] Păstrați evaluarea integrală, identitatea erorii și controalele existente;
+      schimbarea deliberată a contractului unui test cere `testChanges`, nu
+      acceptarea lui 286 într-un oracle nou.
+- [ ] Separați bugetul aserțiunilor de body JSON și de calea absolută finală;
+      notificarea artifactului nu se taie la 240.
+
+## REPORT-FAILURE-CONTEXT-04 — cauza utilă înaintea stack trace-ului
+
+**Owner:** model/proiecție Reporting și adaptoarele UI pentru contextul typed;
+probele de randare rămân în Reporting Tests.
+
+- Fails identifică ownerul, faza și verdictul corect și deschide scenariul eșuat.
+  Totuși, `Failure cause` începe cu eroarea Playwright și calea temporară a stack-ului;
+  `#submit_search` și așteptarea navigării sunt în afara preview-ului.
+- Tabelul acțiunilor păstrează `Click #22`, ținta și așteptarea business,
+  dar `OBSERVED` este consumat de același prefix tehnic. Contextul există în
+  raport, însă nu este folosit în rezumatul de triere.
+- [UiEvidencePublisher.failureCause](../../atf-reporting/src/main/java/atf/reporting/ui/UiEvidencePublisher.java)
+  preferă `Throwable.getMessage()` când există excepție; acțiunea eșuată este
+  folosită numai în fallback-ul fără Throwable.
+
+- [ ] Compuneți rezumatul din tipul erorii și contextul disponibil al acțiunii
+      eșuate: operație, țintă, așteptare și timp măsurat, înaintea stack-ului.
+      Păstrați proiecția sigură în buget; nu importați selectorii AutoEx în renderer.
+- [ ] Păstrați diagnosticul redacted separat și legătura cu eroarea originală;
+      informația necapturată rămâne explicit necunoscută, fără status HTTP ori
+      confirmare de dispatch inventate dintr-un text de excepție.
+- [ ] Probați excepție lungă cu o singură acțiune eșuată, excepție fără acțiuni,
+      acțiuni reușite urmate de eroare și cauze/suppressed; Fails trebuie să
+      conducă la acțiunea relevantă, nu numai la un prefix de stack.
+- [ ] Nu transformați timeout-ul în PASS pe baza capturii ulterioare.
+      Sincronizarea și lipsa replay-ului rămân în
+      [feedback-ul UI](ATF_UI_Backend_Guided_Recovery_Feedback.md#ui-action-navigation-02--click-executat-navigare-neconfirmată).
+
+## COMPONENT-AUDIT-TIMING-01 — execuție versus publicare
+
+**Owner:** Kit măsoară invocarea; Reporting proiectează timpul primit, iar
+adaptorul consumerului convertește modelul neutru. Scope-ul class/suite al
+sesiunii este o cerință separată, compatibilă cu măsurarea per invocare.
+
+| Suprafață | Observație și efect |
+|---|---|
+| Kit | `ComponentAssertionAudit.start` reține numai faza, iar `PhaseResult` nu transportă timing |
+| Reporting | `AssertionAuditReport.phase` deschide și închide faza după evaluare, la publicarea rezultatului |
+| Reproducere | `AutoExCheckoutReadinessComponentTest` include browser și așteptare bounded, dar `TEST BODY` poate afișa numai milisecunda publicării |
+
+Timpul JUnit include și overhead-ul fixture-ului; nu trebuie copiat ca durată
+exactă a body-ului. Proba trebuie să distingă cele două intervale.
+
+- [ ] Capturați începutul și sfârșitul cu o sursă monotonică la interceptarea
+      setup/body/teardown, inclusiv ieșiri FAIL/SKIP și metode parametrizate.
+      Mai multe callback-uri ale aceleiași faze se agregă explicit, fără ceas comun între invocări.
+- [ ] Transportați timing-ul în rezultatul neutru Kit; Reporting nu importă
+      JUnit și nu deduce durata din momentul publicării ori din textul diagnosticului.
+- [ ] Distingeți timpul execuției de deschiderea/publicarea/închiderea resursei;
+      definiți agregarea clasă/scenariu/fază și păstrați formatul comun al duratelor.
+- [ ] Folosiți clock controlat în probe, cu durate diferite pentru fiecare fază;
+      verificați Extent și fallback, Tests și Overview, inclusiv erori de publicare/close.
+- [ ] Păstrați evaluarea JUnit unică, verdictul și erorile suprimate; nu fabricați
+      durate pozitive și nu modificați plafonul redactat de 240 de caractere.
+
+- [ ] Păstrați agregarea exclusive/direct children fără dublarea scenariului
+      și fazelor; intervalele suprapuse nu devin wall-clock al suitei prin însumare.
+
+**Închidere:** o fază cu execuție controlată și publicare ulterioară păstrează
+durata execuției în artifact; testul eșuează dacă rendererul afișează numai
+durata publicării. Aceeași regulă se verifică în ambele module consumer.
 
 ## Controale tehnice încă necesare
 
@@ -51,6 +135,18 @@ fără rebazare, extindere de scope sau relaxarea guard-urilor.
 
 ```yaml
 testChanges:
+  - id: REPORT-NARROW-READABILITY-02
+    status: ACTIVE
+    base: 3219ef1ff546369d00a006cfc7434644251c6f9a
+    expires: 2026-11-26
+    reason: Adaugă probe nominale și negative pentru celule etichetate la lățimea panoului; păstrează limitele de scroll, lipsa overflow-ului și valorile. Pe suprafața mobilă, etichetele repetate înlocuiesc numai antetul vizual sticky, iar verificarea existentă cere eticheta fiecărei celule; desktop-ul păstrează antetul sticky.
+    proof: mvn -pl atf-reporting-tests,atf-tests -am "-Dtest=NarrowEvidenceReadabilityComponentTest,ReportTableViewportComponentTest,ReportApiViewportParityComponentTest,TableViewportBrowserComponentTest,ReportAssetSizeInventoryTest,ComponentAssertionStepReportTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=3219ef1ff546369d00a006cfc7434644251c6f9a" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/readability/NarrowEvidenceReadabilityComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/readability/NarrowEvidenceReadabilityProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/readability/NarrowEvidenceFailureFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/table/TableViewportProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/viewport/ReportApiViewportProbe.java
   - id: REPORT-ASSET-ASSERTION-DISCLOSURE-01
     status: ACTIVE
     base: 466a045e95a7336b183a7d75e0b369f8deb3082c

@@ -1,22 +1,27 @@
 package atf.testkit.assertions;
 
 import atf.testkit.lifecycle.FailureAwareCleanup;
+import atf.testkit.scope.TestRunScope;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.*;
 import org.junit.platform.commons.support.AnnotationSupport;
 import java.lang.reflect.Method;
 import java.util.Objects;
+import java.util.function.Function;
 
 /** Composable JUnit adapter; consumers supply publication without exposing report types to Kit. */
 public final class ComponentAuditExtension implements BeforeEachCallback, AfterEachCallback,
-        ParameterResolver, InvocationInterceptor {
+        ParameterResolver, InvocationInterceptor, LifecycleMethodExecutionExceptionHandler {
     public interface Publication extends AutoCloseable {
         AssertionValueDisplay display();
         void publish(ComponentAssertionAudit.Result result) throws Exception;
         @Override void close() throws Exception;
     }
     @FunctionalInterface public interface Factory { Publication open(ExtensionContext context) throws Exception; }
+    @FunctionalInterface public interface ScopedPublication<T> {
+        Publication open(T resource, ExtensionContext context) throws Exception;
+    }
     private record State(ComponentAssertionAudit audit, Publication publication) { }
     private final ExtensionContext.Namespace namespace;
     private final Factory factory;
@@ -24,6 +29,41 @@ public final class ComponentAuditExtension implements BeforeEachCallback, AfterE
     public ComponentAuditExtension(Object owner, Factory factory) {
         namespace = ExtensionContext.Namespace.create(Objects.requireNonNull(owner));
         this.factory = Objects.requireNonNull(factory);
+    }
+
+    /** Shares only the acquired resource; each invocation still gets an independent audit and publication. */
+    public static <T extends AutoCloseable> ComponentAuditExtension scoped(Class<?> owner, Class<T> resourceType,
+            Function<ExtensionContext, T> factory, ScopedPublication<T> publication) {
+        Objects.requireNonNull(factory, "factory");
+        Objects.requireNonNull(publication, "publication");
+        return new ComponentAuditExtension(owner, context -> {
+            T resource = TestRunScope.selected(context).resource(context, owner, "component-audit", resourceType)
+                    .getOrCreate(() -> factory.apply(context)).value();
+            return publication.open(resource, context);
+        });
+    }
+
+    @Override public void handleBeforeAllMethodExecutionException(ExtensionContext context, Throwable failure) throws Throwable {
+        containerFailure(context, ComponentAssertionAudit.Phase.SETUP, failure);
+    }
+
+    @Override public void handleAfterAllMethodExecutionException(ExtensionContext context, Throwable failure) throws Throwable {
+        containerFailure(context, ComponentAssertionAudit.Phase.TEARDOWN, failure);
+    }
+
+    private void containerFailure(ExtensionContext context, ComponentAssertionAudit.Phase phase, Throwable failure) throws Throwable {
+        try (Publication publication = factory.open(context)) {
+            var audit = new ComponentAssertionAudit(publication.display());
+            audit.start(phase);
+            audit.failed(phase, failure);
+            publication.publish(audit.finish(failure));
+        } catch (Throwable secondary) {
+            if (failure instanceof org.opentest4j.TestAbortedException) {
+                throw FailureAwareCleanup.combine(secondary, failure);
+            }
+            FailureAwareCleanup.combine(failure, secondary);
+        }
+        throw failure;
     }
 
     @Override public void beforeEach(ExtensionContext context) throws Exception {

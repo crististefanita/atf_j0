@@ -60,6 +60,8 @@ src/test/java/atf/api/tests/governance/
 │   ├── DocumentationDiagramGovernanceTest.java
 │   ├── DocumentationProseGovernanceTest.java
 │   ├── DocumentationReadmeStructureGovernanceTest.java
+│   ├── DocumentationAnchorGovernanceTest.java
+│   ├── links/        indexul heading-urilor și al ancorelor HTML
 │   ├── DocumentationStyleGovernanceTest.java
 │   ├── DocumentationTargetGovernanceTest.java
 │   ├── DocumentationGovernanceSupport.java
@@ -84,7 +86,7 @@ testelor de reporting în acest modul:
 - `AtfSourceReadabilityGovernanceTest` — importuri duplicate și invocații
   fully-qualified care ascund intenția testului;
 - `layers.AtfTestLayerArchitectureTest` — inventariază rădăcinile `sourceDirectory` și `testSourceDirectory` din POM (cu default Maven), apoi verifică nivelul fiecărei clase executabile; fixture-urile imbricate nu schimbă nivelul clasei exterioare;
-- `layers.ConsumerSuiteCoverageGovernanceTest` — exact trei suite principale per consumer, fără clase omise, selecții suprapuse sau amestec local/E2E/API live; include probe negative pentru omisiuni și suprapuneri;
+- `layers.ConsumerSuiteCoverageGovernanceTest` — exact trei suite principale per consumer, fără clase omise, selecții suprapuse sau amestec local/E2E/API live; citește declarația ownerului și selectorii executabili, fără comentarii ori fixture-uri nested promovate la gate. Probează și scope-ul explicit al rapoartelor componentelor;
 - `consumers.ConsumerModuleArchitectureGovernanceTest` și `ConsumerAuditSourceGraphTest` — resolver comun de adnotări pentru audit/layer, alias-uri, moștenire și helperi importați; comentariile, literalii și fixture-urile nested nu exclud ownerul executabil. Analiza sursei nu înlocuiește proba launcher/raport;
 - `ConstantsOwnershipGovernanceTest` — vocabularul de protocol, rute și
   boundary-ul reporting standalone;
@@ -301,3 +303,16 @@ renderer / HTML / CSS / public reporting API → atf-reporting
 Regulile generale OOP, locator boundary și layering sunt în
 [`docs/README_Atf_BestPractices.md`](../docs/README_Atf_BestPractices.md), iar
 statusul mutării este în [`docs/feedback/README.md`](../docs/feedback/README.md).
+
+### Linkuri README către secțiuni
+
+Guard-ul de structură rezolvă calea și fragmentul Markdown, pe fișierul sursă
+sau cross-file. Indexul păstrează Unicode, sufixele heading-urilor duplicate și
+ancorele HTML explicite; ignoră exemplele din fences backtick/tilde și păstrează
+linia originală în diagnostic. Căile și fragmentele percent-encoded se decodează
+fără a transforma `+` în spațiu.
+
+`DocumentationAnchorGovernanceTest` probează și ștergerea heading-ului după un
+link valid: `DOC-README-ANCHOR` identifică README-ul, linia și remedierea, chiar
+dacă heading-ul dispărut mai apare într-un exemplu fenced. Regula de heading
+urmează [convenția GitHub](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#section-links).

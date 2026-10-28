@@ -13,8 +13,8 @@ cunoaște rutele sau intenția unui test de produs.
 | verdicturi | `atf-validation` | reguli și `ValidationResult` prin port neutru | unit/component |
 | artifact | `atf-reporting` | renderer semantic standalone, Extent/HTML și contracte pure | POM standalone + unit/component |
 | reporting composition | `atf-reporting-tests` | mock → API → raport, cu component/integration proof și browser/E2E pentru contractul reporting | component + integration/API + Chromium/Playwright |
-| Practice Shop consumer | `atf-test-practice-shop` | journey de purchase, config, pages, flow-uri și locatori | component + E2E |
-| Automation Exercise consumer | `atf-test-auto-ex` | UI E2E separat, config, page objects și raport Extent | component + opt-in E2E |
+| Practice Shop consumer | `atf-test-practice-shop` | journey UI/API, configurație, pagini și runtime de aplicație | component + API live + E2E |
+| Automation Exercise consumer | `atf-test-auto-ex` | journey UI, contracte API și runtime separat de adaptorul JUnit | component + API live + E2E opt-in |
 | guvernanță whole-ATF | `atf-tests` | graph, dependency direction și architecture boundary | architecture/component |
 
 - `atf-reporting` este biblioteca standalone și nu compune suita;
@@ -156,8 +156,8 @@ Limitele de compoziție și ownership sunt:
 | atf-debug-ui | publică read-only un HTML existent pe loopback și furnizează target-ul pentru TAB MCP | renderer, modificarea artifactului, verdicturi și teste executabile |
 | atf-test-kit | adnotări, resolvere și primitive test-only de achiziție/rollback/cleanup; [contract](../atf-test-kit/README.md) | cod production, renderer, browser și reguli business |
 | atf-reporting-tests | contracte component/integration API/mock și E2E UI care verifică exclusiv `atf-reporting`; fixture-uri și adaptoare ale raportului | nu devine suita unei aplicații și nu mută aceste responsabilități în production |
-| atf-test-practice-shop | testele aplicației consumatoare, config/flows/locators/pages și purchase E2E | renderer, publisher și guvernanța whole-ATF |
-| atf-test-auto-ex | testele UI E2E ale Automation Exercise, config/locators/pages în test-scope | fixture-uri sau flow-uri Practice Shop |
+| atf-test-practice-shop | testele aplicației, runtime, pagini, flow-uri și mapping-ul dovezilor business | rendererul/publisherul generic și guvernanța whole-ATF |
+| atf-test-auto-ex | teste component/UI E2E/API live și adaptoare JUnit în test; configurație, pagini, flow-uri și runtime specific în main | fixture-uri sau flow-uri Practice Shop |
 | atf-tests | guvernanța whole-ATF și gates de arhitectură | teste de produs și contracte interne ale `atf-reporting` |
 
 | **Dovada cerută** | **Owner** |

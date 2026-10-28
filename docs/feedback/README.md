@@ -11,8 +11,14 @@ ownerului; rapoartele și rezultatele unei rulări nu devin documentație perman
   de eșec; runtime-ul și scope-ul coșului sunt în main.
 - AutoEx păstrează un raport API comun în suită și raport propriu per clasă;
   cleanup-ul poate reveni prin GET din documentul queue full, fără replay de payment.
-- Rămân separarea flow-urilor, contextul E2E Shop, billing în suita Shop
-  și lizibilitatea panourilor înguste.
+- Etapele purchase AutoEx și gate-urile catalogului Shop au owner în main; rămân
+  contextul E2E Shop și billing în suita Shop.
+- Checkout-ul AutoEx așteaptă vizibilitatea înaintea clickului unic; rămân
+  precondițiile business și recuperarea BE propusă, fără replay de mutații.
+- Componentele Shop/AutoEx au un raport per clasă/suită și audit per invocare;
+  guvernanța folosește selectorii executabili, cu comentariile excluse.
+- Calea E2E a erorilor depășește bugetul de preview prin marcajul adăugat;
+  trierea Fails pierde contextul acțiunii în prefixul stack-ului.
 - Contractele stabile sunt în [indexul documentației](../README.md);
   feedback-ul păstrează numai ownerul, reproducerea și criteriul rămas.
 
@@ -27,33 +33,24 @@ lor. Gap-urile secundare rămân vizibile în documentul ownerului.
 
 | Ordine | Feedback / owner | Scor /100 | Lacuna care decide ordinea |
 |---:|---|---:|---|
-| 1 | [Consumer — flow-uri și runtime](ATF_Consumer_Business_Test_Focus_Feedback.md) | **88** = 36 + 24 + 20 + 8 | porturi și etape rămase (88), context E2E Shop (77), billing în suita Shop (71), evaluator pur (63) |
-| 2 | [Reporting](ATF_Reporting_Feedback.md) | **77** = 33 + 24 + 16 + 4 | nesting ilizibil în panouri înguste |
-| 3 | [ATF UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ; activarea JavaScript explicită nu închide limita |
-| 4 | [Documentație — ancore](#doc-link-anchor-01--validarea-automată-a-ancorelor) | **44** = 14 + 11 + 15 + 4 | guard-ul validează fișierul, dar nu fragmentul Markdown |
+| 1 | [Reporting — preview și context FAIL](ATF_Reporting_Feedback.md) | **86** = 35 + 25 + 19 + 7 | preview E2E de 286 la limită 240 (86), context ascuns de stack în Fails (80), timing component (74) |
+| 2 | [UI — sincronizare și recuperare BE](ATF_UI_Backend_Guided_Recovery_Feedback.md) | **85** = 34 + 25 + 18 + 8 | click/navigare neconfirmată (85), politică YAML/adnotare (80), precondiții checkout (79), audit (78), select înlocuit (74) |
+| 3 | [Consumer — runtime și validare](ATF_Consumer_Business_Test_Focus_Feedback.md) | **77** = 31 + 18 + 20 + 8 | context E2E Shop (77), billing în suita Shop (71), evaluator pur (63), echivalența profilelor (57) |
+| 4 | [ATF UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ; activarea JavaScript explicită nu închide limita |
 
 Ordinea nu înlocuiește criteriul de închidere. O componentă verde nu certifică
 un flow remote, iar succesul live nu certifică toate politicile sau randarea.
 Calitatea editorială se evaluează separat prin
 [rubrica documentației](../README_Atf_DocumentationBestPractices.md#rubrica-reviziei-editoriale).
 
+Controlul tehnic al [scope-ului componentelor](ATF_Component_Report_Scope_Feedback.md#controlul-incrementului)
+rămâne pentru verificarea Git; nu reprezintă o lacună funcțională activă.
+
 ## Design AI — evaluare separată
 
 [Feedback-ul AI](README_AI_Evaluation.md) păstrează gap-urile evaluatorului și
 ale workflow-ului propus. Scorurile sale măsoară readiness-ul, nu prioritatea
 operațională de mai sus; nu sunt recalibrate printr-o revizie editorială.
-
-## DOC-LINK-ANCHOR-01 — validarea automată a ancorelor
-
-**Owner:** guvernanța documentației din `atf-tests`. Linkurile curente sunt
-corectate, dar `DocumentationReadmeStructureGovernanceTest.inspectLocalLinks`
-verifică numai calea dinaintea lui `#`; nu protejează heading-ul destinație.
-
-- [ ] Adăugați verificarea fragmentelor Markdown, inclusiv link local, cross-file,
-      Unicode, heading duplicat și ancoră HTML explicită; excludeți exemplele din fences.
-- [ ] Probați destinația validă și ancora dispărută după promovarea feedback-ului,
-      cu diagnostic fișier/linie/remediere; păstrați controalele de testChanges și
-      rulați validatorul și entry point-ul documentației, fără relaxarea regulilor.
 
 ## Păstrare, promovare și verificare
 
@@ -67,3 +64,22 @@ verifică numai calea dinaintea lui `#`; nu protejează heading-ul destinație.
 Protocolul este în [bunele practici documentare](../README_Atf_DocumentationBestPractices.md#păstrarea-și-ștergerea-feedback-ului).
 Controalele verificate aparțin [baseline-ului testelor](../ATF_Test_Changes_Baseline.md);
 execuțiile respectă [staging-ul și sync-ul sigur](../ATF_Build_And_Execution_Safety.md).
+
+<details>
+<summary><strong>Control tehnic — ancorele documentației</strong></summary>
+
+```yaml
+testChanges:
+  - id: DOC-LINK-ANCHOR-01
+    status: ACTIVE
+    base: 3219ef1ff546369d00a006cfc7434644251c6f9a
+    expires: 2026-11-26
+    reason: Întărește rezolvarea linkurilor README fără relaxarea regulilor existente; adaugă probe negative pentru fragment dispărut, Unicode, duplicate și exemple fenced.
+    proof: mvn -pl atf-tests -am "-Dtest=DocumentationAnchorGovernanceTest,DocumentationTargetGovernanceTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=3219ef1ff546369d00a006cfc7434644251c6f9a" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationReadmeStructureGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationAnchorGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/links/MarkdownAnchorIndex.java
+```
+
+</details>

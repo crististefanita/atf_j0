@@ -30,6 +30,13 @@ class AtfReportPathPolicyResolverTest {
                 () -> AtfReportPathPolicyResolver.resolve(Conflicting.class));
     }
 
+    @Test
+    void directPolicyOverridesComposedDefaultsInBothDirections() {
+        assertEquals(AtfReportPath.Policy.DISABLED, AtfReportPathPolicyResolver.resolve(DirectDisable.class));
+        assertEquals(AtfReportPath.Policy.ENABLED, AtfReportPathPolicyResolver.resolve(DirectEnable.class));
+        assertEquals(AtfReportPath.Policy.DISABLED, AtfReportPathPolicyResolver.resolve(DirectOverConflict.class));
+    }
+
     static class Unconfigured { }
 
     @AtfReportPath
@@ -44,7 +51,14 @@ class AtfReportPathPolicyResolverTest {
     @AtfReportPath(AtfReportPath.Policy.DISABLED)
     static class ExplicitOptOut extends InheritedOwner { }
 
-    @AtfReportPath
+    @TestReportPathOwner
     @TestDisabledReportPathOwner
     static class Conflicting { }
+
+    @AtfReportPath(AtfReportPath.Policy.DISABLED) @TestReportPathOwner
+    static class DirectDisable { }
+    @AtfReportPath @TestDisabledReportPathOwner
+    static class DirectEnable { }
+    @AtfReportPath(AtfReportPath.Policy.DISABLED) @TestReportPathOwner @TestDisabledReportPathOwner
+    static class DirectOverConflict { }
 }

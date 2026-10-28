@@ -32,7 +32,10 @@ public final class CartPage extends AutoExPage {
         return text(row(product) + " " + AutoExSelectors.CART_TOTAL, "cart line total is read");
     }
 
-    public void proceedToCheckout() { click(AutoExSelectors.CHECKOUT, "checkout begins from the cart"); }
+    public void proceedToCheckout() {
+        ui.waitForVisible(AutoExSelectors.CHECKOUT);
+        click(AutoExSelectors.CHECKOUT, "checkout begins from the cart");
+    }
 
     public String removeProductAndReadEmptyCart(AutoExConfiguration.Catalog product) {
         click(row(product) + " " + AutoExSelectors.CART_REMOVE, "selected product is removed from the cart");

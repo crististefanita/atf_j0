@@ -182,6 +182,35 @@ erorilor și granițele stage-urilor fără browser.
 - Checkpoint-ul `THEN` leagă mesajul de confirmare de numărul `INV-`; profilul `UI_API`
   corelează răspunsul API cu numărul afișat.
 
+### Gate-urile catalogului
+
+`ShopCatalogPurchaseFlow` coordonează home, filters, product grid și produsul
+selectat printr-un port semantic. Adaptorul per journey
+`ShopCatalogPurchaseStage` citește browserul folosind `CatalogInputs` imutabil;
+coordinatorul publică fiecare `ShopPurchaseCheckpoint` înaintea gate-ului și
+permite add-to-cart numai după toate cele patru verdicte PASS.
+
+```mermaid
+flowchart LR
+    Inputs["CatalogInputs<br/>selecție + capabilități"] -->|alimentează| UI["Catalog stage<br/>observații UI/API"]
+    Flow["Catalog flow"] -->|cere ecranul| UI
+    UI -->|returnează| Checkpoint["checkpoint imutabil"]
+    Checkpoint -->|publică| Report["observer raport"]
+    Report -->|publicare reușită| Gate{"Verdict"}
+    Gate -->|PASS| Next["următorul ecran / add"]
+    Gate -->|FAIL| Stop["oprire înaintea mutației"]
+```
+
+<details>
+<summary><strong>Legendă — observație, publicare și tranziție</strong></summary>
+
+`ShopCatalogPurchaseFlowComponentTest` verifică fiecare ecran cu valoare greșită
+sau absentă, timeout și eșec de publicare: fără retry, add-to-cart ori o observație
+următoare după eroare. Checkpoint-ul păstrează separat UI și API; validatorii,
+așteptările din configurație și ordinea traficului nu se reconstruiesc în coordinator.
+Un timeout înaintea observației nu inventează un checkpoint cu date inexistente.
+
+</details>
 ### Contracte de ecran și locatori
 
 `ShopScreen` stabilește identitățile semantice, iar `@ShopPageContract` leagă
@@ -592,8 +621,36 @@ sequenceDiagram
   `api-atf-practice-shop-standalone_`. Clasele lansate individual păstrează același lifecycle.
 - Transportul controlat este declarat componentă/acceptance; nu certifică un PASS live.
 
-Testele marcate `@ShopComponentTest` publică un raport Extent per invocare în
-subdirectorul `component` din `reports.api`, individual sau prin suită.
+Testele marcate `@ShopComponentTest` publică un raport Extent per owner, în
+subdirectorul `component` din `reports.api`. Clasa individuală are un raport;
+`ShopComponentSuite` declară scope `suite` și grupează clasele într-un singur artifact.
+
+- Auditul, scenariul și verdictul rămân per invocare; parametrizările cu același
+  display name nu sunt deduplicate. Două lansări nu reutilizează o sesiune închisă.
+- Factory-ul de configurare și metadata este în main; Kit deține scope-ul,
+  iar Reporting deține sesiunea și publicarea pe thread-ul ei.
+- `@AtfReportPath` pe un participant poate activa o singură notificare după
+  publicarea artifactului comun; politica nu activează și nu dezactivează auditul.
+- `ShopComponentReportScopeComponentTest` probează metoda, clasa, suita,
+  parametrizarea, lansările repetate, paralelismul și failure-urile de lifecycle.
+
+Notificarea locației este independentă de generarea HTML.
+
+| Owner | Politică și publicare |
+|---|---|
+| Clasă componentă | `@AtfReportPath` explicit; `ShopExtentTestExtension` conectează evenimentul final, inclusiv FAIL/abort și eșec lifecycle |
+| E2E | declarația directă `@AtfReportPath(AtfReportPath.Policy.DISABLED)` suprascrie default-ul `@WithE2eHarness`, păstrând infrastructura |
+| Raport comun | oricare owner activ cere o singură notificare finală |
+| YAML | `reporting.console.enabled: false` suprimă mesajul global |
+
+- `ShopReportPathComponentTest` probează politica, publicarea înaintea mesajului,
+  parametrizările și lansarea prin suită.
+- Fixture-urile publicării folosesc directoare unice sub `target`; nu adaugă
+  rapoarte de diagnostic lângă artifactul principal al suitei.
+- Declarația aparține clasei Jupiter, inclusiv la lansarea unei metode în IntelliJ;
+  o adnotare pe `@Suite` nu se propagă claselor selectate.
+- Detaliile lifecycle și preview-urile aserțiunilor de maximum 240 de caractere
+  rămân politici separate.
 
 | Caz | Dovadă în raport |
 |---|---|
@@ -613,13 +670,17 @@ flowchart LR
     Test[Test componentă Shop] -->|verifică integral| Kit[Audit Kit]
     Kit -->|rânduri sigure pe faze| Adapter[Adaptor Shop]
     Adapter -->|mapează| Report[AssertionAuditReport]
+    Scope["Owner class / suite"] -->|deține| Run[AssertionAuditRun]
+    Run -->|împrumută sesiunea| Report
     Report -->|publică colapsat| Step[Component assertions]
 ```
 
 <details>
 <summary><strong>Legendă — auditul componentelor Shop</strong></summary>
 
-- Muchiile sunt flux de date, nu dependențe Maven: Kit nu importă Reporting.
+- Muchiile sunt flux de date și ownership, nu dependențe Maven: Kit nu importă Reporting.
+- `AssertionAuditRun` închide sesiunea comună la owner; fiecare invocare
+  închide numai scenariul său. Două suite au owneri separați chiar în același launcher.
 - [Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră) deține delegarea,
   colectarea pe invocare și reconcilierea rezultatului; consumerul injectează redacția și configurația.
 - [Reporting](../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor) deține
@@ -741,9 +802,12 @@ mvn -pl atf-test-practice-shop -am "-Dtest=ShopAuthenticatedPurchaseE2eTest" "-D
 | `ShopStandaloneApiReportTest` | Opt-in prin `atf.practice.authenticated-e2e=true` și fixture autentificat în `src/test/resources`; verifică sort/filter, update/remove cu read-back pe coș izolat și checkout/payment, fără invoice final. | Rulare autentificată `LIVE / HTTP`, contracte business trecute și cleanup confirmat; un login eșuat publică diagnosticul și nu validează mutațiile ulterioare. |
 | Suitele unit/component | Variații de request, validator și lifecycle cu vecini controlați; fără cont și fără trafic către serviciul extern. | Deterministe; nu sunt prezentate ca dovadă a semanticii serverului. |
 
-Contractele HTTP autentificate pentru sort/filter și mutațiile coșului sunt
-probate; verificarea interactivă a raportului standalone rămâne în
-[feedback-ul consumerilor](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md).
+Probele componente verifică runtime-ul, contractele și artifactele pentru succes,
+HTTP respins, transport fără răspuns și cleanup eșuat. Rularea autentificată live
+verifică separat comportamentul serverului; un raport 401 auditabil nu certifică un flow reușit.
+
+Interacțiunea generică a raportului este probată în
+[Reporting Tests](../atf-reporting-tests/README.md); mapping-ul business rămâne Shop.
 Login-ul API nu dovedește automat autentificarea UI a aceluiași cont.
 
 ## Modificări și întreținere

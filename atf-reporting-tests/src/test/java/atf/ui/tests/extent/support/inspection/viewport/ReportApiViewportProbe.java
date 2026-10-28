@@ -113,8 +113,9 @@ public final class ReportApiViewportProbe {
     private static void assertNatural(Locator viewport) {
         assertEquals(Boolean.TRUE, viewport.evaluate("element => {"
                 + "const style=getComputedStyle(element);"
-                + "return style.overflowY==='auto' && element.scrollHeight<=element.clientHeight"
-                + "&&element.getBoundingClientRect().height<500;}"),
+                + "const table=element.querySelector('table'), cap=parseFloat(style.maxHeight);"
+                + "return style.overflowY==='auto' && Math.abs(element.clientHeight-"
+                + "Math.min(table.getBoundingClientRect().height,cap))<=2;}"),
                 "short table must keep natural height without empty reserved space");
     }
 
@@ -127,8 +128,12 @@ public final class ReportApiViewportProbe {
                 + "||!header||!last)return false;"
                 + "element.scrollTop=element.scrollHeight;"
                 + "const bounds=element.getBoundingClientRect();"
-                + "return getComputedStyle(header).position==='sticky'"
-                + "&&header.getBoundingClientRect().top>=bounds.top-1"
+                + "const table=element.querySelector('table'),stacked="
+                + "getComputedStyle(table).getPropertyValue('--atf-table-stacked').trim()==='1';"
+                + "const labels=Array.from(table.querySelectorAll('tbody tr')).every(r=>Array.from(r.cells).every(c=>"
+                + "c.getAttribute('data-atf-column-label')&&getComputedStyle(c,'::before').content!=='none'));"
+                + "return (stacked?labels:getComputedStyle(header).position==='sticky'"
+                + "&&header.getBoundingClientRect().top>=bounds.top-1)"
                 + "&&last.getBoundingClientRect().bottom<=bounds.bottom+1;}")),
                 "long table must scroll locally with sticky header and reachable last row");
     }

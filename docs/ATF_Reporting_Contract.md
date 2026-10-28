@@ -11,6 +11,10 @@ Forma vizibilă, layout-ul, disclosure-urile și matricea de verificare sunt
 normate separat în [Contractul de display și layout](ATF_Reporting_Display_Contract.md);
 acest document rămâne owner-ul semanticii raportului și al evidence-ului.
 
+Pentru componentele AutoEx/Shop, un owner class/suite publică un raport comun,
+iar fiecare invocare auditată își păstrează scenariul, fazele și verdictul.
+Unit rămâne exceptat; artifactele-fixture ale testelor de Reporting au ownership separat.
+
 ### Overview/System — instantaneu semantic
 
 System răspunde la o singură întrebare: **cu ce setări operaționale a rulat acest
@@ -550,15 +554,17 @@ coloană dominantă primește lățimea dominantă.
 
 ### Aranjare pentru dovezile `FIELD | VALUE`
 
-În tabelele key/value din trace și din detaliile request/response:
+În prezentarea pe coloane a tabelelor key/value din trace și din detaliile request/response:
 
 - `FIELD`: lățimea cheilor vizibile, limitată la 20–38%;
 - `VALUE`: spațiul rămas, minimum 62% la lățimea disponibilă;
 - alte tabele: alocarea content-aware existentă, nemodificată;
-- viewport îngust: textul se rupe în celule, fără scroll orizontal al paginii.
+- la panou de maximum `720px`, prezentarea verticală pune fiecare valoare sub eticheta ei, fără scroll orizontal;
+- containerul real decide prezentarea, inclusiv în viewport desktop; fontul și plafonul comun de scroll rămân lizibile, iar antetul semantic este păstrat.
 
 Markerii `data-atf-key-value-layout` și `data-atf-key-column-width` expun
-decizia de layout pentru audit. `ValidationTableLayoutComponentTest` verifică
+decizia alocării pe coloane pentru audit. `--atf-table-stacked: 1` identifică
+prezentarea verticală efectivă. `ValidationTableLayoutComponentTest` verifică
 contractul runtime, iar `ValidationTableLayoutInspector` verifică lățimile și
 absența overflow-ului în browser.
 

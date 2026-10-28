@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Native locator readiness</title>
+<div id="surface"></div>
+<output id="activations">0</output>
+<script>
+  const params = new URLSearchParams(location.search);
+  const kind = params.get('kind');
+  const mode = params.get('mode');
+  window.oldActivations = 0;
+  window.trustedActivation = false;
+  function control(old = false) {
+    const element = document.createElement(kind === 'CLICK' ? 'button' : kind === 'FILL' ? 'input' : 'select');
+    element.id = 'target';
+    if (kind === 'CLICK') element.textContent = 'Activate';
+    if (kind === 'SELECT') element.innerHTML = '<option value="red">Red</option><option value="blue">Blue</option>';
+    element.addEventListener(kind === 'CLICK' ? 'click' : kind === 'FILL' ? 'input' : 'change', event => {
+      if (old) window.oldActivations++;
+      window.trustedActivation = event.isTrusted;
+      const output = document.getElementById('activations');
+      output.textContent = String(Number(output.textContent) + 1);
+    });
+    return element;
+  }
+  const surface = document.getElementById('surface');
+  function append() { surface.append(control()); }
+  if (mode === 'ready') append();
+  if (mode === 'ambiguous') { append(); append(); }
+  if (mode === 'delayed') setTimeout(append, 200);
+  if (mode === 'document') setTimeout(() => location.replace('/ready?kind=' + kind + '&mode=ready'), 200);
+  if (mode === 'replacement' || mode === 'ambiguous-replacement') {
+    const original = control(true);
+    original.disabled = true;
+    surface.append(original);
+    setTimeout(() => {
+      original.replaceWith(control());
+      if (mode === 'ambiguous-replacement') append();
+    }, 200);
+  }
+</script>
+</html>

@@ -163,12 +163,44 @@ moștenirea.
 
 - Fără opt-in, calea nu este afișată.
 - Mesajul apare numai după închiderea sesiunii Reporting și verificarea fișierului final.
-- `reporting.console.enabled` rămâne autoritar; `@AtfConsoleMessages` nu activează opt-in-ul pentru cale.
+- `reporting.console.enabled` rămâne autoritar; `@AtfConsoleMessages` nu activează opt-in-ul pentru cale și `OFF` nu îl suprimă.
+- Lifecycle-ul obișnuit și `dynamicTest(owner, ...)` păstrează aceeași separare a politicilor.
+- Calea este cea absolută, normalizată, emisă de sesiune; mesajul o păstrează integral, inclusiv spații și Unicode. Plafonul de 240 aparține preview-urilor aserțiunilor.
 
-Pentru o sesiune partajată între clase, fiecare owner trebuie înregistrat într-un
-`AtfReportPathOptIn`; agregatorul emite o singură notificare dacă oricare owner
-a activat opțiunea, independent de ordinea execuției. `ShopE2eTestSupport` folosește
-acest pattern pentru raportul comun al suitei.
+Pentru un artifact partajat, fiecare owner trebuie înregistrat într-un
+`AtfReportPathOptIn` înainte de publicare.
+
+- Oricare owner activ cere o singură notificare, indiferent de ordine.
+- `ShopE2eTestSupport` compune raportul suitei; `AutoExRunFactory` deține resursa E2E root.
+- Sink-ul final este separat de mesajele lifecycle ale primei metode.
+- Generarea raportului și verdictul testului nu depind de notificare.
+
+```mermaid
+flowchart LR
+    Owner["Owneri Jupiter"] -->|declară| Policy["Politica Kit"]
+    Policy -->|include fiecare owner| Sink["Sink Console"]
+    Session["Reporting close"] -->|publică și verifică fișierul| Final["REPORT_PUBLISHED"]
+    Final -->|calea sesiunii| Sink
+    Yaml["Console YAML"] -->|permite afișarea| Sink
+    Sink -->|o dată per artifact| Output["Calea absolută în consolă"]
+```
+
+<details>
+<summary><strong>Legendă — notificare la ownerul final</strong></summary>
+
+Componenta conectează sink-ul clasei la sesiunea deținută. Un raport partajat
+agregă opțiunile tuturor ownerilor; cel puțin un owner activ cere notificarea.
+`flush()` nu anunță artifactul final. Wrapperul dinamic transportă evenimentul
+unei resurse deținute explicit, fără să creeze un raport pentru fiecare copil.
+
+</details>
+
+Pentru probele launcherelor, `AtfConsoleOutputCapture.capture(action, observer)`
+ține observarea fluxului de proces în Console și îl restaurează inclusiv la excepție.
+
+- Helperul observă sincron liniile `println` la emitere și returnează output-ul capturat.
+- Capturile cooperante sunt serializate; rulările fără legătură nu trebuie să scrie concurent.
+- Consumerii verifică artifactul și politica, fără să preia ownership-ul `stdout`.
 
 ## Testare
 
@@ -188,6 +220,8 @@ Testarea este împărțită după responsabilitate:
   din Console — `@AtfUnitTest`, politici locale, conflicte și agregare
   indiferent de ordinea ownerilor;
 - testele de execuție — publicarea separată a evenimentelor.
+- `AtfReportPathLifecycleIntegrationTest` — lifecycle obișnuit/dinamic cu `OFF`,
+  opt-out și întrerupătorul global, păstrând calea completă.
 
 - Jupiter nu rulează `BeforeEachCallback`/`TestWatcher` pentru fiecare copil din `@TestFactory`.
 - Pentru verdict și lifecycle per copil, folosește `AtfConsoleTestContext.dynamicTest(owner, displayName, body)`.

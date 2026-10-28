@@ -1,7 +1,8 @@
 package atf.autoex.tests.extension;
 
 import atf.console.junit.AtfConsoleTestContext;
-import atf.core.reporting.console.AtfConsoleSink;
+import atf.console.junit.AtfConsoleTestExtension;
+import atf.console.junit.AtfReportPathOptIn;
 import atf.reporting.configuration.AtfReportConfigurationLoader;
 import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.evidence.profile.ReportEvidenceProfile;
@@ -64,9 +65,10 @@ final class AutoExRunFactory {
         ReportResource reportResource = context.getRoot().getStore(NAMESPACE)
                 .getOrComputeIfAbsent(SUITE_REPORT_KEY,
                         ignored -> new ReportResource(output,
-                                AutoExReportSession.fileName(context.getRequiredTestMethod().getName()), console,
+                                AutoExReportSession.fileName(context.getRequiredTestMethod().getName()), context.getRequiredTestClass(),
                                 sessionEvidence, reportBrowser),
                         ReportResource.class);
+        reportResource.include(context.getRequiredTestClass());
         UiExtentReportSession report = reportResource.report();
         AutoExConfiguration runConfiguration = configuration;
         return TestRunInitialization.create(
@@ -84,10 +86,13 @@ final class AutoExRunFactory {
 
     private static final class ReportResource implements ExtensionContext.Store.CloseableResource {
         private final AutoExReportSession session;
-        private ReportResource(Path output, String name, AtfConsoleSink console,
+        private final AtfReportPathOptIn paths = new AtfReportPathOptIn(AtfConsoleTestExtension.reportPathPublisher());
+        private ReportResource(Path output, String name, Class<?> owner,
                                ReportEvidenceProfile evidence, UiBrowserConfiguration browser) {
-            session = AutoExReportSession.open(output, name, console, evidence, browser);
+            paths.include(owner);
+            session = AutoExReportSession.open(output, name, paths, evidence, browser);
         }
+        private void include(Class<?> owner) { paths.include(owner); }
         private UiExtentReportSession report() { return session.report(); }
         @Override public void close() { session.close(); }
     }

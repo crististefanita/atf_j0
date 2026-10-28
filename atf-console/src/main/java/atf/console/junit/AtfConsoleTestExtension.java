@@ -30,11 +30,9 @@ public final class AtfConsoleTestExtension implements BeforeEachCallback, TestWa
             // Each child opts into a correctly scoped lifecycle via AtfConsoleTestContext.dynamicTest(...).
             return;
         }
-        ConsoleSettings settings = effectiveSettings(context.getRequiredTestClass());
-        var lifecycle = AtfConsoleTestLifecycle.configured(
+        var lifecycle = lifecycle(context.getRequiredTestClass(),
                 context.getRequiredTestClass().getSimpleName(),
-                context.getRequiredTestMethod().getName(), settings,
-                reportPathEnabled(context.getRequiredTestClass()));
+                context.getRequiredTestMethod().getName());
         lifecycle.start();
         activeTests.put(context.getUniqueId(), lifecycle);
         AtfConsoleTestContext.install(lifecycle);
@@ -43,6 +41,18 @@ public final class AtfConsoleTestExtension implements BeforeEachCallback, TestWa
     static ConsoleSettings effectiveSettings(Class<?> testClass) {
         ConsoleSettings configured = AtfConsoleConfigurationLoader.load().settings();
         return applyPolicy(configured, AtfConsoleMessagePolicyResolver.resolve(testClass));
+    }
+
+    /** Lifecycle messages and final-path notifications share an owner, not a display policy. */
+    static AtfConsoleTestLifecycle lifecycle(Class<?> owner, String scenario, String test) {
+        ConsoleSettings configured = AtfConsoleConfigurationLoader.load().settings();
+        var messages = AtfConsoleReporter.configuredStdout(
+                applyPolicy(configured, AtfConsoleMessagePolicyResolver.resolve(owner)));
+        var paths = AtfConsoleReporter.configuredStdout(configured, reportPathEnabled(owner));
+        return new AtfConsoleTestLifecycle(event -> {
+            if (event.type() == AtfConsoleEvent.Type.REPORT_PUBLISHED) paths.publish(event);
+            else messages.publish(event);
+        }, scenario, test);
     }
 
     /** Resolves report-path opt-in independently from {@code @AtfConsoleMessages}. */

@@ -7,6 +7,7 @@ public interface AutoExUiActions {
     void clickLast(String selector, String expected);
     void fill(String selector, String value, String expected);
     void waitForText(String selector, String expectedText, String expected);
+    void waitForVisible(String selector);
     String text(String selector, String expected);
     String textFirst(String selector, String expected);
     void select(String selector, String label, String expected);

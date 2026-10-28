@@ -169,6 +169,39 @@ Report*Locators
   `waitFor`, `waitForCondition`, `waitForURL`;
 - `waitForTimeout` nu este API de stabilizare acceptat.
 
+### Așteptare nativă și unicitate
+
+`Click`, `Fill` și `Select option` folosesc operația strictă Playwright, care
+rezolvă ținta și așteaptă actionability în bugetul nativ al acelei operații.
+Recorderul publică o singură acțiune; `UiRetryPolicy` nu reia mutația.
+
+O țintă absentă temporar poate deveni disponibilă; ambiguitatea rămâne eroare.
+`Select option` cere și confirmarea unei valori selectate: un rezultat nativ
+gol produce FAIL, cu selectorul păstrat, fără încercare suplimentară.
+
+```mermaid
+flowchart LR
+    Record["Recorder<br/>o operație"] -->|deleagă| Native["Locator strict<br/>un buget de așteptare"]
+    Native -->|țintă pregătită| Activate["o activare"]
+    Native -->|ambiguitate sau timeout| Fail["FAIL auditabil"]
+    Activate -->|rezultat confirmat| Pass["PASS"]
+    Activate -->|select fără confirmare| Fail
+```
+
+<details>
+<summary><strong>Legendă — rezolvare înaintea activării</strong></summary>
+
+- Contractul delegat este [actionability Playwright](https://playwright.dev/java/docs/actionability),
+  cu unicitate și verificările specifice fiecărei operații.
+- `PlaywrightLocatorReadinessComponentTest` folosește browser și documente locale:
+  țintă întârziată, lipsă permanentă, ambiguitate, document nou și țintă înlocuită.
+- Pentru click/fill, înlocuirea înaintea activării păstrează o singură mutație;
+  pentru select, lipsa confirmării native este respinsă explicit.
+- Continuitatea selecției după detach și precondițiile consumerului sunt urmărite
+  în [feedback-ul UI](../docs/feedback/ATF_UI_Backend_Guided_Recovery_Feedback.md).
+
+</details>
+
 ### Convenții pentru locatori UI
 
 CSS este alegerea implicită pentru contractele DOM stabile. Preferă un selector

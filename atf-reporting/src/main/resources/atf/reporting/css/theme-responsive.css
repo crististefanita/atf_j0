@@ -135,34 +135,4 @@
     word-break: break-word !important;
     text-overflow: clip !important;
   }
-  body .atf-ui-action-table th:nth-child(1),
-  body .atf-ui-action-table td:nth-child(1) { width: 12% !important; }
-  body .atf-ui-action-table th:nth-child(2),
-  body .atf-ui-action-table td:nth-child(2) { width: 16% !important; }
-  body .atf-ui-action-table th:nth-child(3),
-  body .atf-ui-action-table td:nth-child(3) { width: 17% !important; }
-  body .atf-ui-action-table th:nth-child(4),
-  body .atf-ui-action-table td:nth-child(4) { width: 20% !important; }
-  body .atf-ui-action-table th:nth-child(5),
-  body .atf-ui-action-table td:nth-child(5) {
-    width: 18% !important;
-    white-space: normal !important;
-    overflow-wrap: anywhere !important;
-  }
-  body .atf-ui-action-table th:nth-child(6),
-  body .atf-ui-action-table td:nth-child(6) {
-    width: 17% !important;
-    min-width: 36px !important;
-    white-space: normal !important;
-    overflow-wrap: anywhere !important;
-  }
-  body .atf-ui-action-table td:nth-child(6) {
-    padding-left: 1px !important;
-    padding-right: 1px !important;
-  }
-  body .atf-ui-action-table .atf-ui-action-result {
-    max-width: 100% !important;
-    font-size: 8px !important;
-    line-height: 1 !important;
-  }
 }

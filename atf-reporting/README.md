@@ -297,8 +297,8 @@ TestCase
 | UI evidence | `SETUP` rămâne setup; în `TEST BODY`, acțiunile, observațiile, aserțiunile și verdictul UI sunt publicate sub unicul titlu `UI validation` |
 | UI `UNIFIED_FLOW` peste faze | Consumerul apelează `UiScenario.unifyAcrossPhases()` înainte de prima fază și `UiPhase.completeFinal(status)` la faza terminală. Pe succes UI-only, Reporting publică o singură validare UI cu un tabel ACTION, unul OBSERVE (dacă există observații) și unul assertions (dacă există aserțiuni), păstrând toate rândurile în ordine. Captura `FINAL` permisă apare sub tabelul Playwright, înaintea auditului; fazele/checkpoint-urile și verdictele sunt în `UI flow provenance`, separat de răspunsurile HTTP. UI+API, setup eșuat și politicile explicite cu capturi multiple păstrează validările pe checkpoint. `completeFinal(FAIL)` în `SETUP` nu creează `TEST BODY` sau o captură finală. Fără opt-in, comportamentul existent per fază rămâne valabil. |
 | layout | `＋/−` este inline înaintea propoziției; Request details, Response details și Execution evidence sunt disclosures surori în request; Contract validation este copilul lui; UI/API validations sunt copii surori ale aceluiași checkpoint Gherkin |
-| responsive evidence | până la breakpoint-ul de lucru (`1300px`), action tables se redimensionează și împachetează conținutul fără scrollbar orizontal; padding-ul lateral al wrapperului este eliminat semantic, nu prin crop | 
-| tabele cu derulare | containerele folosesc `height:auto` și `max-height:var(--atf-table-scroll-height)`, derivat din `AtfReportThemeTokens.TABLE_SCROLL_HEIGHT` (`500px` în prezent); conținutul scurt nu rezervă spațiu gol, conținutul lung derulează sub antetul fix, iar panourile JSON/cod nu intră în acest contract |
+| responsive evidence | la panou de maximum `720px`, valorile se așază vertical cu eticheta coloanei; decizia folosește containerul real, inclusiv într-o fereastră desktop. Nu apare scrollbar orizontal și nu se reduc valorile ori fontul ca să încapă | 
+| tabele cu derulare | containerele folosesc `height:auto` și `max-height:var(--atf-table-scroll-height)`, derivat din `AtfReportThemeTokens.TABLE_SCROLL_HEIGHT` (`500px` în prezent); conținutul scurt nu rezervă spațiu gol, conținutul lung derulează sub antetul fix în prezentarea pe coloane; prezentarea verticală repetă eticheta la fiecare valoare. Panourile JSON/cod nu intră în acest contract |
 | politica comună de viewport | `ReportTableViewport` și asset-ul `table-viewport.css` sunt comune Extent/fallback; builderul învelește implicit orice tabel de date, inclusiv setup, execution și familii viitoare. Regula nu depinde de titlu, contor, fază sau părinte `validation`; wrapperul este focusabil pentru scroll din tastatură |
 | limitele viewportului | un singur wrapper per tabel; tabelele de layout `Status / Details`, copiii și screenshot-urile nu intră în viewport. Normalizarea legacy verifică numai părintele direct al tabelului candidat și reutilizează wrapperul existent |
 | scroll local la input | `table-viewport.js` izolează rotița și navigarea din tastatură de panoul gazdă; inputurile, linkurile, summary-urile și panourile de cod își păstrează comportamentul. Există un singur binding delegat, fără scanări la fiecare gest |
@@ -345,9 +345,8 @@ flowchart LR
 
 - Compactarea este o proiecție de prezentare pentru flow-ul UI-only reușit;
   modelul reține obiectele originale de acțiune/aserțiune, proveniența și verdictul.
-  Detaliile tehnice ale request-urilor API rămân în canalul lor, iar problema
-  de lizibilitate la lățime îngustă este urmărită separat în
-  [feedback](../docs/feedback/ATF_Reporting_Feedback.md#report-narrow-readability-01--tabele-imbricate-la-lățime-mică).
+  Detaliile tehnice ale request-urilor API rămân în canalul lor; prezentarea
+  adaptivă este normată în [panouri înguste](#lizibilitatea-dovezilor-în-panouri-înguste).
 
 ### Context de fază și diagnostic de execuție
 
@@ -1252,6 +1251,11 @@ izolate în facade. Contractul se verifică separat prin teste de asset, compone
 nu depinde de JUnit, Test Kit sau Validation. Consumerul îi furnizează identitatea,
 rândurile evaluate, statusul fazei și diagnosticul.
 
+Fazele acestui publisher se deschid după evaluare; API-ul nu primește încă
+durata execuției componentei. Duratele afișate pe această cale nu certifică
+timpul metodei JUnit; diferența este în
+[feedback-ul de timing](../docs/feedback/ATF_Reporting_Feedback.md#component-audit-timing-01--execuție-versus-publicare).
+
 ```mermaid
 flowchart LR
     Raw[Valori integrale] -->|evaluează o dată| Verdict[Verdict]
@@ -1275,5 +1279,80 @@ flowchart LR
   un eșec real al unei aserțiuni neconsumate păstrează `FAIL`.
 - `AssertionAuditPublicationComponentTest` protejează redacția în ambele renderere;
   `ComponentAssertionStepReportTest` protejează interacțiunea, ultimul rând și Fails → Tests.
+
+</details>
+
+### Sesiunea comună a componentelor
+
+`AssertionAuditRun` deține sesiunea, iar `open(identity)` întoarce un
+`AssertionAuditReport` care împrumută sesiunea și deține numai scenariul său.
+Constructorul public `AssertionAuditReport(session, ...)` păstrează ownership-ul
+sesiunii pentru publisherii standalone și fixture-urile existente.
+
+```mermaid
+flowchart LR
+    Scope["Owner class / suite"] -->|deține| Run["AssertionAuditRun"]
+    Run -->|publică pe| Worker["Thread raport"]
+    Invocation["Invocări JUnit"] -->|păstrează| Audit["Audit izolat"]
+    Audit -->|alimentează| Scenario["Scenarii distincte"]
+    Worker -->|grupează| Scenario
+    Worker -->|închide o dată| Artifact["Un artifact Extent"]
+```
+
+<details>
+<summary><strong>Legendă — ownership și thread-ul real al sesiunii</strong></summary>
+
+- `extent(...)` capturează configurația și creează sesiunea pe thread-ul de raport;
+  operațiile de scenariu și close se execută sincron pe același thread.
+- Testele și comparațiile JUnit rămân pe thread-urile lor. Publicarea nu reexecută
+  business-ul și nu relaxează guard-ul de thread din `ExtentReportSession`.
+- O invocare închide numai scenariul împrumutat; ownerul class/suite închide
+  sesiunea și workerul, inclusiv după o eroare de publicare.
+- Titlurile identice nu înlocuiesc identitatea scenariilor; fazele și aserțiunile
+  unei invocări nu pot fi împrumutate de altă invocare.
+- Lucrul deja trimis se finalizează o singură dată; un caller întrerupt își
+  păstrează indicatorul de interrupt. Configurația căii și politica notificării
+  sunt capturate înaintea publicării și notificarea urmează artifactul final existent.
+
+</details>
+
+`AssertionAuditRunComponentTest` verifică ownership-ul, cauzele și concurența;
+probele consumerilor verifică scope-ul Jupiter și politica notificării finale.
+Limita de 240 caractere și pasul `Component assertions` colapsat rămân aceleași.
+
+
+### Lizibilitatea dovezilor în panouri înguste
+
+Lățimea ferestrei și lățimea disponibilă tabelului sunt măsurători diferite.
+`table-viewport.css` folosește containerul dovezii: la maximum `720px`, fiecare
+celulă ocupă lățimea rândului și păstrează eticheta antetului lângă valoare.
+
+La lățime mai mare rămân coloanele și antetul sticky. Antetul semantic există
+și în prezentarea verticală, iar scroll-ul rămâne local, focusabil și plafonat
+prin aceeași variabilă; un tabel scurt ocupă numai înălțimea conținutului său.
+
+```mermaid
+flowchart LR
+    Width["lățimea panoului<br/>nu doar fereastra"] -->|decide| Layout{"spațiu disponibil"}
+    Layout -->|peste 720 px| Columns["coloane<br/>antet sticky"]
+    Layout -->|maximum 720 px| Rows["valori verticale<br/>etichetă repetată"]
+    Columns -->|păstrează| Evidence["aceleași valori și verdicte"]
+    Rows -->|păstrează| Evidence
+    Evidence -->|derulează local| Audit["plafon comun<br/>ultimul rând accesibil"]
+```
+
+<details>
+<summary><strong>Legendă — prezentare adaptivă, model auditabil identic</strong></summary>
+
+- Etichetele provin din antetul publicat, prin scriptul comun Extent/fallback;
+  nu sunt deduse din valorile de test și nu repetă evaluarea aserțiunilor.
+- Panourile înguste reduc indentarea rendererului; în fallback, lista și
+  conținutul se așază vertical când containerul nu permite două coloane.
+- Preview-ul aserțiunilor rămâne redactat înaintea plafonului de 240 de caractere;
+  rearanjarea CSS nu modifică textul sau verdictul.
+- `NarrowEvidenceReadabilityComponentTest` verifică lățimi standard, 591 și
+  392 px, plus panouri de 591/392 px într-un viewport desktop. Verifică
+  lățimea utilă, fontul, etichetele, rândul final și redeschiderea cu tastatura,
+  alături de proiecția negativă și backlink-ul Fails → Tests.
 
 </details>

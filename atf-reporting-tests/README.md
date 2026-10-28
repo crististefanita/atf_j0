@@ -484,9 +484,8 @@ plafoane, nu ținte pentru dimensiunea livrată:
 ### Verificarea randării responsive
 
 Plafonul de scroll și absența overflow-ului nu sunt suficiente pentru lizibilitate.
-Se verifică și lățimea utilă a coloanelor, textul vizibil și accesul la ultimul rând;
-compresia tabelelor imbricate în panouri înguste rămâne în
-[feedback-ul de randare](../docs/feedback/ATF_Reporting_Feedback.md#report-narrow-readability-01--tabele-imbricate-la-lățime-mică).
+Se verifică și lățimea utilă a coloanelor, textul vizibil și accesul la ultimul rând,
+conform [contractului adaptiv](../atf-reporting/README.md#lizibilitatea-dovezilor-în-panouri-înguste).
 
 `SelectedApiTestsReportUiTest` este entry-point-ul configurabil pentru raportul
 Extent generat. `CategoryCardinalityBrowserFixtureTest` este poarta dinamică de
@@ -828,3 +827,18 @@ aparțin `atf-ui`; primitivele fără UI/Reporting aparțin Kit-ului existent.
 - `ReportingTimestampComponentTest` verifică formatul 24h și conservarea
   instantelor la ownerul componentelor Reporting; nu extinde excepția finită
   a testelor de independență din modulul standalone.
+
+### Probe de lizibilitate a panoului
+
+`NarrowEvidenceReadabilityComponentTest` folosește porturile publice Reporting
+și fixture-uri neutre Extent/fallback. Matricea include viewport 1280/591/392 px
+și panouri 591/392 px într-o fereastră desktop; măsoară și lățimea utilă a
+celulelor, nu numai absența overflow-ului. Valorile descriptive au pragul de
+120 px, cheile 80 px și statusul/timpul 36 px în prezentarea pe coloane;
+prezentarea verticală cere celule de minimum 120 px și etichete din antet.
+
+Fixture-ul negativ publică UI/API frați, comparația independentă eșuată și
+`Failure evidence` real, prin `UiExtentReportSession`. Testul verifică datele,
+ultimul rând, Enter/Space și redeschiderea părintelui după Fails → Tests;
+nu reconstruiește un raport prin clonarea rândurilor DOM. Politica comună de
+înălțime și bugetele asset-urilor rămân gate-uri independente.

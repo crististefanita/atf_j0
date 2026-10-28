@@ -37,7 +37,11 @@ public final class TableViewportProbe {
               if (last && (!last.getClientRects().length || last.getBoundingClientRect().bottom > r.bottom + 2))
                 messages.push('last row clipped');
               const header = table.tHead?.rows[0]?.cells[0];
-              if (long && header && (getComputedStyle(header).position !== 'sticky'
+              const stacked=getComputedStyle(table).getPropertyValue('--atf-table-stacked').trim()==='1';
+              if(stacked && Array.from(table.tBodies).some(b=>Array.from(b.rows).some(row=>
+                  Array.from(row.cells).some(c=>!c.getAttribute('data-atf-column-label')
+                    ||getComputedStyle(c,'::before').content==='none')))) messages.push('missing stacked cell heading');
+              if (long && !stacked && header && (getComputedStyle(header).position !== 'sticky'
                   || Math.abs(header.getBoundingClientRect().top - r.top) > 3)) messages.push('header not sticky');
               const result = {family:table.className, cap, height:p.clientHeight,
                 scrollHeight:p.scrollHeight, long, messages};

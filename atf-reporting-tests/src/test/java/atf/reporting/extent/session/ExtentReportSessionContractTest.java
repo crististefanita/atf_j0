@@ -401,9 +401,10 @@ class ExtentReportSessionContractTest {
                  () -> assertTrue(html.contains("function failedUiEvidence(card)")
                                  && html.contains("function failureTransportEvidence(card,state)"),
                          "the failure projection must detect concrete UI evidence separately from transport failures"),
-                 () -> assertTrue(html.contains("ctx.ui?ctx.step:ctx.request"),
+                 () -> assertTrue(html.contains("stepEvidence=ctx.ui||ctx.evidenceOwner==='component'")
+                                 && html.contains("stepEvidence?ctx.step:ctx.request"),
                          "the Fails index must use STEP for UI failures and REQUEST for API failures"),
-                 () -> assertTrue(html.contains("(ctx.ui?'':'<div class=\"atf-failure-index-row\"><span class=\"atf-failure-label\">DURATION"),
+                 () -> assertTrue(html.contains("(stepEvidence?'':'<div class=\"atf-failure-index-row\"><span class=\"atf-failure-label\">DURATION"),
                          "response duration is an API-only failure field; UI failures must not receive a transport placeholder"),
                  () -> assertTrue(html.contains("if(!context.ui&&requests.length)"),
                          "phase scoping must keep transport fields out of UI failure diagnostics"),
@@ -549,4 +550,3 @@ class ExtentReportSessionContractTest {
         return value.replaceAll("\\s+", "");
     }
 }
-

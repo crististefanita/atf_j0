@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -77,5 +78,40 @@ class AtfJavaSourceReferencesTest {
                 "a translated backslash must not recursively start another escape");
         assertThrows(IllegalArgumentException.class,
                 () -> AtfJavaSourceReferences.containsNamespace("class Bad { " + "\\" + "u12GG }", "atf.ui"));
+    }
+    @Test
+    void annotationArgumentsKeepRealLiteralsAndIgnoreCommentedSelectors() {
+        String source = """
+                /* @SelectPackages("commented.before") */
+                @SelectPackages({
+                    // "commented.line",
+                    "active.one", /* "commented.block" */ "active.two"
+                })
+                class Owner { @SelectPackages("nested") class Child {} }
+                """;
+        String arguments = AtfJavaSourceReferences.annotationArguments(source, "SelectPackages").orElseThrow();
+        assertTrue(arguments.contains("\"active.one\""));
+        assertTrue(arguments.contains("\"active.two\""));
+        assertFalse(arguments.contains("commented"));
+        assertFalse(arguments.contains("nested"));
+    }
+
+    @Test
+    void annotationLookupIgnoresLiteralExamplesAndBalancesRealParentheses() {
+        String source = "String example = \"@SelectPackages(\\\"fake\\\")\";\n"
+                + "@org.junit.platform.suite.api.SelectPackages(\"active)literal\") class Owner {}";
+        assertEquals("\"active)literal\"", AtfJavaSourceReferences.annotationArguments(source, "SelectPackages").orElseThrow());
+        assertTrue(AtfJavaSourceReferences.annotationArguments("class Owner { @SelectPackages(\"nested\") class Child {} }",
+                "SelectPackages").isEmpty());
+        assertThrows(IllegalArgumentException.class,
+                () -> AtfJavaSourceReferences.annotationArguments("@SelectPackages(\"open\"", "SelectPackages"));
+    }
+
+    @Test
+    void unicodeCommentDelimitersCannotBecomeActiveAnnotationArguments() {
+        String slash = "\\" + "u002f", star = "\\" + "u002a";
+        String source = slash + star + " @SelectPackages(\"fake\") " + star + slash
+                + " @SelectPackages(\"real\") class Owner {}";
+        assertEquals("\"real\"", AtfJavaSourceReferences.annotationArguments(source, "SelectPackages").orElseThrow());
     }
 }

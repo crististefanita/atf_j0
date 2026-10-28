@@ -23,7 +23,6 @@ public final class ShopPurchaseFlow {
     private final ShopPageValidator pageValidator;
     private final ShopHomeScreenValidator homeScreenValidator;
     private final ShopPurchaseScreenValidator purchaseScreenValidator;
-    private final ShopCatalogPurchaseStage catalogStage = new ShopCatalogPurchaseStage();
 
     public ShopPurchaseFlow(ShopLocators locators) {
         this.locators = Objects.requireNonNull(locators, "locators");
@@ -71,7 +70,7 @@ public final class ShopPurchaseFlow {
         var context = new ShopPurchaseJourneyContext(page, actions, configuration,
                 checkpointPublisher, apiNetwork, locators, pageValidator,
                 homeScreenValidator, purchaseScreenValidator);
-        catalogStage.prepareCart(context.catalogInputs());
+        new ShopCatalogPurchaseStage(context.catalogInputs()).prepareCart();
         return new ShopCheckoutFlow().complete(new ShopCheckoutPurchaseStage(context.checkoutInputs()),
                 checkpointPublisher::report, authenticated);
     }

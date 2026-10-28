@@ -78,6 +78,9 @@ acceptat în loc să reproducă bucla de ancestor-walk în fiecare test.
   textul documentar nu poate declara sau exclude o clasă executabilă.
 - Guard-urile de arhitectură îl refolosesc; [probele controlate](src/test/java/atf/core/files/AtfJavaSourceReferencesTest.java)
   acoperă importuri, nume calificate și prefixe asemănătoare.
+- `AtfJavaSourceReferences.annotationArguments(...)` citește adnotarea reală a
+  ownerului, păstrând literalii argumentelor și ignorând comentariile, exemplele
+  string/text block și declarațiile nested; escape-urile Unicode sunt traduse înaintea analizei.
 
 ## Ciclu de viață generic și reutilizabil
 

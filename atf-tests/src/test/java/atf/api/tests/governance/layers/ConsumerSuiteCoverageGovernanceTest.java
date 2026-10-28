@@ -2,6 +2,7 @@ package atf.api.tests.governance.layers;
 
 import atf.testkit.AtfIntegrationTest;
 import atf.api.tests.governance.AtfGovernanceTestSupport;
+import atf.core.files.AtfJavaSourceReferences;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -116,15 +117,62 @@ public class ConsumerSuiteCoverageGovernanceTest {
         return result;
     }
 
+    @Test
+    void commentedPackagesCannotSatisfyCoverageOrInventFilters() {
+        var parsed = selection("ComponentSuite", """
+                // @ExcludeTags("fast")
+                /* @SelectPackages("fixture.omitted") */
+                @SelectPackages({
+                    // "fixture.omitted",
+                    "fixture.active"
+                })
+                class ComponentSuite { }
+                """);
+        assertTrue(parsed.selects("fixture.active.CaseTest"));
+        assertTrue(!parsed.selects("fixture.omitted.CaseTest"));
+        assertTrue(!violations(List.of(new TestSource("fixture.omitted.CaseTest", "@AtfComponentTest")),
+                List.of(parsed)).isEmpty());
+    }
+
+    @Test
+    void onlyTheOwnerSelectorAndRealImportsParticipate() {
+        var parsed = selection("ComponentSuite", """
+                /* import wrong.PurchaseTest; */
+                import fixture.real.PurchaseTest;
+                @SelectClasses(PurchaseTest.class)
+                class ComponentSuite {
+                    String example = "@SelectPackages(\\"fixture.fake\\")";
+                    @SelectPackages("fixture.nested") class Child { }
+                }
+                """);
+        assertTrue(parsed.selects("fixture.real.PurchaseTest"));
+        assertTrue(!parsed.selects("wrong.PurchaseTest"));
+        assertTrue(!parsed.selects("fixture.nested.CaseTest"));
+    }
+
+    @Test
+    void componentSuitesDeclareSharedReportingScopeExplicitly() throws Exception {
+        Path root = AtfGovernanceTestSupport.locateProjectRoot();
+        for (String relative : List.of(
+                "atf-test-auto-ex/src/test/java/atf/autoex/tests/suites/AutoExComponentSuite.java",
+                "atf-test-practice-shop/src/test/atf/shop/tests/suites/ShopComponentSuite.java")) {
+            String configured = AtfJavaSourceReferences.annotationArguments(
+                    Files.readString(root.resolve(relative)), "ConfigurationParameter").orElseThrow();
+            assertTrue(configured.contains("TestRunScope.CONFIGURATION_PARAMETER") && configured.contains("\"suite\""),
+                    "Component suite requires an explicit shared report owner: " + relative);
+        }
+    }
+
     private static Selection selection(String name, String source) {
-        if (source.contains("@Exclude") || source.contains("@IncludeTags")
-                || source.contains("@IncludeClassNamePatterns")) {
+        if (List.of("ExcludeTags", "ExcludePackages", "ExcludeClassNamePatterns", "ExcludeEngines",
+                        "IncludeTags", "IncludeClassNamePatterns", "IncludeEngines").stream()
+                .anyMatch(annotation -> AtfJavaSourceReferences.annotationArguments(source, annotation).isPresent())) {
             throw new IllegalArgumentException("Primary gates must be complete, unfiltered selections: " + name);
         }
         var packages = SELECTED_PACKAGE.matcher(arguments(source, "SelectPackages")).results()
                 .map(match -> match.group(1)).toList();
         var imports = new java.util.HashMap<String, String>();
-        IMPORT.matcher(source).results().forEach(match -> {
+        IMPORT.matcher(AtfJavaSourceReferences.codeOnly(source)).results().forEach(match -> {
             String full = match.group(1);
             imports.put(full.substring(full.lastIndexOf('.') + 1), full);
         });
@@ -139,12 +187,11 @@ public class ConsumerSuiteCoverageGovernanceTest {
     }
 
     private static String arguments(String source, String annotation) {
-        var matcher = Pattern.compile("@" + annotation + "\\s*\\(([^)]*)\\)", Pattern.DOTALL).matcher(source);
-        return matcher.find() ? matcher.group(1) : "";
+        return AtfJavaSourceReferences.annotationArguments(source, annotation).orElse("");
     }
 
     private static String packageName(String source) {
-        var matcher = PACKAGE.matcher(source);
+        var matcher = PACKAGE.matcher(AtfJavaSourceReferences.codeOnly(source));
         return matcher.find() ? matcher.group(1) : "";
     }
 

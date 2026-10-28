@@ -2,10 +2,31 @@
   if (window.__atfTableViewportBound) return;
   window.__atfTableViewportBound = true;
   var surfaces = '${SCROLL_SURFACES}';
+  function prepare(viewport) {
+    if (!viewport.hasAttribute('tabindex')) viewport.tabIndex = 0;
+    var table = Array.from(viewport.children).find(e => e.tagName === 'TABLE');
+    if (!table || !table.tHead || !table.tHead.rows.length) return;
+    var labels = Array.from(table.tHead.rows[0].cells, c => c.textContent.trim());
+    Array.from(table.tBodies).forEach(body => Array.from(body.rows).forEach(row => {
+      if (row.cells.length !== labels.length) return;
+      Array.from(row.cells).forEach((cell, index) => {
+        if (cell.getAttribute('data-atf-column-label') !== labels[index])
+          cell.setAttribute('data-atf-column-label', labels[index]);
+      });
+    }));
+  }
   function makeFocusable() {
-    document.querySelectorAll(surfaces).forEach(function (viewport) {
-      if (!viewport.hasAttribute('tabindex')) viewport.tabIndex = 0;
-    });
+    document.querySelectorAll(surfaces).forEach(prepare);
+    new MutationObserver(records => {
+      var changed = new Set();
+      records.forEach(record => record.addedNodes.forEach(node => {
+        if (node.nodeType !== 1) return;
+        var owner = node.closest(surfaces);
+        if (owner) changed.add(owner);
+        node.querySelectorAll(surfaces).forEach(v => changed.add(v));
+      }));
+      changed.forEach(prepare);
+    }).observe(document.body, { childList: true, subtree: true });
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', makeFocusable, { once: true });

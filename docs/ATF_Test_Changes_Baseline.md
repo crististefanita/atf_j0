@@ -1924,6 +1924,20 @@ testChanges:
       - atf-test-auto-ex/src/test/java/atf/autoex/tests/e2e/AutoExPurchaseUiE2eTest.java
       - atf-test-auto-ex/src/test/java/atf/autoex/tests/e2e/AutoExPurchaseUiFinalScreenshotE2eTest.java
       - atf-test-auto-ex/src/test/java/atf/autoex/tests/extension/AutoExE2eTest.java
+  - id: REPORT-PATH-WIRING-05
+    status: VERIFIED
+    base: 3219ef1ff546369d00a006cfc7434644251c6f9a
+    expires: 2026-11-26
+    reason: Păstrează oracolele existente; explicitează override-ul direct și păstrează conflictul meta fără override. Adaugă probe pe adaptoarele reale pentru publicare finală, lifecycle dinamic și owneri comuni, fără relaxarea inventarului ori activarea raportării unit. Observarea sincronă a stdout aparține Console, cu restaurare inclusiv la excepție.
+    proof: mvn -pl atf-test-kit,atf-console,atf-test-auto-ex,atf-test-practice-shop,atf-reporting-tests,atf-tests -am "-Dtest=AtfReportPathPolicyResolverTest,AtfReportPathOptInTest,AtfConsoleReporterTest,AtfConsoleTestExtensionIntegrationTest,AtfReportPathLifecycleIntegrationTest,AtfConsoleOutputCaptureTest,AutoExReportPathComponentTest,AutoExE2eReportPathComponentTest,ShopReportPathComponentTest,ExtentReportSessionLifecycleTest,ComponentAssertionStepReportTest,AssertionAuditPublicationComponentTest,AutoExApiReportScopeComponentTest,ShopE2eTestSupportTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=3219ef1ff546369d00a006cfc7434644251c6f9a" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-kit/src/test/java/atf/testkit/reporting/AtfReportPathPolicyResolverTest.java
+      - atf-console/src/test/java/atf/console/junit/AtfReportPathLifecycleIntegrationTest.java
+      - atf-console/src/test/java/atf/console/capture/AtfConsoleOutputCaptureTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/extension/AutoExExtentTestExtension.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/extension/AutoExRunFactory.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/reporting/AutoExReportPathComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/reporting/AutoExE2eReportPathComponentTest.java
 ```
 
 </details>

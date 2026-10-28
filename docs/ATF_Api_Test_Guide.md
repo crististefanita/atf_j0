@@ -134,13 +134,35 @@ api:
   baseUri: https://<real-api-host>/<base-path>
 ```
 
-Rularea live este permisă numai când sunt declarate explicit toate condițiile:
+Transportul live cere mod și opt-in explicite la composition root, plus un
+endpoint validat de `ApiLiveTransportCatalog`. Configurația generică poate citi
+`atf.api.live.optIn` sau `ATF_API_LIVE_OPT_IN`; gate-urile consumerilor au politici proprii.
 
-- opt-in prin `-Datf.api.live.optIn=true` sau `ATF_API_LIVE_OPT_IN=true`;
-- endpoint selectat prin `ApiLiveTransportCatalog`;
+| Lansare | Gate curent | Owner |
+|---|---|---|
+| Catalog generic configurat | profil `live` și opt-in de transport | `atf-core` |
+| API AutoEx | opt-in-uri independente `atf.autoex.api.readonly.live.enabled` și `atf.autoex.api.live.enabled` | [AutoEx](../atf-test-auto-ex/README.md#api-direct-și-limita-evidence-ului-uiapi) |
+| API autentificat Shop | profil autentificat permis, fixture valid și mod API `LIVE` | [Shop](../atf-test-practice-shop/README.md#de-ce-raportul-api-nu-arată-ca-raportul-ui) |
+
+În toate cazurile se păstrează:
+
 - replay cURL generat după execuție, cu token-uri și headere sensibile redactate;
 - fără network pentru testele care nu declară explicit profilul `live`;
 - fără placeholder acceptance și fără request în afara originii endpoint-ului selectat.
+
+## Ownership-ul raportului
+
+Suita nu garantează singură raport comun: adaptorul trebuie să dețină explicit
+sesiunea și finalizarea. AutoEx declară scope `suite` pentru API și păstrează
+scope `class` la lansare individuală; Shop are o singură clasă în suita API live.
+
+- Auditul Shop se deschide înaintea clientului și credentialelor și se publică
+  după cleanup, inclusiv pe ieșiri de eșec. Lipsa răspunsului nu inventează status sau body HTTP.
+- Un HTTP respins păstrează request-ul, răspunsul disponibil și comparațiile FAIL;
+  o clasă reușită nu acoperă eșecul clasei-surori din artifactul comun.
+- Componentele fără trafic publică verificări prin adaptorul de componentă,
+  fără request-uri sintetice; contractul este în
+  [ghidul de testare](ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
 
 ## Cleanup și failure
 

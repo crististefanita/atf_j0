@@ -2,6 +2,7 @@ package atf.core.files;
 
 import java.util.Objects;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 /** Java namespace references in code; documentation and literal examples are not dependencies. */
@@ -25,7 +26,29 @@ public final class AtfJavaSourceReferences {
 
     /** Lexical code for source guards, with Java Unicode translation before comment/literal removal. */
     public static String codeOnly(String source) {
-        return scanCode(translateUnicodeEscapes(Objects.requireNonNull(source, "source")));
+        return scanCode(translateUnicodeEscapes(Objects.requireNonNull(source, "source")), false);
+    }
+
+    /** Reads a real owner annotation, retaining argument literals but excluding comments and literal examples. */
+    public static Optional<String> annotationArguments(String source, String annotation) {
+        if (annotation == null || !annotation.matches("[\\p{javaJavaIdentifierStart}][\\p{javaJavaIdentifierPart}]*")) {
+            throw new IllegalArgumentException("A simple annotation name is required");
+        }
+        String translated = translateUnicodeEscapes(Objects.requireNonNull(source, "source"));
+        String code = scanCode(translated, false);
+        var owner = Pattern.compile("\\b(?:class|interface|enum|record)\\s+[\\p{javaJavaIdentifierStart}]").matcher(code);
+        int limit = owner.find() ? owner.start() : code.length();
+        var match = Pattern.compile("@(?:[\\w$]+\\.)*" + Pattern.quote(annotation) + "\\s*\\(")
+                .matcher(code).region(0, limit);
+        if (!match.find()) return Optional.empty();
+        int start = match.end(), depth = 1;
+        for (int cursor = start; cursor < limit; cursor++) {
+            if (code.charAt(cursor) == '(') depth++;
+            if (code.charAt(cursor) == ')' && --depth == 0) {
+                return Optional.of(scanCode(translated, true).substring(start, cursor));
+            }
+        }
+        throw new IllegalArgumentException("Unclosed @" + annotation + " arguments");
     }
 
     /** Java translates Unicode escapes before recognizing comments and literals. */
@@ -71,29 +94,38 @@ public final class AtfJavaSourceReferences {
         return -1;
     }
 
-    private static String scanCode(String source) {
+    private static String scanCode(String source, boolean retainLiterals) {
         StringBuilder code = new StringBuilder(source.length());
         for (int cursor = 0; cursor < source.length();) {
             char current = source.charAt(cursor);
+            int start = cursor;
             if (source.startsWith("//", cursor)) {
                 cursor += 2;
                 while (cursor < source.length() && source.charAt(cursor) != '\n'
                         && source.charAt(cursor) != '\r') cursor++;
-                code.append(' ');
+                mask(code, source, start, cursor);
             } else if (source.startsWith("/*", cursor)) {
                 int end = source.indexOf("*/", cursor + 2);
                 cursor = end < 0 ? source.length() : end + 2;
-                code.append(' ');
+                mask(code, source, start, cursor);
             } else if (current == '"' || current == '\'') {
                 boolean textBlock = source.startsWith("\"\"\"", cursor);
                 cursor = skipLiteral(source, cursor + (textBlock ? 3 : 1), current, textBlock);
-                code.append(' ');
+                if (retainLiterals) code.append(source, start, cursor);
+                else mask(code, source, start, cursor);
             } else {
                 code.append(current);
                 cursor++;
             }
         }
         return code.toString();
+    }
+
+    private static void mask(StringBuilder target, String source, int start, int end) {
+        for (int index = start; index < end; index++) {
+            char value = source.charAt(index);
+            target.append(value == '\n' || value == '\r' ? value : ' ');
+        }
     }
 
     private static int skipLiteral(String source, int cursor, char quote, boolean textBlock) {

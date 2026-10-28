@@ -179,6 +179,11 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
         actions.waitForText(page(), locator(selector), expectedText, expected);
     }
 
+    public void waitForVisible(String selector) {
+        prepareUiInteraction();
+        actions.waitForVisible(locator(selector));
+    }
+
     public String textFirst(String selector, String expected) {
         prepareUiInteraction();
         return actions.getText(new AtfLocator(page().locator(selector).first(), selector + " (first match)"), expected);

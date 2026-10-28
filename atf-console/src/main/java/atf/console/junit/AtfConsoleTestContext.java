@@ -38,8 +38,7 @@ public final class AtfConsoleTestContext {
     }
 
     private static void executeDynamic(Class<?> owner, String name, Executable body) throws Throwable {
-        var settings = AtfConsoleTestExtension.effectiveSettings(owner);
-        var lifecycle = AtfConsoleTestLifecycle.configured(owner.getSimpleName(), name, settings);
+        var lifecycle = AtfConsoleTestExtension.lifecycle(owner, owner.getSimpleName(), name);
         lifecycle.start();
         install(lifecycle);
         try {

@@ -9,7 +9,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** Component marker that publishes one configured Extent artifact per test method. */
+/** Audits each invocation into one report per class, or per explicitly scoped suite. */
 @AtfComponentTest
 @ExtendWith(ShopExtentTestExtension.class)
 @Target(ElementType.TYPE)

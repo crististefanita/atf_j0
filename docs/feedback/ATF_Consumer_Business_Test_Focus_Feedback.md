@@ -10,8 +10,16 @@ fazele lifecycle și rezultatul PASS/FAIL/SKIP sunt contracte ale
 - Adaptoarele AutoEx/Shop compun protocolul comun, fără dependențe Kit către renderer.
 - Runtime-ul API Shop, auditul deschis înaintea execuției și scope-ul coșului sunt în
   [main la Shop](../../atf-test-practice-shop/README.md#de-ce-raportul-api-nu-arată-ca-raportul-ui).
-- Scope-ul raportului API AutoEx și recuperarea cleanup-ului sunt la
-  [ownerul AutoEx](../../atf-test-auto-ex/README.md#de-ce-raportul-api-nu-arată-ca-raportul-ui).
+- [Scope-ul raportului API AutoEx](../../atf-test-auto-ex/README.md#de-ce-raportul-api-nu-arată-ca-raportul-ui)
+  și [recuperarea cleanup-ului](../../atf-test-auto-ex/README.md#contul-creat-și-cleanup-ul-sub-vignette)
+  sunt contracte livrate la ownerul AutoEx.
+- Etapele purchase și gate-urile catalogului aparțin contractelor [AutoEx](../../atf-test-auto-ex/README.md#etapele-purchase-și-adaptorul-ui) și [Shop](../../atf-test-practice-shop/README.md#gate-urile-catalogului).
+- Sincronizarea checkout-ului AutoEx și propunerea YAML/adnotare sunt în
+  [feedback-ul recuperării UI](ATF_UI_Backend_Guided_Recovery_Feedback.md);
+  extragerea etapelor nu închide acea lacună și nu autorizează retry de mutații.
+- Raportul comun class/suite și auditul izolat al componentelor sunt la
+  [Reporting](../../atf-reporting/README.md#sesiunea-comună-a-componentelor);
+  [controlul Git](ATF_Component_Report_Scope_Feedback.md#controlul-incrementului) rămâne separat.
 - Aici rămân extinderile arhitecturale și cazurile încă nedemonstrate; controalele
   Git se păstrează independent de închiderea unui gap funcțional.
 
@@ -22,39 +30,10 @@ documentară /10. Nu reprezintă o notă a codului sau un rezultat de test.
 
 | ID | Scor /100 | Diferența rămasă |
 |---|---:|---|
-| `CONSUMER-FLOW-LAYERS-09` | 88 = 36 + 24 + 20 + 8 | separarea business/UI/validare în journey-urile și etapele rămase |
 | `CONSUMER-RUNTIME-BOUNDARY-03` | 77 = 31 + 18 + 20 + 8 | achiziție, publicare și lifecycle E2E rămase în contextul Shop |
 | `CONSUMER-SHOP-BILLING-STATE-01` | 71 = 29 + 22 + 14 + 6 | diferență de valoare billing între suită și lansare individuală |
 | `CONSUMER-COMPONENT-ASSERTIONS-01` | 63 = 25 + 18 + 16 + 4 | evaluator neutru reutilizabil în Validation, după corectarea boundary-urilor existente |
 | `CONSUMER-E2E-PROFILES-01` | 57 = 24 + 10 + 17 + 6 | reducerea repetării live numai după echivalență demonstrată |
-
-## CONSUMER-FLOW-LAYERS-09 — business, traseu UI și validare separate
-
-**Owner:** main la consumer pentru business și modele; UI, Validation și
-Reporting pentru capabilitățile lor. Testele păstrează oracolul, fixture-ul și adaptorul JUnit.
-
-**Dovadă statică:** [`AutoExPurchaseJourney`](../../atf-test-auto-ex/src/main/java/atf/autoex/support/journey/AutoExPurchaseJourney.java)
-primește încă `AutoExPurchaseSession`, citește configurația globală, creează page objects
-și construiește unele aserțiuni inline. Extracția cart flow nu închide restul journey-ului.
-
-| Zonă rămasă | Increment urmărit | Dovada necesară |
-|---|---|---|
-| Purchase AutoEx | intrări tipizate pe etapă și porturi restrânse pentru operațiile necesare | aceeași ordine business și aceleași valori independente |
-| Etape Shop din afara checkout-ului extras | separați observația UI de evaluare și publicare | FAIL publicat înaintea opririi tranziției |
-| Evidence și cleanup la granița flow-ului | păstrați identitatea checkpoint-ului și cauza primară | failure-path fără acțiunea următoare sau retry ascuns |
-
-Contractele deja livrate și probele lor aparțin
-[AutoEx](../../atf-test-auto-ex/README.md#boundary-ul-cauzal-pentru-ui_api) și
-[Shop](../../atf-test-practice-shop/README.md#gate-uri-de-checkout), nu unui istoric de increment în feedback.
-
-- [ ] **09-G — porturi pentru flow-urile rămase.** Inventariați operațiile fiecărei
-      etape înaintea extracției; folosiți compoziție și snapshot-uri imutabile,
-      fără o interfață per click sau un `execute()` care ascunde întreaga poveste.
-- [ ] **09-H — probe înaintea migrării generale.** Extindeți cazurile cu heading/valoare
-      absentă, timeout și eșec de publicare; păstrați UI/API frați, fereastra cauzală,
-      verdictul business anterior și ordinea erorilor secundare.
-- [ ] Păstrați așteptările independente de observații și suitele existente;
-      guard-ul business nu primește excepții pentru browser, JUnit ori Reporting.
 
 ## CONSUMER-RUNTIME-BOUNDARY-03 — responsabilitățile E2E rămase în Shop
 
@@ -136,14 +115,31 @@ Aceasta dovedește reutilizarea codului, nu echivalența rezultatului live sau a
 
 Incrementul se închide conform [ghidului de testare](../ATF_Testing_Guide.md#inventarul-executabil-după-mutări-și-reclasificare)
 și [protocolului de staging](../ATF_Build_And_Execution_Safety.md#regula-de-lucru-pentru-orice-schimbare).
-Controlul Git de mai jos protejează testele modificate; nu certifică migrarea
-flow-urilor rămase.
+Controlul Git de mai jos protejează testele modificate; nu certifică echivalența
+tuturor profilelor remote sau extracția runtime-ului E2E Shop.
 
 <details>
 <summary><strong>Controale tehnice ale incrementelor</strong></summary>
 
 ```yaml
 testChanges:
+  - id: CONSUMER-CHECKOUT-READINESS-06
+    status: ACTIVE
+    base: 3219ef1ff546369d00a006cfc7434644251c6f9a
+    expires: 2026-11-26
+    reason: Adaugă probe browser locale pentru checkout întârziat, absent și ambiguu, după failure live matched 0 cu butonul prezent în captura ulterioară; păstrează clickul unic, comparațiile business și lipsa replay-ului mutațiilor.
+    proof: mvn -pl atf-test-auto-ex,atf-tests -am "-Dtest=AutoExCheckoutReadinessComponentTest,AutoExCartDomComponentTest,AutoExPurchaseUiAdapterComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=3219ef1ff546369d00a006cfc7434644251c6f9a" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/purchase/AutoExCheckoutReadinessComponentTest.java
+  - id: CONSUMER-PURCHASE-STAGES-05
+    status: ACTIVE
+    base: 3219ef1ff546369d00a006cfc7434644251c6f9a
+    expires: 2026-11-26
+    reason: Adaugă probe auditate ale gate-urilor purchase AutoEx și catalog Shop; păstrează oracolele și selecțiile existente, identitatea erorilor și oprirea înaintea următoarei mutații.
+    proof: mvn -pl atf-test-auto-ex,atf-test-practice-shop,atf-tests -am "-Dtest=AutoExPurchaseFlowComponentTest,AutoExPurchaseUiAdapterComponentTest,AutoExCartFlowComponentTest,AutoExPurchaseBusinessComponentTest,ShopCatalogPurchaseFlowComponentTest,ShopCheckoutFlowComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=3219ef1ff546369d00a006cfc7434644251c6f9a" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/purchase/AutoExPurchaseUiAdapterComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/purchase/AutoExPurchaseFlowComponentTest.java
   - id: CONSUMER-AUDIT-SURGICAL-04
     status: ACTIVE
     base: 0a20e7c38f19ef02334e44419a2974d5fd01e398

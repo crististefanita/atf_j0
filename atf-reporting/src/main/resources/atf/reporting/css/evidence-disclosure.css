@@ -53,100 +53,33 @@
 .atf-ui-observations[open] > :not(summary) {
   display: block !important;
 }
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  .card-body
-  > .table
-  > tbody
-  > tr.event-row:has(details.request-evidence),
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  .card-body
-  > .table
-  > tbody
-  > tr.event-row:has(details.response-evidence),
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  .card-body
-  > .table
-  > tbody
-  > tr.event-row:has(details.execution-evidence),
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  .card-body
-  > .table
-  > tbody
-  > tr.event-row:has(details.json-evidence),
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  .card-body
-  > .table
-  > tbody
-  > tr.event-row:has(details.assertion-evidence) {
+.test-view .test-content-detail .card[data-atf-node-role='request']
+  .card-body > .table > tbody > tr.event-row:has(details:is(
+    .request-evidence, .response-evidence, .execution-evidence, .json-evidence, .assertion-evidence)) {
   border-top: 0 !important;
   border-bottom: 0 !important;
   padding: 0 !important;
   margin: 0 !important;
   height: auto !important;
 }
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  .card-body
+.test-view .test-content-detail .card[data-atf-node-role='request'] .card-body
   > .table
   > tbody
   > tr.event-row:has(details.step-detail)
   > td {
   border: 0 !important;
-  border-top: 0 !important;
-  border-bottom: 0 !important;
   padding: 0 !important;
   margin: 0 !important;
 }
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  .card-body
-  > .table
-  > tbody
-  > tr.event-row:has(details.step-detail)
-  ~ tr.event-row:has(details.step-detail)
-  > td {
-  border-top: 0 !important;
-}
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  .card-body
+
+.test-view .test-content-detail .card[data-atf-node-role='request'] .card-body
   > .table {
   border-collapse: separate !important;
   border-spacing: 0 !important;
 }
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  details.step-detail.request-evidence,
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  details.step-detail.response-evidence,
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  details.step-detail.execution-evidence,
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  details.step-detail.json-evidence,
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  details.step-detail.assertion-evidence {
+.test-view .test-content-detail .card[data-atf-node-role='request']
+  details.step-detail:is(.request-evidence, .response-evidence, .execution-evidence,
+    .json-evidence, .assertion-evidence) {
   display: block !important;
   margin: 0 !important;
   border: 0 !important;
@@ -155,157 +88,92 @@
   overflow: hidden !important;
   background: var(--atf-panel) !important;
 }
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  details.step-detail.request-evidence
-  > summary,
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  details.step-detail.response-evidence
-  > summary,
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  details.step-detail.execution-evidence
-  > summary,
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  details.step-detail.json-evidence
-  > summary,
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  details.step-detail.assertion-evidence
+.test-view .test-content-detail .card[data-atf-node-role='request']
+  details.step-detail:is(.request-evidence, .response-evidence, .execution-evidence,
+    .json-evidence, .assertion-evidence)
   > summary {
   margin: 0 !important;
   border: 0 !important;
-  border-top: 0 !important;
-  border-bottom: 0 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
 }
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  details.step-detail.request-evidence
+.test-view .test-content-detail .card[data-atf-node-role='request'] details.step-detail.request-evidence
   > summary {
   border: 1px solid var(--atf-border) !important;
   border-bottom: 0 !important;
   border-radius: 10px 10px 0 0 !important;
   background: var(--atf-panel) !important;
 }
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  details.step-detail.response-evidence
-  > summary,
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  details.step-detail.execution-evidence
-  > summary {
+.test-view .test-content-detail .card[data-atf-node-role='request']
+  details.step-detail:is(.response-evidence, .execution-evidence) > summary {
   border-left: 1px solid var(--atf-border) !important;
   border-right: 1px solid var(--atf-border) !important;
   background: var(--atf-panel) !important;
 }
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  details.step-detail.response-evidence
+.test-view .test-content-detail .card[data-atf-node-role='request'] details.step-detail.response-evidence
   > summary {
   border-top: 0 !important;
 }
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='request']
-  details.step-detail.execution-evidence
+.test-view .test-content-detail .card[data-atf-node-role='request'] details.step-detail.execution-evidence
   > summary {
   border-top: 0 !important;
   border-bottom: 0 !important;
   border-radius: 0 0 10px 10px !important;
 }
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='phase']
-  details.step-detail.setup-evidence {
-  display: block !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border: 1px solid var(--atf-border) !important;
-  border-radius: var(--atf-evidence-radius) !important;
-  box-shadow: none !important;
-  overflow: hidden !important;
-  background: var(--atf-panel) !important;
-}
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='phase']
-  details.step-detail.setup-evidence
-  > summary {
-  margin: 0 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  background: var(--atf-panel) !important;
-}
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='phase']
-  details.step-detail.setup-evidence
-  > .body {
-  margin: 0 !important;
-  padding: 0 !important;
-  border-top: 1px solid var(--atf-border) !important;
-  background: var(--atf-panel) !important;
-}
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='phase']
-  details.step-detail.setup-evidence
-  .atf-setup-evidence-table
-  tr:first-child
-  th {
-  border-top: 0 !important;
-}
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='phase']
-  details.step-detail.setup-evidence
-  .atf-setup-evidence-table
-  tr:last-child
-  td {
-  border-bottom: 0 !important;
-}
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='phase']
-  details.step-detail.setup-evidence
-  .atf-setup-evidence-table
-  th:first-child,
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='phase']
-  details.step-detail.setup-evidence
-  .atf-setup-evidence-table
-  td:first-child {
-  border-left: 0 !important;
-}
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='phase']
-  details.step-detail.setup-evidence
-  .atf-setup-evidence-table
-  th:last-child,
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='phase']
-  details.step-detail.setup-evidence
-  .atf-setup-evidence-table
-  td:last-child {
-  border-right: 0 !important;
+.test-view .test-content-detail .card[data-atf-node-role='phase'] {
+  & details.step-detail.setup-evidence {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 1px solid var(--atf-border) !important;
+    border-radius: var(--atf-evidence-radius) !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    background: var(--atf-panel) !important;
+  }
+  & details.step-detail.setup-evidence
+    > summary {
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: var(--atf-panel) !important;
+  }
+  & details.step-detail.setup-evidence
+    > .body {
+    margin: 0 !important;
+    padding: 0 !important;
+    border-top: 1px solid var(--atf-border) !important;
+    background: var(--atf-panel) !important;
+  }
+  & details.step-detail.setup-evidence
+    .atf-setup-evidence-table
+    tr:first-child
+    th {
+    border-top: 0 !important;
+  }
+  & details.step-detail.setup-evidence
+    .atf-setup-evidence-table
+    tr:last-child
+    td {
+    border-bottom: 0 !important;
+  }
+  & details.step-detail.setup-evidence
+    .atf-setup-evidence-table
+    th:first-child,
+  & details.step-detail.setup-evidence
+    .atf-setup-evidence-table
+    td:first-child {
+    border-left: 0 !important;
+  }
+  & details.step-detail.setup-evidence
+    .atf-setup-evidence-table
+    th:last-child,
+  & details.step-detail.setup-evidence
+    .atf-setup-evidence-table
+    td:last-child {
+    border-right: 0 !important;
+  }
 }
 .test-view
   .test-content-detail
@@ -319,77 +187,58 @@
   border-radius: 0 0 10px 10px !important;
   background: var(--atf-panel) !important;
 }
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='phase']
-  > .card-body
-  > .table:has(details.failure-evidence)
-  > thead {
-  display: none !important;
-}
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='phase']
-  > .card-body
-  > .table:has(details.failure-evidence)
-  > tbody
-  > tr.event-row
-  > td:nth-child(2) {
-  display: none !important;
-}
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='phase']
-  > .card-body
-  > .table:has(details.failure-evidence)
-  > tbody
-  > tr.event-row:has(details.failure-evidence)
-  > td {
-  border: 0 !important;
-  padding: 0 !important;
-  background: transparent !important;
-  vertical-align: middle !important;
-}
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='phase']
-  > .card-body
-  > .table:has(details.failure-evidence)
-  > tbody
-  > tr.event-row:has(details.failure-evidence)
-  > td:first-child {
-  width: var(--atf-evidence-status-column-width) !important;
-  min-width: var(--atf-evidence-status-column-width) !important;
-  max-width: var(--atf-evidence-status-column-width) !important;
-  padding: 8px 6px !important;
-}
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='phase']
-  details.failure-evidence {
-  display: block !important;
-  margin: 0 !important;
-  border: 1px solid var(--atf-border) !important;
-  border-radius: var(--atf-evidence-radius) !important;
-  box-shadow: none !important;
-  overflow: hidden !important;
-  background: var(--atf-panel) !important;
-}
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='phase']
-  details.failure-evidence
-  > summary {
-  border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  margin: 0 !important;
-  background: var(--atf-panel) !important;
-}
-.test-view
-  .test-content-detail
-  .card[data-atf-node-role='phase']
-  details.failure-evidence
-  .body {
-  background: var(--atf-panel) !important;
+.test-view .test-content-detail .card[data-atf-node-role='phase'] {
+  & > .card-body
+    > .table:has(details.failure-evidence)
+    > thead {
+    display: none !important;
+  }
+  & > .card-body
+    > .table:has(details.failure-evidence)
+    > tbody
+    > tr.event-row
+    > td:nth-child(2) {
+    display: none !important;
+  }
+  & > .card-body
+    > .table:has(details.failure-evidence)
+    > tbody
+    > tr.event-row:has(details.failure-evidence)
+    > td {
+    border: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    vertical-align: middle !important;
+  }
+  & > .card-body
+    > .table:has(details.failure-evidence)
+    > tbody
+    > tr.event-row:has(details.failure-evidence)
+    > td:first-child {
+    width: var(--atf-evidence-status-column-width) !important;
+    min-width: var(--atf-evidence-status-column-width) !important;
+    max-width: var(--atf-evidence-status-column-width) !important;
+    padding: 8px 6px !important;
+  }
+  & details.failure-evidence {
+    display: block !important;
+    margin: 0 !important;
+    border: 1px solid var(--atf-border) !important;
+    border-radius: var(--atf-evidence-radius) !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    background: var(--atf-panel) !important;
+  }
+  & details.failure-evidence
+    > summary {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    background: var(--atf-panel) !important;
+  }
+  & details.failure-evidence
+    .body {
+    background: var(--atf-panel) !important;
+  }
 }
