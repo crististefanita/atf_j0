@@ -68,9 +68,10 @@ class UiFallbackFailureEvidenceTest {
                 () -> assertTrue(failsTab >= 0 && html.substring(failsTab)
                                 .contains("href=\"#" + failedScenarioId + "\""),
                         "fallback Fails entry must link back to the owning scenario"),
-                () -> assertTrue(failsTab >= 0 && html.substring(failsTab)
-                                .contains("TimeoutError: Timeout 20000ms exceeded"),
-                        "fallback Fails projection must retain the concrete timeout cause"),
+                () -> assertTrue(failsTab >= 0 && html.substring(failsTab).contains("Wait for visible #1")
+                                && html.substring(failsTab).contains("login-submit")
+                                && html.substring(failsTab).contains("elapsed=20000 ms"),
+                        "fallback Fails projection must lead with captured action context; original timeout remains in diagnostics"),
                 () -> assertTrue(siblingScenario.contains("Unrelated passing sibling"),
                         "the second scenario must be independently rendered"),
                 () -> assertFalse(siblingScenario.contains("TimeoutError:"),

@@ -29,7 +29,7 @@ public final class ExtentUiEvidenceRenderer {
     ExtentUiEvidenceRenderer(ReportingSettings settings, SensitiveDataRedactor redactor,
                              ReportUiActionDetailsMode detailsMode) {
         actionRenderer = new ExtentUiActionRenderer(settings, redactor, detailsMode);
-        observationRenderer = new ExtentUiObservationRenderer(settings);
+        observationRenderer = new ExtentUiObservationRenderer(settings, redactor);
         assertionRenderer = new ExtentUiAssertionRenderer(settings, redactor);
     }
 

@@ -46,6 +46,7 @@ public final class AtfReportSemanticRecorder {
     }
 
     public final class PhaseHandle {
+        public void executionTiming(atf.reporting.model.timing.ReportPhaseTiming timing) { state.executionTiming(timing); }
         private final AtfReportSemanticState.PhaseState state;
 
         private PhaseHandle(AtfReportSemanticState.PhaseState state) {

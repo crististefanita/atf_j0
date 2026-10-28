@@ -29,7 +29,7 @@ public final class AutoExCatalogAssertions {
                 matchesSearchLocation(expectedLocation, term, observedUrl));
     }
 
-    private static boolean matchesSearchLocation(URI expectedLocation, String term, String observedUrl) {
+    public static boolean matchesSearchLocation(URI expectedLocation, String term, String observedUrl) {
         if (observedUrl == null || term.isBlank()) return false;
         try {
             URI actual = URI.create(observedUrl);

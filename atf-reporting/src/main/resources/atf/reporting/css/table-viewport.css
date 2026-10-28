@@ -18,10 +18,10 @@
   margin: 0 !important;
 }
 :is(${TABLE_VIEWPORTS}) { container: atf-evidence / inline-size; }
-.test-content-detail, #tests { container: atf-detail / inline-size; }
+.test-content-detail, [id='tests'] { container: atf-detail / inline-size; }
 @container atf-detail (max-width: 640px) {
   .layout { grid-template-columns: minmax(0, 1fr) !important; }
-  :root .test-content-detail .accordion, #tests :is(.request, .validation) {
+  :root .test-content-detail .accordion, [id='tests'] :is(.request, .validation) {
     margin-left: 2px !important;
     margin-right: 2px !important;
   }

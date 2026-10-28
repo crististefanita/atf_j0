@@ -37,7 +37,7 @@ public final class HtmlReportSession implements AtfReportPorts.Session {
     private final AtfReportSemanticRecorder semantic = new AtfReportSemanticRecorder();
     private final HtmlReportTestsView testsView;
     private final HtmlReportCategoryView categoryView = new HtmlReportCategoryView();
-    private final HtmlReportFailsView failsView = new HtmlReportFailsView();
+    private final HtmlReportFailsView failsView;
     private final HtmlReportOverviewView overviewView = new HtmlReportOverviewView();
     private final AtfConsoleSink console;
     private final HtmlReportScript navigationScript;
@@ -66,6 +66,7 @@ public final class HtmlReportSession implements AtfReportPorts.Session {
         this.reportPath = Objects.requireNonNull(reportPath, "reportPath");
         this.settings = Objects.requireNonNull(settings, "settings");
         this.testsView = new HtmlReportTestsView(settings, new SensitiveDataRedactor());
+        this.failsView = new HtmlReportFailsView(settings);
         this.console = console == null ? AtfConsoleSink.noOp() : console;
         this.navigationScript = Objects.requireNonNull(navigationScript, "navigationScript");
     }

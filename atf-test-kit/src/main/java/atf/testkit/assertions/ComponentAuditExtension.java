@@ -9,6 +9,8 @@ import org.junit.platform.commons.support.AnnotationSupport;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.LongSupplier;
+import atf.testkit.timing.InvocationTimer;
 
 /** Composable JUnit adapter; consumers supply publication without exposing report types to Kit. */
 public final class ComponentAuditExtension implements BeforeEachCallback, AfterEachCallback,
@@ -23,12 +25,19 @@ public final class ComponentAuditExtension implements BeforeEachCallback, AfterE
         Publication open(T resource, ExtensionContext context) throws Exception;
     }
     private record State(ComponentAssertionAudit audit, Publication publication) { }
+    private record ClassTimingKey(ComponentAssertionAudit.Phase phase) { }
     private final ExtensionContext.Namespace namespace;
     private final Factory factory;
+    private final LongSupplier ticks;
 
     public ComponentAuditExtension(Object owner, Factory factory) {
+        this(owner, factory, System::nanoTime);
+    }
+
+    public ComponentAuditExtension(Object owner, Factory factory, LongSupplier ticks) {
         namespace = ExtensionContext.Namespace.create(Objects.requireNonNull(owner));
         this.factory = Objects.requireNonNull(factory);
+        this.ticks = Objects.requireNonNull(ticks, "ticks");
     }
 
     /** Shares only the acquired resource; each invocation still gets an independent audit and publication. */
@@ -53,8 +62,9 @@ public final class ComponentAuditExtension implements BeforeEachCallback, AfterE
 
     private void containerFailure(ExtensionContext context, ComponentAssertionAudit.Phase phase, Throwable failure) throws Throwable {
         try (Publication publication = factory.open(context)) {
-            var audit = new ComponentAssertionAudit(publication.display());
+            var audit = new ComponentAssertionAudit(publication.display(), ticks);
             audit.start(phase);
+            classTimer(context, phase).snapshot().ifPresent(value -> audit.timing(phase, value));
             audit.failed(phase, failure);
             publication.publish(audit.finish(failure));
         } catch (Throwable secondary) {
@@ -69,7 +79,7 @@ public final class ComponentAuditExtension implements BeforeEachCallback, AfterE
     @Override public void beforeEach(ExtensionContext context) throws Exception {
         Publication publication = factory.open(context);
         try {
-            var audit = new ComponentAssertionAudit(publication.display());
+            var audit = new ComponentAssertionAudit(publication.display(), ticks);
             context.getStore(namespace).put(State.class, new State(audit, publication));
         } catch (RuntimeException | Error failure) {
             FailureAwareCleanup.closeAfterFailure(failure, publication);
@@ -126,14 +136,26 @@ public final class ComponentAuditExtension implements BeforeEachCallback, AfterE
     private void invoke(Invocation<Void> call, ReflectiveInvocationContext<Method> method,
                         ExtensionContext context, ComponentAssertionAudit.Phase phase) throws Throwable {
         var audit = state(context).audit();
-        audit.start(phase);
         try (var scope = AuditedAssertionScope.open(method.getExecutable().getDeclaringClass().getName(),
                 method.getExecutable().getName(), audit.recorder(phase))) {
-            call.proceed();
+            try (var interval = audit.measure(phase)) { call.proceed(); }
         } catch (Throwable failure) {
             audit.failed(phase, failure);
             throw failure;
         }
+    }
+
+    @Override public void interceptBeforeAllMethod(Invocation<Void> call, ReflectiveInvocationContext<Method> method,
+                                                   ExtensionContext context) throws Throwable {
+        try (var interval = classTimer(context, ComponentAssertionAudit.Phase.SETUP).start()) { call.proceed(); }
+    }
+    @Override public void interceptAfterAllMethod(Invocation<Void> call, ReflectiveInvocationContext<Method> method,
+                                                  ExtensionContext context) throws Throwable {
+        try (var interval = classTimer(context, ComponentAssertionAudit.Phase.TEARDOWN).start()) { call.proceed(); }
+    }
+    private InvocationTimer classTimer(ExtensionContext context, ComponentAssertionAudit.Phase phase) {
+        return context.getStore(namespace).getOrComputeIfAbsent(new ClassTimingKey(phase),
+                ignored -> new InvocationTimer(ticks), InvocationTimer.class);
     }
 
     private State state(ExtensionContext context) {

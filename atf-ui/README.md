@@ -202,6 +202,40 @@ flowchart LR
 
 </details>
 
+### Click unic cu postcondiție explicită
+
+`PlaywrightActionSequence.clickAndAwait` confirmă o postcondiție read-only
+aleasă de consumer, în locul așteptării implicite a navigărilor pornite de click.
+
+- Operația folosește pointerul nativ strict; nu activează prin JavaScript și nu folosește `force`.
+- Clickul și postcondiția împart bugetul capturat al acțiunii, măsurat monotonic.
+- Callback-ul folosește numai confirmări read-only. Fiecare așteptare nativă
+  primește `ObservationBudget.remainingMilliseconds()`, fără buget nou sau replay.
+- Așteptările native urmăresc înlocuirea documentului; un predicat Java care
+  interoghează DOM-ul în timpul navigării nu este folosit ca mecanism de polling.
+- Un eșec înaintea clickului păstrează eroarea nativă; după click, eroarea spune
+  că activarea s-a încheiat și postcondiția nu a fost confirmată, păstrând cauza.
+
+```mermaid
+flowchart LR
+    Budget["Un buget"] -->|așteaptă actionability| Click["Pointer strict · o activare"]
+    Click -->|buget rămas| Observe["Confirmări native read-only"]
+    Observe -->|confirmată| Pass["PASS auditabil"]
+    Observe -->|eroare sau expirare| Fail["FAIL · fără replay"]
+```
+
+<details>
+<summary><strong>Legendă — activare versus confirmarea stării</strong></summary>
+
+Compoziția este explicită și nu schimbă `click` pentru celelalte acțiuni.
+Adaptorul folosește opțiunea de navigare a driverului fixat, conform
+[contractului Playwright](https://playwright.dev/java/docs/api/class-locator#locator-click-option-no-wait-after).
+Nu interpretează loguri native ca dovadă de succes și nu acordă un al doilea
+buget complet postcondiției. `PlaywrightClickPostconditionComponentTest`
+probează un subframe necomis, postcondiția lipsă și ținte absente/ambigue.
+
+</details>
+
 ### Convenții pentru locatori UI
 
 CSS este alegerea implicită pentru contractele DOM stabile. Preferă un selector

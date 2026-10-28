@@ -6,6 +6,7 @@ import atf.reporting.markup.table.ReportTableViewport;
 import atf.reporting.markup.ExtentReportNodeSupport;
 import atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary;
 import atf.reporting.ui.model.AtfUiActionRecord;
+import atf.reporting.security.SensitiveDataRedactor;
 import com.aventstack.extentreports.ExtentTest;
 
 import java.util.List;
@@ -23,9 +24,15 @@ import static atf.reporting.evidence.ui.ExtentUiEvidenceMarkup.tableHeader;
 /** Renders only reporter observation/checkpoint evidence. */
 public final class ExtentUiObservationRenderer {
     private final ReportingSettings settings;
+    private final SensitiveDataRedactor redactor;
 
     public ExtentUiObservationRenderer(ReportingSettings settings) {
+        this(settings, new SensitiveDataRedactor());
+    }
+
+    public ExtentUiObservationRenderer(ReportingSettings settings, SensitiveDataRedactor redactor) {
         this.settings = settings;
+        this.redactor = java.util.Objects.requireNonNull(redactor, "redactor");
     }
 
     public void render(ExtentTest node, List<AtfUiActionRecord> observations) {
@@ -42,7 +49,9 @@ public final class ExtentUiObservationRenderer {
                         AtfReportHtmlVocabulary.classAttribute(
                                 AtfReportHtmlVocabulary.CssClass.ATF_UI_OBSERVATIONS),
                         AtfReportHtmlVocabulary.attribute(
-                                AtfReportHtmlVocabulary.Attribute.EVIDENCE_STATUS, statusKey(failed))))
+                                AtfReportHtmlVocabulary.Attribute.EVIDENCE_STATUS, statusKey(failed)),
+                        AtfReportHtmlVocabulary.attribute(AtfReportHtmlVocabulary.Attribute.ASSERTION_PREVIEW_LIMIT,
+                                Integer.toString(settings.assertionMaxDisplayCharacters()))))
                 .append(open(AtfReportHtmlVocabulary.Tag.SUMMARY,
                         AtfReportHtmlVocabulary.attribute(
                                 AtfReportHtmlVocabulary.Attribute.ARIA_LABEL, summary)))
@@ -57,7 +66,7 @@ public final class ExtentUiObservationRenderer {
                         AtfReportLabels.RESULT))
                 .append(open(AtfReportHtmlVocabulary.Tag.TBODY));
         for (AtfUiActionRecord observation : observations) {
-            html.append(ExtentUiEvidenceMarkup.actionRowStart()).append(escape(observation.operation()))
+            html.append(ExtentUiEvidenceMarkup.actionRowStart()).append(escape(redactor.redactText(observation.operation())))
                     .append(close(AtfReportHtmlVocabulary.Tag.SPAN))
                     .append(open(AtfReportHtmlVocabulary.Tag.SPAN,
                             AtfReportHtmlVocabulary.classAttribute(
@@ -65,13 +74,13 @@ public final class ExtentUiObservationRenderer {
                     .append("#").append(observation.sequence())
                     .append(close(AtfReportHtmlVocabulary.Tag.SPAN))
                     .append(close(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(open(AtfReportHtmlVocabulary.Tag.TD)).append(escape(observation.target()))
+                    .append(open(AtfReportHtmlVocabulary.Tag.TD)).append(escape(redactor.redactText(observation.target())))
                     .append(close(AtfReportHtmlVocabulary.Tag.TD))
                     .append(open(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(escape(ExtentReportNodeSupport.display(observation.expected(), settings)))
+                    .append(escape(ExtentReportNodeSupport.display(redactor.redactText(observation.expected()), settings)))
                     .append(close(AtfReportHtmlVocabulary.Tag.TD))
                     .append(open(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(escape(ExtentReportNodeSupport.display(observation.observed(), settings)))
+                    .append(escape(ExtentReportNodeSupport.display(redactor.redactText(observation.observed()), settings)))
                     .append(close(AtfReportHtmlVocabulary.Tag.TD))
                     .append(open(AtfReportHtmlVocabulary.Tag.TD)).append(resultSpan(observation))
                     .append(close(AtfReportHtmlVocabulary.Tag.TD))

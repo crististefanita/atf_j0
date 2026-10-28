@@ -1,128 +1,89 @@
 function directActionDuration(card) {
-  var total = 0,
-    count = 0;
-  q('.atf-ui-action-table tbody tr', card).forEach(function (row) {
-    var owner = row.closest(
-      '.card[data-atf-node-role],.card[data-atf-scenario-id]'
-    );
-    if (owner !== card) return;
-    var time = row.querySelector('.atf-ui-action-time'),
-      value = atfDurationValue(text(time, ''));
+  var result = { value: 0, present: false };
+  q('.atf-ui-action-table tbody tr', card).forEach(row => {
+    if (row.closest('.card[data-atf-node-role],.card[data-atf-scenario-id]') !== card) return;
+    var value = atfDurationValue(text(row.querySelector('.atf-ui-action-time'), ''));
     if (value !== null) {
-      total += value;
-      count++;
+      result.value += value;
+      result.present = true;
     }
   });
-  return { value: total, present: count > 0 };
+  return result;
 }
 function directTransportEvidence(card) {
-  var panel =
-    card && card.children
-      ? Array.prototype.slice.call(card.children).find(function (child) {
-          return child.classList && child.classList.contains('collapse');
-        })
-      : null;
-  return !!(
-    panel &&
-    panel.querySelector(
-      '.execution-table,.helm-trace-table,.helm-request-details-content,.helm-response-details-content'
-    )
-  );
+  var panel = Array.from(card.children).find(child => child.classList.contains('collapse'));
+  return !!(panel && panel.querySelector(
+    '.execution-table,.helm-trace-table,.helm-request-details-content,.helm-response-details-content'));
+}
+function durationAttribute(node, name, value) {
+  if (node && node.getAttribute(name) !== String(value)) node.setAttribute(name, String(value));
 }
 function setNodeDuration(card, value, source) {
   if (value === null) return;
-  var children = directStructuralChildren(card),
-    actions = directActionDuration(card),
-    container = children.length > 0 || actions.present,
-    formatted = atfFormatDuration(value),
-    badge = durationBadge(card);
-  if ((container || source === 'measured') && badge) {
-    if (text(badge, '') !== formatted) badge.textContent = formatted;
-    if (badge.getAttribute('data-duration-ms') !== String(value))
-      badge.setAttribute('data-duration-ms', String(value));
-    if (badge.getAttribute('data-duration-source') !== source)
-      badge.setAttribute('data-duration-source', source);
-  }
-  if (card.getAttribute('data-duration-ms') !== String(value))
-    card.setAttribute('data-duration-ms', String(value));
-  if (card.getAttribute('data-duration-source') !== source)
-    card.setAttribute('data-duration-source', source);
-  if (
-    badge &&
-    source === 'measured' &&
-    badge.getAttribute('data-atf-measured-duration-ms') !== String(value)
-  )
-    badge.setAttribute('data-atf-measured-duration-ms', String(value));
+  var badge = durationBadge(card), formatted = atfFormatDuration(value);
+  if (badge && text(badge, '') !== formatted) badge.textContent = formatted;
+  [card, badge].forEach(node => {
+    durationAttribute(node, 'data-duration-ms', value);
+    durationAttribute(node, 'data-duration-source', source);
+  });
+  if (source === 'measured') durationAttribute(badge, 'data-atf-measured-duration-ms', value);
 }
 function aggregateChildDurations(card) {
   var summary = { total: 0, count: 0 };
-  directStructuralChildren(card).forEach(function (child) {
+  directStructuralChildren(card).forEach(child => {
     var value = aggregateNodeDuration(child);
-    if (value !== null) {
-      summary.total += value;
-      summary.count++;
-    }
+    if (value !== null) { summary.total += value; summary.count++; }
   });
   return summary;
 }
-function durationDecision(card, children) {
-  var actions = directActionDuration(card),
-    measured = measuredNodeDuration(card),
-    value = null,
-    source = 'measured',
-    ownAction = actions.present
-      ? actions.value
-      : directTransportEvidence(card) && measured !== null
-        ? measured
-        : 0;
-  if (children.count > 0) {
-    value = Math.max(children.total, ownAction);
-    source = 'aggregated';
-  } else if (actions.present) {
-    value = actions.value;
-    source = 'aggregated';
-  } else if (measured !== null) {
-    value = measured;
+function executionTiming(card) {
+  var marker = q('[data-atf-execution-duration-ms]', card).find(item => item.closest('.card') === card);
+  var row = marker && marker.closest('tr.event-row');
+  if (row) {
+    var table = row.closest('table');
+    card.appendChild(marker);
+    row.remove();
+    if (table && !table.querySelector('tbody tr')) table.remove();
   }
-  return { value: value, source: source };
+  return marker;
+}
+function timingValue(marker, name) { return Number(marker.getAttribute('data-atf-' + name)); }
+function durationDecision(card, children) {
+  var timing = executionTiming(card), badge = durationBadge(card);
+  if (timing) {
+    var value = timingValue(timing, 'execution-duration-ms');
+    if (Number.isFinite(value) && value >= 0) {
+      durationAttribute(badge, 'title', 'Execution of ' + timingValue(timing, 'execution-intervals')
+        + ' callbacks; snapshot publication: ' + atfFormatDuration(timingValue(timing, 'publication-duration-ms')));
+      return { value: value, source: 'execution' };
+    }
+  }
+  var parent = card.parentElement.closest('.card');
+  if (card.getAttribute('data-atf-node-role') === 'assertion-step' && parent && executionTiming(parent)) {
+    durationAttribute(badge, 'title', 'Assertion snapshot publication; excluded from phase execution total');
+    return { value: measuredNodeDuration(card), source: 'publication' };
+  }
+  var actions = directActionDuration(card), measured = measuredNodeDuration(card),
+    ownAction = actions.present ? actions.value : directTransportEvidence(card) && measured !== null ? measured : 0;
+  return children.count ? { value: Math.max(children.total, ownAction), source: 'aggregated' }
+    : actions.present ? { value: actions.value, source: 'aggregated' }
+    : { value: measured, source: 'measured' };
 }
 function aggregateNodeDuration(card) {
-  var children = aggregateChildDurations(card),
-    decision = durationDecision(card, children);
+  var decision = durationDecision(card, aggregateChildDurations(card));
   setNodeDuration(card, decision.value, decision.source);
   return decision.value;
 }
 function allScenarioCards() {
-  var result = [],
-    seen = [];
-  function add(card) {
-    if (card && seen.indexOf(card) < 0) {
-      seen.push(card);
-      result.push(card);
-    }
-  }
-  classItems().forEach(function (root) {
-    directScenarioCards(root).forEach(add);
-  });
-  q(
-    '#test-view .test-content-detail .test-contents > .mt-4 > .accordion > .card'
-  ).forEach(add);
-  return result;
+  return Array.from(new Set(classItems().flatMap(root => directScenarioCards(root))
+    .concat(q('#test-view .test-content-detail .test-contents > .mt-4 > .accordion > .card'))));
 }
 function aggregateVisibleNodeDurations() {
-  q('#test-view .test-content-detail .card')
-    .filter(function (card) {
-      return card.getAttribute('data-atf-node-role') === 'phase';
-    })
-    .forEach(function (card) {
-      aggregateNodeDuration(card);
-    });
+  q('#test-view .test-content-detail .card[data-atf-node-role="phase"]').forEach(aggregateNodeDuration);
 }
 function aggregateNodeDurations() {
   testItems();
   rememberMeasuredDurations();
-  allScenarioCards().forEach(function (card) {
-    aggregateNodeDuration(card);
-  });
+  allScenarioCards().forEach(aggregateNodeDuration);
   aggregateVisibleNodeDurations();
 }

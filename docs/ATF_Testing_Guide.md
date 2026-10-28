@@ -404,9 +404,9 @@ variație de conținut.
 | `ReportEvidenceStyleContractTest` | eliminarea disclosure-urilor cu stylesheet-ul păstrat este respinsă; clasele din CSS/JS nu sunt dovadă de conținut |
 
 Aceste probe nu certifică automat toate proiecțiile sau verdictul local al
-fiecărui exchange. Matricea restantă are un singur owner în
-[feedback-ul Reporting](feedback/ATF_Reporting_Feedback.md), fără a reintroduce
-contractele deja demonstrate în backlog.
+fiecărui exchange. Matricea contractelor și probelor aparține
+[Reporting Tests](../atf-reporting-tests/README.md); lacunele active rămân în
+[registrul feedback-urilor](feedback/README.md), separat de controalele tehnice.
 
 ## Principii pentru teste scurte și plug-and-play
 

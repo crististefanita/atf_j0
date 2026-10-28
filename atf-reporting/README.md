@@ -444,6 +444,44 @@ UI checkpoint
 Verdictul este calculat de execution/validation și doar publicat de reporting.
 Rendererul nu inventează statusuri.
 
+### Contextul erorii înaintea diagnosticului tehnic
+
+`UiFailureContext` proiectează prima dovadă FAIL în ordinea `sequence`:
+tipul excepției, operația și numărul, ținta, timpul măsurat și așteptarea.
+Aceeași proiecție apare în `Failure cause`, în Observed și în Fails.
+O acțiune PASS nu devine cauza unei excepții ulterioare; lipsa unei acțiuni
+eșuate ori a excepției este explicită, iar sursa OBSERVE rămâne observație.
+
+`UiFailureEvidencePublisher` deține publicarea acestei dovezi prin porturile
+neutre Reporting; `UiEvidencePublisher` îi deleagă failure-path-ul, fără JUnit,
+browser sau reevaluarea verdictului business.
+
+```mermaid
+flowchart LR
+    Captured["Throwable + evidence"] -->|selectează| Context["contextul primei dovezi FAIL"]
+    Captured -->|păstrează| Diagnostic["diagnostice și relații"]
+    Context -->|proiectează| Boundary["redactare → plafon"]
+    Diagnostic -->|proiectează| Boundary
+    Boundary -->|publică| Views["Tests + Fails"]
+```
+
+<details>
+<summary><strong>Legendă — context, relații și limite</strong></summary>
+
+- Contextul folosește numai evidence capturat; nu parsează un stack pentru
+  a inventa dispatch, răspuns HTTP, navigare confirmată sau recuperare.
+- Diagnosticele `INFO` din Audit observations păstrează tipul și mesajul
+  excepției primare, cauzele și suppressed, cu relații numerotate. Referințele
+  comune și ciclurile sunt finite; Throwable-ul și rândurile originale rămân intacte.
+- Redactarea întregii valori precede plafonul configurat, implicit 240 inclusiv
+  elipsa, și pentru fiecare diagnostic. Expandarea nu publică text brut nelimitat.
+- Fails preferă contextul aserțiunii UI față de diagnosticul tehnic al fazei;
+  diagnosticul rămâne în Tests. API își păstrează lanțul cauzal și ownerul propriu.
+- Verdictul FAIL, corelarea prin identitate și politica fără replay rămân
+  responsabilități distincte de această proiecție.
+
+</details>
+
 ### Captura la failure
 
 - Adaptorul aruncă `UiCheckpointFailure(message, assertions)` cu instanțele
@@ -1251,10 +1289,9 @@ izolate în facade. Contractul se verifică separat prin teste de asset, compone
 nu depinde de JUnit, Test Kit sau Validation. Consumerul îi furnizează identitatea,
 rândurile evaluate, statusul fazei și diagnosticul.
 
-Fazele acestui publisher se deschid după evaluare; API-ul nu primește încă
-durata execuției componentei. Duratele afișate pe această cale nu certifică
-timpul metodei JUnit; diferența este în
-[feedback-ul de timing](../docs/feedback/ATF_Reporting_Feedback.md#component-audit-timing-01--execuție-versus-publicare).
+Fazele acestui publisher se deschid după evaluare. Overload-ul cu
+`ReportPhaseTiming` primește separat durata execuției deja măsurate și numărul
+callback-urilor; publicarea snapshot-ului nu înlocuiește timpul metodei.
 
 ```mermaid
 flowchart LR
@@ -1273,12 +1310,58 @@ flowchart LR
   este redactat înainte de tăiere, astfel încât un secret lung să nu piardă contextul cheii.
 - Valoarea integrală decide verdictul; raportul primește numai text sigur și limitat,
   implicit 240 de caractere inclusiv `…`. Expandarea nu publică un dump nelimitat.
+- Aserțiunile directe E2E și valorile acțiunilor folosesc același buget total
+  în Extent și fallback, inclusiv Fails; marcajul `…` intră în limită.
+- Fails prioritizează acțiunea eșuată și timpul măsurat înaintea headline-ului
+  excepției; un stack multiline nu consumă contextul de triere.
+- `AssertionPreviewBudgetTest` și `BoundedFailureEvidenceComponentTest` verifică
+  limita decodată, redacția completă și absența dump-ului brut; proba contextului
+  este în `UiSetupFailureEvidenceComponentTest`.
+- `LegacyPreviewBudgetComponentTest` verifică în browser porturile UI directe,
+  limitele 240/18, secrete peste granița tăierii și verdictul diferit dincolo
+  de preview. Fails și backlink-ul folosesc limita capturată de scenariu.
 - `Component assertions` rămâne colapsat inițial în Extent și fallback; un diagnostic
   fără comparații nu inventează un pas sau un request HTTP.
 - Întreruperea prin assumption păstrează `SKIP` și diagnosticul `Abort reason`;
   un eșec real al unei aserțiuni neconsumate păstrează `FAIL`.
 - `AssertionAuditPublicationComponentTest` protejează redacția în ambele renderere;
   `ComponentAssertionStepReportTest` protejează interacțiunea, ultimul rând și Fails → Tests.
+
+</details>
+
+### Timing măsurat înaintea publicării
+
+`AtfReportPorts.Phase.executionTiming(...)` acceptă o singură valoare tipizată
+pentru fază. Extent și fallback o păstrează în snapshot-ul semantic; constructorii
+și publisherii fără timing explicit își păstrează comportamentul existent.
+
+```mermaid
+flowchart LR
+    Execution["Execuție încheiată"] -->|furnizează| Timing["ReportPhaseTiming"]
+    Timing -->|proiectează inclusiv| Phase["Badge fază"]
+    Phase -->|însumează o dată| Scenario["Scenariu → clasă → Overview"]
+    Publication["Publicare snapshot"] -->|explică separat| Detail["Tooltip fază / pas aserțiuni"]
+```
+
+<details>
+<summary><strong>Legendă — execuție, publicare și agregare</strong></summary>
+
+- Badge-ul fazei folosește execuția, inclusiv comparațiile din callback.
+  Tooltip-ul indică numărul callback-urilor și costul publicării snapshot-ului.
+- Metadatele typed păstrează nanosecundele originale; afișarea rotunjește în sus
+  la milisecundă, apoi aplică formatarea comună. Zero nu devine durată pozitivă.
+- Scenariul însumează fazele directe, iar clasa scenariile directe. Timpul
+  publicării și badge-ul tehnic al pasului `Component assertions` nu se adaugă
+  peste execuția inclusivă a fazei. Expandarea nu schimbă sursa sau totalul.
+- Aceste sume reprezintă timp executat cumulat, nu wall-clock al suitei;
+  execuțiile paralele se pot suprapune. Fallback publică suma numai când toate
+  fazele au timing cunoscut. Nu înlocuiește informația absentă cu zero.
+- În Extent, metadatele interne sunt mutate în fază și rândul tehnic este eliminat;
+  nu apare un eveniment public suplimentar sau request HTTP fictiv.
+- Publicarea este măsurată separat la nivel de fază; nu include flush-ul final
+  al sesiunii. Console lifecycle continuă să descrie scope-ul publicării.
+- `ReportPhaseTimingComponentTest` verifică paritatea semantică, Tests/Overview,
+  valorile zero, totalurile fără dublare și redeschiderea cu tastatura.
 
 </details>
 

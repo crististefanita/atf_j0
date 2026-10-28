@@ -175,7 +175,7 @@ class UiAuditLifecycleTest {
                 () -> assertEquals(1, phase.nodes().size(), "one Gherkin checkpoint owns the failure"),
                 () -> assertEquals(1, request.validations().size()),
                 () -> assertEquals(List.of("Failure cause"), validation.assertionNames()),
-                () -> assertEquals(2, validation.uiActionCount(), "one action and one capture observation"),
+                () -> assertEquals(3, validation.uiActionCount(), "one action, one primary diagnostic and one capture observation"),
                 () -> assertEquals(expectedImage ? 1 : 0, validation.screenshotCount()),
                 () -> assertTrue(markup.contains(expectedReason)),
                 () -> assertTrue(html.contains("Click") && html.contains("#test-view")),

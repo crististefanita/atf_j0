@@ -214,8 +214,10 @@ public final class HtmlReportEvidenceView {
             for (AtfAssertion row : assertions) {
                 html.append(openTag(TR)).append(openTag(TD)).append(escape(redactor.redactText(row.name())))
                         .append(closeTag(TD)).append(openTag(TD))
-                        .append(escape(redactor.redactField(row.name(), row.expected()))).append(closeTag(TD))
-                        .append(openTag(TD)).append(escape(redactor.redactField(row.name(), row.actual())))
+                        .append(escape(ExtentReportNodeSupport.display(
+                                redactor.redactField(row.name(), row.expected()), settings))).append(closeTag(TD))
+                        .append(openTag(TD)).append(escape(ExtentReportNodeSupport.display(
+                                redactor.redactField(row.name(), row.actual()), settings)))
                         .append(closeTag(TD)).append(openTag(TD))
                         .append(ReportEvidenceMarkup.statusBadge(row.resultStatus()))
                         .append(closeTag(TD)).append(closeTag(TR));
@@ -235,7 +237,7 @@ public final class HtmlReportEvidenceView {
         boolean inlineScreenshot = !actions.isEmpty() && screenshots.size() == 1;
         html.append(new ExtentUiActionRenderer(settings, validation.actionDetailsMode()).markup(actions,
                         inlineScreenshot ? screenshots : List.of()))
-                .append(new ExtentUiObservationRenderer(settings).markup(observations));
+                .append(new ExtentUiObservationRenderer(settings, redactor).markup(observations));
         for (ReportScreenshot screenshot : inlineScreenshot ? List.<ReportScreenshot>of() : screenshots) {
             html.append(ExtentReportAssets.base64ScreenshotLink(
                     AtfReportHtmlVocabulary.CssClass.ATF_UI_ACTION_SCREENSHOT_LINK.value(),

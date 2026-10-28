@@ -103,6 +103,13 @@ public final class HtmlReportSemanticDocument {
     }
 
     public static final class PhaseModel {
+        atf.reporting.model.timing.ReportPhaseTiming timing;
+        long publicationMillis;
+        public void executionTiming(atf.reporting.model.timing.ReportPhaseTiming value) {
+            if (timing != null) throw new IllegalStateException("Phase timing is already supplied");
+            timing = Objects.requireNonNull(value, "timing");
+        }
+        public void publicationMillis(long value) { publicationMillis = value; }
         final String name;
         final List<ReportField> details = new ArrayList<>();
         final List<NodeModel> children = new ArrayList<>();

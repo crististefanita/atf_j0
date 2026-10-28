@@ -8,6 +8,7 @@ import com.microsoft.playwright.Page;
 import java.net.URI;
 import java.time.Duration;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Stable facade for ordered Playwright evidence.
@@ -20,6 +21,7 @@ public final class PlaywrightActionSequence {
     private final UiActionRecorder recorder;
     private final PlaywrightLocatorActions locatorActions;
     private final PlaywrightBrowserActions browserActions;
+    private final Duration actionTimeout;
 
     public PlaywrightActionSequence() {
         this(UiActionTrace.noOp());
@@ -34,6 +36,7 @@ public final class PlaywrightActionSequence {
     }
 
     PlaywrightActionSequence(UiActionTrace trace, Duration stateTimeout, UiRetryPolicy retryPolicy) {
+        actionTimeout = stateTimeout;
         recorder = new UiActionRecorder(trace);
         recorder.setRetryPolicy(retryPolicy);
         locatorActions = new PlaywrightLocatorActions(recorder);
@@ -54,6 +57,30 @@ public final class PlaywrightActionSequence {
 
     public void click(AtfLocator element, String expected) {
         locatorActions.click(element, expected);
+    }
+
+    /**
+     * One native pointer activation, followed by the caller's read-only postcondition.
+     * Navigation auto-wait is replaced only for this explicit operation; both stages
+     * share the action timeout. A failed or unknown outcome never replays the click.
+     * The callback may use native read-only waits, each bounded by the same remaining budget.
+     */
+    public void clickAndAwait(AtfLocator element, String expected, Consumer<ObservationBudget> postcondition) {
+        locatorActions.clickAndAwait(element, expected, actionTimeout, postcondition);
+    }
+
+    /** One monotonic deadline for the pointer action and every read-only confirmation. */
+    public static final class ObservationBudget {
+        private final long started = System.nanoTime();
+        private final long timeoutNanos;
+
+        ObservationBudget(Duration timeout) { timeoutNanos = timeout.toNanos(); }
+
+        public double remainingMilliseconds() {
+            long remaining = timeoutNanos - (System.nanoTime() - started);
+            if (remaining <= 0) throw new IllegalStateException("Action observation budget exhausted");
+            return Math.max(1d, remaining / 1_000_000d);
+        }
     }
 
     /**

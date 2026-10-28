@@ -6,12 +6,21 @@ import atf.reporting.markup.AtfReportLabels;
 import atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary;
 import atf.reporting.model.ReportExecutionModel;
 import atf.reporting.security.SensitiveDataRedactor;
+import atf.reporting.configuration.ReportingSettings;
+import atf.reporting.markup.ExtentReportNodeSupport;
 
 import static atf.reporting.html.HtmlReportMarkupSupport.escape;
 
 /** Renders failed contract assertions and explicit execution diagnostics from one projection. */
 public final class HtmlReportFailsView {
     private final SensitiveDataRedactor redactor = new SensitiveDataRedactor();
+    private final ReportingSettings settings;
+
+    public HtmlReportFailsView() { this(ReportingSettings.defaults()); }
+
+    public HtmlReportFailsView(ReportingSettings settings) {
+        this.settings = java.util.Objects.requireNonNull(settings, "settings");
+    }
     String render(ReportExecutionModel snapshot) {
         var html = new StringBuilder();
         html.append(HtmlReportFallbackViewSupport.sectionStart(
@@ -27,7 +36,8 @@ public final class HtmlReportFailsView {
                     + AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.STRONG,
                     escape(failure.assertionName()))
                     + AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.SPAN,
-                    escape(redactor.redactField(failure.assertionName(), failure.actual())));
+                    escape(ExtentReportNodeSupport.display(
+                            redactor.redactField(failure.assertionName(), failure.actual()), settings)));
             html.append(AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.A,
                     content,
                     AtfReportHtmlVocabulary.classAttribute(

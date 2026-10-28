@@ -84,9 +84,9 @@ class AutoExPagePortsComponentTest {
     @Test
     void productSearchNeedsOnlyUiActionsAndExplicitExpectedProduct() {
         var calls = new ArrayList<String>();
-        var ui = port(AutoExUiActions.class, (method, arguments) -> switch (method) {
+        var ui = port(atf.autoex.ui.AutoExCatalogPagePort.class, (method, arguments) -> switch (method) {
             case "fill" -> { calls.add("fill-search"); yield null; }
-            case "click" -> { calls.add("submit-search"); yield null; }
+            case "submitSearch" -> { assertEquals("Blue", arguments[0]); assertEquals("Blue Top", arguments[1]); calls.add("submit-search"); yield null; }
             case "waitForText" -> { calls.add("wait-for-configured-result:" + arguments[1]); yield null; }
             case "clickFirst" -> { calls.add("open-first-result"); yield null; }
             case "text" -> {
@@ -120,6 +120,7 @@ class AutoExPagePortsComponentTest {
             case "textFirst" -> { calls.add("read-store-heading"); yield "Automation Exercise"; }
             case "click" -> { calls.add("click"); yield null; }
             case "fill" -> { calls.add("fill"); yield null; }
+            case "submitSearch" -> { calls.add("click"); yield null; }
             case "text" -> { calls.add("read-search-result"); yield configuration.catalog().productName(); }
             case "currentUrl" -> { calls.add("read-search-url"); yield expectedUrl; }
             case "checkpoint" -> {
@@ -234,7 +235,7 @@ class AutoExPagePortsComponentTest {
     void missingSearchResultTimesOutBeforeOpeningProductWithoutRetry() {
         var calls = new ArrayList<String>();
         var timeout = new IllegalStateException("timed out waiting for configured search result");
-        var ui = port(AutoExUiActions.class, (method, arguments) -> switch (method) {
+        var ui = port(atf.autoex.ui.AutoExCatalogPagePort.class, (method, arguments) -> switch (method) {
             case "waitForText" -> { calls.add("wait-for-configured-result"); throw timeout; }
             case "clickFirst" -> { calls.add("open-first-result"); yield null; }
             default -> throw new UnsupportedOperationException(method);

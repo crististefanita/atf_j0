@@ -1,127 +1,12 @@
-# ATF Reporting — lacune și controale
+# ATF Reporting — controale tehnice
 
 ## Pe scurt
 
-Componentele auditate și panourile înguste au probe valide la
-[Reporting Tests](../../atf-reporting-tests/README.md). Rămân două lacune pe
-calea directă E2E a erorilor, plus timing-ul fazelor componente, separat de publicare.
-
-| ID | Scor /100 | Diferența care trebuie rezolvată |
-|---|---:|---|
-| `REPORT-LEGACY-PREVIEW-03` | **86** = 35 + 25 + 19 + 7 | limita 240 devine 286 după adăugarea marcajului de trunchiere |
-| `REPORT-FAILURE-CONTEXT-04` | **80** = 32 + 23 + 18 + 7 | stack trace-ul ocupă preview-ul Fails înaintea contextului acțiunii |
-| `COMPONENT-AUDIT-TIMING-01` | **74** = 31 + 22 + 15 + 6 | fazele sunt publicate fără timing-ul execuției |
-
-Scorurile sunt priorități după [formula comună](README.md#top-feedback-uri-active),
-nu note ale implementării. Contractele demonstrate rămân la
-[Reporting](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor).
-
-## REPORT-LEGACY-PREVIEW-03 — bugetul include și marcajul
-
-**Owner:** proiecția comună Reporting, cu probe în Reporting Tests.
-`Component assertions` prin Kit/`AssertionAuditReport` nu este defectul de aici.
-
-- **Reproducere:** selectați `AutoExCartUiE2eTest.recalculatesAndRemovesCartProduct`
-  și `AutoExCartUiApiE2eTest.recalculatesAndRemovesCartProduct` într-o suită,
-  cu E2E activ și `assertionMaxDisplayCharacters: 240`.
-- **Observație:** cazul UI+API a eșuat la a doua căutare; valorile `OBSERVED`
-  și `Failure cause` au câte **286 caractere** în HTML, fără markup sau etichete CSS.
-  Valoarea originală de 1357/1358 caractere devine prefix de 240 plus marcaj de 46.
-- **Cauză verificată:** [ExtentReportNodeSupport.truncate](../../atf-reporting/src/main/java/atf/reporting/markup/ExtentReportNodeSupport.java)
-  aplică `substring(0, limit)` și apoi adaugă marcajul. Acesta este un plafon
-  al prefixului, incompatibil cu plafonul cerut întregii valori vizibile.
-- Eșecul remote este intermitent; reproducerea permanentă trebuie să folosească
-  o eroare locală controlată, nu să depindă de magazinul public.
-
-```mermaid
-flowchart LR
-    Raw["Valoare integrală"] -->|decide| Verdict["Verdict neschimbat"]
-    Raw -->|redactează complet| Safe["Text sigur"]
-    Safe -->|rezervă și marcajul| Budget["Valoare vizibilă ≤ 240"]
-    Budget -->|publică aceeași proiecție| Views["Tests · Fails · fallback"]
-```
-
-<details>
-<summary><strong>Legendă — valoare limitată, diagnostic păstrat separat</strong></summary>
-
-Marcajul intră în bugetul valorii. Metadatele suplimentare despre trunchiere
-pot avea un control separat, fără a reinsera textul brut în valoare, tooltip
-sau atribut HTML. Verdictul folosește datele integrale; redactarea precede tăierea.
-
-</details>
-
-- [ ] Refolosiți o proiecție comună cu buget total, incluzând `…`/marcajul;
-      nu ridicați limita YAML și nu reduceți fontul ca remediere.
-- [ ] Probați o valoare exact la limită, una lungă și o eroare multiline cu
-      secret după poziția 240; verificați valoarea decodată din celulă,
-      Tests/Fails, expandare și paritatea fallback. Nu numărați markup-ul.
-- [ ] Păstrați evaluarea integrală, identitatea erorii și controalele existente;
-      schimbarea deliberată a contractului unui test cere `testChanges`, nu
-      acceptarea lui 286 într-un oracle nou.
-- [ ] Separați bugetul aserțiunilor de body JSON și de calea absolută finală;
-      notificarea artifactului nu se taie la 240.
-
-## REPORT-FAILURE-CONTEXT-04 — cauza utilă înaintea stack trace-ului
-
-**Owner:** model/proiecție Reporting și adaptoarele UI pentru contextul typed;
-probele de randare rămân în Reporting Tests.
-
-- Fails identifică ownerul, faza și verdictul corect și deschide scenariul eșuat.
-  Totuși, `Failure cause` începe cu eroarea Playwright și calea temporară a stack-ului;
-  `#submit_search` și așteptarea navigării sunt în afara preview-ului.
-- Tabelul acțiunilor păstrează `Click #22`, ținta și așteptarea business,
-  dar `OBSERVED` este consumat de același prefix tehnic. Contextul există în
-  raport, însă nu este folosit în rezumatul de triere.
-- [UiEvidencePublisher.failureCause](../../atf-reporting/src/main/java/atf/reporting/ui/UiEvidencePublisher.java)
-  preferă `Throwable.getMessage()` când există excepție; acțiunea eșuată este
-  folosită numai în fallback-ul fără Throwable.
-
-- [ ] Compuneți rezumatul din tipul erorii și contextul disponibil al acțiunii
-      eșuate: operație, țintă, așteptare și timp măsurat, înaintea stack-ului.
-      Păstrați proiecția sigură în buget; nu importați selectorii AutoEx în renderer.
-- [ ] Păstrați diagnosticul redacted separat și legătura cu eroarea originală;
-      informația necapturată rămâne explicit necunoscută, fără status HTTP ori
-      confirmare de dispatch inventate dintr-un text de excepție.
-- [ ] Probați excepție lungă cu o singură acțiune eșuată, excepție fără acțiuni,
-      acțiuni reușite urmate de eroare și cauze/suppressed; Fails trebuie să
-      conducă la acțiunea relevantă, nu numai la un prefix de stack.
-- [ ] Nu transformați timeout-ul în PASS pe baza capturii ulterioare.
-      Sincronizarea și lipsa replay-ului rămân în
-      [feedback-ul UI](ATF_UI_Backend_Guided_Recovery_Feedback.md#ui-action-navigation-02--click-executat-navigare-neconfirmată).
-
-## COMPONENT-AUDIT-TIMING-01 — execuție versus publicare
-
-**Owner:** Kit măsoară invocarea; Reporting proiectează timpul primit, iar
-adaptorul consumerului convertește modelul neutru. Scope-ul class/suite al
-sesiunii este o cerință separată, compatibilă cu măsurarea per invocare.
-
-| Suprafață | Observație și efect |
-|---|---|
-| Kit | `ComponentAssertionAudit.start` reține numai faza, iar `PhaseResult` nu transportă timing |
-| Reporting | `AssertionAuditReport.phase` deschide și închide faza după evaluare, la publicarea rezultatului |
-| Reproducere | `AutoExCheckoutReadinessComponentTest` include browser și așteptare bounded, dar `TEST BODY` poate afișa numai milisecunda publicării |
-
-Timpul JUnit include și overhead-ul fixture-ului; nu trebuie copiat ca durată
-exactă a body-ului. Proba trebuie să distingă cele două intervale.
-
-- [ ] Capturați începutul și sfârșitul cu o sursă monotonică la interceptarea
-      setup/body/teardown, inclusiv ieșiri FAIL/SKIP și metode parametrizate.
-      Mai multe callback-uri ale aceleiași faze se agregă explicit, fără ceas comun între invocări.
-- [ ] Transportați timing-ul în rezultatul neutru Kit; Reporting nu importă
-      JUnit și nu deduce durata din momentul publicării ori din textul diagnosticului.
-- [ ] Distingeți timpul execuției de deschiderea/publicarea/închiderea resursei;
-      definiți agregarea clasă/scenariu/fază și păstrați formatul comun al duratelor.
-- [ ] Folosiți clock controlat în probe, cu durate diferite pentru fiecare fază;
-      verificați Extent și fallback, Tests și Overview, inclusiv erori de publicare/close.
-- [ ] Păstrați evaluarea JUnit unică, verdictul și erorile suprimate; nu fabricați
-      durate pozitive și nu modificați plafonul redactat de 240 de caractere.
-
-- [ ] Păstrați agregarea exclusive/direct children fără dublarea scenariului
-      și fazelor; intervalele suprapuse nu devin wall-clock al suitei prin însumare.
-
-**Închidere:** o fază cu execuție controlată și publicare ulterioară păstrează
-durata execuției în artifact; testul eșuează dacă rendererul afișează numai
-durata publicării. Aceeași regulă se verifică în ambele module consumer.
+Bugetul valorilor UI, contextul typed al erorilor și timing-ul măsurat al
+componentelor sunt normate în [Reporting](../../atf-reporting/README.md).
+Probele de randare aparțin [Reporting Tests](../../atf-reporting-tests/README.md).
+Acest document păstrează numai controalele Git încă necesare; cerințele active
+sunt indexate în [registrul feedback-urilor](README.md#top-feedback-uri-active).
 
 ## Controale tehnice încă necesare
 
@@ -135,6 +20,32 @@ fără rebazare, extindere de scope sau relaxarea guard-urilor.
 
 ```yaml
 testChanges:
+  - id: REPORT-FAILURE-CONTEXT-04
+    status: ACTIVE
+    base: e311d1d4305ba850876ae54faf1dbe0acec62bc0
+    expires: 2026-11-26
+    reason: "Pune contextul primei dovezi UI FAIL înaintea diagnosticului lung și păstrează Throwable-ul, cauzele/suppressed și verdictul. Adaugă probe nominale/negative și browser Extent/fallback la 240/18, inclusiv diagnostic al fazei, Fails și backlink. UiAuditLifecycleTest cere exact trei rânduri în loc de două: acțiune, noul diagnostic primar INFO și captura existentă; UiFallbackFailureEvidenceTest cere în Fails acțiunea/ținta/timpul, păstrând verificările mesajului original în Tests și ale redactării. Nu relaxează plafoane sau selecții."
+    proof: mvn -pl atf-reporting-tests,atf-tests -am "-Dtest=UiFailureContextTest,UiFailureContextReportTest,UiFailureContextComponentTest,UiAuditLifecycleTest,UiFallbackFailureEvidenceTest,UiApiVerdictProjectionComponentTest,LegacyPreviewBudgetComponentTest,ReportAssetSizeInventoryTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=e311d1d4305ba850876ae54faf1dbe0acec62bc0" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/failurecontext/UiFailureContextFixture.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/failurecontext/UiFailureContextReportTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/failure/UiFailureContextTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/UiFailureContextComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failurecontext/UiFailureContextProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/failurecontext/ReportFailureContextLocators.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/UiAuditLifecycleTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/UiFallbackFailureEvidenceTest.java
+  - id: REPORT-RAW-PREVIEW-05
+    status: ACTIVE
+    base: 3219ef1ff546369d00a006cfc7434644251c6f9a
+    expires: 2026-11-26
+    reason: Adaugă probe pentru porturile UI directe și proiecția Fails în Extent/fallback. Bugetul include elipsa, redactarea precede limitarea, limitele 240/18 sunt propagate prin disclosure, iar verdictul integral și bugetul JSON sunt păstrate; nu modifică probele existente sau plafoanele asset-urilor.
+    proof: mvn -pl atf-reporting-tests,atf-tests -am "-Dtest=ReportingPreviewBudgetTest,LegacyPreviewBudgetComponentTest,HtmlReportSessionTest,ExtentReportSessionLifecycleTest,ReportEvidenceJsonFormatterTest,ComponentAssertionStepReportTest,UiFailureCorrelationComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=3219ef1ff546369d00a006cfc7434644251c6f9a" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/evidence/markup/ReportingPreviewBudgetTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/preview/LegacyPreviewBudgetComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/preview/LegacyPreviewBudgetProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/preview/ReportPreviewLocators.java
   - id: REPORT-NARROW-READABILITY-02
     status: ACTIVE
     base: 3219ef1ff546369d00a006cfc7434644251c6f9a
@@ -234,6 +145,49 @@ testChanges:
     paths:
       - atf-ui/src/test/java/atf/ui/playwright/PlaywrightActionSequenceTest.java
       - atf-reporting-tests/src/test/java/atf/reporting/ui/ExtentReportUiEvidenceRenderingTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control tehnic — timing-ul execuției componentelor</strong></summary>
+
+```yaml
+testChanges:
+  - id: COMPONENT-PHASE-TIMING-01
+    status: ACTIVE
+    base: 3219ef1ff546369d00a006cfc7434644251c6f9a
+    expires: 2026-11-26
+    reason: Adaugă probe cu ceas monoton controlat pentru fazele Kit și ieșirile FAIL/SKIP/lifecycle, paritate semantică și browser Extent/fallback fără dublarea publicării, plus adaptorul consumer AutoEx. Shop are probă omoloagă în modulul său; nu relaxează bugetele asset-urilor, plafonul 240 sau probele existente ale scope-ului suitei.
+    proof: mvn -pl atf-test-kit,atf-reporting-tests,atf-test-auto-ex,atf-test-practice-shop,atf-tests -am "-Dtest=InvocationTimerTest,ComponentPhaseTimingExtensionComponentTest,ReportPhaseTimingTest,ReportPhaseTimingComponentTest,AutoExComponentSuite,ShopComponentSuite,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=3219ef1ff546369d00a006cfc7434644251c6f9a" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-kit/src/test/java/atf/testkit/timing/InvocationTimerTest.java
+      - atf-test-kit/src/test/java/atf/testkit/assertions/ComponentPhaseTimingExtensionComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/timing/ReportPhaseTimingTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/timing/ReportPhaseTimingComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/timing/ReportPhaseTimingLocators.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/reporting/AutoExComponentPhaseTimingComponentTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control tehnic — contractele adiacente ale randării</strong></summary>
+
+`ExtentReportSessionContractTest` păstrează controlul existent
+`COMPONENT-SCOPE-AND-SELECTORS-01`; nu adăugăm un al doilea owner pentru același diff.
+
+```yaml
+testChanges:
+  - id: REPORT-ADJACENT-ORACLES-07
+    status: ACTIVE
+    base: 3219ef1ff546369d00a006cfc7434644251c6f9a
+    expires: 2026-11-26
+    reason: Aliniază trei probe existente cu implementarea live fără a schimba producția pentru oracle. Duratele necunoscute și sursele execuție/publicare păstrează gate-uri de structură; valorile, precedence și lipsa dublării sunt probate în browser. Indexul Fails păstrează DURATION exclusiv pentru API prin helperul comun; CSS protejează containerul, fontul comun lizibil și border zero fără declarații redundante, respingând vechea regulă 8px. Celelalte cazuri, bugetele și controalele rămân intacte.
+    proof: mvn -pl atf-reporting-tests,atf-tests -am "-Dtest=AtfReportingUnitSuite,ExtentReportSessionContractTest,ReportPhaseTimingComponentTest,OverviewDurationProjectionComponentTest,NarrowEvidenceReadabilityComponentTest,LegacyPreviewBudgetComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=3219ef1ff546369d00a006cfc7434644251c6f9a" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/runtime/core/ExtentReportRuntimeScriptTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/theme/evidence/AtfReportEvidenceCssTest.java
 ```
 
 </details>

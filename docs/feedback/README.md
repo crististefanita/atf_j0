@@ -17,8 +17,10 @@ ownerului; rapoartele și rezultatele unei rulări nu devin documentație perman
   precondițiile business și recuperarea BE propusă, fără replay de mutații.
 - Componentele Shop/AutoEx au un raport per clasă/suită și audit per invocare;
   guvernanța folosește selectorii executabili, cu comentariile excluse.
-- Calea E2E a erorilor depășește bugetul de preview prin marcajul adăugat;
-  trierea Fails pierde contextul acțiunii în prefixul stack-ului.
+- Preview-ul E2E și Fails păstrează limita integrală după redactare și contextul
+  acțiunii înaintea headline-ului; durata măsurată a componentelor exclude publicarea.
+- Căutarea AutoEx confirmă query-ul și produsul vizibil după un click unic,
+  cu același buget și fără așteptarea navigărilor fără legătură.
 - Contractele stabile sunt în [indexul documentației](../README.md);
   feedback-ul păstrează numai ownerul, reproducerea și criteriul rămas.
 
@@ -33,10 +35,9 @@ lor. Gap-urile secundare rămân vizibile în documentul ownerului.
 
 | Ordine | Feedback / owner | Scor /100 | Lacuna care decide ordinea |
 |---:|---|---:|---|
-| 1 | [Reporting — preview și context FAIL](ATF_Reporting_Feedback.md) | **86** = 35 + 25 + 19 + 7 | preview E2E de 286 la limită 240 (86), context ascuns de stack în Fails (80), timing component (74) |
-| 2 | [UI — sincronizare și recuperare BE](ATF_UI_Backend_Guided_Recovery_Feedback.md) | **85** = 34 + 25 + 18 + 8 | click/navigare neconfirmată (85), politică YAML/adnotare (80), precondiții checkout (79), audit (78), select înlocuit (74) |
-| 3 | [Consumer — runtime și validare](ATF_Consumer_Business_Test_Focus_Feedback.md) | **77** = 31 + 18 + 20 + 8 | context E2E Shop (77), billing în suita Shop (71), evaluator pur (63), echivalența profilelor (57) |
-| 4 | [ATF UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ; activarea JavaScript explicită nu închide limita |
+| 1 | [UI — sincronizare și recuperare BE](ATF_UI_Backend_Guided_Recovery_Feedback.md) | **80** = 33 + 24 + 16 + 7 | politică YAML/adnotare (80), precondiții checkout (79), audit (78), select înlocuit (74) |
+| 2 | [Consumer — runtime și validare](ATF_Consumer_Business_Test_Focus_Feedback.md) | **77** = 31 + 18 + 20 + 8 | context E2E Shop (77), billing în suita Shop (71), evaluator pur (63), echivalența profilelor (57) |
+| 3 | [ATF UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ; activarea JavaScript explicită nu închide limita |
 
 Ordinea nu înlocuiește criteriul de închidere. O componentă verde nu certifică
 un flow remote, iar succesul live nu certifică toate politicile sau randarea.
@@ -45,6 +46,7 @@ Calitatea editorială se evaluează separat prin
 
 Controlul tehnic al [scope-ului componentelor](ATF_Component_Report_Scope_Feedback.md#controlul-incrementului)
 rămâne pentru verificarea Git; nu reprezintă o lacună funcțională activă.
+Aceeași separare se aplică [controalelor Reporting](ATF_Reporting_Feedback.md#controale-tehnice-încă-necesare).
 
 ## Design AI — evaluare separată
 

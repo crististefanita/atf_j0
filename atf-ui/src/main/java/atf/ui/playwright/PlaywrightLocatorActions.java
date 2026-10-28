@@ -1,6 +1,8 @@
 package atf.ui.playwright;
 
 import com.microsoft.playwright.Locator;
+import java.time.Duration;
+import java.util.function.Consumer;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -54,6 +56,26 @@ final class PlaywrightLocatorActions {
             target.evaluate(JAVASCRIPT_CLICK_SCRIPT);
             postcondition.run();
             return JAVASCRIPT_CLICK_OBSERVATION;
+        });
+    }
+
+    void clickAndAwait(AtfLocator element, String expected, Duration timeout,
+                       Consumer<PlaywrightActionSequence.ObservationBudget> postcondition) {
+        Objects.requireNonNull(element, "element");
+        Objects.requireNonNull(postcondition, "postcondition");
+        recorder.run("Click", element.selector(), expected, isSensitiveTarget(element), () -> {
+            var budget = new PlaywrightActionSequence.ObservationBudget(timeout);
+            element.locator().click(new Locator.ClickOptions()
+                    .setTimeout(budget.remainingMilliseconds()).setNoWaitAfter(true));
+            try {
+                budget.remainingMilliseconds();
+                postcondition.accept(budget);
+                budget.remainingMilliseconds();
+            } catch (RuntimeException failure) {
+                throw new IllegalStateException("Pointer click completed; explicit postcondition not confirmed: "
+                        + element.selector(), failure);
+            }
+            return "pointer click completed; explicit postcondition satisfied";
         });
     }
 

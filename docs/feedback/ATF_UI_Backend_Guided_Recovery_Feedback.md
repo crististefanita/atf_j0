@@ -16,7 +16,10 @@ consumerii pentru semantica operațiilor și Reporting pentru dovezile randate.
 
 Contractele existente sunt în [UI](../../atf-ui/README.md),
 [AutoEx](../../atf-test-auto-ex/README.md#coeziunea-suportului-autoex)
-și [Kit](../../atf-test-kit/README.md). Acest feedback deține diferențele rămase,
+și [Kit](../../atf-test-kit/README.md). Căutarea catalogului folosește
+[clickul unic cu postcondiție](../../atf-ui/README.md#click-unic-cu-postcondiție-explicită),
+cu [semantica AutoEx](../../atf-test-auto-ex/README.md#confirmarea-căutării-în-catalog).
+Acest feedback deține diferențele rămase,
 nu schimbă acele contracte prin simpla propunere a unei configurații.
 
 ## Priorități și dovadă
@@ -26,7 +29,6 @@ documentară /10. Nu reprezintă o notă a codului sau un procent de reproducere
 
 | ID | Scor /100 | Criteriul care lipsește |
 |---|---:|---|
-| `UI-ACTION-NAVIGATION-02` | 85 = 34 + 25 + 18 + 8 | click unic separat de navigarea neconfirmată și postcondiția observată |
 | `UI-BACKEND-RECOVERY-01` | 80 = 33 + 24 + 16 + 7 | YAML + adnotare, corelare cauzală și decizie fără replay nesigur |
 | `UI-LOCATOR-READINESS-01` | 79 = 32 + 23 + 17 + 7 | identitatea și coșul sunt validate înaintea checkout-ului, individual și suite |
 | `UI-RECOVERY-AUDIT-01` | 78 = 33 + 22 + 16 + 7 | încercări vizibile, verdict reconciliat și expandare completă |
@@ -100,42 +102,6 @@ poate întoarce `[]`, fără excepție, fără eveniment și fără valoarea cer
       înlocuire ambiguă ori rezultat necunoscut, păstrați zero activări și FAIL.
 - [ ] Verificați și lipsa permanentă, document nou, select sensibil și redacția;
       o schimbare de driver cere regresiile pointer/iframe și rapoartelor existente.
-
-## UI-ACTION-NAVIGATION-02 — click executat, navigare neconfirmată
-
-**Owner:** UI pentru semantica acțiunii și așteptării; AutoEx pentru postcondiția
-căutării. Reporting păstrează dovezile, fără să decidă recuperarea business.
-
-| Suprafață observată | Dovadă și limită |
-|---|---|
-| Selecție parțială prin suită | aceeași metodă `recalculatesAndRemovesCartProduct` în UI și UI+API: un PASS și un FAIL; nu dovedește că profilul UI+API este cauza |
-| Punctul eșuat | a doua căutare, după prima adăugare și verificarea coșului; acțiunea `Click #22`, ținta `#submit_search`, durată 20033 ms |
-| Log Playwright | control vizibil/enabled/stabil, `click action done`, apoi `waiting for scheduled navigations to finish` și timeout 20000 ms |
-| Captura terminală | `SEARCHED PRODUCTS` și Blue Top sunt vizibile ulterior; nu certifică retrospectiv starea la timeout ori cauza frame-ului/navigării |
-| Raportul comun | ambele clase sunt păstrate; FAIL nu devine PASS; artifactul există înaintea singurei notificări finale |
-
-**Reproducere:** suită temporară cu două `@SelectMethod`, pentru
-`AutoExCartUiE2eTest#recalculatesAndRemovesCartProduct` și varianta
-`AutoExCartUiApiE2eTest`, cu parametrul `AutoExE2eRun` și E2E activ.
-Nu se includ poveștile care creează conturi; nu se reia testul pentru a ascunde eșecul.
-
-- [ ] Reproduceți local, cu click unic: navigare principală lentă, subframe lent
-      fără legătură, destinație invalidă și click niciodată dispatch-uit.
-      Distingerea trebuie să vină din observații corelate, nu din parsarea unui
-      mesaj Playwright ori din creșterea globală a timeout-ului.
-- [ ] Evaluați compoziția explicită a acțiunii unice și a postcondiției bounded:
-      query-ul și produsul așteptat, documentul/URL-ul și răspunsul corelat unde
-      sunt capturate. `ProductsPage.search` folosește astăzi clickul generic;
-      wait-ul din `openFirstProduct` nu mai este atins dacă acel click aruncă.
-- [ ] La rezultat necunoscut, păstrați FAIL și diagnosticul; o observație
-      read-only poate confirma starea numai printr-un contract explicit.
-      Nu repetați clickul, adăugarea în coș, contul sau plata.
-- [ ] Probați individual și prin suită, UI/UI+API, fără a declara diferența de
-      profil drept cauză după o singură rulare. Păstrați captura și logul
-      inițial inclusiv când o execuție ulterioară trece.
-- [ ] În raport, distingeți acțiunea, așteptarea ulterioară și starea neconfirmată;
-      contextul erorii trebuie să rămână util în preview-ul de 240, conform
-      [lacunei de proiecție](ATF_Reporting_Feedback.md#report-failure-context-04--cauza-utilă-înaintea-stack-trace-ului).
 
 ## UI-BACKEND-RECOVERY-01 — configurație și decizie explicită
 

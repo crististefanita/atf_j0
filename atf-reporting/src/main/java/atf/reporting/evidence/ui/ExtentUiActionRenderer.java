@@ -87,7 +87,9 @@ public final class ExtentUiActionRenderer {
                             AtfReportHtmlVocabulary.classAttribute(
                                     AtfReportHtmlVocabulary.CssClass.ATF_UI_ACTION_SEQUENCE),
                             AtfReportHtmlVocabulary.attribute(
-                                    AtfReportHtmlVocabulary.Attribute.EVIDENCE_STATUS, statusKey(failed))))
+                                    AtfReportHtmlVocabulary.Attribute.EVIDENCE_STATUS, statusKey(failed)),
+                            AtfReportHtmlVocabulary.attribute(AtfReportHtmlVocabulary.Attribute.ASSERTION_PREVIEW_LIMIT,
+                                    Integer.toString(settings.assertionMaxDisplayCharacters()))))
                     .append(open(AtfReportHtmlVocabulary.Tag.SUMMARY))
                     .append(actionSummary(actions, failed))
                     .append(close(AtfReportHtmlVocabulary.Tag.SUMMARY));
@@ -104,7 +106,9 @@ public final class ExtentUiActionRenderer {
                         AtfReportHtmlVocabulary.classAttribute(
                                 AtfReportHtmlVocabulary.CssClass.ATF_UI_ACTION_SEQUENCE),
                         AtfReportHtmlVocabulary.attribute(
-                                AtfReportHtmlVocabulary.Attribute.EVIDENCE_STATUS, statusKey(failed))))
+                                AtfReportHtmlVocabulary.Attribute.EVIDENCE_STATUS, statusKey(failed)),
+                        AtfReportHtmlVocabulary.attribute(AtfReportHtmlVocabulary.Attribute.ASSERTION_PREVIEW_LIMIT,
+                                Integer.toString(settings.assertionMaxDisplayCharacters()))))
                 .append(open(AtfReportHtmlVocabulary.Tag.SUMMARY))
                 .append(actionSummary(actions, failed))
                 .append(close(AtfReportHtmlVocabulary.Tag.SUMMARY))
@@ -129,12 +133,12 @@ public final class ExtentUiActionRenderer {
                     .append(escape(redactor.redactText(action.target())))
                     .append(close(AtfReportHtmlVocabulary.Tag.TD))
                     .append(open(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(escape(redactor.redactText(
-                            ExtentReportNodeSupport.display(action.expected(), settings))))
+                    .append(escape(ExtentReportNodeSupport.display(
+                            redactor.redactText(action.expected()), settings)))
                     .append(close(AtfReportHtmlVocabulary.Tag.TD))
                     .append(open(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(escape(redactor.redactText(
-                            ExtentReportNodeSupport.display(action.observed(), settings))))
+                    .append(escape(ExtentReportNodeSupport.display(
+                            redactor.redactText(action.observed()), settings)))
                     .append(close(AtfReportHtmlVocabulary.Tag.TD))
                     .append(open(AtfReportHtmlVocabulary.Tag.TD))
                     .append(open(AtfReportHtmlVocabulary.Tag.SPAN,

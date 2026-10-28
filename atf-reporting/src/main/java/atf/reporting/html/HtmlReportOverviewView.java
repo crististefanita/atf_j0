@@ -12,6 +12,12 @@ public final class HtmlReportOverviewView {
         var overview = snapshot.overview();
         String summary = metric("Tests", overview.tests()) + metric("Passed", overview.passed())
                 + metric("Failed", overview.failed()) + metric("Skipped", overview.skipped());
+        var duration = atf.reporting.model.timing.ReportPhaseDurations.total(snapshot.scenarios());
+        if (duration.isPresent()) summary += AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.DIV,
+                AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.SPAN, "Phase execution sum")
+                        + atf.reporting.evidence.timing.ReportPhaseTimingMarkup.badge(duration.getAsLong(),
+                                "Sum of measured phase execution; not suite wall-clock time"),
+                AtfReportHtmlVocabulary.classAttribute(AtfReportHtmlVocabulary.CssClass.METRIC));
         String body = HtmlReportFallbackViewSupport.heading(
                         AtfReportHtmlVocabulary.FallbackTab.OVERVIEW)
                 + AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.DIV, summary,

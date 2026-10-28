@@ -11,8 +11,8 @@ public final class AtfDurationFormatter {
     public static long elapsedMillis(Duration duration) {
         Objects.requireNonNull(duration, "duration");
         if (duration.isNegative()) throw new IllegalArgumentException("duration must not be negative");
-        if (duration.isZero()) return 0;
-        return Math.max(1L, (duration.toNanos() + 999_999L) / 1_000_000L);
+        long millis = duration.toMillis();
+        return duration.getNano() % 1_000_000 == 0 ? millis : Math.addExact(millis, 1L);
     }
     public static String format(Duration duration) { return formatMillis(elapsedMillis(duration)); }
     public static String formatMillis(long millis) {

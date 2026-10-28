@@ -466,6 +466,16 @@ inclusive = valoare deja calculată de Extent; nu se mai adaugă descendenții
 Un total părinte nu însumează toți descendenții și nu amestecă o durată
 inclusivă cu aceiași copii. Durata tehnică proprie, dacă există, trebuie
 marcată distinct de totalul inclusiv.
+
+Pentru fazele componente cu `ReportPhaseTiming`, durata inclusivă este suma
+intervalelor callback-urilor executate, măsurată monoton înaintea publicării.
+Ea are prioritate față de timestamp-urile publicării Extent. Scenariul adună
+fazele directe o singură dată; badge-ul pasului de aserțiuni descrie publicarea
+și nu se adaugă peste execuția fazei. Zero măsurat rămâne zero, iar timing-ul
+absent rămâne necunoscut. Aceste totaluri cumulative nu reprezintă wall-clock
+al suitei. Contractul și probele sunt la
+[ownerul Reporting](../atf-reporting/README.md#timing-măsurat-înaintea-publicării).
+
 Pentru navigatorul `Tests`, totalul clasei este suma totalurilor scenariilor
 directe vizibile în panoul clasei. Valoarea din stânga și cea din header-ul
 clasei trebuie să fie aceeași; o durată brută Extent care include deja
@@ -495,6 +505,43 @@ valorile assertions trec prin aceeași politică a redactorului sensibil;
 cheia și parametrii query neconfidențiali rămân vizibili, iar valorile secrete
 sunt înlocuite cu markerul de redacție. Niciun renderer nu poate publica direct
 input-ul primit de la transport sau de la validator.
+
+</details>
+
+Contextul unei erori UI pune operația, ținta, timpul măsurat și așteptarea
+înaintea diagnosticului tehnic. Excepția primară, cauzele și suppressed rămân
+observații INFO separate, redactate și limitate prin același plafon. O acțiune
+reușită nu este atribuită unei erori ulterioare; datele necapturate rămân explicit
+necunoscute.
+
+Relațiile, verdictul și identitatea erorii originale se păstrează,
+fără replay sau confirmare de dispatch/navigare dedusă dintr-un mesaj.
+Contractul și proiecția aparțin
+[ownerului Reporting](../atf-reporting/README.md#contextul-erorii-înaintea-diagnosticului-tehnic).
+
+### Bugetul valorilor de aserțiune
+
+- `assertionMaxDisplayCharacters` limitează valoarea completă afișată, inclusiv `…`;
+  implicit 240, atât în Tests cât și în Fails, în Extent și fallback.
+- Redactarea valorii integrale precede tăierea; valoarea brută nu revine prin
+  tooltip sau atribut. Verdictul rămâne cel evaluat pe datele integrale.
+- Body-urile JSON își păstrează bugetul și marcajul propriu; calea absolută
+  notificată după publicarea artifactului nu este o valoare de aserțiune.
+
+```mermaid
+flowchart LR
+    Raw["Valoare integrală"] -->|evaluează| Verdict["Verdict păstrat"]
+    Raw -->|redactează complet| Safe["Text sigur"]
+    Safe -->|include elipsa în buget| Preview["Valoare ≤ limita configurată"]
+    Preview -->|păstrează după expandare| Views["Tests · Fails · fallback"]
+```
+
+<details>
+<summary><strong>Legendă — valoarea publicată și verdictul</strong></summary>
+
+Verdictul folosește valoarea integrală. Rendererele și proiecția Fails primesc
+numai text sigur, limitat; expandarea și backlink-ul nu reconstruiesc valoarea
+brută. Diagnosticul typed prioritizează acțiunea eșuată și timpul măsurat.
 
 </details>
 

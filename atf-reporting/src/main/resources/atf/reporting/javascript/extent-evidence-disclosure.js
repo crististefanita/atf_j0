@@ -46,6 +46,8 @@ function bindEvidenceDisclosureAria() {
 }
 function wrapEvidence(row, kind, title, node) {
   if (!row || !row.cells || !row.cells[2] || !node) return;
+  var preview = node.closest && node.closest('[data-atf-preview-limit]');
+  if (preview) node.setAttribute('data-atf-preview-limit', preview.getAttribute('data-atf-preview-limit'));
   var body = document.createDocumentFragment();
   if (kind === 'response-evidence') {
     var classification = document.createElement('div');

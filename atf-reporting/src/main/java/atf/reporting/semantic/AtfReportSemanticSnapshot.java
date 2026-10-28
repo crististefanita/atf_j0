@@ -69,7 +69,7 @@ public record AtfReportSemanticSnapshot(List<ClassSnapshot> classes) {
     private static PhaseSnapshot phaseSnapshot(ReportExecutionModel.Phase phase) {
         return new PhaseSnapshot(phase.name(),
                 phase.children().stream().map(AtfReportSemanticSnapshot::nodeSnapshot).toList(),
-                phase.details().stream().map(field -> field.name()).toList(), phase.status());
+                phase.details().stream().map(field -> field.name()).toList(), phase.status(), phase.timing());
     }
 
     private static NodeSnapshot nodeSnapshot(ReportExecutionModel.Node node) {
@@ -153,8 +153,13 @@ public record AtfReportSemanticSnapshot(List<ClassSnapshot> classes) {
     }
 
     public record PhaseSnapshot(String name, List<NodeSnapshot> nodes,
-                                List<String> detailNames, AtfReportStatus status) {
+                                List<String> detailNames, AtfReportStatus status,
+                                java.util.Optional<atf.reporting.model.timing.ReportPhaseTiming> timing) {
+        public PhaseSnapshot(String name, List<NodeSnapshot> nodes, List<String> detailNames, AtfReportStatus status) {
+            this(name, nodes, detailNames, status, java.util.Optional.empty());
+        }
         public PhaseSnapshot {
+            timing = Objects.requireNonNull(timing, "timing");
             name = name == null ? "" : name;
             nodes = List.copyOf(Objects.requireNonNull(nodes, "nodes"));
             detailNames = List.copyOf(Objects.requireNonNull(detailNames, "detailNames"));

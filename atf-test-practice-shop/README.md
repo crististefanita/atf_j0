@@ -656,6 +656,7 @@ Notificarea locației este independentă de generarea HTML.
 |---|---|
 | Metodă componentă | comparații evaluate prin `AuditedAssertions` sau `RecordedAssertions`, cu operator/nume, sursă unde există, expected, actual și rezultat |
 | Lifecycle JUnit | `Component assertions` în faza în care s-au evaluat verificările: `SETUP`, `TEST BODY` ori `TEARDOWN` |
+| Timing componentă | badge-ul fazei arată suma callback-urilor executate, măsurată monoton; tooltip-ul separă publicarea snapshot-ului; totalurile nu dublează aserțiunile |
 | Business API și E2E | exchange-uri și validări API, respectiv evidence de browser, în nodurile lor proprii |
 
 - Pasul standard este închis inițial; redactarea precede trunchierea, iar
@@ -668,7 +669,7 @@ Notificarea locației este independentă de generarea HTML.
 ```mermaid
 flowchart LR
     Test[Test componentă Shop] -->|verifică integral| Kit[Audit Kit]
-    Kit -->|rânduri sigure pe faze| Adapter[Adaptor Shop]
+    Kit -->|rânduri sigure + timing pe faze| Adapter[Adaptor Shop]
     Adapter -->|mapează| Report[AssertionAuditReport]
     Scope["Owner class / suite"] -->|deține| Run[AssertionAuditRun]
     Run -->|împrumută sesiunea| Report
@@ -679,16 +680,26 @@ flowchart LR
 <summary><strong>Legendă — auditul componentelor Shop</strong></summary>
 
 - Muchiile sunt flux de date și ownership, nu dependențe Maven: Kit nu importă Reporting.
+- Durata fazei include callback-urile moștenite și parametrizate ale invocării;
+  achiziția resursei și publicarea sunt excluse. Expandarea păstrează timpul execuției.
+- Sumele fazelor/scenariilor nu sunt wall-clock al suitei; zero măsurat rămâne valid.
+  Fixture-urile de clasă reușite nu sunt distribuite între scenarii.
 - `AssertionAuditRun` închide sesiunea comună la owner; fiecare invocare
   închide numai scenariul său. Două suite au owneri separați chiar în același launcher.
 - [Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră) deține delegarea,
   colectarea pe invocare și reconcilierea rezultatului; consumerul injectează redacția și configurația.
 - [Reporting](../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor) deține
   nodul, lifecycle-ul publicării și randările Extent/fallback.
+- Mesajul final urmează închiderea ownerului comun; schimbarea preview-ului
+  aserțiunilor nu modifică numărul artifactelor sau politica opt-in a căii.
 - Metodele moștenite, parametrizarea și lifecycle-ul folosesc aceeași politică;
   scope-ul nu se propagă implicit pe alte thread-uri.
 
 </details>
+
+`ShopComponentPhaseTimingComponentTest` verifică legătura reală cu Kit/Reporting,
+callback-urile moștenite, titlurile parametrizate identice și raportul unic,
+atât prin suită, cât și la rularea unei metode individuale.
 
 În component suite, `ShopApiEndpointMatrixTest` verifică invariants comune de
 transport; `ShopApiContractVariantTest` și `ShopApiScreenFlowTest` adaugă

@@ -53,8 +53,11 @@ class AtfReportEvidenceCssTest {
                 () -> assertTrue(theme.contains("white-space:normal!important;overflow:visible!important;")),
                 () -> assertTrue(theme.contains(".atf-ui-action-table td:nth-child(5){width:14%!important;white-space:normal!important;overflow-wrap:anywhere!important}")),
                 () -> assertTrue(theme.contains(".atf-ui-action-table td:nth-child(6){width:12%!important;white-space:normal!important;overflow-wrap:anywhere!important}")),
-                () -> assertTrue(theme.contains("body .atf-ui-action-table td:nth-child(6){width:17%!important;min-width:36px!important;white-space:normal!important;overflow-wrap:anywhere!important}")),
-                () -> assertTrue(theme.contains("body .atf-ui-action-table .atf-ui-action-result{max-width:100%!important;font-size:8px!important;line-height:1!important}")));
+                () -> assertTrue(theme.contains("@container atf-evidence (max-width:720px)"),
+                        "the evidence panel width governs stacked audit values"),
+                () -> assertTrue(theme.contains("font-size:var(--atf-font-table-cell-size,12.6px)!important"),
+                        "narrow panels retain the common readable body font"),
+                () -> assertFalse(theme.contains("body .atf-ui-action-table .atf-ui-action-result{max-width:100%!important;font-size:8px!important;line-height:1!important}")));
     }
 
     @Test
@@ -161,7 +164,7 @@ class AtfReportEvidenceCssTest {
                 () -> assertTrue(css.contains("details.step-detail.setup-evidence .atf-setup-evidence-table tr:last-child td{")),
                 () -> assertTrue(css.contains("details.step-detail.setup-evidence .atf-setup-evidence-table td:last-child{")),
                 () -> assertTrue(css.contains("border-top:0!important;border-bottom:0!important;padding:0!important;margin:0!important;height:auto!important")),
-                () -> assertTrue(css.contains("details.step-detail)>td{border:0!important;border-top:0!important;border-bottom:0!important;padding:0!important;margin:0!important}")),
+                () -> assertTrue(css.contains("details.step-detail)>td{border:0!important;padding:0!important;margin:0!important}")),
                 () -> assertTrue(css.contains("border-collapse:separate!important;border-spacing:0!important")),
                 () -> assertTrue(css.contains("border:0!important;border-radius:0!important;box-shadow:none!important;overflow:hidden!important;background:var(--atf-panel)!important")),
                 () -> assertTrue(css.contains("border:1px solid var(--atf-border)!important;border-bottom:0!important;border-radius:10px 10px 0 0!important")),

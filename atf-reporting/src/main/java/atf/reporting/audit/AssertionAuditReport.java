@@ -7,6 +7,7 @@ import atf.reporting.model.diagnostic.ReportPhaseDiagnostic;
 import atf.reporting.security.SensitiveDataRedactor;
 import java.util.List;
 import java.util.Objects;
+import atf.reporting.model.timing.ReportPhaseTiming;
 
 /** Phase-owned assertion publication; independent of JUnit, Test Kit and the chosen renderer. */
 public final class AssertionAuditReport implements AutoCloseable {
@@ -56,16 +57,23 @@ public final class AssertionAuditReport implements AutoCloseable {
     public String redactField(String name, String text) { return redactor.redactField(name, text); }
 
     public void phase(String name, List<AtfAssertion> assertions, AtfReportStatus status, String diagnostic) {
+        phase(name, assertions, status, diagnostic, null);
+    }
+
+    public void phase(String name, List<AtfAssertion> assertions, AtfReportStatus status, String diagnostic,
+                      ReportPhaseTiming timing) {
         executor.run(() -> {
             synchronized (session) {
                 requireOpen();
-                publishPhase(name, assertions, status, diagnostic);
+                publishPhase(name, assertions, status, diagnostic, timing);
             }
         });
     }
 
-    private void publishPhase(String name, List<AtfAssertion> assertions, AtfReportStatus status, String diagnostic) {
+    private void publishPhase(String name, List<AtfAssertion> assertions, AtfReportStatus status, String diagnostic,
+                              ReportPhaseTiming timing) {
         try (var phase = scenario.startPhase(name)) {
+            if (timing != null) phase.executionTiming(timing);
             phase.detail("Test method", identity.method());
             if (!assertions.isEmpty()) {
                 try (var step = phase.startAssertionStep("Component assertions")) {

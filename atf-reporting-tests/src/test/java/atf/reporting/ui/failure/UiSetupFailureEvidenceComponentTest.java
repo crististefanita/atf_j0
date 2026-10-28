@@ -60,6 +60,27 @@ class UiSetupFailureEvidenceComponentTest {
         assertTrue(html.contains("FAIL"), "the report keeps the actual failed outcome");
     }
 
+    @Test
+    void longNativeStackCannotHideTheFailedActionFromTheBoundedCause() throws Exception {
+        Path directory = Files.createTempDirectory("ui-failure-context-");
+        Path file;
+        try (var report = UiExtentReportSession.openConfigured(directory, "context.html", AtfConsoleSink.noOp())) {
+            file = report.reportPath();
+            var scenario = report.startScenario("ContextFixture", "fixture", "failed action", List.of("ui"));
+            var phase = scenario.startPhase("TEST BODY");
+            phase.failureEvidence("controlled failure", "#submit", List.of(
+                    new AtfUiActionRecord(1, "Click", "#submit", "result ready", "timeout", 20, AtfReportStatus.FAIL)),
+                    new IllegalStateException("native error\n" + "stack-noise-".repeat(150)), "");
+            phase.complete(AtfReportStatus.FAIL); scenario.complete(AtfReportStatus.FAIL);
+        }
+        String html = Files.readString(file);
+        assertTrue(html.contains("Click #1 -&gt; #submit; elapsed=20 ms; expected=result ready"));
+        assertTrue(html.contains("IllegalStateException: native error"), "original native message remains in a separate diagnostic");
+        assertTrue(html.contains("Primary exception"));
+        assertFalse(html.contains("stack-noise-".repeat(150)));
+        assertTrue(html.contains("ContextFixture"));
+    }
+
     private static final class TimeoutError extends RuntimeException {
         private TimeoutError(String message) { super(message); }
     }

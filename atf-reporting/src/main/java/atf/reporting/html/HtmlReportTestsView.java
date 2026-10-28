@@ -14,6 +14,8 @@ import atf.reporting.security.SensitiveDataRedactor;
 
 import java.util.List;
 import java.util.Objects;
+import atf.reporting.model.timing.ReportPhaseDurations;
+import atf.reporting.evidence.timing.ReportPhaseTimingMarkup;
 
 import static atf.reporting.html.HtmlReportMarkupSupport.escape;
 import static atf.reporting.html.HtmlReportMarkupSupport.phaseKey;
@@ -70,6 +72,8 @@ public final class HtmlReportTestsView {
         String label = escape(scenario.scenario())
                 + AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.SMALL,
                 escape(scenario.testClass()));
+        var duration = ReportPhaseDurations.scenario(scenario);
+        if (duration.isPresent()) label += ReportPhaseTimingMarkup.badge(duration.getAsLong(), "Sum of measured phase execution");
         return AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.A, label,
                 AtfReportHtmlVocabulary.classAttribute(
                         AtfReportHtmlVocabulary.CssClass.TEST_LINK.value(),
@@ -91,6 +95,9 @@ public final class HtmlReportTestsView {
                 .append(AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.H2,
                         escape(scenario.scenario())))
                 .append(status(scenario.status()))
+                .append(ReportPhaseDurations.scenario(scenario).isPresent()
+                        ? ReportPhaseTimingMarkup.badge(ReportPhaseDurations.scenario(scenario).getAsLong(),
+                                "Sum of measured phase execution") : "")
                 .append(AtfReportHtmlVocabulary.closeTag(AtfReportHtmlVocabulary.Tag.DIV));
         scenario.phases().forEach(phase -> html.append(ReportPhaseDiagnosticMarkup.render(
                 ReportPhaseDiagnostic.from(phase.name(), phase.details(), phase.status()), redactor)));
@@ -111,6 +118,7 @@ public final class HtmlReportTestsView {
                 .append(AtfReportHtmlVocabulary.openTag(AtfReportHtmlVocabulary.Tag.H3))
                 .append(escape(phase.name()))
                 .append(status(phase.status()))
+                .append(phase.timing().map(value -> ReportPhaseTimingMarkup.phase(value, phase.publicationMillis())).orElse(""))
                 .append(AtfReportHtmlVocabulary.closeTag(AtfReportHtmlVocabulary.Tag.H3));
         phase.children().forEach(child -> renderNode(html, child));
         html.append(AtfReportHtmlVocabulary.closeTag(AtfReportHtmlVocabulary.Tag.SECTION));

@@ -26,6 +26,7 @@ import atf.ui.playwright.UiScreenValidation;
 import atf.autoex.config.AutoExConfiguration;
 import atf.autoex.support.account.AutoExAccountLifecycle;
 import atf.autoex.runtime.navigation.AutoExReadOnlyNavigation;
+import atf.autoex.runtime.catalog.AutoExCatalogSearch;
 import atf.autoex.locator.AutoExRoutes;
 import atf.autoex.locator.AutoExSelectors;
 import atf.autoex.support.browser.AutoExPrivacyConsentHandler;
@@ -152,6 +153,12 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
     public void click(String selector, String expected) {
         prepareUiInteraction();
         actions.click(locator(selector), expected);
+    }
+
+    @Override public void submitSearch(String query, String expectedProduct) {
+        prepareUiInteraction();
+        new AutoExCatalogSearch(page(), actions, configuration.baseUrl())
+                .submit(query, expectedProduct);
     }
 
     public void clickFirst(String selector, String expected) {

@@ -7,6 +7,14 @@ import java.lang.reflect.Method;
 public interface ComponentAuditAdapter extends BeforeEachCallback, AfterEachCallback,
         ParameterResolver, InvocationInterceptor, LifecycleMethodExecutionExceptionHandler {
     ComponentAuditExtension auditExtension();
+    @Override default void interceptBeforeAllMethod(Invocation<Void> call, ReflectiveInvocationContext<Method> method,
+                                                   ExtensionContext context) throws Throwable {
+        auditExtension().interceptBeforeAllMethod(call, method, context);
+    }
+    @Override default void interceptAfterAllMethod(Invocation<Void> call, ReflectiveInvocationContext<Method> method,
+                                                  ExtensionContext context) throws Throwable {
+        auditExtension().interceptAfterAllMethod(call, method, context);
+    }
     @Override default void handleBeforeAllMethodExecutionException(ExtensionContext context, Throwable failure) throws Throwable {
         auditExtension().handleBeforeAllMethodExecutionException(context, failure);
     }

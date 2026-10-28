@@ -8,7 +8,7 @@ față de baza revizuirii. Secțiunile vizibile explică scopul, rolurile și re
 
 | Întrebarea cititorului | Unde găsește răspunsul |
 |---|---|
-| Ce comportament Reporting mai trebuie corectat? | [Feedback Reporting](feedback/ATF_Reporting_Feedback.md): cerință, lacună, criteriu și dovadă lipsă |
+| Ce comportament mai trebuie corectat? | [Registrul feedback-urilor](feedback/README.md): cerință, lacună, criteriu și dovadă lipsă |
 | Ce modificare de teste este încă în lucru? | blocurile `ACTIVE` din feedback-ul ownerului, indexate în [registrul feedback-urilor](feedback/README.md) |
 | Ce diferență verificată mai trebuie urmărită până la integrare? | [Controale tehnice verificate](#controale-tehnice-verificate): numai `VERIFIED` |
 | Cum verifică efectiv guvernanța? | [README ATF Tests](../atf-tests/README.md#guvernanța-schimbării-testelor): schemă, reguli executabile și CI |
@@ -1938,6 +1938,47 @@ testChanges:
       - atf-test-auto-ex/src/test/java/atf/autoex/tests/extension/AutoExRunFactory.java
       - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/reporting/AutoExReportPathComponentTest.java
       - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/reporting/AutoExE2eReportPathComponentTest.java
+  - id: REPORT-PREVIEW-LIVE-REVIEW-06
+    status: VERIFIED
+    base: e311d1d4305ba850876ae54faf1dbe0acec62bc0
+    expires: 2026-11-26
+    reason: Revizuiește explicit cele patru probe adăugate în live după snapshot; păstrează controlul lor original cu baza 3219 fără rebazare. Probele trec pe compoziția reconciliată, inclusiv 240/18, secret peste limită, redacție, Fails și verdict integral; nu schimbă oracole, selecții sau guard-uri.
+    proof: mvn -pl atf-reporting-tests,atf-tests -am "-Dtest=ReportingPreviewBudgetTest,LegacyPreviewBudgetComponentTest,UiFailureCorrelationComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=e311d1d4305ba850876ae54faf1dbe0acec62bc0" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/evidence/markup/ReportingPreviewBudgetTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/preview/LegacyPreviewBudgetComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/preview/LegacyPreviewBudgetProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/preview/ReportPreviewLocators.java
+  - id: BOUNDED-PREVIEW-SEARCH-01
+    status: VERIFIED
+    base: e311d1d4305ba850876ae54faf1dbe0acec62bc0
+    expires: 2026-11-26
+    reason: Adaugă probe pentru bugetul total al preview-ului, redacție înaintea tăierii, context FAIL și click unic cu postcondiție; adaptează intenționat portul de catalog al testului existent, păstrând ordinea business și oracolele. Agregarea componentelor existentă este verificată fără a modifica guvernanța sau selecțiile canonice. Proba de setup cere contextul capturat cu secvență, țintă, timp și așteptare; mesajul nativ rămâne într-un diagnostic INFO separat, cu aceleași verificări de redactare și fără dump brut.
+    proof: mvn -pl atf-test-auto-ex,atf-test-practice-shop,atf-ui,atf-reporting-tests,atf-tests -am "-Dtest=AssertionPreviewBudgetTest,BoundedFailureEvidenceComponentTest,UiSetupFailureEvidenceComponentTest,PlaywrightClickPostconditionComponentTest,AutoExSearchReadinessComponentTest,AutoExPagePortsComponentTest,AutoExComponentReportScopeComponentTest,ShopComponentReportScopeComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=e311d1d4305ba850876ae54faf1dbe0acec62bc0" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/markup/AssertionPreviewBudgetTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/preview/BoundedFailureEvidenceComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/failure/UiSetupFailureEvidenceComponentTest.java
+      - atf-ui/src/test/java/atf/ui/playwright/PlaywrightClickPostconditionComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/pages/AutoExSearchReadinessComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/pages/AutoExPagePortsComponentTest.java
+  - id: TIMING-LIVE-REVIEW-07
+    status: VERIFIED
+    base: e311d1d4305ba850876ae54faf1dbe0acec62bc0
+    expires: 2026-11-26
+    reason: Revizuiește exact delta live a timing-ului și adaptarea probelor de markup la proiecția comună. Păstrează timpul execuției distinct de publicare, cazurile zero/necunoscut, invocările izolate, totalurile și fontul lizibil al valorilor; verifică probele browser, consumerii și cele trei contracte existente, fără modificarea guard-urilor.
+    proof: mvn -pl atf-test-kit,atf-test-auto-ex,atf-test-practice-shop,atf-reporting-tests,atf-tests -am "-Dtest=InvocationTimerTest,ComponentPhaseTimingExtensionComponentTest,ReportPhaseTimingTest,ReportPhaseTimingComponentTest,AutoExComponentPhaseTimingComponentTest,ShopComponentPhaseTimingComponentTest,ExtentReportSessionContractTest,ExtentReportRuntimeScriptTest,AtfReportEvidenceCssTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=e311d1d4305ba850876ae54faf1dbe0acec62bc0" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/extent/session/ExtentReportSessionContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/runtime/core/ExtentReportRuntimeScriptTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/theme/evidence/AtfReportEvidenceCssTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/timing/ReportPhaseTimingTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/timing/ReportPhaseTimingComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/timing/ReportPhaseTimingLocators.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/reporting/AutoExComponentPhaseTimingComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/extension/AutoExExtentTestExtension.java
+      - atf-test-kit/src/test/java/atf/testkit/assertions/ComponentPhaseTimingExtensionComponentTest.java
+      - atf-test-kit/src/test/java/atf/testkit/timing/InvocationTimerTest.java
 ```
 
 </details>

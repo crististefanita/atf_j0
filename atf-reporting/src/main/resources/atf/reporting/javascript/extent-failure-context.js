@@ -132,6 +132,7 @@ function failureContext(item) {
 function failureContextFor(item, anchor) {
   var ctx = failureContext(item);
   if (!anchor) return ctx;
+  ctx.previewLimit = +(anchor.closest('[data-atf-preview-limit]') || anchor).getAttribute('data-atf-preview-limit') || 240;
   var cells = Array.from(anchor.cells || [], cell => text(cell, '')),
     label = cells[0] || 'Assertion',
     expected = cells[1] || '',
@@ -184,15 +185,11 @@ function failureContextFor(item, anchor) {
   }
   ctx.assertion =
     label + ' → ' + statusDisplay(expected) + ' → ' + statusDisplay(actual);
-  if (ctx.evidenceOwner === 'api' && ctx.message && ctx.message.indexOf('PRIMARY:') >= 0)
-    ctx.message = label + ' expected ' + statusDisplay(expected) + ', actual ' +
-      statusDisplay(actual) + ' | Scenario diagnostics: ' + ctx.message;
-  if (!ctx.message || ctx.message.indexOf('PRIMARY:') < 0)
-    ctx.message =
-      label +
-      ' expected ' +
-      statusDisplay(expected) +
-      ', actual ' +
-      statusDisplay(actual);
+  var message = label + ' expected ' + statusDisplay(expected) + ', actual ' + statusDisplay(actual),
+    primary = ctx.message && ctx.message.indexOf('PRIMARY:') >= 0;
+  if (ctx.evidenceOwner === 'api' && primary)
+    ctx.message = message + ' | Scenario diagnostics: ' + ctx.message;
+  if (ctx.ui || !primary)
+    ctx.message = ctx.ui && label === 'Failure cause' ? statusDisplay(actual) : message;
   return ctx;
 }

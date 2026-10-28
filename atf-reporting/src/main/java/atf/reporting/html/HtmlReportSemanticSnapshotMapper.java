@@ -19,7 +19,8 @@ final class HtmlReportSemanticSnapshotMapper {
                                         phase.children.stream()
                                                 .map(HtmlReportSemanticSnapshotMapper::mapNode)
                                                 .toList(),
-                                        phase.status)).toList(), scenario.status)).toList());
+                                        phase.status, java.util.Optional.ofNullable(phase.timing),
+                                        phase.publicationMillis)).toList(), scenario.status)).toList());
     }
 
     private static ReportExecutionModel.Node mapNode(HtmlReportSemanticDocument.NodeModel node) {

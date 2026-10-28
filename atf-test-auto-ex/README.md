@@ -781,6 +781,7 @@ Notificarea locației este independentă de generarea HTML.
 |---|---|
 | Metodă componentă | comparații evaluate prin `AuditedAssertions` sau `RecordedAssertions`, cu operator/nume, sursă unde există, expected, actual și rezultat |
 | Lifecycle JUnit | `Component assertions` în faza în care s-au evaluat verificările: `SETUP`, `TEST BODY` ori `TEARDOWN` |
+| Timing componentă | badge-ul fazei arată suma callback-urilor executate, măsurată monoton; tooltip-ul separă publicarea snapshot-ului; totalurile nu dublează aserțiunile |
 | Business API și E2E | exchange-uri și validări API, respectiv evidence de browser, în nodurile lor proprii |
 
 - Pasul standard este închis inițial; redactarea precede trunchierea, iar
@@ -793,7 +794,7 @@ Notificarea locației este independentă de generarea HTML.
 ```mermaid
 flowchart LR
     Test[Test componentă AutoEx] -->|verifică integral| Kit[Audit Kit]
-    Kit -->|rânduri sigure pe faze| Adapter[Adaptor AutoEx]
+    Kit -->|rânduri sigure + timing pe faze| Adapter[Adaptor AutoEx]
     Adapter -->|mapează| Report[AssertionAuditReport]
     Scope["Owner class / suite"] -->|deține| Run[AssertionAuditRun]
     Run -->|împrumută sesiunea| Report
@@ -804,6 +805,10 @@ flowchart LR
 <summary><strong>Legendă — auditul componentelor AutoEx</strong></summary>
 
 - Muchiile sunt flux de date și ownership, nu dependențe Maven: Kit nu importă Reporting.
+- Durata fazei include callback-urile moștenite și parametrizate ale invocării;
+  achiziția resursei și publicarea sunt excluse. Expandarea păstrează timpul execuției.
+- Sumele fazelor/scenariilor nu sunt wall-clock al suitei; zero măsurat rămâne valid.
+  Fixture-urile de clasă reușite nu sunt distribuite între scenarii.
 - `AssertionAuditRun` închide sesiunea comună la owner; fiecare invocare
   închide numai scenariul său. Două suite au owneri separați chiar în același launcher.
 - [Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră) deține delegarea,
@@ -812,6 +817,47 @@ flowchart LR
   nodul, lifecycle-ul publicării și randările Extent/fallback.
 - Metodele moștenite, parametrizarea și lifecycle-ul folosesc aceeași politică;
   scope-ul nu se propagă implicit pe alte thread-uri.
+
+</details>
+
+`AutoExComponentPhaseTimingComponentTest` verifică legătura reală cu Kit/Reporting,
+callback-urile moștenite, titlurile parametrizate identice și raportul unic,
+atât prin suită, cât și la rularea unei metode individuale.
+
+### Confirmarea căutării în catalog
+
+`ProductsPage` cere activarea prin `AutoExCatalogPagePort`; portul nu expune
+browserul sau jurnalul API. Runtime-ul main compune `AutoExCatalogSearch`.
+
+- Căutarea face un singur click nativ și confirmă URL-ul cu query decodat,
+  plus primul produs configurat vizibil, în bugetul comun al acțiunii.
+- Catalogul fără query-ul cerut sau un prim produs greșit nu confirmă căutarea.
+- Eșecul postcondiției păstrează FAIL; nu reia căutarea, coșul, contul ori plata.
+- Confirmarea folosește commit-ul URL-ului și polling-ul nativ al primului
+  produs exact și vizibil. Înlocuirea documentului nu reexecută pointerul.
+- Diagnosticul păstrează gate-ul încă așteptat și ultimul URL confirmat în
+  buget; ieșirea de eroare nu reinteroghează pagina pentru a schimba verdictul.
+- `AutoExSearchReadinessComponentTest` probează documente înlocuite prin HTTP,
+  prima și a doua căutare, produs întârziat, query diferit și produs greșit;
+  probele UI neutre rămân la `atf-ui`.
+
+Aceeași compoziție este folosită în UI și UI+API. Inspectorul rămâne pasiv;
+postcondiția DOM nu inventează un răspuns HTTP și nu rescrie un FAIL deja publicat.
+
+```mermaid
+flowchart LR
+    Page["ProductsPage"] -->|cere prin port| Port["AutoExCatalogPagePort"]
+    Port -->|deleagă în main| Search["AutoExCatalogSearch"]
+    Search -->|activează o dată| Click["Pointer strict"]
+    Click -->|confirmă în bugetul rămas| Ready["URL + query + produs vizibil"]
+```
+
+<details>
+<summary><strong>Legendă — responsabilitățile căutării</strong></summary>
+
+Page object-ul exprimă intenția, runtime-ul deține browserul și semantica
+produsului, iar UI execută acțiunea instrumentată. Profilul UI+API observă
+aceeași operație; nu implementează altă căutare.
 
 </details>
 

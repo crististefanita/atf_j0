@@ -72,6 +72,7 @@ Fiecare clasă executabilă declară exact un nivel:
 | `atf.testkit.lifecycle` | `TestRunInitialization`, `CloseOnceResource`, `ArmedCleanup`, `FailureAwareCleanup`, `FailureEvidenceCleanup`, `AtfE2eActivationPolicy` | achiziție/rollback, cleanup și activare E2E neutre; fără API UI/Reporting |
 | `atf.testkit.scope` | `TestRunScope`, `ScopedTestValue<T>`, `ScopedTestResource<T>` | ownership explicit în Store-ul JUnit, fără cache static sau resurse UI |
 | `atf.testkit.assertions` | fațadă/recorder, display injectat și protocol componentă | comparații JUnit cu dovadă neutră pe faze și invocări; fără renderer sau reguli business |
+| `atf.testkit.timing` | `InvocationTimer` | intervale monotone per owner, snapshot imutabil și acumulare fără renderer sau JUnit |
 
 `atf.testkit.lifecycle` este un pachet al modulului existent
 `atf-test-kit`, nu un modul nou. Nu introduce dependențe către UI sau Reporting.
@@ -130,6 +131,40 @@ Validation, Core sau Playwright și nu alege pași ori capturi.
 
 `AssertionProjectionTest` și `ComponentAuditExtensionComponentTest` probează aceste
 limite; Extent/fallback sunt verificate în Reporting Tests.
+
+### Timpul execuției pe faze componente
+
+`InvocationTimer`, în `src/main/java/atf/testkit/timing`, măsoară intervale
+monotone în nanosecunde. `ComponentAuditExtension` înconjoară fiecare callback
+JUnit executat; `PhaseResult.timing()` transportă snapshot-ul imutabil și numărul
+intervalelor. Mai multe metode moștenite din aceeași fază se cumulează fără golurile dintre ele.
+
+```mermaid
+flowchart LR
+    Invoke["Callback JUnit"] -->|măsoară în finally| Timer["Timer per fază / invocare"]
+    Timer -->|îngheață| Snapshot["Durată + număr intervale"]
+    Snapshot -->|transportă neutru| Result["PhaseResult"]
+    Result -->|după execuție| Publisher["Publicare consumer"]
+```
+
+<details>
+<summary><strong>Legendă — interval măsurat și limite</strong></summary>
+
+- Sunt măsurate `@BeforeEach`, metoda simplă/template și `@AfterEach`, inclusiv
+  ieșirile FAIL/SKIP; un callback neexecutat nu produce durată.
+- Achiziția resursei, crearea instanței, rezolvarea parametrilor și
+  publicarea/închiderea raportului sunt în afara intervalului.
+- Intervalul înconjoară `Invocation.proceed()`; include eventualii interceptori
+  interiori. Callback-urile de extensie din afara acestui apel sunt excluse.
+- `@BeforeAll` / `@AfterAll` alimentează timing-ul diagnosticului când eșuează;
+  fixture-urile de clasă reușite nu sunt distribuite artificial între scenarii.
+- Zero măsurat este valid; absența timing-ului rămâne necunoscută.
+  Ceasul injectabil folosește nanosecunde și nu este ceas calendaristic.
+- `InvocationTimerTest` și `ComponentPhaseTimingExtensionComponentTest` probează
+  acumularea, izolarea, erorile de lifecycle și excluderea costurilor publicării.
+  Kit nu cunoaște Extent și nu modifică plafonul valorilor sau verdictul JUnit.
+
+</details>
 
 <details>
 <summary><strong>Limita invocării JUnit</strong></summary>

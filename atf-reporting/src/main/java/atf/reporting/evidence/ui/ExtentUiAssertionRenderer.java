@@ -55,7 +55,10 @@ public final class ExtentUiAssertionRenderer {
                                 AtfReportHtmlVocabulary.Attribute.EVIDENCE_OWNER, owner.attributeValue()),
                         AtfReportHtmlVocabulary.attribute(
                                 AtfReportHtmlVocabulary.Attribute.EVIDENCE_STATUS,
-                                ExtentUiEvidenceMarkup.statusKey(failed)))
+                                ExtentUiEvidenceMarkup.statusKey(failed)),
+                        AtfReportHtmlVocabulary.attribute(
+                                AtfReportHtmlVocabulary.Attribute.ASSERTION_PREVIEW_LIMIT,
+                                Integer.toString(settings.assertionMaxDisplayCharacters())))
                 + markup + close(AtfReportHtmlVocabulary.Tag.DIV), failed);
     }
 }

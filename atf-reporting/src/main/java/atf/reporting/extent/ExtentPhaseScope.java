@@ -22,6 +22,8 @@ final class ExtentPhaseScope implements AtfReportPorts.Phase {
     private final List<ReportField> details = new ArrayList<>();
     private final AtfReportSemanticRecorder.PhaseHandle semantic;
     private boolean closed;
+    private atf.reporting.model.timing.ReportPhaseTiming timing;
+    private final long publicationStarted = System.nanoTime();
 
     ExtentPhaseScope(ExtentReportTree tree, ExtentScenarioScope scenario, ExtentTest phase,
                      String phaseName, AtfReportSemanticRecorder.PhaseHandle semantic) {
@@ -48,6 +50,13 @@ final class ExtentPhaseScope implements AtfReportPorts.Phase {
                 stepTitle, semantic.startAssertionStep(stepTitle));
     }
 
+    @Override public void executionTiming(atf.reporting.model.timing.ReportPhaseTiming value) {
+        ensurePhaseOpen();
+        if (timing != null) throw new IllegalStateException("Phase timing is already supplied");
+        timing = java.util.Objects.requireNonNull(value, "timing");
+        semantic.executionTiming(value);
+    }
+
     @Override public void detail(String name, String value) {
         ensurePhaseOpen();
         String normalizedName = name == null || name.isBlank() ? "DETAIL" : name;
@@ -61,6 +70,10 @@ final class ExtentPhaseScope implements AtfReportPorts.Phase {
         ensurePhaseOpen();
         var effective = AtfReportStatus.worst(statuses.aggregate(), status);
         scenario.renderDiagnostics(ReportPhaseDiagnostic.from(phaseName, details, effective));
+        if (timing != null) {
+            long publicationMillis = Math.max(0L, (System.nanoTime() - publicationStarted) / 1_000_000L);
+            phase.info(atf.reporting.evidence.timing.ReportPhaseTimingMarkup.metadata(timing, publicationMillis));
+        }
         tree.complete(phase, effective);
         tree.markEnded(phase);
         scenario.record(effective);

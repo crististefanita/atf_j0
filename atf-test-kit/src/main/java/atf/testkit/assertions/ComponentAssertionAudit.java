@@ -5,29 +5,57 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.LongSupplier;
+import atf.testkit.timing.InvocationTimer;
 
 /** Renderer-independent result policy and evaluated checks for one JUnit invocation. */
 public final class ComponentAssertionAudit {
     public enum Phase { SETUP, TEST_BODY, TEARDOWN }
     public enum Outcome { PASS, FAIL, ABORTED }
     public record PhaseResult(Phase phase, List<RecordedAssertions.Check> checks,
-                              Outcome outcome, String diagnostic) { }
+                              Outcome outcome, String diagnostic, Optional<InvocationTimer.Snapshot> timing) {
+        public PhaseResult(Phase phase, List<RecordedAssertions.Check> checks, Outcome outcome, String diagnostic) {
+            this(phase, checks, outcome, diagnostic, Optional.empty());
+        }
+        public PhaseResult {
+            checks = List.copyOf(checks);
+            timing = Objects.requireNonNull(timing, "timing");
+        }
+    }
     public record Result(List<PhaseResult> phases, Outcome outcome, Throwable failure,
                          boolean propagate) { }
 
     private final AssertionValueDisplay display;
+    private final LongSupplier ticks;
+    private final EnumMap<Phase, InvocationTimer> timers = new EnumMap<>(Phase.class);
     private final EnumMap<Phase, RecordedAssertions> recorders = new EnumMap<>(Phase.class);
     private final EnumMap<Phase, Throwable> failures = new EnumMap<>(Phase.class);
     private final java.util.Set<Phase> started = java.util.EnumSet.noneOf(Phase.class);
 
     public ComponentAssertionAudit(AssertionValueDisplay display) {
+        this(display, System::nanoTime);
+    }
+
+    public ComponentAssertionAudit(AssertionValueDisplay display, LongSupplier ticks) {
         this.display = Objects.requireNonNull(display, "display");
+        this.ticks = Objects.requireNonNull(ticks, "ticks");
         for (Phase phase : Phase.values()) recorders.put(phase, new RecordedAssertions(display));
     }
 
     public RecordedAssertions recorder(Phase phase) { return recorders.get(Objects.requireNonNull(phase)); }
     public void start(Phase phase) { started.add(Objects.requireNonNull(phase)); }
     public void failed(Phase phase, Throwable failure) { failures.putIfAbsent(phase, failure); }
+
+    public InvocationTimer.Interval measure(Phase phase) {
+        start(phase);
+        return timer(phase).start();
+    }
+    public void timing(Phase phase, InvocationTimer.Snapshot timing) {
+        start(phase);
+        timer(phase).include(timing);
+    }
+    private InvocationTimer timer(Phase phase) { return timers.computeIfAbsent(phase, ignored -> new InvocationTimer(ticks)); }
 
     public Result finish(Throwable executionFailure) {
         Throwable unconsumed = recorders.values().stream().map(RecordedAssertions::failure)
@@ -60,7 +88,8 @@ public final class ComponentAssertionAudit {
                     ? Outcome.FAIL : outcome(phaseFailure);
             String diagnostic = phaseFailure == null ? "" : display.display(null,
                     (AssertionValueDisplay.Value) phaseFailure::toString);
-            phases.add(new PhaseResult(phase, recorder.checks(), outcome, diagnostic));
+            phases.add(new PhaseResult(phase, recorder.checks(), outcome, diagnostic,
+                    timers.containsKey(phase) ? timers.get(phase).snapshot() : Optional.empty()));
         }
         return new Result(List.copyOf(phases), outcome(failure), failure, propagate);
     }

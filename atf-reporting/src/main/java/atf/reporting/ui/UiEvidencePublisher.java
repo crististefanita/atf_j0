@@ -13,8 +13,7 @@ import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
 
 import atf.reporting.model.ReportScreenshot;
 import atf.reporting.ui.model.AtfUiActionRecord;
-import atf.reporting.ui.failure.UiFailureScreenshotState;
-import atf.reporting.ui.model.AtfUiEvidenceSource;
+import atf.reporting.ui.failure.UiFailureEvidencePublisher;
 import atf.reporting.ui.validation.UiApiValidationEvidence;
 import atf.reporting.markup.AtfReportEvidenceKeys;
 
@@ -520,41 +519,8 @@ public final class UiEvidencePublisher {
 
     void publishFailure(String title, String target, Collection<AtfUiActionRecord> actions,
                         Throwable failure, String base64Png, boolean reportedCheckpoint) {
-        String safeTitle = !hasText(title) ? "UI audit failure" : title.trim();
-        String cause = failureCause(failure, actions);
-        var request = phase.startRequest(AtfGherkinKeyword.THEN.text() + " " + safeTitle, "", "");
-        try {
-            request.detail(AtfReportEvidenceKeys.REQUEST_ACTION, safeTitle);
-            detailTarget(request, target);
-            request.detail(AtfReportEvidenceKeys.EVIDENCE_TYPE, AtfReportEvidenceKeys.UI_FAILURE);
-            var screenshotState = UiFailureScreenshotState.resolve(screenshotPolicy, base64Png);
-            String screenshotDescription = screenshotState.description(screenshotPolicy);
-            request.detail(AtfReportEvidenceKeys.EVIDENCE_POLICY, screenshotDescription);
-            var validation = request.startValidation("Failure evidence");
-            publishActions(validation, actions);
-            int sequence = actions == null ? 1
-                    : Math.addExact(actions.stream().mapToInt(AtfUiActionRecord::sequence).max().orElse(0), 1);
-            validation.uiActions(List.of(new AtfUiActionRecord(sequence, "Screenshot",
-                    "current page", "capture follows configured failure policy",
-                    screenshotDescription, 0, AtfReportStatus.INFO, AtfUiEvidenceSource.OBSERVE)));
-            if (screenshotState == UiFailureScreenshotState.CAPTURED) {
-                requireTargetForScreenshot(target);
-                validation.screenshot("UI failure screenshot", base64Png);
-            }
-            if (reportedCheckpoint) {
-                validation.uiActions(List.of(new AtfUiActionRecord(sequence + 1,
-                        "Propagated checkpoint failure", "reported UI assertion",
-                        "original failure remains in Fails", cause, 0,
-                        AtfReportStatus.INFO, AtfUiEvidenceSource.OBSERVE)));
-            } else {
-                validation.assertions(List.of(new AtfAssertion(
-                        "Failure cause", "no failure", cause, false)));
-            }
-            validation.completeFailure(AtfReportStatus.FAIL);
-            request.complete(AtfReportStatus.FAIL);
-        } finally {
-            request.close();
-        }
+        new UiFailureEvidencePublisher(phase, screenshotPolicy, detailsMode)
+                .publish(title, target, actions, failure, base64Png, reportedCheckpoint);
     }
 
     private void publishActions(AtfReportPorts.Validation validation,
@@ -592,26 +558,6 @@ public final class UiEvidencePublisher {
 
     private static void detailTarget(AtfReportPorts.Request request, String target) {
         if (hasText(target)) request.detail(AtfReportEvidenceKeys.REQUEST_TARGET, target);
-    }
-
-    private static String failureCause(Throwable failure, Collection<AtfUiActionRecord> actions) {
-        if (failure != null) {
-            String message = failure.getMessage();
-            return failure.getClass().getSimpleName()
-                    + (hasText(message) ? ": " + message : "");
-        }
-        if (actions != null) {
-            return actions.stream()
-                    .filter(action -> action != null && action.status() == AtfReportStatus.FAIL)
-                    .findFirst()
-                    .map(action -> "No exception supplied; failed UI action: "
-                            + action.operation() + " -> " + action.target()
-                            + (hasText(action.observed()) ? "; observed=" + action.observed() : ""))
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            "UI failure evidence requires a Throwable or a failed UI action"));
-        }
-        throw new IllegalArgumentException(
-                "UI failure evidence requires a Throwable or a failed UI action");
     }
 
     private static String stepTitle(String keyword, String title) {

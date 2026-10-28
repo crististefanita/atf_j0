@@ -28,6 +28,10 @@ public final class AtfReportPorts {
         boolean hasWarnings(); @Override void close();
     }
     public interface Phase extends AutoCloseable {
+        /** Execution measured by the caller, independently of renderer publication. */
+        default void executionTiming(atf.reporting.model.timing.ReportPhaseTiming timing) {
+            throw new UnsupportedOperationException("Execution timing is not supported");
+        }
         Request startRequest(String title, String method, String path);
         /** A non-transport assertion group owned directly by this test phase. */
         default AssertionStep startAssertionStep(String title) {

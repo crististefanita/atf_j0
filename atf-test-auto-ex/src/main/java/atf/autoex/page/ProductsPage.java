@@ -1,21 +1,23 @@
 package atf.autoex.page;
 
 import atf.autoex.locator.AutoExSelectors;
-import atf.autoex.ui.AutoExUiActions;
+import atf.autoex.ui.AutoExCatalogPagePort;
 import java.util.Objects;
 
 /** Product search and catalog selection behavior. */
 public final class ProductsPage extends AutoExPage {
     private final String expectedProductName;
+    private final AutoExCatalogPagePort catalog;
 
-    public ProductsPage(AutoExUiActions ui, String expectedProductName) {
+    public ProductsPage(AutoExCatalogPagePort ui, String expectedProductName) {
         super(ui);
+        catalog = ui;
         this.expectedProductName = Objects.requireNonNull(expectedProductName, "expectedProductName");
     }
 
     public void search(String query) {
         fill(AutoExSelectors.SEARCH_INPUT, query, "search query is entered");
-        click(AutoExSelectors.SEARCH_BUTTON, "catalog search is submitted");
+        catalog.submitSearch(query, expectedProductName);
     }
 
     public String firstProductName() {

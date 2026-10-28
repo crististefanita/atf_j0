@@ -42,7 +42,10 @@ public final class ExtentReportNodeSupport {
     public static String display(String value, ReportingSettings settings) {
         String safe = value == null ? "" : value;
         int limit = settings.assertionMaxDisplayCharacters();
-        return truncate(safe, limit);
+        if (safe.length() <= limit) return safe;
+        int end = limit - 1; // The ellipsis belongs to the configured value budget.
+        if (end > 0 && Character.isHighSurrogate(safe.charAt(end - 1))) end--;
+        return safe.substring(0, end) + "…";
     }
 
     public static String displayBody(String value, ReportingSettings settings) {

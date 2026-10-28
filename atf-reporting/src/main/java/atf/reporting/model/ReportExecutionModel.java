@@ -94,8 +94,14 @@ public record ReportExecutionModel(List<Scenario> scenarios) {
     }
 
     public record Phase(String name, List<ReportField> details,
-                        List<Node> children, AtfReportStatus status) {
+                        List<Node> children, AtfReportStatus status,
+                        java.util.Optional<atf.reporting.model.timing.ReportPhaseTiming> timing, long publicationMillis) {
+        public Phase(String name, List<ReportField> details, List<Node> children, AtfReportStatus status) {
+            this(name, details, children, status, java.util.Optional.empty(), 0L);
+        }
         public Phase {
+            timing = Objects.requireNonNull(timing, "timing");
+            if (publicationMillis < 0) throw new IllegalArgumentException("Negative publication duration");
             name = name == null ? "" : name;
             details = List.copyOf(Objects.requireNonNull(details, "details"));
             children = List.copyOf(Objects.requireNonNull(children, "children"));

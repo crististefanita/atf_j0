@@ -21,6 +21,7 @@ public final class HtmlReportPhaseScope implements AtfReportPorts.Phase {
     private final long startedAt = System.nanoTime();
     private final ReportStatusAggregator childStatuses = new ReportStatusAggregator();
     private boolean closed;
+    private atf.reporting.model.timing.ReportPhaseTiming timing;
 
     public HtmlReportPhaseScope(HtmlReportSemanticDocument.PhaseModel model,
                                 String consoleName,
@@ -58,8 +59,18 @@ public final class HtmlReportPhaseScope implements AtfReportPorts.Phase {
         semantic.detail(name);
     }
 
+    @Override public void executionTiming(atf.reporting.model.timing.ReportPhaseTiming value) {
+        ensureOpen();
+        if (timing != null) throw new IllegalStateException("Phase timing is already supplied");
+        timing = java.util.Objects.requireNonNull(value, "timing");
+        model.executionTiming(value);
+        semantic.executionTiming(value);
+    }
+
     @Override
     public void complete(AtfReportStatus status) {
+        ensureOpen();
+        if (timing != null) model.publicationMillis(HtmlReportScopeTiming.elapsedMillis(startedAt));
         AtfReportStatus effective = AtfReportStatus.worst(childStatuses.aggregate(), status);
         model.complete(effective);
         semantic.complete(effective);

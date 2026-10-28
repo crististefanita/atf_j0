@@ -1,3 +1,5 @@
+/* Typed timing metadata is projected into its phase, never a public event row. */
+tr.event-row:has([data-atf-execution-duration-ms]) { display: none !important; }
 .step-detail > summary {
   box-sizing: border-box !important;
   list-style: none !important;

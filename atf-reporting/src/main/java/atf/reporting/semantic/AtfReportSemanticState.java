@@ -103,6 +103,12 @@ final class AtfReportSemanticState {
     }
 
     static final class PhaseState {
+        private java.util.Optional<atf.reporting.model.timing.ReportPhaseTiming> timing = java.util.Optional.empty();
+        void executionTiming(atf.reporting.model.timing.ReportPhaseTiming value) {
+            ensureOpen("phase");
+            if (timing.isPresent()) throw new IllegalStateException("Phase timing is already supplied");
+            timing = java.util.Optional.of(java.util.Objects.requireNonNull(value, "timing"));
+        }
         private final String name;
         private final List<NodeState> nodes = new ArrayList<>();
         private final List<String> detailNames = new ArrayList<>();
@@ -151,7 +157,7 @@ final class AtfReportSemanticState {
 
         private AtfReportSemanticSnapshot.PhaseSnapshot snapshot() {
             return new AtfReportSemanticSnapshot.PhaseSnapshot(name,
-                    nodes.stream().map(NodeState::snapshot).toList(), detailNames, status);
+                    nodes.stream().map(NodeState::snapshot).toList(), detailNames, status, timing);
         }
     }
 

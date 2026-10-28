@@ -55,7 +55,8 @@ public final class AutoExExtentTestExtension implements ComponentAuditAdapter {
             @Override public void publish(ComponentAssertionAudit.Result result) {
                 for (var phase : result.phases()) report.phase(phase.phase().name().replace('_', ' '),
                         phase.checks().stream().map(check -> new AtfAssertion(check.name(), check.expected(),
-                                check.actual(), check.passed())).toList(), status(phase.outcome()), phase.diagnostic());
+                                check.actual(), check.passed())).toList(), status(phase.outcome()), phase.diagnostic(), phase.timing().map(value -> new atf.reporting.model.timing.ReportPhaseTiming(
+                                value.elapsed(), value.intervals())).orElse(null));
                 report.complete(status(result.outcome()));
             }
             @Override public void close() { report.close(); }

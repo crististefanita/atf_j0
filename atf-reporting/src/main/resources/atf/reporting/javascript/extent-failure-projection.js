@@ -1,3 +1,10 @@
+function failureIndexField(label, value, extra, limit) {
+  value = String(value || '');
+  if (limit && value.length > limit) value = value.slice(0, limit - 1) + '…';
+  return '<div class="atf-failure-index-row' + (extra ? ' ' + extra : '') +
+    '"><span class="atf-failure-label">' + esc(label) + '</span><span class="atf-failure-value">' +
+    esc(value) + '</span></div>';
+}
 function failureIndexMarkup(name, ctx, id, scenarioIndex, ordinal) {
   var safeId = esc(id),
     safeScenario = esc(scenarioIndex),
@@ -14,35 +21,15 @@ function failureIndexMarkup(name, ctx, id, scenarioIndex, ordinal) {
     '"><h4 class="atf-failure-index-title">' +
     esc(name) +
     '</h4>' +
-    '<div class="atf-failure-index-row"><span class="atf-failure-label">TEST</span><span class="atf-failure-value">' +
-    esc(ctx.owner || 'API tests') +
-    '</span></div>' +
-    '<div class="atf-failure-index-row"><span class="atf-failure-label">PHASE</span><span class="atf-failure-value">' +
-    esc(ctx.phase) +
-    '</span></div>' +
-    (ctx.checkpoint
-      ? '<div class="atf-failure-index-row"><span class="atf-failure-label">CHECKPOINT</span><span class="atf-failure-value">' +
-        esc(ctx.checkpoint) + '</span></div>'
-      : '') +
-    '<div class="atf-failure-index-row"><span class="atf-failure-label">' +
-    (stepEvidence ? 'STEP' : 'REQUEST') +
-    '</span><span class="atf-failure-value">' +
-    esc(stepEvidence ? ctx.step : ctx.request) +
-    '</span></div>' +
-    (stepEvidence
-      ? ''
-      : '<div class="atf-failure-index-row"><span class="atf-failure-label">DURATION</span><span class="atf-failure-value">' +
-        esc(ctx.duration || 'No response duration recorded') +
-        '</span></div>') +
-    '<div class="atf-failure-index-row"><span class="atf-failure-label">VALIDATION</span><span class="atf-failure-value">' +
-    esc(ctx.validation) +
-    '</span></div>' +
-    '<div class="atf-failure-index-row"><span class="atf-failure-label">ASSERTION</span><span class="atf-failure-value">' +
-    esc(ctx.assertion) +
-    '</span></div>' +
-    '<div class="atf-failure-index-row atf-failure-index-cause"><span class="atf-failure-label">CAUSE</span><span class="atf-failure-value">' +
-    esc(ctx.message) +
-    '</span></div><a class="atf-failure-open" href="#test-id=' +
+    failureIndexField('TEST', ctx.owner || 'API tests') +
+    failureIndexField('PHASE', ctx.phase) +
+    (ctx.checkpoint ? failureIndexField('CHECKPOINT', ctx.checkpoint) : '') +
+    failureIndexField(stepEvidence ? 'STEP' : 'REQUEST', stepEvidence ? ctx.step : ctx.request) +
+    (stepEvidence ? '' : failureIndexField('DURATION', ctx.duration || 'No response duration recorded')) +
+    failureIndexField('VALIDATION', ctx.validation) +
+    failureIndexField('ASSERTION', ctx.assertion) +
+    failureIndexField('CAUSE', ctx.message, 'atf-failure-index-cause', ctx.previewLimit || 240) +
+    '<a class="atf-failure-open" href="#test-id=' +
     safeId +
     '&amp;scenario-index=' +
     safeScenario +

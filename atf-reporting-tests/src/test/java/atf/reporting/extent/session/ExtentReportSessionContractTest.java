@@ -404,7 +404,7 @@ class ExtentReportSessionContractTest {
                  () -> assertTrue(html.contains("stepEvidence=ctx.ui||ctx.evidenceOwner==='component'")
                                  && html.contains("stepEvidence?ctx.step:ctx.request"),
                          "the Fails index must use STEP for UI failures and REQUEST for API failures"),
-                 () -> assertTrue(html.contains("(stepEvidence?'':'<div class=\"atf-failure-index-row\"><span class=\"atf-failure-label\">DURATION"),
+                 () -> assertTrue(html.contains("(stepEvidence?'':failureIndexField('DURATION',ctx.duration||'No response duration recorded'))"),
                          "response duration is an API-only failure field; UI failures must not receive a transport placeholder"),
                  () -> assertTrue(html.contains("if(!context.ui&&requests.length)"),
                          "phase scoping must keep transport fields out of UI failure diagnostics"),
