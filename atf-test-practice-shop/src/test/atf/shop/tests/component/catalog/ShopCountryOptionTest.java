@@ -1,6 +1,6 @@
 package atf.shop.tests.component.catalog;
 
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.support.ShopCountryOption;
 import org.junit.jupiter.api.Test;
 
@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopCountryOptionTest {
     private static final ShopCountryOption ROMANIA =
             new ShopCountryOption("RO", "Romania", "RO");

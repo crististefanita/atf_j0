@@ -1,6 +1,6 @@
 package atf.shop.tests.api.support;
 
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.testkit.channel.AtfTestChannel;
 import atf.testkit.channel.TestChannel;
 import atf.shop.tests.api.reporting.ShopApiCallAuditTestSupport;
@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 /** Marks deterministic component tests whose actual exchanges belong in the API-call audit report. */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@AtfComponentTest
+@ShopComponentTest
 @AtfTestChannel(TestChannel.API)
 @Tag("api-call")
 @ExtendWith(ShopApiCallAuditTestSupport.class)

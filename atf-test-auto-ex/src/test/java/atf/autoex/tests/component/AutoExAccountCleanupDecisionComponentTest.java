@@ -1,13 +1,13 @@
 package atf.autoex.tests.component;
 
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import atf.autoex.support.account.AutoExAccountCleanupAction;
 import atf.autoex.support.account.AutoExAccountCleanupDecision;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExAccountCleanupDecisionComponentTest {
     @Test
     void cleanupIsNoOpUntilCreationIsObservedAndDeletionIsAvailableAfterward() {

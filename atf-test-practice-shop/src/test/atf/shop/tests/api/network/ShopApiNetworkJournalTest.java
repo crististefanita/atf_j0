@@ -2,7 +2,7 @@ package atf.shop.tests.api.network;
 
 import atf.core.http.protocol.ApiUris;
 import atf.core.http.request.HttpMethod;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.reporting.contract.AtfAssertion;
 import atf.shop.support.api.ShopApiNetworkJournal;
 import atf.shop.support.api.ShopApiEvidenceMapper;
@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopApiNetworkJournalTest {
 
     @Test

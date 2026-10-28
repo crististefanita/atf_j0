@@ -5,7 +5,7 @@ import atf.reporting.contract.AtfGherkinKeyword;
 import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.evidence.ReportScreenshotPolicy;
 import atf.reporting.evidence.profile.ReportEvidenceProfile;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.testkit.scope.ScopedTestValue;
 import atf.testkit.scope.TestRunScope;
 import atf.shop.config.ShopConfiguration;
@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 
 /** Exercises the actual Shop scope/condition wiring without a browser or external account mutation. */
-@AtfComponentTest
+@ShopComponentTest
 class ShopAccountScopeComponentTest {
     private static final ThreadLocal<Observations> OBSERVED = new ThreadLocal<>();
 

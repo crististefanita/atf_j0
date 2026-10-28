@@ -1,6 +1,6 @@
 package atf.autoex.tests.component;
 
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import atf.ui.config.UiBrowserConfiguration;
 import atf.ui.playwright.PlaywrightUiSession;
 import atf.autoex.support.browser.AutoExPrivacyConsentHandler;
@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Offline component proof for a consent overlay that may reappear mid-journey. */
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExPrivacyConsentHandlerComponentTest {
     private static final String CONSENT_FIXTURE = """
             <div class="fc-consent-root">

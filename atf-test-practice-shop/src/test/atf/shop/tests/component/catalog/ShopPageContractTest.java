@@ -1,7 +1,7 @@
 package atf.shop.tests.component.catalog;
 
 import atf.reporting.contract.AtfAssertion;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.config.ShopScreen;
 import atf.shop.config.ShopConfiguration;
 import atf.shop.locators.ShopControl;
@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopPageContractTest {
     @Test
     void purchasePagesDeclareStableRoutesAndSemanticControls() {

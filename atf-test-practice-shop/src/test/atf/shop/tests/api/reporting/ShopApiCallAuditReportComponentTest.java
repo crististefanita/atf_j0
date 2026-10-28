@@ -11,7 +11,7 @@ import atf.reporting.html.HtmlReportSession;
 import atf.reporting.model.ReportExecutionModel;
 import atf.reporting.semantic.AtfReportSemanticSnapshot;
 import atf.reporting.api.ReportTransportProvenance;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.support.reporting.ShopApiReportPublisher;
 import atf.shop.support.api.ShopApiEvidenceMapper;
 import atf.shop.tests.api.support.ShopApiCallAuditContextTestSupport;
@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Protects consumer-owned API-call report composition, not renderer internals. */
-@AtfComponentTest
+@ShopComponentTest
 class ShopApiCallAuditReportComponentTest {
     private static final String TEST_BODY = "TEST BODY";
     private static final String AUDIT_DETAIL = "API audit completeness";

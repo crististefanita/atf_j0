@@ -1,6 +1,6 @@
 package atf.autoex.tests.component;
 
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import atf.autoex.support.catalog.AutoExCatalogAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExCatalogAssertionsComponentTest {
     @Test
     void configuredPriceMustMatchACompleteRenderedLine() {

@@ -5,7 +5,7 @@ import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfGherkinKeyword;
 import atf.reporting.evidence.ReportScreenshotPolicy;
 import atf.reporting.evidence.profile.ReportEvidenceFlowMode;
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import atf.ui.playwright.PlaywrightUiSession;
 import atf.autoex.config.AutoExConfigurationLoader;
 import atf.autoex.runtime.AutoExE2eRun;
@@ -49,7 +49,7 @@ import static atf.ui.network.UiNetworkCapturePolicy.ResourceKind.DOCUMENT;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /** Local DOM only: exercises the main runtime without a JUnit context or remote application. */
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExRuntimeBoundaryComponentTest {
     private static final AtomicLong OBSERVATION_SEQUENCE = new AtomicLong();
     @Test

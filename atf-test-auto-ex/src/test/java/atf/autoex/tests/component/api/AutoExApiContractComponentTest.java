@@ -8,7 +8,7 @@ import atf.core.http.request.HttpHeader;
 import atf.core.http.request.HttpMethod;
 import atf.core.http.response.ApiResponse;
 import atf.core.http.transport.ApiTransport;
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import atf.autoex.api.AutoExApiAccount;
 import atf.autoex.api.AutoExApiOutcome;
 import atf.autoex.api.AutoExApiJsonField;
@@ -45,7 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Executes the consumer request catalog through the core executor and a deterministic offline transport. */
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExApiContractComponentTest {
     private static final int FIXTURE_HTTP_STATUS = 200;
     private static final ObjectMapper JSON = new ObjectMapper();

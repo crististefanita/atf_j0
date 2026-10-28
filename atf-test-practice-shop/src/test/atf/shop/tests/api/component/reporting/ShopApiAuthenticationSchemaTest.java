@@ -13,7 +13,7 @@ import atf.reporting.api.ReportAuthMethod;
 import atf.reporting.api.ReportAuthSource;
 import atf.reporting.extent.session.ExtentReportSession;
 import atf.reporting.contract.AtfReportStatus;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.ui.config.UiNetworkInspectionConfiguration;
 import atf.ui.network.UiNetworkInspector;
 import atf.ui.network.UiNetworkObservation;
@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopApiAuthenticationSchemaTest {
     @TempDir Path directory;
 

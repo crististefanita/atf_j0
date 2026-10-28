@@ -1,7 +1,7 @@
 package atf.autoex.tests.component.journey;
 
 import atf.reporting.contract.AtfAssertion;
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import atf.ui.config.UiBrowserConfiguration;
 import atf.ui.playwright.AtfLocator;
 import atf.ui.playwright.PlaywrightUiSession;
@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Proves propagation of customer and order data; no browser or report layout is simulated. */
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExPurchaseBusinessComponentTest {
     private static final Registration CUSTOMER = new Registration("10", "May", "1990",
             "ATF", "Customer", "Test Ltd", "10 Test Avenue", "Test District",

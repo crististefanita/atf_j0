@@ -1,7 +1,7 @@
 package atf.autoex.tests.component.api;
 
 import atf.reporting.contract.AtfAssertion;
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import atf.autoex.support.catalog.AutoExCatalogSnapshot;
 import atf.autoex.support.journey.AutoExCatalogApiPrecondition;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Guards API setup evidence ordering and its separation from causal browser traffic. */
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExCatalogApiPreconditionComponentTest {
     private static final String PRODUCT = "Configured Product";
     private static final String PRICE = "25.99";

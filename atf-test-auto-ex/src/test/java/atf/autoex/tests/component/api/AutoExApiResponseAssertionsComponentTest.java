@@ -1,7 +1,7 @@
 package atf.autoex.tests.component.api;
 
 import atf.reporting.contract.AtfAssertion;
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import atf.autoex.api.AutoExApiResponseAssertions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExApiResponseAssertionsComponentTest {
     private static final ObjectMapper JSON = new ObjectMapper();
 

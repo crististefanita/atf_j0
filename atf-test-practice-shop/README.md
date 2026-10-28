@@ -541,6 +541,64 @@ mvn -pl atf-test-practice-shop -am "-Dtest=ShopComponentSuite" "-Dsurefire.failI
 | `ShopApiLiveSuite` | `ShopStandaloneApiReportTest`, cu opt-in-ul autentificat existent | nu intră în gate-ul local |
 | `ShopStandaloneApiReportTest` | login, catalog, filtrare/sortare din răspuns și mutații/read-back pe un coș izolat, adresă/payment prin HTTP live | invoice final, validitatea permanentă a fixture-ului sau autentificarea sesiunii UI |
 
+### De ce raportul API nu arată ca raportul UI
+
+Ambele suite publică Extent HTML și folosesc setările Extent comune și redactarea, dar lifecycle-ul și evidence diferă:
+
+```mermaid
+sequenceDiagram
+    participant Test as Shop API test
+    participant Service as Live API
+    participant Report as Extent publisher
+    Test->>Service: Send login request
+    alt HTTP response returned
+        Service-->>Test: Accepted or rejected response
+        alt Login rejected
+            Test->>Report: Publish login exchange and FAIL validation
+        else Login accepted
+            Test->>Service: Run business API flow
+            Service-->>Test: Return HTTP exchanges
+            Test->>Report: Publish exchanges and validations
+        end
+        Report-->>Test: Write Extent HTML
+    else Transport exception before response
+        Test->>Test: Transport throws before response
+        Note over Test,Report: Publisher is not reached; no artifact is written
+    end
+```
+<details>
+<summary><strong>Legendă — condiția de publicare a raportului live</strong></summary>
+
+- răspunsul HTTP de login, inclusiv unul respins, oferă exchange-ul necesar
+  publicării unui raport;
+- o excepție înaintea răspunsului nu produce un status sau body HTTP și, în
+  implementarea curentă, întrerupe testul înaintea publisher-ului;
+- raportul UI rămâne o sesiune separată, cu evidence de browser, acțiuni și
+  capturi; ambele căi folosesc setările Extent comune și redactarea.
+
+</details>
+
+- UI: `ShopE2eTestSupport` partajează `UiExtentReportSession` între scenarii și
+  publică evidence de browser, acțiuni și capturi;
+- API: `ShopApiLiveSuite` selectează `ShopStandaloneApiReportTest`, care publică
+  evidence HTTP și validări business Shop fără pașii sau capturile browserului;
+- configurația `reports.api` stabilește directorul, iar testul live formează
+  numele cu prefixul `api-atf-practice-shop-standalone_`;
+- verifică separat directorul și fișierul API față de raportul UI; artifactul
+  live nu este garantat pentru fiecare failure;
+- un login HTTP respins publică evidence FAIL, dar o excepție de transport la
+  login poate apărea înaintea publicării și nu produce încă artifact;
+- lacuna este urmărită în [feedback-ul API Shop](../docs/feedback/ATF_Practice_Shop_API_Test_Design_Feedback.md);
+- compară exchange-urile HTTP cu evidence-ul API așteptat, nu cu numărul de pași
+  sau capturi UI.
+
+Testele marcate `@ShopComponentTest` publică câte un raport Extent per metodă,
+în subdirectorul `component` din `reports.api` configurat în YAML. Se aplică
+atât la lansarea `ShopComponentSuite`, cât și la lansarea clasei individuale.
+Raportul generic conține identitatea și statusul JUnit; rapoartele business API
+existente continuă să adauge exchange-uri și validări, iar E2E păstrează
+evidence-ul browserului.
+
 În component suite, `ShopApiEndpointMatrixTest` verifică invariants comune de
 transport; `ShopApiContractVariantTest` și `ShopApiScreenFlowTest` adaugă
 aserțiunile semantice distincte pentru payload și propagarea datelor. Suprapunerea

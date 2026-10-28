@@ -1,6 +1,6 @@
 package atf.shop.tests.component.evidence;
 
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.support.ShopJsonEvidence;
 import org.junit.jupiter.api.Test;
 
@@ -9,7 +9,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopJsonEvidenceTest {
     @Test
     void redactsNestedArrayFieldsAndSensitiveHeaderVariantsBeforeEvidenceIsPublished() {

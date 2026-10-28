@@ -1,6 +1,6 @@
 package atf.autoex.tests.component.configuration;
 
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import atf.ui.config.UiRetryOperation;
 import atf.autoex.config.AutoExConfiguration;
 import atf.autoex.config.AutoExConfigurationLoader;
@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Protects the AutoEx YAML contract and path override without starting a browser or public-site call. */
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExConfigurationLoaderComponentTest {
     private static final URI OVERRIDE_BASE_URI = URI.create("https://autoex-configuration.invalid");
 

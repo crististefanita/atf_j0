@@ -1,7 +1,7 @@
 package atf.shop.tests.api.network;
 
 import atf.core.http.request.HttpMethod;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.support.ShopJsonEvidence;
 import atf.shop.tests.api.support.ShopUiNetworkSettlementFixture;
 import org.junit.jupiter.api.Test;
@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Component proof for bounded consumer-owned UI network settlement. */
-@AtfComponentTest
+@ShopComponentTest
 class ShopUiNetworkSettlementComponentTest {
     @Test
     void consecutiveMutationResponsesCollapseOnlyInThePresentationStream() {

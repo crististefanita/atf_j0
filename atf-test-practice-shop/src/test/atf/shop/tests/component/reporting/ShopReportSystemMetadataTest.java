@@ -1,7 +1,7 @@
 package atf.shop.tests.component.reporting;
 
 import atf.reporting.configuration.ReportingSettings;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.config.ShopConfigurationLoader;
 import atf.shop.tests.support.reporting.ShopReportSystemMetadata;
 import atf.shop.config.ShopReportConfiguration;
@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Verifies that the Practice Shop report exposes useful configuration without secrets or temp paths. */
-@AtfComponentTest
+@ShopComponentTest
 class ShopReportSystemMetadataTest {
     @Test
     void publishesTypedConsumerConfigurationAsSafeOverviewMetadata() {

@@ -2,7 +2,7 @@ package atf.shop.tests.component.purchase;
 
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfGherkinKeyword;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.support.ShopPurchaseCheckpoint;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +11,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopPurchaseCheckpointTest {
     @Test
     void checkpointKeepsTheGherkinAndAssertionsAsAnImmutablePageContract() {

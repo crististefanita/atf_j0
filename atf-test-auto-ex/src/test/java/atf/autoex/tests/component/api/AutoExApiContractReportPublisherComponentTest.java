@@ -11,7 +11,7 @@ import atf.reporting.contract.AtfReportPorts;
 import atf.reporting.extent.session.ExtentReportSession;
 import atf.reporting.html.HtmlReportSession;
 import atf.reporting.model.ReportExecutionModel;
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import atf.autoex.api.AutoExApiRequestFactory;
 import atf.autoex.tests.api.AutoExApiContractReportExtension;
 import org.junit.jupiter.api.Test;
@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Protects AutoEx responseCode/message mapping and the consumer's published-data boundary. */
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExApiContractReportPublisherComponentTest {
     private static final String REPORT_DIRECTORY = "custom/api-reports";
     private static final String EXPECTED_MESSAGE = USER_EXISTS.message();

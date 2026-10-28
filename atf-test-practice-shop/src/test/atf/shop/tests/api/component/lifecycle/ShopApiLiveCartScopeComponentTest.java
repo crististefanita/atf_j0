@@ -1,6 +1,6 @@
 package atf.shop.tests.api.component.lifecycle;
 
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.api.contract.ShopApiHttpStatus;
 import atf.shop.api.contract.ShopApiJsonField;
 import atf.shop.support.ShopJsonEvidence;
@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopApiLiveCartScopeComponentTest {
     @Test
     void closesAStatefulCartEmptyWithoutRepeatingTheDelete() {

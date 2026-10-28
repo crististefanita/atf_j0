@@ -1,6 +1,6 @@
 package atf.shop.tests.component.configuration;
 
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.reporting.evidence.ReportScreenshotPolicy;
 import atf.reporting.evidence.profile.ReportEvidenceCaptureSource;
 import atf.reporting.evidence.profile.ReportEvidenceFlowMode;
@@ -15,7 +15,7 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /** Component contract for the Practice Shop checkpoint screenshot policy. */
-@AtfComponentTest
+@ShopComponentTest
 class ShopScreenshotPolicyTest {
     @Test
     void usesTheConfiguredPolicyWithoutChangingTheGenericEvidenceShape() {

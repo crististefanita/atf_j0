@@ -4,7 +4,7 @@ import atf.core.reporting.console.AtfConsoleSink;
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.evidence.ReportScreenshotPolicy;
 import atf.reporting.evidence.profile.ReportEvidenceFlowMode;
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import atf.ui.config.UiBrowserConfiguration;
 import atf.ui.config.UiRetryPolicy;
 import atf.ui.playwright.AtfLocator;
@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Actual document responses prove recovery and the non-replay boundary without remote traffic. */
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExStoreAvailabilityComponentTest {
     private static final UiRetryPolicy POLICY = new UiRetryPolicy(3, Duration.ZERO, Set.of(NAVIGATE), "queue full");
 

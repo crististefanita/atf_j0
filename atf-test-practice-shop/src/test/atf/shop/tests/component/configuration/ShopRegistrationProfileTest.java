@@ -1,6 +1,6 @@
 package atf.shop.tests.component.configuration;
 
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.config.ShopRegistrationProfile;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopRegistrationProfileTest {
     @Test
     void createsUniqueRunScopedIdentityWithoutExposingProfileValues() {

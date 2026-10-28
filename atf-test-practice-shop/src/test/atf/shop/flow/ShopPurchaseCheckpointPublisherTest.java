@@ -6,7 +6,7 @@ import atf.shop.config.ShopScreen;
 import atf.shop.support.ShopPurchaseCheckpoint;
 import atf.shop.support.ShopPurchaseTraceStep;
 import atf.shop.support.validation.ShopPageValidationResult;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopPurchaseCheckpointPublisherTest {
     @Test
     void buildsCheckpointFromScreenValidationAndAdditionalAssertions() {

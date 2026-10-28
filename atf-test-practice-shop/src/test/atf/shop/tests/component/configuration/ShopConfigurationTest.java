@@ -1,7 +1,7 @@
 package atf.shop.tests.component.configuration;
 
 import atf.core.config.ApiTransportMode;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.reporting.evidence.ReportScreenshotPolicy;
 import atf.shop.config.model.ShopAccountFixturePolicy;
 import atf.shop.config.api.ShopApiCheckpoint;
@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopConfigurationTest {
     @Test
     void malformedEvidenceAndBillingPoliciesCannotSilentlyUseDefaults(@TempDir Path temp) throws Exception {

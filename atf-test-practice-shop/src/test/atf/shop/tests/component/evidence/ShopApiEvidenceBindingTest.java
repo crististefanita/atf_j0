@@ -1,6 +1,6 @@
 package atf.shop.tests.component.evidence;
 
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.config.api.ShopApiCheckpoint;
 import atf.shop.config.api.ShopApiEvidenceBinding;
 import atf.shop.config.ShopValidationProfile;
@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopApiEvidenceBindingTest {
     @Test
     void missingSelectionEnablesAllCheckpointsOnlyForUiApi() {

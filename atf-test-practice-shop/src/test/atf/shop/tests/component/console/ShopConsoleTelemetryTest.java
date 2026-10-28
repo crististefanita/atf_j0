@@ -2,7 +2,7 @@ package atf.shop.tests.component.console;
 
 import atf.core.config.ApiTransportMode;
 import atf.core.reporting.console.AtfConsoleEvent;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.api.ShopApiClient;
 import atf.shop.config.model.ShopCredentials;
 import atf.shop.tests.api.support.ShopApiComponentFixture;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopConsoleTelemetryTest {
     @Test
     void detailedApiTelemetryRedactsCredentialsPersonalBodiesAndQueryValues() {

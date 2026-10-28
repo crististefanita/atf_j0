@@ -1,6 +1,6 @@
 package atf.autoex.tests.component.lifecycle;
 
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import atf.autoex.runtime.AutoExRunLifecycle.Completion;
 import atf.autoex.tests.extension.AutoExRunLifecycleAdapter;
 import org.junit.jupiter.api.Test;
@@ -11,7 +11,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExRunLifecycleAdapterComponentTest {
     @Test
     void originalFailureAndEverySecondaryFailureSurviveAllStages() {

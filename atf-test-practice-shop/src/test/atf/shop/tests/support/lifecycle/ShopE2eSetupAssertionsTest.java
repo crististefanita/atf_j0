@@ -1,7 +1,7 @@
 package atf.shop.tests.support.lifecycle;
 
 import atf.reporting.contract.AtfAssertion;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.config.ShopConfiguration;
 import atf.shop.config.ShopConfigurationLoader;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopE2eSetupAssertionsTest {
     @Test
     void guestSetupDoesNotSurfaceAnAccountFixtureThatTheJourneyDoesNotUse() {

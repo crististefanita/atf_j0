@@ -18,7 +18,7 @@ import atf.autoex.ui.AutoExAccountPagePort;
 import atf.autoex.ui.AutoExCheckoutPagePort;
 import atf.autoex.ui.AutoExHomePagePort;
 import atf.autoex.ui.AutoExUiActions;
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExPagePortsComponentTest {
     @Test
     void homePageUsesItsNarrowPortForNavigationPromptAndCatalogEntry() {

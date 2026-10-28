@@ -8,7 +8,7 @@ import atf.core.http.response.ApiExecutionResult;
 import atf.core.http.response.ApiResponse;
 import atf.core.http.transport.ApiTransportProvenance;
 import atf.core.reporting.console.AtfConsoleSink;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.support.reporting.ShopApiReportPublisher;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -23,7 +23,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopApiBodyRedactionReportTest {
     @Test
     void publishedHtmlDoesNotExposePersonalValuesFromValidOrMalformedBodies(@TempDir Path temp)

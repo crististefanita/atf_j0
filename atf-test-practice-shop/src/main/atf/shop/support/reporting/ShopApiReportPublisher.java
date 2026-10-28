@@ -12,6 +12,7 @@ import atf.reporting.contract.AtfAssertion;
 import atf.reporting.api.evidence.ApiExchangeEvidence;
 import atf.reporting.contract.AtfReportPorts;
 import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.configuration.AtfReportConfigurationLoader;
 import atf.reporting.extent.session.ExtentReportSession;
 import atf.reporting.model.ReportExecutionEvidence;
 import atf.reporting.ui.network.ReportNetworkInspector;
@@ -75,7 +76,10 @@ public final class ShopApiReportPublisher {
         Objects.requireNonNull(reportPath, "reportPath");
         Objects.requireNonNull(executions, "executions");
         Objects.requireNonNull(console, "console");
-        try (ExtentReportSession session = new ExtentReportSession(reportPath)) {
+        // Match the configured Extent settings used by UI reports while
+        // retaining the API-specific output path and evidence tree.
+        try (ExtentReportSession session = new ExtentReportSession(reportPath,
+                AtfReportConfigurationLoader.load().reportingSettings())) {
             var scenario = session.startScenario(testClass, testPackage, scenarioName, tags);
             var phase = scenario.startPhase("TEST BODY");
             boolean passed = true;

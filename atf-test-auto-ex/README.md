@@ -645,6 +645,43 @@ flowchart LR
 | Raport API direct | `AutoExApiContractReportExtension` publică exchange-uri și assertions JSON; implicit `artifacts/reports/api/auto-ex`, override `atf.autoex.api.report-directory`; `@AtfReportPath` publică locația | publisher component verifică artifactul offline, dar nu substituie proba live |
 | Traficul E2E `UI_API` | precondiția catalogului este publicată separat de fereastra cauzală | XHR/fetch first-party, inclusiv coșul fără prefix `/api/`; scope și completitudine în inspector |
 
+### De ce raportul API nu arată ca raportul UI
+
+Ambele suite publică Extent HTML și folosesc setările Extent comune; sesiunea și evidence-ul depind de canal:
+
+```mermaid
+flowchart LR
+    UI[UI suite] -->|uses| UISession[UI report session]
+    UISession -->|publishes| UIEvidence[Browser evidence]
+    API[API live suite] -->|uses| ApiSession[API report session]
+    ApiSession -->|publishes| ApiEvidence[HTTP evidence]
+    Config[Report settings] -->|configures| UISession
+    Config -->|configures| ApiSession
+```
+<details>
+<summary><strong>Legendă — sesiuni și evidence</strong></summary>
+
+- sesiunea UI este partajată pe suită și include lifecycle-ul browserului;
+- extensia API deschide o sesiune Extent separată și publică exchange-urile și
+  aserțiunile JSON;
+- ambele sesiuni citesc setările Reporting comune, dar API nu publică pași UI sau
+  capturi de browser.
+
+</details>
+
+- `AutoExRunFactory` deține sesiunea UI; `AutoExApiContractReportExtension`
+  deține raportul API direct;
+- extensia API deschide raportul în `BeforeAll`, finalizează faza/scenariul în
+  `AfterEach` și închide sesiunea în `AfterAll`;
+- calea implicită este `artifacts/reports/api/auto-ex`, iar `@AtfReportPath`
+  anunță locația.
+
+Testele cu `@AutoExComponentTest` publică fiecare metodă într-un raport Extent
+propriu, în `artifacts/reports/component/auto-ex`, inclusiv când sunt lansate
+prin `AutoExComponentSuite` sau individual. Anotarea păstrează tag-ul
+`component`; lifecycle-ul generic înregistrează scenariul și statusul JUnit,
+fără browser sau capturi. `@AutoExE2eTest` continuă să folosească harness-ul UI.
+
 ### Boundary-ul cauzal pentru `UI_API`
 
 Diagrama comună pentru captură, baseline și publicare este în
@@ -719,11 +756,13 @@ precondiția catalogului și journey-ul business, fără teste generice de rende
 
 #### Profile UI+API și acoperirea Network Inspector
 
-`AutoExE2eSuite` include variante UI+API pentru Account, Cart, Existing customer
-și Purchase. Toate selectează documentele first-party cu
-`@AutoExNetworkDocuments({"/"})`, păstrează capturarea XHR/FETCH și includ
-request-urile first-party OTHER fără body. Variantele UI-only rămân fără
-Network Inspector. Asset-urile statice și host-urile terțe sunt excluse explicit.
+- `AutoExE2eSuite` include variante UI+API pentru Account, Cart, Existing
+  customer și Purchase; acestea selectează documentele first-party cu
+  `@AutoExNetworkDocuments({"/"})`.
+- Profilele UI+API păstrează capturarea XHR/FETCH și includ request-urile
+  first-party OTHER fără body.
+- Variantele UI-only nu pornesc Network Inspector; asset-urile statice și
+  host-urile terțe sunt excluse explicit.
 
 | Poveste / prezentare | Intrare comună | Diferența dintre profile |
 |---|---|---|

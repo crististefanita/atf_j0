@@ -1,7 +1,7 @@
 package atf.autoex.tests.component;
 
 import atf.reporting.contract.AtfAssertion;
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import atf.autoex.support.validation.AutoExStoreAssertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /** Independent observed text protects the shared verdicts used by pages and journeys. */
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExStoreAssertionsComponentTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("observations")

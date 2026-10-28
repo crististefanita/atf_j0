@@ -15,7 +15,7 @@ import atf.core.reporting.console.AtfConsoleSink;
 import atf.reporting.evidence.ReportScreenshotPolicy;
 import atf.reporting.evidence.profile.ReportEvidenceFlowMode;
 import atf.reporting.ui.failure.UiCheckpointFailure;
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import atf.ui.playwright.PlaywrightUiSession;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Business port → real page/recorder → Extent, with a controlled DOM and no remote mutations. */
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExCartDomComponentTest {
     @TempDir Path temporary;
 

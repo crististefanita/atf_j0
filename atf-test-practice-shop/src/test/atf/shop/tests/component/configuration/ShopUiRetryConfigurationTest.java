@@ -1,6 +1,6 @@
 package atf.shop.tests.component.configuration;
 
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.ui.config.UiRetryOperation;
 import atf.shop.config.ShopConfiguration;
 import atf.shop.config.ShopConfigurationLoader;
@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopUiRetryConfigurationTest {
     @Test
     void loadsTypedReadOnlyRetryFromYamlAndKeepsMutationsIneligible() throws Exception {

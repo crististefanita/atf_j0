@@ -5,7 +5,7 @@ import atf.autoex.business.invoice.AutoExInvoiceValidator;
 import atf.autoex.flow.checkout.AutoExInvoiceReader;
 import atf.autoex.support.checkout.AutoExInvoiceAssertions;
 import atf.reporting.contract.AtfAssertion;
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExInvoiceComponentTest {
     private static final String CUSTOMER = "ATF Customer";
     private static final String TOTAL = "Rs. 1000";

@@ -1,7 +1,7 @@
 package atf.autoex.tests.component;
 
 import atf.reporting.contract.AtfGherkinKeyword;
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import atf.autoex.support.journey.AutoExPurchaseTraceStep;
 import org.junit.jupiter.api.Test;
 
@@ -10,7 +10,7 @@ import java.util.Arrays;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExPurchaseTraceStepTest {
     @Test
     void catalogOwnsEveryReportedPurchaseCheckpointExactlyOnce() {

@@ -5,7 +5,7 @@ import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.ui.model.AtfUiActionRecord;
 import atf.reporting.ui.UiExtentReportOptions;
 import atf.reporting.ui.UiExtentReportSession;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -15,7 +15,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopE2eFailureReportComponentTest {
     private static final String REPORT_FILE = "shop-e2e-setup-failure-component.html";
     private static final String FIXTURE_SECRET = "private-password-value";

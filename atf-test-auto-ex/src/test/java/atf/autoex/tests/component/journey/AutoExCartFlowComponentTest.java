@@ -4,7 +4,7 @@ import atf.autoex.business.cart.AutoExCartFlow;
 import atf.autoex.business.cart.AutoExCartPort;
 import atf.autoex.business.cart.AutoExCartValidationException;
 import atf.autoex.support.checkout.AutoExOrderLine;
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** A fake business port proves gates and failure precedence without browser or Reporting. */
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExCartFlowComponentTest {
     private static final AutoExOrderLine EXPECTED = new AutoExOrderLine("Blue Top", "Rs. 500", "2", "Rs. 1000");
 

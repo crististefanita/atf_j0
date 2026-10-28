@@ -1,6 +1,6 @@
 package atf.shop.tests.component.validation;
 
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.config.ShopValidationProfile;
 import org.junit.jupiter.api.Test;
 
@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopValidationProfileTest {
     @Test
     void uiApiIsTheDefaultTypedProfileAndUiOnlyIsAnExplicitFallback() {

@@ -3,7 +3,7 @@ package atf.shop.tests.api.network;
 import atf.core.http.response.ApiBodyEvidence;
 import atf.core.http.request.HttpMethod;
 import atf.reporting.api.ReportRequestSignature;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.api.ShopApiOperation;
 import atf.shop.api.ShopApiRoutes;
 import atf.shop.support.api.ShopApiEvidenceMapper;
@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopApiMethodFidelityTest {
     @Test
     void browserTimingAndUnavailablePayloadAreNotManufacturedAsZeroOrJsonNull() {

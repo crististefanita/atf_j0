@@ -7,6 +7,7 @@ import atf.reporting.api.ReportModelAdapters;
 import atf.reporting.api.evidence.ApiExchangeEvidence;
 import atf.reporting.configuration.ReportEnvironmentField;
 import atf.reporting.configuration.ReportEnvironmentSnapshot;
+import atf.reporting.configuration.AtfReportConfigurationLoader;
 import atf.reporting.configuration.ReportingSettings;
 import atf.reporting.console.AtfConsoleSink;
 import atf.reporting.contract.AtfAssertion;
@@ -74,7 +75,10 @@ public final class AutoExApiContractReportExtension implements BeforeAllCallback
                 .put(ReportEnvironmentField.REPORTING, "Extent HTML")
                 .put(ReportEnvironmentField.REPORT_ARTIFACT, "Direct API contract evidence")
                 .build();
-        var session = new ExtentReportSession(report, ReportingSettings.defaults(),
+        // Keep the API artifact's consumer-owned path, but use the same ATF
+        // reporting configuration as the UI session (assertion/body limits).
+        var session = new ExtentReportSession(report,
+                AtfReportConfigurationLoader.load().reportingSettings(),
                 new SensitiveDataRedactor(),
                 reportPathSink(context.getRequiredTestClass()), environment);
         context.getStore(NAMESPACE).put(SESSION, session);

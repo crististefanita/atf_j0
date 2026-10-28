@@ -1,6 +1,6 @@
 package atf.shop.tests.suites;
 
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import org.junit.platform.suite.api.SelectPackages;
 import org.junit.platform.suite.api.Suite;
 
@@ -15,5 +15,5 @@ import org.junit.platform.suite.api.Suite;
         "atf.shop.tests.support",
         "atf.shop.flow"
 })
-@AtfComponentTest
+@ShopComponentTest
 public class ShopComponentSuite { }

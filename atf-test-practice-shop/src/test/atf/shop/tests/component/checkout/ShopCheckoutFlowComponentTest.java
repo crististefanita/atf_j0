@@ -6,7 +6,7 @@ import atf.shop.flow.ShopPurchaseFlow;
 import atf.shop.pages.ShopCartPage;
 import atf.shop.support.ShopPurchaseCheckpoint;
 import atf.shop.support.ShopPurchaseTraceStep;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopCheckoutFlowComponentTest {
     private static final ShopCartPage.CartLine CART_LINE =
             new ShopCartPage.CartLine("Combination Pliers", "2");

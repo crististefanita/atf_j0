@@ -1,6 +1,6 @@
 package atf.autoex.tests.component.journey;
 
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import atf.autoex.support.account.AutoExAccountDeletionProgress;
 import atf.autoex.support.account.AutoExAccountDeletionAttempt.ObservedRequest;
 import atf.autoex.support.account.AutoExAccountDeletionAttempt.Traffic;
@@ -20,7 +20,7 @@ import static atf.core.http.request.HttpMethod.GET;
 import static atf.core.http.request.HttpMethod.POST;
 
 /** Pure business safety decisions: no browser, fake advert, injected hash or simulated shop. */
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExAccountDeletionSafetyComponentTest {
     @ParameterizedTest
     @CsvSource({

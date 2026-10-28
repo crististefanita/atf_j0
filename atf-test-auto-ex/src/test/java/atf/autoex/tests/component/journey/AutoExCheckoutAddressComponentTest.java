@@ -1,6 +1,6 @@
 package atf.autoex.tests.component.journey;
 
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import atf.autoex.locator.AutoExSelectors;
 import atf.autoex.page.AccountPage;
 import atf.autoex.support.journey.AutoExPurchaseSession;
@@ -13,7 +13,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /** Verifies checkout addresses are semantically ready before their text is read. */
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExCheckoutAddressComponentTest {
     private static final String DISPLAY_NAME = "ATF Demo Customer";
 

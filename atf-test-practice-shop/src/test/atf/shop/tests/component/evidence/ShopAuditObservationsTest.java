@@ -9,7 +9,7 @@ import atf.reporting.api.ReportTransportProvenance;
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfGherkinKeyword;
 import atf.reporting.model.ReportExecutionEvidence;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.ui.playwright.PlaywrightActionSequence;
 import atf.ui.playwright.UiScreenValidation;
 import atf.shop.support.ShopAuditObservations;
@@ -29,7 +29,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopAuditObservationsTest {
     private static final ShopConfiguration CONFIGURATION = ShopConfigurationLoader.load();
 

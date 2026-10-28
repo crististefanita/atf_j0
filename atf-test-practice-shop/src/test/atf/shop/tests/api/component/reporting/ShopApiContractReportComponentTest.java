@@ -4,7 +4,7 @@ import atf.core.reporting.console.AtfConsoleSink;
 import atf.console.junit.AtfConsoleTestContext;
 import atf.core.http.request.HttpMethod;
 import atf.core.http.response.ApiExecutionResult;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.testkit.AtfConsoleMessages;
 import atf.console.junit.AtfConsoleTestExtension;
 import atf.shop.api.ShopApiClient;
@@ -35,7 +35,7 @@ import static atf.shop.tests.api.support.ShopApiScenarioFixture.PRODUCT_NAME;
 import static atf.shop.tests.api.support.ShopApiScenarioFixture.QUANTITY;
 
 /** Protects Practice Shop operation mapping through the standalone API report adapter. */
-@AtfComponentTest
+@ShopComponentTest
 @AtfConsoleMessages(AtfConsoleMessages.Policy.DETAILS)
 @ExtendWith(AtfConsoleTestExtension.class)
 class ShopApiContractReportComponentTest {

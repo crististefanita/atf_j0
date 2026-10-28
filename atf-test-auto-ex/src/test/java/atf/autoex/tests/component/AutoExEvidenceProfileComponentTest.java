@@ -21,7 +21,7 @@ import atf.reporting.evidence.ReportScreenshotPolicy;
 import atf.reporting.evidence.profile.ReportEvidenceCaptureSource;
 import atf.reporting.evidence.profile.ReportEvidenceFlowMode;
 import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
-import atf.testkit.AtfComponentTest;
+import atf.autoex.tests.extension.AutoExComponentTest;
 import atf.testkit.AtfConsoleMessages;
 import atf.testkit.AtfE2eTest;
 import atf.testkit.channel.AtfTestChannel;
@@ -53,7 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Guards AutoEx flow composition and screenshot-policy mapping without a live site or browser. */
-@AtfComponentTest
+@AutoExComponentTest
 class AutoExEvidenceProfileComponentTest {
 
     @Test

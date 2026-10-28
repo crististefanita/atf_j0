@@ -2,7 +2,7 @@ package atf.shop.tests.component.evidence;
 
 import atf.core.http.protocol.ApiUris;
 import atf.reporting.evidence.profile.ReportEvidenceCaptureSource;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.ui.config.UiScreenValidationConfiguration;
 import atf.shop.evidence.ShopBrowserCaptureProvider;
 import atf.ui.playwright.UiScreenValidation;
@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Proves the Practice Shop browser adapter returns renderer-neutral PNG evidence. */
-@AtfComponentTest
+@ShopComponentTest
 class ShopBrowserCaptureProviderTest {
     private static final byte[] ONE_PIXEL_PNG = java.util.Base64.getDecoder().decode(
             "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=");

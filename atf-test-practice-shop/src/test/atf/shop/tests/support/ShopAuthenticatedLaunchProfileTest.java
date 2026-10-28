@@ -1,7 +1,7 @@
 package atf.shop.tests.support;
 
 import atf.core.config.ApiTransportMode;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.testkit.scope.ScopedTestValue;
 import atf.shop.config.api.ShopApiPrecondition;
 import atf.shop.config.ShopConfiguration;
@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopAuthenticatedLaunchProfileTest {
     private static final String LOCAL_FIXTURE =
             "atf-test-practice-shop/src/test/resources/practice-software-testing-account.local.properties";

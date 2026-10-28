@@ -1,7 +1,7 @@
 package atf.shop.tests.component.purchase;
 
 import atf.reporting.contract.AtfGherkinKeyword;
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.support.ShopPurchaseTraceStep;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +11,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopPurchaseTraceStepTest {
     @Test
     void guestPurchaseUsesOneContextOneActionSevenContinuationsAndOneOutcome() {

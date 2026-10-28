@@ -1,6 +1,6 @@
 package atf.shop.flow;
 
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.config.ShopCheckoutConfiguration;
 import atf.shop.config.ShopConfiguration;
 import org.junit.jupiter.api.Test;
@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopPurchaseStageInputsComponentTest {
     @Test
     void catalogInputOwnsItsHomeValidationCapability() {

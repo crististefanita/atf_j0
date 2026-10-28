@@ -1,13 +1,13 @@
 package atf.shop.tests.component.catalog;
 
-import atf.testkit.AtfComponentTest;
+import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.routes.ShopUiRoutes;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@AtfComponentTest
+@ShopComponentTest
 class ShopUiRoutesTest {
     @Test
     void buildsOnlyRelativeUiRoutes() {
