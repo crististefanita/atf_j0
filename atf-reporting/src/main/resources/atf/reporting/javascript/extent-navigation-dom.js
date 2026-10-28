@@ -6,15 +6,37 @@ function normalizeCodeBlocks() {
     area.parentNode.replaceChild(pre, area);
   });
 }
+function disclosurePanel(card) {
+  if (card.getAttribute('data-atf-node-role') === 'phase' ||
+      card.hasAttribute('data-atf-scenario-id'))
+    return card.querySelector(':scope>.accordion');
+  var header = card.querySelector(':scope>.card-header');
+  for (var i = 0; i < card.children.length; i++) {
+    if (card.children[i] !== header) return card.children[i];
+  }
+  return null;
+}
+function disclosureHasContent(panel) {
+  return !!panel && (panel.children.length > 0 ||
+    String(panel.textContent || '').trim().length > 0);
+}
+function setDisclosureAvailability(card, header, expandable) {
+  card.setAttribute('data-atf-node-expandable', String(expandable));
+  if (expandable || !header) return;
+  header.removeAttribute('role');
+  header.removeAttribute('tabindex');
+  header.removeAttribute('aria-expanded');
+}
 function normalizeDisclosureState() {
   q(
     '.test-view .test-content-detail .card[data-atf-scenario-id],.test-view .test-content-detail .card[data-atf-node-role]'
   ).forEach(function (card) {
     var header = card.querySelector(':scope>.card-header'),
-      panel =
-        card.querySelector(':scope>.accordion') ||
-        card.querySelector(':scope>.collapse');
+      panel = disclosurePanel(card),
+      expandable = disclosureHasContent(panel);
     if (!header) return;
+    setDisclosureAvailability(card, header, expandable);
+    if (!expandable) return;
     var open =
       card.getAttribute('data-atf-scenario-open') === 'true' ||
       card.getAttribute('data-atf-phase-open') === 'true' ||
@@ -26,24 +48,13 @@ function normalizeDisclosureState() {
   });
   if (window.__atfDisclosureStateBound) return;
   window.__atfDisclosureStateBound = true;
-  document.addEventListener(
-    'click',
-    function () {
+  ['click', 'keydown'].forEach(function (event) {
+    document.addEventListener(event, function () {
       setTimeout(normalizeDisclosureState, 0);
-    },
-    true
-  );
-  document.addEventListener(
-    'keydown',
-    function () {
-      setTimeout(normalizeDisclosureState, 0);
-    },
-    true
-  );
+    }, true);
+  });
 }
-setTimeout(function () {
-  normalizeDisclosureState();
-}, 0);
+setTimeout(normalizeDisclosureState, 0);
 function captureDomContract() {
   assignNodeRoles();
   var requests = q('[data-atf-node-role="request"]'),

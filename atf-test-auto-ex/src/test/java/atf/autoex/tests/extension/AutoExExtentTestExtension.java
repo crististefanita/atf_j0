@@ -1,5 +1,7 @@
 package atf.autoex.tests.extension;
 
+import atf.testkit.assertions.RecordedAssertions;
+import atf.reporting.contract.AtfAssertion;
 import atf.reporting.configuration.AtfReportConfigurationLoader;
 import atf.reporting.configuration.ReportEnvironmentField;
 import atf.reporting.configuration.ReportEnvironmentSnapshot;
@@ -12,6 +14,8 @@ import atf.autoex.runtime.config.AutoExProjectRoot;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.jupiter.api.extension.ParameterResolver;
 
 import java.nio.file.Files;
 import java.time.Instant;
@@ -19,12 +23,12 @@ import java.util.List;
 import java.util.UUID;
 
 /** Per-test Extent lifecycle for offline Automation Exercise component tests. */
-public final class AutoExExtentTestExtension implements BeforeEachCallback, AfterEachCallback {
+public final class AutoExExtentTestExtension implements BeforeEachCallback, AfterEachCallback, ParameterResolver {
     private static final ExtensionContext.Namespace NS =
             ExtensionContext.Namespace.create(AutoExExtentTestExtension.class);
     private static final String STATE = "extent-state";
     private record State(ExtentReportSession session, AtfReportPorts.Scenario scenario,
-                         AtfReportPorts.Phase phase) { }
+                         AtfReportPorts.Phase phase, RecordedAssertions assertions) { }
 
     @Override public void beforeEach(ExtensionContext context) throws Exception {
         var root = AutoExProjectRoot.discover();
@@ -49,7 +53,18 @@ public final class AutoExExtentTestExtension implements BeforeEachCallback, Afte
                 context.getDisplayName(), List.of("component", "auto-ex"));
         var phase = scenario.startPhase("TEST BODY");
         phase.detail("Test method", context.getRequiredTestMethod().getName());
-        context.getStore(NS).put(STATE, new State(session, scenario, phase));
+        context.getStore(NS).put(STATE, new State(session, scenario, phase,
+                new RecordedAssertions()));
+    }
+
+    @Override public boolean supportsParameter(ParameterContext parameter, ExtensionContext context) {
+        return parameter.getParameter().getType() == RecordedAssertions.class;
+    }
+
+    @Override public Object resolveParameter(ParameterContext parameter, ExtensionContext context) {
+        State state = context.getStore(NS).get(STATE, State.class);
+        if (state == null) throw new IllegalStateException("Component report is not open");
+        return state.assertions();
     }
 
     @Override public void afterEach(ExtensionContext context) {
@@ -58,6 +73,17 @@ public final class AutoExExtentTestExtension implements BeforeEachCallback, Afte
         AtfReportStatus status = context.getExecutionException().isEmpty()
                 ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
         try {
+            var assertions = state.assertions().checks().stream()
+                    .map(check -> new AtfAssertion(check.name(), check.expected(), check.actual(), check.passed()))
+                    .toList();
+            if (!assertions.isEmpty()) {
+                var assertionStep = state.phase().startAssertionStep("Component assertions");
+                assertionStep.assertions(assertions);
+                var assertionStatus = assertions.stream().allMatch(AtfAssertion::passed)
+                        ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
+                assertionStep.complete(assertionStatus);
+                assertionStep.close();
+            }
             if (status == AtfReportStatus.FAIL) {
                 state.phase().diagnostic(atf.reporting.model.diagnostic.ReportPhaseDiagnostic.Kind.EXECUTION_FAILURE,
                         context.getExecutionException().orElseThrow().toString());

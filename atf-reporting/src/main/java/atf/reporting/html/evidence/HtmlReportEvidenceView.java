@@ -192,7 +192,17 @@ public final class HtmlReportEvidenceView {
                 .append(ReportEvidenceMarkup.statusBadge(validation.status()))
                 .append(closeTag(DIV));
         renderUiEvidence(html, validation);
-        if (!validation.assertions().isEmpty()) {
+        renderAssertions(html, validation.assertions());
+        validation.children().forEach(child -> {
+            if (child instanceof ReportExecutionModel.Request request) {
+                renderNestedRequest(html, request);
+            }
+        });
+        html.append(closeTag(DIV));
+    }
+
+    public void renderAssertions(StringBuilder html, java.util.List<AtfAssertion> assertions) {
+        if (!assertions.isEmpty()) {
             html.append(ReportTableViewport.ASSERTIONS.open())
                 .append(openTag(TABLE, classAttribute(ASSERTIONS)))
                 .append(openTag(THEAD)).append(openTag(TR))
@@ -201,7 +211,7 @@ public final class HtmlReportEvidenceView {
                 .append(openTag(TH)).append(AtfReportLabels.ACTUAL).append(closeTag(TH))
                 .append(openTag(TH)).append(AtfReportLabels.RESULT).append(closeTag(TH))
                 .append(closeTag(TR)).append(closeTag(THEAD)).append(openTag(TBODY));
-            for (AtfAssertion row : validation.assertions()) {
+            for (AtfAssertion row : assertions) {
                 html.append(openTag(TR)).append(openTag(TD)).append(escape(redactor.redactText(row.name())))
                         .append(closeTag(TD)).append(openTag(TD))
                         .append(escape(redactor.redactField(row.name(), row.expected()))).append(closeTag(TD))
@@ -212,12 +222,6 @@ public final class HtmlReportEvidenceView {
             }
             html.append(closeTag(TBODY)).append(closeTag(TABLE)).append(closeTag(DIV));
         }
-        validation.children().forEach(child -> {
-            if (child instanceof ReportExecutionModel.Request request) {
-                renderNestedRequest(html, request);
-            }
-        });
-        html.append(closeTag(DIV));
     }
 
     private void renderUiEvidence(StringBuilder html, ReportExecutionModel.Validation validation) {

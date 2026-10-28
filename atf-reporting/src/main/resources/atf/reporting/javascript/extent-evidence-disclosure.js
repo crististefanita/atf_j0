@@ -60,7 +60,7 @@ function wrapEvidence(row, kind, title, node) {
   wrapSemanticEvidence(row, kind, title, body);
 }
 function normalizeEvidenceDisclosures() {
-  q('[data-atf-node-role="request"],[data-atf-node-role="validation"]').forEach(
+  q('[data-atf-node-role="request"],[data-atf-node-role="validation"],[data-atf-node-role="assertion-step"]').forEach(
     function (card) {
       var table = nodeEventTable(card);
       if (!table) return;

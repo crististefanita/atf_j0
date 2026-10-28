@@ -13,15 +13,16 @@ class ReportAssetSizeInventoryTest {
     // The table-layout, network-disclosure and bounded-evidence contracts are
     // part of the published runtime; keep measured headroom without masking
     // unrelated growth.
-    private static final long NATIVE_JAVASCRIPT_BASELINE_BYTES = 125_000L;
-    private static final long PUBLICATION_JAVASCRIPT_BASELINE_BYTES = 105_000L;
+    private static final long NATIVE_JAVASCRIPT_BASELINE_BYTES = 130_000L;
+    private static final long PUBLICATION_JAVASCRIPT_BASELINE_BYTES = 107_000L;
     private static final long NATIVE_TOTAL_BASELINE_BYTES = 265_000L;
-    private static final long PUBLICATION_TOTAL_BASELINE_BYTES = 220_000L;
+    private static final long PUBLICATION_TOTAL_BASELINE_BYTES = 223_000L;
     private static final long NATIVE_CSS_BASELINE_BYTES = 140_000L;
     private static final long PUBLICATION_CSS_BASELINE_BYTES = 120_000L;
 
-    // Rebased to the measured source/publication inventory while retaining a
-    // small explicit headroom for the owned theme and evidence contracts.
+    // Includes the typed component assertion disclosure. The old native JS
+    // ceiling was already below the source inventory at the base revision;
+    // these ceilings retain less than 2 KB headroom per changed dimension.
     private static final ReportAssetSizeBudget CONSUMER_BASELINE = new ReportAssetSizeBudget(
             NATIVE_TOTAL_BASELINE_BYTES, PUBLICATION_TOTAL_BASELINE_BYTES,
             java.util.Map.of(

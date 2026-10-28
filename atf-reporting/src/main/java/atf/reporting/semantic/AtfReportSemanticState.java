@@ -120,6 +120,13 @@ final class AtfReportSemanticState {
             return request;
         }
 
+        AssertionStepState startAssertionStep(String title) {
+            ensureOpen("phase");
+            var step = new AssertionStepState(title);
+            nodes.add(step);
+            return step;
+        }
+
         void detail(String name) {
             ensureOpen("phase");
             detailNames.add(normalizeLabel(name, "DETAIL"));
@@ -148,10 +155,37 @@ final class AtfReportSemanticState {
         }
     }
 
-    sealed interface NodeState permits RequestState, ValidationState {
+    sealed interface NodeState permits RequestState, ValidationState, AssertionStepState {
         AtfReportSemanticSnapshot.NodeSnapshot snapshot();
 
         boolean completed();
+    }
+
+    static final class AssertionStepState implements NodeState {
+        private final String title;
+        private final List<String> assertionNames = new ArrayList<>();
+        private AtfReportStatus status = AtfReportStatus.INFO;
+        private boolean completed;
+
+        private AssertionStepState(String title) { this.title = title; }
+
+        void assertions(Collection<AtfAssertion> assertions) {
+            if (completed) throw new IllegalStateException("Assertion step is already complete");
+            assertionNames.clear();
+            if (assertions != null) assertions.stream().filter(Objects::nonNull)
+                    .map(AtfAssertion::name).forEach(assertionNames::add);
+        }
+
+        void complete(AtfReportStatus status) {
+            if (completed) throw new IllegalStateException("Assertion step is already complete");
+            this.status = Objects.requireNonNull(status, "status");
+            completed = true;
+        }
+
+        @Override public boolean completed() { return completed; }
+        @Override public AtfReportSemanticSnapshot.AssertionStepSnapshot snapshot() {
+            return new AtfReportSemanticSnapshot.AssertionStepSnapshot(title, assertionNames, status);
+        }
     }
 
     static final class RequestState implements NodeState {

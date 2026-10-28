@@ -56,6 +56,10 @@ public final class AtfReportSemanticRecorder {
             return new RequestHandle(state.startRequest(title, method, path));
         }
 
+        public AssertionStepHandle startAssertionStep(String title) {
+            return new AssertionStepHandle(state.startAssertionStep(title));
+        }
+
         public void detail(String name) {
             state.detail(name);
         }
@@ -63,6 +67,17 @@ public final class AtfReportSemanticRecorder {
         public void complete(AtfReportStatus status) {
             state.complete(status);
         }
+    }
+
+    public final class AssertionStepHandle {
+        private final AtfReportSemanticState.AssertionStepState state;
+
+        private AssertionStepHandle(AtfReportSemanticState.AssertionStepState state) {
+            this.state = state;
+        }
+
+        public void assertions(Collection<AtfAssertion> assertions) { state.assertions(assertions); }
+        public void complete(AtfReportStatus status) { state.complete(status); }
     }
 
     public final class RequestHandle {

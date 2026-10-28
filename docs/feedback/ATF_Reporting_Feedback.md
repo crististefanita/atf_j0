@@ -58,6 +58,26 @@ fără rebazare, extindere de scope sau relaxarea guard-urilor.
 
 ```yaml
 testChanges:
+  - id: REPORT-ASSET-ASSERTION-DISCLOSURE-01
+    status: ACTIVE
+    base: 466a045e95a7336b183a7d75e0b369f8deb3082c
+    expires: 2026-11-26
+    reason: Rebugetează explicit numai plafoanele depășite de inventarul sursă și de disclosure-ul tipizat al aserțiunilor; păstrează CSS și totalul nativ și probează publicarea compactată.
+    proof: mvn -pl atf-reporting-tests,atf-tests -am "-Dtest=ReportAssetSizeInventoryTest,ComponentAssertionStepReportTest,ExtentReportDisclosureBrowserComponentTest,WholeAtfGovernanceSuiteTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/asset/ReportAssetSizeInventoryTest.java
+  - id: REPORT-COMPONENT-ASSERTION-STEP-01
+    status: ACTIVE
+    base: 466a045e95a7336b183a7d75e0b369f8deb3082c
+    expires: 2026-11-26
+    reason: Verifică disclosure-ul Extent pentru faze goale și noduri cu evidence, plus pasul tipizat de aserțiuni în Extent și fallback; FAIL păstrează ownerul component, valorile exacte și deep-link-ul către tabel, fără request HTTP sintetic.
+    proof: mvn -pl atf-reporting-tests,atf-tests -am "-Dtest=ComponentAssertionStepReportTest,ExtentReportDisclosureBrowserComponentTest,WholeAtfGovernanceSuiteTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/README.md
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/ExtentReportDisclosureBrowserComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/disclosure/ExtentReportDisclosureProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/assertions/ComponentAssertionStepReportTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/diagnostic/ReportPhaseAuditLocators.java
   - id: REPORTING-LAUNCHER-06
     status: ACTIVE
     base: 490a0f274d71ec4bb288b01655e60f768daa74ba

@@ -1,5 +1,6 @@
 package atf.shop.tests.support;
 
+import atf.shop.tests.support.reporting.ShopExtentTestExtension;
 import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.extension.ExtendWith;
 

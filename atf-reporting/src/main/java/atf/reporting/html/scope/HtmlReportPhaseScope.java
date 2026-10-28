@@ -4,9 +4,12 @@ import atf.reporting.console.AtfConsoleEvent;
 import atf.reporting.console.AtfConsoleSink;
 import atf.reporting.contract.AtfReportPorts;
 import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.contract.ReportStatusAggregator;
 import atf.reporting.html.HtmlReportSemanticDocument;
 import atf.reporting.markup.ExtentReportNodeSupport;
 import atf.reporting.semantic.AtfReportSemanticRecorder;
+
+import java.util.function.Consumer;
 
 /** Coordinates one scenario phase and exposes request-level reporting ports. */
 public final class HtmlReportPhaseScope implements AtfReportPorts.Phase {
@@ -14,17 +17,21 @@ public final class HtmlReportPhaseScope implements AtfReportPorts.Phase {
     private final String consoleName;
     private final AtfReportSemanticRecorder.PhaseHandle semantic;
     private final AtfConsoleSink console;
+    private final Consumer<AtfReportStatus> onComplete;
     private final long startedAt = System.nanoTime();
+    private final ReportStatusAggregator childStatuses = new ReportStatusAggregator();
     private boolean closed;
 
     public HtmlReportPhaseScope(HtmlReportSemanticDocument.PhaseModel model,
                                 String consoleName,
                                 AtfReportSemanticRecorder.PhaseHandle semantic,
-                                AtfConsoleSink console) {
+                                AtfConsoleSink console,
+                                Consumer<AtfReportStatus> onComplete) {
         this.model = model;
         this.consoleName = consoleName;
         this.semantic = semantic;
         this.console = console;
+        this.onComplete = onComplete;
     }
 
     @Override
@@ -37,6 +44,13 @@ public final class HtmlReportPhaseScope implements AtfReportPorts.Phase {
                 semantic.startRequest(title, method, path), console);
     }
 
+    @Override public AtfReportPorts.AssertionStep startAssertionStep(String title) {
+        ensureOpen();
+        String stepTitle = title == null || title.isBlank() ? "Assertions" : title;
+        return new HtmlReportAssertionStepScope(model.addAssertionStep(stepTitle), stepTitle,
+                semantic.startAssertionStep(stepTitle), console, childStatuses::record);
+    }
+
     @Override
     public void detail(String name, String value) {
         ensureOpen();
@@ -46,10 +60,12 @@ public final class HtmlReportPhaseScope implements AtfReportPorts.Phase {
 
     @Override
     public void complete(AtfReportStatus status) {
-        model.complete(status);
-        semantic.complete(status);
+        AtfReportStatus effective = AtfReportStatus.worst(childStatuses.aggregate(), status);
+        model.complete(effective);
+        semantic.complete(effective);
+        onComplete.accept(effective);
         console.publish(AtfConsoleEvent.completed(AtfConsoleEvent.Scope.PHASE,
-                consoleName, status, HtmlReportScopeTiming.elapsedMillis(startedAt)));
+                consoleName, effective, HtmlReportScopeTiming.elapsedMillis(startedAt)));
     }
 
     @Override

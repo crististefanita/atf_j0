@@ -218,7 +218,7 @@ aceasta este o probă controlată, distinctă de raportul E2E al magazinului pub
 Rularea uzuală selectează `AutoExPurchaseUiE2eTest`: un cont, o comandă demo,
 o factură și cleanup.
 
-Adnotarea locală `@AutoExE2eTest` compune infrastructura identică a celor șase
+Adnotarea locală `@AutoExE2eTest` compune infrastructura identică a celor opt
 clase: marker E2E, extensiile de consolă și runtime, directorul `auto-ex`,
 publicarea căii raportului și execuția secvențială. Canalul `UI`/`UI_API`,
 `@Order` și orice `@AtfUiEvidence` rămân pe clasa concretă; compoziția nu
@@ -258,7 +258,7 @@ Nu se rulează toate pentru a demonstra mai mult business și nu se adaugă o
 variantă de purchase pentru fiecare combinație de captură sau layout. Testele
 formatării, navigării și redării raportului aparțin `atf-reporting-tests`.
 
-`AutoExE2eSuite` este unicul gate UI complet: include cele șase clase E2E,
+`AutoExE2eSuite` este unicul gate UI complet: include cele opt clase E2E,
 cu poveștile de cont nou/existent, coș/sesiune și cele trei profile de purchase păstrate.
 Clasele concrete rămân selecția pentru un singur flow, fără suite suprapuse.
 
@@ -651,19 +651,20 @@ Ambele suite publică Extent HTML și folosesc setările Extent comune; sesiunea
 
 ```mermaid
 flowchart LR
-    UI[UI suite] -->|uses| UISession[UI report session]
-    UISession -->|publishes| UIEvidence[Browser evidence]
-    API[API live suite] -->|uses| ApiSession[API report session]
-    ApiSession -->|publishes| ApiEvidence[HTTP evidence]
-    Config[Report settings] -->|configures| UISession
-    Config -->|configures| ApiSession
+    UI[UI suite] -->|partajează| UISession[Sesiune UI]
+    UISession -->|publică| UIReport[Un raport Extent]
+    API[API live suite] -->|selectează| Classes[Clase API opt-in]
+    Classes -->|deschid| ApiSession[Sesiuni API proprii]
+    ApiSession -->|publică| ApiReports[Raport per clasă]
+    Config[Setări comune] -->|configurează| UISession
+    Config -->|configurează| ApiSession
 ```
 <details>
 <summary><strong>Legendă — sesiuni și evidence</strong></summary>
 
-- sesiunea UI este partajată pe suită și include lifecycle-ul browserului;
-- extensia API deschide o sesiune Extent separată și publică exchange-urile și
-  aserțiunile JSON;
+- sesiunea UI este partajată pe suită și publică evidence-ul browserului;
+- fiecare clasă API deschide o sesiune Extent proprie și publică exchange-urile
+  și aserțiunile JSON;
 - ambele sesiuni citesc setările Reporting comune, dar API nu publică pași UI sau
   capturi de browser.
 
@@ -673,14 +674,48 @@ flowchart LR
   deține raportul API direct;
 - extensia API deschide raportul în `BeforeAll`, finalizează faza/scenariul în
   `AfterEach` și închide sesiunea în `AfterAll`;
+- cu ambele opt-in-uri active, `AutoExApiLiveSuite` selectează două clase API și
+  produce acum câte un raport Extent pentru fiecare clasă, fără un artifact comun
+  care să rezume întreaga suită; diferența este urmărită în
+  [feedback-ul consumerilor](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-api-suite-audit-01--artifactul-comun-al-suitei-autoex);
 - calea implicită este `artifacts/reports/api/auto-ex`, iar `@AtfReportPath`
   anunță locația.
 
-Testele cu `@AutoExComponentTest` publică fiecare metodă într-un raport Extent
-propriu, în `artifacts/reports/component/auto-ex`, inclusiv când sunt lansate
-prin `AutoExComponentSuite` sau individual. Anotarea păstrează tag-ul
-`component`; lifecycle-ul generic înregistrează scenariul și statusul JUnit,
-fără browser sau capturi. `@AutoExE2eTest` continuă să folosească harness-ul UI.
+Testele cu `@AutoExComponentTest` publică un raport Extent per metodă în
+`artifacts/reports/component/auto-ex`, prin suită sau lansare individuală.
+
+| Caz | Dovadă în raport |
+|---|---|
+| Metodă generică | Scenariu, status JUnit și tag `component`; fără browser sau capturi |
+| `AutoExConfigurationLoaderComponentTest#packagedTestYamlDefinesTheSafeAndCompleteDefaultProfile` | Comparațiile evaluate de `RecordedAssertions` din Test Kit apar sub `TEST BODY` în `Component assertions` |
+| `@AutoExE2eTest` | Dovezi UI publicate de harness-ul E2E |
+
+- Pasul de aserțiuni este închis inițial; metodele fără rânduri publicate rămân
+  noduri terminale.
+- Raportul unei metode componente generice confirmă execuția și verdictul, dar
+  nu permite auditul comparațiilor JUnit din interiorul ei.
+- Acoperirea metodelor componente rămase este urmărită în
+  [feedback-ul consumerilor](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-component-assertions-01--dovada-metodelor-componente-rămase).
+  Testele unit sunt în afara acestei cerințe.
+
+```mermaid
+flowchart LR
+    Test[Test configurare AutoEx] -->|evaluează| Check[RecordedAssertions · Kit]
+    Check -->|furnizează rânduri| Adapter[Extensie AutoEx]
+    Adapter -->|publică în TEST BODY| Step[Component assertions]
+    Step -->|afișează| Table[Tabel de aserțiuni]
+```
+
+<details>
+<summary><strong>Legendă — profilul implicit AutoEx</strong></summary>
+
+- Aceeași comparație alimentează verdictul JUnit și dovada din raport.
+- Recorderul neutru aparține [Test Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră);
+  extensia JUnit locală mapează rândurile în portul Reporting.
+- Extensia adaugă pasul numai dacă metoda publică rânduri.
+- Tabelul este vizibil când utilizatorul deschide pasul.
+
+</details>
 
 ### Boundary-ul cauzal pentru `UI_API`
 

@@ -72,6 +72,7 @@ public final class AtfReportHtmlVocabulary {
 
     public enum CssClass {
         ASSERTIONS("assertions"),
+        ASSERTION_EVIDENCE("assertion-evidence"),
         ACTIVE("active"),
         ATF_SETUP_EVIDENCE("atf-setup-evidence"),
         ATF_SETUP_EVIDENCE_TABLE("atf-setup-evidence-table"),

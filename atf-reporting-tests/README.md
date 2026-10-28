@@ -71,7 +71,8 @@ Proiecția contextului UI este verificată la componentă:
 | `UiApiVerdictProjectionComponentTest` | UI PASS/API FAIL, UI FAIL/API PASS, ambele FAIL și corelare API FAIL cu exchange-uri PASS; owner tipizat, request/checkpoint/cauză exacte, ultimul exchange-soră PASS și indicele exact Open in Tests; audit separat cu pași, assertions și capturi pentru cele cinci intrări Fails |
 | `ApiWhitespaceBodyComponentTest` + `UiNetworkBodyFidelityComponentTest` din UI | body prezent numai din whitespace rămâne distinct de absent, necapturat și JSON literal null; captură/sanitizare la ownerul UI, apoi formatare/publicare/replay la Reporting |
 | `ExtentReportUiEvidencePublishingTest` | publisher-ul UI nu adaugă un request HTTP sintetic; exchange-ul nested păstrează request/response/JSON/execution |
-| `ExtentReportDisclosureBrowserComponentTest` | artifact controlat cu PASS/WARNING/FAIL; niciun tabel introductiv la checkpoint, validări și screenshot disponibile, API exchange complet, close fără subarbore vizibil și titluri custom identificate semantic; captură deduplicată deschisă prin click/Enter cu sursa colapsată, fără salt la ancoră |
+| `ExtentReportDisclosureBrowserComponentTest` | artifact controlat cu PASS/WARNING/FAIL; faza goală nu afișează affordance de expandare, iar API exchange-ul cu evidence mock rămâne expandabil cu mouse/keyboard; niciun tabel introductiv la checkpoint, validări și screenshot disponibile, close fără subarbore vizibil și titluri custom identificate semantic; captură deduplicată deschisă prin click/Enter cu sursa colapsată, fără salt la ancoră |
+| `ComponentAssertionStepReportTest` | același nod tipizat și 42 de rânduri în Extent/fallback; pas colapsat implicit, acces la ultimul rând și comutare cu mouse/Enter/Space în Chromium; FAIL în Extent are owner `component`, valori numerice exacte și deep-link redeschis până la tabel, fără request sau durată HTTP |
 | `ReportPhaseDiagnosticTest` | conversie explicită, statusul fazei sursă, chei legacy delimitate, context nemodificat și rezultat imutabil; portul diagnostic nu creează HTTP |
 | `ReportPhaseAuditBrowserComponentTest` | Extent/fallback cu zero/unul/mai multe exchange-uri și cu/fără metadata; eșec JUnit, asociere lipsă, redacție și închiderea diagnosticului; Fails exclude notele fazei PASS; probe negative pentru bandă ascunsă, redenumită sau goală |
 
@@ -230,6 +231,9 @@ identitatea, propagarea wrapped, cleanup-ul și ciclurile de cauze.
 Probele de componentă folosesc o publicație Extent controlată și aceleași
 locatoare/extractoare ca E2E, fără endpoint extern. Scenariile negative sunt
 date ale fixture-ului, nu motive de a dezactiva verificări sau de a inventa PASS.
+`ExtentReportDisclosureBrowserComponentTest` folosește și evidence API mock:
+nodurile cu request/response/validation se extind, în timp ce o fază fără
+conținut copil nu simulează un control interactiv.
 
 ## Ordinea testelor și responsabilitatea protecțiilor
 
@@ -463,13 +467,18 @@ plafoane, nu ținte pentru dimensiunea livrată:
 
 | Asset budget | Native | Published |
 |---|---:|---:|
-| JavaScript | `125.000 B` | `105.000 B` |
+| JavaScript | `130.000 B` | `107.000 B` |
 | CSS | `140.000 B` | `120.000 B` |
-| Total | `265.000 B` | `220.000 B` |
+| Total | `265.000 B` | `223.000 B` |
 
-`ReportAssetSizeBudgetTest` verifică și comportamentul comparatorului pentru
-limite depășite și configurații invalide. Mărirea unui plafon cere motiv și
-verificarea impactului asupra artifactului.
+- `ReportAssetSizeBudgetTest` verifică limitele depășite și configurațiile
+  invalide; mărirea unui plafon cere motiv și verificarea impactului asupra
+  artifactului.
+- Pasul tipizat de aserțiuni de componentă folosește disclosure-ul comun în
+  JavaScript. Bugetul sursei de la commitul de bază era deja depășit.
+- Plafoanele revizuite acoperă sursa și copia compactată măsurate, cu mai puțin
+  de 2 KB rezervă în fiecare dimensiune modificată; CSS și totalul nativ
+  rămân neschimbate.
 
 ### Verificarea randării responsive
 

@@ -23,6 +23,9 @@ final class HtmlReportSemanticSnapshotMapper {
     }
 
     private static ReportExecutionModel.Node mapNode(HtmlReportSemanticDocument.NodeModel node) {
+        if (node instanceof HtmlReportSemanticDocument.AssertionStepModel step) {
+            return new ReportExecutionModel.AssertionStep(step.title, step.assertions, step.status);
+        }
         if (node instanceof HtmlReportSemanticDocument.RequestModel request) {
             return new ReportExecutionModel.Request(request.title, request.method, request.path,
                     request.details.stream().toList(), request.json.stream().toList(),

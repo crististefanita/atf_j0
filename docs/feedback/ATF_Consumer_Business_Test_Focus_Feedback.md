@@ -25,7 +25,95 @@ documentară /10. Nu reprezintă o notă a codului sau un rezultat de test.
 |---|---:|---|
 | `CONSUMER-FLOW-LAYERS-09` | 88 = 36 + 24 + 20 + 8 | extinderea separării business/UI/validare în etapele AutoEx și Shop rămase |
 | `CONSUMER-RUNTIME-BOUNDARY-03` | 77 = 31 + 18 + 20 + 8 | responsabilitățile de achiziție, publicare și lifecycle rămase în Shop |
+| `CONSUMER-API-SUITE-AUDIT-01` | 74 = 31 + 23 + 14 + 6 | două artifacte API AutoEx fără un audit Extent comun pentru suita live |
+| `CONSUMER-SHOP-BILLING-STATE-01` | 71 = 29 + 22 + 14 + 6 | diferență de valoare la billing între suita Shop E2E și lansarea individuală |
+| `CONSUMER-COMPONENT-ASSERTIONS-01` | 63 = 25 + 18 + 16 + 4 | extinderea dovezii de aserțiune la alte metode componente cu verificări reale |
 | `CONSUMER-E2E-PROFILES-01` | 57 = 24 + 10 + 17 + 6 | reducerea repetării live numai după echivalență demonstrată |
+
+## CONSUMER-API-SUITE-AUDIT-01 — artifactul comun al suitei AutoEx
+
+**Owner:** lifecycle-ul API direct din AutoEx; Reporting furnizează sesiunea și
+rendererul Extent existente.
+
+- Cu opt-in-urile read-only și mutativ active, `AutoExApiLiveSuite` rulează două
+  clase. Extensia creează și închide o sesiune per clasă: două rapoarte corecte
+  individual, fără o vedere unică a verdictului suitei.
+- `ShopApiLiveSuite` selectează o singură clasă și publică deja un artifact
+  individual, inclusiv când login-ul răspunde cu 401.
+
+- [ ] Definiți ownership-ul unei sesiuni API la scope de suită AutoEx, păstrând
+      lansarea unei clase direct din IntelliJ și opt-in-urile independente.
+- [ ] Publicați un artifact Extent comun al suitei cu ambele clase, statusurile,
+      request-urile și validările sub scenariul corect, plus navigare Fails → Tests;
+      fiecare clasă lansată separat trebuie să-și păstreze propriul raport.
+- [ ] Probați combinațiile read-only, mutativ și ambele, inclusiv FAIL în una
+      dintre clase. Nu mutați evidence HTTP sub un checkpoint UI și nu eliminați
+      raportul FAIL când există răspuns HTTP respins.
+
+## CONSUMER-COMPONENT-ASSERTIONS-01 — dovada metodelor componente rămase
+
+**Owner:** testele componente AutoEx și Shop, cu `RecordedAssertions` comun în
+`atf-test-kit/src/main/java`. Portul tipizat și randările Extent/
+fallback sunt livrate în [Reporting](../../atf-reporting/README.md); metodele
+pilot și limita opt-in sunt descrise în README-urile [AutoEx](../../atf-test-auto-ex/README.md)
+și [Shop](../../atf-test-practice-shop/README.md).
+
+- [ ] Inventariați metodele componente cu aserțiuni JUnit evaluate efectiv și
+      migrați-le treptat la recorderul comun, păstrând expresia și verdictul
+      aceleiași verificări; nu publicați pași sintetici pentru metode fără rânduri.
+- [ ] Pentru fiecare categorie migrată, lansați o metodă individual în stilul
+      IntelliJ și suita care o selectează. Probați raportul per metodă în ambele
+      moduri: pas inițial închis, rânduri complete, expandare cu mouse și
+      tastatură, status FAIL și proiecția Fails. Un status PASS fără comparațiile
+      evaluate rămâne dovadă de execuție, nu audit al aserțiunilor.
+- [ ] Păstrați request-urile și validările API sub ownerul lor, iar UI/E2E sub
+      checkpoint-uri; comparați Extent cu fallback și rulați guvernanța înainte de
+      a declara acoperirea completă. Testele unit nu intră în această migrare.
+
+```mermaid
+flowchart LR
+    J[Comparație JUnit componentă] -->|înregistrează| R[RecordedAssertions · Kit]
+    R -->|furnizează rânduri| Adapter[Extensie consumer]
+    Adapter -->|publică| S[Component assertions]
+    S -->|afișează| T[Tabel expected / actual / result]
+    I[Lansare individuală] -->|creează| A[Raport per metodă]
+    Q[Suita componentă] -->|creează| A
+    A -->|conține| S
+```
+
+<details>
+<summary><strong>Legendă — același audit în două lansări</strong></summary>
+
+- Fiecare metodă componentă are propriul artifact, inclusiv când este selectată
+  de suită; suita nu înlocuiește tabelul cu un sumar comun.
+- Recorderul descrie aceeași comparație pe care JUnit o evaluează.
+- Suportul neutru este în main Kit; extensia JUnit adaptează datele pentru
+  Reporting, fără o dependență Kit → Reporting.
+- Testele unit rămân în afara acestei căi de raportare.
+
+</details>
+
+## CONSUMER-SHOP-BILLING-STATE-01 — valoarea observată în suita E2E
+
+**Owner:** flow-ul și observația billing din Practice Shop.
+
+- `ShopUiOnlySingleFlowPurchaseE2eTest` a trecut individual înainte și după
+  suită, dar a eșuat în `ShopE2eSuite`: checkpoint-ul billing a așteptat
+  `Alaska` și a observat `AlaskaAlaska` în câmpul state.
+- Raportul comun a păstrat comparația FAIL. O singură suită eșuată nu stabilește
+  încă o cauză deterministă a diferenței dintre traseele de execuție.
+
+- [ ] Reproduceți cu suita și clasa individuală, păstrând exact aceeași configurație;
+      comparați ordinea acțiunilor, valorile DOM înainte și după lookup-ul postal,
+      evenimentele de input și state-ul per scenariu. Nu reintroduceți tastarea
+      peste câmpurile pe care lookup-ul Shop le completează.
+- [ ] Stabiliți dacă dublarea vine din aplicația publică, din sincronizarea
+      lookup-ului sau din adaptor; corectați numai la ownerul dovedit. Păstrați
+      expected-ul din fixture și actual-ul citit din UI, fără normalizare care
+      ar transforma `AlaskaAlaska` în PASS.
+- [ ] Probați aceeași verificare în lansare individuală și prin suită; raportul
+      FAIL trebuie să arate comparația și să permită expandarea până la rândul
+      exact, iar raportul PASS trebuie să păstreze rândurile de validare.
 
 ## CONSUMER-FLOW-LAYERS-09 — business, traseu UI și validare separate
 
@@ -185,6 +273,24 @@ flow-urilor rămase.
 
 ```yaml
 testChanges:
+  - id: CONSUMER-COHESION-INVENTORY-01
+    status: ACTIVE
+    base: 466a045e95a7336b183a7d75e0b369f8deb3082c
+    expires: 2026-11-26
+    reason: Actualizează inventarul exact al pachetului journey AutoEx cu AutoExAccountJourney deja prezent în sursele main; păstrează limita de coeziune și verificările tuturor pachetelor.
+    proof: mvn -pl atf-tests -am "-Dtest=AtfPackageCohesionGovernanceTest,WholeAtfGovernanceSuiteTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/AtfPackageCohesionGovernanceTest.java
+  - id: CONSUMER-COMPONENT-ASSERTION-STEP-01
+    status: ACTIVE
+    base: 466a045e95a7336b183a7d75e0b369f8deb3082c
+    expires: 2026-11-26
+    reason: Conectează comparațiile JUnit evaluate din configurarea AutoEx și Shop la pasul tipizat; recorderul neutru comun este în main Test Kit, iar adaptoarele JUnit păstrează mapping-ul și raportul per metodă.
+    proof: mvn -pl atf-test-kit,atf-test-auto-ex,atf-test-practice-shop,atf-tests -am "-Dtest=RecordedAssertionsTest,AutoExConfigurationLoaderComponentTest,ShopConfigurationTest,WholeAtfGovernanceSuiteTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/configuration/AutoExConfigurationLoaderComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/extension/AutoExExtentTestExtension.java
+      - atf-test-kit/src/test/java/atf/testkit/assertions/RecordedAssertionsTest.java
   - id: AUTOEX-CONSUMER-COMPONENT-09
     status: ACTIVE
     base: fdbafdbaa4bdf617c9fd103ba0b917cc2efdc766

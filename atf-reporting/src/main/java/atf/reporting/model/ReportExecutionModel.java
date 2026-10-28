@@ -103,8 +103,18 @@ public record ReportExecutionModel(List<Scenario> scenarios) {
         }
     }
 
-    public sealed interface Node permits Request, Validation {
+    public sealed interface Node permits Request, Validation, AssertionStep {
         AtfReportStatus status();
+    }
+
+    /** Assertion evidence for a component test, without a synthetic HTTP request. */
+    public record AssertionStep(String title, List<AtfAssertion> assertions,
+                                AtfReportStatus status) implements Node {
+        public AssertionStep {
+            title = required(title, "title");
+            assertions = List.copyOf(Objects.requireNonNull(assertions, "assertions"));
+            status = Objects.requireNonNull(status, "status");
+        }
     }
 
     public record Request(String title, String method, String path,

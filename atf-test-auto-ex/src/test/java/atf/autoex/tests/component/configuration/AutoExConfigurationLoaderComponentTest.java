@@ -1,6 +1,7 @@
 package atf.autoex.tests.component.configuration;
 
 import atf.autoex.tests.extension.AutoExComponentTest;
+import atf.testkit.assertions.RecordedAssertions;
 import atf.ui.config.UiRetryOperation;
 import atf.autoex.config.AutoExConfiguration;
 import atf.autoex.config.AutoExConfigurationLoader;
@@ -59,24 +60,26 @@ class AutoExConfigurationLoaderComponentTest {
     }
 
     @Test
-    void packagedTestYamlDefinesTheSafeAndCompleteDefaultProfile() {
+    void packagedTestYamlDefinesTheSafeAndCompleteDefaultProfile(RecordedAssertions assertions) {
         AutoExConfiguration configuration = AutoExConfigurationLoader.load();
 
         assertAll(
-                () -> assertEquals(PUBLIC_BASE_URI, configuration.baseUrl()),
-                () -> assertFalse(configuration.e2eEnabled(), "live E2E must remain opt-in by default"),
-                () -> assertEquals("chromium", configuration.browser().browser()),
-                () -> assertEquals(20, configuration.browser().timeout().toSeconds()),
-                () -> assertEquals(45, configuration.browser().navigationTimeout().toSeconds()),
-                () -> assertEquals(1440, configuration.browser().viewportWidth()),
-                () -> assertEquals(1000, configuration.browser().viewportHeight()),
-                () -> assertEquals(70, configuration.browser().zoomPercent(),
-                        "AutoEx uses 70%; only the vignette Close opts into DOM activation"),
-                () -> assertEquals(Path.of("artifacts/reports/ui"), configuration.uiReportBaseDirectory()),
-                () -> assertEquals("Blue Top", configuration.catalog().productName()),
-                () -> assertEquals(2, configuration.catalog().quantity()),
-                () -> assertEquals("ATF AutoEx", configuration.registration().displayName()),
-                () -> assertEquals("Rs. 1000", configuration.expectedCartTotal()));
+                () -> assertions.equals("Public base URL", PUBLIC_BASE_URI, configuration.baseUrl()),
+                () -> assertions.isFalse("Live E2E opt-in", configuration.e2eEnabled()),
+                () -> assertions.equals("Browser engine", "chromium", configuration.browser().browser()),
+                () -> assertions.equals("Browser timeout seconds", 20L, configuration.browser().timeout().toSeconds()),
+                () -> assertions.equals("Navigation timeout seconds", 45L,
+                        configuration.browser().navigationTimeout().toSeconds()),
+                () -> assertions.equals("Viewport width", 1440, configuration.browser().viewportWidth()),
+                () -> assertions.equals("Viewport height", 1000, configuration.browser().viewportHeight()),
+                () -> assertions.equals("Browser zoom", 70, configuration.browser().zoomPercent()),
+                () -> assertions.equals("UI report directory", Path.of("artifacts/reports/ui"),
+                        configuration.uiReportBaseDirectory()),
+                () -> assertions.equals("Catalog product", "Blue Top", configuration.catalog().productName()),
+                () -> assertions.equals("Catalog quantity", 2, configuration.catalog().quantity()),
+                () -> assertions.equals("Registration display name", "ATF AutoEx",
+                        configuration.registration().displayName()),
+                () -> assertions.equals("Expected cart total", "Rs. 1000", configuration.expectedCartTotal()));
     }
 
     @Test

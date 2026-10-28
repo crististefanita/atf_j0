@@ -136,7 +136,19 @@ function failureContextFor(item, anchor) {
     label = cells[0] || 'Assertion',
     expected = cells[1] || '',
     actual = cells[2] || '';
-  var validation = anchor.closest('.card');
+  var validation = anchor.closest('.card'),
+    component = anchor.closest('.card[data-atf-node-role="assertion-step"]'),
+    phase = anchor.closest('.card[data-atf-node-role="phase"]');
+  if (component) {
+    var title = text(component, '.card-title a.node');
+    return Object.assign(ctx, {
+      evidenceOwner: 'component', ui: false, request: '', duration: '',
+      step: title, validation: title,
+      phase: phase ? text(phase, '.card-title a.node') : ctx.phase,
+      assertion: label + ' → ' + expected + ' → ' + actual,
+      message: label + ' expected ' + expected + ', actual ' + actual
+    });
+  }
   var evidence = anchor.closest('[data-atf-evidence-owner]'),
     channel = evidence && evidence.getAttribute('data-atf-evidence-owner'),
     requests = [];
@@ -146,8 +158,7 @@ function failureContextFor(item, anchor) {
   var nearest = requests[0],
     requestTitle = nearest ? text(nearest, '.card-title a.node') : '',
     identity = failureRequestIdentity(nearest),
-    httpRequest = !!identity || (channel !== 'api' && /^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s/.test(requestTitle)),
-    phase = anchor.closest('.card[data-atf-node-role="phase"]');
+    httpRequest = !!identity || (channel !== 'api' && /^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s/.test(requestTitle));
   // Explicit typed ownership wins. Method-shaped titles are only a legacy fallback.
   if (channel === 'api' || channel === 'ui' || httpRequest) {
     ctx.ui = channel === 'ui' || (channel !== 'api' && !httpRequest);

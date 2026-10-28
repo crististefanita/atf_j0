@@ -41,6 +41,13 @@ final class ExtentPhaseScope implements AtfReportPorts.Phase {
                 semantic.startRequest(title, method, path));
     }
 
+    @Override public AtfReportPorts.AssertionStep startAssertionStep(String title) {
+        ensurePhaseOpen();
+        String stepTitle = title == null || title.isBlank() ? "Assertions" : title;
+        return new ExtentAssertionStepScope(tree, this, phase.createNode(stepTitle),
+                stepTitle, semantic.startAssertionStep(stepTitle));
+    }
+
     @Override public void detail(String name, String value) {
         ensurePhaseOpen();
         String normalizedName = name == null || name.isBlank() ? "DETAIL" : name;

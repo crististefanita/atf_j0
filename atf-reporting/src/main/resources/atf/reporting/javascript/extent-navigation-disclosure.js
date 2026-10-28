@@ -164,7 +164,9 @@ function bindScenarioCollapse() {
     var header = card.querySelector(':scope > .card-header'),
       panel = card.querySelector(':scope > .accordion'),
       node = header && header.querySelector(':scope > .card-title .node');
-    if (!header || !panel) return;
+    var expandable = disclosureHasContent(panel);
+    setDisclosureAvailability(card, header, expandable);
+    if (!header || !expandable) return;
     initializeScenarioCard(card, panel);
     if (header.getAttribute('data-atf-scenario-collapse-bound')) return;
     header.setAttribute('data-atf-scenario-collapse-bound', 'true');
@@ -236,11 +238,13 @@ function bindNodeCollapse(role) {
     bound = phase ? 'data-atf-phase-header-bound' : 'data-atf-node-collapse-bound';
   q(
     phase ? '#test-view .test-content-detail [data-atf-node-role="phase"]' :
-      '#test-view .test-content-detail [data-atf-node-role="request"],#test-view .test-content-detail [data-atf-node-role="validation"]'
+      '#test-view .test-content-detail [data-atf-node-role="request"],#test-view .test-content-detail [data-atf-node-role="validation"],#test-view .test-content-detail [data-atf-node-role="assertion-step"]'
   ).forEach(function (card) {
     var header = card.querySelector(':scope>.card-header'),
       panel = phase ? card.querySelector(':scope>.accordion') : nodePanel(card);
-    if (!header || !panel) return;
+    var expandable = disclosureHasContent(panel);
+    setDisclosureAvailability(card, header, expandable);
+    if (!header || !expandable) return;
     var open = card.getAttribute(attribute) === 'true';
     setDisclosureState(card, panel, open, attribute);
     if (phase) applyPhaseBodyState(card, open);

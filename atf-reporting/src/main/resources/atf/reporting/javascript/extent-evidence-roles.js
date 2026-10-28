@@ -38,7 +38,12 @@ function structuralNodeRole(card) {
   if (!parent) return '';
   if (isScenarioCard(parent)) return 'phase';
   var parentRole = parent.getAttribute('data-atf-node-role');
-  if (parentRole === 'phase' || parentRole === 'validation') return 'request';
+  if (parentRole === 'phase') {
+    var table = directEvidenceTable(card);
+    if (table && table.querySelector('.atf-ui-assertions')) return 'assertion-step';
+    return 'request';
+  }
+  if (parentRole === 'validation') return 'request';
   if (parentRole === 'request')
     return isNetworkAggregateCard(card) ? 'request' : 'validation';
   return '';

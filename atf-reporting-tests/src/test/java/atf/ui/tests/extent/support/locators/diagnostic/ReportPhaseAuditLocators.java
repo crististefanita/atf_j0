@@ -15,6 +15,16 @@ public final class ReportPhaseAuditLocators {
         return fallback ? page.locator("article[class~='scenario']") : common.scenarios(page);
     }
     public Locator phases(Locator scenario) { return scenario.locator("[data-atf-node-role='phase']"); }
+    public Locator assertionStep(Locator phase) {
+        return phase.locator("[data-atf-node-role='assertion-step']");
+    }
+    public Locator fallbackAssertionStep(Page page) {
+        return page.locator("details[data-atf-node-role='assertion-step']");
+    }
+    public Locator assertionTable(Locator step, boolean fallback) {
+        return step.locator(fallback ? "table.assertions" : ".helm-validation-table");
+    }
+    public Locator assertionRows(Locator table) { return table.locator("tbody tr"); }
     public Locator phaseLogTables(Locator phase) { return phaseLogBodies(phase).locator("table[class~='table']"); }
     public Locator phaseLogBodies(Locator phase) { return scenarioLogBodies(phase); }
     public Locator scenarioLogBodies(Locator scenario) {
@@ -37,5 +47,7 @@ public final class ReportPhaseAuditLocators {
     public Locator fails(Page page, boolean fallback) {
         return page.locator(fallback ? "[id='fails']" : "[id='atf-fails-view']");
     }
+    public Locator failureIndex(Page page) { return page.locator("#atf-failure-detail .atf-failure-index"); }
+    public Locator openFailureInTests(Page page) { return page.locator("#atf-failure-detail .atf-failure-open"); }
     public Locator body(Page page) { return page.locator("body"); }
 }

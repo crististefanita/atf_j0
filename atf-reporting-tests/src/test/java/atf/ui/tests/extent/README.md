@@ -109,6 +109,9 @@ Request evidence includes request JSON, response JSON and execution evidence
 
 - `Overview` numește suprafața verificată și rezultatul observabil;
 - pașii nested publică dovada detaliată;
+- faza fără pași/evidence copil este terminală și nu primește affordance de
+  expandare; aserțiunile JUnit ale unui test de configurație nu devin pași
+  inventați;
 - validatorii păstrează assertions distincte pentru fiecare criteriu relevant;
 - `Tests` publică projection și owners/scenarios;
 - `Categories` publică counts și filters;

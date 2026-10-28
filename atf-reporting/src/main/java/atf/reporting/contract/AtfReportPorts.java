@@ -29,6 +29,10 @@ public final class AtfReportPorts {
     }
     public interface Phase extends AutoCloseable {
         Request startRequest(String title, String method, String path);
+        /** A non-transport assertion group owned directly by this test phase. */
+        default AssertionStep startAssertionStep(String title) {
+            throw new UnsupportedOperationException("Assertion steps are not supported");
+        }
         /** Internal phase context; not a public log band or transport evidence. */
         default void detail(String name, String value) { }
         /** Explicit, scenario-owned execution diagnostic; does not invent a business assertion. */
@@ -36,6 +40,11 @@ public final class AtfReportPorts {
             detail(kind.label(), message);
         }
         void complete(AtfReportStatus status); @Override void close();
+    }
+    public interface AssertionStep extends AutoCloseable {
+        void assertions(Collection<AtfAssertion> assertions);
+        void complete(AtfReportStatus status);
+        @Override void close();
     }
     public interface Request extends ValidationSink, AutoCloseable {
         void detail(String name, String value); void json(String label, String json);

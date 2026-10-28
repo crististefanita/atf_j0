@@ -592,12 +592,42 @@ sequenceDiagram
 - compară exchange-urile HTTP cu evidence-ul API așteptat, nu cu numărul de pași
   sau capturi UI.
 
-Testele marcate `@ShopComponentTest` publică câte un raport Extent per metodă,
-în subdirectorul `component` din `reports.api` configurat în YAML. Se aplică
-atât la lansarea `ShopComponentSuite`, cât și la lansarea clasei individuale.
-Raportul generic conține identitatea și statusul JUnit; rapoartele business API
-existente continuă să adauge exchange-uri și validări, iar E2E păstrează
-evidence-ul browserului.
+Testele marcate `@ShopComponentTest` publică un raport Extent per metodă în
+subdirectorul `component` din `reports.api` configurat în YAML, inclusiv la
+lansarea clasei individuale.
+
+| Caz | Dovadă în raport |
+|---|---|
+| Metodă generică | Identitate și status JUnit; fără pași inventați |
+| `ShopConfigurationTest#yamlDefinesOwnedJourneyAndSyntheticFixtureInSourceResources` | Comparațiile evaluate de `RecordedAssertions` din Test Kit apar în `Component assertions` sub `TEST BODY`, în tabelul `ASSERTION / EXPECTED / ACTUAL / RESULT` |
+| Business API și E2E | Exchange-uri și validări API, respectiv evidence de browser, în nodurile lor proprii |
+
+- Pasul de aserțiuni este închis inițial; deschiderea lui nu creează un request
+  HTTP. Metodele fără rânduri rămân noduri terminale.
+- Un nod terminal confirmă identitatea și verdictul JUnit, dar nu permite auditul
+  comparațiilor evaluate în metoda componentă.
+- Migrarea celorlalte metode componente este urmărită în
+  [feedback-ul consumerilor](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-component-assertions-01--dovada-metodelor-componente-rămase).
+  Testele unit selectate de suită sunt în afara acestei cerințe.
+
+```mermaid
+flowchart LR
+    Test[Test configurare Shop] -->|evaluează| Check[RecordedAssertions · Kit]
+    Check -->|furnizează rânduri| Adapter[Extensie Shop]
+    Adapter -->|publică în TEST BODY| Step[Component assertions]
+    Step -->|afișează| Table[Tabel de aserțiuni]
+```
+
+<details>
+<summary><strong>Legendă — comparațiile din configurarea Shop</strong></summary>
+
+- Același apel verifică valoarea în JUnit și înregistrează rândul raportat.
+- Recorderul neutru aparține [Test Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră);
+  extensia locală deține mapping-ul către Reporting și lifecycle-ul JUnit.
+- Extensia publică pasul la finalul metodei numai dacă există rânduri.
+- Disclosure-ul pasului păstrează tabelul ascuns până la expandare.
+
+</details>
 
 În component suite, `ShopApiEndpointMatrixTest` verifică invariants comune de
 transport; `ShopApiContractVariantTest` și `ShopApiScreenFlowTest` adaugă

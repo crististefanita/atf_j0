@@ -37,6 +37,7 @@ import static atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary.CssClass.R
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static com.microsoft.playwright.options.WaitForSelectorState.VISIBLE;
 
@@ -265,6 +266,41 @@ public final class ExtentReportDisclosureProbe {
             assertState(request, true);
             header.press("Space");
             assertState(request, false);
+        }
+    }
+
+    public static void verifyEmptyPhaseDoesNotAdvertiseExpansion() {
+        Path report = TestReportPaths.report("extent-empty-phase-disclosure.html");
+        try (var session = new ExtentReportSession(report)) {
+            var scenario = session.startScenario("EmptyDisclosureComponent",
+                    "configuration-only test with no report steps", List.of("component"));
+            var phase = scenario.startPhase("TEST BODY");
+            phase.complete(AtfReportStatus.PASS);
+            scenario.complete(AtfReportStatus.PASS);
+        }
+
+        try (Playwright playwright = Playwright.create();
+             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
+            Page page = browser.newPage();
+            page.navigate(report.toUri() + "#test-view");
+            LOCATORS.firstOwner(page).click();
+            page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+
+            Locator scenario = LOCATORS.scenarios(page).first();
+            openIfClosed(scenario, "data-atf-scenario-open");
+            Locator phase = LOCATORS.firstPhase(scenario);
+            Locator header = LOCATORS.header(phase);
+            assertEquals("false", phase.getAttribute("data-atf-node-expandable"),
+                    "an empty phase must be marked as a leaf");
+            assertNull(header.getAttribute("role"), "an empty phase header is not an interactive control");
+            assertNull(header.getAttribute("tabindex"), "an empty phase header is not keyboard-focusable");
+            assertNull(header.getAttribute("aria-expanded"), "a leaf must not announce an expansion state");
+            assertEquals("none", header.evaluate("element => getComputedStyle(element, '::before').display"),
+                    "an empty phase must not show a plus glyph");
+
+            header.click();
+            assertNull(phase.getAttribute("data-atf-phase-open"),
+                    "clicking an empty phase must not create a false open state");
         }
     }
 

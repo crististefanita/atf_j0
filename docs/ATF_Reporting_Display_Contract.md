@@ -56,6 +56,16 @@ poate rămâne un discriminator intern tipizat, dar nu se afișează ca al doile
   propoziției; nu este împins pe o linie separată de wrapping artificial;
 - disclosure-urile sunt collapsed implicit, cu excepția suprafețelor declarate
   explicit ca deschise implicit, precum Overview;
+- un scenariu/fază fără conținut copil publicat este nod terminal, nu disclosure:
+  nu afișează glyph `＋/−`, nu primește rol/focus de buton și nu anunță
+  `aria-expanded`; aserțiunile JUnit fără pași/evidence nu generează conținut
+  fictiv;
+- un test de componentă care publică rânduri `AtfAssertion` are un copil tipizat
+  `AssertionStep` sub `TEST BODY`; nodul și tabelul sunt colapsate implicit în
+  Extent și fallback, iar `Expand all nodes` poate deschide pasul. Statusul și
+  rândurile FAIL ridică statusul fazei și scenariului și urmează aceeași
+  proiecție `Fails` și aceeași redacție ca restul raportului; nu se introduce
+  un request HTTP sintetic;
 - închiderea unui părinte ascunde întregul subarbore și sincronizează simultan
   vizibilitatea, `open`, `aria-expanded` și glyph-ul; redeschiderea părintelui nu
   deschide automat copiii;

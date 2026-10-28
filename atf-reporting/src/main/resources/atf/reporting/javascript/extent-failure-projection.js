@@ -1,6 +1,7 @@
 function failureIndexMarkup(name, ctx, id, scenarioIndex, ordinal) {
   var safeId = esc(id),
-    safeScenario = esc(scenarioIndex);
+    safeScenario = esc(scenarioIndex),
+    stepEvidence = ctx.ui || ctx.evidenceOwner === 'component';
   return (
     '<div class="atf-failure-index atf-failure-evidence" data-atf-evidence-owner="' +
     esc(ctx.evidenceOwner || (ctx.ui ? 'ui' : 'api')) +
@@ -24,11 +25,11 @@ function failureIndexMarkup(name, ctx, id, scenarioIndex, ordinal) {
         esc(ctx.checkpoint) + '</span></div>'
       : '') +
     '<div class="atf-failure-index-row"><span class="atf-failure-label">' +
-    (ctx.ui ? 'STEP' : 'REQUEST') +
+    (stepEvidence ? 'STEP' : 'REQUEST') +
     '</span><span class="atf-failure-value">' +
-    esc(ctx.ui ? ctx.step : ctx.request) +
+    esc(stepEvidence ? ctx.step : ctx.request) +
     '</span></div>' +
-    (ctx.ui
+    (stepEvidence
       ? ''
       : '<div class="atf-failure-index-row"><span class="atf-failure-label">DURATION</span><span class="atf-failure-value">' +
         esc(ctx.duration || 'No response duration recorded') +

@@ -71,6 +71,7 @@ Fiecare clasă executabilă declară exact un nivel:
 | `atf.testkit.evidence` | `AtfUiEvidence`, `AtfUiEvidencePlan`, `AtfUiEvidenceResolver` și enum-urile axelor | rezolvă independent flow-ul, capturile și detaliile acțiunilor; adaptorii consumer le mapează în profilul Reporting |
 | `atf.testkit.lifecycle` | `TestRunInitialization`, `CloseOnceResource`, `ArmedCleanup`, `FailureAwareCleanup`, `FailureEvidenceCleanup`, `AtfE2eActivationPolicy` | achiziție/rollback, cleanup și activare E2E neutre; fără API UI/Reporting |
 | `atf.testkit.scope` | `TestRunScope`, `ScopedTestValue<T>` | ownership explicit în Store-ul JUnit, fără cache static sau resurse UI |
+| `atf.testkit.assertions` | `RecordedAssertions` | comparații JUnit cu dovadă neutră; fără renderer sau reguli business |
 
 `atf.testkit.lifecycle` este un pachet al modulului existent
 `atf-test-kit`, nu un modul nou. Nu introduce dependențe către UI sau Reporting.
@@ -88,6 +89,20 @@ Fiecare clasă executabilă declară exact un nivel:
 - API, precedență și probe: [adnotările de infrastructură](../docs/ATF_Test_Infrastructure_Annotations.md).
 - Verificarea manuală IntelliJ pentru output project-relative:
   [ghidul suitei Extent](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/README.md#rulare-directă-din-intellij).
+
+### Comparații JUnit cu dovadă neutră
+
+`RecordedAssertions`, în `src/main/java`, păstrează comparațiile evaluate în
+`Check(name, expected, actual, passed)`. Testul declară valorile și verificarea;
+consumerul mapează datele neutre la portul Reporting.
+
+- `equals`, `isTrue` și `isFalse` înregistrează comparația înaintea verdictului
+  JUnit, astfel încât și rândul care oprește metoda rămâne disponibil.
+- `checks()` returnează un snapshot imutabil; fiecare metodă de test primește
+  propria instanță de la extensia consumerului.
+- Kit nu importă `AtfAssertion`, nu deschide rapoarte și nu alege pași sau
+  capturi. `RecordedAssertionsTest` probează fail-fast și păstrarea rândurilor;
+  randarea Extent/fallback este probată în Reporting Tests.
 
 ### Politica pentru calea raportului publicat
 
@@ -194,7 +209,7 @@ atf-reporting-tests --test--> atf-reporting production
 ```
 
 Modulele rămân ownerii semantic ai testelor lor. Kit-ul doar normalizează
-vocabularul și enforce-uiește ierarhia; nu mută assertions, fixtures, locators,
+vocabularul și enforce-uiește ierarhia; nu preia aserțiuni business, fixtures, locators,
 CSS, JavaScript sau flow-uri între module. Săgeata `--test-->` este intenționată:
 compoziția poate consuma librăria reporting în test scope, în timp ce
 `atf-reporting/src/main` rămâne fără dependențe ATF.

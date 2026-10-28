@@ -23,6 +23,11 @@ class ExtentReportDisclosureBrowserComponentTest {
     }
 
     @Test
+    void emptyTestBodyDoesNotAdvertiseAnExpandControl() {
+        ExtentReportDisclosureProbe.verifyEmptyPhaseDoesNotAdvertiseExpansion();
+    }
+
+    @Test
     void closingRequestHidesItsEvidenceAndValidationForMouseAndKeyboard() {
         ExtentReportDisclosureProbe.verifyRequestSubtreeForMouseAndKeyboard();
     }

@@ -73,6 +73,10 @@ public record AtfReportSemanticSnapshot(List<ClassSnapshot> classes) {
     }
 
     private static NodeSnapshot nodeSnapshot(ReportExecutionModel.Node node) {
+        if (node instanceof ReportExecutionModel.AssertionStep step) {
+            return new AssertionStepSnapshot(step.title(),
+                    step.assertions().stream().map(assertion -> assertion.name()).toList(), step.status());
+        }
         if (node instanceof ReportExecutionModel.Request request) {
             return new RequestSnapshot(request.title(), request.method(), request.path(),
                     requestDetailNames(request),
@@ -158,9 +162,18 @@ public record AtfReportSemanticSnapshot(List<ClassSnapshot> classes) {
         }
     }
 
-    public sealed interface NodeSnapshot permits RequestSnapshot, ValidationSnapshot {
+    public sealed interface NodeSnapshot permits RequestSnapshot, ValidationSnapshot, AssertionStepSnapshot {
         String title();
         AtfReportStatus status();
+    }
+
+    public record AssertionStepSnapshot(String title, List<String> assertionNames,
+                                        AtfReportStatus status) implements NodeSnapshot {
+        public AssertionStepSnapshot {
+            title = required(title, "title");
+            assertionNames = List.copyOf(Objects.requireNonNull(assertionNames, "assertionNames"));
+            status = Objects.requireNonNull(status, "status");
+        }
     }
 
     public record RequestSnapshot(String title, String method, String path,

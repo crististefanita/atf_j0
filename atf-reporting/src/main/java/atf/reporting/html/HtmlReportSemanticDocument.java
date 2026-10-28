@@ -118,6 +118,12 @@ public final class HtmlReportSemanticDocument {
             return request;
         }
 
+        public AssertionStepModel addAssertionStep(String title) {
+            var step = new AssertionStepModel(title);
+            children.add(step);
+            return step;
+        }
+
         public void addDetail(String name, String value) {
             details.add(new ReportField(name, value));
         }
@@ -125,6 +131,19 @@ public final class HtmlReportSemanticDocument {
         public void complete(AtfReportStatus status) {
             this.status = status;
         }
+    }
+
+    public static final class AssertionStepModel implements NodeModel {
+        final String title;
+        List<AtfAssertion> assertions = List.of();
+        AtfReportStatus status = AtfReportStatus.INFO;
+
+        AssertionStepModel(String title) { this.title = title; }
+        public void assertions(Collection<AtfAssertion> rows) {
+            assertions = rows == null ? List.of() : List.copyOf(rows);
+        }
+        public void complete(AtfReportStatus value) { status = value; }
+        @Override public AtfReportStatus status() { return status; }
     }
 
     public static final class RequestModel implements NodeModel {

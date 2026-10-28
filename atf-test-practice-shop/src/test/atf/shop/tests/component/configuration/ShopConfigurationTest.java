@@ -2,6 +2,7 @@ package atf.shop.tests.component.configuration;
 
 import atf.core.config.ApiTransportMode;
 import atf.shop.tests.support.ShopComponentTest;
+import atf.testkit.assertions.RecordedAssertions;
 import atf.reporting.evidence.ReportScreenshotPolicy;
 import atf.shop.config.model.ShopAccountFixturePolicy;
 import atf.shop.config.api.ShopApiCheckpoint;
@@ -63,55 +64,69 @@ class ShopConfigurationTest {
         }
     }
     @Test
-    void yamlDefinesOwnedJourneyAndSyntheticFixtureInSourceResources() {
+    void yamlDefinesOwnedJourneyAndSyntheticFixtureInSourceResources(RecordedAssertions assertions) {
         var configuration = ShopConfigurationLoader.load();
 
-        assertTrue(configuration.baseUrl().isAbsolute());
-        assertTrue(configuration.baseUrl().getHost().endsWith("practicesoftwaretesting.com"));
-        assertEquals("Pliers", configuration.productName());
-        assertTrue(configuration.usesDynamicProductPath());
-        assertTrue(configuration.matchesProductPath(ShopUiRoutes.product("current-external-fixture")));
-        assertFalse(configuration.matchesProductPath(ShopUiRoutes.category("pliers")));
-        assertEquals(2, configuration.checkout().quantity());
+        assertions.isTrue("Base URL is absolute", configuration.baseUrl().isAbsolute());
+        assertions.isTrue("Practice Shop host", configuration.baseUrl().getHost()
+                .endsWith("practicesoftwaretesting.com"));
+        assertions.equals("Product name", "Pliers", configuration.productName());
+        assertions.isTrue("Dynamic product path", configuration.usesDynamicProductPath());
+        assertions.isTrue("Configured product route matches", configuration.matchesProductPath(
+                ShopUiRoutes.product("current-external-fixture")));
+        assertions.isFalse("Category route is not a product", configuration.matchesProductPath(
+                ShopUiRoutes.category("pliers")));
+        assertions.equals("Checkout quantity", 2, configuration.checkout().quantity());
         var catalog = configuration.catalogSelection();
-        assertEquals(configuration.uri(ShopUiRoutes.HOME), catalog.homeUrl());
-        assertEquals(configuration.productName(), catalog.productName());
-        assertEquals(configuration.productPath(), catalog.productPath());
-        assertEquals(configuration.checkout().quantity(), catalog.quantity());
-        assertTrue(catalog.matchesProductPath(ShopUiRoutes.product("current-external-fixture")));
-        assertFalse(catalog.matchesProductPath(ShopUiRoutes.category("pliers")));
-        assertEquals("Cash on Delivery", configuration.checkout().paymentMethod());
-        assertEquals("United States of America (the)", configuration.checkout().billing().country());
-        assertEquals("53703", configuration.checkout().billing().postalCode());
-        assertEquals("Wayne Lock", configuration.checkout().billing().street());
-        assertEquals("Cartwrightmouth", configuration.checkout().billing().city());
-        assertEquals("Alaska", configuration.checkout().billing().state());
-        assertEquals(70, configuration.browser().zoomPercent());
-        assertTrue(configuration.browser().screenshotOnFailure());
-        assertEquals(1, configuration.uiRetry().maxAttempts());
-        assertFalse(configuration.uiRetry().enabled());
-        assertFalse(configuration.browser().retryPolicy().enabled());
-        assertEquals(ShopValidationProfile.UI_API, configuration.validationProfile());
-        assertTrue(configuration.api().authenticatedPrecondition());
-        assertEquals(6, configuration.api().evidenceBinding().checkpoints().size());
-        assertTrue(configuration.api().evidenceBinding().includes(ShopApiCheckpoint.PRODUCT));
-        assertTrue(configuration.api().evidenceBinding().includes(ShopApiCheckpoint.PAYMENT));
-        assertTrue(configuration.api().evidenceBinding().includes(ShopApiCheckpoint.ORDER));
-        assertTrue(configuration.uiReportDirectory().toString().endsWith("artifacts\\reports\\ui"));
-        assertTrue(configuration.apiReportDirectory().toString().endsWith("artifacts\\reports\\api"));
-        assertFalse(configuration.uiReportDirectory().equals(configuration.apiReportDirectory()));
-        assertFalse(configuration.authenticatedE2eEnabled());
-        assertFalse(configuration.authenticatedE2eAllowed());
-        assertEquals(ShopAccountFixturePolicy.SOURCE_TEST_RESOURCE, configuration.accountPolicy());
-        assertTrue(configuration.accountPolicy().expectedEvidence().contains("registered local account"));
-        assertTrue(configuration.accountConfigured());
-        assertEquals(ShopReportConfiguration.DEFAULT_SYSTEM_BODY_PREVIEW_CHARACTERS,
+        assertions.equals("Catalog home URL", configuration.uri(ShopUiRoutes.HOME), catalog.homeUrl());
+        assertions.equals("Catalog product", configuration.productName(), catalog.productName());
+        assertions.equals("Catalog product path", configuration.productPath(), catalog.productPath());
+        assertions.equals("Catalog quantity", configuration.checkout().quantity(), catalog.quantity());
+        assertions.isTrue("Catalog matches product route", catalog.matchesProductPath(
+                ShopUiRoutes.product("current-external-fixture")));
+        assertions.isFalse("Catalog rejects category route", catalog.matchesProductPath(
+                ShopUiRoutes.category("pliers")));
+        assertions.equals("Payment method", "Cash on Delivery", configuration.checkout().paymentMethod());
+        assertions.equals("Billing country", "United States of America (the)",
+                configuration.checkout().billing().country());
+        assertions.equals("Billing postal code", "53703", configuration.checkout().billing().postalCode());
+        assertions.equals("Billing street", "Wayne Lock", configuration.checkout().billing().street());
+        assertions.equals("Billing city", "Cartwrightmouth", configuration.checkout().billing().city());
+        assertions.equals("Billing state", "Alaska", configuration.checkout().billing().state());
+        assertions.equals("Browser zoom", 70, configuration.browser().zoomPercent());
+        assertions.isTrue("Screenshot on failure", configuration.browser().screenshotOnFailure());
+        assertions.equals("UI retry attempts", 1, configuration.uiRetry().maxAttempts());
+        assertions.isFalse("UI retry disabled", configuration.uiRetry().enabled());
+        assertions.isFalse("Browser retry disabled", configuration.browser().retryPolicy().enabled());
+        assertions.equals("Validation profile", ShopValidationProfile.UI_API, configuration.validationProfile());
+        assertions.isTrue("Authenticated API precondition", configuration.api().authenticatedPrecondition());
+        assertions.equals("API checkpoint count", 6, configuration.api().evidenceBinding().checkpoints().size());
+        assertions.isTrue("Product API checkpoint", configuration.api().evidenceBinding()
+                .includes(ShopApiCheckpoint.PRODUCT));
+        assertions.isTrue("Payment API checkpoint", configuration.api().evidenceBinding()
+                .includes(ShopApiCheckpoint.PAYMENT));
+        assertions.isTrue("Order API checkpoint", configuration.api().evidenceBinding()
+                .includes(ShopApiCheckpoint.ORDER));
+        assertions.isTrue("UI report directory", configuration.uiReportDirectory().toString()
+                .endsWith("artifacts\\reports\\ui"));
+        assertions.isTrue("API report directory", configuration.apiReportDirectory().toString()
+                .endsWith("artifacts\\reports\\api"));
+        assertions.isFalse("Distinct report directories", configuration.uiReportDirectory()
+                .equals(configuration.apiReportDirectory()));
+        assertions.isFalse("Authenticated E2E disabled", configuration.authenticatedE2eEnabled());
+        assertions.isFalse("Authenticated E2E not allowed", configuration.authenticatedE2eAllowed());
+        assertions.equals("Account fixture policy", ShopAccountFixturePolicy.SOURCE_TEST_RESOURCE,
+                configuration.accountPolicy());
+        assertions.isTrue("Local account evidence policy", configuration.accountPolicy()
+                .expectedEvidence().contains("registered local account"));
+        assertions.isTrue("Account fixture configured", configuration.accountConfigured());
+        assertions.equals("System preview limit", ShopReportConfiguration.DEFAULT_SYSTEM_BODY_PREVIEW_CHARACTERS,
                 configuration.reporting().systemBodyPreviewCharacters());
-        assertEquals(ReportScreenshotPolicy.EACH_CHECKPOINT,
+        assertions.equals("Screenshot policy", ReportScreenshotPolicy.EACH_CHECKPOINT,
                 configuration.reporting().screenshotPolicy());
-        assertEquals("resources", configuration.accountFile().getParent().getFileName().toString(),
-                "the authenticated fixture is intentionally owned by test resources");
-        assertEquals("practice-software-testing-account.properties",
+        assertions.equals("Fixture parent is test resources", "resources",
+                configuration.accountFile().getParent().getFileName().toString());
+        assertions.equals("Fixture filename", "practice-software-testing-account.properties",
                 configuration.accountFile().getFileName().toString());
     }
 

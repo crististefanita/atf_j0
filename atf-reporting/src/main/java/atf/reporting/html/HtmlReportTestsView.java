@@ -125,6 +125,18 @@ public final class HtmlReportTestsView {
             renderRequest(html, request);
         } else if (node instanceof ReportExecutionModel.Validation validation) {
             evidence.renderValidation(html, validation);
+        } else if (node instanceof ReportExecutionModel.AssertionStep step) {
+            html.append(AtfReportHtmlVocabulary.openTag(AtfReportHtmlVocabulary.Tag.DETAILS,
+                            AtfReportHtmlVocabulary.classAttribute(
+                                    AtfReportHtmlVocabulary.CssClass.STEP_DETAIL.value(),
+                                    AtfReportHtmlVocabulary.CssClass.ASSERTION_EVIDENCE.value()),
+                            AtfReportHtmlVocabulary.attribute(
+                                    AtfReportHtmlVocabulary.Attribute.NODE_ROLE, "assertion-step")))
+                    .append(AtfReportHtmlVocabulary.openTag(AtfReportHtmlVocabulary.Tag.SUMMARY))
+                    .append(escape(step.title())).append(status(step.status()))
+                    .append(AtfReportHtmlVocabulary.closeTag(AtfReportHtmlVocabulary.Tag.SUMMARY));
+            evidence.renderAssertions(html, step.assertions());
+            html.append(AtfReportHtmlVocabulary.closeTag(AtfReportHtmlVocabulary.Tag.DETAILS));
         } else {
             throw new IllegalStateException("Unsupported report node: " + node.getClass().getName());
         }
