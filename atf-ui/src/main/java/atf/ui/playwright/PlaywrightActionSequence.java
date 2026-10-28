@@ -194,6 +194,11 @@ public final class PlaywrightActionSequence {
         recorder.observation(operation, target, expected, observed);
     }
 
+    /** Decision evidence without asserting success; preserves the existing PASS observation contract. */
+    public void information(String operation, String target, String expected, String observed) {
+        recorder.information(operation, target, expected, observed);
+    }
+
     public List<AtfUiActionRecord> snapshot() {
         return recorder.snapshot();
     }

@@ -114,7 +114,7 @@ public final class AutoExConfigurationLoader {
             }
             JsonNode browser = requiredNode(site, "browser");
             rejectUnknownFields(browser, "automationExercise.browser", "engine", "headless", "timeout",
-                    "navigationTimeout", "viewport", "zoomPercent", "networkInspection", "storeAvailability");
+                    "navigationTimeout", "viewport", "zoomPercent", "networkInspection", "storeAvailability", "recovery");
             JsonNode viewport = requiredNode(browser, "viewport");
             rejectUnknownFields(viewport, "automationExercise.browser.viewport", "width", "height");
             UiBrowserConfiguration browserConfiguration = new UiBrowserConfiguration(baseUrl,
@@ -123,7 +123,7 @@ public final class AutoExConfigurationLoader {
                     duration(browser, "navigationTimeout", "PT45S"),
                     integer(viewport, "width", 1440), integer(viewport, "height", 1000),
                     integer(browser, "zoomPercent", UiBrowserConfiguration.DEFAULT_ZOOM_PERCENT),
-                    true, UiRetryPolicy.none(), networkInspection(browser, baseUrl));
+                    true, UiRetryPolicy.none(), networkInspection(browser, baseUrl), recovery(browser.path("recovery")));
 
             JsonNode reports = requiredNode(site, "reports");
             JsonNode catalog = requiredNode(site, "catalog");
@@ -158,6 +158,13 @@ public final class AutoExConfigurationLoader {
             if (error instanceof IllegalArgumentException argument) throw argument;
             throw new IllegalStateException("Invalid Automation Exercise configuration", error);
         }
+    }
+
+    private static atf.ui.config.recovery.UiRecoveryConfiguration recovery(JsonNode node) {
+        if (node.isMissingNode()) return atf.ui.config.recovery.UiRecoveryConfiguration.disabled();
+        if (!node.isObject()) throw new IllegalArgumentException("automationExercise.browser.recovery must be an object");
+        return atf.ui.config.recovery.UiRecoveryConfigurationParser.parse(YAML.convertValue(node, java.util.Map.class),
+                atf.autoex.config.recovery.AutoExRecoveryOperation.readOnlyNames());
     }
 
     private static JsonNode requiredNode(JsonNode parent, String name) {

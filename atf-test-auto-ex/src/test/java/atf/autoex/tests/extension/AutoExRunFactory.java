@@ -36,6 +36,9 @@ final class AutoExRunFactory {
     private AutoExRunFactory() { }
     static AutoExE2eRun open(ExtensionContext context) {
         AutoExConfiguration configuration = AutoExConfigurationLoader.load();
+        var recovery = atf.testkit.recovery.AtfUiRecoveryResolver.resolve(context.getRequiredTestClass(), context.getRequiredTestMethod());
+        configuration = configuration.withRecovery(configuration.browser().recovery().restrict(
+                recovery.permitsConfiguredRecovery(), recovery.source()));
         TestChannel channel = AtfTestChannelResolver.resolve(context.getRequiredTestClass())
                 .orElseThrow(() -> new IllegalStateException("AutoEx E2E must declare @AtfTestChannel"))
                 .channel();

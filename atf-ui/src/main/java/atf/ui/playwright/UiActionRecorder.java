@@ -95,10 +95,18 @@ final class UiActionRecorder {
     }
 
     void observation(String operation, String target, String expected, String observed) {
-        add(operation, target, expected, observed, 0, AtfReportStatus.PASS,
+        observation(operation, target, expected, observed, AtfReportStatus.PASS);
+    }
+
+    void information(String operation, String target, String expected, String observed) {
+        observation(operation, target, expected, observed, AtfReportStatus.INFO);
+    }
+
+    private void observation(String operation, String target, String expected, String observed, AtfReportStatus status) {
+        add(operation, target, expected, observed, 0, status,
                 AtfUiEvidenceSource.OBSERVE);
         publish(new UiActionTrace.UiActionEvent(UiActionTrace.Kind.OBSERVATION,
-                operation, target, expected, observed, AtfReportStatus.PASS, 0));
+                operation, target, expected, observed, status, 0));
     }
 
     List<AtfUiActionRecord> snapshot() {

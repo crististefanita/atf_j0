@@ -153,8 +153,15 @@ public final class ShopConfigurationLoader {
                             integer(root.path("viewport"), "height", 1000),
                             integer(root, "zoomPercent", 100),
                             legacyCheckpointScreenshots,
-                            uiRetry.policy(), networkInspection), uiRetry, validationProfile,
+                            uiRetry.policy(), networkInspection, recovery(root.path("recovery"))), uiRetry, validationProfile,
                     apiConfiguration, uiReports, apiReports, authenticatedE2e, reportConfiguration));
+    }
+
+    private static atf.ui.config.recovery.UiRecoveryConfiguration recovery(JsonNode node) {
+        if (node.isMissingNode()) return atf.ui.config.recovery.UiRecoveryConfiguration.disabled();
+        if (!node.isObject()) throw new IllegalArgumentException("practiceShop.recovery must be an object");
+        return atf.ui.config.recovery.UiRecoveryConfigurationParser.parse(YAML.convertValue(node, java.util.Map.class),
+                atf.shop.config.recovery.ShopRecoveryOperation.readOnlyNames());
     }
 
     private static ShopUiRetryConfiguration retry(JsonNode retry) {
@@ -317,7 +324,7 @@ public final class ShopConfigurationLoader {
                 base.browser().headless(), base.browser().timeout(), base.browser().navigationTimeout(),
                 base.browser().viewportWidth(), base.browser().viewportHeight(), base.browser().zoomPercent(),
                 base.browser().screenshotOnFailure(), base.browser().retryPolicy(),
-                base.browser().networkInspection());
+                base.browser().networkInspection(), base.browser().recovery());
         return new ShopConfiguration(uri, accountFile, product, productPath,
                 base.checkout(), browser, base.uiRetry(), validationProfile,
                 new ShopApiConfiguration(URI.create(apiEndpoint), ApiTransportMode.parse(apiMode),

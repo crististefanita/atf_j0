@@ -151,6 +151,40 @@ nivel eșuează înaintea execuției. Fără adnotare, comportamentul nu se schi
 
 - `@TestFactory` nu primește callbacks de lifecycle pentru fiecare copil; folosește `AtfConsoleTestContext.dynamicTest(owner, name, body)` când ai nevoie de policy și verdict per copil.
 
+## Recuperare BE declarată
+
+`@AtfUiRecovery` din `atf.testkit.recovery` se aplică pe clasă, metodă sau
+adnotare compusă. Declarația nu activează recuperarea când YAML-ul este OFF.
+
+```java
+@AtfUiRecovery(AtfUiRecovery.Mode.READ_ONLY)
+class CatalogChecks {
+    @AtfUiRecovery(AtfUiRecovery.Mode.DISABLED)
+    void irreversibleOperation() { }
+}
+```
+
+Resolverul neutru fixează modul și sursa înaintea resurselor în extensiile
+AutoEx/Shop. Clasa apropiată stabilește baza, metoda restrânge și conflictele
+de același nivel sunt respinse.
+
+<details>
+<summary><strong>Limite și probe</strong></summary>
+
+- CONFIGURED păstrează YAML; READ_ONLY nu extinde allowlist-ul ori deadline-ul
+  și nu redeschide o clasă DISABLED.
+- Un CONFIGURED explicit pe clasa apropiată reia baza YAML în locul părintelui;
+  pe metodă păstrează baza clasei.
+- Politica rezultată este imutabilă per invocare, inclusiv pentru parametrizare
+  și suite; componentele nu primesc retry global.
+- `AtfUiRecoveryResolverTest` și probele `AutoExBackendRecoveryComponentTest` /
+  `ShopBackendRecoveryComponentTest` protejează precedența și binding-ul YAML.
+- Cheile exacte și capturarea pasivă sunt la [UI](../atf-ui/README.md#recuperare-be-prin-observație-pasivă),
+  [AutoEx](../atf-test-auto-ex/README.md#politica-be-a-catalogului) și
+  [Shop](../atf-test-practice-shop/README.md#politica-be-a-catalogului).
+
+</details>
+
 ## Intenția de UI evidence
 
 `@AtfUiEvidence` este o declarație class-level în `atf-test-kit`. Separă forma

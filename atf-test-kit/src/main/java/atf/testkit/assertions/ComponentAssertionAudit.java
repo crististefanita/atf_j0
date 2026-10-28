@@ -58,12 +58,12 @@ public final class ComponentAssertionAudit {
     private InvocationTimer timer(Phase phase) { return timers.computeIfAbsent(phase, ignored -> new InvocationTimer(ticks)); }
 
     public Result finish(Throwable executionFailure) {
-        Throwable unconsumed = recorders.values().stream().map(RecordedAssertions::failure)
-                .filter(Objects::nonNull).findFirst().orElse(null);
+        Throwable unconsumed = unconsumedFailure();
         Throwable failure = executionFailure;
         boolean propagate = false;
-        if (unconsumed != null && (failure == null || failure instanceof TestAbortedException)) {
-            if (failure != null && failure != unconsumed) unconsumed.addSuppressed(failure);
+        if (unconsumed != null && (failure == null || failure instanceof TestAbortedException
+                && !(unconsumed instanceof TestAbortedException))) {
+            // The runner merges its existing execution exception when this result is propagated.
             failure = unconsumed;
             propagate = true;
         }
@@ -92,6 +92,14 @@ public final class ComponentAssertionAudit {
                     timers.containsKey(phase) ? timers.get(phase).snapshot() : Optional.empty()));
         }
         return new Result(List.copyOf(phases), outcome(failure), failure, propagate);
+    }
+
+    private Throwable unconsumedFailure() {
+        Throwable assertion = recorders.values().stream().map(RecordedAssertions::failure)
+                .filter(Objects::nonNull).findFirst().orElse(null);
+        if (assertion != null) return assertion;
+        return failures.values().stream().filter(failure -> !(failure instanceof TestAbortedException))
+                .findFirst().orElseGet(() -> failures.values().stream().findFirst().orElse(null));
     }
 
     public static Outcome outcome(Throwable failure) {

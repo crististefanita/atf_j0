@@ -191,6 +191,13 @@ Absența se verifică structural, inclusiv pentru wrapper-e goale sau ascunse.
 | Fails | Cauza fazei eșuate și legătura către scenariul exact, inclusiv fără exchange; notele din fazele PASS nu contaminează cauza |
 | Verdict | Aparține consumerului; diagnosticul singur nu îl schimbă |
 
+- În auditul componentelor, o excepție capturată la ieșirea callback-ului nu
+  dispare dacă un handler JUnit o înghite. Kit reconciliază FAIL/SKIP cu runnerul,
+  păstrând cauza și timing-ul.
+- Comparațiile reușite rămân PASS; în lipsa unei comparații eșuate, Fails arată
+  diagnosticul, fără un request sau o durată HTTP inventată. Fazele goale măsurate
+  nu primesc expandare doar pentru metadate.
+
 `Setup evidence`, request/response/execution reale, validările de contract și
 inspectorul API rămân intacte. Ownership-ul rendererului și probele sunt în
 [README Reporting](../atf-reporting/README.md#context-de-fază-și-diagnostic-de-execuție).

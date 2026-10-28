@@ -64,6 +64,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
     private final ReportEvidenceProfile evidenceProfile;
     private final boolean apiEnabled;
     private final AutoExRunLifecycle lifecycle;
+    private final atf.ui.playwright.recovery.UiBackendRecovery backendRecovery;
     private final AutoExReadOnlyNavigation storeNavigation;
     private final AutoExAccountLifecycle accountLifecycle = new AutoExAccountLifecycle();
     private final List<ReportNetworkInspector.Step> networkSteps = new ArrayList<>();
@@ -87,6 +88,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
         this.apiEnabled = apiEnabled;
         this.lifecycle = Objects.requireNonNull(lifecycle, "lifecycle");
         this.actions = browser.newActionSequence();
+        this.backendRecovery = atf.autoex.runtime.recovery.AutoExBackendRecovery.open(browser.page(), configuration, actions);
         this.storeNavigation = new AutoExReadOnlyNavigation(browser.page(), actions,
                 configuration.baseUrl(), configuration.storeAvailabilityPolicy());
     }
@@ -109,13 +111,14 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
                         Duration.ofSeconds(5), Duration.ofMillis(50)));
         var browser = new UiBrowserConfiguration(current.baseUrl(), current.browser(), current.headless(),
                 current.timeout(), current.navigationTimeout(), current.viewportWidth(), current.viewportHeight(),
-                current.zoomPercent(), current.screenshotOnFailure(), current.retryPolicy(), network);
+                current.zoomPercent(), current.screenshotOnFailure(), current.retryPolicy(), network, current.recovery());
         return new AutoExConfiguration(source.baseUrl(), source.e2eEnabled(), browser,
                 source.uiReportBaseDirectory(), source.catalog(), source.registration(), source.payment(),
                 source.storeAvailabilityPolicy(), source.evidence());
     }
 
     public AutoExConfiguration configuration() { return configuration; }
+    public atf.ui.playwright.recovery.UiBackendRecovery backendRecovery() { return backendRecovery; }
     public AutoExAccountLifecycle accountLifecycle() { return accountLifecycle; }
     public Page page() { return browser.page(); }
     public String currentUrl() { return page().url(); }
@@ -335,7 +338,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
                                         .map(AutoExObservedExchangeMapper::map).toList(), networkSteps,
                                 captureCoverage());
                     }
-                }, this::publishFailure, browser::close,
+                }, this::publishFailure, () -> { try (browser) { backendRecovery.close(); } },
                 failed -> phase.complete(failed ? AtfReportStatus.FAIL : AtfReportStatus.PASS),
                 failed -> scenario.complete(failed ? AtfReportStatus.FAIL : AtfReportStatus.PASS)));
         if (testFailure == null && terminalFailure != null) {

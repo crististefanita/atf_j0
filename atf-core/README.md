@@ -304,6 +304,11 @@ raport și nu se sincronizează ca output generat.
 
 ## Determinism și concurență
 
+Istoricul din `ApiExecutionResult` este disponibil când execuția întoarce un
+răspuns final. La eroare terminală, `ApiExecutionException` păstrează cauza;
+snapshot-ul parțial al încercărilor rămâne o
+[lacună de auditabilitate](../docs/feedback/ATF_Core_Execution_Evidence_Feedback.md).
+
 - **snapshot și timp** — fiecare execuție primește setări snapshot-uite;
 - **clock injectabil** — timpul monotonic, deadline-ul request-ului și delay-ul
   de retry nu cer timp real în teste;

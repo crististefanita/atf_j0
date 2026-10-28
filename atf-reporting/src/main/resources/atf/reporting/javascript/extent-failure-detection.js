@@ -17,10 +17,17 @@ function statusDisplay(value) {
 function failureCells(row) {
   return Array.from(row.cells || [], cell => text(cell, ''));
 }
+function failedAssertionRow(row) {
+  var status = row.getAttribute('data-atf-assertion-status');
+  if (status === 'pass' || status === 'fail') return status === 'fail';
+  var result = row.cells && row.cells.length >= 4 && row.cells[row.cells.length - 1];
+  return !!result && (text(result, '').indexOf('❌') >= 0 ||
+    !!result.querySelector('.badge-danger,.atf-ui-action-result-fail'));
+}
 function failedSetupEvidence(card) {
   var zone = card.querySelector('.atf-setup-evidence[data-atf-evidence-status="fail"]');
   if (!zone) return null;
-  var row = q('tbody tr', zone).find(candidate => text(candidate, '').indexOf('❌') >= 0);
+  var row = q('tbody tr', zone).find(failedAssertionRow);
   if (!row) return null;
   var cells = failureCells(row);
   return {
@@ -37,8 +44,7 @@ function failedUiEvidence(card) {
   for (var zone of zones) {
     var owner = zone.closest('[data-atf-evidence-owner]');
     if (zone.closest('.card') !== card || (owner && owner.getAttribute('data-atf-evidence-owner') === 'api')) continue;
-    var row = q('tbody tr', zone).find(candidate =>
-      candidate.querySelector('.atf-ui-action-result-fail') || text(candidate, '').indexOf('❌') >= 0);
+    var row = q('tbody tr', zone).find(failedAssertionRow);
     if (!row) continue;
     var cells = failureCells(row);
     var assertion = zone.classList.contains('atf-ui-assertions') || zone.classList.contains('assertion-evidence');
@@ -58,8 +64,8 @@ function failureEvidenceCandidate(card) {
   if (title.toLowerCase() !== 'failure evidence') return null;
   var actions = card.querySelector('.atf-ui-action-sequence[data-atf-evidence-status="fail"]');
   var assertions = card.querySelector('.atf-ui-assertions[data-atf-evidence-status="fail"]');
-  var action = actions && q('tbody tr', actions).find(row => row.querySelector('.atf-ui-action-result-fail'));
-  var row = action || (assertions && q('tbody tr', assertions).find(row => text(row, '').indexOf('❌') >= 0));
+  var action = actions && q('tbody tr', actions).find(failedAssertionRow);
+  var row = action || (assertions && q('tbody tr', assertions).find(failedAssertionRow));
   if (!row) return null;
   var cells = failureCells(row);
   var observed = cells[3] || 'see the concrete action evidence';
@@ -72,13 +78,5 @@ function failureEvidenceCandidate(card) {
   };
 }
 function failedAssertionRows(item) {
-  return q('.helm-validation-table tbody tr', item).filter(function (row) {
-    var result = String(row.textContent || '').toLowerCase(),
-      status = row.getAttribute('data-atf-assertion-status') || '';
-    return (
-      status === 'fail' ||
-      result.indexOf('❌') >= 0 ||
-      !!row.querySelector('.badge-danger')
-    );
-  });
+  return q('.helm-validation-table tbody tr', item).filter(failedAssertionRow);
 }

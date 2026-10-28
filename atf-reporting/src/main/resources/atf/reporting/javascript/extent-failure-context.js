@@ -17,7 +17,7 @@ function failureValidationCandidate(card) {
   var table = card.querySelector('.helm-validation-table');
   if (!table) return null;
   var rows = table.tBodies[0] ? Array.from(table.tBodies[0].rows) : [],
-    row = rows.find(candidate => text(candidate.cells[3], '').indexOf('❌') >= 0) || rows[0];
+    row = rows.find(failedAssertionRow);
   if (!row) return null;
   var cells = row.cells;
   return {
@@ -39,6 +39,7 @@ function collectFailureState(item) {
   var state = {
     phase: '',
     phaseCard: null,
+    component: !!item.querySelector('[data-atf-node-role="assertion-step"]'),
     requests: [],
     validations: [],
     uiFailures: [],
@@ -88,7 +89,7 @@ function failureContextFromState(state) {
       ui: false,
       request: '',
       duration: state.duration,
-      step: '',
+      step: 'Execution',
       validation: 'No contract validation recorded',
       assertion: missing,
       message: state.message || missing
@@ -102,6 +103,7 @@ function failureContextFromState(state) {
       step: concrete.step || 'UI step'
     });
   }
+  if (state.component && !state.requests.length) context.evidenceOwner = 'component';
   if (state.phase !== 'TEARDOWN') {
     var requestEntry = latestFailureEntry(state.requests, state.phaseCard),
       fallback = latestFailureEntry(state.validations, state.phaseCard);

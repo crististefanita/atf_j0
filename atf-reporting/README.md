@@ -444,6 +444,17 @@ UI checkpoint
 Verdictul este calculat de execution/validation și doar publicat de reporting.
 Rendererul nu inventează statusuri.
 
+### Decizii BE fără verdict de succes implicit
+
+Adaptoarele AutoEx/Shop publică deciziile recuperării prin observații INFO,
+cu politica și bugetul în Expected, iar decizia, motivul și timpii în Observed.
+Aceste rânduri nu reprezintă clickuri repetate și nu rescriu un FAIL publicat.
+
+Proiecția existentă păstrează disclosure-urile și plafonul integral de 240
+de caractere după redactarea textului complet. Indicatorul agregat de recuperare,
+abort SKIP și matricea completă UI/UI_API rămân în
+[feedback-ul auditului](../docs/feedback/ATF_UI_Backend_Guided_Recovery_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent).
+
 ### Contextul erorii înaintea diagnosticului tehnic
 
 `UiFailureContext` proiectează prima dovadă FAIL în ordinea `sequence`:
@@ -1329,6 +1340,37 @@ flowchart LR
 
 </details>
 
+### Diagnostic fără comparație eșuată
+
+O excepție apărută după verificări reușite sau înaintea primei comparații
+produce un diagnostic de execuție. `Fails` păstrează cauza fazei și legătura
+spre test; nu selectează un rând PASS drept comparație eșuată.
+
+```mermaid
+flowchart LR
+    Checks["Comparații evaluate"] -->|păstrează verdictul| Tests["Tests · pas colapsabil"]
+    Error["Excepție în callback"] -->|păstrează cauza| Diagnostic["Diagnostic de fază"]
+    Diagnostic -->|identifică testul| Fails["Fails → Tests"]
+```
+
+<details>
+<summary><strong>Legendă — comparații și excepții cu dovezi distincte</strong></summary>
+
+- `AssertionStep` identifică dovada componentă. Fără un pas de aserțiuni,
+  diagnosticul fără transport rămâne `execution`; nu este dedus un owner API.
+- Indexul omite `REQUEST` și durata HTTP când nu există un request asociat;
+  nu publică `No response duration recorded` pentru o eroare de componentă.
+- `failureValidationCandidate` selectează numai comparații eșuate; un tabel
+  anterior cu PASS rămâne disponibil în Tests, fără a deveni cauza erorii.
+- Clasificarea folosește metadata verdictului sau celula `RESULT`; un `❌`
+  din expected/actual este o valoare auditată, nu o comparație eșuată.
+- Fazele executate fără comparații păstrează durata, inclusiv zero măsurat.
+  Metadatele interne nu creează un control de expandare fără conținut.
+- `ComponentExecutionDiagnosticReportTest` verifică Extent/fallback, diagnosticul
+  fără comparații, cele 42 de rânduri colapsabile, tastatura și plafonul de 240.
+
+</details>
+
 ### Timing măsurat înaintea publicării
 
 `AtfReportPorts.Phase.executionTiming(...)` acceptă o singură valoare tipizată
@@ -1348,6 +1390,8 @@ flowchart LR
 
 - Badge-ul fazei folosește execuția, inclusiv comparațiile din callback.
   Tooltip-ul indică numărul callback-urilor și costul publicării snapshot-ului.
+  Explicația provine din același formatter Java pentru Extent și fallback;
+  JavaScript proiectează textul primit în metadate.
 - Metadatele typed păstrează nanosecundele originale; afișarea rotunjește în sus
   la milisecundă, apoi aplică formatarea comună. Zero nu devine durată pozitivă.
 - Scenariul însumează fazele directe, iar clasa scenariile directe. Timpul
@@ -1364,6 +1408,31 @@ flowchart LR
   valorile zero, totalurile fără dublare și redeschiderea cu tastatura.
 
 </details>
+
+### Date payment sintetice din fixture-ul demo
+
+Pentru fixture-ul demo AutoEx, valorile sintetice `card_number` și `cvc` rămân
+vizibile în body-ul HTTP și în cURL. Acesta este comportamentul acceptat al
+probei, fără cerință deschisă de redactare pentru aceste date de test.
+
+Mascarea existentă a acțiunilor UI și plafonul 240 al aserțiunilor se păstrează.
+
+### Limita timing-ului E2E fără metadata explicită
+
+Journey-urile E2E AutoEx și Shop nu furnizează încă `ReportPhaseTiming` prin
+fațada `UiPhase`. Agregarea lor curentă păstrează dovezile publicate, fără a
+certifica intervalul integral de execuție al fazei.
+
+| Sursă | Semnificație în raport |
+|---|---|
+| `execution` | timing typed furnizat explicit; folosit de componente |
+| `aggregated` fără timing typed | agregarea acțiunilor, transportului și nodurilor eligibile; nu este timpul total al journey-ului |
+| `data-atf-measured-duration-ms` | intervalul nativ al nodului Extent, păstrat separat; poate include publicarea |
+| durată HTTP necapturată | rămâne necunoscută; durata publicării nu dovedește latența request-ului |
+
+Tests, Category și Overview proiectează aceeași agregare; expandarea nu trebuie
+să o schimbe. Adoptarea timing-ului explicit E2E este cerință deschisă în
+[feedback-ul Reporting](../docs/feedback/ATF_Reporting_Feedback.md).
 
 ### Sesiunea comună a componentelor
 

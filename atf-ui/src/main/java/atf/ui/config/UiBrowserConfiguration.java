@@ -17,11 +17,22 @@ public record UiBrowserConfiguration(
         int zoomPercent,
         boolean screenshotOnFailure,
         UiRetryPolicy retryPolicy,
-        UiNetworkInspectionConfiguration networkInspection) {
+        UiNetworkInspectionConfiguration networkInspection,
+        atf.ui.config.recovery.UiRecoveryConfiguration recovery) {
 
     public static final int DEFAULT_ZOOM_PERCENT = 100;
     public static final int MIN_ZOOM_PERCENT = 25;
     public static final int MAX_ZOOM_PERCENT = 200;
+
+    public UiBrowserConfiguration(URI baseUrl, String browser, boolean headless,
+                                  Duration timeout, Duration navigationTimeout,
+                                  int viewportWidth, int viewportHeight, int zoomPercent,
+                                  boolean screenshotOnFailure, UiRetryPolicy retryPolicy,
+                                  UiNetworkInspectionConfiguration networkInspection) {
+        this(baseUrl, browser, headless, timeout, navigationTimeout, viewportWidth, viewportHeight,
+                zoomPercent, screenshotOnFailure, retryPolicy, networkInspection,
+                atf.ui.config.recovery.UiRecoveryConfiguration.disabled());
+    }
 
     /** Backwards-compatible constructor for callers that use the pre-zoom policy. */
     public UiBrowserConfiguration(URI baseUrl, String browser, boolean headless,
@@ -70,6 +81,7 @@ public record UiBrowserConfiguration(
         }
         retryPolicy = Objects.requireNonNull(retryPolicy, "retryPolicy");
         networkInspection = Objects.requireNonNull(networkInspection, "networkInspection");
+        recovery = Objects.requireNonNull(recovery, "recovery");
     }
 
     public static UiBrowserConfiguration defaults() {
@@ -77,6 +89,11 @@ public record UiBrowserConfiguration(
                 Duration.ofSeconds(10), Duration.ofSeconds(15), 1440, 900,
                 DEFAULT_ZOOM_PERCENT, true, UiRetryPolicy.none(),
                 UiNetworkInspectionConfiguration.disabled());
+    }
+
+    public UiBrowserConfiguration withRecovery(atf.ui.config.recovery.UiRecoveryConfiguration policy) {
+        return new UiBrowserConfiguration(baseUrl, browser, headless, timeout, navigationTimeout, viewportWidth,
+                viewportHeight, zoomPercent, screenshotOnFailure, retryPolicy, networkInspection, policy);
     }
 
     private static Duration positive(Duration value, String name) {

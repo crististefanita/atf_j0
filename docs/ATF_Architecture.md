@@ -6,6 +6,9 @@ cunoaște rutele sau intenția unui test de produs.
 
 ## Pe scurt
 
+Reactorul păstrează exact cele 12 module existente. Extinderile se implementează
+în pachetele și contractele ownerilor actuali, păstrând direcția dependențelor.
+
 | Boundary | Owner | Contract stabil | Gate executabil |
 |---|---|---|---|
 | kernel și politici | `atf-core` | modele, porturi, snapshot-uri și vocabular fizic | unit + governance |
@@ -31,7 +34,7 @@ flowchart LR
     Mock["atf-mock"] -->|compile| Core["atf-core"]
     Validation["atf-validation"] -->|compile| Core
     Console["atf-console"] -->|compile| Core
-    Console -->|compile| Reporting["atf-reporting"]
+    Reporting["atf-reporting"]
     Console -->|optional compile| Kit["atf-test-kit"]
     Ui["atf-ui"] -->|compile| Core
     Debug["atf-debug-ui"] -->|compile| Console
@@ -39,7 +42,7 @@ flowchart LR
     Shop -->|compile| Console
     Shop -->|compile| Reporting
     Shop -->|compile| Ui
-    Shop -->|compile*| Kit
+    Shop -.->|test scope| Kit
     AutoEx["atf-test-auto-ex"] -->|compile| Core
     AutoEx -->|compile| Reporting
     AutoEx -->|compile| Ui
@@ -55,15 +58,14 @@ flowchart LR
 
 - săgeata pleacă din modulul care declară dependența; `compile` și `test scope`
   descriu scope-ul din POM, nu ownership-ul funcțional;
-- `atf-reporting` nu are dependențe ATF în production; `atf-console` îl consumă
-  ca bibliotecă de evenimente și artifacte;
+- `atf-reporting` nu are dependențe ATF în production; `atf-console` consumă
+  evenimentele și contractele neutre din Core, independent de Reporting;
 - `atf-reporting-tests` este composition root pentru probele reporting, iar
   `atf-tests` deține guard-urile whole-reactor; legăturile lor complete de test
   scope sunt în POM-uri, nu redate ca o plasă de muchii în diagramă;
 - muchiile etichetate `guard, not dependency` sunt relații de verificare a
   repository-ului, nu muchii Maven;
-- `compile*` notează o excepție observată: Practice Shop importă Test Kit
-  doar din `src/test`, dar POM-ul încă declară scope-ul implicit `compile`;
+- Practice Shop și AutoEx declară Test Kit în `test` scope, conform POM-urilor;
 - `atf-console` declară Test Kit ca dependență `optional` compile deoarece
   adaptorul JUnit din `src/main` citește adnotările și resolver-ele lui; asta nu
   transformă Test Kit într-o bibliotecă de business.

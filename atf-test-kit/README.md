@@ -73,6 +73,7 @@ Fiecare clasă executabilă declară exact un nivel:
 | `atf.testkit.scope` | `TestRunScope`, `ScopedTestValue<T>`, `ScopedTestResource<T>` | ownership explicit în Store-ul JUnit, fără cache static sau resurse UI |
 | `atf.testkit.assertions` | fațadă/recorder, display injectat și protocol componentă | comparații JUnit cu dovadă neutră pe faze și invocări; fără renderer sau reguli business |
 | `atf.testkit.timing` | `InvocationTimer` | intervale monotone per owner, snapshot imutabil și acumulare fără renderer sau JUnit |
+| `atf.testkit.recovery` | `AtfUiRecovery`, plan și resolver | restricție per invocare pentru politica BE; fără YAML, browser sau renderer |
 
 `atf.testkit.lifecycle` este un pachet al modulului existent
 `atf-test-kit`, nu un modul nou. Nu introduce dependențe către UI sau Reporting.
@@ -90,6 +91,48 @@ Fiecare clasă executabilă declară exact un nivel:
 - API, precedență și probe: [adnotările de infrastructură](../docs/ATF_Test_Infrastructure_Annotations.md).
 - Verificarea manuală IntelliJ pentru output project-relative:
   [ghidul suitei Extent](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/README.md#rulare-directă-din-intellij).
+
+### Declarația neutră pentru recuperare BE
+
+`atf.testkit.recovery.AtfUiRecovery` și resolverul ei nu cunosc YAML,
+Playwright, operații business sau renderer. Extensia consumerului rezolvă planul
+per invocare înaintea resurselor, apoi restrânge politica UI încărcată din YAML.
+
+| Mod | Efect |
+|---|---|
+| CONFIGURED | păstrează plafoanele și allowlist-ul YAML |
+| DISABLED | interzice recuperarea pentru owner |
+| READ_ONLY | declară intenția; YAML OFF rămâne OFF |
+
+Clasa cea mai apropiată cu declarație directă sau compusă stabilește baza.
+Metoda poate restrânge; READ_ONLY nu redeschide o clasă DISABLED, iar CONFIGURED
+pe metodă păstrează restricția clasei.
+
+Un CONFIGURED explicit pe clasa apropiată reia baza YAML în locul clasei părinte.
+Conflictele READ_ONLY/DISABLED la același nivel sunt respinse; ciclurile
+meta-adnotărilor nu inventează o politică.
+
+```mermaid
+flowchart LR
+    Class["Clasă apropiată + compoziție"] -->|stabilește baza| Plan["Plan per invocare"]
+    Method["Metodă"] -->|restrânge| Plan
+    Plan -->|limitează| Runtime["Politica YAML a consumerului"]
+```
+
+<details>
+<summary><strong>Legendă — declarație fără resurse</strong></summary>
+
+- `AtfUiRecoveryResolver.resolve(owner, method)` întoarce mod și sursă;
+  nu deschide browserul și nu extinde bugete sau operații.
+- Metoda moștenită folosește declarația metodei efective; un Method străin
+  ownerului este respins.
+- `AtfUiRecoveryResolverTest` probează precedența, compoziția, conflictele și
+  izolarea rezolvărilor paralele.
+
+</details>
+
+Contractul runtime este la [UI](../atf-ui/README.md#recuperare-be-prin-observație-pasivă);
+exemplele sunt în [ghidul adnotărilor](../docs/ATF_Test_Infrastructure_Annotations.md#recuperare-be-declarată).
 
 ### Comparații JUnit cu dovadă neutră
 
@@ -118,6 +161,7 @@ dată comparația JUnit. Rândul `Check(name, expected, actual, passed)` este p�
 |---|---|
 | `@BeforeEach` / metoda testului / `@AfterEach` | recorder distinct în `SETUP` / `TEST BODY` / `TEARDOWN`; moștenirea și invocările template păstrează izolarea |
 | FAIL capturat printr-un `catch` simplu | eroarea auditată neconsumată este propagată la final; JUnit și raportul rămân FAIL |
+| Handler JUnit care înghite o excepție | eroarea capturată la ieșirea callback-ului rămâne FAIL; un abort rămâne SKIP, iar traducerea unei erori în abort nu ascunde eroarea inițială |
 | PASS fără verificări evaluate | guard explicit; nu se inventează rânduri |
 | assumption respinsă | rezultat `ABORTED`, proiectat de consumer ca SKIP cu motiv real |
 | eșec de publicare/close | toate etapele sunt încercate; cauza inițială rămâne primară și celelalte sunt `suppressed` |
@@ -145,6 +189,8 @@ flowchart LR
     Timer -->|îngheață| Snapshot["Durată + număr intervale"]
     Snapshot -->|transportă neutru| Result["PhaseResult"]
     Result -->|după execuție| Publisher["Publicare consumer"]
+    Invoke -->|păstrează eroarea| Result
+    Handler["Handler JUnit"] -->|nu șterge captura| Result
 ```
 
 <details>
@@ -163,6 +209,11 @@ flowchart LR
 - `InvocationTimerTest` și `ComponentPhaseTimingExtensionComponentTest` probează
   acumularea, izolarea, erorile de lifecycle și excluderea costurilor publicării.
   Kit nu cunoaște Extent și nu modifică plafonul valorilor sau verdictul JUnit.
+- `HandledComponentFailureComponentTest` verifică reconcilierea după handler,
+  cauza inițială și timing-ul fiecărei faze. Runnerul reunește excepțiile la
+  propagare; auditul nu atașează încă o copie a abortului la aceeași cauză.
+- O comparație reușită rămâne PASS dacă un callback eșuează ulterior.
+  Excepția primește diagnostic separat; nu se inventează o comparație FAIL.
 
 </details>
 

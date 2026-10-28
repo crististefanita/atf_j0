@@ -2,13 +2,11 @@
 
 ## Pe scurt
 
-**Stare: sincronizare nativă livrată; recuperarea ghidată de BE rămâne propusă.**
+**Stare: sincronizare nativă și politică BE read-only livrate; readiness-ul
+business și auditul agregat rămân deschise.**
 Ownerii sunt UI pentru sincronizare, Kit pentru declarația neutră,
 consumerii pentru semantica operațiilor și Reporting pentru dovezile randate.
 
-- Purchase AutoEx UI și UI+API au eșuat înaintea clickului de checkout;
-  capturile ulterioare arată butonul prezent. Proba locală reproduce verificarea
-  prematură a locatorului, fără să dovedească toate cauzele rulării remote.
 - Primitivele așteaptă prin operația nativă strictă; rămân precondițiile business
   ale tranziției și continuitatea unui select înlocuit înaintea activării.
 - Reluarea întregului test, a creării contului, a coșului ori a plății rămâne
@@ -29,37 +27,9 @@ documentară /10. Nu reprezintă o notă a codului sau un procent de reproducere
 
 | ID | Scor /100 | Criteriul care lipsește |
 |---|---:|---|
-| `UI-BACKEND-RECOVERY-01` | 80 = 33 + 24 + 16 + 7 | YAML + adnotare, corelare cauzală și decizie fără replay nesigur |
 | `UI-LOCATOR-READINESS-01` | 79 = 32 + 23 + 17 + 7 | identitatea și coșul sunt validate înaintea checkout-ului, individual și suite |
 | `UI-RECOVERY-AUDIT-01` | 78 = 33 + 22 + 16 + 7 | încercări vizibile, verdict reconciliat și expandare completă |
 | `UI-NATIVE-SELECT-DETACH-01` | 74 = 31 + 20 + 16 + 7 | selectul înlocuit poate continua numai cu rezultat confirmat și activare unică |
-
-<details>
-<summary><strong>Dovezi observate și limita concluziei</strong></summary>
-
-| Suprafață | Observație | Ce permite concluzia |
-|---|---|---|
-| Raportul purchase comun | 10 scenarii, 8 PASS și 2 FAIL; ambele failure-uri sunt `a.check_out (matched 0)` | aceeași precondiție a clickului eșuează în UI și UI+API |
-| Secvența eșuată | Continue după creare cont → header Cart → checkout; ultimul rând durează 25 ms, respectiv 8 ms | eșecul precedă o așteptare utilă a țintei; nu dovedește eșec BE |
-| Capturile failure | butonul checkout și Blue Top, cantitate 2, total Rs. 1000 sunt vizibile în ambele capturi | starea de după eroare diferă de observația inițială de 0 elemente |
-| UI+API purchase | documentul `/view_cart`, sequence 13, are HTTP 200; body-ul documentului nu este capturat | nu există dovadă de 503 pentru această navigare; 200 nu certifică DOM-ul la momentul clickului |
-| Profilul final screenshot | purchase cu o singură captură terminală trece în același raport; clasele apelează același `AutoExPurchaseJourney.execute` | selectorul nu este demonstrat invalid permanent; profilul nu trebuie folosit ca retry sau remediere a sincronizării |
-| Codul UI | click/fill/select deleagă rezolvarea către operația nativă strictă; select respinge rezultatul gol | absența tranzitorie este așteptată; lipsa confirmării nu produce PASS |
-| Codul AutoEx | `CartPage.proceedToCheckout()` așteaptă explicit vizibilitatea controlului înaintea clickului strict | sincronizarea locală nu modifică guard-ul generic pentru click/fill/select și nu implementează recuperarea BE |
-| Baseline browser local | wrapperul anterior arunca `matched 0` pentru ținta întârziată; probele permanente acoperă acum click/fill/select | regresia inițială este reprodusă înaintea corecției; ambiguitatea rămâne respinsă |
-| Repetare manuală TAB MCP | produs → adăugare unică de 2 bucăți → coș → checkout; selectorul are clasa `check_out`, iar modalul cere Register / Login | selectorul funcționează pe pagina stabilă; nu s-a repetat crearea contului sau plata |
-| Reclama manuală | o vignette reală a apărut și a fost închisă prin Close | intermediarul UI trebuie observat separat; nu dovedește cauza celor două failure-uri |
-
-Proba manuală este parțială: nu certifică tranziția autentificată după signup.
-Capturile sunt ulterioare erorii; nu demonstrează retrospectiv documentul,
-identitatea și numărul de elemente exact la verificarea eșuată. Timpii de
-publicare ai rândurilor Extent nu se confundă cu timpii schimburilor HTTP.
-În TAB MCP, expandarea tabelului arată cele trei acțiuni, aserțiunea terminală
-și diagnosticul locatorului. Comanda Expand all nodes deschide ierarhia;
-disclosure-urile dovezilor se deschid separat. Acest comportament nu este
-declarat defect de retry și nu justifică schimbarea stării colapsabile implicite.
-
-</details>
 
 ## UI-LOCATOR-READINESS-01 — așteptare înaintea activării unice
 
@@ -103,101 +73,30 @@ poate întoarce `[]`, fără excepție, fără eveniment și fără valoarea cer
 - [ ] Verificați și lipsa permanentă, document nou, select sensibil și redacția;
       o schimbare de driver cere regresiile pointer/iframe și rapoartelor existente.
 
-## UI-BACKEND-RECOVERY-01 — configurație și decizie explicită
+## Contractul BE promovat la owneri
 
-**Owner:** Kit pentru declarație/resolver fără browser sau renderer; UI pentru
-politica runtime neutră și observație pasivă; main AutoEx/Shop pentru operații.
+Politica și observația pasivă sunt documentate la
+[UI](../../atf-ui/README.md#recuperare-be-prin-observație-pasivă), declarația la
+[Kit](../../atf-test-kit/README.md#declarația-neutră-pentru-recuperare-be).
 
-```mermaid
-flowchart LR
-    Action["Acțiune unică"] -->|observă| Gate["Document + DOM + BE"]
-    Gate -->|stare validă| Continue["Continuă flow-ul"]
-    Gate -->|tranzitoriu| Policy["Politică + buget"]
-    Policy -->|permite| Observe["Reobservare sigură"]
-    Observe -->|reevaluează| Gate
-    Gate -->|business invalid| Fail["FAIL auditabil"]
-    Policy -->|refuz sau epuizare| Fail
-```
+Operația catalogului și cheile YAML exacte sunt la
+[AutoEx](../../atf-test-auto-ex/README.md#politica-be-a-catalogului) și
+[Shop](../../atf-test-practice-shop/README.md#politica-be-a-catalogului).
 
-<details>
-<summary><strong>Legendă — observația nu repetă mutația</strong></summary>
-
-- Gate-ul aparține aceleiași operații, pagini și încercări; răspunsul altui
-  scenariu sau al unei reclame nu poate autoriza recuperarea.
-- Reobservarea așteaptă starea sau folosește o citire permisă explicit;
-  muchia de întoarcere nu reexecută acțiunea business inițială.
-- Erorile business, configurația invalidă și rezultatul necunoscut al unei
-  mutații ajung la FAIL cu motivul refuzului și dovezile păstrate.
-
-</details>
-
-<details>
-<summary><strong>ToDo — YAML și adnotare, propunere de contract</strong></summary>
-
-Cheile și numele adnotării de mai jos sunt propuse; loaderul actual nu le acceptă.
-Un singur boolean nu definește operațiile permise ori idempotency.
-
-- [ ] Introduceți un bloc `browser.recovery` în YAML-ul consumerului, cu
-      `enabled: false` implicit, profil de operații read-only, `maxAttempts`,
-      `totalTimeout` și `backoff`. Prima evaluare intră în numărul încercărilor;
-      deadline-ul comun include așteptările și retry-urile subordonate.
-- [ ] Definiți o adnotare neutră, de exemplu `@AtfUiRecovery`, pe clasă/metodă,
-      cu mod CONFIGURED / DISABLED / READ_ONLY. Metoda poate restrânge politica
-      clasei; YAML-ul dezactivat rămâne master OFF, fără activare implicită din adnotare.
-- [ ] Rezolvați configurația imutabilă înaintea resurselor. Stabiliți precedența
-      metodei, clasei celei mai apropiate și adnotărilor compuse; respingeți
-      conflictele de același nivel, profilurile necunoscute și bugetele invalide.
-      Niciun override nu extinde allowlist-ul sau plafonul YAML.
-- [ ] Izolați politica per invocare și încercare; lansările IntelliJ, Maven,
-      parametrizate și prin suită folosesc același resolver, fără stare statică
-      partajată între teste. Setup/cleanup și componentele nu primesc reluare globală.
-- [ ] Separați captura necesară deciziei de profilul de prezentare UI/UI+API.
-      UI-only nu activează teste/precondiții API ori apeluri BE suplimentare.
-      Dacă semnalul necesar lipsește, recuperarea care depinde de el este refuzată;
-      orice captură pasivă minimă nouă cere opt-in, redacție și owner explicit.
-
-</details>
-
-<details>
-<summary><strong>ToDo — semnalele BE și limitele recuperării</strong></summary>
-
-- [ ] Capturați cursorul înaintea acțiunii și asociați observația cu invocarea,
-      pagina/frame-ul, origin-ul, ruta semantică și documentul curent; păstrați
-      sequence și `capturedAt`. Publicarea târzie nu schimbă ownerul sau faza.
-      Cursorul și semnătura redactată nu reprezintă payload identity sau idempotency.
-- [ ] Modelați distinct răspuns 2xx cu DOM întârziat, redirect, refuz HTTP,
-      request-failed fără răspuns și lipsa observației. HTTP 200 și `COMPLETE`
-      pentru captura filtrată nu demonstrează succesul business ori toate request-urile paginii.
-- [ ] Tratați 429/502/503/504 numai după clasificarea operației și corelare;
-      respectați Retry-After valid în deadline. Un status singular sau
-      `AssertionError` generic nu declanșează retry-ul unui test.
-- [ ] Folosiți allowlist semantic, cu same-origin și citire demonstrată.
-      AutoEx `GET /add_to_cart/...` și `GET /delete_account` sunt mutații;
-      signup, cart, checkout/payment și cleanup nu intră prin regula „GET este sigur”.
-- [ ] Reutilizați `UiRetryPolicy`, settlement-ul pasiv și observațiile existente
-      unde contractele coincid. `storeAvailability` rămâne recuperarea distinctă
-      pentru mesajul queue-full pe rutele deja permise; nu adăugați `/view_cart`
-      sau un retry după POST prin simpla extindere a acestei politici.
-- [ ] O acțiune cu răspuns întârziat se reconciliază prin observație/read-back
-      permis; nu retrimiteți clickul. Un rezultat incert al unei scrieri oprește
-      recuperarea automată. Un viitor retry de test complet cere alt increment,
-      cu fixture nou, ownership și idempotency server-side demonstrate.
-- [ ] Excludeți diferențele de aserțiune, sesiunea greșită, locatorul ambiguu,
-      defectele de configurare, publicare/captură și erorile de cleanup.
-      Păstrați cauza primară și erorile secundare; întreruperea oprește așteptarea.
-
-</details>
-
-**Închidere:** probele locale verifică fiecare refuz și fiecare recuperare
-permisă, inclusiv 2xx cu DOM întârziat și 503 necorelat. Numărul de scrieri
-rămâne 1; bugetul total nu crește multiplicativ prin politici imbricate.
+Acest increment acoperă read-only în documentul curent, cu master OFF,
+captură metadata-only opt-in, refuzuri explicite și deadline comun.
+Nu activează automat recuperarea în journey-uri și nu autorizează replay
+de cont, coș, checkout/payment sau cleanup.
 
 ## UI-RECOVERY-AUDIT-01 — încercări inspectabile în Extent
 
 **Owner:** model/proiecție la Reporting; probe renderer la Reporting Tests;
 adaptoare și aserțiuni business în main la cei doi consumeri.
 
-- [ ] Publicați politica efectivă și sursa ei, operația, indexul încercării,
+- [x] Adaptoarele publică observații INFO cu politica, sursa, bugetul, receipt-ul,
+      încercarea, decizia și timpii probe/backoff/total; corpul și credentialele
+      nu sunt capturate. Proiecția agregată rămâne separată.
+- [ ] Completați modelul/proiecția neutră cu politica efectivă și sursa ei, operația, indexul încercării,
       bugetul, cauza, decizia permis/refuzat, schimbul BE asociat și starea DOM.
       Distingerea observației de replay trebuie să fie vizibilă în raport.
       Separați durata încercării, backoff-ul și timpul total măsurat; o durată
@@ -209,45 +108,60 @@ adaptoare și aserțiuni business în main la cei doi consumeri.
 - [ ] Definiți verdictul logic și indicatorul de recuperare: un singur test
       în totaluri, succes inițial distinct de recuperare, epuizare FAIL și abort
       păstrat SKIP. Retry-ul infrastructurii de publicare nu rerulează business-ul.
+      Verificați și inputul contradictoriu: un caller care completează PASS după
+      o aserțiune UI FAIL poate păstra PASS în semanticSnapshot; consumerii curenți
+      furnizează verdictul efectiv, dar proiecția neutră trebuie normată explicit.
 - [ ] Probați expand/collapse până la fiecare încercare, acțiune, request și
       aserțiune; Fails → test/fază/pas exact și Overview trebuie să păstreze
       cauzele și totalurile coerente. Captura ulterioară nu înlocuiește starea
       consemnată la eroare.
-- [ ] Păstrați aserțiunile componente în pasul colapsabil standard, evaluarea
-      JUnit unică și redactarea textului complet înaintea plafonului de 240
-      caractere, inclusiv `…`, și după expandare. Unit rămâne categorie separată.
 - [ ] Verificați câte un caz relevant individual și prin suită în AutoEx și
       Shop, cu profil UI și UI+API, succes, recuperare/refuz și epuizare. Probele
       Extent neutre rămân în `atf-reporting-tests`; policy/resolver și adaptoarele
       au teste la owner, fără cuplarea testelor de business la HTML.
 
-## Documentare și închidere
+## Contracte păstrate și criteriu de închidere
 
-- [ ] După implementare și dovadă, promovați contractul la README-urile UI,
-      Kit, Reporting, AutoEx/Shop și în
-      [ghidul adnotărilor](../ATF_Test_Infrastructure_Annotations.md).
-      Exemplele YAML/java trebuie să corespundă API-ului livrat și valorilor implicite.
-- [ ] Păstrați separat [limita geometriei browser](ATF_UI_Browser_Geometry_Feedback.md)
-      și [lizibilitatea raportului](ATF_Reporting_Feedback.md); o recuperare reușită
-      nu închide aceste diferențe.
-- [ ] Executați conform [staging-ului și sync-ului sigur](../ATF_Build_And_Execution_Safety.md),
-      cu probe și build-uri în TMP, verificare TAB MCP și reconciliere cu live-ul.
-      Închideți numai ID-ul demonstrat; analiza și repetarea manuală parțială nu sunt implementare.
+Auditul componentelor are deja evaluare JUnit unică și pas colapsabil standard,
+conform [ghidului de testare](../ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
+Bugetul redactat de 240, paritatea rendererelor și lizibilitatea dovezilor sunt
+contracte [Reporting](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor),
+inclusiv în [panouri înguste](../../atf-reporting/README.md#lizibilitatea-dovezilor-în-panouri-înguste).
+Aceste invariante rămân obligatorii pentru viitoarele încercări de recuperare.
+
+Politica validată și exemplele livrate sunt la ownerii UI, Kit, Reporting și
+consumeri, cu precedența documentată în
+[ghidul adnotărilor](../ATF_Test_Infrastructure_Annotations.md).
+[Geometria iframe-urilor](ATF_UI_Browser_Geometry_Feedback.md) are criteriu separat.
+Verificarea și publicarea urmează [procesul izolat](../ATF_Build_And_Execution_Safety.md);
+o repetare manuală parțială nu închide criteriile de recuperare rămase.
 
 <details>
-<summary><strong>Control tehnic — sincronizarea locatorilor</strong></summary>
+<summary><strong>Control tehnic — politica BE read-only</strong></summary>
 
 ```yaml
 testChanges:
-  - id: UI-LOCATOR-NATIVE-01
+  - id: UI-BACKEND-RECOVERY-POLICY-02
     status: ACTIVE
-    base: 3219ef1ff546369d00a006cfc7434644251c6f9a
-    expires: 2026-11-26
-    reason: Adaugă probe browser pentru absență tranzitorie/permanentă, unicitate, document și țintă înlocuite; păstrează toate probele anterioare. Click/fill/select folosesc unicitatea și bugetul nativ; selectul fără confirmare este FAIL fără replay, iar limita driverului rămâne explicit deschisă.
-    proof: mvn -pl atf-ui,atf-test-auto-ex,atf-tests -am "-Dtest=PlaywrightLocatorReadinessComponentTest,PlaywrightActionSequenceTest,PlaywrightJavaScriptClickComponentTest,AutoExCheckoutReadinessComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=3219ef1ff546369d00a006cfc7434644251c6f9a" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    base: 74143eeb0c5260aada147fedf67212dc05834eb1
+    expires: 2026-11-27
+    reason: >-
+      Adaugă politică YAML și adnotare neutră pentru reobservare BE read-only:
+      master OFF, allowlist semantic, captură pasivă opt-in, deadline unic,
+      corelare pe scope și refuz explicit fără replay de business.
+      Probele browser și adaptoarele ambilor consumeri verifică dispatch unic,
+      refuz/epuizare, INFO și aserțiuni auditabile; păstrează testele anterioare.
+    proof: mvn -pl atf-test-kit,atf-ui,atf-test-auto-ex,atf-test-practice-shop,atf-reporting-tests,atf-tests -am "-Dtest=AtfUiRecoveryResolverTest,UiRecoveryConfigurationTest,UiRecoveryLoopTest,UiBackendRecoveryComponentTest,AutoExBackendRecoveryComponentTest,ShopBackendRecoveryComponentTest,BackendRecoveryObservationReportTest,ComponentAssertionStepReportTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=74143eeb0c5260aada147fedf67212dc05834eb1" "-Dsurefire.failIfNoSpecifiedTests=false" test
     paths:
-      - atf-ui/src/test/java/atf/ui/playwright/PlaywrightLocatorReadinessComponentTest.java
-      - atf-ui/src/test/resources/atf/ui/playwright/locator-readiness.html
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/recovery/BackendRecoveryObservationReportTest.java
+      - atf-test-kit/src/test/java/atf/testkit/recovery/AtfUiRecoveryResolverTest.java
+      - atf-ui/src/test/java/atf/ui/config/recovery/UiRecoveryConfigurationTest.java
+      - atf-ui/src/test/java/atf/ui/recovery/UiRecoveryLoopTest.java
+      - atf-ui/src/test/java/atf/ui/recovery/browser/RecoveryBrowserFixture.java
+      - atf-ui/src/test/java/atf/ui/recovery/browser/UiBackendRecoveryComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/recovery/AutoExBackendRecoveryComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/extension/AutoExRunFactory.java
+      - atf-test-auto-ex/src/test/resources/atf-auto-ex.yaml
 ```
 
 </details>

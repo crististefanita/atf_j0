@@ -8,10 +8,10 @@ function failureIndexField(label, value, extra, limit) {
 function failureIndexMarkup(name, ctx, id, scenarioIndex, ordinal) {
   var safeId = esc(id),
     safeScenario = esc(scenarioIndex),
-    stepEvidence = ctx.ui || ctx.evidenceOwner === 'component';
+    stepEvidence = ctx.ui || ctx.evidenceOwner === 'component' || !ctx.request;
   return (
     '<div class="atf-failure-index atf-failure-evidence" data-atf-evidence-owner="' +
-    esc(ctx.evidenceOwner || (ctx.ui ? 'ui' : 'api')) +
+    esc(ctx.evidenceOwner || (ctx.ui ? 'ui' : stepEvidence ? 'execution' : 'api')) +
     '" data-atf-failure-id="failure-' +
     safeId +
     '-' +

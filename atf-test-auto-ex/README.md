@@ -805,6 +805,10 @@ flowchart LR
 <summary><strong>Legendă — auditul componentelor AutoEx</strong></summary>
 
 - Muchiile sunt flux de date și ownership, nu dependențe Maven: Kit nu importă Reporting.
+- Un handler JUnit nu poate ascunde o eroare deja capturată de audit. FAIL/SKIP,
+  cauza și timing-ul rămân aliniate cu raportul, individual și prin suită.
+- Comparațiile PASS nu sunt prezentate drept cauză pentru o excepție ulterioară;
+  diagnosticul fără transport nu fabrică request ori durată HTTP.
 - Durata fazei include callback-urile moștenite și parametrizate ale invocării;
   achiziția resursei și publicarea sunt excluse. Expandarea păstrează timpul execuției.
 - Sumele fazelor/scenariilor nu sunt wall-clock al suitei; zero măsurat rămâne valid.
@@ -914,13 +918,16 @@ Diagrama comună pentru captură, baseline și publicare este în
   configurație validată, fără să-i înlocuiască limitele.
 - Selecția adnotată adaugă rutele DOCUMENT declarate și păstrează XHR/FETCH/OTHER
   first-party pentru origin; asset-urile statice și terțe rămân excluse.
-- Body-urile DOCUMENT și OTHER nu sunt citite. Metoda, ruta, statusul, headerele
-  și clasificarea auth rămân disponibile; corpul formularului login este păstrat
-  numai după redactarea parolei și a tokenului CSRF. Răspunsurile attachment cu
+- Body-urile răspunsurilor DOCUMENT și OTHER nu sunt citite. Metoda, ruta, statusul,
+  headerele și clasificarea auth rămân disponibile; request-urile form-urlencoded
+  păstrează body-ul, cu parolele și tokenul CSRF mascate. Răspunsurile attachment cu
   `ERR_ABORTED` după un HTTP 2xx sunt înregistrate ca răspunsuri HTTP, fără bytes.
 - Body-urile XHR/FETCH rămân disponibile în limita configurată. Headerele,
   autentificarea și proveniența observate sunt adaptate typed către Reporting.
 - Capturile terminale pot publica și exchange-urile finale.
+- În `POST /payment`, valorile sintetice `card_number` și `cvc` ale fixture-ului
+  demo rămân vizibile în body/cURL, conform politicii acceptate pentru această
+  probă; acțiunile UI păstrează mascarea existentă.
 
 Probele de selecție/buget/cursor aparțin `atf-ui`; prezentarea și snapshot-ul
 aparțin `atf-reporting-tests`. AutoEx verifică YAML-ul, ruta reală a coșului,
@@ -1032,6 +1039,67 @@ pagina UI folosește `/products?search=...`, nu endpoint-ul direct
 `POST /api/searchProduct`. Astfel raportul nu amestecă setup-ul API cu traficul
 cauzal al interacțiunilor browserului.
 
+## Politica BE a catalogului
+
+`automationExercise.browser.recovery` este OFF implicit, cu allowlist gol și captură pasivă OFF.
+Operația semantică inițială este numai `catalog-readiness`, mapată de
+`AutoExBackendRecovery` din main la GET `/api/productsList`.
+
+```mermaid
+flowchart LR
+    Yaml["YAML + adnotare"] -->|restrânge| Adapter["Adaptor AutoEx din main"]
+    Adapter -->|clasifică citirea| Scope["Scope UI înaintea acțiunii"]
+    Scope -->|înregistrează decizia| Evidence["Observații INFO în secvența UI"]
+```
+
+<details>
+<summary><strong>Legendă — opt-in și folosire explicită</strong></summary>
+
+- Blocul recovery aparține browserului AutoEx; politica storeAvailability rămâne separată.
+- Extensia JUnit aplică `AtfUiRecoveryResolver` înaintea resurselor.
+  Adnotarea poate restrânge, fără a activa YAML OFF sau a adăuga rute.
+- `run.backendRecovery()` oferă controllerul;
+  `begin(CATALOG_READINESS)` precedă acțiunea unică, apoi `await` primește numai
+  o probă DOM read-only. Deschiderea run-ului nu introduce retry în journey-uri.
+- Scope-ul și listener-ele se închid înaintea browserului, inclusiv pe eșec.
+  Nu sunt reluate signup, cont, coș, checkout, payment sau cleanup.
+- Semnalul BE este metadata-only, independent de prezentarea UI/UI_API;
+  UI-only nu activează apeluri API suplimentare sau precondiții API.
+- Deciziile publicate sunt INFO: politică, sursă, buget, încercare, motiv,
+  receipt și timpi separați. Un FAIL deja publicat nu devine PASS.
+
+</details>
+
+<details>
+<summary><strong>Exemplu de bloc recovery și verificare</strong></summary>
+
+Exemplul se inserează la `automationExercise.browser.recovery`, fără schimbarea engine-ului.
+Valorile de mai jos sunt un opt-in explicit pentru catalog în documentul curent.
+
+```yaml
+recovery:
+  enabled: true
+  profile: read-only
+  operations: [catalog-readiness]
+  maxAttempts: 4
+  totalTimeout: PT5S
+  backoff: PT0.1S
+  captureBackendSignals: true
+```
+
+`AutoExBackendRecoveryComponentTest` verifică încărcarea, restricția adnotării,
+catalogul întârziat, epuizarea și captura lipsă. Scrierile prin GET și operațiile
+necunoscute sunt refuzate înaintea browserului.
+
+Aserțiunile acestor componente rămân în pasul standard `Component assertions`,
+colapsat implicit, cu redactare înaintea plafonului integral de 240 de caractere.
+Unit și probele renderer din Reporting Tests își păstrează categoriile separate.
+
+</details>
+
+Deadline-ul, refuzurile și limitele sunt în [UI](../atf-ui/README.md#recuperare-be-prin-observație-pasivă);
+indicatorul agregat de recuperare rămâne în [feedback-ul auditului](../docs/feedback/ATF_UI_Backend_Guided_Recovery_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent).
+
 ## Rulare
 
 Din root-ul reactorului, testele componente offline:
@@ -1102,6 +1170,9 @@ Clasele și cele trei suite principale pot fi lansate direct din IntelliJ.
   finalizează sesiunea de raportare la închiderea root-ului JUnit.
   Overview/System declară `Client = Playwright browser`; fallback-ul generic
   Reporting rămâne neutru pentru consumerii care nu furnizează acest context.
+- Durata E2E rămâne agregarea dovezilor UI/API; runtime-ul nu furnizează încă
+  timing typed de fază prin `UiPhase`. Diferența față de durata totală a
+  journey-ului este urmărită în [feedback-ul Reporting](../docs/feedback/ATF_Reporting_Feedback.md).
 
 Contractele API și precondiția pentru `UI_API` sunt normate în acest README.
 `AutoExPurchaseSession` rămâne boundary intern al runtime-ului consumer; nu
@@ -1162,4 +1233,4 @@ opresc tranziția și rămân în secvența raportată.
 `AutoExCheckoutReadinessComponentTest` probează un control inserat după
 navigare, unul absent și unul ambiguu, prin browser și recorder reale. Oracolele
 coșului rămân independente; această sincronizare locală nu implementează
-politica de recuperare BE propusă în feedback.
+[politica BE a catalogului](#politica-be-a-catalogului), care nu reexecută checkout-ul.

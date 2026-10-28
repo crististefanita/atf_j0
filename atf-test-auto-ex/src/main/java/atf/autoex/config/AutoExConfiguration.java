@@ -118,6 +118,11 @@ public record AutoExConfiguration(URI baseUrl, boolean e2eEnabled,
         return catalog.expectedTotal();
     }
 
+    public AutoExConfiguration withRecovery(atf.ui.config.recovery.UiRecoveryConfiguration policy) {
+        return new AutoExConfiguration(baseUrl, e2eEnabled, browser.withRecovery(policy), uiReportBaseDirectory,
+                catalog, registration, payment, storeAvailabilityPolicy, evidence);
+    }
+
     /** Avoid exposing configured form data if the aggregate is ever logged for diagnostics. */
     @Override
     public String toString() {

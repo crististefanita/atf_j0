@@ -346,6 +346,85 @@ markup și randare este în
 - Reutilizează `UiScreenValidation.Evidence.hasScreenshotPayload()`; o captură
   cerută, dar absentă sau invalidă, nu consumă dovezile anterioare.
 
+## Recuperare BE prin observație pasivă
+
+`UiBackendRecovery` coordonează o singură operație semantică în documentul curent.
+Scope-ul se deschide înaintea acțiunii; aplicația execută acțiunea o dată, iar
+`await` primește numai proba DOM fără efecte laterale.
+
+Proba trebuie să fie bounded: controllerul verifică termenul înainte și după
+apel, dar nu întrerupe un callback blocant. Așteptările subordonate folosesc
+`remaining()`, fără deadline nou.
+
+```mermaid
+flowchart LR
+    Config["YAML + restricție neutră"] -->|fixează| Scope["Scope înaintea acțiunii"]
+    Scope -->|delimitează| Action["O singură activare"]
+    Action -->|produce| Gate["Document + semnal BE + DOM"]
+    Gate -->|tranzitoriu permis| Observe["Reobservare în același buget"]
+    Observe -->|reevaluează| Gate
+    Gate -->|2xx corelat + stare validă| Ready["INITIAL_READY / RECOVERED"]
+    Gate -->|refuz sau epuizare| Stop["Eșec cu motiv explicit"]
+```
+
+<details>
+<summary><strong>Legendă — deadline comun și limitele observației</strong></summary>
+
+- `UiRecoveryConfiguration` este imutabilă; `enabled=false` și captura OFF sunt
+  implicite, iar profilul acceptat este `read-only`.
+- `begin(operation)` pornește deadline-ul monoton înaintea acțiunii.
+  `remaining()` permite limitarea așteptării originale la restul acestui buget.
+- Prima evaluare consumă o încercare; probele și backoff-ul consumă același
+  deadline. Succesul venit după termen rămâne epuizare.
+- Reobservarea nu primește callback de click, request sau journey; nu trimite
+  apeluri BE. Nu adaugă retry global pentru setup, cleanup sau componente.
+- `UiRetryPolicy` și settlement-ul existent păstrează contractele lor;
+  nu se înlănțuie automat bugete noi sau replay prin acest controller.
+
+Observația INFO are durata de rând zero; probe/backoff/total sunt măsurători
+explicite în metadata, iar totalul cumulativ nu se însumează peste fiecare rând.
+Durata agregată a fazei E2E rămâne distinctă de totalul scope-ului BE, conform
+[restanței timing typed](../docs/feedback/ATF_Reporting_Feedback.md#report-e2e-phase-timing-01--execuția-e2e-separată-de-agregarea-dovezilor).
+
+</details>
+
+<details>
+<summary><strong>Corelare, refuzuri și date capturate</strong></summary>
+
+| Condiție | Decizie |
+|---|---|
+| Inițial READY, politica ori captura OFF | succes inițial; nicio recuperare |
+| Operație READ_ONLY explicită, allowlist și captură opt-in | poate reobserva |
+| 2xx corelat + DOM încă pending | așteaptă în buget; 2xx singur nu certifică business-ul |
+| 429/502/503/504 corelat | reobservă fără retransmisie; Retry-After valid rămâne în deadline |
+| Redirect, HTTP refuzat, request-failed, semnal absent | refuz distinct; fără status HTTP inventat |
+| Document schimbat, alt frame, query schimbat, request concurent incompatibil | nu poate împrumuta semnalul |
+| Business invalid, sesiune greșită, ambiguitate | refuz; expected-ul nu se normalizează |
+| Eroare de probă/captură/publicare ori întrerupere | propagă/oprește; nu reexecută business-ul |
+
+Observerul ascultă numai metadata pentru cereri începute după deschiderea
+scope-ului, din main frame-ul deținut, pentru origin-ul paginii sau endpoint-ul
+backend declarat explicit. Nu citește body, cookie ori autorizare.
+
+Receipt-ul păstrează invocarea, operația, frame/document, sequence și
+`capturedAt`; două URL-uri complete diferite nu sunt aceeași cerere.
+Query-ul complet se compară numai privat în memorie și nu se publică.
+
+Captura are opt-in `captureBackendSignals`, separat de prezentarea UI/UI_API.
+Limita de 64 de cereri și scope-urile suprapuse sunt refuzate; răspunsurile
+cererilor anterioare scope-ului nu îl pot autoriza.
+
+În acest increment sunt clasificate numai GET/HEAD explicit read-only,
+în același document. Un GET de mutație rămâne exclus, iar navigarea de recuperare
+și idempotency pentru scrieri cer contracte separate.
+
+</details>
+
+`UiRecoveryConfigurationTest`, `UiRecoveryLoopTest` și
+`UiBackendRecoveryComponentTest` verifică politica, deadline-ul și browserul.
+Operațiile aplicației sunt în main la consumeri; declarația neutră este în
+[Kit](../atf-test-kit/README.md#declarația-neutră-pentru-recuperare-be).
+
 ## Inspectorul de rețea — limită generică de responsabilitate
 
 Fluxul cross-module și baseline-ul setup/causal au un singur owner în

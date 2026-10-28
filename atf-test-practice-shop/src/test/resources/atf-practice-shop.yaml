@@ -10,6 +10,15 @@ practiceShop:
     width: 1440
     height: 1000
   zoomPercent: 70
+  # Flat consumer schema: browser remains the engine name; recovery is independently opt-in.
+  recovery:
+    enabled: false
+    profile: read-only
+    operations: []
+    maxAttempts: 1
+    totalTimeout: PT5S
+    backoff: PT0.1S
+    captureBackendSignals: false
   validation:
     profile: ui-api
     # Typed journey binding; omit the list to enable all checkpoints for UI_API.

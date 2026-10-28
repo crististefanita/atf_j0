@@ -107,6 +107,9 @@ public final class ShopE2eTestSupport {
                     context.getRequiredTestClass());
             WithE2eHarness harness = context.getRequiredTestClass().getAnnotation(WithE2eHarness.class);
             configuration = configurationForChannel(configuration, harness, context.getRequiredTestClass());
+            var recovery = atf.testkit.recovery.AtfUiRecoveryResolver.resolve(context.getRequiredTestClass(), context.getRequiredTestMethod());
+            configuration = configuration.withRecovery(configuration.browser().recovery().restrict(
+                    recovery.permitsConfiguredRecovery(), recovery.source()));
             ShopTestSupport.AuthenticatedE2e authenticated =
                     context.getRequiredTestClass().getAnnotation(ShopTestSupport.AuthenticatedE2e.class);
             ShopTestSupport.AccountSetupMode accountSetup = authenticated == null

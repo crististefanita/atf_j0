@@ -1,87 +1,64 @@
 # ATF Java — registrul cerințelor rămase
 
-Registrul indexează numai gap-uri active. Contractele stabile aparțin README-ului
-ownerului; rapoartele și rezultatele unei rulări nu devin documentație permanentă.
+Registrul indexează criteriile neîndeplinite. Contractele stabile aparțin
+README-ului ownerului; controalele verificate aparțin baseline-ului testelor.
 
 ## Pe scurt
 
-- Componentele au evaluare JUnit unică, dovezi redactate înaintea plafonului,
-  faze lifecycle și rezultate reconciliate; contractele sunt la ownerii Kit și Reporting.
-- API Shop deține auditul înaintea execuției și păstrează artifactul pe ieșirile
-  de eșec; runtime-ul și scope-ul coșului sunt în main.
-- AutoEx păstrează un raport API comun în suită și raport propriu per clasă;
-  cleanup-ul poate reveni prin GET din documentul queue full, fără replay de payment.
-- Etapele purchase AutoEx și gate-urile catalogului Shop au owner în main; rămân
-  contextul E2E Shop și billing în suita Shop.
-- Checkout-ul AutoEx așteaptă vizibilitatea înaintea clickului unic; rămân
-  precondițiile business și recuperarea BE propusă, fără replay de mutații.
-- Componentele Shop/AutoEx au un raport per clasă/suită și audit per invocare;
-  guvernanța folosește selectorii executabili, cu comentariile excluse.
-- Preview-ul E2E și Fails păstrează limita integrală după redactare și contextul
-  acțiunii înaintea headline-ului; durata măsurată a componentelor exclude publicarea.
-- Căutarea AutoEx confirmă query-ul și produsul vizibil după un click unic,
-  cu același buget și fără așteptarea navigărilor fără legătură.
-- Contractele stabile sunt în [indexul documentației](../README.md);
-  feedback-ul păstrează numai ownerul, reproducerea și criteriul rămas.
+- Core trebuie să transporte istoricul parțial al unei execuții API eșuate.
+- UI livrează politica BE read-only; rămân auditul agregat, readiness business și geometria iframe.
+- Reporting păstrează contractul diagnosticului UI și timing-ul explicit al fazelor E2E.
+- Consumerii păstrează corelarea payment, totalul comenzii, runtime-ul E2E Shop și billing-ul.
+- Guvernanța trebuie să includă layout-urile Maven configurate în verificarea importurilor duplicate.
+
+În incrementul curent păstrăm cele 12 module și îmbunătățim codul existent:
+responsabilități, stare, erori, duplicări și documentație. Flow-urile E2E Shop și
+AutoEx pot fi completate în modulele lor până la rezultatul business declarat.
+
+Propunerile de funcționalități noi și workflow-ul AI rămân în backlog;
+scorul lor nu extinde scope-ul incrementului. Politica BE read-only livrată
+explicit are contract la ownerii UI, Kit și consumeri.
 
 ## Top feedback-uri active
 
-Scorul este o prioritate de intervenție, nu o notă a codului sau a README-ului.
-Formula comună este impact /40 + severitatea lacunei /30 + lucrabil acum /20 +
-datorie documentară /10; toate domeniile operaționale au aceeași pondere.
+Scorul este prioritate de intervenție, nu notă a codului sau procent de acoperire.
+Formula comună este impact /40 + lacună /30 + lucrabil /20 + datorie documentară /10.
+Un document cu mai multe gap-uri primește scorul celui mai urgent, nu suma lor.
 
-Un feedback cu mai multe gap-uri primește scorul celui mai urgent, nu suma
-lor. Gap-urile secundare rămân vizibile în documentul ownerului.
-
-| Ordine | Feedback / owner | Scor /100 | Lacuna care decide ordinea |
+| Ordine | Feedback / owner | Scor /100 | Criteriul care decide ordinea |
 |---:|---|---:|---|
-| 1 | [UI — sincronizare și recuperare BE](ATF_UI_Backend_Guided_Recovery_Feedback.md) | **80** = 33 + 24 + 16 + 7 | politică YAML/adnotare (80), precondiții checkout (79), audit (78), select înlocuit (74) |
-| 2 | [Consumer — runtime și validare](ATF_Consumer_Business_Test_Focus_Feedback.md) | **77** = 31 + 18 + 20 + 8 | context E2E Shop (77), billing în suita Shop (71), evaluator pur (63), echivalența profilelor (57) |
-| 3 | [ATF UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ; activarea JavaScript explicită nu închide limita |
+| 1 | [Core — execuție eșuată](ATF_Core_Execution_Evidence_Feedback.md) | **86** = 36 + 25 + 18 + 7 | istoricul retry-urilor nu este transportat la eroare terminală |
+| 2 | [Consumer — validări E2E și runtime](ATF_Consumer_Business_Test_Focus_Feedback.md) | **83** = 34 + 24 + 19 + 6 | payment corelat cu răspuns vechi (83), context E2E (77), total comandă (72), billing (71), evaluator pur (63), profile (57) |
+| 3 | [UI — sincronizare și recuperare BE](ATF_UI_Backend_Guided_Recovery_Feedback.md) | **79** = 32 + 23 + 17 + 7 | identitate/coș (79), audit agregat (78), select înlocuit (74) |
+| 4 | [Reporting — diagnostic și timing E2E](ATF_Reporting_Feedback.md) | **78** = 32 + 21 + 18 + 7 | contractul diagnosticului (78), timing typed al fazelor E2E (78) |
+| 5 | [UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ |
+| 6 | [Mentenanță — inventarul surselor](ATF_Code_Maintenance_Feedback.md) | **70** = 24 + 19 + 20 + 7 | rădăcinile Shop omise din guard-ul importurilor duplicate |
 
-Ordinea nu înlocuiește criteriul de închidere. O componentă verde nu certifică
-un flow remote, iar succesul live nu certifică toate politicile sau randarea.
-Calitatea editorială se evaluează separat prin
+O componentă verde confirmă criteriul ei; închiderea unui gap cere întreaga
+probă declarată la owner. Evaluarea calității folosește separat
 [rubrica documentației](../README_Atf_DocumentationBestPractices.md#rubrica-reviziei-editoriale).
 
-Controlul tehnic al [scope-ului componentelor](ATF_Component_Report_Scope_Feedback.md#controlul-incrementului)
-rămâne pentru verificarea Git; nu reprezintă o lacună funcțională activă.
-Aceeași separare se aplică [controalelor Reporting](ATF_Reporting_Feedback.md#controale-tehnice-încă-necesare).
+## Contracte și controale verificate
+
+Auditul componentelor și raportul comun class/suite sunt normate în
+[ghidul de testare](../ATF_Testing_Guide.md#auditul-componentelor-consumerilor),
+cu primitive la Kit și Reporting. Controalele demonstrate, inclusiv
+`COMPONENT-SCOPE-AND-SELECTORS-01`, sunt în
+[registrul verificat](../ATF_Test_Changes_Baseline.md#controale-tehnice-verificate).
+Controalele rămase active sunt colapsate lângă feedback-ul ownerului.
 
 ## Design AI — evaluare separată
 
-[Feedback-ul AI](README_AI_Evaluation.md) păstrează gap-urile evaluatorului și
-ale workflow-ului propus. Scorurile sale măsoară readiness-ul, nu prioritatea
-operațională de mai sus; nu sunt recalibrate printr-o revizie editorială.
+[Feedback-ul AI](README_AI_Evaluation.md) separă comparatorul implementat de
+publication path, run ledger și workflow-ul propus. Readiness-ul său nu este
+prioritatea operațională de mai sus și nu se recalibrează editorial.
 
 ## Păstrare, promovare și verificare
 
-- Un gap dispare numai după verificarea criteriului la owner; informația stabilă
-  se mută în documentația proiectului, fără istoric de artifacte.
-- Un feedback fără gap-uri se șterge numai după reconcilierea controalelor
-  `testChanges`, a linkurilor și a țintelor `@DocumentationTarget`.
+- Regula stabilă se promovează la owner înainte de eliminarea criteriului închis.
+- Fișierul fără gap-uri se elimină după reconcilierea controalelor și linkurilor;
+  țintele `@DocumentationTarget` rămân protejate.
 - README-urile de modul rămân documentație de utilizare chiar fără ToDo-uri.
-  Controalele tehnice nu sunt cerințe funcționale și nu se închid editorial.
 
 Protocolul este în [bunele practici documentare](../README_Atf_DocumentationBestPractices.md#păstrarea-și-ștergerea-feedback-ului).
-Controalele verificate aparțin [baseline-ului testelor](../ATF_Test_Changes_Baseline.md);
-execuțiile respectă [staging-ul și sync-ul sigur](../ATF_Build_And_Execution_Safety.md).
-
-<details>
-<summary><strong>Control tehnic — ancorele documentației</strong></summary>
-
-```yaml
-testChanges:
-  - id: DOC-LINK-ANCHOR-01
-    status: ACTIVE
-    base: 3219ef1ff546369d00a006cfc7434644251c6f9a
-    expires: 2026-11-26
-    reason: Întărește rezolvarea linkurilor README fără relaxarea regulilor existente; adaugă probe negative pentru fragment dispărut, Unicode, duplicate și exemple fenced.
-    proof: mvn -pl atf-tests -am "-Dtest=DocumentationAnchorGovernanceTest,DocumentationTargetGovernanceTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=3219ef1ff546369d00a006cfc7434644251c6f9a" "-Dsurefire.failIfNoSpecifiedTests=false" test
-    paths:
-      - atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationReadmeStructureGovernanceTest.java
-      - atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationAnchorGovernanceTest.java
-      - atf-tests/src/test/java/atf/api/tests/governance/documentation/links/MarkdownAnchorIndex.java
-```
-
-</details>
+Verificările respectă [staging-ul și sync-ul sigur](../ATF_Build_And_Execution_Safety.md).

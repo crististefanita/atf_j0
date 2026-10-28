@@ -107,6 +107,11 @@ public record ShopConfiguration(
         return authenticatedE2eEnabled && accountConfigured();
     }
 
+    public ShopConfiguration withRecovery(atf.ui.config.recovery.UiRecoveryConfiguration policy) {
+        return new ShopConfiguration(baseUrl, accountFile, productName, productPath, checkout, browser.withRecovery(policy),
+                uiRetry, validationProfile, api, uiReportDirectory, apiReportDirectory, authenticatedE2eEnabled, reporting);
+    }
+
     /**
      * Creates the explicit live-auth launch profile used by the IntelliJ E2E
      * annotation. YAML remains the source for the business fixture; this
@@ -117,7 +122,7 @@ public record ShopConfiguration(
         UiBrowserConfiguration selectedBrowser = new UiBrowserConfiguration(
                 browser.baseUrl(), browser.browser(), headless, browser.timeout(),
                 browser.navigationTimeout(), browser.viewportWidth(), browser.viewportHeight(),
-                zoomPercent, browser.screenshotOnFailure(), browser.retryPolicy(), browser.networkInspection());
+                zoomPercent, browser.screenshotOnFailure(), browser.retryPolicy(), browser.networkInspection(), browser.recovery());
         ShopApiConfiguration selectedApi = new ShopApiConfiguration(
                 api.endpoint(), ApiTransportMode.LIVE, ShopApiPrecondition.AUTHENTICATED,
                 api.timeout(), api.evidenceBinding());

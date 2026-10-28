@@ -11,6 +11,15 @@ automationExercise:
       height: 1000
     # Only the visible vignette Close opts into JavaScript; ordinary business clicks remain pointer actions.
     zoomPercent: 70
+    # Backend-guided reobservation is separately opt-in; it never replays a business action.
+    recovery:
+      enabled: false
+      profile: read-only
+      operations: []
+      maxAttempts: 1
+      totalTimeout: PT5S
+      backoff: PT0.1S
+      captureBackendSignals: false
     # Total document attempts, including the first load; only explicit queue-full GET reads may recover.
     storeAvailability:
       maxAttempts: 3

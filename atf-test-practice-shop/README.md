@@ -385,6 +385,69 @@ Contractul generic de lifecycle și randare este deținut de
   captură terminală permisă sub tabelul Playwright. Proveniența fazelor rămâne
   într-un disclosure UI; eșecul de setup și scenariile UI+API nu sunt compactate.
 
+## Politica BE a catalogului
+
+`practiceShop.recovery` este OFF implicit, cu allowlist gol și captură pasivă OFF.
+Operația semantică inițială este numai `catalog-readiness`, mapată de
+`ShopBackendRecovery` din main la GET `/products`.
+
+```mermaid
+flowchart LR
+    Yaml["YAML + adnotare"] -->|restrânge| Adapter["Adaptor Shop din main"]
+    Adapter -->|clasifică citirea| Scope["Scope UI înaintea acțiunii"]
+    Scope -->|înregistrează decizia| Evidence["Observații INFO în secvența UI"]
+```
+
+<details>
+<summary><strong>Legendă — opt-in și folosire explicită</strong></summary>
+
+- Schema Shop rămâne flat: `practiceShop.browser` este numele engine-ului, iar recovery este un bloc separat.
+- Extensia JUnit aplică `AtfUiRecoveryResolver` înaintea resurselor.
+  Adnotarea poate restrânge, fără a activa YAML OFF sau a adăuga rute.
+- `context.backendRecovery(actions)` oferă controllerul;
+  `begin(CATALOG_READINESS)` precedă acțiunea unică, apoi `await` primește numai
+  o probă DOM read-only. Deschiderea run-ului nu introduce retry în journey-uri.
+- Scope-ul și listener-ele se închid înaintea browserului, inclusiv pe eșec.
+  Nu sunt reluate signup, cont, coș, checkout, payment sau cleanup.
+- Contextul păstrează un controller și același recorder; o a doua achiziție
+  nu poate crea alt owner de deadline pentru aceeași invocare.
+- Semnalul BE este metadata-only, independent de prezentarea UI/UI_API;
+  UI-only nu activează apeluri API suplimentare sau precondiții API.
+- Deciziile publicate sunt INFO: politică, sursă, buget, încercare, motiv,
+  receipt și timpi separați. Un FAIL deja publicat nu devine PASS.
+
+</details>
+
+<details>
+<summary><strong>Exemplu de bloc recovery și verificare</strong></summary>
+
+Exemplul se inserează la `practiceShop.recovery`, fără schimbarea engine-ului.
+Valorile de mai jos sunt un opt-in explicit pentru catalog în documentul curent.
+
+```yaml
+recovery:
+  enabled: true
+  profile: read-only
+  operations: [catalog-readiness]
+  maxAttempts: 4
+  totalTimeout: PT5S
+  backoff: PT0.1S
+  captureBackendSignals: true
+```
+
+`ShopBackendRecoveryComponentTest` verifică încărcarea, restricția adnotării,
+catalogul întârziat, epuizarea și captura lipsă. Scrierile prin GET și operațiile
+necunoscute sunt refuzate înaintea browserului.
+
+Aserțiunile acestor componente rămân în pasul standard `Component assertions`,
+colapsat implicit, cu redactare înaintea plafonului integral de 240 de caractere.
+Unit și probele renderer din Reporting Tests își păstrează categoriile separate.
+
+</details>
+
+Deadline-ul, refuzurile și limitele sunt în [UI](../atf-ui/README.md#recuperare-be-prin-observație-pasivă);
+indicatorul agregat de recuperare rămâne în [feedback-ul auditului](../docs/feedback/ATF_UI_Backend_Guided_Recovery_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent).
+
 ## Configurația modulului
 
 Sursa canonică este
@@ -615,6 +678,9 @@ sequenceDiagram
 </details>
 
 - UI: `ShopE2eTestSupport` partajează `UiExtentReportSession`, cu acțiuni și capturi.
+- Duratele E2E `SETUP` și `TEST BODY` sunt agregări ale dovezilor; nu folosesc încă
+  timing-ul typed al componentelor. Măsurarea explicită a execuției E2E rămâne în
+  [feedback-ul Reporting](../docs/feedback/ATF_Reporting_Feedback.md).
 - API: `ShopApiLiveSuite` selectează `ShopStandaloneApiReportTest`; testul păstrează
   oracolul și opt-in-ul, iar runtime-ul main deține execuția și artifactul.
 - `reports.api` stabilește directorul; numele folosește prefixul
@@ -680,6 +746,10 @@ flowchart LR
 <summary><strong>Legendă — auditul componentelor Shop</strong></summary>
 
 - Muchiile sunt flux de date și ownership, nu dependențe Maven: Kit nu importă Reporting.
+- Un handler JUnit nu poate ascunde o eroare deja capturată de audit. FAIL/SKIP,
+  cauza și timing-ul rămân aliniate cu raportul, individual și prin suită.
+- Comparațiile PASS nu sunt prezentate drept cauză pentru o excepție ulterioară;
+  diagnosticul fără transport nu fabrică request ori durată HTTP.
 - Durata fazei include callback-urile moștenite și parametrizate ale invocării;
   achiziția resursei și publicarea sunt excluse. Expandarea păstrează timpul execuției.
 - Sumele fazelor/scenariilor nu sunt wall-clock al suitei; zero măsurat rămâne valid.

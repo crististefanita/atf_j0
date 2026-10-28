@@ -9,6 +9,7 @@ import atf.testkit.scope.TestRunScope;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.extension.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.platform.launcher.core.*;
@@ -55,12 +56,24 @@ class AutoExComponentPhaseTimingComponentTest {
         assertTrue(run.innerNanos() > 0);
     }
 
+    @Test void swallowedRuntimeErrorKeepsJunitAndTheReportFailedIndividuallyAndInASuite() throws Exception {
+        var individual = launch(selectMethod(HandledFixture.class, "body"), 0, 1);
+        var suite = launch(selectClass(HandledSuite.class), 2, 1);
+        for (var run : List.of(individual, suite)) {
+            assertTrue(run.html().contains("controlled handled runtime failure"));
+            assertTrue(MARKERS.matcher(run.html()).results().count() >= 1);
+        }
+    }
+
     private static long attribute(String marker, String name) {
         var match = Pattern.compile("data-atf-" + name + "=\"([0-9]+)\"").matcher(marker);
         if (!match.find()) throw new AssertionError("Missing typed timing attribute " + name);
         return Long.parseLong(match.group(1));
     }
     private static Run launch(org.junit.platform.engine.DiscoverySelector selector, int expected) throws Exception {
+        return launch(selector, expected, 0);
+    }
+    private static Run launch(org.junit.platform.engine.DiscoverySelector selector, int expected, int failed) throws Exception {
         Path output = Files.createDirectories(Path.of("target", "component-phase-timing", UUID.randomUUID().toString()).toAbsolutePath());
         String property = AutoExExtentTestExtension.REPORT_DIRECTORY_PROPERTY;
         var previous = new HashMap<String, String>();
@@ -74,6 +87,7 @@ class AutoExComponentPhaseTimingComponentTest {
                     .configurationParameter("junit.jupiter.execution.parallel.enabled", "false").build(), summary);
             long elapsed = System.nanoTime() - started;
             assertEquals(expected, summary.getSummary().getTestsSucceededCount());
+            assertEquals(failed, summary.getSummary().getTestsFailedCount());
             assertEquals(0, summary.getSummary().getContainersFailedCount());
             try (var files = Files.list(output)) {
                 var reports = files.filter(file -> file.toString().endsWith(".html")).toList();
@@ -92,6 +106,21 @@ class AutoExComponentPhaseTimingComponentTest {
     @Suite @AtfComponentTest @SelectClasses({LifecycleFixture.class, ParametersFixture.class})
     @ConfigurationParameter(key = TestRunScope.CONFIGURATION_PARAMETER, value = "suite")
     public static class TimingSuite { }
+
+    @Suite @AtfComponentTest @SelectClasses({HandledFixture.class, ParametersFixture.class})
+    @ConfigurationParameter(key = TestRunScope.CONFIGURATION_PARAMETER, value = "suite")
+    public static class HandledSuite { }
+
+    public static class Swallow implements TestExecutionExceptionHandler {
+        @Override public void handleTestExecutionException(ExtensionContext context, Throwable failure) { }
+    }
+    @AutoExComponentTest @EnabledIfSystemProperty(named = ENABLED, matches = "true") @ExtendWith(Swallow.class)
+    public static class HandledFixture {
+        @Test void body() {
+            assertTrue(true, "evaluated precondition");
+            throw new IllegalStateException("controlled handled runtime failure");
+        }
+    }
 
     public static class ParentFixture {
         @BeforeEach void inheritedSetup() { measured(() -> assertTrue(true, "parent setup")); }

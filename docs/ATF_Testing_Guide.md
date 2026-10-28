@@ -65,6 +65,22 @@ nu au această obligație; probele rendererului rămân o categorie separată î
   validările Extent/fallback și interacțiunea disclosure-ului sunt probate la
   [Reporting Tests](../atf-reporting-tests/README.md).
 
+Sesiunea comună aparține clasei sau suitei declarate; scenariul, comparațiile
+și timing-ul măsurat rămân per invocare. Publicarea finală și notificarea căii
+urmează închiderea ownerului, după existența artifactului.
+
+| Contract verificat | Owner al probei | Probă de regresie |
+|---|---|---|
+| Resursă și audit izolat | Kit | `ScopedTestResourceTest`, `ScopedComponentAuditExtensionComponentTest` |
+| Scenariu împrumutat și close unic | Reporting Tests | `AssertionAuditRunComponentTest` |
+| Metodă/clasă/suită și lansări repetate | Consumer | `AutoExComponentReportScopeComponentTest`, `ShopComponentReportScopeComponentTest` |
+| Selectori executabili și comentarii excluse | Core + ATF Tests | `AtfJavaSourceReferencesTest`, `ConsumerSuiteCoverageGovernanceTest` |
+
+Contractul sesiunii și al thread-ului de publicare rămâne la
+[Reporting](../atf-reporting/README.md#sesiunea-comună-a-componentelor);
+inventarul testelor și politica schimbării lor rămân la
+[ATF Tests](../atf-tests/README.md#guvernanța-schimbării-testelor).
+
 ## Matricea detaliată module × nivel de testare
 
 Celulele arată doar nivelurile care există în suitele executabile curente.

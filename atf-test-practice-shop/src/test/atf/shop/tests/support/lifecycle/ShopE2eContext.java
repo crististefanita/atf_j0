@@ -56,6 +56,9 @@ public final class ShopE2eContext implements AutoCloseable {
     private final ShopBrowserCaptureProvider browserCaptureProvider;
     private final ShopApiNetworkJournal apiNetwork;
     private final ReportEnvironmentSnapshot environment;
+    private atf.ui.playwright.recovery.UiBackendRecovery backendRecovery;
+    private PlaywrightActionSequence recoveryActions;
+    private boolean closed;
 
     private ShopE2eContext(ShopConfiguration configuration,
                                    ReportEvidenceProfile evidenceProfile,
@@ -189,6 +192,17 @@ public final class ShopE2eContext implements AutoCloseable {
     public Page page() { return browser.page(); }
     public ShopConfiguration configuration() { return configuration; }
     public PlaywrightActionSequence actions() { return browser.newActionSequence(); }
+    public atf.ui.playwright.recovery.UiBackendRecovery backendRecovery(PlaywrightActionSequence actions) {
+        if (closed) throw new IllegalStateException("Shop invocation is closed");
+        java.util.Objects.requireNonNull(actions, "actions");
+        if (backendRecovery == null) {
+            backendRecovery = atf.shop.support.recovery.ShopBackendRecovery.open(page(), configuration, actions);
+            recoveryActions = actions;
+        } else if (recoveryActions != actions) {
+            throw new IllegalStateException("One Shop invocation must retain its recovery recorder and deadline owner");
+        }
+        return backendRecovery;
+    }
     public Path reportPath() { return report.reportPath(); }
     public ShopApiNetworkJournal apiNetwork() { return apiNetwork; }
     public ReportScreenshot captureCheckpointScreenshot(String title,
@@ -276,11 +290,14 @@ public final class ShopE2eContext implements AutoCloseable {
     }
 
     @Override public void close() {
+        if (closed) return;
+        closed = true;
         Throwable failure = null;
+        if (backendRecovery != null) failure = FailureAwareCleanup.runAll(failure, backendRecovery::close);
         try {
             browser.close();
         } catch (Throwable error) {
-            failure = error;
+            if (failure == null) failure = error; else failure.addSuppressed(error);
         } finally {
             if (ownsReport) try {
                 report.close();

@@ -7,21 +7,13 @@ fazele lifecycle și rezultatul PASS/FAIL/SKIP sunt contracte ale
 [Test Kit](../../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră) și
 [Reporting](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor).
 
-- Adaptoarele AutoEx/Shop compun protocolul comun, fără dependențe Kit către renderer.
-- Runtime-ul API Shop, auditul deschis înaintea execuției și scope-ul coșului sunt în
-  [main la Shop](../../atf-test-practice-shop/README.md#de-ce-raportul-api-nu-arată-ca-raportul-ui).
-- [Scope-ul raportului API AutoEx](../../atf-test-auto-ex/README.md#de-ce-raportul-api-nu-arată-ca-raportul-ui)
-  și [recuperarea cleanup-ului](../../atf-test-auto-ex/README.md#contul-creat-și-cleanup-ul-sub-vignette)
-  sunt contracte livrate la ownerul AutoEx.
-- Etapele purchase și gate-urile catalogului aparțin contractelor [AutoEx](../../atf-test-auto-ex/README.md#etapele-purchase-și-adaptorul-ui) și [Shop](../../atf-test-practice-shop/README.md#gate-urile-catalogului).
-- Sincronizarea checkout-ului AutoEx și propunerea YAML/adnotare sunt în
-  [feedback-ul recuperării UI](ATF_UI_Backend_Guided_Recovery_Feedback.md);
-  extragerea etapelor nu închide acea lacună și nu autorizează retry de mutații.
-- Raportul comun class/suite și auditul izolat al componentelor sunt la
-  [Reporting](../../atf-reporting/README.md#sesiunea-comună-a-componentelor);
-  [controlul Git](ATF_Component_Report_Scope_Feedback.md#controlul-incrementului) rămâne separat.
-- Aici rămân extinderile arhitecturale și cazurile încă nedemonstrate; controalele
-  Git se păstrează independent de închiderea unui gap funcțional.
+Restanțele includ corelarea payment și totalul comenzii Shop, runtime-ul E2E,
+billing-ul observat în suită și echivalența profilelor înaintea reducerii selecției.
+Contractele deja livrate aparțin [AutoEx](../../atf-test-auto-ex/README.md),
+[Shop](../../atf-test-practice-shop/README.md) și
+[ghidului auditului componentelor](../ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
+Politica BE read-only este documentată la [UI](../../atf-ui/README.md#recuperare-be-prin-observație-pasivă);
+auditul agregat păstrează [feedback separat](ATF_UI_Backend_Guided_Recovery_Feedback.md).
 
 ## Ordinea refactorizării
 
@@ -30,10 +22,39 @@ documentară /10. Nu reprezintă o notă a codului sau un rezultat de test.
 
 | ID | Scor /100 | Diferența rămasă |
 |---|---:|---|
+| `CONSUMER-SHOP-PAYMENT-CAUSALITY-02` | 83 = 34 + 24 + 19 + 6 | răspuns payment reușit vechi selectat înaintea unui eșec mai nou |
 | `CONSUMER-RUNTIME-BOUNDARY-03` | 77 = 31 + 18 + 20 + 8 | achiziție, publicare și lifecycle E2E rămase în contextul Shop |
+| `CONSUMER-SHOP-ORDER-TOTAL-02` | 72 = 30 + 20 + 16 + 6 | totalul pozitiv nu este corelat cu prețul și cantitatea cumpărate |
 | `CONSUMER-SHOP-BILLING-STATE-01` | 71 = 29 + 22 + 14 + 6 | diferență de valoare billing între suită și lansare individuală |
 | `CONSUMER-COMPONENT-ASSERTIONS-01` | 63 = 25 + 18 + 16 + 4 | evaluator neutru reutilizabil în Validation, după corectarea boundary-urilor existente |
 | `CONSUMER-E2E-PROFILES-01` | 57 = 24 + 10 + 17 + 6 | reducerea repetării live numai după echivalență demonstrată |
+
+## CONSUMER-SHOP-PAYMENT-CAUSALITY-02 — răspunsul operației payment curente
+
+**Owner:** selecția dovezilor din `ShopApiNetworkJournal` și etapa checkout Shop.
+Corecția privește validarea operației existente, fără retry ori replay de payment.
+
+- `paymentConfirmed()` caută ultimul `POST /payment/check` cu status 200;
+  filtrarea succesului precedă alegerea răspunsului curent.
+- Proba controlată prin subscripția publică a inspectorului capturează un 200
+  la secvența 1 și un 500 la secvența 2. Validarea payment publică secvența 1 și
+  toate comparațiile trec, deși ultimul răspuns capturat este eșuat.
+- `orderCreated(afterSequence, ...)` și registration au deja prag de secvență;
+  aceeași delimitare nu este transmisă de etapa `checkPayment()`.
+
+- [ ] Capturați pragul înaintea acțiunii UI existente și selectați mai întâi
+      răspunsul corelat cu acea acțiune; evaluați apoi statusul și body-ul.
+- [ ] Păstrați unicul click, metoda, ruta și verdictul curent; un 500 sau lipsa
+      unui răspuns nou nu poate împrumuta un PASS din istoricul anterior.
+- [ ] Probați succesul vechi urmat de eșec nou, lipsa unui răspuns nou, două
+      răspunsuri valide și trafic pentru altă rută; publicați secvența selectată.
+- [ ] Verificați și perechea cart add/read, unde selecția curentă filtrează tot
+      statusul 200; aplicați numai corelarea demonstrată, fără framework nou de retry.
+- [ ] Păstrați un singur raport, assertion-urile expandabile și limita 240 în
+      lansare individuală și prin suită; cazul negativ trebuie să rămână FAIL.
+
+Proba delimitează un risc reproductibil al selectorului; nu demonstrează că
+purchase-urile remote trecute anterior au folosit un răspuns vechi.
 
 ## CONSUMER-RUNTIME-BOUNDARY-03 — responsabilitățile E2E rămase în Shop
 
@@ -49,6 +70,30 @@ achiziția browser/API, configurarea raportului, capturile și scenariile E2E.
       și close; fiecare etapă se încearcă o dată, cu cauza primară și erorile secundare păstrate.
 - [ ] Păstrați scope-urile Maven și
       [boundary-ul guvernat](../../atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java).
+
+## CONSUMER-SHOP-ORDER-TOTAL-02 — totalul comenzii față de cumpărăturile curente
+
+**Owner:** modelele și validarea business Shop, în modulele existente.
+Este completarea purchase-ului declarat, păstrând profilele UI și UI+API.
+
+- `ShopApiAssertions.order()` verifică numai `total > 0`, alături de identitatea
+  comenzii și corelarea facturii; nu primește un total așteptat independent.
+- O probă cu JSON valid, factura corelată și `total=0.01` trece toate comparațiile.
+  `ShopCartPage.CartLine` păstrează numele și cantitatea, fără preț ori total.
+
+- [ ] Propagați în flow-ul existent prețul, cantitatea și totalul așteptat din
+      observațiile anterioare plății; nu construiți expected din răspunsul comenzii.
+- [ ] Reprezentați valorile monetare exact și documentați moneda și regula
+      aplicației pentru calcul; nu introduceți rotunjiri sau taxe presupuse.
+- [ ] Comparați independent totalul și identitatea comenzii cu datele cumpărăturii;
+      în UI+API păstrați și corelarea facturii deja implementată.
+- [ ] Probați un total pozitiv greșit, cantitate/preț greșite, câmp lipsă, tip greșit
+      și factura străină; un simplu HTTP 2xx nu poate transforma diferența în PASS.
+- [ ] Verificați rândul exact expected/actual în raport, cu plafonul 240 păstrat,
+      pentru flow-ul guest și cel autentificat, individual și prin suită.
+
+Aceasta este o limită a validării actuale, fără dovadă că aplicația demo a
+calculat greșit totalurile rulărilor remote observate.
 
 ## CONSUMER-SHOP-BILLING-STATE-01 — valoarea observată în suita E2E
 
@@ -72,11 +117,20 @@ achiziția browser/API, configurarea raportului, capturile și scenariile E2E.
       FAIL trebuie să arate comparația și să permită expandarea până la rândul
       exact, iar raportul PASS trebuie să păstreze rândurile de validare.
 
+Un succes al altei clase purchase sau al profilului UI+API nu demonstrează
+criteriul clasei single-flow și nu închide această diferență.
+
 ## CONSUMER-COMPONENT-ASSERTIONS-01 — evaluatorul neutru al componentelor
 
 **Owner al restanței:** Validation pentru evaluarea pură reutilizabilă.
-Fațada JUnit, politica rezultatului și publicarea componentelor sunt implementate;
-acest item privește un evaluator business independent de JUnit.
+Fațada JUnit, politica rezultatului și publicarea componentelor sunt implementate.
+
+`ValidationEvaluator` evaluează deja contracte API; [limita sa actuală](../../atf-validation/README.md#limita-față-de-auditul-testelor-componente)
+exclude evaluatorul general pentru modele și componente. Acest item este o
+extindere de contract, nu un defect al auditului componentelor existent.
+
+Un API nou de evaluare rămâne în afara incrementului curent de mentenanță;
+auditul implementat nu depinde de această propunere.
 
 | Owner | Contract rămas |
 |---|---|
@@ -101,6 +155,12 @@ Inventarul din [README-ul modulului](../../atf-test-auto-ex/README.md#profile-ui
 mapează Account, Cart și Purchase UI/UI+API la aceleași intrări de journey,
 separă politica de screenshot și păstrează Existing customer distinct pentru setup-ul API.
 Aceasta dovedește reutilizarea codului, nu echivalența rezultatului live sau a evidence-ului randat.
+
+- [ ] Acoperiți failure-ul remote și celelalte profile; o suită limitată la
+      cazul pozitiv nu închide billing-ul observat în suita Shop completă.
+
+Timing-ul E2E explicit rămâne în [feedback-ul Reporting](ATF_Reporting_Feedback.md#report-e2e-phase-timing-01--execuția-e2e-separată-de-agregarea-dovezilor).
+Agregarea coerentă între taburi nu certifică durata integrală a fazei.
 
 - [ ] Înaintea reducerii selecției, demonstrați smoke-ul adaptorului pe succes
       și failure, plus contractele generice `ReportEvidenceProfileIntegrationTest`

@@ -64,22 +64,5 @@ rezolvă această regresie fără proba locală echivalentă.
 
 Regulile stabile sunt în [README ATF UI](../../atf-ui/README.md#configurație-generică-fără-flag-redundant).
 
-<details>
-<summary><strong>Control tehnic activ pentru metadata rezolvată</strong></summary>
-
-```yaml
-testChanges:
-  - id: UI-FRAME-POINTER-METADATA-01
-    status: ACTIVE
-    base: 490a0f274d71ec4bb288b01655e60f768daa74ba
-    expires: 2026-11-26
-    reason: Afirmă în proba Reporting viewportul și scala CSS efectiv rezolvate prin override; nu confundă această metadata cu repararea coordonatelor pointerului în iframe.
-    proof: mvn -pl atf-reporting-tests,atf-tests -am "-Dtest=UiReportEnvironmentSnapshotFactoryTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=490a0f274d71ec4bb288b01655e60f768daa74ba" "-Dsurefire.failIfNoSpecifiedTests=false" test
-    paths:
-      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/config/UiReportEnvironmentSnapshotFactoryTest.java
-```
-
-</details>
-
 Recuperarea contului este normată în
 [contractul AutoEx](../../atf-test-auto-ex/README.md#contul-creat-și-cleanup-ul-sub-vignette).
