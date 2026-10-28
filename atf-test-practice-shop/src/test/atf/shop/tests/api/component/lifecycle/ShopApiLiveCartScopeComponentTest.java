@@ -4,7 +4,7 @@ import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.api.contract.ShopApiHttpStatus;
 import atf.shop.api.contract.ShopApiJsonField;
 import atf.shop.support.ShopJsonEvidence;
-import atf.shop.tests.api.integration.support.ShopApiLiveCartScope;
+import atf.shop.support.api.run.ShopApiCartScope;
 import atf.shop.tests.api.support.ShopApiComponentFixture;
 import atf.shop.tests.api.support.ShopApiScenarioFixture;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ class ShopApiLiveCartScopeComponentTest {
     @Test
     void closesAStatefulCartEmptyWithoutRepeatingTheDelete() {
         var client = ShopApiComponentFixture.statefulCartClient();
-        var cart = new ShopApiLiveCartScope(client, ShopApiScenarioFixture.MUTATION_PRODUCT_ID);
+        var cart = new ShopApiCartScope(client, ShopApiScenarioFixture.MUTATION_PRODUCT_ID);
         int updatedQuantity = ShopApiScenarioFixture.UPDATED_QUANTITY;
 
         try (cart) {
@@ -47,7 +47,7 @@ class ShopApiLiveCartScopeComponentTest {
     @Test
     void cleansUpTheRemoteItemWhenTheBusinessFlowAborts() {
         var client = ShopApiComponentFixture.statefulCartClient();
-        var cart = new ShopApiLiveCartScope(client, ShopApiScenarioFixture.MUTATION_PRODUCT_ID);
+        var cart = new ShopApiCartScope(client, ShopApiScenarioFixture.MUTATION_PRODUCT_ID);
 
         assertThrows(IllegalStateException.class, () -> {
             try (cart) {

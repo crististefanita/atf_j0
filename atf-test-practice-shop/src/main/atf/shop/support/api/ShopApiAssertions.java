@@ -88,9 +88,7 @@ public final class ShopApiAssertions {
                                 && field(login.requestBody(), ShopApiJsonField.EMAIL.wireValue()) != null
                                 && field(login.requestBody(), ShopApiJsonField.PASSWORD.wireValue()) != null),
                 check("API login response JSON", "authenticated token response or non-empty JSON transport",
-                        readableTokenJson ? compact(loginResponseBody, 260)
-                                : "body unavailable to Playwright transport; content-type=" + login.contentType()
-                                + ", content-length=" + header(login, "content-length"),
+                        loginBodyObservation(login),
                         validJsonTransport),
                 trace("login", login));
     }
@@ -345,6 +343,16 @@ public final class ShopApiAssertions {
     private static boolean positiveContentLength(ShopApiNetworkJournal.Exchange exchange) {
         try { return Long.parseLong(header(exchange, "content-length")) > 0; }
         catch (NumberFormatException ignored) { return false; }
+    }
+
+    private static String loginBodyObservation(ShopApiNetworkJournal.Exchange exchange) {
+        String body = exchange.responseBody();
+        if (body == null || body.isEmpty()) return positiveContentLength(exchange)
+                ? "Body not captured; content-length=" + header(exchange, "content-length")
+                : "Empty response body";
+        if (body.isBlank()) return "Whitespace-only response body";
+        // Exchange already owns full-body sanitization; bounding must follow that boundary.
+        return compact(body, 239);
     }
 
     private static String header(ShopApiNetworkJournal.Exchange exchange, String name) {

@@ -13,6 +13,8 @@ public final class ValidationTable {
     public static final int DEFAULT_MAX_DISPLAYED_CHARACTERS = 240;
 
     private final int maxDisplayedCharacters;
+    private final atf.core.security.SensitiveDataRedactor redactor =
+            new atf.core.security.SensitiveDataRedactor();
     private final List<AtfAssertion> rows = new ArrayList<>();
     private final Set<String> names = new HashSet<>();
     private boolean finished;
@@ -37,14 +39,14 @@ public final class ValidationTable {
     public void add(String name, String expected, String actual, boolean passed) {
         ensureWritable();
         addIdentity(name);
-        rows.add(new AtfAssertion(name, expected, preview(actual), passed));
+        rows.add(new AtfAssertion(preview(name), fieldPreview(name, expected), fieldPreview(name, actual), passed));
     }
 
     public void addFailure(String name, String expected, String actual, Exception error) {
         ensureWritable();
         addIdentity(name);
-        rows.add(new AtfAssertion(name, expected,
-                preview(actual + System.lineSeparator() + error.getClass().getSimpleName() + ": " + error.getMessage()),
+        rows.add(new AtfAssertion(preview(name), fieldPreview(name, expected),
+                fieldPreview(name, actual + System.lineSeparator() + error.getClass().getSimpleName() + ": " + error.getMessage()),
                 false, AtfReportStatus.FAIL));
     }
 
@@ -53,7 +55,14 @@ public final class ValidationTable {
     }
 
     public String preview(String value) {
-        if (value == null) return "null";
+        return bounded(redactor.redactText(value == null ? "null" : value));
+    }
+
+    private String fieldPreview(String name, String value) {
+        return bounded(redactor.redactField(name, value == null ? "null" : value));
+    }
+
+    private String bounded(String value) {
         return value.length() <= maxDisplayedCharacters
                 ? value
                 : value.substring(0, Math.max(0, maxDisplayedCharacters - 1)) + "…";

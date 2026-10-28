@@ -71,7 +71,7 @@ Fiecare clasă executabilă declară exact un nivel:
 | `atf.testkit.evidence` | `AtfUiEvidence`, `AtfUiEvidencePlan`, `AtfUiEvidenceResolver` și enum-urile axelor | rezolvă independent flow-ul, capturile și detaliile acțiunilor; adaptorii consumer le mapează în profilul Reporting |
 | `atf.testkit.lifecycle` | `TestRunInitialization`, `CloseOnceResource`, `ArmedCleanup`, `FailureAwareCleanup`, `FailureEvidenceCleanup`, `AtfE2eActivationPolicy` | achiziție/rollback, cleanup și activare E2E neutre; fără API UI/Reporting |
 | `atf.testkit.scope` | `TestRunScope`, `ScopedTestValue<T>` | ownership explicit în Store-ul JUnit, fără cache static sau resurse UI |
-| `atf.testkit.assertions` | `AuditedAssertions`, `AuditedAssertionScope`, `RecordedAssertions` | comparații JUnit cu dovadă neutră per metodă; fără renderer sau reguli business |
+| `atf.testkit.assertions` | fațadă/recorder, display injectat și protocol componentă | comparații JUnit cu dovadă neutră pe faze și invocări; fără renderer sau reguli business |
 
 `atf.testkit.lifecycle` este un pachet al modulului existent
 `atf-test-kit`, nu un modul nou. Nu introduce dependențe către UI sau Reporting.
@@ -92,27 +92,51 @@ Fiecare clasă executabilă declară exact un nivel:
 
 ### Comparații JUnit cu dovadă neutră
 
-`RecordedAssertions`, în `src/main/java`, păstrează comparațiile evaluate în
-`Check(name, expected, actual, passed)`. Testul declară valorile și verificarea;
-consumerul mapează datele neutre la portul Reporting.
+`AuditedAssertions` și `RecordedAssertions`, în `src/main/java`, deleagă o singură
+dată comparația JUnit. Rândul `Check(name, expected, actual, passed)` este păstrat
+înainte ca eroarea originală să ajungă la apelant; preview-ul nu decide verdictul.
 
-- `equals`, `isTrue` și `isFalse` înregistrează comparația înaintea verdictului
-  JUnit, astfel încât și rândul care oprește metoda rămâne disponibil.
-- `checks()` returnează un snapshot imutabil; fiecare metodă de test primește
-  propria instanță de la extensia consumerului.
-- `AuditedAssertions` deleagă overload-urile JUnit folosite de componente,
-  inclusiv comparațiile numerice, identitatea, array-urile și `assertAll`.
-  Rândul are operatorul, fișierul/linia și mesajul explicit când există.
-- `AuditedAssertionScope` leagă colectarea de metoda JUnit curentă; lansările
-  Jupiter imbricate sunt izolate. `assertThrows` înregistrează așteptarea
-  excepției, fără FAIL-uri artificiale din corpul verificat.
-- Furnizorii de mesaje păstrează evaluarea leneșă JUnit. Valorile sunt comparate
-  integral, iar textele înregistrate respectă limita configurată, implicit
-  240 de caractere inclusiv `…`; expandarea raportului nu o anulează.
-- Kit nu importă `AtfAssertion`, nu deschide rapoarte și nu alege pași sau
-  capturi. Probele recorderului și ale fațadei verifică fail-fast, agregarea,
-  limita de caractere și izolarea Jupiter; Extent/fallback se probează în
-  Reporting Tests.
+- `AssertionValueDisplay` primește politica de redactare a consumerului și o
+  aplică pe textul complet, apoi limitează afișarea la 240 de caractere inclusiv
+  `…` implicit. Limita pozitivă este configurabilă, iar expandarea nu o anulează.
+- Proiecția defectă folosește `<display unavailable>`; nu reapelăm `toString()`
+  în handler și nu înlocuim eroarea originală a comparației. Mesajele JUnit
+  furnizate leneș rămân leneșe.
+- `assertThrows` și `assertDoesNotThrow` suprimă verificările interne atât ale
+  fațadei, cât și ale recorderului explicit; raportul păstrează verificarea
+  așteptării, nu un FAIL business artificial.
+- Un recorder creat explicit în scope alimentează și colectorul invocării;
+  fiecare colector își aplică propria politică de afișare pe valoarea integrală.
+  `checks()` returnează snapshot-uri imutabile.
+
+`ComponentAuditExtension` implementează protocolul JUnit comun, iar
+`ComponentAuditAdapter` permite compoziția cu factory-ul consumerului.
+`ComponentAssertionAudit` deține numai faze, comparații și politica rezultatului.
+
+| Caz | Contract |
+|---|---|
+| `@BeforeEach` / metoda testului / `@AfterEach` | recorder distinct în `SETUP` / `TEST BODY` / `TEARDOWN`; moștenirea și invocările template păstrează izolarea |
+| FAIL capturat printr-un `catch` simplu | eroarea auditată neconsumată este propagată la final; JUnit și raportul rămân FAIL |
+| PASS fără verificări evaluate | guard explicit; nu se inventează rânduri |
+| assumption respinsă | rezultat `ABORTED`, proiectat de consumer ca SKIP cu motiv real |
+| eșec de publicare/close | toate etapele sunt încercate; cauza inițială rămâne primară și celelalte sunt `suppressed` |
+
+Factory-ul și mapping-ul sunt ale consumerului; Kit nu importă Reporting,
+Validation, Core sau Playwright și nu alege pași ori capturi.
+`AssertionProjectionTest` și `ComponentAuditExtensionComponentTest` probează aceste
+limite; Extent/fallback sunt verificate în Reporting Tests.
+
+<details>
+<summary><strong>Limita invocării JUnit</strong></summary>
+
+- Scope-ul este explicit pe thread-ul invocării; nu se propagă implicit în worker threads.
+- Sunt acoperite metodele și invocările template, inclusiv parametrizarea consumerilor;
+  o fabrică de teste dinamice necesită un adaptor propriu per test dinamic.
+- O selecție dezactivată înaintea invocării nu fabrică o execuție sau aserțiuni.
+- Erorile originale JUnit sunt păstrate; redactarea se aplică dovezii ATF,
+  nu rescrie obiectul excepției deținut de runner.
+
+</details>
 
 ### Politica pentru calea raportului publicat
 

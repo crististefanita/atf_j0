@@ -458,6 +458,31 @@ Problema pointerului rămâne în [feedback-ul de geometrie](../docs/feedback/AT
 
 ### Contul creat și cleanup-ul sub vignette
 
+Cleanup-ul tratează și documentul vizibil `queue full` rămas după payment.
+Păstrează eșecul inițial și revine printr-un GET la Home înaintea verificării identității.
+
+```mermaid
+flowchart LR
+    Failure[Eșec business] -->|păstrează cauza| Evidence[Failure evidence]
+    Evidence -->|document întrerupt| Home[GET Home]
+    Home -->|verifică| Identity[Identitate deținută]
+    Identity -->|permite o singură dată| Delete[Delete account]
+```
+
+<details>
+<summary><strong>Legendă — recuperare fără replay de payment</strong></summary>
+
+- Triggerul este documentul din afara hostului configurat sau mesajul vizibil exact
+  `queue full`; ruta POST nu este reîncărcată.
+- Home folosește politica GET bounded existentă. Eșecul recuperării este secundar
+  față de cauza business; nu autorizează o a doua înregistrare sau plată.
+- O altă identitate ori o ștergere deja pornită blochează mutația. Confirmarea cere
+  URL-ul, heading-ul și o singură navigare de ștergere, ca în flow-ul nominal.
+- `AutoExAccountCleanupRecoveryComponentTest` verifică documente reale în browser
+  cu răspunsuri locale controlate; nu certifică disponibilitatea serviciului public.
+
+</details>
+
 | Situație observată | Comportament | Limită de siguranță |
 |---|---|---|
 | Crearea este confirmată | `AccountPage` reține confirmarea înaintea checkpoint-ului și a navigării Continue | schimbarea paginii nu transformă contul creat într-un cleanup `NO_OP` |
@@ -654,8 +679,8 @@ flowchart LR
     UI[UI suite] -->|partajează| UISession[Sesiune UI]
     UISession -->|publică| UIReport[Un raport Extent]
     API[API live suite] -->|selectează| Classes[Clase API opt-in]
-    Classes -->|deschid| ApiSession[Sesiuni API proprii]
-    ApiSession -->|publică| ApiReports[Raport per clasă]
+    Classes -->|partajează în suită| ApiSession[Sesiune API]
+    ApiSession -->|publică| ApiReports[Un raport Extent]
     Config[Setări comune] -->|configurează| UISession
     Config -->|configurează| ApiSession
 ```
@@ -663,8 +688,9 @@ flowchart LR
 <summary><strong>Legendă — sesiuni și evidence</strong></summary>
 
 - sesiunea UI este partajată pe suită și publică evidence-ul browserului;
-- fiecare clasă API deschide o sesiune Extent proprie și publică exchange-urile
-  și aserțiunile JSON;
+- suita API declară explicit scope `suite`; clasele active publică exchange-urile
+  și aserțiunile JSON într-o singură sesiune, cu ownerii separați;
+- o clasă API lansată individual păstrează scope `class` și raport propriu;
 - ambele sesiuni citesc setările Reporting comune, dar API nu publică pași UI sau
   capturi de browser.
 
@@ -672,48 +698,54 @@ flowchart LR
 
 - `AutoExRunFactory` deține sesiunea UI; `AutoExApiContractReportExtension`
   deține raportul API direct;
-- extensia API deschide raportul în `BeforeAll`, finalizează faza/scenariul în
-  `AfterEach` și închide sesiunea în `AfterAll`;
-- cu ambele opt-in-uri active, `AutoExApiLiveSuite` selectează două clase API și
-  produce acum câte un raport Extent pentru fiecare clasă, fără un artifact comun
-  care să rezume întreaga suită; diferența este urmărită în
-  [feedback-ul consumerilor](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-api-suite-audit-01--artifactul-comun-al-suitei-autoex);
+- extensia API obține sesiunea în `BeforeAll` prin `TestRunScope`, finalizează
+  faza/scenariul în `AfterEach`, iar Store-ul ownerului închide sesiunea o singură dată;
+- read-only, mutativ și ambele păstrează opt-in-uri independente; un eșec într-o clasă
+  rămâne în artifactul comun, fără să elimine evidence-ul celeilalte clase;
+- agregatorul `AtfReportPathOptIn` include fiecare owner activ; execuțiile succesive
+  nu reutilizează sesiunea închisă. `AutoExApiReportScopeComponentTest` probează
+  selecțiile, lansarea individuală, failure-ul și izolarea între lansări;
+- probele de lifecycle folosesc metadata `COMPONENT` și transport mock declarat;
+  nu prezintă răspunsurile controlate ca execuții HTTP live;
+- diagnosticul API redactează mesajul integral înaintea plafonului său; limita
+  de afișare a aserțiunilor rămâne 240 de caractere;
 - calea implicită este `artifacts/reports/api/auto-ex`, iar `@AtfReportPath`
   anunță locația.
 
-Testele cu `@AutoExComponentTest` publică un raport Extent per metodă în
+Testele cu `@AutoExComponentTest` publică un raport Extent per invocare în
 `artifacts/reports/component/auto-ex`, prin suită sau lansare individuală.
 
 | Caz | Dovadă în raport |
 |---|---|
-| Metodă componentă | Comparațiile `AuditedAssertions` apar în `Component assertions` sub `TEST BODY`, cu operator, sursă, expected, actual și rezultat |
-| `AutoExConfigurationLoaderComponentTest#packagedTestYamlDefinesTheSafeAndCompleteDefaultProfile` | Comparațiile evaluate de `RecordedAssertions` din Test Kit apar sub `TEST BODY` în `Component assertions` |
-| `@AutoExE2eTest` | Dovezi UI publicate de harness-ul E2E |
+| Metodă componentă | comparații evaluate prin `AuditedAssertions` sau `RecordedAssertions`, cu operator/nume, sursă unde există, expected, actual și rezultat |
+| Lifecycle JUnit | `Component assertions` în faza în care s-au evaluat verificările: `SETUP`, `TEST BODY` ori `TEARDOWN` |
+| Business API și E2E | exchange-uri și validări API, respectiv evidence de browser, în nodurile lor proprii |
 
-- Pasul standard este închis inițial și păstrează toate comparațiile evaluate;
-  textele respectă limita configurată, implicit 240 de caractere inclusiv `…`.
-- Excepția așteptată este o aserțiune PASS; o lansare JUnit imbricată nu
-  contaminează verdictul metodei care o inspectează.
-- O metodă care ar termina cu PASS fără aserțiuni înregistrate eșuează explicit.
-  Un eșec anterior primei comparații păstrează diagnosticul real; testele unit
-  sunt în afara obligației de raportare.
+- Pasul standard este închis inițial; redactarea precede trunchierea, iar
+  textele păstrează plafonul implicit de 240 de caractere inclusiv `…`, și după expandare.
+- O excepție așteptată produce verificarea așteptării; un FAIL neconsumat nu
+  poate rămâne JUnit PASS. Abortul păstrează SKIP și motivul real, fără rânduri inventate.
+- Guard-ul respinge un PASS fără verificări evaluate; un eșec anterior primei
+  comparații păstrează diagnosticul. Testele unit rămân în afara obligației de raportare.
 
 ```mermaid
 flowchart LR
-    Test[Test componentă AutoEx] -->|verifică prin| Check[AuditedAssertions · Kit]
-    Check -->|furnizează rânduri| Adapter[Extensie AutoEx]
-    Adapter -->|publică în TEST BODY| Step[Component assertions]
-    Step -->|afișează| Table[Tabel de aserțiuni]
+    Test[Test componentă AutoEx] -->|verifică integral| Kit[Audit Kit]
+    Kit -->|rânduri sigure pe faze| Adapter[Adaptor AutoEx]
+    Adapter -->|mapează| Report[AssertionAuditReport]
+    Report -->|publică colapsat| Step[Component assertions]
 ```
 
 <details>
 <summary><strong>Legendă — auditul componentelor AutoEx</strong></summary>
 
-- Aceeași comparație alimentează verdictul JUnit și dovada din raport.
-- Recorderul neutru aparține [Test Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră);
-  extensia JUnit locală mapează rândurile în portul Reporting.
-- Extensia leagă recorderul de metoda curentă și publică rândurile reale.
-- Tabelul este vizibil când utilizatorul deschide pasul.
+- Muchiile sunt flux de date, nu dependențe Maven: Kit nu importă Reporting.
+- [Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră) deține delegarea,
+  colectarea pe invocare și reconcilierea rezultatului; consumerul injectează redacția și configurația.
+- [Reporting](../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor) deține
+  nodul, lifecycle-ul publicării și randările Extent/fallback.
+- Metodele moștenite, parametrizarea și lifecycle-ul folosesc aceeași politică;
+  scope-ul nu se propagă implicit pe alte thread-uri.
 
 </details>
 

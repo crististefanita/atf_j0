@@ -5,22 +5,16 @@ ownerului; rapoartele și rezultatele unei rulări nu devin documentație perman
 
 ## Pe scurt
 
-- Reporting: Timeline folosește duratele canonice din Tests; contractul și
-  inspectorul comun sunt livrate la [owner](../../atf-reporting/README.md).
-  Lizibilitatea tabelelor imbricate în panouri înguste rămâne deschisă.
-
-- AutoEx: contractul livrat pentru Delete account, Close JavaScript la 70% și
-  separarea navigării de traficul browser este în [README-ul modulului](../../atf-test-auto-ex/README.md#delete-account--navigare-întreruptă).
-  Activarea DOM Close nu repară geometria pointerului; limita generică rămâne deschisă.
-- Consumeri: scope-ul contului și runtime-ul main AutoEx sunt livrate.
-  Pilotul coșului, checkout-ul Shop, factura, publisherul checkpoint-urilor și
-  intrările tipizate pe stage Shop și configurația evidence sunt livrate;
-  corelarea mutației UI/API AutoEx este livrată; porturile de pagină și portul
-  UI al cart stories sunt restrânse pe traseele migrate; rămân journey-urile
-  principale AutoEx, etapele Shop și snapshot-ul de context Shop.
-  Reducerea selecției live cere echivalență demonstrată.
-- Contractele livrate se găsesc în [indexul documentației](../README.md),
-  nu în checklist-uri de implementare deja închise.
+- Componentele au evaluare JUnit unică, dovezi redactate înaintea plafonului,
+  faze lifecycle și rezultate reconciliate; contractele sunt la ownerii Kit și Reporting.
+- API Shop deține auditul înaintea execuției și păstrează artifactul pe ieșirile
+  de eșec; runtime-ul și scope-ul coșului sunt în main.
+- AutoEx păstrează un raport API comun în suită și raport propriu per clasă;
+  cleanup-ul poate reveni prin GET din documentul queue full, fără replay de payment.
+- Rămân separarea flow-urilor, contextul E2E Shop, billing în suita Shop
+  și lizibilitatea panourilor înguste.
+- Contractele stabile sunt în [indexul documentației](../README.md);
+  feedback-ul păstrează numai ownerul, reproducerea și criteriul rămas.
 
 ## Top feedback-uri active
 
@@ -33,11 +27,10 @@ lor. Gap-urile secundare rămân vizibile în documentul ownerului.
 
 | Ordine | Feedback / owner | Scor /100 | Lacuna care decide ordinea |
 |---:|---|---:|---|
-| 1 | [Consumer — refactorizare E2E](ATF_Consumer_Business_Test_Focus_Feedback.md) | **88** = 36 + 24 + 20 + 8 | flow-uri din afara pilotului (88), runtime Shop (77), auditul suitei API AutoEx (74), billing în suita E2E (71), evaluator neutru de componentă (63) |
-| 2 | [Reporting](ATF_Reporting_Feedback.md) | **77** = 33 + 24 + 16 + 4 | nesting ilizibil și în API nominal, inclusiv Technical trace |
-| 3 | [ATF UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ; activarea JavaScript explicită nu închide această limită |
-| 4 | [Shop API — diagnostic](ATF_Practice_Shop_API_Test_Design_Feedback.md) | **66** = 25 + 19 + 16 + 6 | timeout înainte de login fără artifact FAIL; lizibilitatea comună este urmărită la Reporting |
-| 5 | [Documentație — ancore](#doc-link-anchor-01--validarea-automată-a-ancorelor) | **44** = 14 + 11 + 15 + 4 | guard-ul validează fișierul local, dar elimină fragmentul înaintea verificării; ancora lipsă nu este detectată |
+| 1 | [Consumer — flow-uri și runtime](ATF_Consumer_Business_Test_Focus_Feedback.md) | **88** = 36 + 24 + 20 + 8 | porturi și etape rămase (88), context E2E Shop (77), billing în suita Shop (71), evaluator pur (63) |
+| 2 | [Reporting](ATF_Reporting_Feedback.md) | **77** = 33 + 24 + 16 + 4 | nesting ilizibil în panouri înguste |
+| 3 | [ATF UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ; activarea JavaScript explicită nu închide limita |
+| 4 | [Documentație — ancore](#doc-link-anchor-01--validarea-automată-a-ancorelor) | **44** = 14 + 11 + 15 + 4 | guard-ul validează fișierul, dar nu fragmentul Markdown |
 
 Ordinea nu înlocuiește criteriul de închidere. O componentă verde nu certifică
 un flow remote, iar succesul live nu certifică toate politicile sau randarea.

@@ -74,6 +74,8 @@ acceptat în loc să reproducă bucla de ancestor-walk în fiecare test.
   cu delimitarea exactă a identificatorilor.
 - Traduce escape-urile Unicode înainte de a exclude comentariile și literalii;
   un escape invalid este respins.
+- `codeOnly(...)` oferă aceiași tokeni lexicali guard-urilor de adnotări și tipuri;
+  textul documentar nu poate declara sau exclude o clasă executabilă.
 - Guard-urile de arhitectură îl refolosesc; [probele controlate](src/test/java/atf/core/files/AtfJavaSourceReferencesTest.java)
   acoperă importuri, nume calificate și prefixe asemănătoare.
 

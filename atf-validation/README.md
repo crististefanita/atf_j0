@@ -111,10 +111,10 @@ suită și păstrează rezultatul fiecărui scenariu.
 
 - `ResponseContract` și `ValidationEvaluator` evaluează contracte API; nu există
   încă un evaluator general de aserțiuni pentru modele și componente.
-- `ValidationTable` păstrează în rând un preview al valorii actuale, implicit
-  maximum 240 de caractere, inclusiv marcajul `…` la trunchiere; constructorul
+- `ValidationTable` redactează valorile și numele pe context complet prin Core, apoi păstrează un preview, implicit
+  maximum 240 de caractere pe câmp, inclusiv marcajul `…` la trunchiere; constructorul
   permite o limită pozitivă explicită. Noul layer trebuie să păstreze plafonul
-  configurat, inclusiv în detaliile expandate.
+  configurat, inclusiv în detaliile expandate. `ValidationPreviewRedactionTest` protejează ordinea redactare → plafon și verdictul calculat pe inputul integral.
 - Comparația se face pe valorile integrale; scurtarea textului raportat nu
   schimbă verdictul. Mesajul auditabil trebuie să explice diferența în limita
   configurată, inclusiv când diferența este dincolo de preview.

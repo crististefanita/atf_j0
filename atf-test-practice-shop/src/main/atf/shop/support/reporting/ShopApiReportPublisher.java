@@ -255,7 +255,7 @@ public final class ShopApiReportPublisher {
     }
 
     /** Publishes the compact projection without discarding the ordered exchanges above. */
-    private static void publishTraceSummary(AtfReportPorts.Phase phase,
+    public static void publishTraceSummary(AtfReportPorts.Phase phase,
                                             List<ApiExecutionResult> executions) {
         var node = phase.startRequest("TRACE — summarize unique request signatures",
                 "TRACE", "api-trace");
@@ -278,7 +278,7 @@ public final class ShopApiReportPublisher {
         }
     }
 
-    private static AtfReportStatus publishLiveProvenance(AtfReportPorts.Phase phase,
+    public static AtfReportStatus publishLiveProvenance(AtfReportPorts.Phase phase,
                                                           List<ApiExecutionResult> executions) {
         var node = phase.startRequest("LIVE_HTTP provenance", "ASSERT", "transport");
         AtfReportStatus status = AtfReportStatus.FAIL;
@@ -304,7 +304,7 @@ public final class ShopApiReportPublisher {
         return status;
     }
 
-    private static AtfReportStatus publishValidation(AtfReportPorts.Phase phase,
+    public static AtfReportStatus publishValidation(AtfReportPorts.Phase phase,
                                                        ShopApiReportValidation reportValidation) {
         var node = phase.startRequest(reportValidation.title(), "ASSERT", "business-flow");
         AtfReportStatus status = AtfReportStatus.FAIL;

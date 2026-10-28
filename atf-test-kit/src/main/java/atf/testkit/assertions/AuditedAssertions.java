@@ -40,7 +40,8 @@ public final class AuditedAssertions {
                 () -> Assertions.assertEquals(expected, actual, delta));
     }
     public static void assertNotEquals(Object expected, Object actual) {
-        AuditedAssertionScope.check("assertNotEquals", "not " + expected, actual, null, () -> Assertions.assertNotEquals(expected, actual));
+        AuditedAssertionScope.check("assertNotEquals", AssertionValueDisplay.prefix("not ", expected), actual, null,
+                () -> Assertions.assertNotEquals(expected, actual));
     }
     public static void assertTrue(boolean actual) {
         AuditedAssertionScope.check("assertTrue", true, actual, null, () -> Assertions.assertTrue(actual));
@@ -67,26 +68,28 @@ public final class AuditedAssertions {
         AuditedAssertionScope.check("assertNotNull", "not null", actual, message, () -> Assertions.assertNotNull(actual, message));
     }
     public static void assertSame(Object expected, Object actual) {
-        AuditedAssertionScope.check("assertSame", identity(expected), identity(actual), null, () -> Assertions.assertSame(expected, actual));
+        AuditedAssertionScope.check("assertSame", AssertionValueDisplay.identity(expected), AssertionValueDisplay.identity(actual),
+                null, () -> Assertions.assertSame(expected, actual));
     }
     public static void assertNotSame(Object expected, Object actual) {
-        AuditedAssertionScope.check("assertNotSame", "not " + identity(expected), identity(actual), null,
+        AuditedAssertionScope.check("assertNotSame", AssertionValueDisplay.prefix("not ", AssertionValueDisplay.identity(expected)),
+                AssertionValueDisplay.identity(actual), null,
                 () -> Assertions.assertNotSame(expected, actual));
     }
     public static void assertArrayEquals(Object[] expected, Object[] actual) {
         AuditedAssertionScope.check("assertArrayEquals", expected, actual, null, () -> Assertions.assertArrayEquals(expected, actual));
     }
     public static <T> T assertInstanceOf(Class<T> expected, Object actual) {
-        return AuditedAssertionScope.value("assertInstanceOf", expected.getName(),
+        return AuditedAssertionScope.value("assertInstanceOf", AssertionValueDisplay.type(expected),
                 actual == null ? "null" : actual.getClass().getName(), null,
                 () -> Assertions.assertInstanceOf(expected, actual), null, false);
     }
     public static <T extends Throwable> T assertThrows(Class<T> expected, Executable executable) {
-        return AuditedAssertionScope.value("assertThrows", expected.getName(), "no matching exception", null,
+        return AuditedAssertionScope.value("assertThrows", AssertionValueDisplay.type(expected), "no matching exception", null,
                 () -> Assertions.assertThrows(expected, executable), error -> error.getClass().getName(), true);
     }
     public static <T extends Throwable> T assertThrows(Class<T> expected, Executable executable, String message) {
-        return AuditedAssertionScope.value("assertThrows", expected.getName(), "no matching exception", message,
+        return AuditedAssertionScope.value("assertThrows", AssertionValueDisplay.type(expected), "no matching exception", message,
                 () -> Assertions.assertThrows(expected, executable, message), error -> error.getClass().getName(), true);
     }
     public static void assertDoesNotThrow(Executable executable) {
@@ -102,8 +105,5 @@ public final class AuditedAssertions {
     }
     public static void assertAll(String message, Executable... checks) {
         AuditedAssertionScope.group(message, () -> Assertions.assertAll(message, checks));
-    }
-    private static String identity(Object value) {
-        return value == null ? "null" : value.getClass().getName() + "@" + Integer.toHexString(System.identityHashCode(value));
     }
 }

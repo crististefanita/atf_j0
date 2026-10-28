@@ -43,6 +43,9 @@ public final class ShopApiComponentFixture {
                 recordedTransport(new StatefulCartTransport(), ApiTransportProvenance.ACCEPTANCE_MOCK));
     }
 
+    /** Fresh cart state, composable with the ordinary endpoint fixture in run-lifecycle proofs. */
+    public static ApiTransport statefulCartTransport() { return new StatefulCartTransport(); }
+
     /** Wraps a deterministic test transport so API-call audit suites retain its actual exchanges. */
     public static ApiTransport recordedTransport(ApiTransport delegate,
                                                  ApiTransportProvenance provenance) {

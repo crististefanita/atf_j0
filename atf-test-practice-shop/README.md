@@ -543,89 +543,89 @@ mvn -pl atf-test-practice-shop -am "-Dtest=ShopComponentSuite" "-Dsurefire.failI
 
 ### De ce raportul API nu arată ca raportul UI
 
-Ambele suite publică Extent HTML și folosesc setările Extent comune și redactarea, dar lifecycle-ul și evidence diferă:
+API și UI folosesc aceleași setări Extent și aceeași redactare; evidence-ul
+și ownership-ul resurselor diferă. `ShopApiBusinessRun`, în main, primește
+intrări tipizate, factory-ul clientului și factory-ul auditului.
 
 ```mermaid
 sequenceDiagram
-    participant Test as Shop API test
-    participant Service as Live API
-    participant Report as Extent publisher
-    Test->>Service: Send login request
-    alt HTTP response returned
-        Service-->>Test: Accepted or rejected response
-        alt Login rejected
-            Test->>Report: Publish login exchange and FAIL validation
-        else Login accepted
-            Test->>Service: Run business API flow
-            Service-->>Test: Return HTTP exchanges
-            Test->>Report: Publish exchanges and validations
-        end
-        Report-->>Test: Write Extent HTML
-    else Transport exception before response
-        Test->>Test: Transport throws before response
-        Note over Test,Report: Publisher is not reached; no artifact is written
+    participant Test as Test API Shop
+    participant Run as Runtime main
+    participant Audit as Audit per run
+    participant API as Serviciu HTTP
+    Test->>Run: intrări și oracol
+    Run->>Audit: deschide înaintea clientului
+    Run->>API: login și flow business
+    alt răspuns HTTP primit
+        API-->>Run: exchange observat
+        Run->>Audit: păstrează exchange și validări
+    else transport fără răspuns
+        Run->>Audit: păstrează request și cauza originală
     end
+    Run->>Run: închide coșul și clientul
+    Run->>Audit: publică la finalizare inclusiv eșecul
+    Audit-->>Test: artifact PASS sau FAIL
 ```
-<details>
-<summary><strong>Legendă — condiția de publicare a raportului live</strong></summary>
 
-- răspunsul HTTP de login, inclusiv unul respins, oferă exchange-ul necesar
-  publicării unui raport;
-- o excepție înaintea răspunsului nu produce un status sau body HTTP și, în
-  implementarea curentă, întrerupe testul înaintea publisher-ului;
-- raportul UI rămâne o sesiune separată, cu evidence de browser, acțiuni și
-  capturi; ambele căi folosesc setările Extent comune și redactarea.
+<details>
+<summary><strong>Legendă — publicare după succes sau eșec</strong></summary>
+
+- Auditul există înaintea clientului, încărcării credentialelor și primei cereri;
+  păstrează și schimburile primite înaintea unui eșec catalog/cart/checkout.
+- Un login HTTP respins produce exchange și validare FAIL; absența răspunsului
+  produce request-ul cunoscut și diagnostic, fără status sau body de response inventat.
+- Observația business a login-ului distinge body gol, body necapturat și JSON primit;
+  nu atribuie automat o limitare Playwright unui răspuns HTTP respins.
+- Colectarea nu face I/O de raportare în mijlocul cleanup-ului; publicarea se face
+  după închiderea resurselor API, iar erorile secundare rămân `suppressed`.
+- Eșecul inițializării/publicării raportului rămâne eroare de infrastructură;
+  nu este declarat un artifact valid dacă publicarea atomică nu reușește.
+- `ShopApiBusinessRunComponentTest` probează succesul, 401 cu/fără body, timeout la login/cart,
+  catalog invalid, contract business FAIL, cleanup și erori de publicare.
 
 </details>
 
-- UI: `ShopE2eTestSupport` partajează `UiExtentReportSession` între scenarii și
-  publică evidence de browser, acțiuni și capturi;
-- API: `ShopApiLiveSuite` selectează `ShopStandaloneApiReportTest`, care publică
-  evidence HTTP și validări business Shop fără pașii sau capturile browserului;
-- configurația `reports.api` stabilește directorul, iar testul live formează
-  numele cu prefixul `api-atf-practice-shop-standalone_`;
-- verifică separat directorul și fișierul API față de raportul UI; artifactul
-  live nu este garantat pentru fiecare failure;
-- un login HTTP respins publică evidence FAIL, dar o excepție de transport la
-  login poate apărea înaintea publicării și nu produce încă artifact;
-- lacuna este urmărită în [feedback-ul API Shop](../docs/feedback/ATF_Practice_Shop_API_Test_Design_Feedback.md);
-- compară exchange-urile HTTP cu evidence-ul API așteptat, nu cu numărul de pași
-  sau capturi UI.
+- UI: `ShopE2eTestSupport` partajează `UiExtentReportSession`, cu acțiuni și capturi.
+- API: `ShopApiLiveSuite` selectează `ShopStandaloneApiReportTest`; testul păstrează
+  oracolul și opt-in-ul, iar runtime-ul main deține execuția și artifactul.
+- `reports.api` stabilește directorul; numele folosește prefixul
+  `api-atf-practice-shop-standalone_`. Clasele lansate individual păstrează același lifecycle.
+- Transportul controlat este declarat componentă/acceptance; nu certifică un PASS live.
 
-Testele marcate `@ShopComponentTest` publică un raport Extent per metodă în
-subdirectorul `component` din `reports.api` configurat în YAML, inclusiv la
-lansarea clasei individuale.
+Testele marcate `@ShopComponentTest` publică un raport Extent per invocare în
+subdirectorul `component` din `reports.api`, individual sau prin suită.
 
 | Caz | Dovadă în raport |
 |---|---|
-| Metodă componentă | Comparațiile `AuditedAssertions` apar în pasul standard `Component assertions`, cu operator, sursă, expected, actual și rezultat |
-| `ShopConfigurationTest#yamlDefinesOwnedJourneyAndSyntheticFixtureInSourceResources` | Comparațiile evaluate de `RecordedAssertions` din Test Kit apar în `Component assertions` sub `TEST BODY`, în tabelul `ASSERTION / EXPECTED / ACTUAL / RESULT` |
-| Business API și E2E | Exchange-uri și validări API, respectiv evidence de browser, în nodurile lor proprii |
+| Metodă componentă | comparații evaluate prin `AuditedAssertions` sau `RecordedAssertions`, cu operator/nume, sursă unde există, expected, actual și rezultat |
+| Lifecycle JUnit | `Component assertions` în faza în care s-au evaluat verificările: `SETUP`, `TEST BODY` ori `TEARDOWN` |
+| Business API și E2E | exchange-uri și validări API, respectiv evidence de browser, în nodurile lor proprii |
 
-- Pasul standard este închis inițial; textele respectă limita configurată,
-  implicit 240 de caractere inclusiv `…`, și după expandare.
-- Fațada păstrează verdictul JUnit, excepțiile așteptate și izolarea lansărilor
-  imbricate; extensia mapează comparațiile în tabelul comun.
-- O metodă care ar termina cu PASS fără aserțiuni înregistrate eșuează explicit.
-  Eșecul anterior primei comparații păstrează diagnosticul real; testele unit
-  selectate de suită nu au obligația raportării.
+- Pasul standard este închis inițial; redactarea precede trunchierea, iar
+  textele păstrează plafonul implicit de 240 de caractere inclusiv `…`, și după expandare.
+- O excepție așteptată produce verificarea așteptării; un FAIL neconsumat nu
+  poate rămâne JUnit PASS. Abortul păstrează SKIP și motivul real, fără rânduri inventate.
+- Guard-ul respinge un PASS fără verificări evaluate; un eșec anterior primei
+  comparații păstrează diagnosticul. Testele unit rămân în afara obligației de raportare.
 
 ```mermaid
 flowchart LR
-    Test[Test componentă Shop] -->|verifică prin| Check[AuditedAssertions · Kit]
-    Check -->|furnizează rânduri| Adapter[Extensie Shop]
-    Adapter -->|publică în TEST BODY| Step[Component assertions]
-    Step -->|afișează| Table[Tabel de aserțiuni]
+    Test[Test componentă Shop] -->|verifică integral| Kit[Audit Kit]
+    Kit -->|rânduri sigure pe faze| Adapter[Adaptor Shop]
+    Adapter -->|mapează| Report[AssertionAuditReport]
+    Report -->|publică colapsat| Step[Component assertions]
 ```
 
 <details>
 <summary><strong>Legendă — auditul componentelor Shop</strong></summary>
 
-- Același apel verifică valoarea în JUnit și înregistrează rândul raportat.
-- Recorderul neutru aparține [Test Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră);
-  extensia locală deține mapping-ul către Reporting și lifecycle-ul JUnit.
-- Extensia publică la finalul metodei toate rândurile evaluate.
-- Disclosure-ul pasului păstrează tabelul ascuns până la expandare.
+- Muchiile sunt flux de date, nu dependențe Maven: Kit nu importă Reporting.
+- [Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră) deține delegarea,
+  colectarea pe invocare și reconcilierea rezultatului; consumerul injectează redacția și configurația.
+- [Reporting](../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor) deține
+  nodul, lifecycle-ul publicării și randările Extent/fallback.
+- Metodele moștenite, parametrizarea și lifecycle-ul folosesc aceeași politică;
+  scope-ul nu se propagă implicit pe alte thread-uri.
 
 </details>
 
@@ -639,7 +639,7 @@ Contractul live păstrează următoarele protecții:
 
 - filtrarea verifică apartenența fiecărui produs la categoria cerută, iar
   sortarea compară prețurile numeric, nu lexicografic;
-- `ShopApiLiveCartScope` deține coșul izolat, verifică read-back după update și
+- `ShopApiCartScope`, în main, deține coșul izolat, verifică read-back după update și
   remove și confirmă coșul gol la cleanup; DELETE-ul nu este repetat;
 - operațiile mutative au o singură încercare; cleanup-ul pe succes și după
   întrerupere are probe deterministe, fără a fabrica o eroare remote;
@@ -743,7 +743,7 @@ mvn -pl atf-test-practice-shop -am "-Dtest=ShopAuthenticatedPurchaseE2eTest" "-D
 
 Contractele HTTP autentificate pentru sort/filter și mutațiile coșului sunt
 probate; verificarea interactivă a raportului standalone rămâne în
-[feedback-ul API](../docs/feedback/ATF_Practice_Shop_API_Test_Design_Feedback.md).
+[feedback-ul consumerilor](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md).
 Login-ul API nu dovedește automat autentificarea UI a aceluiași cont.
 
 ## Modificări și întreținere

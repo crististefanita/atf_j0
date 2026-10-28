@@ -174,7 +174,7 @@ public class AtfTestLayerArchitectureTest {
                 () -> "matrix contains an empty module layer: " + matrix);
     }
 
-    static boolean isConcreteExecutable(String source) {
+    public static boolean isConcreteExecutable(String source) {
         return TEST_DECLARATION.matcher(source).find()
                 && !source.matches("(?s).*\\babstract\\s+class\\s+\\w+.*");
     }
@@ -214,12 +214,18 @@ public class AtfTestLayerArchitectureTest {
                 """, Map.of()));
     }
 
-    static List<String> declaredLayers(String source, Map<String, String> annotations) {
-        return declaredLayers(source, annotations, new HashSet<>());
+    public static List<String> declaredLayers(String source, Map<String, String> annotations) {
+        return declaredAnnotations(source, annotations, LAYER_ANNOTATIONS);
     }
 
-    private static List<String> declaredLayers(String source, Map<String, String> annotations,
-                                                Set<String> resolving) {
+    /** Shared annotation graph for layer, reporting-marker and suite governance. */
+    public static List<String> declaredAnnotations(String source, Map<String, String> annotations, Set<String> terminals) {
+        return declaredAnnotations(source, annotations, terminals, new HashSet<>());
+    }
+
+    private static List<String> declaredAnnotations(String source, Map<String, String> annotations,
+                                                   Set<String> terminals, Set<String> resolving) {
+        source = atf.core.files.AtfJavaSourceReferences.codeOnly(source);
         var declaration = TYPE_DECLARATION.matcher(source);
         if (declaration.find()) source = source.substring(0, declaration.start());
         var imports = new HashMap<String, String>();
@@ -233,21 +239,21 @@ public class AtfTestLayerArchitectureTest {
         ANNOTATION.matcher(source).results().forEach(match -> {
             String name = match.group(1);
             String layer = "@" + name.substring(name.lastIndexOf('.') + 1);
-            if (LAYER_ANNOTATIONS.contains(layer)) {
+            if (terminals.contains(layer)) {
                 result.add(layer);
                 return;
             }
             String type = imports.getOrDefault(name, name.contains(".") ? name : packagePrefix + name);
             String composed = annotations.get(type);
             if (composed != null && resolving.add(type)) {
-                result.addAll(declaredLayers(composed, annotations, resolving));
+                result.addAll(declaredAnnotations(composed, annotations, terminals, resolving));
                 resolving.remove(type);
             }
         });
         return List.copyOf(result);
     }
 
-    static Map<String, String> annotationSources(Path root) throws Exception {
+    public static Map<String, String> annotationSources(Path root) throws Exception {
         var result = new HashMap<String, String>();
         Set<Path> sources = new LinkedHashSet<>(sourceFiles(root,
                 MAVEN_MAIN_SOURCE_DIRECTORY, "src/main/java"));

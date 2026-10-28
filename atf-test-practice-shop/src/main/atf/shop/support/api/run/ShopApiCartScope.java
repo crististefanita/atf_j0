@@ -1,4 +1,4 @@
-package atf.shop.tests.api.integration.support;
+package atf.shop.support.api.run;
 
 import atf.core.http.request.ApiRequest;
 import atf.core.http.response.ApiExecutionResult;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Objects;
 
 /** Owns one remote cart and guarantees that its configured product is removed on close. */
-public final class ShopApiLiveCartScope implements AutoCloseable {
+public final class ShopApiCartScope implements AutoCloseable {
     private final ShopApiClient client;
     private final String productId;
     private final List<ApiExecutionResult> executions = new ArrayList<>();
@@ -20,7 +20,7 @@ public final class ShopApiLiveCartScope implements AutoCloseable {
     private String cartId = "";
     private boolean closed;
 
-    public ShopApiLiveCartScope(ShopApiClient client, String productId) {
+    public ShopApiCartScope(ShopApiClient client, String productId) {
         this.client = Objects.requireNonNull(client, "client");
         if (productId == null || productId.isBlank()) {
             throw new IllegalArgumentException("product id must not be blank");

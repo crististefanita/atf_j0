@@ -36,7 +36,8 @@ public record ReportPhaseDiagnostic(String phase, Kind kind, String message, Atf
     public enum Kind {
         EXECUTION_FAILURE("Failure cause"),
         JUNIT_FAILURE("JUnit failure"),
-        CONTRACT_ASSOCIATION("API contract association");
+        CONTRACT_ASSOCIATION("API contract association"),
+        EXECUTION_ABORTED("Abort reason");
 
         private final String label;
 

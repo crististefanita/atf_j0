@@ -32,7 +32,9 @@ public final class AuditedAssertionScope implements AutoCloseable {
     }
 
     public static AuditedAssertionScope open(String owner, String method, RecordedAssertions assertions) {
-        return new AuditedAssertionScope(owner, method, assertions);
+        return new AuditedAssertionScope(java.util.Objects.requireNonNull(owner, "owner"),
+                java.util.Objects.requireNonNull(method, "method"),
+                java.util.Objects.requireNonNull(assertions, "assertions"));
     }
 
     @Override public void close() {
@@ -40,13 +42,34 @@ public final class AuditedAssertionScope implements AutoCloseable {
         if (previous == null) CURRENT.remove(); else CURRENT.set(previous);
     }
 
-    private static Frame active() {
+    private static Frame owned() {
         Frame frame = CURRENT.get();
-        if (frame == null || frame.suppressed > 0) return null;
+        if (frame == null) return null;
         boolean owned = STACK.walk(frames -> frames
                 .takeWhile(call -> !call.getClassName().startsWith("org.junit.jupiter.engine."))
                 .anyMatch(call -> call.getClassName().equals(frame.owner) && call.getMethodName().equals(frame.method)));
         return owned ? frame : null;
+    }
+
+    private static Frame active() {
+        Frame frame = owned();
+        return frame == null || frame.suppressed > 0 ? null : frame;
+    }
+
+    static boolean isSuppressed() {
+        Frame frame = owned();
+        return frame != null && frame.suppressed > 0;
+    }
+
+    static void explicit(RecordedAssertions recorder, String name, Object expected, Object actual,
+                         Executable executable) {
+        Throwable failure = null;
+        try { executable.execute(); } catch (Throwable error) { failure = error; }
+        recorder.record(name, expected, actual, failure == null, failure);
+        Frame frame = active();
+        if (frame != null && frame.assertions != recorder)
+            frame.assertions.record(name, expected, actual, failure == null, failure);
+        if (failure != null) AuditedAssertionScope.<Void, RuntimeException>rethrow(failure);
     }
 
     private static String name(String operation, String message) {
@@ -71,18 +94,20 @@ public final class AuditedAssertionScope implements AutoCloseable {
         Frame frame = active();
         String label = frame == null ? "" : name(operation, message);
         if (frame != null && suppress) frame.suppressed++;
-        try {
-            T result = executable.get();
-            if (frame != null) frame.assertions.record(label, expected,
-                    observed == null ? actual : observed.apply(result), true);
-            return result;
-        } catch (Throwable error) {
-            if (frame != null) frame.assertions.record(label, expected,
-                    observed == null ? actual : error.getMessage(), false);
-            return rethrow(error);
-        } finally {
+        T result = null;
+        Throwable failure = null;
+        try { result = executable.get(); } catch (Throwable error) { failure = error; } finally {
             if (frame != null && suppress) frame.suppressed--;
         }
+        if (frame != null) {
+            T returned = result;
+            Throwable thrown = failure;
+            Object projection = observed == null ? actual : (AssertionValueDisplay.Value) () ->
+                    String.valueOf(thrown == null ? observed.apply(returned) : thrown.getMessage());
+            frame.assertions.record(label, expected, projection, failure == null, failure);
+        }
+        if (failure != null) return rethrow(failure);
+        return result;
     }
 
     static void group(String message, Executable executable) {
@@ -95,7 +120,8 @@ public final class AuditedAssertionScope implements AutoCloseable {
         } catch (Throwable error) {
             if (frame != null && frame.assertions.checks().subList(before, frame.assertions.checks().size())
                     .stream().allMatch(RecordedAssertions.Check::passed))
-                frame.assertions.record(name("assertAll", message), "all checks succeed", error.getMessage(), false);
+                frame.assertions.record(name("assertAll", message), "all checks succeed",
+                        (AssertionValueDisplay.Value) error::getMessage, false, error);
             AuditedAssertionScope.<Void, RuntimeException>rethrow(error);
         }
     }

@@ -205,6 +205,11 @@ class AutoExApiContractReportPublisherComponentTest {
         String boundedMessage = diagnostic(directory.resolve("long-message.html"),
                 new IllegalStateException("detail ".repeat(400)));
         assertEquals(1_000, boundedMessage.length());
+        String secret = "API_DIAGNOSTIC_CANARY_" + "x".repeat(1_200);
+        String redacted = diagnostic(directory.resolve("long-secret.html"),
+                new IllegalStateException("{\"password\":\"" + secret + "\"}"));
+        assertFalse(redacted.contains("API_DIAGNOSTIC_CANARY_"), "redaction must precede the diagnostic bound");
+        assertTrue(redacted.contains("***REDACTED***"));
     }
 
     private static String diagnostic(Path report, Throwable failure) {

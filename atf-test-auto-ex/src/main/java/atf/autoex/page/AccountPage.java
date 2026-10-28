@@ -273,13 +273,16 @@ public final class AccountPage extends AutoExPage {
     private void recoverUnavailableStoreDocument() {
         String interruptedUrl = run.currentUrl();
         URI base = run.configuration().baseUrl();
-        if (base.getHost().equalsIgnoreCase(URI.create(interruptedUrl).getHost())) return;
+        boolean foreignDocument = !base.getHost().equalsIgnoreCase(URI.create(interruptedUrl).getHost());
+        var busy = run.page().locator(AutoExSelectors.STORE_BUSY_MESSAGE_LOCATOR);
+        boolean queueFull = !foreignDocument && busy.count() == 1 && busy.isVisible();
+        if (!foreignDocument && !queueFull) return;
         URI home = AutoExRoutes.HOME.resolve(base);
         run.navigate(home);
         String recoveredUrl = run.currentUrl();
         run.checkpoint(AutoExCustomerTraceStep.CLEANUP_DOCUMENT_RECOVERED,
-                List.of(new AtfAssertion("Interrupted store document", "outside the configured store origin",
-                                interruptedUrl, !base.getHost().equalsIgnoreCase(URI.create(interruptedUrl).getHost())),
+                List.of(new AtfAssertion("Interrupted store document", "foreign document or visible queue full",
+                                interruptedUrl + "; queueFull=" + queueFull, foreignDocument || queueFull),
                         new AtfAssertion("Cleanup recovery destination", home.toString(), recoveredUrl,
                                 home.toString().equals(recoveredUrl))));
     }

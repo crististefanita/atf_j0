@@ -392,18 +392,18 @@ public class ConsumerModuleArchitectureGovernanceTest {
     }
 
     @Test
-    void consumerComponentAssertionsUseTheAuditedJUnitBoundary() throws IOException {
+    void consumerComponentAssertionsUseTheAuditedJUnitBoundary() throws Exception {
+        var annotations = atf.api.tests.governance.layers.AtfTestLayerArchitectureTest
+                .annotationSources(AtfGovernanceTestSupport.locateProjectRoot());
         for (String name : List.of("atf-test-auto-ex", "atf-test-practice-shop")) {
+            var sources = new java.util.HashMap<String, String>();
             for (Path path : javaFiles(module(name).resolve("src/test"))) {
                 String source = Files.readString(path);
-                boolean component = source.matches("(?s).*@(AutoExComponentTest|ShopComponentTest|ShopApiCallComponentTest)\\b.*")
-                        || path.getFileName().toString().equals("ShopReportHtmlTestSupport.java");
-                if (component) assertFalse(hasUnauditedAssertions(source),
-                        "Component assertions must use the shared audited boundary: " + path);
-                if (source.contains("@AtfComponentTest") && !source.contains("@Suite")
-                        && !source.contains("public @interface"))
-                    assertTrue(component, "Consumer component methods need their reporting marker: " + path);
+                var owner = java.util.regex.Pattern.compile("(?m)^\\s*package\\s+([\\w.]+)\\s*;").matcher(source);
+                if (owner.find()) sources.put(owner.group(1) + "." + path.getFileName().toString().replace(".java", ""), source);
             }
+            var violations = ConsumerAuditSourceGraph.violations(sources, annotations);
+            assertTrue(violations.isEmpty(), () -> name + " audited boundary violations: " + violations);
         }
     }
 

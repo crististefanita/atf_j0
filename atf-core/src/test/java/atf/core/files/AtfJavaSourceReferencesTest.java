@@ -12,6 +12,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @AtfUnitTest
 class AtfJavaSourceReferencesTest {
     @Test
+    void exposesOnlyExecutableTokensForAnnotationAndTypeGuards() {
+        String code = AtfJavaSourceReferences.codeOnly("// @Suite abstract class Hidden {}\n"
+                + "/* @interface Hidden {} */\n@" + "\\" + "u0041lias class Actual { "
+                + "String example = \"@Suite\"; char quote = '\\''; }");
+        assertTrue(code.contains("@Alias class Actual"));
+        assertFalse(code.contains("@Suite"));
+        assertFalse(code.contains("@interface"));
+        assertFalse(code.contains("abstract class"));
+    }
+
+    @Test
     void recognizesQualifiedNamesAcrossWhitespaceAndComments() {
         for (String reference : List.of("import atf.ui.Page;", "import static atf.ui.Page.VALUE;",
                 "import atf.ui.*;", "package atf.ui;", "atf.ui.Page page;",

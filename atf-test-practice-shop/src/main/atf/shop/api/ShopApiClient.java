@@ -36,6 +36,9 @@ public final class ShopApiClient implements AutoCloseable {
     private final ApiExecutor executor;
     private String bearerToken = "";
     private boolean closed;
+    private java.util.function.Consumer<ApiExecutionResult> observed = execution -> { };
+    private java.util.function.BiConsumer<ApiRequest, Throwable> failed = (request, error) -> { };
+    private boolean observerInstalled;
 
     private ShopApiClient(URI endpoint, ApiTransport transport,
                                   ShopApiRequestFactory requests,
@@ -96,7 +99,27 @@ public final class ShopApiClient implements AutoCloseable {
 
     public ApiExecutionResult execute(ApiRequest request) {
         ensureOpen();
-        return executor.execute(request);
+        ApiExecutionResult result;
+        try {
+            result = executor.execute(request);
+        } catch (RuntimeException | Error failure) {
+            try { failed.accept(request, failure); } catch (RuntimeException | Error observerFailure) {
+                if (failure != observerFailure) failure.addSuppressed(observerFailure);
+            }
+            throw failure;
+        }
+        observed.accept(result);
+        return result;
+    }
+
+    /** One run-owned observer captures returned exchanges and failed requests without changing transport semantics. */
+    public void observeExecutions(java.util.function.Consumer<ApiExecutionResult> observed,
+                                  java.util.function.BiConsumer<ApiRequest, Throwable> failed) {
+        ensureOpen();
+        if (observerInstalled) throw new IllegalStateException("API execution observer is already installed");
+        this.observed = Objects.requireNonNull(observed, "observed");
+        this.failed = Objects.requireNonNull(failed, "failed");
+        observerInstalled = true;
     }
 
     /** Consumer-owned PII policy is applied before the generic console formatter. */
@@ -140,6 +163,8 @@ public final class ShopApiClient implements AutoCloseable {
     @Override
     public void close() {
         bearerToken = "";
+        observed = execution -> { };
+        failed = (request, error) -> { };
         closed = true;
     }
 

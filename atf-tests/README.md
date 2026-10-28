@@ -85,6 +85,7 @@ testelor de reporting în acest modul:
   fully-qualified care ascund intenția testului;
 - `layers.AtfTestLayerArchitectureTest` — inventariază rădăcinile `sourceDirectory` și `testSourceDirectory` din POM (cu default Maven), apoi verifică nivelul fiecărei clase executabile; fixture-urile imbricate nu schimbă nivelul clasei exterioare;
 - `layers.ConsumerSuiteCoverageGovernanceTest` — exact trei suite principale per consumer, fără clase omise, selecții suprapuse sau amestec local/E2E/API live; include probe negative pentru omisiuni și suprapuneri;
+- `consumers.ConsumerModuleArchitectureGovernanceTest` și `ConsumerAuditSourceGraphTest` — resolver comun de adnotări pentru audit/layer, alias-uri, moștenire și helperi importați; comentariile, literalii și fixture-urile nested nu exclud ownerul executabil. Analiza sursei nu înlocuiește proba launcher/raport;
 - `ConstantsOwnershipGovernanceTest` — vocabularul de protocol, rute și
   boundary-ul reporting standalone;
 - `governance.documentation.DynamicPathDocumentationArchitectureTest` — documentație

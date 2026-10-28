@@ -293,7 +293,7 @@ TestCase
 | format body | request/response păstrează formatul capturat (JSON, form sau text); un contract JSON este cerut de validatorul consumerului, nu dedus din metoda HTTP |
 | body absent | request/response details rămân prezente; `ABSENT` și `NOT_CAPTURED` au explicații distincte, fără payload inventat; numai JSON literal `null` capturat devine document JSON |
 | fază fără evidence copil | o fază fără conținut publicat rămâne nod terminal: rendererul nu afișează `＋/−`, nu o face focusabilă și nu inventează pași din aserțiunile JUnit; conținutul real publicat sub fază rămâne disclosure interactiv |
-| aserțiuni de componentă | `Phase.startAssertionStep` publică un copil tipizat sub `TEST BODY`, fără request HTTP; rândurile `AtfAssertion` folosesc tabelul, redacția și statusurile comune în Extent și fallback. Pasul există numai când testul publică aserțiuni evaluate efectiv. |
+| aserțiuni de componentă | `Phase.startAssertionStep` publică un copil tipizat în faza owner (`SETUP`, `TEST BODY` ori `TEARDOWN`), fără request HTTP; rândurile `AtfAssertion` folosesc tabelul, redacția și statusurile comune în Extent și fallback. Pasul există numai când testul publică aserțiuni evaluate efectiv. |
 | UI evidence | `SETUP` rămâne setup; în `TEST BODY`, acțiunile, observațiile, aserțiunile și verdictul UI sunt publicate sub unicul titlu `UI validation` |
 | UI `UNIFIED_FLOW` peste faze | Consumerul apelează `UiScenario.unifyAcrossPhases()` înainte de prima fază și `UiPhase.completeFinal(status)` la faza terminală. Pe succes UI-only, Reporting publică o singură validare UI cu un tabel ACTION, unul OBSERVE (dacă există observații) și unul assertions (dacă există aserțiuni), păstrând toate rândurile în ordine. Captura `FINAL` permisă apare sub tabelul Playwright, înaintea auditului; fazele/checkpoint-urile și verdictele sunt în `UI flow provenance`, separat de răspunsurile HTTP. UI+API, setup eșuat și politicile explicite cu capturi multiple păstrează validările pe checkpoint. `completeFinal(FAIL)` în `SETUP` nu creează `TEST BODY` sau o captură finală. Fără opt-in, comportamentul existent per fază rămâne valabil. |
 | layout | `＋/−` este inline înaintea propoziției; Request details, Response details și Execution evidence sunt disclosures surori în request; Contract validation este copilul lui; UI/API validations sunt copii surori ale aceluiași checkpoint Gherkin |
@@ -319,7 +319,7 @@ nu este un request API și nu trebuie introdus ca metodă `ASSERT`/rută sinteti
 ```mermaid
 flowchart LR
     J[JUnit: comparație evaluată] -->|înregistrează| R[Rând AtfAssertion]
-    R -->|alimentează| S[AssertionStep sub TEST BODY]
+    R -->|alimentează| S[AssertionStep în faza owner]
     S -->|publică| E[Extent: nod colapsabil]
     S -->|publică| H[Fallback: details colapsabil]
     E -->|afișează| V[Tabel + verdict + redacție]
@@ -1243,5 +1243,37 @@ placeholder-ele asset-ului, iar funcțiile comune (`aggregateClassDurations`,
 `captureDomContract`) provin din vocabularul runtime central, nu din string-uri
 izolate în facade. Contractul se verifică separat prin teste de asset, component
 și browser E2E.
+
+</details>
+
+## Proiecția sigură a aserțiunilor
+
+`AssertionAuditReport` publică faze și pași de aserțiuni prin `AtfReportPorts.Session`;
+nu depinde de JUnit, Test Kit sau Validation. Consumerul îi furnizează identitatea,
+rândurile evaluate, statusul fazei și diagnosticul.
+
+```mermaid
+flowchart LR
+    Raw[Valori integrale] -->|evaluează o dată| Verdict[Verdict]
+    Raw -->|redactează complet| Safe[Text sigur]
+    Safe -->|limitează| Preview[Preview · 240]
+    Verdict -->|păstrează| Row[Rând auditat]
+    Preview -->|completează| Row
+```
+
+<details>
+<summary><strong>Legendă — redactare înaintea plafonului</strong></summary>
+
+- Diagrama descrie datele la runtime, nu dependențe Maven.
+- Colectorul primește o politică de afișare la composition root; JSON-ul complet
+  este redactat înainte de tăiere, astfel încât un secret lung să nu piardă contextul cheii.
+- Valoarea integrală decide verdictul; raportul primește numai text sigur și limitat,
+  implicit 240 de caractere inclusiv `…`. Expandarea nu publică un dump nelimitat.
+- `Component assertions` rămâne colapsat inițial în Extent și fallback; un diagnostic
+  fără comparații nu inventează un pas sau un request HTTP.
+- Întreruperea prin assumption păstrează `SKIP` și diagnosticul `Abort reason`;
+  un eșec real al unei aserțiuni neconsumate păstrează `FAIL`.
+- `AssertionAuditPublicationComponentTest` protejează redacția în ambele renderere;
+  `ComponentAssertionStepReportTest` protejează interacțiunea, ultimul rând și Fails → Tests.
 
 </details>

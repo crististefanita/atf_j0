@@ -16,7 +16,7 @@ public final class SensitiveDataRedactor {
             "(?i)(\\b(?:bearer|basic)\\s+)[^\\s,;&'\"\\]}]+");
     private static final Pattern JSON_SECRET = Pattern.compile(
             "(?i)(\\\"(?:authorization|cookie|set-cookie|" + SECRET_NAME
-                    + ")\\\"\\s*:\\s*\\\")([^\\\"]*)(\\\")");
+                    + ")\\\"\\s*:\\s*\\\")((?:\\\\.|[^\"\\\\])*)(\\\")");
     private static final Pattern KEY_VALUE_SECRET = Pattern.compile(
             "(?i)(\\b(?:" + SECRET_NAME + ")\\s*[:=]\\s*)[^,;\\s&#'\"\\]}]+");
     private static final Pattern QUERY_SECRET = Pattern.compile(

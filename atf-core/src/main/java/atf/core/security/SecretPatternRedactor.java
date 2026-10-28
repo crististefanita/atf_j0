@@ -7,7 +7,7 @@ final class SecretPatternRedactor implements Redactor {
     private static final String SENSITIVE_NAME =
             "csrf(?:[_-]?middleware)?[_-]?token|password|token|access[_-]?token|refresh[_-]?token|client[_-]?secret|api[_-]?key";
     private static final Pattern JSON_SECRET = Pattern.compile(
-            "(?i)(\\\"(?:" + SENSITIVE_NAME + ")\\\"\\s*:\\s*\\\")[^\\\"]*(\\\")");
+            "(?i)(\\\"(?:" + SENSITIVE_NAME + ")\\\"\\s*:\\s*\\\")(?:\\\\.|[^\"\\\\])*(\\\")");
     private static final Pattern AUTH_HEADER = Pattern.compile(
             "(?i)(authorization\\s*[:=]\\s*(?:bearer|basic)\\s+)[^,;\\s]+");
     private static final Pattern KEY_VALUE_SECRET = Pattern.compile(

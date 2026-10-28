@@ -19,8 +19,13 @@ public final class AtfJavaSourceReferences {
                 Arrays.stream(namespace.split("\\.")).map(Pattern::quote).toList());
         return Pattern.compile("(?<![\\p{javaJavaIdentifierPart}.])" + qualifiedName
                         + "(?![\\p{javaJavaIdentifierPart}])")
-                .matcher(codeOnly(translateUnicodeEscapes(source))
+                .matcher(codeOnly(source)
                         .replaceAll("\\s*\\.\\s*", ".")).find();
+    }
+
+    /** Lexical code for source guards, with Java Unicode translation before comment/literal removal. */
+    public static String codeOnly(String source) {
+        return scanCode(translateUnicodeEscapes(Objects.requireNonNull(source, "source")));
     }
 
     /** Java translates Unicode escapes before recognizing comments and literals. */
@@ -66,7 +71,7 @@ public final class AtfJavaSourceReferences {
         return -1;
     }
 
-    private static String codeOnly(String source) {
+    private static String scanCode(String source) {
         StringBuilder code = new StringBuilder(source.length());
         for (int cursor = 0; cursor < source.length();) {
             char current = source.charAt(cursor);

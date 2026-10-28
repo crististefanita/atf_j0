@@ -21,6 +21,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @AtfUnitTest
 class ShopApiLoginAssertionsTest {
     @Test
+    void responseObservationDistinguishesEmptyUnavailableAndPresentJson() {
+        var bodies = Map.of(
+                "", "Empty response body",
+                "<body unavailable: Browser observation — payload released>",
+                "<body unavailable: Browser observation — payload released>",
+                "{\"message\":\"Unauthorized\"}", "{ \"message\" : \"Unauthorized\" }");
+        bodies.forEach((body, observed) -> {
+            var exchange = new ShopApiNetworkJournal.Exchange(HttpMethod.POST.value(), ShopApiRoutes.LOGIN,
+                    ShopApiScenarioFixture.API_ENDPOINT + ShopApiRoutes.LOGIN, 401,
+                    "{\"email\":\"<redacted>\",\"password\":\"<redacted>\"}", body,
+                    HttpHeaderProfiles.JSON_CONTENT, HttpHeaderProfiles.JSON_CONTENT);
+            var row = ShopApiAssertions.login(exchange).get(2);
+            assertEquals(observed, row.actual());
+            assertTrue(!row.passed(), "Rejected login must retain its original verdict");
+        });
+    }
+
+    @Test
     void acceptsJsonTransportWhenPlaywrightCannotExposeCompressedBody() {
         var login = new ShopApiNetworkJournal.Exchange(
                 HttpMethod.POST.value(), ShopApiRoutes.LOGIN,
@@ -35,6 +53,7 @@ class ShopApiLoginAssertionsTest {
 
         assertTrue(assertions.stream().allMatch(assertion -> assertion.passed()),
                 () -> assertions.toString());
+        assertEquals("Body not captured; content-length=384", assertions.get(2).actual());
     }
 
     @Test

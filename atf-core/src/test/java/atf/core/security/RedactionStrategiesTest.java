@@ -3,7 +3,9 @@ import atf.testkit.AtfUnitTest;
 
 
 import org.junit.jupiter.api.Test;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -14,6 +16,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @AtfUnitTest
 
 class RedactionStrategiesTest {
+    @Test
+    void masksTheWholeEscapedJsonSecretBeforeAnyConsumerPreview() throws Exception {
+        String json = new ObjectMapper().writeValueAsString(Map.of(
+                "password", "prefix\"CORE_SYNTHETIC_CANARY_" + "q".repeat(280) + "\\tail"));
+        String safe = new SensitiveDataRedactor().redactText("metadata: " + json);
+        assertFalse(safe.contains("CORE_SYNTHETIC_CANARY_"));
+        assertTrue(safe.contains("REDACTED"));
+    }
 
     @Test
     void specializedStrategiesOwnTheirBoundaries() {

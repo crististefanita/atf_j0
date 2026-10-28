@@ -2,20 +2,13 @@
 
 ## Pe scurt
 
-Aici rămân lacunele deschise și controalele tehnice încă necesare.
-Contractele stabile aparțin [Reporting](../../atf-reporting/README.md),
-[Reporting Tests](../../atf-reporting-tests/README.md),
-[contractului semantic](../ATF_Reporting_Contract.md) și
-[contractului de display](../ATF_Reporting_Display_Contract.md).
+Rămâne lizibilitatea tabelelor imbricate la lățime mică (**77/100**).
+Proiecția sigură și plafonul aserțiunilor sunt contracte livrate la
+[Reporting](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor), cu probe în
+[Reporting Tests](../../atf-reporting-tests/README.md).
 
-Fidelitatea request-ului observat, disponibilitatea body-ului și ownerul UI/API
-sunt contracte livrate, documentate la
-[ownerul Reporting](../../atf-reporting/README.md#fidelitatea-request-ului-și-ownerul-aserțiunilor).
-Matricea Extent/fallback/UI_API și probele Fails/deep-link aparțin
-[testelor Reporting](../../atf-reporting-tests/README.md), nu checklist-ului de restanțe.
-
-- Lizibilitatea la lățime mică: **77/100**.
-- Scorurile folosesc [formula comună de prioritate](README.md#top-feedback-uri-active).
+Scorurile folosesc [formula comună](README.md#top-feedback-uri-active);
+nu sunt note ale implementării și nu reprezintă acceptanță vizuală.
 
 ## REPORT-NARROW-READABILITY-01 — tabele imbricate la lățime mică
 

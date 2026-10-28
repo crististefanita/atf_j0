@@ -37,7 +37,7 @@ public class ConsumerSuiteCoverageGovernanceTest {
                 String source = Files.readString(file);
                 if (!AtfTestLayerArchitectureTest.isConcreteExecutable(source)) continue;
                 String name = file.getFileName().toString().replace(".java", "");
-                if (source.contains("@Suite")) {
+                if (declaresSuite(source, annotations)) {
                     assertTrue(module.getValue().contains(name), "Redundant consumer suite: " + file);
                     suites.add(selection(name, source));
                 } else {
@@ -66,6 +66,23 @@ public class ConsumerSuiteCoverageGovernanceTest {
         assertEquals(1, violations(List.of(live), List.of(complete)).size());
         assertTrue(violations(List.of(local), List.of(
                 new Selection("ComponentSuite", List.of("fixture.support"), List.of()))).isEmpty());
+    }
+
+    @Test
+    void onlyTheOwnerDeclarationCanIdentifyAPrimarySuite() {
+        assertTrue(declaresSuite("package fixture;\n@Suite\nclass ExtraGate {}", Map.of()));
+        assertTrue(declaresSuite("package fixture;\n@Alias\nclass ExtraGate {}",
+                Map.of("fixture.Alias", "@Suite\npublic @interface Alias {}")));
+        assertTrue(!declaresSuite("""
+                package fixture;
+                // @Suite is only an example
+                @AtfComponentTest
+                class Probe { @Suite static class NestedFixture {} }
+                """, Map.of()));
+    }
+
+    private static boolean declaresSuite(String source, Map<String, String> annotations) {
+        return !AtfTestLayerArchitectureTest.declaredAnnotations(source, annotations, Set.of("@Suite")).isEmpty();
     }
 
     @Test
