@@ -231,6 +231,18 @@ Pentru probele launcherelor, `AtfConsoleOutputCapture.capture(action, observer)`
 
 ## Testare
 
+### Restaurarea contextelor imbricate
+
+Extensia JUnit și `AtfConsoleTestContext.dynamicTest(...)` salvează binding-ul
+thread-ului înaintea copilului și îl restaurează în finally. După PASS, FAIL
+sau SKIP, corpul părintelui folosește același lifecycle și sink; după ownerul
+exterior binding-ul revine la absență. Lansarea Jupiter imbricată respectă
+aceeași regulă, fără fallback global în mijlocul testului.
+
+[NestedConsoleContextIntegrationTest](src/test/java/atf/console/junit/NestedConsoleContextIntegrationTest.java)
+probează nesting-ul dinamic și extensia reală; probele existente păstrează
+izolarea paralelă și independența notificării de path față de politica mesajelor.
+
 Testarea este împărțită după responsabilitate:
 
 - `AtfConsoleReporterTest` — nesting, statusuri, durată (`ms` până la `300 ms`,

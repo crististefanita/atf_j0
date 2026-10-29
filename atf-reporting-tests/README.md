@@ -78,6 +78,7 @@ Proiecția contextului UI este verificată la componentă:
 | `ExtentReportUiEvidencePublishingTest` | publisher-ul UI nu adaugă un request HTTP sintetic; exchange-ul nested păstrează request/response/JSON/execution |
 | `ExtentReportDisclosureBrowserComponentTest` | artifact controlat cu PASS/WARNING/FAIL; faza goală nu afișează affordance de expandare, iar API exchange-ul cu evidence mock rămâne expandabil cu mouse/keyboard; niciun tabel introductiv la checkpoint, validări și screenshot disponibile, close fără subarbore vizibil și titluri custom identificate semantic; captură deduplicată deschisă prin click/Enter cu sursa colapsată, fără salt la ancoră |
 | `ComponentAssertionStepReportTest` | același nod tipizat și 42 de rânduri în Extent/fallback; pas colapsat implicit, acces la ultimul rând și comutare cu mouse/Enter/Space în Chromium; FAIL în Extent are owner `component`, valori numerice exacte și deep-link redeschis până la tabel, fără request sau durată HTTP |
+| `PublishedEvidenceTableComponentTest` | UI/API/UI+API × Extent/fallback; valori literale în 12/40 de rânduri, inventar exact per owner, geometrie reală, expandări, resize și taburi; controalele negative detectează dovezi lipsă, clipping, plafon eliminat și FAIL schimbat în PASS |
 | `TerminalExecutionProjectionTest` + `TerminalApiExecutionReportTest` | snapshot parțial strict, 503 urmat de status indisponibil, terminare typed în Execution evidence, fără Response details fabricat; Extent/fallback păstrează plafonul 240, bugetul configurat, redactarea, ultimul rând și Enter/Space; zero dispatch-uri nu declară rețea executată |
 | `ReportPhaseTimingComponentTest` | timing typed identic în snapshot-urile Extent/fallback; browserul păstrează 12/345/0 ms pe faze, totalurile scenariu/clasă/Overview fără dublare și sursa execuției după expandare; publicarea rămâne separată |
 | `ComponentExecutionDiagnosticReportTest` | eroare după comparații PASS sau înaintea primei comparații; Fails fără request/durată HTTP inventate ori comparație PASS atribuită erorii; faze măsurate goale și 42 de rânduri în Extent/fallback, cu plafon 240 și tastatură |
@@ -98,7 +99,37 @@ Fixture-ul browser este local și determinist; nu cere o nouă achiziție în
 Practice Shop. Raportul timestamped este dovadă de componentă, iar stările
 FAIL/WARNING sunt date deliberate ale fixture-ului.
 
-Testele JUnit declară intențiile; `support/inspection/disclosure` deține fixture-ul
+### Tabele publicate și inventar independent
+
+`PublishedEvidenceTableComponentTest` publică UI, API și UI+API prin porturile
+reale, în Extent și fallback. Cazul de 12 rânduri păstrează comparațiile scurte;
+cele două cazuri de 40 de rânduri mută textul lung în EXPECTED, respectiv ACTUAL.
+
+| Probă | Criteriu observabil |
+|---|---|
+| Inventar | număr exact per formă și owner; setup, ACTION/OBSERVE, request/response, execution/retry și cele trei roluri trace distincte |
+| Geometrie | viewport-uri 1803/1280/991/719/720/721/591/392 px și panouri 591/392 px; lățime completă, font lizibil, coloane aliniate, cap finit, ultimul rând și ultima coloană accesibile; taburile secundare verifică și pragul 760/761 px |
+| Dovezi | valori literale independente, Unicode/escaping, PASS/FAIL păstrate și conținut identic după resize, Enter/Space și revenire în Tests |
+| Taburi | Overview/System/Tags și tabelul Categories; Fails folosește câmpurile/indexul nativ, iar taburile secundare fallback folosesc carduri/linkuri; absența intenționată a unui tabel este explicită |
+| Control negativ | lățime redusă artificial, header/coloană/tabel lipsă, celule verticale, clipping direct/interior, rând ascuns, gutter gol, cap eliminat, valoare modificată ori FAIL schimbat în PASS; Fails ascuns sub navigare și antet tehnic rupt pe litere |
+
+Colectarea browser este grupată în `PublishedEvidenceTableMeasurements`;
+`PublishedEvidenceTableOracle` aplică regulile independente. Controalele negative
+restaurează exact tabelul publicat și verifică din nou inventarul și conținutul.
+Proba așteaptă terminarea tranzițiilor finite înaintea măsurării, inclusiv după
+restaurarea unei mutații. Campania browser se rulează separat de achizițiile E2E
+publice; bugetele de interacțiune și timeout-urile business rămân neschimbate.
+
+Conținutul canonic este comparat în aceeași ordine după navigare. Proiecțiile
+derivate `atf-ui-failure-evidence` se verifică separat: câte una pentru fiecare
+owner request/validation eșuat, cu prima comparație originală și fără duplicate
+la navigări repetate; pasul component `assertion-step` nu participă la hook.
+
+Lățimea procentuală a primei coloane nu este un oracol estetic. Alocarea după
+conținut rămâne protejată de `EvidenceColumnSizingComponentTest`, iar limita
+240 și redactarea au probele dedicate existente.
+
+Pentru `ExtentReportDisclosureBrowserComponentTest`, `support/inspection/disclosure` deține fixture-ul
 și proba browser. Auditul reutilizabil folosește facade-ul din `support/locators`:
 identifică validarea UI după rol și acțiunile incluse, nu după titlu, și deschide
 ancestorii scenariu → fază → checkpoint → validare înaintea inspecției.
@@ -802,6 +833,24 @@ atf-test-practice-shop/src/test/atf/shop/tests/
   transmite evenimentul terminal către consola ATF numai după publicarea
   raportului. Resolverul/adnotarea și politica de output rămân testate în
   `atf-test-kit`/`atf-console`, nu sunt reimplementate aici.
+
+### Fidelitatea query-ului și asocierea Mock
+
+`MockReportContractAuditor` reține asocierea dintre fiecare contract convertit
+și instanța exactă `MockRoute`. Ruta selectată de auditor este reasociată prin
+acest mapping, fără căutare după eticheta `key()` ori alegerea primei rute.
+Numele prefix și delimitatorii din valori pot produce etichete ambigue;
+titlul lizibil nu este identitate de catalog.
+
+| Boundary | Probă nominală și negativă |
+|---|---|
+| conversie și subset cu multiplicitate | [ReportQueryContractComponentTest](src/test/java/atf/reporting/api/query/ReportQueryContractComponentTest.java): perechi duplicate, valori codificate, query incomplet și metadate absente |
+| reasociere cu sursa | [MockQueryAssociationComponentTest](src/test/java/atf/reporting/api/query/MockQueryAssociationComponentTest.java): nume prefix, coliziuni de etichetă, ambele ordini de catalog și rută necunoscută |
+| proiecție Extent/fallback | [QueryFailureReportComponentTest](src/test/java/atf/ui/tests/extent/component/verdict/QueryFailureReportComponentTest.java): FAIL păstrat împotriva unui complete(PASS), sibling pozitiv, Fails → Tests, disclosure și preview redactat 240 |
+
+Expected-urile sunt literale și independente de canonicalizerul producției.
+Fixture-ul de raportare folosește `AssertionStep`, fără request HTTP inventat;
+rulează direct și prin `AtfReportingComponentSuite`, în categoria Reporting.
 
 ### Reutilizare neutră între module
 

@@ -14,6 +14,7 @@ import atf.core.http.transport.ApiTransportProvenance;
 import atf.core.http.transport.RetryPolicy;
 import atf.core.reporting.console.AtfConsoleEvent;
 import atf.core.reporting.console.AtfConsoleSink;
+import atf.core.reporting.console.AtfConsoleDiagnostics;
 import atf.core.reporting.contract.AtfReportStatus;
 import atf.core.reporting.duration.AtfDurationFormatter;
 
@@ -137,18 +138,19 @@ public final class ApiExecutor {
         Objects.requireNonNull(request, "request");
         Objects.requireNonNull(options, "options");
         Objects.requireNonNull(cancellationToken, "cancellationToken");
+        var diagnostics = new AtfConsoleDiagnostics(console);
         String consoleName = request.method() + " " + request.path();
         long consoleStarted = clock.nanoTime();
-        console.publish(AtfConsoleEvent.started(AtfConsoleEvent.Scope.REQUEST, consoleName));
-        console.publish(AtfConsoleEvent.detail(AtfConsoleEvent.Scope.REQUEST,
+        diagnostics.publish(AtfConsoleEvent.started(AtfConsoleEvent.Scope.REQUEST, consoleName));
+        diagnostics.publish(AtfConsoleEvent.detail(AtfConsoleEvent.Scope.REQUEST,
                 "method", request.method()));
         var deadline = new ApiExecutionDeadline(clock, options.timeout());
         var retryWaiter = new ApiRetryWaiter(clock, deadline);
         String url = urls.build(request);
-        console.publish(AtfConsoleEvent.detail(AtfConsoleEvent.Scope.REQUEST,
+        diagnostics.publish(AtfConsoleEvent.detail(AtfConsoleEvent.Scope.REQUEST,
                 "url", redactor.redactText(url)));
         if (!request.bodyText().isBlank()) {
-            console.publish(AtfConsoleEvent.code(AtfConsoleEvent.Scope.REQUEST,
+            diagnostics.publish(AtfConsoleEvent.code(AtfConsoleEvent.Scope.REQUEST,
                     "request.body", redactor.redactJson(request.bodyText())));
         }
         var retryEvents = new ArrayList<RetryEvent>();
@@ -244,20 +246,21 @@ public final class ApiExecutor {
                     : error instanceof CancellationException cancelled ? new ApiExecutionCancelledException(cancelled, snapshot)
                     : new ApiExecutionException("API execution failed", error, snapshot);
             try {
-                console.publish(AtfConsoleEvent.completed(AtfConsoleEvent.Scope.REQUEST,
+                diagnostics.publish(AtfConsoleEvent.completed(AtfConsoleEvent.Scope.REQUEST,
                         consoleName, AtfReportStatus.FAIL, elapsedMillis(consoleStarted)));
             } catch (RuntimeException | Error publication) {
                 if (publication != failure) failure.addSuppressed(publication);
             }
+            diagnostics.attachTo(failure);
             throw failure;
         }
-        console.publish(AtfConsoleEvent.detail(AtfConsoleEvent.Scope.REQUEST,
+        diagnostics.publish(AtfConsoleEvent.detail(AtfConsoleEvent.Scope.REQUEST,
                 "response.status", Integer.toString(response.status())));
-        console.publish(AtfConsoleEvent.detail(AtfConsoleEvent.Scope.REQUEST,
+        diagnostics.publish(AtfConsoleEvent.detail(AtfConsoleEvent.Scope.REQUEST,
                 "response.duration.ms", AtfDurationFormatter.format(response.duration())));
-        console.publish(AtfConsoleEvent.code(AtfConsoleEvent.Scope.REQUEST,
+        diagnostics.publish(AtfConsoleEvent.code(AtfConsoleEvent.Scope.REQUEST,
                 "response.body", redactor.redactJson(response.body())));
-        console.publish(AtfConsoleEvent.completed(AtfConsoleEvent.Scope.REQUEST,
+        diagnostics.publish(AtfConsoleEvent.completed(AtfConsoleEvent.Scope.REQUEST,
                 consoleName, AtfReportStatus.PASS, elapsedMillis(consoleStarted)));
         return result;
     }

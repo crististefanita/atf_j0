@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
+import java.util.Locale;
+import java.util.Objects;
 
 /** Collects one response's assertions and publishes them as one aggregate. */
 public final class ValidationTable {
@@ -29,11 +31,17 @@ public final class ValidationTable {
     }
 
     public void check(String name, String expected, String actual, BooleanSupplier predicate) {
+        ensureWritable();
+        ensureNewIdentity(name);
+        Objects.requireNonNull(predicate, "predicate");
+        boolean passed;
         try {
-            add(name, expected, actual, predicate.getAsBoolean());
+            passed = predicate.getAsBoolean();
         } catch (RuntimeException error) {
             addFailure(name, expected, actual, error);
+            return;
         }
+        add(name, expected, actual, passed);
     }
 
     public void add(String name, String expected, String actual, boolean passed) {
@@ -89,7 +97,12 @@ public final class ValidationTable {
     }
 
     private void addIdentity(String name) {
+        ensureNewIdentity(name);
+        names.add(name.trim().toLowerCase(Locale.ROOT));
+    }
+
+    private void ensureNewIdentity(String name) {
         if (name == null || name.isBlank()) throw new IllegalArgumentException("assertion name must not be blank");
-        if (!names.add(name.trim().toLowerCase())) throw new IllegalArgumentException("duplicate assertion: " + name);
+        if (names.contains(name.trim().toLowerCase(Locale.ROOT))) throw new IllegalArgumentException("duplicate assertion: " + name);
     }
 }

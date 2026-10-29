@@ -1,6 +1,6 @@
 var evidenceTableMeasureContext = document.createElement('canvas').getContext('2d'),
   EVIDENCE_STATUS_COLUMN = /(^|\b)(result|status|outcome)(\b|$)/,
-  EVIDENCE_TIME_COLUMN = /(^|\b)(time|duration)(\b|$)/,
+  EVIDENCE_TIME_COLUMN = /(^|\b)(time|timestamp|duration)(\b|$)/,
   EVIDENCE_ATTEMPT_COLUMN = /(^|\b)(attempt|attempts)(\b|$)/;
 function evidenceTableIntrinsicWidth(cell) {
   var value = String(cell && cell.textContent ? cell.textContent : '').replace(/\s+/g, ' ').trim(),
@@ -9,6 +9,8 @@ function evidenceTableIntrinsicWidth(cell) {
     padding = style ? parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
       + parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth) : 16;
   padding = Number.isFinite(padding) ? padding : 16;
+  if (style && style.textTransform === 'uppercase') value = value.toUpperCase();
+  if (style && style.textTransform === 'lowercase') value = value.toLowerCase();
   if (context) context.font = style && style.font ? style.font : '12px sans-serif';
   var measured = context ? context.measureText(value).width : value.length * 7.2;
   return Math.max(measured + padding + 2, 24);
@@ -52,7 +54,7 @@ function evidenceTableAllocateWidths(intrinsic, table, headerWidths, columnKinds
   return widths.map(value => value * 100 / total);
 }
 var ATF_EVIDENCE_TABLE_SELECTOR =
-  'table.helm-evidence-table,' +
+  '.atf-category-detail > table,' +
   'table.atf-ui-action-table,' +
   'table.atf-ui-observation-table,' +
   'table.assertions,' +

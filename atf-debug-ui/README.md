@@ -121,6 +121,18 @@ afara root-ului. Nu se adaugă un modul separat pentru teste: testele automate
 UI de audit Extent rămân în `atf-reporting-tests/src/test/java/atf/ui/tests/extent`;
 `atf-tests` deține doar testul de guvernanță globală; nu conține teste de browser.
 
+### Închiderea conexiunilor deținute
+
+Serverul urmărește socketurile acceptate. Close oprește acceptarea, închide
+conexiunile deținute și apoi așteaptă executorul; un request line sau header
+incomplet nu cere cooperarea clientului pentru terminare. Înregistrarea unei
+conexiuni și oprirea au aceeași limită de sincronizare, iar close este idempotent.
+
+[DebugUiShutdownComponentTest](src/test/java/atf/debugui/DebugUiShutdownComponentTest.java)
+verifică request-uri incomplete, clienți idle și închidere concurentă, folosind
+readiness loopback și un deadline al probei. GET/HEAD, streaming-ul read-only,
+realpath și refuzul traversal-ului păstrează contractele existente.
+
 ### Rulări paralele și memorie
 
 Fiecare sesiune Debug UI este un JVM separat. Launcher-ul aplică fail-fast dacă

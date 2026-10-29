@@ -2469,6 +2469,52 @@ testChanges:
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/layout/EvidenceColumnSizingComponentTest.java
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/layout/EvidenceColumnSizingProbe.java
 
+  - id: QUERY-CONTRACT-SAFETY-24
+    status: VERIFIED
+    base: 7e36b49c67d7a8035bbf4e75c53a812cd4ff3e90
+    expires: 2026-11-12
+    reason: "Preserve query multiplicity and reject contradictory request evidence; associate the selected contract with its exact source without changing report display or layout."
+    proof: 'mvn -B -pl atf-reporting-tests,atf-tests -am "-Dtest=ReportQueryContractComponentTest,MockQueryAssociationComponentTest,ApiReportContractAuditorTest,ReportModelAdaptersTest,QueryFailureReportComponentTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=7e36b49c67d7a8035bbf4e75c53a812cd4ff3e90" "-Dsurefire.failIfNoSpecifiedTests=false" test'
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/api/query/ReportQueryContractComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/api/query/MockQueryAssociationComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/audit/mock/MockReportContractAuditor.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/verdict/QueryFailureReportComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/audit/query/QueryFailureReportProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/query/QueryReportLocators.java
+
+  - id: BOUNDARY-FAILURE-SAFETY-25
+    status: VERIFIED
+    base: 7e36b49c67d7a8035bbf4e75c53a812cd4ff3e90
+    expires: 2026-11-12
+    reason: "Preserve functional failure, refuse invalid callbacks and restore owned contexts without changing report display."
+    proof: 'mvn -B -pl atf-debug-ui,atf-validation,atf-tests -am "-Dtest=ApiDiagnosticIsolationTest,ValidationProtocolTest,NestedConsoleContextIntegrationTest,DebugUiShutdownComponentTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=7e36b49c67d7a8035bbf4e75c53a812cd4ff3e90" "-Dsurefire.failIfNoSpecifiedTests=false" test'
+    paths:
+      - atf-core/src/test/java/atf/core/http/diagnostics/ApiDiagnosticIsolationTest.java
+      - atf-validation/src/test/java/atf/validation/protocol/ValidationProtocolTest.java
+      - atf-console/src/test/java/atf/console/junit/NestedConsoleContextIntegrationTest.java
+      - atf-debug-ui/src/test/java/atf/debugui/DebugUiShutdownComponentTest.java
+
+  - id: REPORT-PUBLISHED-TABLE-AUDIT-26
+    status: VERIFIED
+    base: 7e36b49c67d7a8035bbf4e75c53a812cd4ff3e90
+    expires: 2026-11-28
+    reason: >-
+      Adaugă probe de componentă pentru publicații UI/API/UI+API, inventar exact,
+      valori și verdicte independente, geometrie și controale negative pe toate
+      suprafețele de date, inclusiv rail-ul Fails și antetele tehnice transformate
+      vizual prin CSS. Păstrează alocarea acceptată, limita 240 și cele 12 module.
+    proof: mvn -pl atf-reporting-tests,atf-tests -am "-Dtest=PublishedEvidenceTableComponentTest,EvidenceColumnSizingComponentTest,NarrowEvidenceReadabilityComponentTest,TableViewportBrowserComponentTest,AtfReportFailsThemeTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=7e36b49c67d7a8035bbf4e75c53a812cd4ff3e90" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/layout/PublishedEvidenceTableComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/table/PublishedEvidenceTableFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/table/PublishedEvidenceTableProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/table/PublishedEvidenceTableOracle.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/table/PublishedEvidenceTableMeasurements.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/table/PublishedEvidenceTableLocators.java
+      - atf-reporting-tests/src/test/java/atf/reporting/theme/AtfReportFailsThemeTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/table/PublishedEvidenceTableMutation.java
+
 ```
 
 </details>

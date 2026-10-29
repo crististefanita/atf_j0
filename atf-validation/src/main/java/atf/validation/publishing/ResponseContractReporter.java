@@ -46,26 +46,45 @@ public final class ResponseContractReporter {
                                        boolean warningMode, boolean throwOnFailure) {
         if (request == null || title == null || title.isBlank()) throw new IllegalArgumentException("request/title");
         var validation = request.startValidation(title);
+        Throwable primary = null;
         try {
-            var decision = evaluator.evaluate(contract, response, warningMode);
+            var decision = evaluate(validation, response, contract, warningMode);
             validation.assertions(decision.rows());
             validation.complete(decision.status());
             if (decision.shouldThrow() && throwOnFailure) {
                 throw new ApiValidationException(decision.message());
             }
             return decision;
+        } catch (RuntimeException | Error failure) {
+            primary = failure;
+            throw failure;
+        } finally {
+            close(validation, primary);
+        }
+    }
+
+    private ValidationDecision evaluate(ValidationSink.Scope validation, ApiResponse response,
+                                        ResponseContract contract, boolean warningMode) {
+        try {
+            return evaluator.evaluate(contract, response, warningMode);
         } catch (RuntimeException failure) {
             try {
                 validation.assertions(List.of(new AtfAssertion(
                         "Validation execution", "rule evaluation completes", failure.getMessage(), false,
                         AtfReportStatus.FAIL)));
                 validation.complete(AtfReportStatus.FAIL);
-            } catch (RuntimeException ignored) {
-                // Preserve the functional failure; reporting is best effort at this boundary.
+            } catch (RuntimeException | Error publication) {
+                if (publication != failure) failure.addSuppressed(publication);
             }
             throw failure;
-        } finally {
-            validation.close();
+        }
+    }
+
+    private static void close(ValidationSink.Scope validation, Throwable primary) {
+        try { validation.close(); }
+        catch (RuntimeException | Error closing) {
+            if (primary == null) throw closing;
+            if (primary != closing) primary.addSuppressed(closing);
         }
     }
 }

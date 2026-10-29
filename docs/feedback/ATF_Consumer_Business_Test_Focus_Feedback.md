@@ -8,7 +8,7 @@ fazele lifecycle și rezultatul PASS/FAIL/SKIP sunt contracte ale
 [Reporting](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor).
 
 Restanțele includ cauzalitatea capturii order, identitatea/coșul înainte de checkout, runtime-ul E2E,
-billing-ul observat în suită, tranziția produsului AutoEx și echivalența profilelor.
+billing-ul observat în suită, catalogul inițial Shop, tranziția produsului AutoEx și echivalența profilelor.
 Contractele deja livrate aparțin [AutoEx](../../atf-test-auto-ex/README.md),
 [Shop](../../atf-test-practice-shop/README.md) și
 [ghidului auditului componentelor](../ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
@@ -27,6 +27,7 @@ documentară /10. Nu reprezintă o notă a codului sau un rezultat de test.
 | `CONSUMER-RUNTIME-BOUNDARY-03` | 77 = 31 + 18 + 20 + 8 | achiziție, publicare și lifecycle E2E rămase în contextul Shop |
 | `CONSUMER-SHOP-BILLING-STATE-01` | 71 = 29 + 22 + 14 + 6 | diferență de valoare billing între suită și lansare individuală |
 | `CONSUMER-AUTOEX-PRODUCT-TRANSITION-24` | 70 = 29 + 19 + 17 + 5 | timeout la detaliul produsului după click reușit, observat în suita filtrată |
+| `CONSUMER-SHOP-CATALOG-AVAILABILITY-27` | 65 = 25 + 18 + 17 + 5 | search disponibil, dar primul produs nu devine vizibil în suita filtrată; cauza rămâne de stabilit |
 | `CONSUMER-E2E-PROFILES-01` | 57 = 24 + 10 + 17 + 6 | reducerea repetării live numai după echivalență demonstrată |
 
 ## CONSUMER-SHOP-REQUEST-START-06 — cerere anterioară terminată după Confirm
@@ -167,6 +168,32 @@ criteriul clasei single-flow și nu închide această diferență.
 
 **Închidere:** tranziția este demonstrată cu expected independent în ambele
 lansări, iar eșecul rămâne auditabil; randarea corectă nu închide robustețea journey-ului.
+
+
+## CONSUMER-SHOP-CATALOG-AVAILABILITY-27 — catalog inițial fără produse vizibile
+
+**Prioritate: 65/100** = impact 25 + lacună 18 + lucrabil 17 + documentare 5.
+**Owner:** Shop pentru precondiția catalogului; UI pentru mecanica așteptării native.
+
+| Lansare observată | Rezultat și limită |
+|---|---|
+| `ShopPurchaseE2eTest` prin `ShopE2eSuite` filtrată | navigarea și search-ul devin disponibile; primul `a[data-test^='product-']` nu devine vizibil în deadline-ul existent de 20 s; un HTML păstrează FAIL înaintea achiziției |
+| Același caz individual | PASS cu aceeași configurație și un HTML; nu separă încă indisponibilitatea aplicației, presiunea locală și alte cauze posibile |
+
+- [ ] Reproduceți aceeași clasă individual/prin suită, cu resurse locale izolate;
+      păstrați artifactul FAIL și nu deduceți stabilitate dintr-o reluare verde.
+- [ ] Înregistrați URL-ul, starea documentului, numărul cardurilor și traficul
+      disponibil în fereastra așteptării; fără a atribui timeout-ul serviciului
+      sau codului înainte de dovada cauzei.
+- [ ] Probați local tranziția search vizibil → produse disponibile și refuzul
+      când produsele rămân absente; reutilizați readiness-ul existent la owner,
+      fără creșterea deadline-ului ori reluarea întregului journey.
+- [ ] Păstrați în Extent operația eșuată, durata, cauza și politica de captură;
+      un checkpoint neexecutat nu primește aserțiuni ori verdict PASS fabricate.
+
+**Închidere:** precondiția catalogului este demonstrată în ambele lansări,
+inclusiv prin proba negativă; randarea corectă nu închide disponibilitatea journey-ului.
+
 
 ## CONSUMER-E2E-PROFILES-01 — variantele de evidence și acoperirea business
 

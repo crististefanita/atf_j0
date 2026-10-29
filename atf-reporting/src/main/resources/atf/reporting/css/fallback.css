@@ -68,7 +68,7 @@ h3 {
 }
 .layout {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 280px minmax(0, 1fr);
   gap: 20px;
 }
 aside {
@@ -278,16 +278,25 @@ pre.json-code {
 .fail-list {
   display: grid;
   gap: 8px;
+  container: atf-fail-list / inline-size;
 }
 .fail-row {
   display: grid;
-  grid-template-columns: 64px 220px 1fr;
+  grid-template-columns: 64px minmax(0, 220px) minmax(0, 1fr);
   gap: 12px;
   align-items: center;
   padding: 12px;
   border: 1px solid var(--atf-border);
   color: var(--atf-text);
   text-decoration: none;
+}
+.fail-row > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@container atf-fail-list (max-width: 640px) {
+  .fail-row { grid-template-columns: 64px minmax(0, 1fr); }
+  .fail-row > span:last-child { grid-column: 1 / -1; }
 }
 .empty,
 .contract {

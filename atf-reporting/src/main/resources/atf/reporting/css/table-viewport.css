@@ -31,13 +31,13 @@
     padding-left: 4px !important;
     padding-right: 4px !important;
   }
-  :root .test-content-detail .table.table-sm > thead { display: none !important; }
-  :root .test-content-detail .table.table-sm > tbody { display: block !important; }
-  :root .test-content-detail .table.table-sm > tbody > tr {
+  :root .test-content-detail .table.table-sm:not(:is(${TABLE_VIEWPORTS}) > table) > thead { display: none !important; }
+  :root .test-content-detail .table.table-sm:not(:is(${TABLE_VIEWPORTS}) > table) > tbody { display: block !important; }
+  :root .test-content-detail .table.table-sm:not(:is(${TABLE_VIEWPORTS}) > table) > tbody > tr {
     display: flex !important;
     flex-direction: column !important;
   }
-  :root .test-content-detail .table.table-sm > tbody > tr > td:last-child {
+  :root .test-content-detail .table.table-sm:not(:is(${TABLE_VIEWPORTS}) > table) > tbody > tr > td:last-child {
     display: block !important;
     box-sizing: border-box !important;
     width: 100% !important;

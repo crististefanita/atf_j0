@@ -83,6 +83,26 @@ flowchart LR
 
 </details>
 
+## Fidelitatea contractului query
+
+`ReportQueryParameters` păstrează perechile și numărul aparițiilor. Conversia
+unui model extern citește colecția `values()` înaintea view-ului legacy
+`asMap()`; un accessor defect este refuzat explicit. `asMap()` păstrează numai
+ultima valoare pe nume și este destinat compatibilității, nu validării.
+
+- Potrivirea este un subset cu multiplicitate: `tag=red&tag=blue` cere ambele
+  perechi, iar două apariții identice cer două apariții observate.
+- Parametrii suplimentari și permutările sunt acceptați. Decodarea URI păstrează
+  valorile goale, Unicode și delimitatorii codificați; separatoarele goale sunt ignorate.
+- Auditorul verifică query-ul și fără metadate randate. Un candidat păstrat
+  pentru diagnostic nu devine conform când query-ul lipsește sau este greșit.
+  Alegerea după status nu elimină această încălcare.
+- Contractele fără query păstrează compatibilitatea cu URL-ul absent. Eticheta
+  `key()` este lizibilă; adaptoarele păstrează separat asocierea cu sursa.
+
+Probele sunt în [Reporting Tests](../atf-reporting-tests/README.md#fidelitatea-query-ului-și-asocierea-mock),
+inclusiv proiecția FAIL în Extent și fallback. Acest contract nu schimbă layout-ul raportului.
+
 ## Modelul tipizat
 
 Regula permanentă este:
@@ -1482,7 +1502,9 @@ flowchart LR
 - Închiderea implicită FAIL păstrează verdictul sigur al unui scope incomplet;
   închiderea copiilor este explicită, fără rollback ori retry ascuns în renderer.
 - Consola este best-effort în ambele renderere; eroarea diagnostică nu întrerupe
-  tranziția și nu schimbă verdictul. Erorile reale de publicare își păstrează cauza.
+  tranziția și nu schimbă verdictul. Propagarea erorii de publicare din aceste
+  scope-uri nu închide [limita compozitorului UI](../docs/feedback/ATF_Reporting_Feedback.md#report-evidence-responsibilities-20--delimitarea-protocoalelor-de-publicare),
+  unde un close defect poate înlocui eroarea inițială a publicării.
 - Colecțiile de aserțiuni sunt capturate o singură dată înaintea actualizării
   modelului și recorderului; un element null nu șterge rândurile valide anterioare.
 - Agregatul de rețea ocupă un singur slot semantic, indiferent de înlocuire sau
@@ -1718,7 +1740,8 @@ Indentarea Extent poate lăsa un panou îngust chiar într-o fereastră desktop.
 nu transformă rândurile în carduri la un breakpoint.
 
 Același allocator măsoară antetul, valorile, fontul și padding-ul în Extent și
-fallback. Tabelul ocupă întreaga lățime disponibilă; coloanele tehnice rămân
+fallback, inclusiv majusculele/minusculele aplicate vizual prin CSS.
+Tabelul ocupă întreaga lățime disponibilă; coloanele tehnice rămân
 compacte, iar spațiul se distribuie întâi cererii de conținut nesatisfăcute,
 apoi proporțional coloanelor flexibile.
 
@@ -1727,6 +1750,16 @@ Overview/Category/System. Acestea din urmă își reutilizează containerul, iar
 totalurile numerice rămân compacte; colgroup-urile existente urmează alocarea comună.
 Tabelele de failure adăugate ulterior de runtime primesc aceeași politică,
 inclusiv viewport-ul comun când markup-ul lor inițial nu are un container.
+
+Tabelul scenariilor din Categories primește același viewport; `Status` și
+`Timestamp` sunt coloane tehnice compacte. Adaptarea tabelelor structurale
+`Status/Details` nu se aplică tabelelor de date, inclusiv în panouri înguste.
+Pe ecran îngust, indexul și detaliile Fails încep după bara de navigare vizibilă;
+absența overflow-ului documentului nu dovedește singură această accesibilitate.
+
+În fallback, grila permite panoului de conținut să se restrângă fără a lărgi
+documentul. Cardurile Fails împart mesajele lungi pe rânduri și folosesc lățimea
+containerului pentru a așeza valoarea observată sub identificarea erorii.
 
 | Situație | Prezentare |
 |---|---|
@@ -1772,6 +1805,11 @@ flowchart LR
 - `EvidenceColumnSizingComponentTest` compară geometria cu lățimea fizică
   disponibilă, inclusiv setup, dashboard, colgroup, texte concurente și gutter gol;
   un marker de layout prezent nu certifică singur randarea.
+- `PublishedEvidenceTableComponentTest` verifică publicații UI/API/UI+API în
+  ambele renderere, cu inventar și valori independente, 12/40 de rânduri și
+  proiecțiile Tests/Overview/Categories/Fails. Controalele negative acoperă și
+  suprapunerea navigării peste Fails și ruperea antetelor tehnice pe litere;
+  procentele unei coloane nu sunt oracol estetic.
 
 </details>
 

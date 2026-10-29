@@ -111,6 +111,25 @@ publică statusul calculat și se închide determinist. Consumerul poate adapta
 această evidence către portul reporting pe care îl folosește; `atf-reporting`
 nu importă acest modul și nu primește direct `ValidationDecision`.
 
+### Cauza primară și refuzul înaintea evaluării
+
+`ResponseContractReporter` separă evaluarea, publicarea și închiderea:
+
+- Un FAIL strict păstrează `ApiValidationException`; close-ul defect devine suppressed.
+- Erorile de publicare/completare sunt propagate fără repetarea scrierii în scope.
+- O eroare runtime de evaluare publică o singură dovadă FAIL, dacă sink-ul permite;
+  erorile secundare rămân inspectabile și nu produc self-suppression.
+
+`ValidationTable.check(...)` verifică lifecycle-ul, identitatea și callback-ul
+înainte să execute predicatul. După publicare sau pentru o identitate invalidă,
+numărul evaluărilor este zero.
+
+- Un predicat eligibil care aruncă se execută o dată și produce dovada FAIL;
+  comparația integrală precede redacția și preview-ul 240.
+
+Probele de port sunt în [ValidationProtocolTest](src/test/java/atf/validation/protocol/ValidationProtocolTest.java),
+fără renderer ori fixture-uri business.
+
 Și testele UI folosesc același contract de assertions:
 
 ```text

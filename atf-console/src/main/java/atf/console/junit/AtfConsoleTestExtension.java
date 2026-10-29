@@ -20,7 +20,8 @@ import java.util.concurrent.ConcurrentMap;
 
 /** Adds the configured ATF console lifecycle to directly executed JUnit tests. */
 public final class AtfConsoleTestExtension implements BeforeEachCallback, TestWatcher {
-    private final ConcurrentMap<String, AtfConsoleTestLifecycle> activeTests =
+    private record Invocation(AtfConsoleTestLifecycle lifecycle, AtfConsoleTestLifecycle previous) { }
+    private final ConcurrentMap<String, Invocation> activeTests =
             new ConcurrentHashMap<>();
 
     @Override
@@ -34,7 +35,7 @@ public final class AtfConsoleTestExtension implements BeforeEachCallback, TestWa
                 context.getRequiredTestClass().getSimpleName(),
                 context.getRequiredTestMethod().getName());
         lifecycle.start();
-        activeTests.put(context.getUniqueId(), lifecycle);
+        activeTests.put(context.getUniqueId(), new Invocation(lifecycle, AtfConsoleTestContext.current()));
         AtfConsoleTestContext.install(lifecycle);
     }
 
@@ -96,8 +97,9 @@ public final class AtfConsoleTestExtension implements BeforeEachCallback, TestWa
     @Override public void testAborted(ExtensionContext context, Throwable cause) { complete(context, AtfReportStatus.SKIP); }
 
     private void complete(ExtensionContext context, AtfReportStatus status) {
-        var lifecycle = activeTests.remove(context.getUniqueId());
-        if (lifecycle != null) lifecycle.complete(status);
-        AtfConsoleTestContext.clear();
+        var invocation = activeTests.remove(context.getUniqueId());
+        if (invocation == null) return;
+        try { invocation.lifecycle().complete(status); }
+        finally { AtfConsoleTestContext.restore(invocation.previous()); }
     }
 }

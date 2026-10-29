@@ -168,6 +168,11 @@ flowchart LR
 - fără match se livrează fallback-ul, nu un status de succes inventat.
 </details>
 
+`MockRoute.key()` este o etichetă de diagnostic, nu un identificator unic de
+catalog. Consumerul care adaptează ruta păstrează separat sursa selectată;
+adaptorul Reporting Tests folosește [asocierea directă](../atf-reporting-tests/README.md#fidelitatea-query-ului-și-asocierea-mock),
+fără reasociere prin string ori schimbarea regulilor Mock.
+
 | Dimensiune | Regulă | Owner |
 |---|---|---|
 | method | verb normalizat uppercase | `HttpMethod` + `MockRoute` |

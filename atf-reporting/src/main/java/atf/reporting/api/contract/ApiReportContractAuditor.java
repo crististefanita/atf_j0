@@ -46,7 +46,7 @@ public final class ApiReportContractAuditor {
         ApiReportRouteContract expected = resolution.route().orElseThrow();
         validation = validation.merge(requestBodyValidator.validate(expected, input));
         if (!input.requestFields().isEmpty()) {
-            validation = validation.merge(requestMetadataValidator.validate(expected, input));
+            validation = validation.merge(requestMetadataValidator.validateMetadata(expected, input));
         }
         if (!input.responseFields().isEmpty()) {
             validation = validation.merge(responseMetadataValidator.validate(expected, input));

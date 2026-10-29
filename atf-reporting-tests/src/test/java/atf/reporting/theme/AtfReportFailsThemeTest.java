@@ -25,8 +25,11 @@ class AtfReportFailsThemeTest {
                 () -> assertTrue(css.contains(".exception-view.atf-fails-view .test-list{flex:0 0 32%!important")),
                 () -> assertTrue(css.contains(".exception-view.atf-fails-view .test-content{display:block!important;position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:auto!important;max-width:none!important;height:auto!important;flex:1 1 auto!important"),
                         "Fails detail must remain in the flex row instead of inheriting the vendor fixed off-canvas position"),
-                () -> assertTrue(css.contains("@media(max-width:760px){#atf-fails-view.exception-view.atf-fails-view:not(.hide){left:0!important;right:0!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important;"),
-                        "Fails view must remain inside the viewport on narrow reports"),
+                () -> assertTrue(css.contains("@media(max-width:760px){#atf-fails-view.exception-view.atf-fails-view:not(.hide){"
+                                + "left:var(--atf-narrow-nav-inset)!important;right:auto!important;"
+                                + "width:calc(100% - var(--atf-narrow-nav-inset))!important;"
+                                + "max-width:calc(100% - var(--atf-narrow-nav-inset))!important;box-sizing:border-box!important;"),
+                        "Fails view must begin after the visible navigation rail on narrow reports"),
                 () -> assertTrue(css.contains(".atf-failure-index{margin:28px!important")),
                 () -> assertTrue(css.contains(".atf-failure-index-row")),
                 () -> assertTrue(css.contains(".atf-failure-open")),

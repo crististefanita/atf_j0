@@ -165,20 +165,32 @@ flowchart LR
 
 - **Baseline**: manifestul conține numai fișiere aprobate și căi relative.
 - **Staging**: build-ul și testele rulează separat de checkout-ul live.
-- **Guard**: orice drift concurent oprește promovarea înainte de primul fișier.
-- **Sync**: se copiază atomic numai sursele aprobate; nu există overwrite, reset sau ștergere implicită.
+- **Guard**: drift-ul prezent la prevalidarea baseline-ului oprește lotul înainte de primul fișier; destinația este revalidată și la fiecare copiere.
+- **Sync**: înlocuirea este atomică per fișier aprobat; lotul nu este tranzacțional și nu implementează rollback sau ștergere implicită.
 
 Protocolul de mai sus are și un mecanism executabil, nu doar o convenție
 operațională. Înainte de editare, composition root-ul capturează fișierele
 aprobate prin `AtfPromotionManifest.capture(liveRoot, approvedFiles)` și poate
 scrie manifestul JSON pentru auditul procesului. După gate-ul din staging,
 `AtfPromotionGuard.promote(stagingRoot, liveRoot, baseline)` verifică drift-ul
-paralel și copiază atomic numai fișierele din manifest. O modificare sau o
-creare live concurentă oprește promovarea înainte de primul fișier; o cale
-absentă în baseline este singura aprobare explicită pentru crearea unui fișier
+paralel și înlocuiește atomic fiecare fișier din manifest. O modificare sau
+creare detectată la verificarea inițială oprește lotul înainte de primul fișier;
+o cale absentă în baseline este singura aprobare explicită pentru crearea unui fișier
 nou. Nu se face overwrite neaprobat, reset sau ștergere implicită. Manifestul
 stochează numai căi relative, prezență, dimensiuni și digest-uri, nu căi locale
 absolute și nu este inclus în raportul HTML.
+
+Operatorul prevalidează toate sursele aprobate înainte de apel: existență,
+eligibilitate și căi reconciliate cu manifestul. Guard-ul curent verifică
+sursa în bucla de copiere; [prevalidarea completă](feedback/ATF_Core_Promotion_Feedback.md)
+rămâne deschisă, iar o eroare ulterioară poate lăsa un lot parțial promovat.
+
+- Verificați și recitiți starea efectivă după orice eroare; nu interpretați
+  excepția ca dovadă că niciun fișier nu s-a schimbat.
+- Păstrați digest-urile și lista aprobată pentru reconciliere; orice reluare
+  necesită un baseline potrivit stării curente, fără overwrite implicit.
+- Lock-ul coordonează promotorii care îl folosesc; revalidarea per fișier nu
+  transformă editorii externi în participanți la o tranzacție.
 
 Ordinea dovezilor este: cod live → teste → artifact HTML → interacțiune TAB MCP
 → documentație. Dacă două surse se contrazic, nu se declară succesul până când

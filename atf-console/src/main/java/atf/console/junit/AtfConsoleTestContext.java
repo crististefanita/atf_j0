@@ -17,6 +17,9 @@ public final class AtfConsoleTestContext {
 
     static void install(AtfConsoleTestLifecycle lifecycle) { CURRENT.set(lifecycle); }
     static void clear() { CURRENT.remove(); }
+    static void restore(AtfConsoleTestLifecycle previous) {
+        if (previous == null) clear(); else install(previous);
+    }
     public static AtfConsoleTestLifecycle current() { return CURRENT.get(); }
 
     /** Reuses the active test's policy and sink, or falls back to configured process stdout. */
@@ -40,6 +43,7 @@ public final class AtfConsoleTestContext {
     private static void executeDynamic(Class<?> owner, String name, Executable body) throws Throwable {
         var lifecycle = AtfConsoleTestExtension.lifecycle(owner, owner.getSimpleName(), name);
         lifecycle.start();
+        var previous = current();
         install(lifecycle);
         try {
             body.execute();
@@ -51,7 +55,7 @@ public final class AtfConsoleTestContext {
             lifecycle.complete(AtfReportStatus.FAIL);
             throw failure;
         } finally {
-            clear();
+            restore(previous);
         }
     }
 

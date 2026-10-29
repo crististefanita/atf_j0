@@ -559,8 +559,8 @@ negativ pentru input creat de caller protejează acest boundary.
 Completitudinea jurnalului raw și livrarea către subscriberi au limite distincte:
 
 - Excepția unui subscriber oprește notificările următoare; observația rămâne retained.
-- `capture(...)` propagă excepția, iar hook-ul browser o tratează diagnostic;
-  izolarea notificărilor are criteriu în
+- `capture(...)` propagă excepția cu sursa inițială; hook-ul browser o prinde
+  fără diagnostic de livrare distinct. Izolarea notificărilor are criteriu în
   [feedback-ul UI](../docs/feedback/ATF_UI_Backend_Guided_Recovery_Feedback.md#ui-observer-delivery-02--izolarea-notificărilor-de-captură).
 
 - Body-urile capturate nu folosesc `trim()`; spațiile marginale și payload-ul

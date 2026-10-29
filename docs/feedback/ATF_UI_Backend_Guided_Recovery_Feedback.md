@@ -31,13 +31,6 @@ documentară /10. Nu reprezintă o notă a codului sau un procent de reproducere
 | `UI-NATIVE-SELECT-DETACH-01` | 74 = 31 + 20 + 16 + 7 | selectul înlocuit poate continua numai cu rezultat confirmat și activare unică |
 | `UI-OBSERVER-DELIVERY-02` | 69 = 28 + 18 + 16 + 7 | primul subscriber eșuat împiedică notificarea celui sănătos |
 
-## UI-LOCATOR-READINESS-01 — așteptare înaintea activării unice
-
-Contractul nativ este la [UI](../../atf-ui/README.md#așteptare-nativă-și-unicitate).
-Restanța identității/coșului aparține exclusiv
-[feedback-ului consumerilor](ATF_Consumer_Business_Test_Focus_Feedback.md#ui-locator-readiness-01--identitate-și-coș-înaintea-checkout-ului),
-unde sunt criteriile business și matricea individual/suită.
-
 ## UI-NATIVE-SELECT-DETACH-01 — continuitate după înlocuirea selectului
 
 **Owner:** integrarea Playwright din `atf-ui`; prioritate **74/100**.
@@ -110,9 +103,11 @@ execută un fetch 200 și citește rezultatele:
 | Browser | fetch 200 terminat normal |
 | Journal raw | retained=1, dropped=0, complete=true |
 | Subscriber sănătos, înscris după cel eșuat | zero notificări |
+| Subscriber sănătos, înscris înaintea celui eșuat | o notificare; dependența de ordine rămâne demonstrată și prin `capture(UiNetworkObservation)` |
 
-`subscribers.forEach(...)` se oprește la prima eroare;
-`observeFinished()` tratează acea eroare ca diagnostic browser.
+`subscribers.forEach(...)` se oprește la prima eroare. `capture(...)` păstrează
+cauza în excepția propagată, dar `observeFinished()` o prinde fără publicarea
+unui diagnostic de livrare distinct; retenția raw rămâne completă.
 
 Contorii raw descriu corect retenția; problema este livrarea către adaptoare.
 Proba existentă pentru subscriber eșuat verifică păstrarea observației, fără
@@ -134,8 +129,11 @@ unuia are diagnostic explicit și nu schimbă verdictul acțiunii UI.
 
 ## Contracte păstrate și criteriu de închidere
 
-Auditul componentelor are deja evaluare JUnit unică și pas colapsabil standard,
-conform [ghidului de testare](../ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
+- Auditul componentelor are evaluare JUnit unică și pas colapsabil standard,
+  conform [ghidului de testare](../ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
+- Așteptarea nativă și activarea unică sunt la [UI](../../atf-ui/README.md#așteptare-nativă-și-unicitate);
+  precondiția de identitate/coș rămâne la [consumer](ATF_Consumer_Business_Test_Focus_Feedback.md#ui-locator-readiness-01--identitate-și-coș-înaintea-checkout-ului).
+
 Bugetul redactat de 240, paritatea rendererelor și lizibilitatea dovezilor sunt
 contracte [Reporting](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor),
 inclusiv în [panouri înguste](../../atf-reporting/README.md#lizibilitatea-dovezilor-în-panouri-înguste).

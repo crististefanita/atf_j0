@@ -6,9 +6,10 @@ README-ului ownerului; controalele verificate aparțin baseline-ului testelor.
 ## Pe scurt
 
 - UI livrează politica BE read-only; rămân proiecția structurată, selectul înlocuit, izolarea subscriberilor și geometria iframe.
-- Reporting are lifecycle-ul și timing-ul la [owner](../../atf-reporting/README.md#atomicitatea-tranzițiilor-de-scope); rămân fidelitatea query-ului și delimitarea publisherului.
+- Reporting are lifecycle-ul, timing-ul și [fidelitatea query-ului](../../atf-reporting/README.md#fidelitatea-contractului-query) la owner; rămân cauza primară și delimitarea publisherului UI.
 - Consumerii au deschise cauzalitatea capturii order, identitatea/coșul la checkout, tranziția produsului AutoEx, runtime-ul E2E și billing-ul.
-- Core, Validation, Console, Mock și Debug UI au [criterii reproduse la boundary](ATF_Code_Maintenance_Feedback.md), separate de afirmațiile editoriale.
+- Core păstrează diagnosticul izolat; [prevalidarea tuturor surselor promovării](ATF_Core_Promotion_Feedback.md) rămâne deschisă.
+- Validation, Console, Mock și Debug UI au contractele de boundary și probele la owner; registrul păstrează numai lacunele deschise.
 
 În incrementul curent păstrăm cele 12 module și îmbunătățim codul existent:
 responsabilități, stare, erori, duplicări și documentație. Flow-urile E2E Shop și
@@ -26,9 +27,9 @@ Un document cu mai multe gap-uri primește scorul celui mai urgent, nu suma lor.
 
 | Ordine | Feedback / owner | Scor /100 | Criteriul care decide ordinea |
 |---:|---|---:|---|
-| 1 | [Reporting — audit query și publicare](ATF_Reporting_Feedback.md) | **83** = 35 + 24 + 17 + 7 | query incomplet acceptat (83), publisher (64) |
-| 2 | [Consumer — dovezi E2E și runtime](ATF_Consumer_Business_Test_Focus_Feedback.md) | **82** = 34 + 24 + 17 + 7 | începutul cererii order (82), identitate/coș (79), runtime Shop (77), billing (71), tranziție produs AutoEx (70), profile (57) |
-| 3 | [Boundary-uri reutilizabile — cauză, scope și resurse](ATF_Code_Maintenance_Feedback.md) | **81** = 33 + 23 + 18 + 7 | diagnostic Core (81), cauză Validation (80), identitate query (79), context Console (77), close Debug (73), refuz one-shot (72) |
+| 1 | [Consumer — dovezi E2E și runtime](ATF_Consumer_Business_Test_Focus_Feedback.md) | **82** = 34 + 24 + 17 + 7 | începutul cererii order (82), identitate/coș (79), runtime Shop (77), billing (71), tranziție produs AutoEx (70), catalog Shop (65), profile (57) |
+| 2 | [Reporting — cauză și publicare](ATF_Reporting_Feedback.md) | **81** = 33 + 24 + 17 + 7 | close maschează eroarea publicării; separarea protocoalelor păstrează aceeași cauză și fațadă |
+| 3 | [Core — prevalidarea promovării](ATF_Core_Promotion_Feedback.md) | **80** = 32 + 23 + 18 + 7 | sursa staging lipsă ulterior poate lăsa primul fișier promovat |
 | 4 | [UI — sincronizare și recuperare BE](ATF_UI_Backend_Guided_Recovery_Feedback.md) | **78** = 33 + 22 + 16 + 7 | proiecție typed (78), select înlocuit (74), livrare către subscriberi (69) |
 | 5 | [UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ |
 
@@ -42,19 +43,19 @@ probă declarată la owner. Evaluarea calității folosește separat
 O notă editorială mare nu compensează un false PASS, o cauză pierdută sau un
 scope contaminat; reevaluarea urmează probei și sincronizării live.
 
-| Modul | Criteriul care precede reevaluarea | Owner al feedback-ului |
+| Modul | Contract demonstrat sau criteriu rămas | Owner |
 |---|---|---|
-| Core | diagnosticul defect nu schimbă dispatch-ul, rezultatul sau snapshot-ul | [izolarea diagnosticului](ATF_Code_Maintenance_Feedback.md#core-diagnostic-isolation-01--diagnosticul-nu-înlocuiește-execuția) |
-| Mock | query-ul și constrângerile distincte nu se reasociază printr-o etichetă ambiguă | [identitate structurată](ATF_Code_Maintenance_Feedback.md#api-query-identity-01--identitate-structurată-separată-de-eticheta-afișată) |
-| Validation | cauza inițială supraviețuiește close-ului; refuzul one-shot precede callback-ul | [cauza primară](ATF_Code_Maintenance_Feedback.md#validation-primary-cause-01--evaluare-publicare-și-închidere-distincte) și [refuzul](ATF_Code_Maintenance_Feedback.md#validation-one-shot-01--refuz-înaintea-callback-ului) |
-| Console | copilul restaurează contextul/sink-ul părintelui la succes, FAIL și SKIP | [scope imbricat](ATF_Code_Maintenance_Feedback.md#console-nested-scope-01--restaurarea-contextului-exterior) |
-| Reporting | auditorul refuză query-ul greșit; tabelele și publisherul păstrează semantica | [criterii Reporting](ATF_Reporting_Feedback.md) |
+| Core | diagnosticul este izolat; prevalidarea întregului lot rămâne deschisă | [criteriul promovării](ATF_Core_Promotion_Feedback.md) și [diagnosticul](../../atf-core/README.md#izolarea-diagnosticului-de-execuție) |
+| Mock | query-ul și constrângerile distincte nu se reasociază printr-o etichetă ambiguă | [asocierea exactă în adaptor](../../atf-reporting-tests/README.md#fidelitatea-query-ului-și-asocierea-mock) |
+| Validation | cauza inițială supraviețuiește close-ului; refuzul one-shot precede callback-ul | [cauza și protocolul](../../atf-validation/README.md#cauza-primară-și-refuzul-înaintea-evaluării) |
+| Console | copilul restaurează contextul/sink-ul părintelui la succes, FAIL și SKIP | [scope imbricat](../../atf-console/README.md#restaurarea-contextelor-imbricate) |
+| Reporting | query-ul greșit este refuzat; cauza primară și delimitarea publisherului UI rămân deschise | [criteriul Reporting](ATF_Reporting_Feedback.md) |
 | UI | livrare izolată, identitate de captură și activare unică, fără replay nesigur | [sincronizare](ATF_UI_Backend_Guided_Recovery_Feedback.md) și [geometrie](ATF_UI_Browser_Geometry_Feedback.md) |
-| Debug UI | close se termină bounded și cu request incomplet; rămâne read-only loopback | [shutdown](ATF_Code_Maintenance_Feedback.md#debug-bounded-close-01--închidere-cu-client-incomplet) |
+| Debug UI | close se termină bounded și cu request incomplet; rămâne read-only loopback | [shutdown](../../atf-debug-ui/README.md#închiderea-conexiunilor-deținute) |
 | Shop | order cauzal, billing cu expected independent și runtime separat de wiring JUnit | [criterii consumer](ATF_Consumer_Business_Test_Focus_Feedback.md) |
 | AutoEx | identitate/coș verificate după înregistrare, înaintea mutației checkout | [precondiția business](ATF_Consumer_Business_Test_Focus_Feedback.md#ui-locator-readiness-01--identitate-și-coș-înaintea-checkout-ului) |
-| Reporting Tests | oracole independente pentru query, reasociere și randare; probele greșite sunt refuzate | [acceptanță Reporting Tests](ATF_Reporting_Feedback.md#acceptanță-pentru-reevaluarea-reporting-și-reporting-tests) |
-| Test Kit | revalidarea protocolului JUnit și a binding-ului; reutilizare neutră numai după două utilizări reale | [limita reutilizării](ATF_Code_Maintenance_Feedback.md#reutilizare-și-finalizare) |
+| Reporting Tests | oracole independente pentru query, reasociere și randare; probele greșite sunt refuzate | [contractele și probele](../../atf-reporting-tests/README.md#fidelitatea-query-ului-și-asocierea-mock) |
+| Test Kit | revalidarea protocolului JUnit și a binding-ului; reutilizare neutră numai după două utilizări reale | [limita reutilizării](../../atf-test-kit/README.md) |
 | ATF Tests | păstrarea gate-urilor și a probelor lor negative; nicio relaxare pentru lucrările de mai sus | [guvernanța ownerului](../../atf-tests/README.md) |
 
 Kit și guvernanța nu primesc defecte inventate pentru a completa tabelul.

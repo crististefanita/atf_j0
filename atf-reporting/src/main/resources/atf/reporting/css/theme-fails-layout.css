@@ -34,10 +34,10 @@
 }
 @media(max-width: 760px) {
   #atf-fails-view.exception-view.atf-fails-view:not(.hide) {
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
+    left: var(--atf-narrow-nav-inset) !important;
+    right: auto !important;
+    width: calc(100% - var(--atf-narrow-nav-inset)) !important;
+    max-width: calc(100% - var(--atf-narrow-nav-inset)) !important;
     box-sizing: border-box !important;
     flex-direction: column !important;
     overflow: auto !important;

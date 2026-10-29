@@ -12,6 +12,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -25,7 +29,8 @@ public final class DebugUiServer implements AutoCloseable {
     private final ServerSocket serverSocket;
     private final ExecutorService executor;
     private final java.net.URI baseUri;
-    private volatile boolean closed;
+    private final AtomicBoolean closed = new AtomicBoolean();
+    private final Set<Socket> clients = ConcurrentHashMap.newKeySet();
 
     private DebugUiServer(Path rootDirectory, ServerSocket serverSocket, ExecutorService executor) {
         this.rootDirectory = rootDirectory;
@@ -69,19 +74,27 @@ public final class DebugUiServer implements AutoCloseable {
 
     @Override
     public void close() {
-        if (closed) return;
-        closed = true;
-        try { serverSocket.close(); } catch (IOException ignored) { }
+        if (!closed.compareAndSet(false, true)) return;
+        closeSocket(serverSocket);
+        synchronized (clients) { clients.forEach(DebugUiServer::closeSocket); }
         executor.close();
     }
 
     private void acceptLoop() {
-        while (!closed) {
+        while (!closed.get()) {
             try {
                 Socket socket = serverSocket.accept();
-                executor.submit(() -> handle(socket));
+                synchronized (clients) {
+                    if (closed.get()) { closeSocket(socket); continue; }
+                    clients.add(socket);
+                }
+                try { executor.submit(() -> handle(socket)); }
+                catch (RejectedExecutionException stopping) {
+                    clients.remove(socket); closeSocket(socket);
+                    if (!closed.get()) throw stopping;
+                }
             } catch (IOException error) {
-                if (!closed) throw new IllegalStateException("ATF Debug UI accept loop failed", error);
+                if (!closed.get()) throw new IllegalStateException("ATF Debug UI accept loop failed", error);
             }
         }
     }
@@ -124,7 +137,13 @@ public final class DebugUiServer implements AutoCloseable {
             output.flush();
         } catch (Exception ignored) {
             // A debug tab may be closed while a response is being streamed.
+        } finally {
+            clients.remove(socket);
         }
+    }
+
+    private static void closeSocket(java.io.Closeable socket) {
+        try { socket.close(); } catch (IOException ignored) { }
     }
 
     private static void respond(OutputStream output, int status, String reason,

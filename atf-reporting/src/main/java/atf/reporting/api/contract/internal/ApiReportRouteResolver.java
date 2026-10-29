@@ -52,12 +52,13 @@ public final class ApiReportRouteResolver {
                             + " has no response contract in the configured catalog")));
         }
         ApiReportRouteContract expected = route.get();
+        ValidationResult queryValidation = ApiReportRequestMetadataValidator.validateQuery(expected, query);
         if (actualStatus != expected.status()) {
-            return new Resolution(route, ValidationResult.ofViolations(List.of(
+            return new Resolution(route, queryValidation.merge(ValidationResult.ofViolations(List.of(
                     expected.key() + " expected HTTP " + expected.status()
-                            + " from the configured catalog but report rendered " + actualStatus)));
+                            + " from the configured catalog but report rendered " + actualStatus))));
         }
-        return new Resolution(route, ValidationResult.empty());
+        return new Resolution(route, queryValidation);
     }
 
     private static Signature signature(String title, String requestUrl) {

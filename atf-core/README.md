@@ -299,11 +299,34 @@ live root + approved relative files
   → verificare drift + copiere atomică numai a fișierelor aprobate
 ```
 
-Guard-ul eșuează înainte de prima copiere dacă live-ul s-a schimbat paralel,
-folosește un lock extern per rădăcină pentru promotori cooperanți, păstrează
-sursele din staging și nu implementează ștergeri implicite. Un manifest poate fi
-scris ca JSON portabil pentru auditul procesului, însă nu este evidence de
-raport și nu se sincronizează ca output generat.
+Guard-ul verifică întregul baseline live înaintea primei copieri și revalidează
+destinația înaintea fiecărui fișier. Lock-ul extern per rădăcină coordonează
+promotorii cooperanți; sursele staging rămân păstrate, fără ștergeri implicite.
+
+- Atomicitatea privește înlocuirea unui fișier, nu întregul lot.
+- Eligibilitatea surselor staging se verifică pe rând; o sursă lipsă ulterior
+  poate lăsa promovări anterioare efectuate. Prevalidarea completă are
+  [criteriu deschis](../docs/feedback/ATF_Core_Promotion_Feedback.md#core-promotion-preflight-26--surse-eligibile-înaintea-primei-scrieri).
+- Până la închiderea criteriului, operatorul verifică toate sursele înainte de
+  apel și reconciliază starea după orice eroare; nu reia orbește lotul parțial.
+- Manifestul JSON portabil este audit al procesului, fără evidence în HTML
+  sau sincronizare ca output generat.
+
+## Izolarea diagnosticului de execuție
+
+`ApiExecutor` deține câte un `AtfConsoleDiagnostics` per invocare. Un
+`RuntimeException` al sink-ului la START, DETAIL, CODE sau COMPLETE nu oprește
+dispatch-ul și nu înlocuiește rezultatul. La eroare funcțională, cauzele
+diagnostice distincte sunt atașate ca suppressed aceleiași excepții cu snapshot;
+nu se republică prin sink-ul defect și nu se folosește stdout de rezervă.
+
+Politica este best-effort pentru erori runtime ale diagnosticului. `Error`
+rămâne fatal; nu este convertit în succes.
+
+- Timeout-ul, anularea și retry-ul păstrează deadline-ul, încercările și proveniența execuției.
+
+[ApiDiagnosticIsolationTest](src/test/java/atf/core/http/diagnostics/ApiDiagnosticIsolationTest.java)
+probează aceste limite prin portul public, fără Console sau Reporting în producție.
 
 ## Istoric la eroare terminală
 

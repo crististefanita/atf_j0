@@ -9,6 +9,7 @@ import atf.reporting.api.contract.ApiReportRouteContract;
 import atf.ui.tests.extent.support.audit.api.ApiJsonEvidenceAuditor;
 
 import java.util.List;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -22,14 +23,17 @@ import java.util.Optional;
  * library, while preserving the current UI audit flow.</p>
  */
 public final class MockReportContractAuditor {
-    private final AtfMockConfiguration mock;
+    private final Map<ApiReportRouteContract, MockRoute> sourceRoutes = new IdentityHashMap<>();
     private final ApiReportContractAuditor delegate;
 
     public MockReportContractAuditor(AtfMockConfiguration mock) {
-        this.mock = Objects.requireNonNull(mock, "mock");
-        ApiReportContractCatalog catalog = () -> mock.routes().stream()
-                .map(MockReportContractAuditor::toContract)
-                .toList();
+        List<ApiReportRouteContract> contracts = Objects.requireNonNull(mock, "mock").routes().stream()
+                .map(route -> {
+                    var contract = toContract(route);
+                    sourceRoutes.put(contract, route);
+                    return contract;
+                }).toList();
+        ApiReportContractCatalog catalog = () -> contracts;
         this.delegate = new ApiReportContractAuditor(catalog);
     }
 
@@ -53,9 +57,8 @@ public final class MockReportContractAuditor {
                 json.requestBody(), json.responseBody(), json.violations(),
                 safeRendered.requestFields(), safeRendered.responseFields(), safeRendered.executionFields(),
                 json.requestAvailability(), json.responseAvailability()));
-        Optional<MockRoute> route = result.route().flatMap(contract -> mock.routes().stream()
-                .filter(candidate -> candidate.key().equals(contract.key()))
-                .findFirst());
+        Optional<MockRoute> route = result.route().map(contract -> Objects.requireNonNull(sourceRoutes.get(contract),
+                "Resolved contract has no source route"));
         return new Result(requestTitle, route, result.violations());
     }
 
