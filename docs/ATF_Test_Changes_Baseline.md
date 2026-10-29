@@ -2586,6 +2586,20 @@ testChanges:
       - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/purchase/AutoExCheckoutUiGateComponentTest.java
       - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/AutoExPurchaseTraceStepTest.java
 
+  - id: REPORT-UI-PUBLICATION-CAUSE-32
+    status: VERIFIED
+    base: fce4b045a04b01dee020e7cf0e283e50d805d808
+    expires: 2026-11-28
+    reason: >-
+      Injectează separat erori de body, complete și close în porturile publice,
+      inclusiv aceeași instanță și Error, fără repetarea publicării.
+      Verifică și independent identitatea request-ului live, cu probe Shop
+      guest/autentificat și adaptoare Page/inspector, fără replay ori timeout mai mare.
+    proof: mvn -pl atf-ui,atf-reporting-tests,atf-test-practice-shop,atf-test-auto-ex,atf-tests -am "-Dtest=UiPublicationFailureComponentTest,UiNetworkRequestIdentityComponentTest,ShopOrderRequestStartComponentTest,AutoExRuntimeBoundaryComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=fce4b045a04b01dee020e7cf0e283e50d805d808" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/publication/UiPublicationFailureComponentTest.java
+      - atf-ui/src/test/java/atf/ui/network/UiNetworkRequestIdentityComponentTest.java
+
 ```
 
 </details>

@@ -312,6 +312,9 @@ promotorii cooperanți; sursele staging rămân păstrate, fără ștergeri impl
   efectivă înainte de reluare. Preflight-ul nu promite o tranzacție pentru lot.
 - `AtfPromotionPreflightTest` probează refuzul înaintea oricărei scrieri,
   crearea concurentă și promovarea exclusiv a fișierelor aprobate.
+- Un părinte al destinației devenit fișier după captură nu apare ca drift al
+  intrării absente; eligibilitatea lui este descoperită în copiere. Proba și
+  hardening-ul propus sunt în [feedback-ul destinației](../docs/feedback/ATF_Core_Promotion_Feedback.md#core-promotion-destination-33--părinte-neeligibil-înaintea-execuției).
 - Manifestul JSON portabil este audit al procesului, fără evidence în HTML
   sau sincronizare ca output generat.
 

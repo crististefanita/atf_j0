@@ -6,7 +6,6 @@ import atf.reporting.contract.AtfGherkinKeyword;
 import atf.reporting.contract.AtfReportPorts;
 import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.model.ReportExecutionEvidence;
-import atf.reporting.api.ReportRequest;
 import atf.reporting.api.evidence.ApiExchangeEvidence;
 import atf.reporting.evidence.ReportScreenshotPolicy;
 import atf.reporting.evidence.profile.ReportEvidenceFlowMode;
@@ -38,6 +37,7 @@ public final class UiEvidencePublisher {
     private final AtfReportPorts.Phase phase;
     private final ReportScreenshotPolicy screenshotPolicy;
     private final ReportUiActionDetailsMode detailsMode;
+    private final ApiEvidencePublisher apiEvidence = new ApiEvidencePublisher();
 
     UiEvidencePublisher(AtfReportPorts.Phase phase) {
         this(phase, ReportScreenshotPolicy.EACH_CHECKPOINT);
@@ -59,14 +59,12 @@ public final class UiEvidencePublisher {
                        AtfReportStatus status) {
         String stepTitle = stepTitle(keyword, title);
         var request = phase.startRequest(stepTitle, "", "");
-        try {
+        publishScope(() -> {
             request.detail(AtfReportEvidenceKeys.REQUEST_ACTION, stepTitle);
             detailTarget(request, target);
             request.detail(AtfReportEvidenceKeys.OUTCOME_TYPE, AtfReportEvidenceKeys.ARTIFACT_PUBLICATION);
             request.complete(defaultStatus(status, AtfReportStatus.PASS));
-        } finally {
-            request.close();
-        }
+        }, request::close);
     }
 
     /**
@@ -94,10 +92,11 @@ public final class UiEvidencePublisher {
                       UiApiValidationEvidence apiValidation,
                       ReportScreenshot screenshot,
                       AtfReportStatus status) {
-        var effectiveStatus = new ReportStatusAggregator().resolve(defaultStatus(status, AtfReportStatus.PASS), assertions);
+        var initialStatus = new ReportStatusAggregator().resolve(defaultStatus(status, AtfReportStatus.PASS), assertions);
         String stepTitle = stepTitle(keyword, title);
         var request = phase.startRequest(stepTitle, "", "");
-        try {
+        publishScope(() -> {
+            var effectiveStatus = initialStatus;
             request.detail(AtfReportEvidenceKeys.REQUEST_ACTION, stepTitle);
             detailTarget(request, target);
             request.detail(AtfReportEvidenceKeys.EVIDENCE_TYPE, AtfReportEvidenceKeys.REPORT_SETUP);
@@ -120,17 +119,13 @@ public final class UiEvidencePublisher {
             if (!apiValidation.isEmpty()) {
                 effectiveStatus = AtfReportStatus.worst(effectiveStatus, apiValidation.status());
                 var validation = request.startValidation(API_VALIDATION);
-                try {
-                    publishApiEvidence(validation, apiValidation);
+                publishScope(() -> {
+                    apiEvidence.publish(validation, apiValidation);
                     validation.complete(apiValidation.status());
-                } finally {
-                    validation.close();
-                }
+                }, validation::close);
             }
             request.complete(effectiveStatus);
-        } finally {
-            request.close();
-        }
+        }, request::close);
     }
 
     void publishAction(String keyword, String title, String target, String base64Png,
@@ -148,7 +143,7 @@ public final class UiEvidencePublisher {
                        ReportScreenshotPolicy.CapturePoint capturePoint) {
         String stepTitle = stepTitle(keyword, title);
         var request = phase.startRequest(stepTitle, "", "");
-        try {
+        publishScope(() -> {
             request.detail(AtfReportEvidenceKeys.REQUEST_ACTION, stepTitle);
             detailTarget(request, target);
             boolean visualValidation = validationKind.hasVisualEvidence();
@@ -161,25 +156,23 @@ public final class UiEvidencePublisher {
             }
             if (visualValidation || (uiAssertions != null && !uiAssertions.isEmpty())) {
                 var validation = request.startValidation(validationKind.reportTitle());
-                publishActions(validation, actions);
-                publishScreenshot(validation, target, title, base64Png, uiStatus, "UI assertion", capturePoint);
-                validation.assertions(uiAssertions);
-                validation.complete(defaultStatus(uiStatus, AtfReportStatus.PASS));
+                publishScope(() -> {
+                    publishActions(validation, actions);
+                    publishScreenshot(validation, target, title, base64Png, uiStatus, "UI assertion", capturePoint);
+                    validation.assertions(uiAssertions);
+                    validation.complete(defaultStatus(uiStatus, AtfReportStatus.PASS));
+                }, validation::close);
             }
             if (hasApiValidation) {
                 var validation = request.startValidation(API_VALIDATION);
-                try {
-                    publishApiEvidence(validation, apiValidation);
+                publishScope(() -> {
+                    apiEvidence.publish(validation, apiValidation);
                     validation.complete(apiValidation.status());
-                } finally {
-                    validation.close();
-                }
+                }, validation::close);
             }
             request.complete(AtfReportStatus.worst(defaultStatus(uiStatus, AtfReportStatus.PASS),
                     hasApiValidation ? apiValidation.status() : AtfReportStatus.INFO));
-        } finally {
-            request.close();
-        }
+        }, request::close);
     }
 
     /** Publishes the buffered phase as one Gherkin proposition with grouped evidence. */
@@ -212,8 +205,12 @@ public final class UiEvidencePublisher {
             }
         }
 
+        var finalFlowStatus = flowStatus;
+        var finalUiStatus = uiStatus;
+        var finalApiStatus = apiStatus;
+        boolean publishUi = hasUiEvidence;
         var flow = phase.startRequest(flowTitle, "", "");
-        try {
+        publishScope(() -> {
             flow.detail(AtfReportEvidenceKeys.EVIDENCE_TYPE,
                     AtfReportEvidenceKeys.UNIFIED_UI_FLOW);
             flow.detail(AtfReportEvidenceKeys.FLOW_MODE,
@@ -225,34 +222,28 @@ public final class UiEvidencePublisher {
                 flow.detail(AtfReportEvidenceKeys.FLOW_PHASE, phaseName);
             }
 
-            if (hasUiEvidence) {
+            if (publishUi) {
                 var validation = flow.startValidation(UI_VALIDATION);
-                try {
+                publishScope(() -> {
                     publishActions(validation, actions);
                     for (UiUnifiedFlowCheckpoint checkpoint : checkpoints) {
                         publishUnifiedScreenshot(validation, checkpoint,
                                 effectiveStatus(checkpoint));
                     }
                     validation.assertions(assertions);
-                    validation.complete(uiStatus);
-                } finally {
-                    validation.close();
-                }
+                    validation.complete(finalUiStatus);
+                }, validation::close);
             }
             if (!apiExchanges.isEmpty() || !apiAssertions.isEmpty()) {
                 var apiValidation = flow.startValidation(API_VALIDATION);
-                try {
-                    publishApiEvidence(apiValidation,
+                publishScope(() -> {
+                    apiEvidence.publish(apiValidation,
                             new UiApiValidationEvidence(apiAssertions, apiExchanges));
-                    apiValidation.complete(apiStatus);
-                } finally {
-                    apiValidation.close();
-                }
+                    apiValidation.complete(finalApiStatus);
+                }, apiValidation::close);
             }
-            flow.complete(flowStatus);
-        } finally {
-            flow.close();
-        }
+            flow.complete(finalFlowStatus);
+        }, flow::close);
     }
 
     private static boolean isUiEvidence(UiUnifiedFlowCheckpoint checkpoint) {
@@ -300,7 +291,7 @@ public final class UiEvidencePublisher {
         List<UiUnifiedFlowCheckpoint> checkpoints = entries.stream()
                 .map(UiScenarioLifecycle.PhaseCheckpoint::checkpoint).toList();
         var flow = phase.startRequest(unifiedProposition(checkpoints), "", "");
-        try {
+        publishScope(() -> {
             flow.detail(AtfReportEvidenceKeys.EVIDENCE_TYPE,
                     AtfReportEvidenceKeys.UNIFIED_UI_FLOW);
             flow.detail(AtfReportEvidenceKeys.FLOW_MODE,
@@ -329,43 +320,35 @@ public final class UiEvidencePublisher {
                         || checkpoint.validationKind() == UiValidationKind.SETUP)) {
                     var validation = flow.startValidation(entry.phase() + " · "
                             + checkpoint.validationKind().reportTitle());
-                    try {
+                    publishScope(() -> {
                         publishActions(validation, checkpoint.actions());
                         publishUnifiedScreenshot(validation, checkpoint, checkpointStatus);
                         validation.assertions(checkpoint.assertions());
                         validation.complete(checkpoint.status());
-                    } finally {
-                        validation.close();
-                    }
+                    }, validation::close);
                 }
                 if (!checkpoint.apiValidation().isEmpty()) {
                     var validation = flow.startValidation(entry.phase() + " · API validation");
-                    try {
-                        publishApiEvidence(validation, checkpoint.apiValidation());
+                    publishScope(() -> {
+                        apiEvidence.publish(validation, checkpoint.apiValidation());
                         validation.complete(checkpoint.apiValidation().status());
-                    } finally {
-                        validation.close();
-                    }
+                    }, validation::close);
                 }
             }
             if (compact.isPresent()) {
                 CompactUiFlow evidence = compact.orElseThrow();
                 var validation = flow.startValidation("UI validation");
-                try {
+                publishScope(() -> {
                     publishActions(validation, evidence.actions());
                     if (evidence.terminalScreenshot() != null) {
                         publishUnifiedScreenshot(validation, evidence.terminalScreenshot(), evidence.status());
                     }
                     validation.assertions(evidence.assertions());
                     validation.complete(evidence.status());
-                } finally {
-                    validation.close();
-                }
+                }, validation::close);
             }
             flow.complete(aggregate);
-        } finally {
-            flow.close();
-        }
+        }, flow::close);
     }
 
     /** Preserve source objects and encounter order; only their visual projection is joined. */
@@ -416,21 +399,17 @@ public final class UiEvidencePublisher {
         // parent-step detail and TRACE method already identify its role; a
         // second visible prefix would make the step noisy and non-semantic.
         var request = phase.startRequest(sourceStep, "TRACE", hasText(target) ? target : "network");
-        try {
+        publishScope(() -> {
             request.detail(AtfReportEvidenceKeys.EVIDENCE_TYPE, AtfReportEvidenceKeys.API_TRACE);
             request.detail("trace.parent.step", sourceStep);
             request.detail("trace.position", "causal sibling published immediately after UI step");
             var validation = request.startValidation(API_VALIDATION);
-            try {
-                publishApiEvidence(validation, apiValidation);
+            publishScope(() -> {
+                apiEvidence.publish(validation, apiValidation);
                 validation.complete(apiValidation.status());
-            } finally {
-                validation.close();
-            }
+            }, validation::close);
             request.complete(effectiveStatus);
-        } finally {
-            request.close();
-        }
+        }, request::close);
     }
 
     /**
@@ -441,39 +420,35 @@ public final class UiEvidencePublisher {
      * attempt history. The parent trace carries only causal context.
      */
 
-    private static void publishApiEvidence(AtfReportPorts.Validation validation,
-                                           UiApiValidationEvidence apiValidation) {
-        validation.evidenceOwner(ReportEvidenceOwner.API);
-        validation.assertions(apiValidation.assertions());
-        int exchangeNumber = 0;
-        for (UiApiValidationEvidence.Exchange exchange : apiValidation.exchanges()) {
-            ReportExecutionEvidence evidence = exchange.evidence();
-            if (evidence.request() == null || evidence.response() == null) continue;
-            ReportRequest apiRequest = evidence.request();
-            var request = validation.startRequest(exchangeTitle(apiRequest, ++exchangeNumber),
-                    apiRequest.method(), apiRequest.path());
-            try {
-                request.detail("trace.exchange", "#" + exchangeNumber);
-                ApiExchangeEvidence.publish(request, evidence);
-                if (!exchange.assertions().isEmpty()) {
-                    var exchangeValidation = request.startValidation("API assertions");
-                    exchangeValidation.evidenceOwner(ReportEvidenceOwner.API);
-                    try {
-                        exchangeValidation.assertions(exchange.assertions());
-                        exchangeValidation.complete(exchange.status());
-                    } finally {
-                        exchangeValidation.close();
-                    }
-                }
-                request.complete(exchange.status());
-            } finally {
-                request.close();
+    private static final class ApiEvidencePublisher {
+        void publish(AtfReportPorts.Validation validation, UiApiValidationEvidence apiValidation) {
+            validation.evidenceOwner(ReportEvidenceOwner.API);
+            validation.assertions(apiValidation.assertions());
+            int number = 0;
+            for (var exchange : apiValidation.exchanges()) {
+                var evidence = exchange.evidence();
+                if (evidence.request() != null && evidence.response() != null) publishExchange(validation, exchange, ++number);
             }
         }
-    }
 
-    private static String exchangeTitle(ReportRequest request, int number) {
-        return "Exchange " + number;
+        private void publishExchange(AtfReportPorts.Validation validation, UiApiValidationEvidence.Exchange exchange, int number) {
+            ReportExecutionEvidence evidence = exchange.evidence();
+            var apiRequest = evidence.request();
+            var request = validation.startRequest("Exchange " + number, apiRequest.method(), apiRequest.path());
+            publishScope(() -> {
+                request.detail("trace.exchange", "#" + number);
+                ApiExchangeEvidence.publish(request, evidence);
+                if (!exchange.assertions().isEmpty()) {
+                    var checks = request.startValidation("API assertions");
+                    publishScope(() -> {
+                        checks.evidenceOwner(ReportEvidenceOwner.API);
+                        checks.assertions(exchange.assertions());
+                        checks.complete(exchange.status());
+                    }, checks::close);
+                }
+                request.complete(exchange.status());
+            }, request::close);
+        }
     }
 
     void publishUiValidationAsMedia(String title, String target, String base64Png,
@@ -491,7 +466,7 @@ public final class UiEvidencePublisher {
                                         AtfReportStatus status) {
         String stepTitle = stepTitle(AtfGherkinKeyword.THEN.text(), title);
         var request = phase.startRequest(stepTitle, "", "");
-        try {
+        publishScope(() -> {
             request.detail("request.action", stepTitle);
             detailTarget(request, target);
             request.detail(AtfReportEvidenceKeys.EVIDENCE_TYPE, AtfReportEvidenceKeys.UI_VALIDATION);
@@ -499,18 +474,18 @@ public final class UiEvidencePublisher {
                     "one visible Base64 image inside one safe clickable link; policy="
                     + screenshotPolicy.configValue());
             var validation = request.startValidation(UI_VALIDATION);
-            publishActions(validation, actions);
-            if (shouldPublish(base64Png, capturePoint)) {
-                requireTargetForScreenshot(target);
-                validation.mediaScreenshot("UI screenshot — " + title + " — "
-                        + defaultStatus(status, AtfReportStatus.PASS), base64Png);
-            }
-            validation.assertions(assertions);
-            validation.complete(defaultStatus(status, AtfReportStatus.PASS));
+            publishScope(() -> {
+                publishActions(validation, actions);
+                if (shouldPublish(base64Png, capturePoint)) {
+                    requireTargetForScreenshot(target);
+                    validation.mediaScreenshot("UI screenshot — " + title + " — "
+                            + defaultStatus(status, AtfReportStatus.PASS), base64Png);
+                }
+                validation.assertions(assertions);
+                validation.complete(defaultStatus(status, AtfReportStatus.PASS));
+            }, validation::close);
             request.complete(defaultStatus(status, AtfReportStatus.PASS));
-        } finally {
-            request.close();
-        }
+        }, request::close);
     }
 
     void publishFailure(String title, String target, Collection<AtfUiActionRecord> actions,
@@ -572,5 +547,23 @@ public final class UiEvidencePublisher {
 
     private static AtfReportStatus defaultStatus(AtfReportStatus status, AtfReportStatus fallback) {
         return status == null ? fallback : status;
+    }
+
+    /** One owned scope, one publication attempt; cleanup cannot replace or suppress itself onto the primary failure. */
+    private static void publishScope(Runnable body, Runnable close) {
+        Throwable primary = null;
+        try {
+            body.run();
+        } catch (RuntimeException | Error failure) {
+            primary = failure;
+            throw failure;
+        } finally {
+            try {
+                close.run();
+            } catch (RuntimeException | Error cleanup) {
+                if (primary == null) throw cleanup;
+                if (cleanup != primary) primary.addSuppressed(cleanup);
+            }
+        }
     }
 }

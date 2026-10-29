@@ -144,6 +144,22 @@ concretă rămân în README-ul ownerului fiecărui consumer.
 - Adaptoarele dependente de JUnit rămân minime la granița de execuție;
   extinderea unui API comun nu introduce dependențe UI/Reporting în Kit.
 
+Matricea de ownership a runtime-ului livrat explică ce poate fi refactorizat
+fără mutarea infrastructurii JUnit în artifactele aplicațiilor:
+
+| Responsabilitate | Owner live | Intrări și limită |
+|---|---|---|
+| Achiziție browser, journal și capturi Shop | `ShopBrowserRuntime` în main | configurație și sink explicite; harness-ul primește resursele deținute |
+| Deschiderea raportului Shop | `ShopRunReportFactory` în main | profil și environment capturate de composition root |
+| Metadata System | mapper-ele main Shop/AutoEx și `ReportUiEnvironment` din Reporting | configurația efectivă; fără JUnit sau politica Store-ului |
+| Vocabular raportat | trace-ul consumerului și `ReportGherkinSequence` din Reporting | aceleași propoziții în checkpoint și Scenario correlation; fără mutarea formatării în Kit |
+| Selecție, fixture și ownership de suită | adaptoarele consumerilor în test | JUnit Store, rezoluția contextului și scope-ul claselor |
+| Cleanup neutru de test | primitivele existente din Kit | ordinea și cauzele, prin callback-uri fără browser sau Extent |
+
+Acești owneri sunt contracte existente. O extracție nouă cere cele două utilizări
+reale și probele negative ale gate-ului de mai sus; o mutare de clase nu dovedește
+singură achiziția parțială, izolarea scope-ului sau păstrarea cauzei.
+
 Flow-ul business, flow-ul UI, acțiunile compuse și operația Playwright atomică
 au contracte diferite; validarea produce rezultate tipizate înaintea proiecției
 în raport. Boundary-urile și probele țintă sunt în

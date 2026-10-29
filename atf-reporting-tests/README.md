@@ -292,6 +292,22 @@ date ale fixture-ului, nu motive de a dezactiva verificări sau de a inventa PAS
 nodurile cu request/response/validation se extind, în timp ce o fază fără
 conținut copil nu simulează un control interactiv.
 
+### Erori simultane la publicare și close
+
+`UiPublicationFailureComponentTest` injectează erori în porturi controlate,
+apelate prin fațada UI publică; nu presupune un incident într-un renderer real.
+
+| Oracol independent | Contract probat |
+|---|---|
+| Instanța excepției inițiale | body/complete rămâne cauza; close devine suppressed |
+| Evenimentele porturilor | fiecare scope achiziționat are un singur close, fără replay |
+| Aceeași excepție la body și close | fără self-suppression sau substituirea cauzei |
+| RuntimeException și Error | aceeași identitate și ordine în toate intrările probate |
+| Outcome, setup, checkpoint/media, API, unified | request, validation și API assertions se închid la owner |
+
+Snapshot-urile semantice și probele Extent/fallback verifică separat randarea;
+fault injection nu înlocuiește auditul HTML.
+
 ## Ordinea testelor și responsabilitatea protecțiilor
 
 1. `atf-reporting` — unit/component pentru model, renderer, artifact și CSS/JS;

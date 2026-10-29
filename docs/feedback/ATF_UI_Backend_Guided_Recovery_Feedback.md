@@ -3,7 +3,7 @@
 ## Pe scurt
 
 **Stare: sincronizare nativă și politică BE read-only livrate; proiecția typed
-a observațiilor, continuitatea selectului și coeziunea readiness rămân deschise.**
+a observațiilor, continuitatea selectului, cleanup-ul capturii și coeziunea readiness rămân deschise.**
 Ownerii sunt UI pentru sincronizare, Kit pentru declarația neutră,
 consumerii pentru semantica operațiilor și Reporting pentru dovezile randate.
 
@@ -28,6 +28,7 @@ documentară /10. Nu reprezintă o notă a codului sau un procent de reproducere
 | ID | Scor /100 | Criteriul care lipsește |
 |---|---:|---|
 | `UI-RECOVERY-AUDIT-01` | 78 = 33 + 22 + 16 + 7 | încercări vizibile, verdict reconciliat și expandare completă |
+| `UI-CAPTURE-CLEANUP-32` | 77 = 31 + 22 + 18 + 6 | prima dezabonare eșuată oprește cleanup-ul și permite callback într-un scope închis |
 | `UI-NATIVE-SELECT-DETACH-01` | 74 = 31 + 20 + 16 + 7 | selectul înlocuit poate continua numai cu rezultat confirmat și activare unică |
 | `UI-READINESS-REUSE-30` | 68 = 26 + 18 + 18 + 6 | compoziție BE duplicată și observație/decizie/cleanup amestecate în catalogul Shop |
 
@@ -89,6 +90,43 @@ sau repetarea deciziei la renderer.
       Shop, cu profil UI și UI+API, succes, recuperare/refuz și epuizare. Probele
       Extent neutre rămân în `atf-reporting-tests`; policy/resolver și adaptoarele
       au teste la owner, fără cuplarea testelor de business la HTML.
+
+## UI-CAPTURE-CLEANUP-32 — dezabonare completă și scope închis
+
+**Prioritate: 77/100** = impact 31 + lacună 22 + lucrabil 18 + documentare 6.
+**Owner:** [UiNetworkInspector](../../atf-ui/src/main/java/atf/ui/network/UiNetworkInspector.java)
+și [UiRequestTimeline](../../atf-ui/src/main/java/atf/ui/network/identity/UiRequestTimeline.java).
+
+Izolarea subscriberilor și identitatea începutului sunt livrate. Proba nouă
+injectează un `RuntimeException` la `Page.offRequest(...)`, prin portul Page
+controlat; nu schimbă Chromium și nu pretinde un incident de browser real.
+
+| Limită | Observație |
+|---|---|
+| Prima închidere | se încearcă numai `offRequest`; cele două dezabonări finished/failed sunt omise |
+| Scope după eroare | cei trei listeneri rămân instalați în port; subscriberul nu este golit |
+| Eveniment finished ulterior | callback-ul ajunge la subscriber, cu o observație reținută după close-ul eșuat |
+| A doua închidere | finished/failed sunt eliminate; listenerul de început rămâne instalat, deoarece timeline-ul este deja marcat closed |
+
+`UiRequestTimeline.close()` golește starea proprie în `finally`, iar
+`UiNetworkInspector.close()` execută dezabonările secvențial. Starea internă
+închisă nu dovedește că toate hook-urile deținute au fost retrase.
+
+- [ ] Încercați toate dezabonările deținute chiar când una eșuează; păstrați
+      prima cauză și erorile ulterioare suppressed, fără self-suppression.
+- [ ] Delimitați începutul închiderii de eliberarea hook-urilor și definiți
+      close-ul repetat după failure. O captură nouă nu mai livrează în vechiul scope,
+      chiar dacă retragerea unui listener are rezultat necunoscut.
+- [ ] Păstrați livrarea snapshot-ului deja început: close-ul dintr-un subscriber
+      nu blochează subscriberii sănătoși ai aceleiași observații.
+- [ ] Probați fiecare dezabonare eșuată, erori multiple, close repetat și
+      evenimente după failure; verificați hooks, callback-uri, cauze și contoarele raw.
+- [ ] Păstrați runtime-ul independent de Kit/JUnit/consumer și redacția înainte
+      de notificare; nu introduceți un lifecycle generic care ascunde ownership-ul Page.
+
+**Închidere:** toate hook-urile sunt încercate, cauza rămâne inspectabilă și
+niciun eveniment ulterior nu este livrat vechiului consumer. Regresiile curente
+de livrare, start identity și close în callback rămân verzi.
 
 ## UI-READINESS-REUSE-30 — consolidare fără schimbarea protocoalelor
 
@@ -227,11 +265,9 @@ Controlul politicii BE livrate este în
 
 ## Acceptanță pentru reevaluarea UI
 
-- Izolarea subscriberilor păstrează observația raw și diagnosticul fiecărei
-  livrări defecte; contorul de retenție nu certifică recepția în consumer.
-- Identitatea cererii înaintea răspunsului și scope-ul frame/document/invocare
-  se probează cu cerere veche întârziată și acțiune nouă, la boundary-ul generic;
-  semantica order și expected-ul rămân în Shop.
+- Regresiile start identity și ale livrării izolate protejează
+  [contractele deja implementate](../../atf-ui/README.md#inspectorul-de-rețea--limită-generică-de-responsabilitate).
+  Închiderea defectă nu poate pretinde că toate hook-urile au fost eliberate.
 - Politica existentă de recuperare nu devine retry al întregului test. Selecția
   și geometria păstrează activarea unică, iar rezultatul necunoscut al unei
   mutații rămâne refuz, nu permisiune de replay.

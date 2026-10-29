@@ -909,6 +909,9 @@ flowchart LR
 - `requestMarker()` delimitează începutul cererilor; o cerere veche terminată ulterior rămâne numai în raw.
 - Identitatea absentă sau din alt scope nu satisface ORDER. Ambele adaptoare, Page și inspector, păstrează aceeași regulă.
 - `sequenceMarker()` păstrează API-ul numeric pentru apelanții legacy și salvează și marcajul typed; recepția brută și checkpoint-urile surori își păstrează secvența.
+- Flow-ul Confirm folosește marcajul typed. În API-ul numeric, o captură procesată
+  în bariera pasivă poate separa cheia salvată de valoarea returnată.
+  [Compatibilitatea rămâne de corectat](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-shop-numeric-fence-34--snapshot-coerent-pentru-api-ul-legacy).
 - Trace-ul, ordinea și identitatea capturii sunt păstrate; istoricul brut și checkpoint-urile surori nu se șterg.
 - `ShopApiAssertions` evaluează aceeași captură; `ShopApiValidationResult.order` păstrează verificările lipsă ca aserțiuni, fără exchange inventat.
 - Corelarea fără factură API păstrează un expected explicit și separă lipsa API de valoarea UI; totalul folosește oracolul independent.

@@ -299,6 +299,50 @@ protejează argumentele invalide, eșecul injectat după mutația Extent, compen
 secundară și reutilizarea sesiunii. Probele sunt locale și deterministe; nu
 necesită endpoint extern sau journey de produs.
 
+## Cauza publicării și scope-urile deținute
+
+`UiEvidencePublisher` păstrează cauza inițială când închiderea aceleiași dovezi
+eșuează. Proiecția exchange-urilor aparține colaboratorului intern
+`ApiEvidencePublisher`; fațada, modelele și API-ul consumerilor rămân aceleași.
+
+| Situație | Cauză propagată | Închidere |
+|---|---|---|
+| Body sau complete eșuează | aceeași instanță inițială, inclusiv `Error` | fiecare scope achiziționat se închide o dată |
+| Body/complete și close eșuează | inițiala cu eroarea close în suppressed | fără reluarea publicării |
+| Numai close eșuează | aceeași eroare close | fără complete suplimentar |
+| Close aruncă aceeași instanță ca body | inițiala, fără self-suppression | o singură încercare close |
+
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
+flowchart LR
+    Body["Publicare"] -->|succes| Complete["Complete"]
+    Body -->|eșec| Primary["Cauză inițială"]
+    Complete -->|succes| Close["Close unic"]
+    Complete -->|eșec| Primary
+    Primary -->|cleanup| Close
+    Close -->|atașează eroarea secundară| Result["Cauză propagată"]
+    Primary -->|păstrează identitatea| Result
+```
+
+<details>
+<summary><strong>Legendă — ownership, ordine și proiecție API</strong></summary>
+
+- Protocolul privat de publicare închide request-ul și validările create,
+  inclusiv UI validation standard/media și API assertions.
+- Un copil defect se închide înaintea părintelui; body-ul și complete-ul nu
+  sunt reexecutate pentru a compensa o eroare close.
+- Colaboratorul API primește `UiApiValidationEvidence` și porturi Reporting.
+  Păstrează ownerul API, exchange-urile și aserțiunile evaluate la consumer.
+- Colaboratorul rămâne intern: fără tip public nou, dependență browser/JUnit,
+  modul suplimentar sau modificarea numărului maxim de tipuri pe pachet.
+- Gruparea flow-ului, politicile screenshot, timing-ul și preview-ul 240
+  păstrează contractele existente; cleanup-ul nu reevaluează comparații.
+
+</details>
+
+Proba `UiPublicationFailureComponentTest` injectează erori prin fațada publică,
+în outcome, setup, checkpoint, media, trace API și flow unificat în/peste faze.
+
 ## Contractul raportului
 
 <details>
@@ -1512,9 +1556,9 @@ flowchart LR
 - Închiderea implicită FAIL păstrează verdictul sigur al unui scope incomplet;
   închiderea copiilor este explicită, fără rollback ori retry ascuns în renderer.
 - Consola este best-effort în ambele renderere; eroarea diagnostică nu întrerupe
-  tranziția și nu schimbă verdictul. Propagarea erorii de publicare din aceste
-  scope-uri nu închide [limita compozitorului UI](../docs/feedback/ATF_Reporting_Feedback.md#report-evidence-responsibilities-20--delimitarea-protocoalelor-de-publicare),
-  unde un close defect poate înlocui eroarea inițială a publicării.
+  tranziția și nu schimbă verdictul. Compozitorul UI are
+  [protocolul propriu de publicare](#cauza-publicării-și-scope-urile-deținute):
+  aceeași cauză inițială și erori close secundare în suppressed.
 - Colecțiile de aserțiuni sunt capturate o singură dată înaintea actualizării
   modelului și recorderului; un element null nu șterge rândurile valide anterioare.
 - Agregatul de rețea ocupă un singur slot semantic, indiferent de înlocuire sau
