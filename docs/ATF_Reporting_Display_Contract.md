@@ -13,11 +13,12 @@ consumerii verifică doar integrarea propriilor adaptoare. Documentul nu descrie
 un artifact concret, un URL sau o captură istorică.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
     Model[Model semantic] -->|proiectează| Markup[Markup typed]
-    Markup -->|stilizează| Assets[CSS + JavaScript native]
-    Assets -->|publică| Artifact[Extent / fallback HTML]
-    Artifact -->|verifică| Proof[Unit · component · browser]
+    Markup -->|stilizează| Assets["CSS + JavaScript"]
+    Assets -->|publică| Artifact["Extent / HTML"]
+    Artifact -->|verifică| Proof["Verificări"]
 ```
 
 <details>
@@ -71,6 +72,9 @@ poate rămâne un discriminator intern tipizat, dar nu se afișează ca al doile
   deschide automat copiii;
 - deschiderea unui copil nu închide părintele sau frații; mouse, Enter și Space
   produc aceeași tranziție semantică;
+- o deschidere amânată dintr-un deep-link este invalidată de o navigare mai nouă
+  sau de interacțiunea explicită în Tests; callback-ul vechi nu redeschide
+  disclosure-ul pe care utilizatorul tocmai l-a închis;
 - nu se folosesc linii orizontale decorative între acțiuni, observații și
   aserțiuni din interiorul unui test body; separarea este dată de disclosures,
   spațiere și ierarhia semantică;

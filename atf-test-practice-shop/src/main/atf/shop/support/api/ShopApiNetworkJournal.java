@@ -13,6 +13,7 @@ import atf.core.http.request.MediaTypes;
 import atf.core.http.protocol.ApiUris;
 import atf.shop.api.ShopApiOperation;
 import atf.shop.api.contract.ShopApiHttpStatus;
+import atf.shop.api.contract.ShopApiJsonField;
 import atf.shop.api.ShopApiRoutes;
 import atf.shop.config.api.ShopApiConfiguration;
 import atf.shop.config.model.ShopCredentials;
@@ -24,8 +25,10 @@ import atf.shop.support.ShopLoginBodyRecovery;
 import atf.ui.network.UiNetworkInspector;
 import atf.ui.network.UiNetworkObservation;
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.TimeoutError;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.time.Instant;
 import java.net.URI;
 import java.security.MessageDigest;
@@ -214,29 +217,64 @@ public final class ShopApiNetworkJournal {
         return ShopApiAssertions.product(search, detail, productName, productId);
     }
 
-    /** API confirmation after the UI adds the configured quantity to the cart. */
+    /** Compatibility view across the session; action-bound journeys supply an explicit sequence marker. */
     public List<AtfAssertion> cartReady(int quantity) {
+        return cartReady(0L, quantity);
+    }
+
+    /** Selects observed add/read responses after this UI action, before evaluating their verdicts. */
+    public List<AtfAssertion> cartReady(long afterSequence, int quantity) {
         if (!enabled(ShopApiCheckpoint.CART)) return List.of();
         if (productId == null || productId.isBlank()) {
             throw new IllegalStateException("Product API precondition was not established before cart validation");
         }
-        Exchange add = ShopApiExchangeSelector.latest(exchanges, HttpMethod.POST.value(),
-                ShopApiRoutes.CART_RESOURCE_PREFIX, exchange -> exchange.status() == 200
-                && exchange.requestBody().contains(productId));
-        Exchange read = ShopApiExchangeSelector.latest(
-                exchanges, HttpMethod.GET.value(), add.path(), exchange -> exchange.status() == 200);
-        store(ShopApiCheckpoint.CART, List.of(toEvidence(add), toEvidence(read)));
+        Exchange add = ShopApiExchangeSelector.latestOptional(exchanges, HttpMethod.POST.value(),
+                ShopApiRoutes.CART_RESOURCE_PREFIX,
+                exchange -> exchange.sequence() > afterSequence && hasProduct(exchange, productId));
+        Exchange read = add == null ? null : ShopApiExchangeSelector.latestOptional(
+                exchanges, HttpMethod.GET.value(), add.path(), exchange -> exchange.sequence() > add.sequence());
+        storeObserved(ShopApiCheckpoint.CART, add, read);
         return ShopApiAssertions.cart(add, read, productId, quantity);
     }
 
-    /** API confirmation after the UI submits the configured payment method. */
+    /** Compatibility view across the session; action-bound journeys supply an explicit sequence marker. */
     public List<AtfAssertion> paymentConfirmed(String paymentMethod) {
+        return paymentConfirmed(0L, paymentMethod);
+    }
+
+    /** An absent or failed current response cannot be replaced by an earlier successful payment. */
+    public List<AtfAssertion> paymentConfirmed(long afterSequence, String paymentMethod) {
         if (!enabled(ShopApiCheckpoint.PAYMENT)) return List.of();
-        Exchange payment = ShopApiExchangeSelector.latest(
-                exchanges, HttpMethod.POST.value(), ShopApiRoutes.PAYMENT_CHECK,
-                exchange -> exchange.status() == 200);
-        store(ShopApiCheckpoint.PAYMENT, List.of(toEvidence(payment)));
+        Exchange payment = paymentAfter(afterSequence);
+        storeObserved(ShopApiCheckpoint.PAYMENT, payment);
         return ShopApiAssertions.payment(payment, paymentMethod);
+    }
+
+    /** Observes the current response within Page's configured timeout; a capture timeout produces missing-evidence FAIL checks. */
+    public List<AtfAssertion> awaitPaymentConfirmed(Page page, long afterSequence, String paymentMethod) {
+        if (!enabled(ShopApiCheckpoint.PAYMENT)) return List.of();
+        try {
+            Objects.requireNonNull(page, "page").waitForCondition(() -> paymentAfter(afterSequence) != null);
+        } catch (TimeoutError missingCapture) {
+            storeObserved(ShopApiCheckpoint.PAYMENT);
+            return ShopApiAssertions.payment(null, paymentMethod);
+        }
+        return paymentConfirmed(afterSequence, paymentMethod);
+    }
+
+    private Exchange paymentAfter(long afterSequence) {
+        return ShopApiExchangeSelector.latestOptional(exchanges, HttpMethod.POST.value(), ShopApiRoutes.PAYMENT_CHECK,
+                exchange -> exchange.sequence() > afterSequence);
+    }
+
+    private static boolean hasProduct(Exchange exchange, String expectedProductId) {
+        var body = ShopJsonEvidence.parse(exchange.requestBody());
+        var product = body == null ? null : body.get(ShopApiJsonField.PRODUCT_ID.wireValue());
+        return product != null && product.isTextual() && expectedProductId.equals(product.textValue());
+    }
+
+    private void storeObserved(ShopApiCheckpoint checkpoint, Exchange... observed) {
+        store(checkpoint, Arrays.stream(observed).filter(Objects::nonNull).map(this::toEvidence).toList());
     }
 
     /** API confirmation for the order created by the final UI confirmation action. */

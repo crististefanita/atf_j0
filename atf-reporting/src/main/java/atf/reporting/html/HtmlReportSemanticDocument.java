@@ -5,6 +5,7 @@ import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
 import atf.reporting.model.ReportExecutionEvidence;
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.contract.ReportStatusAggregator;
 import atf.reporting.ui.model.AtfUiActionRecord;
 import atf.reporting.model.ReportField;
 import atf.reporting.model.ReportJsonBody;
@@ -192,6 +193,7 @@ public final class HtmlReportSemanticDocument {
             return List.copyOf(executions);
         }
 
+
         public void addJson(String label, String json) {
             this.json.add(new ReportJsonBody(label, json));
         }
@@ -230,7 +232,9 @@ public final class HtmlReportSemanticDocument {
         }
 
         public void complete(AtfReportStatus status) {
-            this.status = status;
+            var completedChildren = new ReportStatusAggregator();
+            children.forEach(child -> completedChildren.record(child.status()));
+            this.status = completedChildren.resolve(status);
         }
 
         @Override

@@ -47,7 +47,7 @@ public final class ExtentScenarioScope implements AtfReportPorts.Scenario {
 
     @Override public void complete(AtfReportStatus status) {
         ensureScenarioOpen();
-        var effective = AtfReportStatus.worst(statuses.aggregate(), status);
+        var effective = statuses.resolve(status);
         tree.complete(test, effective);
         tree.markEnded(test);
         tree.markEnded(tree.classRoot(className));

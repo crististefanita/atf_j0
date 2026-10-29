@@ -34,8 +34,14 @@ public record ShopApiValidationResult(List<ExchangeChecks> exchanges,
         if (evidence != null && evidence.isEmpty() && checks != null && checks.isEmpty()) {
             return new ShopApiValidationResult(List.of(), List.of());
         }
-        requireSize(evidence, 2, "cart exchanges");
         requireSize(checks, 5, "cart assertions");
+        Objects.requireNonNull(evidence, "cart exchanges");
+        if (evidence.isEmpty()) return new ShopApiValidationResult(List.of(), checks);
+        if (evidence.size() == 1) {
+            return new ShopApiValidationResult(List.of(group(evidence.getFirst(), checks.subList(0, 2))),
+                    checks.subList(2, 5));
+        }
+        requireSize(evidence, 2, "cart exchanges");
         return new ShopApiValidationResult(List.of(
                 group(evidence.get(0), checks.subList(0, 2)),
                 group(evidence.get(1), checks.subList(2, 3))), checks.subList(3, 5));
@@ -47,8 +53,10 @@ public record ShopApiValidationResult(List<ExchangeChecks> exchanges,
         if (evidence != null && evidence.isEmpty() && checks != null && checks.isEmpty()) {
             return new ShopApiValidationResult(List.of(), List.of());
         }
-        requireSize(evidence, 1, "payment exchange");
         requireSize(checks, 4, "payment assertions");
+        Objects.requireNonNull(evidence, "payment exchange");
+        if (evidence.isEmpty()) return new ShopApiValidationResult(List.of(), checks);
+        requireSize(evidence, 1, "payment exchange");
         return new ShopApiValidationResult(List.of(group(evidence.getFirst(), checks.subList(0, 4))),
                 List.of());
     }

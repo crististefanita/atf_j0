@@ -45,7 +45,7 @@ public final class HtmlReportScenarioScope implements AtfReportPorts.Scenario {
 
     @Override
     public void complete(AtfReportStatus status) {
-        AtfReportStatus effective = AtfReportStatus.worst(phaseStatuses.aggregate(), status);
+        AtfReportStatus effective = phaseStatuses.resolve(status);
         model.complete(effective);
         semantic.complete(effective);
         console.publish(AtfConsoleEvent.completed(AtfConsoleEvent.Scope.SCENARIO,

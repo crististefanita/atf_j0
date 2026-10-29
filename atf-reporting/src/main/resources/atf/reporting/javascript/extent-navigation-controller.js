@@ -1,5 +1,9 @@
 var atfTestViewNormalizationPending = false;
 var atfTestViewReadinessTimers = {};
+var atfNavEpoch = 0;
+document.addEventListener('pointerdown', function (e) {
+  if (e.target.closest('#test-view')) atfNavEpoch++;
+}, true);
 function normalizeTestViewContent() {
   var startedAt = atfPerformanceStart();
   atfPerformanceCount('normalizationRuns');
@@ -36,6 +40,7 @@ function scheduleTestViewNormalizationAt(delay) {
   }, delay);
 }
 window.atfOpenTest = function (id, scenarioIndex, expansion) {
+  var epoch = ++atfNavEpoch;
   var hash = 'test-id=' + id;
   if (scenarioIndex !== undefined) hash += '&scenario-index=' + scenarioIndex;
   if (expansion) hash += '&expand=' + expansion;
@@ -48,6 +53,7 @@ window.atfOpenTest = function (id, scenarioIndex, expansion) {
     if (scenarioIndex !== undefined) {
       var index = Number(scenarioIndex);
       setTimeout(function () {
+        if (epoch !== atfNavEpoch) return;
         var detailCards = directScenarioCards(
             document.querySelector('#test-view .test-content-detail')
           ),

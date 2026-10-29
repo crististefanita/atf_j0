@@ -20,13 +20,14 @@ dependențe Maven. Graful de module și sensul săgeților sunt în README-ul
 rădăcină și în `docs/ATF_Architecture.md`.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Core[core models] -->|alimentează| Validation[validation]
-    Tests[reporting tests] -. fixtures .-> Validation
-    Validation -->|calculează| Decision[typed decision]
-    Decision -->|publică prin| Sink[validation sink]
-    Sink -->|adaptează| Adapter[consumer adapter]
-    Adapter -->|trimite către| Reporting[reporting]
+    Core["Core"] -->|alimentează| Validation["Validation"]
+    Tests["Reporting tests"] -. fixtures .-> Validation
+    Validation -->|calculează| Decision["Verdict typed"]
+    Decision -->|publică| Sink["Sink"]
+    Sink -->|adaptează| Adapter["Adaptor"]
+    Adapter -->|transmite| Reporting["Reporting"]
 ```
 
 <details>
@@ -37,6 +38,18 @@ flowchart LR
 - `ValidationSink` este singurul seam către publicare;
 - adapterul consumerului mapează evidence-ul spre `atf-reporting`, fără să schimbe verdictul calculat;
 - `atf-reporting` rămâne standalone și nu devine dependent de `atf-validation`.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Core | core models |
+| Reporting tests | reporting tests |
+| Verdict typed | typed decision |
+| Sink | validation sink |
+| Adaptor | consumer adapter |
+| publică | publică prin |
+| transmite | trimite către |
+
 </details>
 
 Direcția este intenționată:
@@ -113,21 +126,21 @@ suită și păstrează rezultatul fiecărui scenariu.
   încă un evaluator general de aserțiuni pentru modele și componente.
 - `ValidationTable` redactează valorile și numele pe context complet prin Core, apoi păstrează un preview, implicit
   maximum 240 de caractere pe câmp, inclusiv marcajul `…` la trunchiere; constructorul
-  permite o limită pozitivă explicită. Noul layer trebuie să păstreze plafonul
+  permite o limită pozitivă explicită. O extensie viitoare păstrează plafonul
   configurat, inclusiv în detaliile expandate. `ValidationPreviewRedactionTest` protejează ordinea redactare → plafon și verdictul calculat pe inputul integral.
 - Comparația se face pe valorile integrale; scurtarea textului raportat nu
   schimbă verdictul. Mesajul auditabil trebuie să explice diferența în limita
   configurată, inclusiv când diferența este dincolo de preview.
 - Componentele AutoEx și Shop folosesc
   [fațada JUnit auditabilă din Test Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră),
-  adaptată de consumer la `AssertionStep` Reporting. Direcția evaluatorului pur
-  și criteriile de audit cu valori limitate sunt în
-  [feedback-ul consumerilor](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-component-assertions-01--evaluatorul-neutru-al-componentelor).
+  adaptată de consumer la `AssertionStep` Reporting. Extensia evaluatorului pur
+  este descrisă separat ca [design amânat](#evaluator-general-pentru-modele).
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px","actorFontSize":"15px","messageFontSize":"12px","noteFontSize":"12px"},"themeCSS":".actor { font-size: 15px !important; } .messageText, .labelText, .loopText, .noteText { font-size: 12px !important; }","sequence":{"actorFontSize":15,"messageFontSize":12,"noteFontSize":12,"width":120,"height":42,"actorMargin":40,"messageMargin":24,"mirrorActors":false,"wrap":true,"wrapPadding":6}}}%%
 sequenceDiagram
     participant T as Test
-    participant E as atf-core / generic lifecycle
+    participant E as Core runtime
     participant V as atf-validation
     participant S as ValidationSink
     participant R as atf-reporting
@@ -148,6 +161,34 @@ sequenceDiagram
 - testul execută operația și trimite response-ul către evaluator;
 - evaluatorul compune un singur tabel de assertions și un verdict agregat;
 - sink-ul primește evidence renderer-neutral, iar reporting-ul doar îl proiectează.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Core runtime | atf-core / generic lifecycle |
+
+</details>
+
+### Evaluator general pentru modele
+
+Propunerea `CONSUMER-COMPONENT-ASSERTIONS-01` este o extensie amânată.
+`ValidationEvaluator` evaluează astăzi contracte API, iar auditul componentelor
+folosește comparația JUnit din Kit și adaptorul consumerului către Reporting.
+Aceste contracte sunt utilizabile independent de un evaluator general nou.
+
+<details>
+<summary><strong>Criterii pentru o schimbare separată</strong></summary>
+
+- Testul consumerului furnizează expected independent, observația și regula
+  business. Validation deține evaluarea pură și rezultatul imutabil; adaptorul
+  convertește rezultatul fără a repeta comparația.
+- Un model, un adaptor API și un adaptor UI din ambele module trebuie să
+  demonstreze operatorii necesari înaintea extinderii API-ului.
+- Tipurile, `null`, diferențele dincolo de preview și mesajul concis sunt probe
+  negative obligatorii. Redactarea precedă plafonul, implicit 240 inclusiv `…`.
+- Politica JUnit și excepțiile așteptate rămân în Kit. Extensia nu introduce
+  dependențe Kit către Core, Validation ori Reporting.
+
 </details>
 
 ## Reguli de separare

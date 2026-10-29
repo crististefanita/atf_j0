@@ -95,7 +95,7 @@ final class ExtentValidationScope implements AtfReportPorts.Validation {
         if (openRequests > 0) {
             throw new IllegalStateException("Validation cannot complete while a nested request is open");
         }
-        AtfReportStatus effective = AtfReportStatus.worst(childStatuses.aggregate(), status);
+        AtfReportStatus effective = childStatuses.resolve(status, assertions);
         if (screenshotOptional) {
             tree.renderUiActionsAsMedia(validation, uiActions, detailsMode);
         } else if (mediaScreenshots.isEmpty() && screenshots.size() <= 1) {

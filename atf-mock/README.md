@@ -15,12 +15,13 @@ produce un `ApiResponse` reproductibil pentru fiecare request configurat.
 - **Live HTTP**: se activează separat prin `HttpClientTransport`, explicit.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Source["YAML catalog sau defaults"] -->|încarcă| Loader["typed loader"]
-    Loader -->|creează| Catalog["route catalog"]
-    Catalog -->|alimentează| Transport["AtfMockTransport"]
+    Source["YAML / defaults"] -->|încarcă| Loader["Loader"]
+    Loader -->|creează| Catalog["Catalog"]
+    Catalog -->|alimentează| Transport["Mock transport"]
     Transport -->|implementează| Port["ApiTransport"]
-    Port -->|produce| Response["deterministic ApiResponse"]
+    Port -->|produce| Response["ApiResponse"]
 ```
 
 <details>
@@ -32,6 +33,15 @@ flowchart LR
 - `AtfMockTransport` implementează portul neutru din `atf-core`;
 - `ApiResponse` păstrează forma observabilă a schimbului fără trafic HTTP;
 - orice publisher, auditor sau renderer este responsabilitatea consumerului.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| YAML / defaults | YAML catalog sau defaults |
+| Loader | typed loader |
+| Catalog | route catalog |
+| ApiResponse | deterministic ApiResponse |
+
 </details>
 
 ## Contractul modulului
@@ -50,11 +60,12 @@ sau fixture-uri ale unei aplicații. Reporting-ul poate consuma datele produse d
 transport, dar nu devine o responsabilitate a acestui modul.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     Consumer["consumer"] -->|injectează| Mock["mock transport"]
-    Mock -->|implementează| Core["core port"]
-    Core -->|produce| Evidence["request + response"]
-    Evidence -->|adaptează| Adapter["consumer adapter"]
+    Mock -->|implementează| Core["Port"]
+    Core -->|produce| Evidence["Exchange"]
+    Evidence -->|adaptează| Adapter["Adaptor"]
 ```
 
 <details>
@@ -66,6 +77,14 @@ flowchart LR
 - adapterul pentru `atf-reporting-tests` rămâne în test scope-ul consumerului;
 - `atf-test-practice-shop` nu folosește `atf-mock`; decizia este documentată în
   feedback-ul modulului său.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Port | core port |
+| Exchange | request + response |
+| Adaptor | consumer adapter |
+
 </details>
 
 ## Configurația YAML
@@ -124,6 +143,7 @@ mock:
 ## Potrivirea și prioritatea rutelor
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     Request["ApiRequest"] -->|expune| Dimensions["match dimensions"]
     Dimensions -->|filtrează| Candidate["matching routes"]

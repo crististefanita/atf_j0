@@ -68,7 +68,7 @@ final class ExtentPhaseScope implements AtfReportPorts.Phase {
 
     @Override public void complete(AtfReportStatus status) {
         ensurePhaseOpen();
-        var effective = AtfReportStatus.worst(statuses.aggregate(), status);
+        var effective = statuses.resolve(status);
         scenario.renderDiagnostics(ReportPhaseDiagnostic.from(phaseName, details, effective));
         if (timing != null) {
             long publicationMillis = Math.max(0L, (System.nanoTime() - publicationStarted) / 1_000_000L);

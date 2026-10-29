@@ -7,13 +7,15 @@ Designul țintă și pattern-urile extrase din ATF1/.NET sunt în
 [designul AI al proiectului](../ATF_AI_Evaluation_Design.md).
 
 Backlog-ul AI nu intră în ordinea priorităților active din registrul comun.
+Implementarea propusă păstrează cele 12 module; absența unui modul nou nu
+constituie gap sau penalizare.
 
 | Stare | Owner / limită |
 |---|---|
 | Implementat și testat | [Comparatorul AI din ATF Validation](../../atf-validation/README.md#comparatorul-ai--contract-implementat): expected separat, comparații typed, hard-fail, invocation evidence, grounding allowlisted și snapshot immutable |
 | Parțial | Guvernanța whole-ATF și scope-urile `testChanges`; nu există încă proposal/handoff complet |
 | Deschis | Ambiguitate grounding, run ledger, lifecycle, review/state, rubrică business, raportare și regresii |
-| Doar design | `atf-agent-test-kit`, guard-uri agentice și YAML conceptual; nu sunt module sau opțiuni livrate |
+| Doar design | compoziție agentică în modulele existente, guard-uri și YAML conceptual; nu sunt opțiuni livrate |
 
 O implementare se închide numai cu probă nominală și negativă la boundary-ul
 potrivit. Un document mutat, o clasă nouă sau un raport frumos nu ridică scorul
@@ -67,7 +69,7 @@ rămâne la owner; designul propus nu este probă de livrare.
 | Validator generic reutilizabil | **66/100** | `ValidationEvaluator`, `ValidationTable`, validatori de contract API și comparator AI tipat | evaluatorul AI rămâne separat de rubricile business și de reporting |
 | AI evaluation implementată în ATF Java | **50/100** | comparatorul, hard-fails, invocation evidence, grounding per field, snapshot-ul `COMPLETE` și package cohesion sunt executabile și testate | clasificarea `AMBIGUOUS`, provider real, evidence ledger și proiecție raport lipsesc |
 | AI-assisted workflow governance | **31/100** | guvernanță whole-ATF și scope-uri `testChanges` cu Git, expirare, ownership unic și probe negative | lipsesc expected delta tipizat, proof ledger și handoff; acoperirea generală nu certifică workflow-ul agentic sau AI quality |
-| Pregătirea modulului agentic | **25/100** | responsabilitățile sunt delimitate în design | modulul, configurația și controalele sunt încă neimplementate |
+| Pregătirea compoziției agentice | **25/100** | responsabilitățile sunt delimitate la ownerii existenți | lipsesc contractele runtime și controalele; numărul modulelor nu este criteriu de readiness |
 | Potrivirea principiilor ATF1 pentru adoptare | **86/100** | cold baseline, claim → proof → artifact, handoff, anti-copy și separarea orchestrator/execution/reporting sunt direct transferabile | nu trebuie importată economia de runs/slots ca runtime ATF |
 | Potrivirea pattern-urilor .NET pentru adoptare | **92/100** | read models typed, field decisions, retry contract, evidence policy, auth evidence și ownership unic | modelele sunt business-specific și trebuie transpuse, nu copiate |
 | Readiness pentru primul pilot AI | **78/100** | evaluatorul typed, snapshot complet, grounding allowlisted, matricea missing/invented și contractul invocation/fallback permit un pilot fără provider integrat | lipsesc publication path, run ledger și cazuri business negative |

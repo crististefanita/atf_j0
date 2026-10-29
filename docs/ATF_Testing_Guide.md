@@ -10,14 +10,15 @@ nu este un obiectiv de a umple fiecare celulă și nu conține count-uri de test
 ## Traseul canonic al unei verificări
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Requirement["cerință observabilă"] -->|identifică| Owner["modul owner"]
-    Owner -->|delimitează| Boundary["boundary de test"]
-    Boundary -->|alege cel mai mic proof| Layer["unit / component / integration / E2E"]
-    Layer -->|folosește| Setup["setup typed și controlat"]
-    Setup -->|exercită| Contract["comportament public"]
-    Contract -->|produce| Evidence["assertions și evidence"]
-    Evidence -. dacă depinde de browser .-> Browser["artifact randat și interacțiune"]
+    Requirement["Cerință"] -->|identifică| Owner["Owner"]
+    Owner -->|delimitează| Boundary["Boundary"]
+    Boundary -->|alege| Layer["Strat"]
+    Layer -->|folosește| Setup["Setup"]
+    Setup -->|exercită| Contract["Contract"]
+    Contract -->|produce| Evidence["Dovezi"]
+    Evidence -. dacă cere browser .-> Browser["Audit browser"]
 ```
 
 <details>
@@ -29,6 +30,21 @@ flowchart LR
 - testul afirmă un rezultat observabil la API-ul public al ownerului;
 - proof-ul în browser este necesar numai pentru comportamente de DOM, layout,
   navigation ori interacțiune; nu înlocuiește testele lower-level.
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Cerință | cerință observabilă |
+| Owner | modul owner |
+| Boundary | boundary de test |
+| Strat | unit / component / integration / E2E |
+| Setup | setup typed și controlat |
+| Contract | comportament public |
+| Dovezi | assertions și evidence |
+| Audit browser | artifact randat și interacțiune |
+| alege | alege cel mai mic proof |
+| dacă cere browser | dacă depinde de browser |
 
 </details>
 
@@ -384,14 +400,15 @@ Stabilitatea se probează ca tranziție de stare a arborelui, nu doar prin
 prezența textului în HTML:
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Fresh[Artifact fresh] -->|open| Scenario[Scenario]
-    Scenario -->|open| Phase[Phase]
-    Phase -->|open child + wait| Evidence[Evidence]
-    Evidence -->|parent remains open| Stable[Stable tree]
-    Scenario -->|close| Reset[Descendants reset]
-    Reset -->|reopen| ScenarioOnly[Scenario only]
-    ScenarioOnly -->|explicit click| Evidence
+    Fresh["Artifact nou"] -->|deschide| Scenario["Scenariu"]
+    Scenario -->|deschide| Phase["Fază"]
+    Phase -->|deschide + așteaptă| Evidence["Dovezi"]
+    Evidence -->|păstrează părintele| Stable["Arbore stabil"]
+    Scenario -->|închide| Reset["Descendenți închiși"]
+    Reset -->|redeschide| ScenarioOnly["Doar scenariul"]
+    ScenarioOnly -->|click explicit| Evidence
 ```
 
 <details>
@@ -400,6 +417,24 @@ flowchart LR
 - interacțiunea cu un copil păstrează părintele deschis;
 - închiderea scenariului închide descendenții;
 - redeschiderea arată doar containerul, până la un click explicit.
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Artifact nou | Artifact fresh |
+| Scenariu | Scenario |
+| Fază | Phase |
+| Dovezi | Evidence |
+| Arbore stabil | Stable tree |
+| Descendenți închiși | Descendants reset |
+| Doar scenariul | Scenario only |
+| deschide | open |
+| închide | close |
+| deschide + așteaptă | open child + wait |
+| păstrează părintele | parent remains open |
+| redeschide | reopen |
+| click explicit | explicit click |
 
 </details>
 

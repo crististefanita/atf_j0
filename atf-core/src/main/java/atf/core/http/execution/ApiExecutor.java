@@ -7,6 +7,8 @@ import atf.core.http.response.ApiExecutionException;
 import atf.core.http.response.ApiExecutionResult;
 import atf.core.http.response.ApiResponse;
 import atf.core.http.response.RetryEvent;
+import atf.core.http.execution.evidence.ApiExecutionSnapshot;
+import atf.core.http.execution.evidence.ApiExecutionCancelledException;
 import atf.core.http.transport.ApiTransport;
 import atf.core.http.transport.ApiTransportProvenance;
 import atf.core.http.transport.RetryPolicy;
@@ -152,88 +154,121 @@ public final class ApiExecutor {
         var retryEvents = new ArrayList<RetryEvent>();
         var attemptHistory = new ArrayList<ApiAttemptRecord>();
         int attempt = 1;
+        long attemptStarted = 0;
+        boolean activeAttempt = false;
+        ApiResponse capturedResponse = null;
+        ApiExecutionResult result;
         ApiResponse response;
         try {
             while (true) {
-            cancellationToken.throwIfCancelled();
-            long attemptStarted = clock.nanoTime();
-            long remainingNanos = deadline.remainingNanos();
-            if (remainingNanos <= 0) {
-                throw new ApiExecutionException("API execution timed out after " + options.timeout(),
-                        new TimeoutException("execution deadline exceeded"));
-            }
-            CompletableFuture<ApiResponse> pending = transport.send(request, url, request.authProfile());
-            try {
-                while (true) {
-                    cancellationToken.throwIfCancelled();
-                    remainingNanos = deadline.remainingNanos();
-                    if (remainingNanos <= 0) {
-                        pending.cancel(true);
-                        throw new ApiExecutionException("API execution timed out after " + options.timeout(),
-                                new TimeoutException("execution deadline exceeded"));
-                    }
-                    try {
-                        response = pending.get(Math.min(remainingNanos, TimeUnit.MILLISECONDS.toNanos(50)),
-                                TimeUnit.NANOSECONDS);
-                        break;
-                    } catch (TimeoutException pollTimeout) {
-                        // Poll in short slices so cancellation is observed while transport is pending.
-                    }
+                cancellationToken.throwIfCancelled();
+                attemptStarted = clock.nanoTime();
+                long remainingNanos = deadline.remainingNanos();
+                if (remainingNanos <= 0) {
+                    throw new ApiExecutionException("API execution timed out after " + options.timeout(),
+                            new TimeoutException("execution deadline exceeded"));
                 }
-            } catch (CancellationException error) {
-                pending.cancel(true);
-                throw error;
-            } catch (InterruptedException error) {
-                pending.cancel(true);
-                Thread.currentThread().interrupt();
-                throw new ApiExecutionException("API execution interrupted", error);
-            } catch (ExecutionException error) {
-                Throwable cause = error.getCause() == null ? error : error.getCause();
-                var retry = retryPolicy.nextFailure(cause, attempt);
+                activeAttempt = true;
+                capturedResponse = null;
+                CompletableFuture<ApiResponse> pending = transport.send(request, url, request.authProfile());
+                try {
+                    while (true) {
+                        cancellationToken.throwIfCancelled();
+                        remainingNanos = deadline.remainingNanos();
+                        if (remainingNanos <= 0) {
+                            pending.cancel(true);
+                            throw new ApiExecutionException("API execution timed out after " + options.timeout(),
+                                    new TimeoutException("execution deadline exceeded"));
+                        }
+                        try {
+                            response = pending.get(Math.min(remainingNanos, TimeUnit.MILLISECONDS.toNanos(50)),
+                                    TimeUnit.NANOSECONDS);
+                            capturedResponse = Objects.requireNonNull(response, "transport response");
+                            break;
+                        } catch (TimeoutException pollTimeout) {
+                            // Poll in short slices so cancellation is observed while transport is pending.
+                        }
+                    }
+                } catch (CancellationException error) {
+                    pending.cancel(true);
+                    throw error;
+                } catch (InterruptedException error) {
+                    pending.cancel(true);
+                    Thread.currentThread().interrupt();
+                    throw new ApiExecutionException("API execution interrupted", error);
+                } catch (ExecutionException error) {
+                    Throwable cause = error.getCause() == null ? error : error.getCause();
+                    var retry = retryPolicy.nextFailure(cause, attempt);
+                    if (retry.isEmpty()) {
+                        throw new ApiExecutionException("API transport failed", cause);
+                    }
+                    attemptHistory.add(new ApiAttemptRecord(attempt, 0,
+                            Duration.ofNanos(Math.max(0, clock.nanoTime() - attemptStarted)),
+                            ApiAttemptOutcome.RETRYABLE_FAILURE, retry.get().reason()));
+                    activeAttempt = false;
+                    retryEvents.add(retry.get());
+                    retryWaiter.await(retry.get().delay(), cancellationToken);
+                    attempt++;
+                    continue;
+                }
+                var retry = retryPolicy.next(response, attempt);
                 if (retry.isEmpty()) {
-                    throw new ApiExecutionException("API transport failed", cause);
+                    attemptHistory.add(new ApiAttemptRecord(attempt, response.status(),
+                            Duration.ofNanos(Math.max(0, clock.nanoTime() - attemptStarted)),
+                            ApiAttemptOutcome.SUCCESS, "final response"));
+                    activeAttempt = false;
+                    break;
                 }
-                attemptHistory.add(new ApiAttemptRecord(attempt, 0,
+                attemptHistory.add(new ApiAttemptRecord(attempt, response.status(),
                         Duration.ofNanos(Math.max(0, clock.nanoTime() - attemptStarted)),
-                        ApiAttemptOutcome.RETRYABLE_FAILURE, retry.get().reason()));
+                        ApiAttemptOutcome.RETRYABLE_RESPONSE, retry.get().reason()));
+                activeAttempt = false;
                 retryEvents.add(retry.get());
                 retryWaiter.await(retry.get().delay(), cancellationToken);
                 attempt++;
-                continue;
             }
-            var retry = retryPolicy.next(response, attempt);
-            if (retry.isEmpty()) {
-                attemptHistory.add(new ApiAttemptRecord(attempt, response.status(),
-                        Duration.ofNanos(Math.max(0, clock.nanoTime() - attemptStarted)),
-                        ApiAttemptOutcome.SUCCESS, "final response"));
-                break;
-            }
-            attemptHistory.add(new ApiAttemptRecord(attempt, response.status(),
-                    Duration.ofNanos(Math.max(0, clock.nanoTime() - attemptStarted)),
-                    ApiAttemptOutcome.RETRYABLE_RESPONSE, retry.get().reason()));
-            retryEvents.add(retry.get());
-            retryWaiter.await(retry.get().delay(), cancellationToken);
-            attempt++;
-            }
-            var result = new ApiExecutionResult(response, attempt,
+            result = new ApiExecutionResult(response, attempt,
                     Duration.ofNanos(deadline.elapsedNanos()), retryEvents, attemptHistory, request,
                     provenance);
-            console.publish(AtfConsoleEvent.detail(AtfConsoleEvent.Scope.REQUEST,
-                    "response.status", Integer.toString(response.status())));
-            console.publish(AtfConsoleEvent.detail(AtfConsoleEvent.Scope.REQUEST,
-                    "response.duration.ms", AtfDurationFormatter.format(response.duration())));
-            console.publish(AtfConsoleEvent.code(AtfConsoleEvent.Scope.REQUEST,
-                    "response.body", redactor.redactJson(response.body())));
-            console.publish(AtfConsoleEvent.completed(AtfConsoleEvent.Scope.REQUEST,
-                    consoleName, AtfReportStatus.PASS, elapsedMillis(consoleStarted)));
-            return result;
         } catch (RuntimeException error) {
-            console.publish(AtfConsoleEvent.completed(AtfConsoleEvent.Scope.REQUEST,
-                    consoleName, AtfReportStatus.FAIL, elapsedMillis(consoleStarted)));
-            throw error;
+            ApiAttemptOutcome terminal = terminalOutcome(error);
+            ApiResponse terminalResponse = activeAttempt ? capturedResponse : null;
+            if (activeAttempt) {
+                attemptHistory.add(new ApiAttemptRecord(attempt, terminalResponse == null ? 0 : terminalResponse.status(),
+                        Duration.ofNanos(Math.max(0, clock.nanoTime() - attemptStarted)), terminal,
+                        terminalResponse == null ? "execution stopped without an HTTP response" : "execution stopped after a captured response"));
+            }
+            var snapshot = new ApiExecutionSnapshot(request, url, provenance, Duration.ofNanos(deadline.elapsedNanos()),
+                    retryEvents, attemptHistory, java.util.Optional.ofNullable(terminalResponse), terminal);
+            RuntimeException failure = error instanceof ApiExecutionException execution ? execution.withSnapshot(snapshot)
+                    : error instanceof CancellationException cancelled ? new ApiExecutionCancelledException(cancelled, snapshot)
+                    : new ApiExecutionException("API execution failed", error, snapshot);
+            try {
+                console.publish(AtfConsoleEvent.completed(AtfConsoleEvent.Scope.REQUEST,
+                        consoleName, AtfReportStatus.FAIL, elapsedMillis(consoleStarted)));
+            } catch (RuntimeException | Error publication) {
+                if (publication != failure) failure.addSuppressed(publication);
+            }
+            throw failure;
         }
+        console.publish(AtfConsoleEvent.detail(AtfConsoleEvent.Scope.REQUEST,
+                "response.status", Integer.toString(response.status())));
+        console.publish(AtfConsoleEvent.detail(AtfConsoleEvent.Scope.REQUEST,
+                "response.duration.ms", AtfDurationFormatter.format(response.duration())));
+        console.publish(AtfConsoleEvent.code(AtfConsoleEvent.Scope.REQUEST,
+                "response.body", redactor.redactJson(response.body())));
+        console.publish(AtfConsoleEvent.completed(AtfConsoleEvent.Scope.REQUEST,
+                consoleName, AtfReportStatus.PASS, elapsedMillis(consoleStarted)));
+        return result;
     }
 
+    private static ApiAttemptOutcome terminalOutcome(RuntimeException failure) {
+        if (failure instanceof CancellationException) return ApiAttemptOutcome.CANCELLED;
+        Throwable cause = failure.getCause();
+        if (cause instanceof InterruptedException) return ApiAttemptOutcome.INTERRUPTED;
+        if (cause instanceof TimeoutException) return ApiAttemptOutcome.TIMED_OUT;
+        return ApiAttemptOutcome.FAILED;
+    }
     private long elapsedMillis(long startedAt) {
         return Math.max(0, (clock.nanoTime() - startedAt) / 1_000_000);
     }

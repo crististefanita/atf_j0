@@ -17,17 +17,18 @@ referință; nu este owner-ul soluției.
 ## Diagramă de bază
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Config[typed profile<br/>și configurație] -->|configurează| Flow[flow coordinator]
-    Flow -->|înregistrează| Ledger[evidence ledger<br/>acțiuni + assertions]
-    Flow -->|aplică| Policy[capture policy]
-    Source[capture provider<br/>browser sau mock] -->|capturează| Payload[typed screenshot<br/>payload]
-    Policy -->|permite înainte de apel| Source
-    Ledger -->|compune| Input[report input<br/>semantic]
+    Config["Config"] -->|configurează| Flow["Flow"]
+    Flow -->|înregistrează| Ledger["Ledger"]
+    Flow -->|aplică| Policy["Policy"]
+    Source["Provider"] -->|capturează| Payload["Payload"]
+    Policy -->|autorizează| Source
+    Ledger -->|compune| Input["Input"]
     Payload -->|alimentează| Input
-    Input -->|publică| Publisher[report publisher]
-    Publisher -->|produce| Artifact[Extent HTML]
-    Fixtures[deterministic fixtures<br/>în test scope] -. furnizează .-> Policy
+    Input -->|publică| Publisher["Publisher"]
+    Publisher -->|produce| Artifact["Extent"]
+    Fixtures["Fixtures"] -. furnizează .-> Policy
     Fixtures -. publică .-> Publisher
 ```
 
@@ -41,6 +42,22 @@ flowchart LR
 - `Input` este boundary-ul semantic consumat de reporting;
 - `Publisher` publică HTML-ul; nu reia acțiuni de browser;
 - `Fixtures` probează policy-ul și publisherul fără endpoint sau browser extern.
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Config | typed profile · și configurație |
+| Flow | flow coordinator |
+| Ledger | evidence ledger · acțiuni + assertions |
+| Policy | capture policy |
+| Provider | capture provider · browser sau mock |
+| Payload | typed screenshot · payload |
+| Input | report input · semantic |
+| Publisher | report publisher |
+| Extent | Extent HTML |
+| Fixtures | deterministic fixtures · în test scope |
+| autorizează | permite înainte de apel |
 
 </details>
 
@@ -105,16 +122,17 @@ test-kit sau de o bibliotecă de compoziție, fără a confunda publisherul cu e
 ## Responsabilități și limite
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; } .edgeLabel [data-id=\"L_Adapter_Capture_0\"] foreignObject { transform: translate(0px, -28px); } .edgeLabel [data-id=\"L_ReportingTests_Reporting_0\"] foreignObject { transform: translate(0px, -28px); }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    TestKit[generic test-kit<br/>profile + annotations] -->|compune| Consumer[consumer composition<br/>flow semantic]
-    Consumer -->|deține| Adapter[consumer capture adapter]
-    Adapter -->|folosește| Ui[atf-ui<br/>browser operations]
-    Consumer -->|înregistrează| Ledger[evidence ledger]
-    Adapter -->|implementează providerul| Capture[typed capture payload]
-    Ledger -->|alimentează| Reporting[atf-reporting<br/>flow grouping + model + publication]
+    TestKit["Test Kit"] -->|compune| Consumer["Consumer"]
+    Consumer -->|deține| Adapter["Adaptor"]
+    Adapter -->|folosește| Ui["UI"]
+    Consumer -->|înregistrează| Ledger["Ledger"]
+    Adapter -->|implementează| Capture["Captură typed"]
+    Ledger -->|alimentează| Reporting["Reporting"]
     Capture -->|alimentează| Reporting
-    ReportingTests[atf-reporting-tests<br/>fixtures + component/integration] -. dovedește .-> Reporting
-    PracticeShop[Practice Shop<br/>consumer mapping] -. folosește .-> TestKit
+    ReportingTests["Reporting tests"] -. dovedește .-> Reporting
+    PracticeShop["Shop"] -. folosește .-> TestKit
 ```
 
 <details>
@@ -129,17 +147,33 @@ flowchart LR
 - Practice Shop demonstrează consumul, dar nu deține contractul transversal;
 - niciun publisher nu trebuie să importe un page object sau un endpoint de aplicație.
 
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Test Kit | generic test-kit · profile + annotations |
+| Consumer | consumer composition · flow semantic |
+| Adaptor | consumer capture adapter |
+| UI | atf-ui · browser operations |
+| Ledger | evidence ledger |
+| Captură typed | typed capture payload |
+| Reporting | atf-reporting · flow grouping + model + publication |
+| Reporting tests | atf-reporting-tests · fixtures + component/integration |
+| Shop | Practice Shop · consumer mapping |
+| implementează | implementează providerul |
+
 </details>
 
 ## Ordinea de implementare și de testare
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Contract[contract + model] -->|definește| Unit[unit<br/>policy și cardinalitate]
-    Unit -->|compune| Component[component<br/>mock image + HTML]
-    Component -->|integrează| Integration[integration<br/>session + publisher]
-    Integration -->|validează| Browser[optional browser adapter<br/>HTML static]
-    Browser -->|dovedește| ConsumerE2E[consumer E2E<br/>proof minimal]
+    Contract["Contract"] -->|definește| Unit["Unit"]
+    Unit -->|compune| Component["Component"]
+    Component -->|integrează| Integration["Integration"]
+    Integration -->|validează| Browser["Browser adapter"]
+    Browser -->|dovedește| ConsumerE2E["Consumer E2E"]
 ```
 
 <details>
@@ -151,6 +185,17 @@ flowchart LR
 - browser adapter verifică numai captura reală pe un HTML local static;
 - consumer E2E confirmă integrarea, nu suportul generic;
 - un defect de policy sau markup trebuie să pice înainte de E2E.
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Contract | contract + model |
+| Unit | unit · policy și cardinalitate |
+| Component | component · mock image + HTML |
+| Integration | integration · session + publisher |
+| Browser adapter | optional browser adapter · HTML static |
+| Consumer E2E | consumer E2E · proof minimal |
 
 </details>
 

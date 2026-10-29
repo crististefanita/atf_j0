@@ -1,49 +1,39 @@
-# ATF Reporting — diagnostic, timing E2E și controale
+# ATF Reporting — lifecycle și timing E2E
 
 ## Pe scurt
 
 Contextul typed, valorile redactate și timing-ul măsurat sunt documentate la
-[Reporting](../../atf-reporting/README.md). Rămâne nealinierea dintre proba
-dinamică existentă și proiecția nouă a diagnosticului UI, plus timing-ul explicit
-al fazelor E2E. Controalele demonstrate
-au fost transferate în [baseline](../ATF_Test_Changes_Baseline.md#controale-tehnice-verificate).
+[Reporting](../../atf-reporting/README.md). Consistența verdictului este normată
+la owner; rămân atomicitatea tranzițiilor de scope și timing-ul explicit E2E.
+Controalele demonstrate aparțin
+[baseline-ului](../ATF_Test_Changes_Baseline.md#controale-tehnice-verificate).
 
-## REPORT-FAILURE-CONTRACT-ALIGNMENT-09 — diagnosticul și proba existentă
+## REPORT-SCOPE-ATOMICITY-11 — refuz fără mutație parțială
 
-**Prioritate:** 78/100 = impact 31 + lacună 23 + lucrabil 17 + documentare 7,
-conform [registrului comun](README.md#top-feedback-uri-active).
+**Prioritate: 80/100** = impact 32 + lacună 23 + lucrabil 18 + documentare 7.
+**Owner:** Reporting pentru tranzițiile publice și modelele celor două renderere;
+Reporting Tests pentru probele de compatibilitate.
 
-**Owner:** Reporting Tests deține oracolul și interacțiunea browser;
-Reporting deține proiecția sigură și contractul semantic al diagnosticului.
+- La portul fallback, completați un request PASS, apoi încercați `complete(FAIL)`.
+  A doua completare aruncă `IllegalStateException`, dar `model.complete(status)`
+  rulează înaintea guard-ului semantic. `HtmlReportSession.close()` refuză ulterior
+  publicarea cu `Fallback semantic snapshot drift between execution model and recorder`.
+- Extent respinge aceeași operație înaintea mutației și poate publica raportul
+  inițial PASS. Proba este locală și nu execută transport sau business.
+- Guard-ul final fallback funcționează: cazul nu demonstrează publicarea unui
+  artifact contradictoriu. Lacuna este refuzul tardiv după mutația parțială.
 
-- [UiFailureReportContractTest](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/e2e/failure/UiFailureReportContractTest.java)
-  eșuează în cazul `PLAYWRIGHT_ACTION`: cere acțiunea/locatorul/timeout-ul în
-  Tests și markerii `Timeout 20000ms exceeded` și `***REDACTED***` în Fails.
-- Noul context prioritizează operația, ținta, timpul și așteptarea; diagnosticul
-  original este proiectat separat. Probele `UiFailureContextComponentTest` și
-  cazul dinamic vechi verifică suprafețe diferite și trebuie reconciliate.
-- Eșecul se reproduce cu fixture local și browser, inclusiv după sync-ul sursei
-  live. Absența markerului în rezumat nu demonstrează singură o scurgere de secret
-  sau pierderea cauzei din întregul artifact.
+- [ ] Reutilizați o singură decizie de lifecycle înaintea mutației modelului,
+      recorderului și contorilor; nu mascați diferența la `close()` sau în JavaScript.
+- [ ] Definiți consecvent `complete` repetat, `close` înainte/după complete și
+      închiderea părintelui cu copii deschiși. Un refuz păstrează starea anterioară.
+- [ ] Probați porturile publice Extent/fallback, request-uri imbricate, erori de
+      publicare și cauza primară; un copil FAIL păstrează politica de verdict separată.
+- [ ] Păstrați o singură publicare, scope-ul suitei, plafoanele și totalurile;
+      testele acestei regresii aparțin Reporting Tests, cu control exact.
 
-```text
-mvn -pl atf-reporting-tests -am "-Dtest=UiFailureReportContractTest,UiFailureContextComponentTest,LegacyPreviewBudgetComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
-```
-
-- [ ] Stabiliți în contractul ownerului suprafața fiecărei informații: rezumat
-      compact în Fails, acțiunea proiectată și diagnosticul original inspectabil
-      în Tests. Verificați artifactul și selectorii înainte de a clasifica diferența.
-- [ ] Păstrați type/message, cauze/suppressed, ownerul și backlink-ul; redactați
-      inputul complet înaintea bugetului și verificați absența secretului din HTML.
-- [ ] Dacă suprafața s-a schimbat deliberat, adaptați numai selectorul/oracolul
-      afectat, cu control `testChanges` exact și verificări echivalente sau mai
-      puternice. O verificare eliminată ori o așteptare relaxată nu închide gap-ul.
-- [ ] Proba veche și probele contextului nou trebuie să treacă împreună în
-      Extent/fallback la 240 și la limita personalizată, cu verdictul neschimbat.
-
-**Închidere:** cazul local existent trece și dovedește unde sunt inspectate
-mesajul nativ, redactarea și contextul typed, fără să ceară reinserarea unui
-stack nelimitat în Fails și fără să ascundă diagnosticul necesar.
+**Închidere:** aceeași operație validă ori respinsă produce aceeași tranziție
+și permite publicarea stării valide anterioare, fără rollback în renderer.
 
 ## REPORT-E2E-PHASE-TIMING-01 — execuția E2E separată de agregarea dovezilor
 
@@ -73,11 +63,12 @@ main AutoEx/Shop pentru intervalele business și Reporting Tests pentru randare.
 ### Abordare și criteriu de închidere
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Runtime["Runtime E2E owner"] -->|măsoară monoton| Timing["Timing typed de fază"]
-    Timing -->|propagă prin fațada UI| Report["Reporting"]
-    Report -->|proiectează o dată| Views["Tests / Category / Overview"]
-    Publish["Publicare și transport"] -->|păstrează surse distincte| Report
+    Runtime["Owner E2E"] -->|măsoară| Timing["Timing typed"]
+    Timing -->|propagă| Report["Reporting"]
+    Report -->|proiectează| Views["Views"]
+    Publish["Publicare"] -->|delimitează| Report
 ```
 
 <details>
@@ -87,6 +78,18 @@ flowchart LR
 - Runtime-ul deține intervalul business; Kit rămâne neutru, fără browser sau renderer.
 - Reporting propagă aceeași valoare în Extent și fallback, fără sumarea publicării peste execuție.
 - Durata HTTP necapturată rămâne necunoscută, independent de timpul fazei.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Owner E2E | Runtime E2E owner |
+| Timing typed | Timing typed de fază |
+| Views | Tests / Category / Overview |
+| Publicare | Publicare și transport |
+| măsoară | măsoară monoton |
+| propagă | propagă prin fațada UI |
+| proiectează | proiectează o dată |
+| delimitează | păstrează surse distincte |
 
 </details>
 
@@ -103,55 +106,3 @@ flowchart LR
 
 O suită filtrată la un caz probează ruta de lansare și ownerul artifactului;
 nu certifică interacțiunile dintre toate clasele suitei sau echivalența profilelor UI-only.
-
-## Controale tehnice încă necesare
-
-Cele două controale rămân active până la reconcilierea probei de compatibilitate;
-schema și transferul sunt definite în [baseline](../ATF_Test_Changes_Baseline.md#reguli-de-folosire).
-
-<details>
-<summary><strong>Controale tehnice active</strong></summary>
-
-```yaml
-testChanges:
-  - id: COMPONENT-DIAGNOSTIC-LIVE-RECONCILE-09
-    status: ACTIVE
-    base: 74143eeb0c5260aada147fedf67212dc05834eb1
-    expires: 2026-11-27
-    reason: >-
-      Reconciliere explicită a probelor deja prezente în live la începutul
-      incrementului BE. Păstrează controlul original fără rebazare și verifică
-      handler-ele JUnit, diagnosticul fără HTTP, timing-ul și disclosure-urile
-      pe compoziția nouă, fără schimbarea oracolelor sau a guvernanței.
-    proof: mvn -pl atf-test-kit,atf-test-auto-ex,atf-reporting-tests,atf-tests -am "-Dtest=HandledComponentFailureComponentTest,AutoExComponentPhaseTimingComponentTest,ComponentExecutionDiagnosticReportTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=74143eeb0c5260aada147fedf67212dc05834eb1" "-Dsurefire.failIfNoSpecifiedTests=false" test
-    paths:
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/reporting/AutoExComponentPhaseTimingComponentTest.java
-      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/timing/ComponentExecutionDiagnosticReportTest.java
-      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/diagnostic/ComponentDiagnosticLocators.java
-      - atf-test-kit/src/test/java/atf/testkit/assertions/HandledComponentFailureComponentTest.java
-  - id: REPORT-FAILURE-CONTEXT-04
-    status: ACTIVE
-    base: e311d1d4305ba850876ae54faf1dbe0acec62bc0
-    expires: 2026-11-26
-    reason: "Pune contextul primei dovezi UI FAIL înaintea diagnosticului lung și păstrează Throwable-ul, cauzele/suppressed și verdictul. Adaugă probe nominale/negative și browser Extent/fallback la 240/18, inclusiv diagnostic al fazei, Fails și backlink. UiAuditLifecycleTest cere exact trei rânduri în loc de două: acțiune, noul diagnostic primar INFO și captura existentă; UiFallbackFailureEvidenceTest cere în Fails acțiunea/ținta/timpul, păstrând verificările mesajului original în Tests și ale redactării. Nu relaxează plafoane sau selecții."
-    proof: mvn -pl atf-reporting-tests,atf-tests -am "-Dtest=UiFailureContextTest,UiFailureContextReportTest,UiFailureContextComponentTest,UiAuditLifecycleTest,UiFallbackFailureEvidenceTest,UiApiVerdictProjectionComponentTest,LegacyPreviewBudgetComponentTest,ReportAssetSizeInventoryTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=e311d1d4305ba850876ae54faf1dbe0acec62bc0" "-Dsurefire.failIfNoSpecifiedTests=false" test
-    paths:
-      - atf-reporting-tests/src/test/java/atf/reporting/ui/failurecontext/UiFailureContextFixture.java
-      - atf-reporting-tests/src/test/java/atf/reporting/ui/failurecontext/UiFailureContextReportTest.java
-      - atf-reporting-tests/src/test/java/atf/reporting/ui/failure/UiFailureContextTest.java
-      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/UiFailureContextComponentTest.java
-      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failurecontext/UiFailureContextProbe.java
-      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/failurecontext/ReportFailureContextLocators.java
-      - atf-reporting-tests/src/test/java/atf/reporting/ui/UiAuditLifecycleTest.java
-      - atf-reporting-tests/src/test/java/atf/reporting/ui/UiFallbackFailureEvidenceTest.java
-  - id: REPORT-ASSET-CLEANUP-COMPONENT-06
-    status: ACTIVE
-    base: 5eb3fd3cb099fc67b49be3c17de564db63755db7
-    expires: 2026-11-24
-    reason: Adaugă numai fixture-ul Spark offline pentru două cazuri componente ale pipeline-ului de publicare; probele existente ale cleanup-ului și sesiunii păstrează controalele lor exacte, fără dublare de owner sau rebazare automată.
-    proof: mvn -pl atf-reporting-tests -am "-Dtest=ExtentReportAssetCleanupTest,ExtentReportSessionContractTest,AtfReportingComponentSuite,UiFailureReportContractTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
-    paths:
-      - atf-reporting-tests/src/test/java/atf/reporting/support/publication/CleanupPublicationFixture.java
-```
-
-</details>

@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.net.URI;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 
 import static atf.reporting.audit.ReportAuditChecks.check;
 
@@ -96,8 +97,8 @@ public final class ShopApiAssertions {
     public static List<AtfAssertion> cart(ShopApiNetworkJournal.Exchange add,
                                    ShopApiNetworkJournal.Exchange read,
                                    String productId, int quantity) {
-        String addRequestBody = add.requestBody();
-        String readResponseBody = read.responseBody();
+        String addRequestBody = add == null ? "missing" : add.requestBody();
+        String readResponseBody = read == null ? "missing" : read.responseBody();
         JsonNode addJson = ShopJsonEvidence.parse(addRequestBody);
         JsonNode readJson = ShopJsonEvidence.parse(readResponseBody);
         return List.of(
@@ -105,13 +106,15 @@ public final class ShopApiAssertions {
                         addRequestBody, exactText(addJson, ShopApiJsonField.PRODUCT_ID.wireValue(), productId)
                                 && exactInt(addJson, ShopApiJsonField.QUANTITY.wireValue(), quantity)),
                 check("API response · cart add",
-                        SUCCESS_STATUS.wireValue() + " application/json", add.summary(),
-                        SUCCESS_STATUS.matches(add.status()) && add.isJsonResponse()),
-                check("API response JSON · cart read", "cart_items contains " + productId
+                        SUCCESS_STATUS.wireValue() + " application/json", add == null ? "missing" : add.summary(),
+                        add != null && SUCCESS_STATUS.matches(add.status()) && add.isJsonResponse()),
+                check("API response JSON · cart read", "200 application/json; cart_items contains " + productId
                                 + " with quantity " + quantity,
-                        "product_id=" + productId + ", quantity=" + quantity + ", response="
+                        (read == null ? "missing" : "HTTP " + read.status())
+                                + "; product_id=" + productId + ", quantity=" + quantity + ", response="
                                 + compact(readResponseBody, 280),
-                        cartItemMatches(readJson, productId, quantity)),
+                        read != null && SUCCESS_STATUS.matches(read.status()) && read.isJsonResponse()
+                                && cartItemMatches(readJson, productId, quantity)),
                 trace("cart add", add),
                 trace("cart read", read));
     }
@@ -222,20 +225,22 @@ public final class ShopApiAssertions {
 
     public static List<AtfAssertion> payment(ShopApiNetworkJournal.Exchange payment,
                                       String paymentMethod) {
-        String expectedMethod = paymentMethod.toLowerCase().replace(' ', '-');
-        String requestBody = payment.requestBody();
-        String responseBody = payment.responseBody();
+        String expectedMethod = paymentMethod.toLowerCase(Locale.ROOT).replace(' ', '-');
+        String requestBody = payment == null ? "missing" : payment.requestBody();
+        String responseBody = payment == null ? "missing" : payment.responseBody();
         JsonNode request = ShopJsonEvidence.parse(requestBody);
         JsonNode response = ShopJsonEvidence.parse(responseBody);
         return List.of(
                 check("API request JSON · payment", "payment_method=" + expectedMethod,
                         requestBody, exactText(request, ShopApiJsonField.PAYMENT_METHOD.wireValue(),
                                 expectedMethod)),
-                check("API response JSON · payment", "Payment was successful",
-                        responseBody, exactText(response, ShopApiJsonField.MESSAGE.wireValue(),
+                check("API response JSON · payment", "HTTP 200 and Payment was successful",
+                        payment == null ? "missing" : "HTTP " + payment.status() + "; body=" + responseBody,
+                        payment != null && SUCCESS_STATUS.matches(payment.status())
+                                && exactText(response, ShopApiJsonField.MESSAGE.wireValue(),
                                 "Payment was successful")),
-                check("API response headers · payment", MediaTypes.APPLICATION_JSON, payment.contentType(),
-                        payment.isJsonResponse()),
+                check("API response headers · payment", MediaTypes.APPLICATION_JSON,
+                        payment == null ? "missing" : payment.contentType(), payment != null && payment.isJsonResponse()),
                 trace("payment", payment));
     }
 

@@ -5,11 +5,10 @@ README-ului ownerului; controalele verificate aparțin baseline-ului testelor.
 
 ## Pe scurt
 
-- Core trebuie să transporte istoricul parțial al unei execuții API eșuate.
-- UI livrează politica BE read-only; rămân auditul agregat, readiness business și geometria iframe.
-- Reporting păstrează contractul diagnosticului UI și timing-ul explicit al fazelor E2E.
-- Consumerii păstrează corelarea payment, totalul comenzii, runtime-ul E2E Shop și billing-ul.
-- Guvernanța trebuie să includă layout-urile Maven configurate în verificarea importurilor duplicate.
+- UI livrează politica BE read-only; rămân proiecția structurată, selectul înlocuit și geometria iframe.
+- Reporting deține verdictul reconciliat; rămân atomicitatea scope-urilor și timing-ul explicit E2E.
+- Consumerii păstrează identitatea/coșul la checkout, totalul și factura Shop, runtime-ul E2E și billing-ul.
+- Inspecția Java trebuie să acopere source roots configurate și namespace-urile ATF actuale.
 
 În incrementul curent păstrăm cele 12 module și îmbunătățim codul existent:
 responsabilități, stare, erori, duplicări și documentație. Flow-urile E2E Shop și
@@ -27,12 +26,11 @@ Un document cu mai multe gap-uri primește scorul celui mai urgent, nu suma lor.
 
 | Ordine | Feedback / owner | Scor /100 | Criteriul care decide ordinea |
 |---:|---|---:|---|
-| 1 | [Core — execuție eșuată](ATF_Core_Execution_Evidence_Feedback.md) | **86** = 36 + 25 + 18 + 7 | istoricul retry-urilor nu este transportat la eroare terminală |
-| 2 | [Consumer — validări E2E și runtime](ATF_Consumer_Business_Test_Focus_Feedback.md) | **83** = 34 + 24 + 19 + 6 | payment corelat cu răspuns vechi (83), context E2E (77), total comandă (72), billing (71), evaluator pur (63), profile (57) |
-| 3 | [UI — sincronizare și recuperare BE](ATF_UI_Backend_Guided_Recovery_Feedback.md) | **79** = 32 + 23 + 17 + 7 | identitate/coș (79), audit agregat (78), select înlocuit (74) |
-| 4 | [Reporting — diagnostic și timing E2E](ATF_Reporting_Feedback.md) | **78** = 32 + 21 + 18 + 7 | contractul diagnosticului (78), timing typed al fazelor E2E (78) |
-| 5 | [UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ |
-| 6 | [Mentenanță — inventarul surselor](ATF_Code_Maintenance_Feedback.md) | **70** = 24 + 19 + 20 + 7 | rădăcinile Shop omise din guard-ul importurilor duplicate |
+| 1 | [Reporting — lifecycle și timing](ATF_Reporting_Feedback.md) | **80** = 32 + 23 + 18 + 7 | tranziții de scope neatomice (80), timing E2E (78) |
+| 2 | [Consumer — validări E2E și runtime](ATF_Consumer_Business_Test_Focus_Feedback.md) | **79** = 32 + 23 + 17 + 7 | identitate/coș înainte de checkout (79), runtime Shop (77), total și factură (74), billing (71), profile (57) |
+| 3 | [UI — sincronizare și recuperare BE](ATF_UI_Backend_Guided_Recovery_Feedback.md) | **78** = 33 + 22 + 16 + 7 | proiecție typed a observațiilor (78), select înlocuit (74) |
+| 4 | [UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ |
+| 5 | [Mentenanță — inventar și inspecție Java](ATF_Code_Maintenance_Feedback.md) | **70** = 24 + 19 + 20 + 7 | source roots Shop omise (70), namespace-uri actuale omise de guard-ul apelurilor (69) |
 
 O componentă verde confirmă criteriul ei; închiderea unui gap cere întreaga
 probă declarată la owner. Evaluarea calității folosește separat
@@ -40,12 +38,11 @@ probă declarată la owner. Evaluarea calității folosește separat
 
 ## Contracte și controale verificate
 
-Auditul componentelor și raportul comun class/suite sunt normate în
-[ghidul de testare](../ATF_Testing_Guide.md#auditul-componentelor-consumerilor),
-cu primitive la Kit și Reporting. Controalele demonstrate, inclusiv
-`COMPONENT-SCOPE-AND-SELECTORS-01`, sunt în
-[registrul verificat](../ATF_Test_Changes_Baseline.md#controale-tehnice-verificate).
-Controalele rămase active sunt colapsate lângă feedback-ul ownerului.
+Regulile demonstrate sunt la README-ul ownerului și în
+[ghidul de testare](../ATF_Testing_Guide.md); registrul de feedback nu dublează
+inventarul lucrărilor închise. Controalele Git verificate sunt în
+[baseline](../ATF_Test_Changes_Baseline.md#controale-tehnice-verificate),
+iar cele `ACTIVE` rămân lângă owner până la proba lor completă.
 
 ## Design AI — evaluare separată
 

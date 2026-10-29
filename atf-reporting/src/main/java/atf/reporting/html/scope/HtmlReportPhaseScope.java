@@ -42,7 +42,7 @@ public final class HtmlReportPhaseScope implements AtfReportPorts.Phase {
         String requestName = ExtentReportNodeSupport.renderRequestTitle(title, method, path);
         console.publish(AtfConsoleEvent.started(AtfConsoleEvent.Scope.REQUEST, requestName));
         return new HtmlReportRequestScope(request, requestName,
-                semantic.startRequest(title, method, path), console);
+                semantic.startRequest(title, method, path), console, childStatuses::record);
     }
 
     @Override public AtfReportPorts.AssertionStep startAssertionStep(String title) {
@@ -71,7 +71,7 @@ public final class HtmlReportPhaseScope implements AtfReportPorts.Phase {
     public void complete(AtfReportStatus status) {
         ensureOpen();
         if (timing != null) model.publicationMillis(HtmlReportScopeTiming.elapsedMillis(startedAt));
-        AtfReportStatus effective = AtfReportStatus.worst(childStatuses.aggregate(), status);
+        AtfReportStatus effective = childStatuses.resolve(status);
         model.complete(effective);
         semantic.complete(effective);
         onComplete.accept(effective);

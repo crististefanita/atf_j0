@@ -29,27 +29,27 @@ Reactorul păstrează exact cele 12 module existente. Extinderile se implementea
 ### Harta modulelor: platformă și consumatori
 
 ```mermaid
-%%{init: {"themeVariables": {"fontSize": "16px"}, "themeCSS": ".edgeLabel p { font-size: 13px; line-height: 1.1; margin: 0; padding: 0 2px; }", "flowchart": {"nodeSpacing": 16, "rankSpacing": 72, "padding": 4}}}%%
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; } .edgeLabel [data-id=\"L_Console_Kit_0\"] foreignObject { transform: translate(0px, -28px); } .edgeLabel [data-id=\"L_Ui_Core_0\"] foreignObject { transform: translate(-24px, -18px); } .edgeLabel [data-id=\"L_Shop_Ui_0\"] foreignObject { transform: translate(-24px, -28px); } .edgeLabel [data-id=\"L_Shop_Kit_0\"] foreignObject { transform: translate(24px, -18px); } .edgeLabel [data-id=\"L_AutoEx_Core_0\"] foreignObject { transform: translate(24px, -18px); } .edgeLabel [data-id=\"L_AutoEx_Console_0\"] foreignObject { transform: translate(-24px, -28px); } .edgeLabel [data-id=\"L_ReportingTests_Reporting_0\"] foreignObject { transform: translate(0px, 18px); } .edgeLabel [data-id=\"L_Governance_ReportingTests_0\"] foreignObject { transform: translate(0px, 18px); } .edgeLabel [data-id=\"L_AutoEx_Ui_0\"] foreignObject { transform: translate(24px, 28px); }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Mock["atf-mock"] -->|compile| Core["atf-core"]
-    Validation["atf-validation"] -->|compile| Core
-    Console["atf-console"] -->|compile| Core
-    Reporting["atf-reporting"]
-    Console -->|optional compile| Kit["atf-test-kit"]
-    Ui["atf-ui"] -->|compile| Core
-    Debug["atf-debug-ui"] -->|compile| Console
-    Shop["atf-test-practice-shop"] -->|compile| Core
+    Mock["Mock"] -->|compile| Core["Core"]
+    Validation["Validation"] -->|compile| Core
+    Console["Console"] -->|compile| Core
+    Reporting["Reporting"]
+    Console -->|optional compile| Kit["Test Kit"]
+    Ui["UI"] -->|compile| Core
+    Debug["Debug UI"] -->|compile| Console
+    Shop["Shop"] -->|compile| Core
     Shop -->|compile| Console
     Shop -->|compile| Reporting
     Shop -->|compile| Ui
     Shop -.->|test scope| Kit
-    AutoEx["atf-test-auto-ex"] -->|compile| Core
+    AutoEx["AutoEx"] -->|compile| Core
     AutoEx -->|compile| Reporting
     AutoEx -->|compile| Ui
     AutoEx -.->|test scope| Console
     AutoEx -.->|test scope| Kit
-    ReportingTests["atf-reporting-tests"] -.->|test composition| Reporting
-    Governance["atf-tests"] -.->|guard, not dependency| Shop
+    ReportingTests["Reporting tests"] -.->|test composition| Reporting
+    Governance["Guvernanță"] -.->|guard, not dependency| Shop
     Governance -.->|guard, not dependency| ReportingTests
 ```
 
@@ -69,6 +69,19 @@ flowchart LR
 - `atf-console` declară Test Kit ca dependență `optional` compile deoarece
   adaptorul JUnit din `src/main` citește adnotările și resolver-ele lui; asta nu
   transformă Test Kit într-o bibliotecă de business.
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Mock | atf-mock |
+| Core | atf-core |
+| Validation | atf-validation |
+| Test Kit | atf-test-kit |
+| UI | atf-ui |
+| Debug UI | atf-debug-ui |
+| Shop | atf-test-practice-shop |
+| AutoEx | atf-test-auto-ex |
 
 </details>
 
@@ -117,12 +130,12 @@ programatică a scenariilor API, iar `atf-reporting` oferă contractul pur pentr
 validarea unui artifact UI static:
 
 ```mermaid
-%%{init: {"themeVariables": {"fontSize": "16px"}, "themeCSS": ".edgeLabel p { font-size: 13px; line-height: 1.1; margin: 0; padding: 0 2px; }", "flowchart": {"nodeSpacing": 16, "rankSpacing": 48, "padding": 4}}}%%
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Core["core contract"] -->|oferă contract| Catalog["test catalog"]
+    Core["Core contract"] -->|oferă| Catalog["Catalog"]
     Catalog -->|compune| ApiArtifact["API artifact"]
-    ApiArtifact -->|este inspectat de| Browser["browser audit"]
-    Browser -->|verifică| Reporting["reporting contract"]
+    ApiArtifact -->|este inspectat de| Browser["Browser audit"]
+    Browser -->|verifică| Reporting["Reporting"]
     Reporting -->|publică| UiArtifact["UI artifact"]
 ```
 
@@ -133,6 +146,16 @@ flowchart LR
 - API artifactul este input read-only pentru inspectorul UI;
 - validatorul UI aparține librăriei reporting, iar browserul rămâne în test scope;
 - niciun `Page`, `Locator` sau JUnit nu intră în production reporting.
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Core contract | core contract |
+| Catalog | test catalog |
+| Browser audit | browser audit |
+| Reporting | reporting contract |
+| oferă | oferă contract |
 
 </details>
 
@@ -264,9 +287,10 @@ jurnalului; un cursor separă observațiile de setup de cele cauzate ulterior
 de acțiunile UI.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Browser["Browser"] -->|emite| Select["Selecție UI"]
-    Select -->|reține| Journal["Jurnal bounded"]
+    Browser["Browser"] -->|emite| Select["Selecție"]
+    Select -->|reține| Journal["Journal"]
     Journal -->|delimitează| Baseline["Baseline"]
     Baseline -->|înainte| Setup["Setup API"]
     Baseline -->|după| Step["Pas UI + API"]
@@ -289,6 +313,13 @@ flowchart LR
   setup/causal și `COMPLETE`/`INCOMPLETE`. Inspectorul nu decide verdictul
   business și nu clonează request-urile în sumar.
 
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Selecție | Selecție UI |
+| Journal | Jurnal bounded |
+
 </details>
 
 Contractul generic al filtrului și cursorului este în
@@ -299,7 +330,7 @@ selecția rutelor și asocierea cu pașii AutoEx sunt în
 ## Fluxul unei cereri
 
 ```mermaid
-%%{init: {"themeVariables": {"fontSize": "16px"}}}%%
+%%{init: {"themeVariables":{"fontSize":"15px","actorFontSize":"15px","messageFontSize":"12px","noteFontSize":"12px"},"themeCSS":".actor { font-size: 15px !important; } .messageText, .labelText, .loopText, .noteText { font-size: 12px !important; }","sequence":{"actorFontSize":15,"messageFontSize":12,"noteFontSize":12,"width":120,"height":42,"actorMargin":40,"messageMargin":24,"mirrorActors":false,"wrap":true,"wrapPadding":6}}}%%
 sequenceDiagram
     participant T as Test
     participant M as API layer
@@ -358,17 +389,17 @@ Boundary-ul acceptance este explicit:
 - raportarea și contractele nu depind de un serviciu extern.
 
 ```mermaid
-%%{init: {"themeVariables": {"fontSize": "16px"}, "themeCSS": ".edgeLabel p { font-size: 13px; line-height: 1.1; margin: 0; padding: 0 2px; }", "flowchart": {"nodeSpacing": 16, "rankSpacing": 48, "padding": 4}}}%%
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Scenario["acceptance"] -->|alege| Factory["module factory"]
-    Factory -->|injectează| Fake["mock transport"]
-    Fake -->|returnează| Offline["deterministic response"]
-    Offline -->|publică| Report["Extent artifact"]
+    Scenario["acceptance"] -->|alege| Factory["Factory"]
+    Factory -->|injectează| Fake["Mock"]
+    Fake -->|returnează| Offline["Response"]
+    Offline -->|publică| Report["Extent"]
 
-    Live["live opt-in"] -->|alege| FactoryLive["module factory"]
-    FactoryLive -->|injectează| Http["HTTP transport"]
-    Http -->|apelează| Server["real endpoint"]
-    Server -->|publică| LiveReport["live artifact"]
+    Live["live opt-in"] -->|alege| FactoryLive["Factory"]
+    FactoryLive -->|injectează| Http["HTTP"]
+    Http -->|apelează| Server["Endpoint"]
+    Server -->|publică| LiveReport["Artifact"]
 ```
 
 <details>
@@ -378,6 +409,18 @@ flowchart LR
 - live folosește HTTP numai prin policy și opt-in explicit;
 - URL-ul afișat în acceptance este evidence semantică, nu dovadă de trafic;
 - cele două profile nu se convertesc implicit unul în celălalt.
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Factory | module factory |
+| Mock | mock transport |
+| Response | deterministic response |
+| Extent | Extent artifact |
+| HTTP | HTTP transport |
+| Endpoint | real endpoint |
+| Artifact | live artifact |
 
 </details>
 
@@ -418,13 +461,13 @@ Rutele nu se scriu ca string-uri repetate în teste. Vocabularul stabil al
 căilor este separat de catalogul operațional și de configurația mediului:
 
 ```mermaid
-%%{init: {"themeVariables": {"fontSize": "16px"}, "themeCSS": ".edgeLabel p { font-size: 13px; line-height: 1.1; margin: 0; padding: 0 2px; }", "flowchart": {"nodeSpacing": 16, "rankSpacing": 48, "padding": 4}}}%%
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Paths["route vocabulary"] -->|descrie| Catalog["operation catalog"]
-    Config["environment config"] -->|configurează| Catalog
-    Catalog -->|compune| Operation["request intent"]
-    Catalog -->|alege| Auth["auth policy"]
-    Operation -->|alimentează| Executor["API executor"]
+    Paths["Routes"] -->|descrie| Catalog["Catalog"]
+    Config["Config"] -->|configurează| Catalog
+    Catalog -->|compune| Operation["Request intent"]
+    Catalog -->|alege| Auth["Auth policy"]
+    Operation -->|alimentează| Executor["Executor"]
 ```
 
 <details>
@@ -434,6 +477,17 @@ flowchart LR
 - catalogul combină ruta, operația și politica de autentificare;
 - configurația mediului poate schimba baza URL fără să schimbe testele;
 - executorul primește un request deja compus semantic.
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Routes | route vocabulary |
+| Config | environment config |
+| Catalog | operation catalog |
+| Request intent | request intent |
+| Auth policy | auth policy |
+| Executor | API executor |
 
 </details>
 
@@ -446,13 +500,13 @@ de mediu.
 Configurația urmează un singur traseu operațional:
 
 ```mermaid
-%%{init: {"themeVariables": {"fontSize": "16px"}, "themeCSS": ".edgeLabel p { font-size: 13px; line-height: 1.1; margin: 0; padding: 0 2px; }", "flowchart": {"nodeSpacing": 16, "rankSpacing": 48, "padding": 4}}}%%
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Sources["YAML sources"] -->|sunt citite de| Loaders["owner loaders"]
-    Overrides["explicit overrides"] -->|suprascriu| Loaders
-    Loaders -->|validează| Bootstrap["typed bootstrap"]
-    Bootstrap -->|îngheață| Snapshot["immutable snapshot"]
-    Snapshot -->|alimentează| Runtime["runtime consumers"]
+    Sources["YAML"] -->|alimentează| Loaders["Loaders"]
+    Overrides["Overrides"] -->|suprascriu| Loaders
+    Loaders -->|validează| Bootstrap["Bootstrap"]
+    Bootstrap -->|îngheață| Snapshot["Snapshot"]
+    Snapshot -->|alimentează| Runtime["Runtime"]
     Loaders -->|construiesc| Mock["mock snapshot"]
     Mock -->|injectează| Transport["mock transport"]
     Transport -->|alimentează| Runtime
@@ -469,6 +523,13 @@ flowchart LR
 - `mock transport` = transport selectat de politica `acceptance`;
 - `runtime consumers` = executor, validation, reporting și fixture-urile de test;
 - săgeata nu reprezintă un import Maven, ci fluxul datelor de configurare.
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Overrides | explicit overrides |
+| alimentează | sunt citite de |
 
 </details>
 
@@ -555,16 +616,16 @@ reproductibilă, o schimbare de consumator sau o schimbare publică de contract.
 ### Parity semantică între renderer-e
 
 ```mermaid
-%%{init: {"themeVariables": {"fontSize": "16px"}, "themeCSS": ".edgeLabel p { font-size: 13px; line-height: 1.1; margin: 0; padding: 0 2px; }", "flowchart": {"nodeSpacing": 16, "rankSpacing": 48, "padding": 4}}}%%
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Extent["Extent model"]
-    Fallback["fallback model"]
-    Adapter["semantic snapshot"]
-    Guard["parity guard"]
+    Extent["Extent"]
+    Fallback["Fallback"]
+    Adapter["Snapshot"]
+    Guard["Parity guard"]
     Extent -->|furnizează| Guard
     Fallback -->|normalizează| Adapter
     Adapter -->|furnizează| Guard
-    Guard -->|publică| Output["coherent views"]
+    Guard -->|publică| Output["Views"]
 ```
 
 <details>
@@ -574,6 +635,16 @@ flowchart LR
 - adapterul normalizează modelul, fără să forțeze aceeași structură internă;
 - guard-ul compară class, scenario, phase, request, validation și evidence counts;
 - diferența se repară în provider/model, nu prin ascunderea ei în UI.
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Extent | Extent model |
+| Fallback | fallback model |
+| Snapshot | semantic snapshot |
+| Parity guard | parity guard |
+| Views | coherent views |
 
 </details>
 
@@ -589,12 +660,12 @@ parity-ul nu cere aceeași structură internă.
 ### Evoluție controlată și redeschidere
 
 ```mermaid
-%%{init: {"themeVariables": {"fontSize": "16px"}, "themeCSS": ".edgeLabel p { font-size: 13px; line-height: 1.1; margin: 0; padding: 0 2px; }", "flowchart": {"nodeSpacing": 16, "rankSpacing": 48, "padding": 4}}}%%
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Closed["contract closed"] -->|activează| Guarded["guards active"]
-    Guarded -->|detectează| Trigger["valid signal"]
-    Trigger -->|limitează| Scope["targeted change"]
-    Scope -->|cere| Recheck["owner revalidation"]
+    Closed["Contract"] -->|activează| Guarded["Guards"]
+    Guarded -->|detectează| Trigger["Signal"]
+    Trigger -->|limitează| Scope["Change"]
+    Scope -->|cere| Recheck["Recheck"]
 ```
 
 <details>
@@ -627,19 +698,29 @@ implementează porturile `AtfReportPorts`. Sesiunea creează scope-urile, modelu
 semantic oferă numai mutații controlate, iar renderer-ul nu primește câmpuri
 interne și nu devine dependent de lifecycle.
 
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Contract | contract closed |
+| Guards | guards active |
+| Signal | valid signal |
+| Change | targeted change |
+| Recheck | owner revalidation |
+
 </details>
 
 ## Ciclu de viață și responsabilități
 
 ```mermaid
-%%{init: {"themeVariables": {"fontSize": "16px"}, "themeCSS": ".edgeLabel p { font-size: 13px; line-height: 1.1; margin: 0; padding: 0 2px; }", "flowchart": {"nodeSpacing": 16, "rankSpacing": 48, "padding": 4}}}%%
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
     Scenario["Scenariu"] -->|pornește| Setup["SETUP"]
     Setup -->|execută| Body["TEST BODY"]
     Body -->|închide| Teardown["TEARDOWN"]
-    Teardown -->|eliberează| Cleanup["cleanup invers"]
-    Setup -.->|evidence| SetupEvidence["Setup evidence"]
-    Body -.->|evidence| BodyEvidence["Body evidence"]
+    Teardown -->|eliberează| Cleanup["Cleanup"]
+    Setup -.->|evidence| SetupEvidence["Dovezi setup"]
+    Body -.->|evidence| BodyEvidence["Dovezi body"]
 ```
 
 <details>
@@ -652,6 +733,14 @@ flowchart LR
   rămân copii semantici ai checkpoint-ului Gherkin UI;
 - cleanup-ul închide resursele create în ordine inversă;
 - precedence-ul verdictului rămâne responsabilitatea lifecycle-ului, nu a rendererului.
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Cleanup | cleanup invers |
+| Dovezi setup | Setup evidence |
+| Dovezi body | Body evidence |
 
 </details>
 
@@ -736,7 +825,7 @@ au prioritate față de presupunerea că fiecare modul folosește convenția imp
 ## Testabilitate
 
 ```mermaid
-%%{init: {"themeVariables": {"fontSize": "16px"}, "themeCSS": ".edgeLabel p { font-size: 13px; line-height: 1.1; margin: 0; padding: 0 2px; }", "flowchart": {"nodeSpacing": 16, "rankSpacing": 48, "padding": 4}}}%%
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
     Unit["unit"] -->|policy| Component["component"]
     Component -->|module| Artifact["artifact"]

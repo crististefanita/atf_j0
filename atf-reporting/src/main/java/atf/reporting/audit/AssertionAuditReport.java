@@ -78,8 +78,7 @@ public final class AssertionAuditReport implements AutoCloseable {
             if (!assertions.isEmpty()) {
                 try (var step = phase.startAssertionStep("Component assertions")) {
                     step.assertions(assertions);
-                    step.complete(assertions.stream().allMatch(AtfAssertion::passed)
-                            ? AtfReportStatus.PASS : AtfReportStatus.FAIL);
+                    step.complete(AtfReportStatus.INFO);
                 }
             }
             if (diagnostic != null && !diagnostic.isBlank()) {

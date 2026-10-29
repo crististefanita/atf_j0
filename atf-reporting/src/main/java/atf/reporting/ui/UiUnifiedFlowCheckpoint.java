@@ -2,6 +2,7 @@ package atf.reporting.ui;
 
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.contract.ReportStatusAggregator;
 import atf.reporting.evidence.ReportScreenshotPolicy;
 import atf.reporting.model.ReportExecutionEvidence;
 import atf.reporting.ui.model.AtfUiActionRecord;
@@ -23,7 +24,7 @@ record UiUnifiedFlowCheckpoint(String keyword, String title, String target,
         target = target == null ? "" : target.trim();
         base64Png = base64Png == null ? "" : base64Png;
         assertions = assertions == null ? List.of() : List.copyOf(assertions);
-        status = status == null ? AtfReportStatus.PASS : status;
+        status = new ReportStatusAggregator().resolve(status == null ? AtfReportStatus.PASS : status, assertions);
         java.util.Objects.requireNonNull(validationKind, "validationKind");
         actions = actions == null ? List.of() : List.copyOf(actions);
         java.util.Objects.requireNonNull(apiValidation, "apiValidation");

@@ -32,7 +32,10 @@ function bindDisclosureKeyboard(header, toggle) {
   if (!header.hasAttribute('tabindex')) header.setAttribute('tabindex', '0');
   if (!header.hasAttribute('role')) header.setAttribute('role', 'button');
   header.addEventListener('keydown', function (e) {
-    if ((e.key === 'Enter' || e.key === ' ') && e.target === header) toggle(e);
+    if ((e.key === 'Enter' || e.key === ' ') && e.target === header) {
+      atfNavEpoch++;
+      toggle(e);
+    }
   }, true);
 }
 function openDeepLinkCard(card, open) {

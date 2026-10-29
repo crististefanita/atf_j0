@@ -33,12 +33,13 @@ specificitate pe măsură ce coborâm în pagină.
 ## Diagramă de bază
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Docs[docs index] -->|orientează spre| Architecture[architecture]
-    Architecture -->|leagă| Guides[guides + contracts]
-    Guides -->|include| Safety[build safety]
-    Safety -->|constrânge| Practices[best practices]
-    Practices -->|alimentează| Feedback[feedback + owner docs]
+    Docs["Index"] -->|orientează| Architecture["Arhitectură"]
+    Architecture -->|leagă| Guides["Ghiduri"]
+    Guides -->|include| Safety["Build safety"]
+    Safety -->|constrânge| Practices["Bune practici"]
+    Practices -->|alimentează| Feedback["Feedback"]
 ```
 
 <details>
@@ -51,6 +52,17 @@ flowchart LR
 - `Safety` descrie staging-ul, sync-ul și gate-urile de execuție;
 - `Practices` descrie regulile transversale, iar `Feedback` păstrează numai gap-uri
   reproductibile și ownership-ul lor.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Index | docs index |
+| Arhitectură | architecture |
+| Ghiduri | guides + contracts |
+| Build safety | build safety |
+| Bune practici | best practices |
+| Feedback | feedback + owner docs |
+| orientează | orientează spre |
 
 </details>
 

@@ -11,5 +11,5 @@ public record ReportAttemptRecord(int number, int statusCode, Duration duration,
         reason = reason == null ? "" : reason;
     }
 
-    public String statusLabel() { return statusCode < 0 ? "Unavailable" : Integer.toString(statusCode); }
+    public String statusLabel() { return statusCode <= 0 ? "Unavailable" : Integer.toString(statusCode); }
 }

@@ -19,10 +19,11 @@ Nu este browser de produs și nu înlocuiește gate-ul E2E.
 ## Diagramă de bază
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px","actorFontSize":"15px","messageFontSize":"12px","noteFontSize":"12px"},"themeCSS":".actor { font-size: 15px !important; } .messageText, .labelText, .loopText, .noteText { font-size: 12px !important; }","sequence":{"actorFontSize":15,"messageFontSize":12,"noteFontSize":12,"width":120,"height":42,"actorMargin":40,"messageMargin":24,"mirrorActors":false,"wrap":true,"wrapPadding":6}}}%%
 sequenceDiagram
     participant A as Agent / IntelliJ
     participant D as atf-debug-ui
-    participant P as Playwright / TAB MCP
+    participant P as Browser / MCP
     participant H as HTML artifact
 
     A->>D: pornește launcher-ul cu --html report.html
@@ -40,6 +41,12 @@ sequenceDiagram
 - Playwright/TAB MCP observă artifactul, nu îl repară și nu îl rescrie;
 - HTML/CSS/JavaScript-ul aparține artifactului produs de atf-reporting;
 - testul E2E rămâne gate-ul pentru comportamentul observabil, iar debug UI este instrumentul de explorare.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Browser / MCP | Playwright / TAB MCP |
+
 </details>
 
 Responsabilitățile rămân separate:

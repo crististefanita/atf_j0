@@ -7,6 +7,7 @@ import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfGherkinKeyword;
 import atf.reporting.contract.AtfReportPorts;
 import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.contract.ReportStatusAggregator;
 import atf.reporting.evidence.ReportScreenshotPolicy;
 import atf.reporting.evidence.profile.ReportEvidenceFlowMode;
 import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
@@ -283,6 +284,9 @@ public final class UiPhaseLifecycle implements AutoCloseable {
 
     private void complete(AtfReportStatus status, boolean finalPhase) {
         ensureOpen();
+        var checkpoints = new ReportStatusAggregator();
+        unifiedCheckpoints.forEach(checkpoint -> checkpoints.record(checkpoint.status()));
+        status = checkpoints.resolve(status);
         if (scenario.crossPhaseUnifiedFlow()) {
             scenario.retain(phaseName, status, List.copyOf(unifiedCheckpoints));
             unifiedCheckpoints.clear();

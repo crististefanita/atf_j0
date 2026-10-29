@@ -17,12 +17,14 @@ final class ShopCatalogPurchaseStage implements ShopCatalogPurchaseFlow.Port {
     private final ShopPurchaseJourneyContext.CatalogInputs context;
     private ShopHomePage home;
     private ShopProductPage product;
+    private long cartAdditionFence;
     ShopCatalogPurchaseStage(ShopPurchaseJourneyContext.CatalogInputs context) {
         this.context = java.util.Objects.requireNonNull(context, "context");
     }
 
-    void prepareCart() {
+    long prepareCart() {
         new ShopCatalogPurchaseFlow().prepareCart(this, context.checkpointPublisher()::report);
+        return cartAdditionFence;
     }
 
     @Override public ShopPurchaseCheckpoint openHome() {
@@ -110,7 +112,7 @@ final class ShopCatalogPurchaseStage implements ShopCatalogPurchaseFlow.Port {
     }
 
     @Override public void addConfiguredQuantity() {
-
+        cartAdditionFence = context.apiNetwork().sequenceMarker();
         product.addConfiguredQuantity(context.selection().quantity());
     }
 }

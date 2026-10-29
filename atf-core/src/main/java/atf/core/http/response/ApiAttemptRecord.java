@@ -19,4 +19,9 @@ public record ApiAttemptRecord(
         outcome = Objects.requireNonNull(outcome, "outcome");
         reason = reason == null ? "" : reason;
     }
+
+    /** Zero is the legacy no-response sentinel, never an HTTP status. */
+    public java.util.OptionalInt httpStatus() {
+        return statusCode == 0 ? java.util.OptionalInt.empty() : java.util.OptionalInt.of(statusCode);
+    }
 }

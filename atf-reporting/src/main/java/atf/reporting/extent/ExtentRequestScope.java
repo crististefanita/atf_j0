@@ -142,7 +142,7 @@ final class ExtentRequestScope implements AtfReportPorts.Request {
             tree.complete(networkAggregateNode, AtfReportStatus.PASS);
             tree.markEnded(networkAggregateNode);
         }
-        var effective = AtfReportStatus.worst(statuses.aggregate(), status);
+        var effective = statuses.resolve(status);
         tree.complete(request, effective);
         tree.markEnded(request);
         phase.record(effective);

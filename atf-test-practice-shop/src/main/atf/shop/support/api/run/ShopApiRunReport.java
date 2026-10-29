@@ -88,6 +88,15 @@ public final class ShopApiRunReport implements ShopApiBusinessRun.Audit {
     private void publishFailure(FailedRequest failed) {
         var request = failed.request();
         try (var node = phase.startRequest("Failed API execution", request.method(), request.path())) {
+            var captured = atf.core.http.execution.evidence.ApiExecutionFailure.find(failed.failure());
+            if (captured.isPresent()) {
+                var snapshot = captured.orElseThrow();
+                atf.reporting.api.evidence.ApiExchangeEvidence.publishFailure(node,
+                        atf.shop.support.api.ShopApiEvidenceMapper.toExecution(snapshot), snapshot.url(),
+                        snapshot.termination().name(), diagnostic(failed.failure()));
+                node.complete(AtfReportStatus.FAIL);
+                return;
+            }
             if (request.bodyText() != null && !request.bodyText().isBlank())
                 node.json("REQUEST JSON", ShopJsonEvidence.redact(request.bodyText()));
             node.detail("Response availability", "No HTTP response received");

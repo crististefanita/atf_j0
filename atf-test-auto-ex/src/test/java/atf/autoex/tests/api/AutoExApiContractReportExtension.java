@@ -214,7 +214,9 @@ public final class AutoExApiContractReportExtension implements BeforeAllCallback
 
     public static void recordExecutionFailure(AtfReportPorts.Phase phase, Throwable failure) {
         if (phase == null || failure == null) return;
-        phase.diagnostic(ReportPhaseDiagnostic.Kind.JUNIT_FAILURE, describeFailure(failure));
+        String diagnostic = describeFailure(failure);
+        diagnostic = atf.autoex.runtime.api.AutoExApiFailureEvidence.publish(phase, failure, diagnostic).orElse(diagnostic);
+        phase.diagnostic(ReportPhaseDiagnostic.Kind.JUNIT_FAILURE, diagnostic);
     }
 
     private static String describeFailure(Throwable failure) {

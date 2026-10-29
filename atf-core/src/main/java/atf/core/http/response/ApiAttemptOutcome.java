@@ -4,5 +4,9 @@ package atf.core.http.response;
 public enum ApiAttemptOutcome {
     SUCCESS,
     RETRYABLE_RESPONSE,
-    RETRYABLE_FAILURE
+    RETRYABLE_FAILURE,
+    FAILED,
+    TIMED_OUT,
+    CANCELLED,
+    INTERRUPTED
 }

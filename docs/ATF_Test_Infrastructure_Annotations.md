@@ -38,11 +38,12 @@ iar cazul Practice Shop este detaliat în [README-ul consumerului](../atf-test-p
 ## Compoziție și roluri
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Declaration[Adnotare pe test] -->|rezolvă| Plan[Selecție typed]
-    Plan -->|verifică suportul| Consumer[Adaptorul consumatorului]
-    Consumer -->|execută| Test[Test și validări]
-    Test -->|publică dovezi| Reporting[Reporting]
+    Declaration["Adnotare"] -->|rezolvă| Plan["Plan typed"]
+    Plan -->|verifică| Consumer["Adaptor"]
+    Consumer -->|execută| Test["Test"]
+    Test -->|publică| Reporting[Reporting]
 ```
 
 <details>
@@ -55,6 +56,17 @@ flowchart LR
 - Reporting proiectează dovezile și verdictele primite prin porturile sale.
 - Adnotările nu acordă permisiuni pentru registration, purchase sau apeluri
   live; aceste politici rămân explicite la consumator.
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Adnotare | Adnotare pe test |
+| Plan typed | Selecție typed |
+| Adaptor | Adaptorul consumatorului |
+| Test | Test și validări |
+| verifică | verifică suportul |
+| publică | publică dovezi |
 
 </details>
 

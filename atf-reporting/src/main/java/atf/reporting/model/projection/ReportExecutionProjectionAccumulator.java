@@ -76,9 +76,7 @@ final class ReportExecutionProjectionAccumulator {
             }
             var validation = (ReportExecutionModel.Validation) node;
             validation.assertions().stream()
-                    .filter(assertion -> assertion.resultStatus() == AtfReportStatus.FAIL
-                            || (!assertion.passed()
-                            && validation.status() == AtfReportStatus.FAIL))
+                    .filter(assertion -> assertion.resultStatus() == AtfReportStatus.FAIL)
                     .map(assertion -> new ReportExecutionModel.Failure(
                             scenario.id(), assertion.name(), assertion.actual()))
                     .forEach(failures::add);

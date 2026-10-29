@@ -8,11 +8,12 @@
 - nu conține locatori, page objects sau flow-uri de aplicație.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Root["root POM"] -->|alimentează| Governance["governance"]
-    Governance -->|verifică| Checks["architecture + runtime guards"]
-    Governance -.->|protejează| Consumers["consumer modules"]
-    Consumers -->|folosesc| Libraries["ATF libraries"]
+    Root["POM"] -->|alimentează| Governance["Guvernanță"]
+    Governance -->|verifică| Checks["Guard-uri"]
+    Governance -.->|protejează| Consumers["Consumeri"]
+    Consumers -->|folosesc| Libraries["Librării ATF"]
 ```
 
 <details>
@@ -25,6 +26,14 @@ flowchart LR
 - muchia punctată arată guard-ul aplicat consumatorilor, nu ownership transferat către governance;
 - consumatorii folosesc bibliotecile prin dependințe explicite, iar governance-ul
   verifică această direcție fără să devină runtime.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Guard-uri | architecture + runtime guards |
+| Consumeri | consumer modules |
+| Librării ATF | ATF libraries |
+
 </details>
 
 | Responsabilitate | Owner | Excludere explicită |

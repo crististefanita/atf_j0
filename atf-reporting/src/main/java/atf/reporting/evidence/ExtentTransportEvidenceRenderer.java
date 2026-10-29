@@ -204,7 +204,7 @@ public final class ExtentTransportEvidenceRenderer {
                 .append(AtfReportMarkup.table(AtfReportHtmlVocabulary.classList(
                         AtfReportHtmlVocabulary.CssClass.HELM_EVIDENCE_TABLE,
                         AtfReportHtmlVocabulary.CssClass.EXECUTION_TABLE),
-                        ReportExecutionSummary.table(execution, redactor)).getMarkup());
+                        ReportExecutionSummary.table(execution, redactor, settings)).getMarkup());
         if (!execution.attemptHistory().isEmpty()) {
             body.append(AtfReportMarkup.table(AtfReportHtmlVocabulary.classList(
                             AtfReportHtmlVocabulary.CssClass.HELM_EVIDENCE_TABLE,

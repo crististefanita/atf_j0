@@ -7,6 +7,10 @@ evaluarea deterministă a output-ului AI și guvernanța schimbărilor propuse d
 un agent. Modelele și guard-urile de mai jos sunt ținte de proiectare, nu
 semnături complete sau funcționalități declarate livrate.
 
+Reactorul păstrează exact cele 12 module existente, inclusiv pentru designul AI.
+Separările de mai jos sunt responsabilități și pachete la ownerii actuali;
+nu propun un modul Maven suplimentar.
+
 | Tip de informație | Sursă autoritară |
 |---|---|
 | API implementat și probe | [ATF Validation](../atf-validation/README.md#comparatorul-ai--contract-implementat) |
@@ -878,16 +882,17 @@ source diff, test, gate și artifact.
 ### 23.3 Fluxul propus
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":4,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Agent[Agent proposal] -->|compară| Baseline[Live baseline]
-    Baseline -->|definește| Contract[Change contract]
-    Contract -->|verifică| Owner[Owner/layer check]
-    Owner -->|limitează| Implement[Scoped implementation]
-    Implement -->|dovedește| Unit[Focused tests]
-    Unit -->|alimentează| Governance[Whole-ATF governance]
-    Governance -->|produce| Artifact[Evidence/artifact]
-    Artifact -->|compilează| Handoff[Compiled feedback]
-    Handoff -->|decide| Next[Next agent decision]
+    Agent["Proposal"] -->|compară| Baseline["Baseline"]
+    Baseline -->|definește| Contract["Contract"]
+    Contract -->|verifică| Owner["Owner"]
+    Owner -->|limitează| Implement["Change"]
+    Implement -->|dovedește| Unit["Tests"]
+    Unit -->|alimentează| Governance["Governance"]
+    Governance -->|produce| Artifact["Evidence"]
+    Artifact -->|compilează| Handoff["Feedback"]
+    Handoff -->|decide| Next["Decision"]
 ```
 
 <details>
@@ -896,6 +901,19 @@ flowchart LR
 - `Agent proposal` este schimbarea propusă, nu dovada că schimbarea este corectă.
 - `Whole-ATF governance` validează contractul, layer-ul, testele și documentația.
 - `AI evaluation` măsoară calitatea output-ului și rămâne separat de scorul workflow-ului.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Baseline | Live baseline |
+| Contract | Change contract |
+| Owner | Owner/layer check |
+| Change | Scoped implementation |
+| Tests | Focused tests |
+| Evidence | Evidence/artifact |
+| Feedback | Compiled feedback |
+| Decision | Next agent decision |
+
 </details>
 
 Regula de oprire: dacă baseline-ul, ownerul sau proof plan-ul nu sunt clare,
@@ -1277,13 +1295,14 @@ mai precisă: arată cum trebuie separat un workflow de business, un read model
 typed, un verdict semantic, retry-ul și proiecția de evidence.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Scenario[Scenario scoped state] -->|owns| Workflow[Capability workflow]
-    Workflow -->|calls| Gateway[Typed gateway / transport]
-    Gateway -->|returns| ReadModel[Typed read model]
-    ReadModel -->|feeds| Validator[Expected vs actual validator]
-    Validator -->|binds| Evidence[Evidence adapter]
-    Evidence -->|projects| Report[Extent / report projection]
+    Scenario["Scenario state"] -->|owns| Workflow["Workflow"]
+    Workflow -->|calls| Gateway["Gateway"]
+    Gateway -->|returns| ReadModel["Read model"]
+    ReadModel -->|feeds| Validator["Validator"]
+    Validator -->|binds| Evidence["Evidence"]
+    Evidence -->|projects| Report["Report"]
 ```
 
 <details>
@@ -1302,6 +1321,18 @@ flowchart LR
 | hard gate versus advisory | `VoyageBusinessEvidencePolicy`, `PdfSemanticValidationPolicy` | warning-ul este permis doar pe o bandă explicită; regression contractual nu poate trece cu `WARN + return` |
 | workflow fără HTML | capability workflows și `AIExtractionReviewValidator` | workflow-ul produce observații typed; adapterul de reporting decide forma HTML |
 | contracte de arhitectură | `VoyageArchitectureContractTests` | regulile de ownership, registrare și absența `CreateNode`/HTML în workflow pot fi guvernate automat |
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Scenario state | Scenario scoped state |
+| Workflow | Capability workflow |
+| Gateway | Typed gateway / transport |
+| Read model | Typed read model |
+| Validator | Expected vs actual validator |
+| Evidence | Evidence adapter |
+| Report | Extent / report projection |
 
 </details>
 
@@ -1350,12 +1381,13 @@ ATF1 aduce două lucruri distincte și trebuie citit pe două niveluri:
    și handoff, dar nu este încă un contract executabil în Java.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    ColdRead[Cold baseline] -->|informs| Frontier[Frontier decision]
-    Frontier -->|permits| Run[Governed run]
-    Run -->|freezes| Freeze[Diff + artifacts + state]
-    Freeze -->|supports| Score[Business / proof score]
-    Score -->|feeds| Learn[Feedback + next decision]
+    ColdRead["Baseline"] -->|informs| Frontier["Decision"]
+    Frontier -->|permits| Run["Run"]
+    Run -->|freezes| Freeze["Snapshot"]
+    Freeze -->|supports| Score["Score"]
+    Score -->|feeds| Learn["Feedback"]
 ```
 
 <details>
@@ -1376,9 +1408,20 @@ flowchart LR
 | application-first graph | `business-flow-graph-rubric.md` | graful business nu trebuie înlocuit cu lista de clase sau run-uri |
 | score cap | `score-overview-reference.md` | raportarea bună nu compensează absența obiectului business |
 
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Baseline | Cold baseline |
+| Decision | Frontier decision |
+| Run | Governed run |
+| Snapshot | Diff + artifacts + state |
+| Score | Business / proof score |
+| Feedback | Feedback + next decision |
+
 </details>
 
-### 36.1 Limitele ATF1 care trebuie închise în orice modul agentic
+### 36.1 Limitele ATF1 care trebuie închise în workflow-ul agentic
 
 - prompturile și starea de run sunt documentate, nu tipizate într-un contract
   machine-readable;
@@ -1408,18 +1451,19 @@ flowchart LR
 
 ## 37. Sinteza: două produse diferite ale aceluiași workflow
 
-Un modul agentic ar trebui să ajute la **crearea și verificarea unui test**. Un
-modul AI evaluation ar trebui să verifice **output-ul AI din test**. Ele trebuie
+Workflow-ul agentic ar trebui să ajute la **crearea și verificarea unui test**.
+Evaluatorul AI ar trebui să verifice **output-ul AI din test**. Ele trebuie
 să folosească aceeași infrastructură de evidence, dar nu aceeași metrică.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; } .edgeLabel [data-id=\"L_QualityProof_SharedEvidence_0\"] foreignObject { transform: translate(0px, -28px); }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    AgentChange[Agent proposes test change] -->|scores| WorkflowProof[Workflow score]
-    AiCase[AI case runs] -->|scores| QualityProof[AI quality score]
-    WorkflowProof -->|publishes| SharedEvidence[Shared evidence contract]
+    AgentChange["Agent change"] -->|scores| WorkflowProof[Workflow score]
+    AiCase["AI case"] -->|scores| QualityProof[AI quality score]
+    WorkflowProof -->|publishes| SharedEvidence["Evidence"]
     QualityProof -->|publishes| SharedEvidence
-    Governance[Whole-ATF governance] -->|guards| WorkflowProof
-    SharedEvidence -->|projects| Report[Renderer-neutral report projection]
+    Governance["Governance"] -->|guards| WorkflowProof
+    SharedEvidence -->|projects| Report["Report"]
 ```
 
 <details>
@@ -1429,11 +1473,21 @@ Workflow score măsoară dacă schimbarea agentului este guvernată corect. AI
 quality score măsoară output-ul AI. Ambele publică facts în aceeași evidență,
 iar raportarea doar o proiectează.
 
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Agent change | Agent proposes test change |
+| AI case | AI case runs |
+| Evidence | Shared evidence contract |
+| Governance | Whole-ATF governance |
+| Report | Renderer-neutral report projection |
+
 </details>
 
 | Axă | Întrebare | Owner conceptual | Failure dominant |
 |---|---|---|---|
-| agent workflow | schimbarea este în ownerul, layer-ul și boundary-ul corect? | modul agentic + `atf-tests` | owner/layer/proof/documentation drift |
+| agent workflow | schimbarea este în ownerul, layer-ul și boundary-ul corect? | `atf-tests` + compoziția consumerului | owner/layer/proof/documentation drift |
 | AI quality | output-ul este corect, complet, grounded și rutat? | evaluator semantic dedicat | wrong intent, missing/invented field, bad state |
 | evidence trust | poate un reviewer reconstrui verdictul? | `atf-validation` + reporting contract | missing reference, duplicate exchange, unknown invocation |
 | publication | proiecția este navigabilă și fidelă? | `atf-reporting` + composition tests | HTML/Extent/fallback drift |
@@ -1441,28 +1495,43 @@ iar raportarea doar o proiectează.
 Un workflow score de 100 poate identifica un model AI cu quality score 42. Acest
 rezultat este util și nu trebuie „reparat” prin relaxarea testului.
 
-## 38. Candidat de design — modul opțional `atf-agent-test-kit`
+## 38. Candidat de design — compoziție în modulele existente
 
 Aceasta este o propunere de design, nu o autorizație de implementare.
-Modulul ar trebui să fie **test-only, opt-in și provider-neutral**. Numele este
-provizoriu; important este boundary-ul, nu numele.
+Compoziția rămâne **test-only, opt-in și provider-neutral**; responsabilitățile
+se distribuie între ownerii existenți, fără un proiect Maven nou.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Consumer[Consumer test module] -->|uses| AgentKit[atf-agent-test-kit]
-    AgentKit -->|reuses| TestKit[atf-test-kit layers]
-    AgentKit -->|checks| Validation[atf-validation decisions]
-    AgentKit -->|reads| Core[atf-core immutable facts]
-    ReportingTests[reporting composition] -.->|proves| AgentKit
-    Governance[atf-tests] -.->|guards| AgentKit
-    AgentKit -.->|avoids| Reporting[atf-reporting]
+    Kit["Kit"] -->|descriu| Gates["Gates"]
+    Gates -->|verifică| Consumer["Consumeri"]
+    Consumer -->|evaluează| Validation["Validation"]
+    Validation -->|furnizează| Report["Reporting"]
+    Proof["Reporting Tests"] -.->|verifică| Report
 ```
 
 <details>
-<summary><strong>Legendă — boundary-ul modulului propus</strong></summary>
+<summary><strong>Legendă — ownership propus în reactorul existent</strong></summary>
 
-Modulul propus consumă contracte de test și facts imutabile, poate fi verificat
-de guvernanță și nu devine owner pentru browser, business YAML sau renderer.
+- Muchiile descriu colaborarea conceptuală, nu dependențe Maven noi.
+- Kit deține numai declarațiile neutre, fără importuri Core, Validation sau Reporting.
+- `atf-tests` deține proposal/handoff și controalele schimbării testelor;
+  consumerii compun evaluarea fără a muta business YAML ori browserul în Kit.
+- Validation deține verdictul AI; Reporting proiectează snapshot-ul prin
+  contractele proprii, iar Reporting Tests dovedește randarea și paritatea.
+- Toate acestea rămân design; absența unui modul suplimentar nu este o lacună.
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Kit | Declarații neutre · Kit |
+| Gates | Proposal și gates · Tests |
+| Consumeri | Compoziție · consumeri |
+| Validation | Evaluator · Validation |
+| Reporting | Snapshot · Reporting |
+| Reporting Tests | Probe · Reporting Tests |
 
 </details>
 
@@ -1573,10 +1642,10 @@ baseline → owner → layer → dependency → expected/observed → retry/evid
 - generare automată de clase Java;
 - vector memory, prompt registry sau scoring bazat pe text liber;
 - un nou layer în `atf-test-kit`;
-- conectarea directă a modulului agentic la `atf-reporting` production;
+- cuplarea workflow-ului agentic la renderer în locul contractului semantic;
 - modificarea automată a testelor de guvernanță.
 
-Aceste limite rămân valabile pentru `atf-agent-test-kit` și pentru orice provider
+Aceste limite rămân valabile pentru compoziția agentică și pentru orice provider
 AI. Ele nu blochează un boundary tehnic separat, deja util pentru un consumer UI:
 observarea bounded și redacted a traficului browserului. Inspectorul de rețea nu
 este agent, evaluator AI și nu decide verdictul business.
@@ -1614,7 +1683,7 @@ un contract sau o decizie arhitecturală; starea, scorurile și gap-urile rămâ
 
 ## 42. Limita de implementare
 
-- `atf-agent-test-kit` și configurarea sa rămân propuneri test-only, opt-in și provider-neutral.
+- Compoziția agentică și configurarea sa rămân propuneri test-only, opt-in și provider-neutral, în cele 12 module existente.
 - Inspectorul de rețea și comparatorul existent nu sunt un agent sau un vertical slice AI end-to-end.
 - Primul pilot agentic cere fixture valid/invalid și diagnostic; nu cere provider, browser sau HTML.
 - Replay-ul mutațiilor cere un contract explicit de domeniu și idempotency, conform [ATF UI](../atf-ui/README.md).

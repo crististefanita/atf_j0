@@ -21,19 +21,20 @@ browserul și raportarea sunt furnizate de modulele ATF.
   de verdict.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Config[atf-auto-ex.yaml] -->|configurează| Suite[AutoExE2eSuite]
-    Suite -->|rulează| Journey[Purchase journey]
-    Journey -->|coordonează| Pages[page objects AutoEx]
-    Pages -->|folosesc| Browser[sesiunea Playwright ATF]
-    Browser -->|vizitează| Site[Automation Exercise]
-    Browser -.->|UI_API observă| Inspector[network inspector]
-    Inspector -->|publică| UiReport[raport E2E partajat]
-    ComponentSuite[AutoExComponentSuite] -->|verifică| Fixtures[reguli business și adaptoare offline]
-    ReadOnlySuite[API live read-only] -->|folosește| Requests[AutoExApiRequestFactory]
-    MutatingSuite[API live cu cont] -->|folosește| Requests
-    Requests -->|apelează| Api[Automation Exercise API]
-    ReadOnlySuite -->|publică| ApiReport[raport API Extent]
+    Config["YAML"] -->|setează| Suite["Suită E2E"]
+    Suite -->|rulează| Journey["Journey"]
+    Journey -->|coordonează| Pages["Pagini"]
+    Pages -->|folosesc| Browser["Browser"]
+    Browser -->|vizitează| Site["Site UI"]
+    Browser -.->|observă| Inspector["Inspector"]
+    Inspector -->|publică| UiReport["Raport E2E"]
+    ComponentSuite["Componente"] -->|verifică| Fixtures["Fixture-uri"]
+    ReadOnlySuite["API read-only"] -->|folosește| Requests["Request factory"]
+    MutatingSuite["API cont"] -->|folosește| Requests
+    Requests -->|apelează| Api["API live"]
+    ReadOnlySuite -->|publică| ApiReport["Raport API"]
     MutatingSuite -->|publică| ApiReport
 ```
 
@@ -45,6 +46,26 @@ produse de journey-ul din browser; suitele API live folosesc separat
 `AutoExApiRequestFactory`, iar testele componente rămân offline. `atf-ui`
 execută browserul și `atf-reporting` publică artifactele; niciunul nu primește
 reguli business Automation Exercise.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| YAML | atf-auto-ex.yaml |
+| Suită E2E | AutoExE2eSuite |
+| Journey | Purchase journey |
+| Pagini | page objects AutoEx |
+| Browser | sesiunea Playwright ATF |
+| Inspector | network inspector |
+| Raport E2E | raport E2E partajat |
+| Componente | AutoExComponentSuite |
+| Fixture-uri | reguli business și adaptoare offline |
+| API read-only | API live read-only |
+| API cont | API live cu cont |
+| API live | Automation Exercise API |
+| Raport API | raport API Extent |
+| setează | configurează |
+| observă | UI_API observă |
+
 </details>
 
 ## Boundary-ul AutoEx
@@ -174,14 +195,15 @@ Cheile și valorile necunoscute sunt respinse înaintea browserului.
 ### Gate-ul coșului și ownerul contului
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
-    Journey[Purchase journey] -->|cere checkout| Business[AutoExCartFlow]
-    Business -->|observă| Port[AutoExCartPort]
-    Port -->|implementat de| UI[AutoExCartUiFlow]
-    UI -->|citește și acționează| Page[CartPage]
-    Page -->|instrumentează| Recorder[PlaywrightActionSequence]
-    Business -->|compară| Snapshot[Expected + observed order line]
-    Business -->|publică rezultatul| Adapter[AutoExCheckoutAssertions]
+    Journey["Journey"] -->|cere checkout| Business["Cart flow"]
+    Business -->|observă| Port["Cart port"]
+    Port -->|implementat de| UI["Adaptor UI"]
+    UI -->|operează| Page["CartPage"]
+    Page -->|instrumentează| Recorder["Recorder"]
+    Business -->|compară| Snapshot["Expected / observed"]
+    Business -->|publică| Adapter["Assertions"]
 ```
 
 <details>
@@ -199,6 +221,17 @@ flowchart LR
   primește drept de ștergere. O ștergere începută fără confirmare nu se repetă.
 - Pilotul privește review-ul coșului. Restul separării business/UI este urmărit
   în feedback; mutarea stării nu pretinde migrarea întregului journey.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Journey | Purchase journey |
+| Cart port | AutoExCartPort |
+| Recorder | PlaywrightActionSequence |
+| Expected / observed | Expected + observed order line |
+| Assertions | AutoExCheckoutAssertions |
+| operează | citește și acționează |
+| publică | publică rezultatul |
 
 </details>
 
@@ -223,14 +256,15 @@ JUnit sau Reporting. `AutoExPurchaseUiFlow` deține paginile și observațiile U
 `AutoExPurchaseAssertions` proiectează regulile existente în rândurile raportului.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Root["Journey<br/>composition root"] -->|capturează| Inputs["Purchase inputs<br/>expected independente"]
-    Root -->|compune| Flow["Purchase flow<br/>ordinea etapelor"]
-    Inputs -->|alimentează| Adapter["UI adapter<br/>pagini + observații"]
+    Root["Compoziție"] -->|capturează| Inputs["Inputs"]
+    Root -->|compune| Flow["Purchase flow"]
+    Inputs -->|alimentează| Adapter["Adaptor UI"]
     Flow -->|cere o etapă| Adapter
     Adapter -->|publică verdictul| Gate{"Checkpoint"}
-    Gate -->|PASS| Next["etapa următoare"]
-    Gate -->|FAIL sau eroare| Stop["oprire + lifecycle cleanup"]
+    Gate -->|PASS| Next["Etapa următoare"]
+    Gate -->|FAIL sau eroare| Stop["Cleanup"]
 ```
 
 <details>
@@ -245,6 +279,16 @@ flowchart LR
   `AutoExPurchaseUiAdapterComponentTest` probează paginile/adaptorul reale cu port
   instrumentat, inclusiv valori absente și transport fără confirmare.
 - Nicio extracție nu demonstrează singură echivalența tuturor profilelor remote.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Compoziție | Journey · composition root |
+| Inputs | Purchase inputs · expected independente |
+| Purchase flow | Purchase flow · ordinea etapelor |
+| Adaptor UI | UI adapter · pagini + observații |
+| Etapa următoare | etapa următoare |
+| Cleanup | oprire + lifecycle cleanup |
 
 </details>
 ## Suite și variante de evidence
@@ -496,11 +540,12 @@ Cleanup-ul tratează și documentul vizibil `queue full` rămas după payment.
 Păstrează eșecul inițial și revine printr-un GET la Home înaintea verificării identității.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Failure[Eșec business] -->|păstrează cauza| Evidence[Failure evidence]
+    Failure["Eșec"] -->|păstrează cauza| Evidence["Dovezi"]
     Evidence -->|document întrerupt| Home[GET Home]
-    Home -->|verifică| Identity[Identitate deținută]
-    Identity -->|permite o singură dată| Delete[Delete account]
+    Home -->|verifică| Identity["Identitate"]
+    Identity -->|o singură dată| Delete[Delete account]
 ```
 
 <details>
@@ -514,6 +559,14 @@ flowchart LR
   URL-ul, heading-ul și o singură navigare de ștergere, ca în flow-ul nominal.
 - `AutoExAccountCleanupRecoveryComponentTest` verifică documente reale în browser
   cu răspunsuri locale controlate; nu certifică disponibilitatea serviciului public.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Eșec | Eșec business |
+| Dovezi | Failure evidence |
+| Identitate | Identitate deținută |
+| o singură dată | permite o singură dată |
 
 </details>
 
@@ -664,19 +717,20 @@ separă fluxul browserului, contractele componente offline și cele două porți
 API live; ele nu sunt variante ale aceluiași test.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; } .edgeLabel [data-id=\"L_Existing_Factory_0\"] foreignObject { transform: translate(0px, -18px); } .edgeLabel [data-id=\"L_ReadOnly_Factory_0\"] foreignObject { transform: translate(0px, -18px); } .edgeLabel [data-id=\"L_AccountApi_Factory_0\"] foreignObject { transform: translate(0px, -18px); } .edgeLabel [data-id=\"L_ReadOnly_ApiReport_0\"] foreignObject { transform: translate(0px, -18px); } .edgeLabel [data-id=\"L_AccountApi_ApiReport_0\"] foreignObject { transform: translate(0px, -18px); }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
-    E2E[AutoExE2eSuite] -->|rulează| Journey[Purchase journey]
-    Journey -->|conduce| Browser[ATF Playwright]
-    Browser -->|vizitează| Site[Automation Exercise UI]
-    Browser -.->|UI_API observă| Inspector[network inspector]
-    Inspector -->|alimentează| UiReport[raport E2E partajat]
-    Components[AutoExComponentSuite] -->|verifică offline| Fixtures[contracte cu fixture]
-    Existing[Client existent E2E] -->|pregătește separat| Factory
-    Existing -->|login și ștergere UI| Browser
-    ReadOnly[API read-only live] -->|folosește| Factory[request factory]
-    AccountApi[API live cu cont] -->|folosește| Factory
-    Factory -->|apelează| Api[Automation Exercise API]
-    ReadOnly -->|publică| ApiReport[raport API Extent]
+    E2E["Suită E2E"] -->|rulează| Journey["Journey"]
+    Journey -->|conduce| Browser["Browser"]
+    Browser -->|vizitează| Site["Site UI"]
+    Browser -.->|UI_API observă| Inspector["Inspector"]
+    Inspector -->|alimentează| UiReport["Raport E2E"]
+    Components["Componente"] -->|verifică offline| Fixtures["Fixture-uri"]
+    Existing["Client existent"] -->|pregătește| Factory
+    Existing -->|login + delete| Browser
+    ReadOnly["API read-only"] -->|folosește| Factory["Request factory"]
+    AccountApi["API cont"] -->|folosește| Factory
+    Factory -->|apelează| Api["API live"]
+    ReadOnly -->|publică| ApiReport["Raport API"]
     AccountApi -->|publică| ApiReport
 ```
 
@@ -692,6 +746,25 @@ flowchart LR
 - `AutoExApiLiveSuite` este separat deoarece creează și actualizează un cont
   sintetic, apoi încearcă cleanup-ul;
 - rapoartele UI și API au sesiuni și directoare distincte.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Suită E2E | AutoExE2eSuite |
+| Journey | Purchase journey |
+| Browser | ATF Playwright |
+| Site UI | Automation Exercise UI |
+| Inspector | network inspector |
+| Raport E2E | raport E2E partajat |
+| Fixture-uri | contracte cu fixture |
+| Client existent | Client existent E2E |
+| Request factory | request factory |
+| API read-only | API read-only live |
+| API cont | API live cu cont |
+| API live | Automation Exercise API |
+| Raport API | raport API Extent |
+| login + delete | login și ștergere UI |
+| pregătește | pregătește separat |
 
 </details>
 
@@ -704,11 +777,30 @@ flowchart LR
 | Raport API direct | `AutoExApiContractReportExtension` publică exchange-uri și assertions JSON; implicit `artifacts/reports/api/auto-ex`, override `atf.autoex.api.report-directory`; `@AtfReportPath` publică locația | publisher component verifică artifactul offline, dar nu substituie proba live |
 | Traficul E2E `UI_API` | precondiția catalogului este publicată separat de fereastra cauzală | XHR/fetch first-party, inclusiv coșul fără prefix `/api/`; scope și completitudine în inspector |
 
+### Eroare API cu istoric parțial
+
+`AutoExApiFailureEvidence` din main convertește snapshot-ul Core în evidence
+Reporting. Extensia JUnit îl cheamă la eșec și păstrează ownership-ul
+clasă/suită, diagnosticul și închiderea raportului.
+
+- Un 503 urmat de eroare de transport rămâne o singură operație cu două
+  încercări în ordine; a doua are status indisponibil.
+- Publicarea nu reexecută request-ul și nu extinde retry-ul API live,
+  care păstrează politica single-attempt existentă.
+- `AutoExTerminalExecutionComponentTest` verifică adaptorul pe transport
+  controlat în Extent/fallback, fără a certifica serviciul public.
+- Aserțiunile componente rămân în pasul standard colapsat; limita de 240 și
+  redactarea textului complet înaintea plafonului rămân obligatorii.
+
+Contractul producerului este la [Core](../atf-core/README.md#istoric-la-eroare-terminală),
+iar proiecția la [Reporting](../atf-reporting/README.md#execuție-api-terminată-fără-răspuns).
+
 ### De ce raportul API nu arată ca raportul UI
 
 Ambele suite publică Extent HTML și folosesc setările Extent comune; sesiunea și evidence-ul depind de canal:
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; } .edgeLabel [data-id=\"L_UI_UISession_0\"] foreignObject { transform: translate(24px, -18px); } .edgeLabel [data-id=\"L_Config_UISession_0\"] foreignObject { transform: translate(0px, -18px); } .edgeLabel [data-id=\"L_Config_ApiSession_0\"] foreignObject { transform: translate(0px, -18px); }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
     UI[UI suite] -->|partajează| UISession[Sesiune UI]
     UISession -->|publică| UIReport[Un raport Extent]
@@ -792,13 +884,14 @@ Notificarea locației este independentă de generarea HTML.
   comparații păstrează diagnosticul. Testele unit rămân în afara obligației de raportare.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Test[Test componentă AutoEx] -->|verifică integral| Kit[Audit Kit]
-    Kit -->|rânduri sigure + timing pe faze| Adapter[Adaptor AutoEx]
-    Adapter -->|mapează| Report[AssertionAuditReport]
-    Scope["Owner class / suite"] -->|deține| Run[AssertionAuditRun]
-    Run -->|împrumută sesiunea| Report
-    Report -->|publică colapsat| Step[Component assertions]
+    Test["Test"] -->|verifică| Kit["Audit Kit"]
+    Kit -->|transportă| Adapter["Adaptor"]
+    Adapter -->|mapează| Report["Assertion report"]
+    Scope["Owner"] -->|deține| Run["Audit run"]
+    Run -->|împrumută| Report
+    Report -->|publică| Step["Assertions"]
 ```
 
 <details>
@@ -821,6 +914,19 @@ flowchart LR
   nodul, lifecycle-ul publicării și randările Extent/fallback.
 - Metodele moștenite, parametrizarea și lifecycle-ul folosesc aceeași politică;
   scope-ul nu se propagă implicit pe alte thread-uri.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Test | Test componentă AutoEx |
+| Adaptor | Adaptor AutoEx |
+| Assertion report | AssertionAuditReport |
+| Owner | Owner class / suite |
+| Assertions | Component assertions |
+| verifică | verifică integral |
+| transportă | rânduri sigure + timing pe faze |
+| împrumută | împrumută sesiunea |
+| publică | publică colapsat |
 
 </details>
 
@@ -849,11 +955,12 @@ Aceeași compoziție este folosită în UI și UI+API. Inspectorul rămâne pasi
 postcondiția DOM nu inventează un răspuns HTTP și nu rescrie un FAIL deja publicat.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Page["ProductsPage"] -->|cere prin port| Port["AutoExCatalogPagePort"]
-    Port -->|deleagă în main| Search["AutoExCatalogSearch"]
-    Search -->|activează o dată| Click["Pointer strict"]
-    Click -->|confirmă în bugetul rămas| Ready["URL + query + produs vizibil"]
+    Page["ProductsPage"] -->|cere| Port["Page port"]
+    Port -->|deleagă| Search["Search"]
+    Search -->|activează| Click["Click unic"]
+    Click -->|confirmă| Ready["Confirmare"]
 ```
 
 <details>
@@ -862,6 +969,18 @@ flowchart LR
 Page object-ul exprimă intenția, runtime-ul deține browserul și semantica
 produsului, iar UI execută acțiunea instrumentată. Profilul UI+API observă
 aceeași operație; nu implementează altă căutare.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Page port | AutoExCatalogPagePort |
+| Search | AutoExCatalogSearch |
+| Click unic | Pointer strict |
+| Confirmare | URL + query + produs vizibil |
+| cere | cere prin port |
+| deleagă | deleagă în main |
+| activează | activează o dată |
+| confirmă | confirmă în bugetul rămas |
 
 </details>
 
@@ -1046,10 +1165,11 @@ Operația semantică inițială este numai `catalog-readiness`, mapată de
 `AutoExBackendRecovery` din main la GET `/api/productsList`.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Yaml["YAML + adnotare"] -->|restrânge| Adapter["Adaptor AutoEx din main"]
-    Adapter -->|clasifică citirea| Scope["Scope UI înaintea acțiunii"]
-    Scope -->|înregistrează decizia| Evidence["Observații INFO în secvența UI"]
+    Yaml["YAML + adnotare"] -->|restrânge| Adapter["Adaptor"]
+    Adapter -->|clasifică| Scope["Scope UI"]
+    Scope -->|publică| Evidence["Decizie INFO"]
 ```
 
 <details>
@@ -1067,6 +1187,15 @@ flowchart LR
   UI-only nu activează apeluri API suplimentare sau precondiții API.
 - Deciziile publicate sunt INFO: politică, sursă, buget, încercare, motiv,
   receipt și timpi separați. Un FAIL deja publicat nu devine PASS.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Adaptor | Adaptor AutoEx din main |
+| Scope UI | Scope UI înaintea acțiunii |
+| Decizie INFO | Observații INFO în secvența UI |
+| clasifică | clasifică citirea |
+| publică | înregistrează decizia |
 
 </details>
 
@@ -1229,6 +1358,10 @@ portul instrumentat `AutoExUiActions.waitForVisible`, apoi execută clickul
 normal, cu verificarea de unicitate existentă. Nu condiționează sincronizarea
 de textul butonului și nu repetă mutația. Absența permanentă ori două controale
 opresc tranziția și rămân în secvența raportată.
+
+- Așteptarea nu verifică din nou identitatea/coșul după înregistrare; restanța
+  business și cazurile negative sunt la
+  [feedback-ul consumerilor](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#ui-locator-readiness-01--identitate-și-coș-înaintea-checkout-ului).
 
 `AutoExCheckoutReadinessComponentTest` probează un control inserat după
 navigare, unul absent și unul ambiguu, prin browser și recorder reale. Oracolele

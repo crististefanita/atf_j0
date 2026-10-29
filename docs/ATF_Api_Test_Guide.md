@@ -37,15 +37,16 @@
 ## Structura minimă a unui scenariu
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Test[Test API] -->|planifică| Plan[Scenario plan]
-    Plan -->|pregătește| Setup[SETUP opțional]
+    Test[Test API] -->|planifică| Plan["Plan"]
+    Plan -->|pregătește| Setup["SETUP"]
     Setup -->|execută| Body[TEST BODY]
     Body -->|închide| Teardown[TEARDOWN]
-    Teardown -->|curăță| Cleanup[Cleanup/read-back]
-    Setup -. local evidence .-> SetupRequest[Setup request]
-    Body -. local evidence .-> BodyRequest[Request + trace<br/>response evidence]
-    BodyRequest -. owns .-> BodyValidation[Contract validation + aggregate<br/>assertion table]
+    Teardown -->|curăță| Cleanup["Cleanup"]
+    Setup -. atașează .-> SetupRequest["Dovezi setup"]
+    Body -. atașează .-> BodyRequest["Schimb HTTP"]
+    BodyRequest -. deține .-> BodyValidation["Contract validation"]
 ```
 
 <details>
@@ -58,6 +59,19 @@ flowchart LR
   response îl verifică;
 - `TEARDOWN` apare doar când există cleanup sau read-back real;
 - tabelul de assertions este verdictul semantic, nu un rezumat duplicat în fază.
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Plan | Scenario plan |
+| SETUP | SETUP opțional |
+| Cleanup | Cleanup/read-back |
+| Dovezi setup | Setup request |
+| Schimb HTTP | Request + trace · response evidence |
+| Contract validation | Contract validation + aggregate · assertion table |
+| atașează | local evidence |
+| deține | owns |
 
 </details>
 

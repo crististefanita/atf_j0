@@ -4,6 +4,7 @@ import atf.reporting.console.AtfConsoleEvent;
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfReportPorts;
 import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.contract.ReportStatusAggregator;
 import atf.reporting.extent.session.ExtentReportTree;
 import atf.reporting.semantic.AtfReportSemanticRecorder;
 import com.aventstack.extentreports.ExtentTest;
@@ -40,8 +41,7 @@ final class ExtentAssertionStepScope implements AtfReportPorts.AssertionStep {
 
     @Override public void complete(AtfReportStatus status) {
         ensureOpen();
-        AtfReportStatus effective = status;
-        for (AtfAssertion row : rows) effective = AtfReportStatus.worst(effective, row.resultStatus());
+        AtfReportStatus effective = new ReportStatusAggregator().resolve(status, rows);
         tree.renderAssertions(node, rows);
         tree.complete(node, effective);
         tree.markEnded(node);

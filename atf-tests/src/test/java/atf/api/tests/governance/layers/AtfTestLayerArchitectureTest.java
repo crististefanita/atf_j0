@@ -51,7 +51,8 @@ public class AtfTestLayerArchitectureTest {
     private static final Set<String> STANDALONE_REPORTING_TEST_NAMES = Set.of(
             "ReportingStandaloneContractTest.java", "ReportingStandaloneDependencyTest.java",
             "ReportingStandaloneEvidenceLayoutTest.java",
-            "ReportingStandaloneEnvironmentSnapshotTest.java");
+            "ReportingStandaloneEnvironmentSnapshotTest.java",
+            "ReportingStandaloneVerdictComponentTest.java");
 
     @Test
     void testInventoryUsesConfiguredAndDefaultMavenRoots(@TempDir Path root) throws Exception {

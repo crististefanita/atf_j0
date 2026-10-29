@@ -11,15 +11,16 @@
 ## Fluxul izolat
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":8,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Live[Checkout live] -->|inspectează| Inspect[inspectare read-only]
-    Inspect -->|izolează| Stage[staging nou în director temporar]
-    Stage -->|sincronizează| Sync[sincronizare surse fără output-uri]
-    Sync -->|rulează| Build[build și teste în staging]
-    Build -->|publică| Report[raport în staging]
-    Report -->|validează| MCP[validare în TAB MCP]
-    MCP -->|revizuiește| Review[review diff și rezultate]
-    Review -->|promovează| SyncBack[sincronizare controlată doar a surselor aprobate]
+    Live["Live"] -->|inspectează| Inspect["Inspectare"]
+    Inspect -->|izolează| Stage["TMP stage"]
+    Stage -->|sincronizează| Sync["Sync surse"]
+    Sync -->|rulează| Build["Build"]
+    Build -->|publică| Report["Raport"]
+    Report -->|validează| MCP["Audit TAB"]
+    MCP -->|revizuiește| Review["Review"]
+    Review -->|promovează| SyncBack["Promovare"]
 ```
 
 <details>
@@ -29,6 +30,20 @@ flowchart LR
 - output-ul generat nu revine în surse și nu devine baseline implicit;
 - review-ul compară sursele și dovezile înainte de orice sync-back;
 - ultima muchie este selectivă: promovează numai fișiere aprobate și reconciliate.
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Live | Checkout live |
+| Inspectare | inspectare read-only |
+| TMP stage | staging nou în director temporar |
+| Sync surse | sincronizare surse fără output-uri |
+| Build | build și teste în staging |
+| Raport | raport în staging |
+| Audit TAB | validare în TAB MCP |
+| Review | review diff și rezultate |
+| Promovare | sincronizare controlată doar a surselor aprobate |
 
 </details>
 
@@ -48,10 +63,11 @@ flowchart LR
 ## Rezolvarea sigură a configurației
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Yaml["atf.yaml<br/>captured once"] -->|rezolvă| Base["startDirectory + YAML directory"]
-    Base -->|validează| Validate["validate boundaries<br/>reject .. escape"]
-    Validate -->|scrie| Output["reporting.extent.outputDirectory"]
+    Yaml["YAML"] -->|rezolvă| Base["Baze de căi"]
+    Base -->|validează| Validate["Validare"]
+    Validate -->|scrie| Output["Output"]
 ```
 
 <details>
@@ -64,19 +80,28 @@ care ies prin `..` din acel director sunt respinse înainte de publicare. Astfel
 două rulări IntelliJ cu rădăcini diferite nu pot ajunge accidental la același
 output printr-un `user.dir` schimbat sau printr-un path relativ ambiguu.
 
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| YAML | atf.yaml · captured once |
+| Baze de căi | startDirectory + YAML directory |
+| Validare | validate boundaries · reject .. escape |
+
 </details>
 
 ## Regula de lucru pentru orice schimbare
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":8,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Live["cod live<br/>README + feedback"] -->|capturează| Baseline["baseline<br/>inspect + capture"]
-    Baseline -->|izolează| Stage["staging izolat<br/>surse aprobate"]
-    Stage -->|delimitează| Change["increment delimitat<br/>test nominal + failure"]
-    Change -->|verifică| Verify["build + teste<br/>artifact nou"]
-    Verify -->|auditează| Audit["TAB MCP<br/>UI + negative path"]
-    Audit -->|reconciliază| Reconcile["re-sync live<br/>drift check"]
-    Reconcile -->|închide| Close["feedback + owner README<br/>dovadă observabilă"]
+    Live["Cod live"] -->|capturează| Baseline["Baseline"]
+    Baseline -->|izolează| Stage["Staging"]
+    Stage -->|delimitează| Change["Schimbare"]
+    Change -->|verifică| Verify["Verificare"]
+    Verify -->|auditează| Audit["Audit TAB"]
+    Audit -->|reconciliază| Reconcile["Reconciliere"]
+    Reconcile -->|închide| Close["Documentație"]
 ```
 
 <details>
@@ -110,11 +135,25 @@ fișierele atinse și se verifică linkurile.
 
 </details>
 
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Cod live | cod live · README + feedback |
+| Baseline | baseline · inspect + capture |
+| Staging | staging izolat · surse aprobate |
+| Schimbare | increment delimitat · test nominal + failure |
+| Verificare | build + teste · artifact nou |
+| Audit TAB | TAB MCP · UI + negative path |
+| Reconciliere | re-sync live · drift check |
+| Documentație | feedback + owner README · dovadă observabilă |
+
 </details>
 
 ### Guard software pentru sync live↔staging
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
     Manifest["baseline"] -->|alimentează| Build["stage gate"]
     Build -->|declanșează| Guard["drift check"]
@@ -194,6 +233,7 @@ mvn -f "$stage\pom.xml" '-Dtest=WholeAtfGovernanceSuiteTest' '-Dsurefire.failIfN
 ### Reactorul este obligatoriu pentru contracte între module
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
     Changed["ATF change"] -->|declanșează| Reactor["reactor gate"]
     Reactor -->|dovedește| SameSources["same-stage"]
@@ -237,11 +277,12 @@ nu se curăță. Artifactele deja produse rămân separat de `target`.
 ### Bucla periodică de sync pentru feedback și build
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Live["live checkout"] -->|recreează| Recreate["recreate staging"]
-    Recreate -->|verifică| Verify["build + artifact + TAB MCP"]
-    Verify -->|alimentează| Feedback["feedback / owner README"]
-    Feedback -->|promovează| Promote["selective sync"]
+    Live["Live"] -->|recreează| Recreate["Staging nou"]
+    Recreate -->|verifică| Verify["Verificare"]
+    Verify -->|alimentează| Feedback["Documentație"]
+    Feedback -->|promovează| Promote["Promovare"]
 ```
 
 <details>
@@ -281,6 +322,16 @@ observabilă în test și în diagnostic.
 se verifică înainte ca sincronizarea să nu le suprascrie. Orice proiect extern
 care rulează în paralel își redirecționează output-ul în propriile directoare
 de staging; build-ul ATF Java folosește separat `target` și artifactele sale.
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Live | live checkout |
+| Staging nou | recreate staging |
+| Verificare | build + artifact + TAB MCP |
+| Documentație | feedback / owner README |
+| Promovare | selective sync |
 
 </details>
 

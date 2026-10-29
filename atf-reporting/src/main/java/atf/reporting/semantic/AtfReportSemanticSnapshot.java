@@ -87,7 +87,10 @@ public record AtfReportSemanticSnapshot(List<ClassSnapshot> classes) {
         var validation = (ReportExecutionModel.Validation) node;
         return new ValidationSnapshot(validation.title(),
                 validation.assertions().stream().map(assertion -> assertion.name()).toList(),
-                validation.uiActionCount(), validation.screenshotCount(), validation.status(), List.of(),
+                validation.uiActionCount(), validation.screenshotCount(), validation.status(),
+                validation.children().stream().filter(ReportExecutionModel.Request.class::isInstance)
+                        .map(AtfReportSemanticSnapshot::nodeSnapshot)
+                        .map(RequestSnapshot.class::cast).toList(),
                 validation.evidenceOwner());
     }
 

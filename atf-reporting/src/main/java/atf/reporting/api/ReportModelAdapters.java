@@ -72,12 +72,7 @@ public final class ReportModelAdapters {
             return evidence;
         }
         Object response = requiredObject(source, "response");
-        ReportResponse reportResponse = new ReportResponse(
-                requiredInt(response, "status"),
-                optionalText(response, "body", null),
-                stringMap(response, "headers"),
-                optionalDuration(response, "duration"),
-                optionalText(response, "url", ""));
+        ReportResponse reportResponse = response(response);
 
         return new ReportExecutionEvidence(
                 reportResponse,
@@ -87,6 +82,28 @@ public final class ReportModelAdapters {
                 attemptHistory(optionalValue(source, "attemptHistory")),
                 request(optionalValue(source, "request")),
                 provenance(optionalValue(source, "provenance")));
+    }
+
+    /** Delimited legacy bridge for a typed partial snapshot; absence must be an explicit Optional. */
+    public static ReportExecutionEvidence partialExecution(Object source) {
+        Object captured = requiredObject(source, "response");
+        if (!(captured instanceof java.util.Optional<?> response)) {
+            throw failure(source, "response", "partial execution requires explicit Optional response availability", null);
+        }
+        var attempts = attemptHistory(requiredObject(source, "attemptHistory")).stream()
+                .map(attempt -> new ReportAttemptRecord(attempt.number(), attempt.statusCode() == 0 ? -1 : attempt.statusCode(),
+                        attempt.duration(), attempt.outcome(), attempt.reason())).toList();
+        var retries = retryEvents(requiredObject(source, "retryEvents")).stream()
+                .map(retry -> new ReportRetryEvent(retry.attempt(), retry.statusCode() == 0 ? -1 : retry.statusCode(),
+                        retry.header(), retry.delay(), retry.reason())).toList();
+        return new ReportExecutionEvidence(response.map(ReportModelAdapters::response).orElse(null),
+                requiredInt(source, "attempts"), optionalDuration(source, "totalDuration"), retries, attempts,
+                request(requiredObject(source, "request")), provenance(requiredObject(source, "provenance")));
+    }
+
+    private static ReportResponse response(Object value) {
+        return new ReportResponse(requiredInt(value, "status"), optionalText(value, "body", null),
+                stringMap(value, "headers"), optionalDuration(value, "duration"), optionalText(value, "url", ""));
     }
 
     /**

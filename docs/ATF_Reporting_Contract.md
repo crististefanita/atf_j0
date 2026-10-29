@@ -2,6 +2,11 @@
 
 ## Pe scurt
 
+Statusul transmis de caller este reconciliat cu dovezile evaluate prin
+[politica comună Reporting](../atf-reporting/README.md#consistența-statusului-transmis-de-caller).
+Un rând sau copil FAIL nu poate fi închis PASS, iar SKIP legitim și observațiile
+INFO își păstrează semantica; ownerul evaluării business rămâne consumerul.
+
 - raportul reprezintă execuția; nu creează un al doilea verdict;
 - runnerul și evaluatorul de contract rămân autoritățile rezultatului;
 - Extent publică evidence-ul într-o formă lizibilă și navigabilă;
@@ -22,12 +27,13 @@ raport?** Este un rezumat plat, nu un al doilea loc pentru identitatea testului
 sau pentru dovezile execuției.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Config[Configurația efectivă] -->|mapează| Snapshot[Snapshot typed]
-    Snapshot -->|allowlist| Safe[Valori permise]
-    Safe -->|redactează| System[Overview / System<br/>label · value]
-    Identity[Identitate + context de scenariu] -->|aparține| Tests[Tests]
-    Exchange[Request · response · retry] -->|aparține| Evidence[Dovezile pasului]
+    Config["Configurație"] -->|mapează| Snapshot["Snapshot typed"]
+    Snapshot -->|allowlist| Safe["Valori permise"]
+    Safe -->|redactează| System["Overview / System"]
+    Identity["Identitate scenariu"] -->|aparține| Tests[Tests]
+    Exchange["Schimb HTTP"] -->|aparține| Evidence["Dovezi pas"]
 ```
 
 <details>
@@ -100,10 +106,11 @@ flowchart LR
 Ordinea aprobată și rolul fiecărei suprafețe sunt vizibile într-un singur flux:
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Tests["Tests<br/>sursa detaliilor"] -->|distribuie| Category["Category<br/>distribuții"]
-    Category -->|expune| Fails["Fails<br/>failure-uri navigabile"]
-    Fails -->|agregă| Overview["Overview<br/>sinteză agregată"]
+    Tests["Tests"] -->|distribuie| Category["Category"]
+    Category -->|expune| Fails["Fails"]
+    Fails -->|agregă| Overview["Overview"]
 ```
 
 <details>
@@ -129,14 +136,15 @@ flowchart LR
 ## Arborele unui test
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Scenario[Scenariu<br/>status + durată + tag-uri] -->|pregătește| Setup[SETUP]
+    Scenario["Scenariu"] -->|pregătește| Setup[SETUP]
     Setup -->|execută| Body[TEST BODY]
     Body -->|închide| Teardown[TEARDOWN]
-    Setup -. local evidence .-> SetupEvidence[Request sau setup evidence]
-    Body -. local evidence .-> BodyRequest[Request + trace<br/>response evidence]
-    BodyRequest -. owns .-> BodyValidation[Contract validation<br/>aggregate assertions]
-    Teardown -. local evidence .-> Cleanup[Request sau cleanup]
+    Setup -. atașează .-> SetupEvidence["Dovezi setup"]
+    Body -. atașează .-> BodyRequest["Schimb HTTP"]
+    BodyRequest -. deține .-> BodyValidation["Contract validation"]
+    Teardown -. atașează .-> Cleanup["Cleanup"]
 ```
 
 <details>
@@ -372,15 +380,16 @@ Gherkin checkpoint
   rămâne în `Execution evidence`.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; } .edgeLabel [data-id=\"L_ResponseDetails_Execution_0\"] foreignObject { transform: translate(0px, -28px); }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Request[HTTP request] -->|descrie| RequestDetails[Request details · N fields]
-    RequestDetails -->|expune| ResponseDetails[Response details · N fields]
+    Request[HTTP request] -->|descrie| RequestDetails["Request details"]
+    RequestDetails -->|expune| ResponseDetails["Response details"]
     RequestDetails -->|atașează| RequestBody["Body request"]
-    ResponseDetails -->|produce| ResponseEvidence[response payload +<br/>technical trace]
-    ResponseDetails -->|înregistrează| Execution[Execution evidence · N attempts]
+    ResponseDetails -->|produce| ResponseEvidence["Răspuns + trace"]
+    ResponseDetails -->|înregistrează| Execution["Execution evidence"]
     ResponseEvidence -->|atașează| ResponseBody["Body response"]
-    ResponseEvidence -->|explică| Trace[TECHNICAL TRACE · response context]
-    Execution -->|păstrează| ExecutionContext[retry · provenance ·<br/>manual replay · assertions]
+    ResponseEvidence -->|explică| Trace["Technical trace"]
+    Execution -->|păstrează| ExecutionContext["Context execuție"]
 ```
 
 <details>
@@ -521,6 +530,11 @@ observații INFO separate, redactate și limitate prin același plafon. O acțiu
 reușită nu este atribuită unei erori ulterioare; datele necapturate rămân explicit
 necunoscute.
 
+- Fails publică rezumatul contextual; mesajul nativ al timeout-ului și markerii
+  redactării se verifică în Tests → Audit observations.
+- Backlink-ul păstrează scenariul și accesul la diagnostice în Extent/fallback,
+  inclusiv când plafonul personalizat trunchiază mesajul înaintea markerului.
+
 Relațiile, verdictul și identitatea erorii originale se păstrează,
 fără replay sau confirmare de dispatch/navigare dedusă dintr-un mesaj.
 Contractul și proiecția aparțin
@@ -536,11 +550,12 @@ Contractul și proiecția aparțin
   notificată după publicarea artifactului nu este o valoare de aserțiune.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Raw["Valoare integrală"] -->|evaluează| Verdict["Verdict păstrat"]
-    Raw -->|redactează complet| Safe["Text sigur"]
-    Safe -->|include elipsa în buget| Preview["Valoare ≤ limita configurată"]
-    Preview -->|păstrează după expandare| Views["Tests · Fails · fallback"]
+    Raw["Valoare integrală"] -->|evaluează| Verdict["Verdict"]
+    Raw -->|redactează| Safe["Text sigur"]
+    Safe -->|limitează| Preview["Preview ≤ limită"]
+    Preview -->|afișează| Views["Tests / Fails / HTML"]
 ```
 
 <details>
@@ -575,10 +590,11 @@ Această regulă se aplică la rând, tabel, validation, phase și scenario. Dac
 runnerul are o regulă mai strictă, raportul o reflectă și nu o suprascrie.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Rows["rânduri assertion"] -->|compune| Aggregate["tabel agregat unic"]
+    Rows["Comparații"] -->|compune| Aggregate["Tabel unic"]
     Aggregate -->|aplică| Precedence["FAIL > SKIP > WARNING > PASS"]
-    Precedence -->|determină| Verdict["validation / phase / scenario"]
+    Precedence -->|determină| Verdict["Verdict agregat"]
 ```
 
 <details>
@@ -625,10 +641,11 @@ absența overflow-ului în browser.
 ## Fails și legături
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Tests["Tests<br/>evidence tree"] -->|indexează| Fails["Fails index<br/>one entry / failure"]
-    Fails -->|rezumă| Detail["Detail pane<br/>index-only"]
-    Detail -->|navighează| Open["Open in Tests<br/>original evidence"]
+    Tests["Tests"] -->|indexează| Fails["Fails"]
+    Fails -->|rezumă| Detail["Detail pane"]
+    Detail -->|navighează| Open["Open in Tests"]
 ```
 
 <details>
@@ -688,11 +705,12 @@ artifact offline poate afișa un view gol deși datele există în document.
 ## Prezentare generală și agregări
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Tests["Tests<br/>scenario set"] -->|agregă| Overview["Overview<br/>same scenarios"]
-    Overview -->|afișează| Counts["counts + status"]
-    Overview -->|alimentează| Navigation["Category + tags<br/>navigation only"]
-    Tests -->|indexează| Fails["Fails<br/>failure index"]
+    Tests["Tests"] -->|agregă| Overview["Overview"]
+    Overview -->|afișează| Counts["Totaluri + status"]
+    Overview -->|alimentează| Navigation["Category / tags"]
+    Tests -->|indexează| Fails["Fails"]
 ```
 
 <details>
@@ -779,19 +797,20 @@ Disclosure-urile formează un arbore de stare, nu controale independente:
   normalizarea întârziată nu inversează o tranziție deja stabilită.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Fresh[Raport fresh] -->|deschide| Scenario[Scenariu]
-    Scenario -->|deschide| Phase[Fază]
-    Phase -->|deschide copilul| Child[Evidence]
-    Child -->|după normalizare, păstrează| ParentOpen[Părinți deschiși]
-    Scenario -->|închide| Reset[Descendenți închiși și ascunși]
-    Reset -->|redeschide scenariul| ScenarioOnly[Doar containerul deschis]
-    ScenarioOnly -->|click explicit| Child
+    Scenario[Scenariu] -->|deschide| Phase[Fază]
+    Phase -->|expandează| Child[Evidence]
+    Child -->|păstrează| ParentOpen[Părinți deschiși]
+    Scenario -->|închide| Reset["Descendenți închiși"]
+    Reset -->|redeschide| ScenarioOnly["Doar scenariul"]
+    ScenarioOnly -->|expandează| Child
 ```
 
 <details>
 <summary><strong>Legendă — tranziții stabile ale disclosure-urilor</strong></summary>
 
+- proba începe într-un raport nou, cu scenariul colapsat;
 - copilul deschis nu își închide părinții;
 - închiderea scenariului resetează descendenții;
 - redeschiderea scenariului nu extinde automat copiii.
@@ -827,19 +846,19 @@ vechi poate ajuta la investigație locală, dar nu este baseline permanent și n
 este referențiat în README-uri.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Live[Cod + teste live] -->|capturează| Stage[staging extern nou]
-    Stage -->|rulează| Build[unit + component + integration]
-    Build -->|produce| Artifact[artifact HTML fresh]
-    Artifact -->|servește| Debug[ATF Debug read-only]
-    Debug -->|deschide| Browser[Chromium / Playwright MCP]
-    Browser -->|verifică| Verdict[DOM + style + interaction]
-    Verdict -->|promovează| Sync[sync selectiv în live]
+    Live["Surse live"] -->|izolează| Stage["Staging + teste"]
+    Stage -->|produce| Artifact["HTML nou"]
+    Artifact -->|verifică| Browser["Audit MCP"]
+    Browser -->|promovează| Sync["Sync selectiv"]
 ```
 
 <details>
 <summary><strong>Legendă — ce validează guard-ul</strong></summary>
 
+- `Staging + teste` reunește copia izolată și probele unit/component/integration;
+- `Audit MCP` reunește servirea read-only prin ATF Debug și verificarea în Chromium/Playwright;
 - inputul este raportul generat de run-ul curent sau un fișier static configurat explicit;
 - se verifică tab-uri, deep-link-uri, disclosure-uri, click, computed-style,
   wrapping, screenshot, consolă și page errors;
@@ -852,10 +871,11 @@ flowchart LR
 ## Numele raportului și diferențierea rulărilor
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Config["Configurație raport<br/>nume + policy"] -->|deschide| Session["Sesiune deschisă<br/>timestamp unic"]
-    Session -->|rezolvă| Path["Cale raport<br/>destinație distinctă"]
-    Path -->|scrie| Artifact["Artifact Extent<br/>fără overwrite"]
+    Config["Configurație"] -->|deschide| Session["Sesiune"]
+    Session -->|rezolvă| Path["Cale distinctă"]
+    Path -->|scrie| Artifact["Extent HTML"]
 ```
 
 <details>

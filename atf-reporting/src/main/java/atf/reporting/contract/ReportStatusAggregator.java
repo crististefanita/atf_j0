@@ -1,5 +1,6 @@
 package atf.reporting.contract;
 
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
@@ -15,6 +16,23 @@ public final class ReportStatusAggregator {
         counts.compute(status, (ignored, count) -> count + 1);
         aggregate = AtfReportStatus.worst(aggregate, status);
     }
+    /** Completion cannot weaken already evaluated evidence; a missing status contributes INFO. */
+    public AtfReportStatus resolve(AtfReportStatus requested) {
+        return AtfReportStatus.worst(aggregate, AtfReportStatus.orInfo(requested));
+    }
+
+    /** Uses effective row outcomes, including legitimate SKIP, without reevaluating expected/actual. */
+    public AtfReportStatus resolve(AtfReportStatus requested, Collection<AtfAssertion> assertions) {
+        AtfReportStatus effective = resolve(requested);
+        if (assertions != null) {
+            for (AtfAssertion assertion : assertions) {
+                effective = AtfReportStatus.worst(effective,
+                        Objects.requireNonNull(assertion, "assertion").resultStatus());
+            }
+        }
+        return effective;
+    }
+
     public AtfReportStatus aggregate() { return aggregate; }
     public int count(AtfReportStatus status) { return counts.getOrDefault(Objects.requireNonNull(status), 0); }
     public Map<AtfReportStatus, Integer> counts() { return Map.copyOf(counts); }

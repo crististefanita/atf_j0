@@ -20,13 +20,14 @@ nu enumerate ca un inventar Maven:
 ## Diagramă de bază
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     Consumers[Consumers]
     Contract[Test contract]
-    Runtime[Generic runtime]
-    Verdict[Verdict + diagnostics]
-    Reporting[Standalone reporting]
-    Artifact[Extent artifact]
+    Runtime["Runtime"]
+    Verdict["Verdict"]
+    Reporting["Reporting"]
+    Artifact["Extent"]
     Audit[Browser audit]
     Governance[Governance]
 
@@ -36,9 +37,9 @@ flowchart LR
     Runtime -->|produce| Verdict
     Verdict -->|alimentează| Reporting
     Reporting -->|publică| Artifact
-    Artifact -->|expune pentru| Audit
-    Governance -. architecture gates .-> Contract
-    Governance -. dependency gates .-> Reporting
+    Artifact -->|expune| Audit
+    Governance -. protejează .-> Contract
+    Governance -. protejează .-> Reporting
 ```
 
 <details>
@@ -78,6 +79,17 @@ a aceleiași legende.
 | reporting test harness | `atf-reporting-tests` | component/API mock → publisher și UI/E2E pentru librăria reporting | component/integration/E2E |
 | aplicații consumatoare | `atf-test-practice-shop`, `atf-test-auto-ex` | config, locatori, pages și journey-uri independente | component/E2E |
 | whole-ATF governance | `atf-tests` | module graph și boundary-uri ale reactorului | component/architecture |
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Runtime | Generic runtime |
+| Verdict | Verdict + diagnostics |
+| Reporting | Standalone reporting |
+| Extent | Extent artifact |
+| expune | expune pentru |
+| protejează | architecture gates |
+| protejează | dependency gates |
 
 </details>
 
@@ -90,7 +102,7 @@ librăria reporting, doi consumatori, testele reporting și guvernanța.
 ### Consum
 
 ```mermaid
-%%{init: {"themeCSS": ".edgeLabel, .edgeLabel p { font-size: 13px !important; } .nodeLabel, .nodeLabel p { font-size: 16px !important; }", "flowchart": {"curve": "linear", "nodeSpacing": 72, "rankSpacing": 120}}}%%
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     Consumers[Shop + AutoEx]
     Reporting[reporting]
@@ -114,7 +126,7 @@ flowchart LR
 ### Verificare și guvernanță
 
 ```mermaid
-%%{init: {"themeCSS": ".edgeLabel, .edgeLabel p { font-size: 13px !important; } .nodeLabel, .nodeLabel p { font-size: 16px !important; }", "flowchart": {"curve": "linear", "nodeSpacing": 72, "rankSpacing": 120}}}%%
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     ReportingTests[teste reporting]
     Governance[guvernanță]
@@ -164,11 +176,12 @@ Stratul este ales explicit prin adnotarea din `atf-test-kit`, nu dedus din
 numele folderului. Aceeași regulă se aplică testelor API, UI și reporting:
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Question[întrebarea testului]
-    Layer[annotation din atf-test-kit]
-    Scope[boundary și input controlat]
-    Proof[evidence și verdict]
+    Question["Întrebare"]
+    Layer["Adnotare"]
+    Scope["Boundary"]
+    Proof["Dovadă"]
 
     Question -->|clarifică| Layer
     Layer -->|delimitează| Scope
@@ -184,6 +197,14 @@ flowchart LR
   un verdict independent;
 - același raport poate avea teste unitare pentru markup/CSS/JS, teste component
   pentru contracte și teste E2E pentru comportamentul observabil în browser.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Întrebare | întrebarea testului |
+| Adnotare | annotation din atf-test-kit |
+| Boundary | boundary și input controlat |
+| Dovadă | evidence și verdict |
 
 </details>
 
@@ -207,20 +228,21 @@ unui test izolat și a unei abstracții paralele. Fiecare schimbare trebuie să
 poată fi urmărită de la contractul observat până la dovada produsă:
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     Need[Cerință]
-    Inspect[Inspectare live]
+    Inspect["Cod live"]
     Layer[Strat minim]
-    Change[Schimbare locală]
-    Verify[Test + evidence]
-    Harden[Contract stabil]
+    Change["Schimbare"]
+    Verify["Dovadă"]
+    Harden["Contract"]
 
     Need -->|clarifică| Inspect
     Inspect -->|alege| Layer
     Layer -->|delimitează| Change
     Change -->|produce| Verify
     Verify -->|gap real| Change
-    Verify -->|dovadă suficientă| Harden
+    Verify -->|confirmă| Harden
 ```
 
 <details>
@@ -241,12 +263,22 @@ Un test nou este util chiar și când nu adaugă funcționalitate de business:
 poate demonstra o limită reală a reporting-ului, a unui boundary sau a unei
 proiecții UI. În acest caz, testul devine dovadă pentru întărirea ATF-ului, nu
 un motiv pentru a păstra o clasă duplicată.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Cod live | Inspectare live |
+| Schimbare | Schimbare locală |
+| Dovadă | Test + evidence |
+| Contract | Contract stabil |
+| confirmă | dovadă suficientă |
 
 </details>
 
 ## Secvența executivă API → raport → audit
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px","actorFontSize":"15px","messageFontSize":"12px","noteFontSize":"12px"},"themeCSS":".actor { font-size: 15px !important; } .messageText, .labelText, .loopText, .noteText { font-size: 12px !important; }","sequence":{"actorFontSize":15,"messageFontSize":12,"noteFontSize":12,"width":120,"height":42,"actorMargin":40,"messageMargin":24,"mirrorActors":false,"wrap":true,"wrapPadding":6}}}%%
 sequenceDiagram
     participant T as consumer test
     participant C as atf-core
@@ -287,15 +319,16 @@ ownerilor, testele și gate-urile rămân contracte stabile; feedback-ul se
 actualizează dinamic când apar dovezi, se închid ToDo-uri sau se schimbă gap-ul.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
-    Request[Cerință explicită]
-    Baseline[Baseline live]
-    Owner[Owner + boundary]
-    Gate[Gate existent]
-    Evidence[Test + evidence]
-    Review[Review + aprobare]
-    Sync[README + feedback]
-    Feedback[Feedback activ]
+    Request["Cerință"]
+    Baseline["Baseline"]
+    Owner["Owner"]
+    Gate["Gate"]
+    Evidence["Dovadă"]
+    Review["Review"]
+    Sync["Documentație"]
+    Feedback["Feedback"]
 
     Request -->|definește| Baseline
     Baseline -->|identifică| Owner
@@ -335,6 +368,18 @@ flowchart LR
 Detaliile despre staging, procese active, promovare și anti-undo sunt în
 [`ATF_Build_And_Execution_Safety.md`](docs/ATF_Build_And_Execution_Safety.md),
 nu se repetă în overview.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Cerință | Cerință explicită |
+| Baseline | Baseline live |
+| Owner | Owner + boundary |
+| Gate | Gate existent |
+| Dovadă | Test + evidence |
+| Review | Review + aprobare |
+| Documentație | README + feedback |
+| Feedback | Feedback activ |
 
 </details>
 

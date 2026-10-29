@@ -134,7 +134,7 @@ public final class HtmlReportEvidenceView {
                 .append(openTag(DIV, ReportEvidenceMarkup.executionAttributes(execution, redactor)))
                 .append(AtfReportMarkup.tableHtml(
                         AtfReportHtmlVocabulary.classList(HELM_EVIDENCE_TABLE, EXECUTION_TABLE),
-                        ReportExecutionSummary.table(execution, redactor)
+                        ReportExecutionSummary.table(execution, redactor, settings)
                                 .withFirstColumnHeaders()));
         if (!execution.attemptHistory().isEmpty()) {
             var rows = execution.attemptHistory().stream().map(attempt -> List.of(

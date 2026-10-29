@@ -24,9 +24,11 @@ import static atf.reporting.audit.ReportAuditChecks.check;
 /** Playwright adapter that observes checkout screens and performs grouped transitions. */
 final class ShopCheckoutPurchaseStage implements ShopCheckoutFlow.Port {
     private final ShopPurchaseJourneyContext.CheckoutInputs context;
+    private final long cartAdditionFence;
 
-    ShopCheckoutPurchaseStage(ShopPurchaseJourneyContext.CheckoutInputs context) {
+    ShopCheckoutPurchaseStage(ShopPurchaseJourneyContext.CheckoutInputs context, long cartAdditionFence) {
         this.context = Objects.requireNonNull(context, "context");
+        this.cartAdditionFence = cartAdditionFence;
     }
 
     @Override
@@ -36,7 +38,7 @@ final class ShopCheckoutPurchaseStage implements ShopCheckoutFlow.Port {
         ShopCartPage cart = new ShopCartPage(page, context.locators(), context.actions());
         cart.open(context.cartUrl());
         ShopCartPage.CartLine line = cart.assertConfiguredLine(context.productName(), checkout.quantity());
-        var cartApiAssertions = context.apiNetwork().cartReady(checkout.quantity());
+        var cartApiAssertions = context.apiNetwork().cartReady(cartAdditionFence, checkout.quantity());
         var cartApiValidation = ShopApiValidationResult.cart(
                 context.apiNetwork().evidence(ShopApiCheckpoint.CART), cartApiAssertions)
                 .reportingEvidence();
@@ -132,8 +134,9 @@ final class ShopCheckoutPurchaseStage implements ShopCheckoutFlow.Port {
     @Override
     public ShopCheckoutFlow.Observation<Void> checkPayment() {
         var page = context.page();
+        long sequenceFence = context.apiNetwork().sequenceMarker();
         String paymentConfirmation = new ShopPaymentPage(page, context.locators(), context.actions()).checkPayment();
-        var apiAssertions = context.apiNetwork().paymentConfirmed(context.checkout().paymentMethod());
+        var apiAssertions = context.apiNetwork().awaitPaymentConfirmed(page, sequenceFence, context.checkout().paymentMethod());
         var apiValidation = ShopApiValidationResult.payment(
                 context.apiNetwork().evidence(ShopApiCheckpoint.PAYMENT), apiAssertions).reportingEvidence();
         var checkpoint = context.checkpoint(ShopPurchaseTraceStep.PAYMENT_CHECK,

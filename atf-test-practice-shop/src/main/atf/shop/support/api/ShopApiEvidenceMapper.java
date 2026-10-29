@@ -25,6 +25,20 @@ import java.util.Map;
 public final class ShopApiEvidenceMapper {
     private ShopApiEvidenceMapper() { }
 
+    /** A terminal execution may have no response, while its earlier HTTP attempts remain captured. */
+    public static ReportExecutionEvidence toExecution(atf.core.http.execution.evidence.ApiExecutionSnapshot snapshot) {
+        var adapted = ReportModelAdapters.partialExecution(snapshot);
+        var request = adapted.request();
+        var safeRequest = request.toBuilder().headers(new ReportRequestHeaders(request.headerEvidence().source(),
+                        ShopJsonEvidence.redactHeaders(request.headerEvidence().values())))
+                .body(redactJson(request.bodyText()), request.bodyAvailability()).build();
+        var response = adapted.response();
+        var safeResponse = response == null ? null : new ReportResponse(response.status(), redactJson(response.body()),
+                ShopJsonEvidence.redactHeaders(response.headers()), response.duration(), response.url(), response.bodyAvailability());
+        return new ReportExecutionEvidence(safeResponse, adapted.attempts(), adapted.totalDuration(), adapted.retryEvents(),
+                adapted.attemptHistory(), safeRequest, adapted.provenance(), adapted.trace());
+    }
+
     /** Converts a sanitized observed value; capture and checkpoint selection remain the journal's responsibility. */
     public static ReportExecutionEvidence toExecution(ShopApiNetworkJournal.Exchange exchange) {
         return toExecution(exchange, "");

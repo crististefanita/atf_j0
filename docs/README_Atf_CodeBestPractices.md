@@ -10,12 +10,13 @@ README-urilor și a feedback-ului se folosește
 Codul ATF trebuie să fie ușor de citit din boundary spre detaliu:
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Intent[intenție de test] -->|delimitează| Boundary[boundary explicit]
-    Boundary -->|formează| Model[model typed]
-    Model -->|alimentează| Policy[policy / validator pur]
-    Policy -->|adaptează| Adapter[adapter extern]
-    Adapter -->|produce| Evidence[evidence / artifact]
+    Intent["Intenție"] -->|delimitează| Boundary["Boundary"]
+    Boundary -->|formează| Model["Model typed"]
+    Model -->|alimentează| Policy["Policy"]
+    Policy -->|adaptează| Adapter["Adaptor"]
+    Adapter -->|produce| Evidence["Dovadă"]
 ```
 
 <details>
@@ -24,6 +25,17 @@ flowchart LR
 - intenția pornește din test, dar boundary-ul stabilește ownerul;
 - modelul typed intră într-o policy pură înainte de adapterul extern;
 - evidence-ul este output verificabil, nu logică ascunsă în renderer.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Intenție | intenție de test |
+| Boundary | boundary explicit |
+| Model typed | model typed |
+| Policy | policy / validator pur |
+| Adaptor | adapter extern |
+| Dovadă | evidence / artifact |
+
 </details>
 
 | Principiu | Dovadă preferată |
@@ -250,13 +262,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 ## Raportare: HTML, CSS și JavaScript
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    JavaFacade[typed facade] -->|expune| Semantic[semantic model]
+    JavaFacade["Fațadă typed"] -->|expune| Semantic["Model"]
     Semantic -->|generează| Css[CSS]
     Semantic -->|generează| Js[JavaScript]
-    Css -->|stilizează| Html[HTML artifact]
+    Css -->|stilizează| Html["HTML"]
     Js -->|comportă| Html
-    Html -->|dovedește| Contract[component + browser proof]
+    Html -->|dovedește| Contract["Verificare"]
 ```
 
 <details>
@@ -265,6 +278,15 @@ flowchart LR
 - Java compune și expune token-uri; CSS și JavaScript rămân asset-uri native pe responsabilități;
 - modelul semantic este sursa comună pentru HTML, CSS și JavaScript;
 - contractul component verifică asset-urile, iar E2E verifică efectul în browser.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Fațadă typed | typed facade |
+| Model | semantic model |
+| HTML | HTML artifact |
+| Verificare | component + browser proof |
+
 </details>
 
 - [ ] Java orchestrează; nu devine depozit de JavaScript inline.

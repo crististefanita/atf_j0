@@ -3,6 +3,7 @@ import atf.reporting.contract.evidence.ReportEvidenceOwner;
 
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.contract.ReportStatusAggregator;
 import atf.reporting.model.ReportTagNormalizer;
 import atf.reporting.ui.model.AtfUiActionRecord;
 
@@ -88,7 +89,9 @@ final class AtfReportSemanticState {
             if (phases.stream().anyMatch(phase -> !phase.completed())) {
                 throw new IllegalStateException("Cannot complete scenario before all phases are complete");
             }
-            this.status = Objects.requireNonNull(status, "status");
+            var evidence = new ReportStatusAggregator();
+            phases.forEach(child -> evidence.record(child.status));
+            this.status = evidence.resolve(status);
             completed = true;
         }
 
@@ -143,7 +146,9 @@ final class AtfReportSemanticState {
             if (nodes.stream().anyMatch(node -> !node.completed())) {
                 throw new IllegalStateException("Cannot complete phase before all children are complete");
             }
-            this.status = Objects.requireNonNull(status, "status");
+            var evidence = new ReportStatusAggregator();
+            nodes.forEach(child -> evidence.record(child.status()));
+            this.status = evidence.resolve(status);
             completed = true;
         }
 
@@ -165,11 +170,13 @@ final class AtfReportSemanticState {
         AtfReportSemanticSnapshot.NodeSnapshot snapshot();
 
         boolean completed();
+        AtfReportStatus status();
     }
 
     static final class AssertionStepState implements NodeState {
         private final String title;
         private final List<String> assertionNames = new ArrayList<>();
+        private AtfReportStatus assertionStatus = AtfReportStatus.INFO;
         private AtfReportStatus status = AtfReportStatus.INFO;
         private boolean completed;
 
@@ -177,6 +184,7 @@ final class AtfReportSemanticState {
 
         void assertions(Collection<AtfAssertion> assertions) {
             if (completed) throw new IllegalStateException("Assertion step is already complete");
+            assertionStatus = new ReportStatusAggregator().resolve(null, assertions);
             assertionNames.clear();
             if (assertions != null) assertions.stream().filter(Objects::nonNull)
                     .map(AtfAssertion::name).forEach(assertionNames::add);
@@ -184,9 +192,13 @@ final class AtfReportSemanticState {
 
         void complete(AtfReportStatus status) {
             if (completed) throw new IllegalStateException("Assertion step is already complete");
-            this.status = Objects.requireNonNull(status, "status");
+            var evidence = new ReportStatusAggregator();
+            evidence.record(assertionStatus);
+            this.status = evidence.resolve(status);
             completed = true;
         }
+
+        @Override public AtfReportStatus status() { return status; }
 
         @Override public boolean completed() { return completed; }
         @Override public AtfReportSemanticSnapshot.AssertionStepSnapshot snapshot() {
@@ -250,9 +262,13 @@ final class AtfReportSemanticState {
             if (validations.stream().anyMatch(validation -> !validation.completed())) {
                 throw new IllegalStateException("Cannot complete request before all validations are complete");
             }
-            this.status = Objects.requireNonNull(status, "status");
+            var evidence = new ReportStatusAggregator();
+            validations.forEach(child -> evidence.record(child.status));
+            this.status = evidence.resolve(status);
             completed = true;
         }
+
+        @Override public AtfReportStatus status() { return status; }
 
         @Override
         public boolean completed() {
@@ -278,6 +294,7 @@ final class AtfReportSemanticState {
         private final List<RequestState> requests = new ArrayList<>();
         private int uiActionCount;
         private int screenshotCount;
+        private AtfReportStatus assertionStatus = AtfReportStatus.INFO;
         private AtfReportStatus status = AtfReportStatus.INFO;
         private boolean completed;
 
@@ -299,12 +316,9 @@ final class AtfReportSemanticState {
 
         void assertions(Collection<AtfAssertion> assertions) {
             ensureOpen();
-            if (assertions != null) {
-                assertionNames.addAll(assertions.stream()
-                        .filter(Objects::nonNull)
-                        .map(AtfAssertion::name)
-                        .toList());
-            }
+            assertionStatus = new ReportStatusAggregator().resolve(null, assertions);
+            assertionNames.clear();
+            if (assertions != null) assertions.stream().map(AtfAssertion::name).forEach(assertionNames::add);
         }
 
         void uiActions(Collection<AtfUiActionRecord> actions) {
@@ -322,9 +336,14 @@ final class AtfReportSemanticState {
             if (requests.stream().anyMatch(request -> !request.completed())) {
                 throw new IllegalStateException("Cannot complete validation before all nested requests are complete");
             }
-            this.status = Objects.requireNonNull(status, "status");
+            var evidence = new ReportStatusAggregator();
+            evidence.record(assertionStatus);
+            requests.forEach(child -> evidence.record(child.status));
+            this.status = evidence.resolve(status);
             completed = true;
         }
+
+        @Override public AtfReportStatus status() { return status; }
 
         @Override
         public boolean completed() {

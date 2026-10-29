@@ -33,6 +33,7 @@ read-only în browser.
 ## Diagramă de bază
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
     Root[Extent test kit]
     Root -->|conține| Component[component]
@@ -252,7 +253,7 @@ prezent. Suprafețele obligatorii sunt distincte și auditabile:
 
 ```text
 SETUP              input / raport / fixture disponibil
-PLAYWRIGHT_ACTION  acțiunea reală și textul extras
+PLAYWRIGHT_ACTION  contextul acțiunii și diagnosticul original separat
 AUDIT_OBSERVATION  ce a fost găsit în DOM și computed-style
 ASSERTION          expected / actual / verdict reutilizabil
 ```
@@ -262,6 +263,8 @@ Contractul failure este schematic:
 - acțiunea are `TARGET`;
 - cauza este publicată în zona care a produs-o;
 - `Tests` și `Fails` indică aceeași identitate;
+- timeout-ul nativ și redactarea se verifică în Audit observations din Tests;
+  Fails păstrează contextul compact, cu timpul măsurat și backlink;
 - screenshot-ul este evidence inline cu `📷`:
   - PNG Base64 direct; sau
   - link inline deduplicat către ancora PNG canonică, cu referință locală bounded

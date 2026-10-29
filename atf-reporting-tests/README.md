@@ -73,6 +73,7 @@ Proiecția contextului UI este verificată la componentă:
 | `ExtentReportUiEvidencePublishingTest` | publisher-ul UI nu adaugă un request HTTP sintetic; exchange-ul nested păstrează request/response/JSON/execution |
 | `ExtentReportDisclosureBrowserComponentTest` | artifact controlat cu PASS/WARNING/FAIL; faza goală nu afișează affordance de expandare, iar API exchange-ul cu evidence mock rămâne expandabil cu mouse/keyboard; niciun tabel introductiv la checkpoint, validări și screenshot disponibile, close fără subarbore vizibil și titluri custom identificate semantic; captură deduplicată deschisă prin click/Enter cu sursa colapsată, fără salt la ancoră |
 | `ComponentAssertionStepReportTest` | același nod tipizat și 42 de rânduri în Extent/fallback; pas colapsat implicit, acces la ultimul rând și comutare cu mouse/Enter/Space în Chromium; FAIL în Extent are owner `component`, valori numerice exacte și deep-link redeschis până la tabel, fără request sau durată HTTP |
+| `TerminalExecutionProjectionTest` + `TerminalApiExecutionReportTest` | snapshot parțial strict, 503 urmat de status indisponibil, terminare typed în Execution evidence, fără Response details fabricat; Extent/fallback păstrează plafonul 240, bugetul configurat, redactarea, ultimul rând și Enter/Space; zero dispatch-uri nu declară rețea executată |
 | `ReportPhaseTimingComponentTest` | timing typed identic în snapshot-urile Extent/fallback; browserul păstrează 12/345/0 ms pe faze, totalurile scenariu/clasă/Overview fără dublare și sursa execuției după expandare; publicarea rămâne separată |
 | `ComponentExecutionDiagnosticReportTest` | eroare după comparații PASS sau înaintea primei comparații; Fails fără request/durată HTTP inventate ori comparație PASS atribuită erorii; faze măsurate goale și 42 de rânduri în Extent/fallback, cu plafon 240 și tastatură |
 | Regresii adiacente | `ExtentReportRuntimeScriptTest` păstrează sursele duratelor; `ExtentReportSessionContractTest` separă câmpurile API/UI în Fails; `AtfReportEvidenceCssTest` protejează containerul și fontul comun, completat de măsurătorile reale din `NarrowEvidenceReadabilityComponentTest` |
@@ -81,6 +82,7 @@ Proiecția contextului UI este verificată la componentă:
 | `LegacyPreviewBudgetComponentTest` | porturi UI directe în Extent/fallback; limite 240/18, redactare completă, verdict din valorile integrale și aceeași limită în Fails după backlink |
 | `UiFailureContextTest` + `UiFailureContextReportTest` | acțiune FAIL înaintea mesajului tehnic lung, lipsa excepției/acțiunii, acțiuni PASS urmate de eroare, prima secvență FAIL și graf cauze/suppressed cu referințe/cicluri, fără mutarea verdictului sau a dovezilor originale |
 | `UiFailureContextComponentTest` | Tests/Fails și backlink în Extent/fallback, preview 240/18, panou de 392 px, contextul acțiunii și timpul măsurat, relații inspectabile în diagnostice INFO și disclosure Enter/Space fără erori JavaScript |
+| `UiTimeoutReportComponentTest` | deadline nativ separat de timpul capturat și de contextul compact Fails; Extent/fallback la 240/18, primary/cause/suppressed redactate, HTML fără credențiale, owner și backlink, Enter/Space, ultimul rând și oracol negativ pentru diagnostic lipsă ori secret vizibil |
 | `ReportPhaseDiagnosticTest` | conversie explicită, statusul fazei sursă, chei legacy delimitate, context nemodificat și rezultat imutabil; portul diagnostic nu creează HTTP |
 | `ReportPhaseAuditBrowserComponentTest` | Extent/fallback cu zero/unul/mai multe exchange-uri și cu/fără metadata; eșec JUnit, asociere lipsă, redacție și închiderea diagnosticului; Fails exclude notele fazei PASS; probe negative pentru bandă ascunsă, redenumită sau goală |
 
@@ -94,12 +96,13 @@ identifică validarea UI după rol și acțiunile incluse, nu după titlu, și d
 ancestorii scenariu → fază → checkpoint → validare înaintea inspecției.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-10px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10}}}%%
 flowchart LR
-    Composition[composition root] -->|public API| Reporting[reporting jar]
-    Reporting -->|produce| Reports[API / UI artifacts]
-    Composition -. test scope .-> Support[test support]
-    ShopTests[Practice Shop] -. consumes .-> Reporting
-    AppTests[governance] -. guards .-> Reporting
+    Composition["Compoziție"] -->|consumă| Reporting["Reporting"]
+    Reporting -->|produce| Reports["Rapoarte API / UI"]
+    Composition -. test scope .-> Support["Suport teste"]
+    ShopTests[Practice Shop] -. consumă .-> Reporting
+    AppTests["Guvernanță"] -. verifică .-> Reporting
 ```
 
 <details>
@@ -287,7 +290,10 @@ nu este folosit ca substitut pentru contractele lower-level.
 <summary><strong>Niveluri de testare și independență</strong></summary>
 
 - **`atf-reporting/src/test`** — boundary standalone al librăriei; verifică
-  compilarea independentă și contractele locale fără ATF, mock sau browser;
+  compilarea independentă și contractele locale fără ATF, mock sau browser,
+  inclusiv componenta `ReportingStandaloneVerdictComponentTest`;
+  `ReportingVerdictProjectionComponentTest` verifică aici numai proiecția browser,
+  totalurile, disclosure-urile, limita 240 și navigarea în ambele renderere;
 - **`atf-reporting-tests`** — composition root pentru component, integration/API
   și E2E; leagă reporting-ul de mock, execution, validation, Playwright și
   ATF Debug;
@@ -310,19 +316,19 @@ Acest modul îl probează prin fixture-uri deterministe; nu mută politica într
 consumer și nu cere Practice Shop pentru testarea suportului.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-10px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10}}}%%
 flowchart LR
-    Fixture[PNG mock + typed input] -->|implementează| Provider[capture provider]
-    Provider -->|filtrat de| Policy[profile + policy]
-    Policy -->|deschide| Session[reporting session]
+    Fixture["Fixture PNG"] -->|configurează| Session["Sesiune + profil"]
     Session -->|publică| Html[HTML local]
-    Html -->|verifică| Contract[component assertions]
-    Contract -->|găzduiește| Integration[integration gate]
-    Browser[optional static browser] -. auditează .-> Html
+    Html -->|verifică| Contract["Component / integration"]
+    Browser["Browser static"] -. auditează .-> Html
 ```
 
 <details>
 <summary><strong>Legendă — testare pe niveluri</strong></summary>
 
+- fixture-ul reunește PNG-ul mock, inputul typed și providerul de captură;
+- sesiunea folosește profilul și policy-ul, aplicat înaintea providerului;
 - unit: policy înainte de provider, target, provenance, PNG și cardinalitate `0/1/N`;
 - component: markup, status, disclosure, referință media și păstrarea acțiunilor;
 - integration: session → model semantic → HTML, fără endpoint sau browser extern;
@@ -551,10 +557,11 @@ Inspectorul de rețea se verifică în două trepte, fără a transforma E2E în
 al modelului:
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-10px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10}}}%%
 flowchart LR
-    Evidence["typed HTTP exchanges"] -->|component| Aggregate["JourneyAggregate"]
-    Aggregate -->|integration| Publisher["Extent publisher"]
-    Publisher -->|browser proof| Render["collapsed HTML"]
+    Evidence["Schimburi HTTP"] -->|component| Aggregate["JourneyAggregate"]
+    Aggregate -->|integration| Publisher["Publisher Extent"]
+    Publisher -->|browser proof| Render["HTML colapsat"]
 ```
 
 <details>

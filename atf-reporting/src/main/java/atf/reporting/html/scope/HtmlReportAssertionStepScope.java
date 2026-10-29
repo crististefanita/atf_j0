@@ -5,6 +5,7 @@ import atf.reporting.console.AtfConsoleSink;
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfReportPorts;
 import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.contract.ReportStatusAggregator;
 import atf.reporting.html.HtmlReportSemanticDocument;
 import atf.reporting.semantic.AtfReportSemanticRecorder;
 
@@ -43,8 +44,7 @@ final class HtmlReportAssertionStepScope implements AtfReportPorts.AssertionStep
 
     @Override public void complete(AtfReportStatus status) {
         ensureOpen();
-        AtfReportStatus effective = status;
-        for (AtfAssertion row : rows) effective = AtfReportStatus.worst(effective, row.resultStatus());
+        AtfReportStatus effective = new ReportStatusAggregator().resolve(status, rows);
         model.complete(effective);
         semantic.complete(effective);
         onComplete.accept(effective);

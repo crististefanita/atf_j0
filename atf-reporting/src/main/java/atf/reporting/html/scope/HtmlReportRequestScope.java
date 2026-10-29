@@ -101,10 +101,11 @@ public final class HtmlReportRequestScope implements AtfReportPorts.Request {
     @Override
     public void complete(AtfReportStatus status) {
         model.complete(status);
-        semantic.complete(status);
+        AtfReportStatus effective = model.status();
+        semantic.complete(effective);
         console.publish(AtfConsoleEvent.completed(AtfConsoleEvent.Scope.REQUEST,
-                consoleName, status, HtmlReportScopeTiming.elapsedMillis(startedAt)));
-        onComplete.accept(status);
+                consoleName, effective, HtmlReportScopeTiming.elapsedMillis(startedAt)));
+        onComplete.accept(effective);
     }
 
     @Override

@@ -16,12 +16,13 @@ publisherul Extent sau page objects de produs.
 ## Diagramă de bază
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Tests[consumer tests] -->|selectează| Config[browser policy]
-    Config -->|configurează| Session[Playwright session]
-    Session -->|deschide| Browser[browser / page]
-    Browser -->|produce| Evidence[action + screenshot]
-    Evidence -->|alimentează| Reporting[reporting]
+    Tests["Teste"] -->|selectează| Config["Policy"]
+    Config -->|configurează| Session["Sesiune"]
+    Session -->|deschide| Browser["Browser"]
+    Browser -->|produce| Evidence["Dovezi"]
+    Evidence -->|alimentează| Reporting["Reporting"]
 ```
 
 <details>
@@ -31,6 +32,16 @@ flowchart LR
 - sesiunea compune browser, context și page, apoi înregistrează acțiuni;
 - atf-ui livrează payload-ul către consumer, nu decide verdictul și nu construiește HTML/CSS/Extent;
 - publisherul și auditul aparțin atf-reporting, iar scenariile concrete aparțin test scope-ului consumator.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Teste | consumer tests |
+| Policy | browser policy |
+| Sesiune | Playwright session |
+| Browser | browser / page |
+| Dovezi | action + screenshot |
+
 </details>
 
 <details>
@@ -180,10 +191,11 @@ O țintă absentă temporar poate deveni disponibilă; ambiguitatea rămâne ero
 gol produce FAIL, cu selectorul păstrat, fără încercare suplimentară.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
-    Record["Recorder<br/>o operație"] -->|deleagă| Native["Locator strict<br/>un buget de așteptare"]
-    Native -->|țintă pregătită| Activate["o activare"]
-    Native -->|ambiguitate sau timeout| Fail["FAIL auditabil"]
+    Record["Recorder"] -->|deleagă| Native["Locator strict"]
+    Native -->|țintă pregătită| Activate["Activare unică"]
+    Native -->|ambiguitate sau timeout| Fail["FAIL"]
     Activate -->|rezultat confirmat| Pass["PASS"]
     Activate -->|select fără confirmare| Fail
 ```
@@ -199,6 +211,14 @@ flowchart LR
   pentru select, lipsa confirmării native este respinsă explicit.
 - Continuitatea selecției după detach și precondițiile consumerului sunt urmărite
   în [feedback-ul UI](../docs/feedback/ATF_UI_Backend_Guided_Recovery_Feedback.md).
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Recorder | Recorder · o operație |
+| Locator strict | Locator strict · un buget de așteptare |
+| Activare unică | o activare |
+| FAIL | FAIL auditabil |
 
 </details>
 
@@ -217,11 +237,12 @@ aleasă de consumer, în locul așteptării implicite a navigărilor pornite de 
   că activarea s-a încheiat și postcondiția nu a fost confirmată, păstrând cauza.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
-    Budget["Un buget"] -->|așteaptă actionability| Click["Pointer strict · o activare"]
-    Click -->|buget rămas| Observe["Confirmări native read-only"]
-    Observe -->|confirmată| Pass["PASS auditabil"]
-    Observe -->|eroare sau expirare| Fail["FAIL · fără replay"]
+    Budget["Buget unic"] -->|așteaptă| Click["Click unic"]
+    Click -->|buget rămas| Observe["Confirmări"]
+    Observe -->|confirmată| Pass["PASS"]
+    Observe -->|eroare sau expirare| Fail["FAIL"]
 ```
 
 <details>
@@ -233,6 +254,16 @@ Adaptorul folosește opțiunea de navigare a driverului fixat, conform
 Nu interpretează loguri native ca dovadă de succes și nu acordă un al doilea
 buget complet postcondiției. `PlaywrightClickPostconditionComponentTest`
 probează un subframe necomis, postcondiția lipsă și ținte absente/ambigue.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Buget unic | Un buget |
+| Click unic | Pointer strict · o activare |
+| Confirmări | Confirmări native read-only |
+| PASS | PASS auditabil |
+| FAIL | FAIL · fără replay |
+| așteaptă | așteaptă actionability |
 
 </details>
 
@@ -357,14 +388,15 @@ apel, dar nu întrerupe un callback blocant. Așteptările subordonate folosesc
 `remaining()`, fără deadline nou.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; } .edgeLabel [data-id=\"L_Observe_Gate_0\"] foreignObject { transform: translate(0px, 38px); } .edgeLabel [data-id=\"L_Gate_Stop_0\"] foreignObject { transform: translate(0px, -38px); }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
-    Config["YAML + restricție neutră"] -->|fixează| Scope["Scope înaintea acțiunii"]
-    Scope -->|delimitează| Action["O singură activare"]
-    Action -->|produce| Gate["Document + semnal BE + DOM"]
-    Gate -->|tranzitoriu permis| Observe["Reobservare în același buget"]
+    Config["Configurație"] -->|fixează| Scope["Scope"]
+    Scope -->|delimitează| Action["Activare unică"]
+    Action -->|produce| Gate["Semnale"]
+    Gate -->|tranzitoriu| Observe["Reobservare"]
     Observe -->|reevaluează| Gate
-    Gate -->|2xx corelat + stare validă| Ready["INITIAL_READY / RECOVERED"]
-    Gate -->|refuz sau epuizare| Stop["Eșec cu motiv explicit"]
+    Gate -->|confirmă| Ready["Ready"]
+    Gate -->|refuz / limită| Stop["Eșec"]
 ```
 
 <details>
@@ -385,6 +417,20 @@ Observația INFO are durata de rând zero; probe/backoff/total sunt măsurători
 explicite în metadata, iar totalul cumulativ nu se însumează peste fiecare rând.
 Durata agregată a fazei E2E rămâne distinctă de totalul scope-ului BE, conform
 [restanței timing typed](../docs/feedback/ATF_Reporting_Feedback.md#report-e2e-phase-timing-01--execuția-e2e-separată-de-agregarea-dovezilor).
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Configurație | YAML + restricție neutră |
+| Scope | Scope înaintea acțiunii |
+| Activare unică | O singură activare |
+| Semnale | Document + semnal BE + DOM |
+| Reobservare | Reobservare în același buget |
+| Ready | INITIAL_READY / RECOVERED |
+| Eșec | Eșec cu motiv explicit |
+| confirmă | 2xx corelat + stare validă |
+| tranzitoriu | tranzitoriu permis |
+| refuz / limită | refuz sau epuizare |
 
 </details>
 
@@ -448,12 +494,13 @@ Fluxul cross-module și baseline-ul setup/causal au un singur owner în
 Selecția precedă citirea body-ului și rezervarea bugetului:
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Event["Request finished / failed"] -->|filtrează| Host["Host allowlist"]
-    Host -->|selectează| Policy["Resource type + path policy"]
-    Policy -->|rezervă| Budget["Bounded journal"]
-    Budget -->|citește și redactează| Body["Typed observation"]
-    Body -->|publică| Consumer["Subscriber / reporting adapter"]
+    Event["Eveniment"] -->|filtrează| Host["Host"]
+    Host -->|selectează| Policy["Policy"]
+    Policy -->|rezervă| Budget["Journal"]
+    Budget -->|redactează| Body["Observație"]
+    Body -->|publică| Consumer["Adaptor"]
 ```
 
 <details>
@@ -485,6 +532,17 @@ flowchart LR
 `UiNetworkInspectorComponentTest` probează și în browser local, cu trafic
 interceptat controlat, filtrarea asset-urilor, fetch-ul reușit/eșuat și overflow-ul.
 Probele nu depind de un magazin public sau de Reporting.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Eveniment | Request finished / failed |
+| Host | Host allowlist |
+| Policy | Resource type + path policy |
+| Journal | Bounded journal |
+| Observație | Typed observation |
+| Adaptor | Subscriber / reporting adapter |
+| redactează | citește și redactează |
 
 </details>
 

@@ -6,6 +6,7 @@ modulele ATF. Nu conține renderer, mock transport, browser sau cod de producți
 ## Pe scurt
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     ModuleTests[teste module] -->|declară| Kit[atf-test-kit]
     Kit -->|clasifică| Levels[test layers]
@@ -113,6 +114,7 @@ Conflictele READ_ONLY/DISABLED la același nivel sunt respinse; ciclurile
 meta-adnotărilor nu inventează o politică.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     Class["Clasă apropiată + compoziție"] -->|stabilește baza| Plan["Plan per invocare"]
     Method["Metodă"] -->|restrânge| Plan
@@ -184,13 +186,14 @@ JUnit executat; `PhaseResult.timing()` transportă snapshot-ul imutabil și num�
 intervalelor. Mai multe metode moștenite din aceeași fază se cumulează fără golurile dintre ele.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
-    Invoke["Callback JUnit"] -->|măsoară în finally| Timer["Timer per fază / invocare"]
-    Timer -->|îngheață| Snapshot["Durată + număr intervale"]
+    Invoke["Callback"] -->|măsoară| Timer["Timer"]
+    Timer -->|îngheață| Snapshot["Timing"]
     Snapshot -->|transportă neutru| Result["PhaseResult"]
-    Result -->|după execuție| Publisher["Publicare consumer"]
+    Result -->|după execuție| Publisher["Publisher"]
     Invoke -->|păstrează eroarea| Result
-    Handler["Handler JUnit"] -->|nu șterge captura| Result
+    Handler["Handler"] -->|nu șterge captura| Result
 ```
 
 <details>
@@ -214,6 +217,16 @@ flowchart LR
   propagare; auditul nu atașează încă o copie a abortului la aceeași cauză.
 - O comparație reușită rămâne PASS dacă un callback eșuează ulterior.
   Excepția primește diagnostic separat; nu se inventează o comparație FAIL.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Callback | Callback JUnit |
+| Timer | Timer per fază / invocare |
+| Timing | Durată + număr intervale |
+| Publisher | Publicare consumer |
+| Handler | Handler JUnit |
+| măsoară | măsoară în finally |
 
 </details>
 

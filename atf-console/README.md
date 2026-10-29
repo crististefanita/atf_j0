@@ -39,11 +39,12 @@ Publicarea căii raportului este opt-in și independentă de detaliile testului:
 ## Diagramă de bază
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Core[core events] -->|formatează| Console[console]
-    Config[YAML policy] -->|configurează| Console
-    Console -->|publică| Output[stdout / stderr]
-    Reporting[evenimente externe] -->|transmite câmpuri| Bridge[compoziție de test]
+    Core["Evenimente"] -->|formatează| Console["Console"]
+    Config["YAML"] -->|configurează| Console
+    Console -->|publică| Output["stdout / stderr"]
+    Reporting["Reporting"] -->|transmite| Bridge["Compoziție"]
     Bridge -->|publică| Core
 ```
 
@@ -59,6 +60,15 @@ flowchart LR
 - ieșirea este diagnostică (stdout/stderr), nu artifact HTML și nu verdict;
 - adaptorul traduce contracte, dar nu depinde de ExtentReports și nu deține
   lifecycle-ul ori randarea HTML.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Evenimente | core events |
+| YAML | YAML policy |
+| Reporting | evenimente externe |
+| Compoziție | compoziție de test |
+
 </details>
 
 ## Limite de responsabilitate
@@ -176,13 +186,14 @@ Pentru un artifact partajat, fiecare owner trebuie înregistrat într-un
 - Generarea raportului și verdictul testului nu depind de notificare.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Owner["Owneri Jupiter"] -->|declară| Policy["Politica Kit"]
-    Policy -->|include fiecare owner| Sink["Sink Console"]
-    Session["Reporting close"] -->|publică și verifică fișierul| Final["REPORT_PUBLISHED"]
+    Owner["Owneri"] -->|declară| Policy["Policy Kit"]
+    Policy -->|include| Sink["Console sink"]
+    Session["Reporting close"] -->|publică| Final["Publicat"]
     Final -->|calea sesiunii| Sink
-    Yaml["Console YAML"] -->|permite afișarea| Sink
-    Sink -->|o dată per artifact| Output["Calea absolută în consolă"]
+    Yaml["YAML Console"] -->|permite| Sink
+    Sink -->|o singură dată| Output["Cale absolută"]
 ```
 
 <details>
@@ -192,6 +203,20 @@ Componenta conectează sink-ul clasei la sesiunea deținută. Un raport partajat
 agregă opțiunile tuturor ownerilor; cel puțin un owner activ cere notificarea.
 `flush()` nu anunță artifactul final. Wrapperul dinamic transportă evenimentul
 unei resurse deținute explicit, fără să creeze un raport pentru fiecare copil.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Owneri | Owneri Jupiter |
+| Policy Kit | Politica Kit |
+| Console sink | Sink Console |
+| Publicat | REPORT_PUBLISHED |
+| YAML Console | Console YAML |
+| Cale absolută | Calea absolută în consolă |
+| include | include fiecare owner |
+| publică | publică și verifică fișierul |
+| permite | permite afișarea |
+| o singură dată | o dată per artifact |
 
 </details>
 

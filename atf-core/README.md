@@ -14,6 +14,7 @@ cum este randat un raport.
 ## Diagramă de bază
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     Consumers[validation · mock · UI · tests] --> Core[atf-core]
 ```
@@ -302,12 +303,70 @@ sursele din staging și nu implementează ștergeri implicite. Un manifest poate
 scris ca JSON portabil pentru auditul procesului, însă nu este evidence de
 raport și nu se sincronizează ca output generat.
 
+## Istoric la eroare terminală
+
+`ApiExecutionException.snapshot()` expune un `ApiExecutionSnapshot` imutabil
+pentru transport eșuat, timeout și întrerupere. Anularea rămâne
+`CancellationException`, prin subtipul `ApiExecutionCancelledException`.
+
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
+flowchart LR
+    Dispatch["Dispatch"] -->|măsoară| History["Istoric"]
+    History -->|eroare terminală| Snapshot["Snapshot"]
+    Snapshot -->|convertește| Adapter["Adaptor"]
+    Adapter -->|publică| Report["Dovezi"]
+```
+
+<details>
+<summary><strong>Legendă — execuție observată, fără răspuns fabricat</strong></summary>
+
+- `ApiExecutionFailure.find(error)` caută snapshot-ul pe lanțul cauzei primare,
+  cu protecție la cicluri; o eroare suppressed de cleanup nu poate furniza
+  evidence pentru altă operație.
+- Snapshot-ul păstrează request-ul, URL-ul rezolvat, proveniența declarată,
+  durata monotonă totală, încercările, retry-urile planificate și terminarea.
+  Listele sunt copii imutabile, iar încercările au ordine contiguă.
+- `response()` este Optional; lipsa răspunsului terminal nu reutilizează 503-ul
+  unei încercări anterioare. Un răspuns capturat înaintea unei erori de policy
+  rămâne distinct de absența răspunsului.
+- `ApiAttemptRecord.httpStatus()` este gol pentru sentinelul legacy zero;
+  acesta nu reprezintă HTTP 0. Core păstrează constructorii existenți.
+- Anularea înaintea dispatch-ului are zero încercări. Oprirea în backoff
+  păstrează retry-ul planificat, fără a inventa următorul apel.
+- Cauza, stack-ul și suppressed rămân păstrate; întreruperea păstrează flag-ul
+  thread-ului și anulează future-ul pending.
+- Deadline-ul și politica de retry sunt cele originale. Capturarea ori
+  publicarea snapshot-ului nu retrimite request-ul.
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Dispatch | Dispatch efectuat |
+| Istoric | Încercări + retry-uri planificate |
+| Snapshot | Snapshot imutabil + cauză |
+| Adaptor | Adaptor consumer |
+| Dovezi | Execution evidence |
+| convertește | convertește la owner |
+| publică | publică fără replay |
+
+</details>
+
+Un răspuns final, inclusiv non-2xx, continuă să întoarcă `ApiExecutionResult`.
+Outcome-ul legacy SUCCESS al unei încercări înseamnă răspuns final primit,
+fără a declara succesul business.
+
+`ApiTerminalExecutionEvidenceTest` folosește transport și ceas controlate
+pentru 503 → eroare/timeout, anulare, întrerupere și eroare la primul apel.
+Redactarea și verdictul raportului rămân la consumer și Reporting, fără
+dependență a Core către renderer.
+
 ## Determinism și concurență
 
 Istoricul din `ApiExecutionResult` este disponibil când execuția întoarce un
-răspuns final. La eroare terminală, `ApiExecutionException` păstrează cauza;
-snapshot-ul parțial al încercărilor rămâne o
-[lacună de auditabilitate](../docs/feedback/ATF_Core_Execution_Evidence_Feedback.md).
+răspuns final. La eroare terminală, [snapshot-ul parțial](#istoric-la-eroare-terminală)
+păstrează încercările observate și cauza, fără a retrimite operația.
 
 - **snapshot și timp** — fiecare execuție primește setări snapshot-uite;
 - **clock injectabil** — timpul monotonic, deadline-ul request-ului și delay-ul

@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.io.IOException;
+import java.nio.file.Files;
 
 /** Browser adapter that validates one failure channel without hard-coded test selectors. */
 public final class UiFailureReportInspector {
@@ -62,9 +64,11 @@ public final class UiFailureReportInspector {
                     fixture.locators().actionSequences(owner.detail()).allInnerTexts());
             if (!actionEvidence.contains("Wait for visible")
                     || !actionEvidence.contains("button[data-test='login-submit']")
-                    || !actionEvidence.contains("Timeout 20000ms exceeded")) {
-                violations.add("Tests must retain the failed wait action, locator and observed timeout");
+                    || !actionEvidence.contains("elapsed=20000 ms")
+                    || !actionEvidence.contains("expected=login submit becomes visible")) {
+                violations.add("Tests must retain the failed wait action, locator, measured time and expectation");
             }
+            validateTimeoutDiagnostics(owner.detail(), violations);
         }
         validateConcreteFailureStatus(surface, owner.detail(), violations);
 
@@ -128,12 +132,29 @@ public final class UiFailureReportInspector {
             if (detail.contains("raw-ui-password") || detail.contains("raw-ui-token")) {
                 violations.add("Fails detail exposes a raw credential from the timeout cause");
             }
-            if (!detail.contains("***REDACTED***")) {
-                violations.add("Fails detail must show that timeout credentials were redacted");
-            }
         }
         validateUiFailureVocabulary(fails, surface, violations);
         validateNarrowFailsLayout(page, surface, violations);
+    }
+
+    private void validateTimeoutDiagnostics(Locator detail, List<String> violations) {
+        String diagnostics = String.join(" ", fixture.locators()
+                .uiValidationObservations(detail).allTextContents());
+        if (!diagnostics.contains("Primary exception")
+                || !diagnostics.contains("TimeoutError: Timeout 20000ms exceeded")
+                || !diagnostics.contains("password=***REDACTED***")
+                || !diagnostics.contains("Authorization: Bearer ***REDACTED***")
+                || !diagnostics.contains("Recorded action #1")) {
+            violations.add("Tests Audit observations must retain the native timeout and redacted credentials");
+        }
+        try {
+            String html = Files.readString(fixture.inputReport());
+            if (html.contains("raw-ui-password") || html.contains("raw-ui-token")) {
+                violations.add("the published HTML exposes a raw timeout credential");
+            }
+        } catch (IOException error) {
+            throw new IllegalStateException("Cannot inspect the published failure artifact", error);
+        }
     }
 
     private void validateUiFailureVocabulary(Locator fails, UiFailureSurface surface,

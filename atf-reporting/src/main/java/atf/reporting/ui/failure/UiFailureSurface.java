@@ -9,8 +9,9 @@ public enum UiFailureSurface {
             List.of("Setup evidence", "Setup check", "Setup check failed")),
     PLAYWRIGHT_ACTION(
             "Playwright action failure — timeout",
-            List.of("Failure evidence", "Timeout 20000ms exceeded",
-                    "button[data-test='login-submit']", "***REDACTED***")),
+            List.of("Failure evidence", "TimeoutError", "Wait for visible #1",
+                    "button[data-test='login-submit']", "elapsed=20000 ms",
+                    "expected=login submit becomes visible")),
     AUDIT_OBSERVATION(
             "Audit observation failure — rendered state",
             List.of("UI validation", "Audit observation", "Audit observation failed")),

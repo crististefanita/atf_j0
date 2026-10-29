@@ -24,6 +24,21 @@ public final class ApiExchangeEvidence {
         node.execution(evidence);
     }
 
+    /** Terminal evidence never fabricates a response; the caller retains ownership of the logical verdict. */
+    public static String publishFailure(AtfReportPorts.Request node, ReportExecutionEvidence evidence,
+                                        String resolvedUrl, String termination, String diagnostic) {
+        Objects.requireNonNull(node, "node");
+        String safe = new atf.reporting.security.SensitiveDataRedactor().redactText(diagnostic);
+        safe = atf.reporting.markup.ExtentReportNodeSupport.display(safe, atf.reporting.configuration.ReportingSettings.defaults());
+        var terminal = evidence.withTermination(termination, safe);
+        if (terminal.response() != null) publish(node, terminal);
+        else {
+            projectRequest(terminal, resolvedUrl, node::detail, node::body);
+            node.execution(terminal);
+        }
+        return safe;
+    }
+
     /** Narrow write seam for legacy ports; no producer dependency leaks into Reporting. */
     public static void publishFields(ReportExecutionEvidence evidence,
                                      BiConsumer<String, String> detail, BiConsumer<String, String> json) {
@@ -32,27 +47,34 @@ public final class ApiExchangeEvidence {
 
     private static void project(ReportExecutionEvidence evidence,
                                 BiConsumer<String, String> detail, Consumer<ReportJsonBody> bodies) {
-        var request = Objects.requireNonNull(evidence.request(), "captured request");
         var response = Objects.requireNonNull(evidence.response(), "captured response");
-        detail.accept("method", request.method());
-        detail.accept("path", request.path());
-        detail.accept("url", response.url());
-        detail.accept("request.signature", ReportRequestSignature.displaySignature(
-                ReportRequestSignature.forRequest(request)));
-        ApiAuthenticationEvidence.publishTo(detail, request);
-        if (!request.query().isEmpty()) detail.accept("query.params", request.query().toString());
-        detail.accept("request.headers", ApiManualReplay.redactedHeaders(request));
-        detail.accept("transport.provenance", evidence.provenance().reportLabel());
-        detail.accept("manual.replay", ApiManualReplay.describe(evidence.provenance(), request,
-                response.url(), request.bodyText()));
-        body(detail, bodies, ReportJsonBody.Direction.REQUEST, request.bodyText(),
-                request.bodyAvailability(), header(request.headerEvidence().values(), "content-type"));
+        projectRequest(evidence, response.url(), detail, bodies);
         detail.accept(ApiEvidenceField.HTTP_STATUS.label(), response.statusLabel());
         detail.accept("response.content.type", header(response.headers(), "content-type"));
         String headers = ApiManualReplay.relevantResponseHeaders(response.headers());
         detail.accept("response.headers", headers);
         body(detail, bodies, ReportJsonBody.Direction.RESPONSE, response.body(),
                 response.bodyAvailability(), header(response.headers(), "content-type"));
+    }
+
+    private static void projectRequest(ReportExecutionEvidence evidence, String url,
+                                        BiConsumer<String, String> detail, Consumer<ReportJsonBody> bodies) {
+        var request = Objects.requireNonNull(evidence.request(), "captured request");
+        detail.accept("method", request.method());
+        detail.accept("path", request.path());
+        detail.accept("url", url);
+        detail.accept("request.signature", ReportRequestSignature.displaySignature(
+                ReportRequestSignature.forRequest(request)));
+        ApiAuthenticationEvidence.publishTo(detail, request);
+        if (!request.query().isEmpty()) detail.accept("query.params", request.query().toString());
+        detail.accept("request.headers", ApiManualReplay.redactedHeaders(request));
+        detail.accept("transport.provenance", evidence.attempts() == 0
+                ? "No request dispatched; selected transport: " + evidence.provenance().name()
+                : evidence.provenance().reportLabel());
+        detail.accept("manual.replay", evidence.attempts() == 0 ? "NOT VERIFIED — no request was dispatched"
+                : ApiManualReplay.describe(evidence.provenance(), request, url, request.bodyText()));
+        body(detail, bodies, ReportJsonBody.Direction.REQUEST, request.bodyText(),
+                request.bodyAvailability(), header(request.headerEvidence().values(), "content-type"));
     }
 
     private static void body(BiConsumer<String, String> detail, Consumer<ReportJsonBody> bodies,

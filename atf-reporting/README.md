@@ -28,6 +28,7 @@ aparține README-ului acelui consumer.
 ## Limitele librăriei autonome și consumatorul canonic
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     Consumer[consumer] -->|consumă| Contract[public contract]
     Contract -->|expune| Model[semantic model]
@@ -90,6 +91,7 @@ flowchart LR
 Regula permanentă este:
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     Vocabulary[vocabulary]
     Runtime[typed model]
@@ -317,12 +319,13 @@ fiecare `API validation` își deține exchange-urile. Verdictul unei metode JUn
 nu este un request API și nu trebuie introdus ca metodă `ASSERT`/rută sintetică.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    J[JUnit: comparație evaluată] -->|înregistrează| R[Rând AtfAssertion]
-    R -->|alimentează| S[AssertionStep în faza owner]
-    S -->|publică| E[Extent: nod colapsabil]
-    S -->|publică| H[Fallback: details colapsabil]
-    E -->|afișează| V[Tabel + verdict + redacție]
+    J["Comparație JUnit"] -->|înregistrează| R["AtfAssertion"]
+    R -->|alimentează| S["AssertionStep"]
+    S -->|publică| E["Extent"]
+    S -->|publică| H["Fallback HTML"]
+    E -->|afișează| V["Tabel auditat"]
     H -->|afișează| V
 ```
 
@@ -444,11 +447,59 @@ UI checkpoint
 Verdictul este calculat de execution/validation și doar publicat de reporting.
 Rendererul nu inventează statusuri.
 
+### Execuție API terminată fără răspuns
+
+`ReportExecutionEvidence` poate avea response absent și metadata typed
+`Termination`; acestea aparțin execuției, separat de HTTP.
+`ApiExchangeEvidence.publishFailure` publică request-ul cunoscut, istoricul
+și diagnosticul, fără a decide verdictul consumerului.
+
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
+flowchart LR
+    Snapshot["Snapshot"] -->|convertește| Evidence["Execution evidence"]
+    Evidence -->|proiectează| History["Încercări"]
+    Evidence -->|separă| Diagnostic["Diagnostic"]
+    History -->|afișează| Missing["Unavailable"]
+```
+
+<details>
+<summary><strong>Legendă — paritate Extent/fallback și compatibilitate</strong></summary>
+
+- Seam-ul legacy `ReportModelAdapters.partialExecution` cere disponibilitate
+  explicită prin Optional; constructorii Reporting existenți rămân disponibili.
+  Modelele Core nu intră în classpath-ul librăriei standalone.
+- Sentinelul fără răspuns devine Unavailable în istoricul afișat; nu se
+  inventează status, body ori response duration pentru încercarea terminală.
+- Terminarea și diagnosticul stau în disclosure-ul Execution evidence.
+  În lipsa răspunsului nu apare un disclosure Response details fabricat.
+- Zero dispatch-uri păstrează transportul selectat, fără afirmația că rețeaua
+  a fost executată ori că replay-ul manual ar fi verificat.
+- Textul complet este redactat înaintea plafonului integral de 240 de
+  caractere, inclusiv elipsa; bugetul personalizat se aplică la proiecție.
+- `TerminalExecutionProjectionTest` și `TerminalApiExecutionReportTest`
+  verifică modelul, Extent/fallback, redacția, tastatura și ultimul rând.
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Snapshot | Snapshot consumer |
+| Execution evidence | Execution evidence + Termination |
+| Încercări | Încercări în ordine |
+| Diagnostic | Diagnostic de execuție |
+| Unavailable | Unavailable, fără HTTP inventat |
+| afișează | afișează absența |
+
+</details>
+
 ### Decizii BE fără verdict de succes implicit
 
 Adaptoarele AutoEx/Shop publică deciziile recuperării prin observații INFO,
 cu politica și bugetul în Expected, iar decizia, motivul și timpii în Observed.
 Aceste rânduri nu reprezintă clickuri repetate și nu rescriu un FAIL publicat.
+Receipt-ul și sursa politicii, operația, încercarea și timpii probe/backoff/total
+sunt observații auditabile; corpul HTTP și credentialele nu sunt capturate.
 
 Proiecția existentă păstrează disclosure-urile și plafonul integral de 240
 de caractere după redactarea textului complet. Indicatorul agregat de recuperare,
@@ -463,17 +514,22 @@ Aceeași proiecție apare în `Failure cause`, în Observed și în Fails.
 O acțiune PASS nu devine cauza unei excepții ulterioare; lipsa unei acțiuni
 eșuate ori a excepției este explicită, iar sursa OBSERVE rămâne observație.
 
+- Mesajul nativ al unui timeout aparține diagnosticului separat din Tests.
+- `elapsed` este timpul acțiunii capturat, fără deducerea deadline-ului din excepție.
+
 `UiFailureEvidencePublisher` deține publicarea acestei dovezi prin porturile
 neutre Reporting; `UiEvidencePublisher` îi deleagă failure-path-ul, fără JUnit,
 browser sau reevaluarea verdictului business.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Captured["Throwable + evidence"] -->|selectează| Context["contextul primei dovezi FAIL"]
-    Captured -->|păstrează| Diagnostic["diagnostice și relații"]
-    Context -->|proiectează| Boundary["redactare → plafon"]
-    Diagnostic -->|proiectează| Boundary
-    Boundary -->|publică| Views["Tests + Fails"]
+    Captured["Throwable + dovezi"] -->|selectează| Context["Prima dovadă FAIL"]
+    Captured -->|păstrează| Diagnostic["Diagnostic"]
+    Context -->|acțiune sigură| Tests["Tests"]
+    Context -->|rezumat sigur| Fails["Fails"]
+    Diagnostic -->|observații sigure| Tests
+    Fails -->|backlink| Tests
 ```
 
 <details>
@@ -486,12 +542,26 @@ flowchart LR
   comune și ciclurile sunt finite; Throwable-ul și rândurile originale rămân intacte.
 - Redactarea întregii valori precede plafonul configurat, implicit 240 inclusiv
   elipsa, și pentru fiecare diagnostic. Expandarea nu publică text brut nelimitat.
+- Muchiile „sigură/sigure” includ redactarea și plafonul; separarea suprafețelor
+  nu creează o cale secundară pentru publicarea valorilor brute.
 - Fails preferă contextul aserțiunii UI față de diagnosticul tehnic al fazei;
   diagnosticul rămâne în Tests. API își păstrează lanțul cauzal și ownerul propriu.
 - Verdictul FAIL, corelarea prin identitate și politica fără replay rămân
   responsabilități distincte de această proiecție.
 
 </details>
+
+| Suprafață | Contract observabil |
+|---|---|
+| Tests → Playwright action sequence | operația, locatorul, durata măsurată și contextul primei dovezi FAIL |
+| Tests → Audit observations | diagnostice INFO distincte: tip/mesaj primar, cauze, suppressed și observația originală; fiecare respectă bugetul |
+| Fails → Cause | context compact; mesajul nativ și markerul de redactare nu sunt obligatorii în acest rezumat |
+| Open in Tests | același scenariu și aceeași dovadă; diagnosticele se inspectează prin disclosure, inclusiv cu Enter/Space |
+
+`UiFailureReportContractTest` verifică suprafețele prin fațada UI reală;
+`UiTimeoutReportComponentTest` verifică Extent/fallback la 240 și 18, redactarea
+întregului HTML, relațiile diagnosticului, izolarea și backlink-ul. Probele negative
+detectează eliminarea diagnosticului nativ și expunerea unei credențiale în DOM.
 
 ### Captura la failure
 
@@ -575,12 +645,13 @@ fără repetarea propoziției Gherkin. Probe: `NetworkCaptureEvidenceTest` în
 `NetworkInspectorSummaryRoleTest` verifică ordinea în ambele moduri de randare.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Checkpoint["un singur Gherkin checkpoint"] -->|păstrează| Ui["UI validation"]
+    Checkpoint["Checkpoint Gherkin"] -->|păstrează| Ui["UI validation"]
     Checkpoint -->|păstrează| Api["API validation"]
-    Api -->|păstrează canonical| Evidence["request · response · execution"]
-    Checkpoint -->|indexează| Aggregate["journey aggregate"]
-    Aggregate -->|grupează| Facts["auth · correlation · transport · signatures · diagnostics"]
+    Api -->|păstrează| Evidence["Schimb HTTP"]
+    Checkpoint -->|indexează| Aggregate["Inspector agregat"]
+    Aggregate -->|grupează| Facts["Context transport"]
 ```
 
 <details>
@@ -940,6 +1011,7 @@ output directory, numele fișierului, timestamp policy și politica typed de cap
 înainte de publication.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     Input[typed input] -->|alimentează| Model[semantic model]
     Model -->|intră în| Render[renderer]
@@ -1114,10 +1186,11 @@ Protecții comune pentru body-uri deja implementate:
 Normalizarea este un boundary de publicare, nu o a doua sursă de evidence:
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Java[renderer Java] -->|publică| Canonical[disclosure canonicală]
-    Canonical -->|păstrează| Dom[request response trace]
-    Legacy[JavaScript legacy] -->|completează idempotent| Dom
+    Java[renderer Java] -->|publică| Canonical["Disclosure canonic"]
+    Canonical -->|păstrează| Dom["Request / response / trace"]
+    Legacy[JavaScript legacy] -->|completează| Dom
 ```
 
 <details>
@@ -1156,6 +1229,12 @@ O eroare I/O de alt tip nu este reîncercată; epuizarea limitei se propagă, ia
 întreruperea oprește cleanup-ul și păstrează flag-ul thread-ului.
 
 
+### Navigare amânată și interacțiune explicită
+
+`atfOpenTest` asociază deschiderea amânată cu generația navigării curente.
+Un salt mai nou sau inputul explicit în Tests invalidează callback-ul anterior;
+o închidere prin mouse, Enter sau Space nu este anulată ulterior de acel callback.
+
 ### Prospețimea dovezii vizuale
 
 Un HTML generat înainte de recompilarea claselor sau a resurselor reporting este
@@ -1190,6 +1269,12 @@ hidden`).
 Gate-ul nativ `mvn -f atf-reporting/pom.xml test` selectează explicit pachetul
 `atf.reporting.standalone` și implicit eșuează dacă nu descoperă teste.
 Un `BUILD SUCCESS` fără clase/cazuri executate nu dovedește contractul librăriei.
+
+[ReportingStandaloneVerdictComponentTest](src/test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java)
+este proba de componentă nativă pentru lifecycle, status și snapshot, cu
+JUnit `@Tag("component")`, fără importuri ATF externe sau browser.
+Proiecția browser este verificată separat în
+[ReportingVerdictProjectionComponentTest](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/verdict/ReportingVerdictProjectionComponentTest.java).
 
 Selecția reactorului poate omite modulul prin opțiunea documentată
 `-Dsurefire.failIfNoSpecifiedTests=false`; omiterea unui modul fără testul cerut
@@ -1294,6 +1379,53 @@ izolate în facade. Contractul se verifică separat prin teste de asset, compone
 
 </details>
 
+## Consistența statusului transmis de caller
+
+`ReportStatusAggregator.resolve(...)` reconciliază statusul callerului cu
+rezultatele efective ale rândurilor și scope-urilor copil. Evaluarea business
+rămâne la consumer; Reporting nu compară din nou expected cu actual.
+
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
+flowchart LR
+    Rows["Rânduri evaluate"] -->|reconciliază| Verdict["Status efectiv"]
+    Verdict -->|închide| Scope["Scope + părinți"]
+    Scope -->|proiectează| Views["Snapshot + vederi"]
+```
+
+<details>
+<summary><strong>Legendă — aceeași politică în Extent, fallback și recorder</strong></summary>
+
+- Severitatea efectivă nu poate fi redusă prin `complete(PASS)` sau
+  `complete(SKIP)` când există un rând ori copil FAIL.
+- `AtfAssertion.resultStatus` păstrează politica evaluată; `passed=false` cu
+  `resultStatus=PASS` este respins înaintea publicării. Un SKIP explicit este valid.
+- Statusul de închidere absent contribuie INFO; observația INFO nu inventează un verdict
+  business. O excepție așteptată este evaluată înaintea raportării și poate produce PASS.
+- Console, Tests, Categories, Fails și Overview primesc verdictul reconciliat;
+  comparația SKIP nu devine cauza FAIL a unui request imbricat.
+- Apelurile `assertions(...)` repetate înlocuiesc setul încă nepublicat, inclusiv
+  numele și verdictul din recorder. Snapshot-ul păstrează request-urile imbricate,
+  fără a stoca valorile integrale ale comparației în populația semantică.
+- Bufferul UI păstrează verdictul checkpoint-ului înaintea publicării
+  UNIFIED_FLOW, inclusiv peste faze. Fiecare scenariu-soră își păstrează rezultatul.
+- Bugetul redactat rămâne implicit 240 inclusiv elipsa; statusul nu se calculează
+  din preview, badge sau HTML.
+
+</details>
+
+### Atomicitatea tranzițiilor de scope
+
+Modelul fallback poate fi modificat înaintea validării recorderului semantic:
+
+- O a doua completare a unui request este respinsă, dar poate schimba deja modelul.
+- `close()` refuză ulterior publicarea din cauza diferenței dintre snapshot-uri.
+- Guard-ul previne publicarea inconsistentă; tranziția inițială rămâne neatomică.
+
+[Refactorizarea lifecycle-ului](../docs/feedback/ATF_Reporting_Feedback.md#report-scope-atomicity-11--refuz-fără-mutație-parțială)
+urmărește aceeași decizie de stare înaintea mutației, cu probe la porturile publice
+Extent/fallback și cu contract explicit pentru `complete` și `close`.
+
 ## Proiecția sigură a aserțiunilor
 
 `AssertionAuditReport` publică faze și pași de aserțiuni prin `AtfReportPorts.Session`;
@@ -1305,9 +1437,10 @@ Fazele acestui publisher se deschid după evaluare. Overload-ul cu
 callback-urilor; publicarea snapshot-ului nu înlocuiește timpul metodei.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Raw[Valori integrale] -->|evaluează o dată| Verdict[Verdict]
-    Raw -->|redactează complet| Safe[Text sigur]
+    Raw[Valori integrale] -->|evaluează| Verdict[Verdict]
+    Raw -->|redactează| Safe[Text sigur]
     Safe -->|limitează| Preview[Preview · 240]
     Verdict -->|păstrează| Row[Rând auditat]
     Preview -->|completează| Row
@@ -1347,10 +1480,11 @@ produce un diagnostic de execuție. `Fails` păstrează cauza fazei și legătur
 spre test; nu selectează un rând PASS drept comparație eșuată.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Checks["Comparații evaluate"] -->|păstrează verdictul| Tests["Tests · pas colapsabil"]
-    Error["Excepție în callback"] -->|păstrează cauza| Diagnostic["Diagnostic de fază"]
-    Diagnostic -->|identifică testul| Fails["Fails → Tests"]
+    Checks["Comparații"] -->|păstrează| Tests["Tests"]
+    Error["Excepție"] -->|păstrează cauza| Diagnostic["Diagnostic fază"]
+    Diagnostic -->|identifică| Fails["Fails → Tests"]
 ```
 
 <details>
@@ -1378,11 +1512,12 @@ pentru fază. Extent și fallback o păstrează în snapshot-ul semantic; constr
 și publisherii fără timing explicit își păstrează comportamentul existent.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Execution["Execuție încheiată"] -->|furnizează| Timing["ReportPhaseTiming"]
-    Timing -->|proiectează inclusiv| Phase["Badge fază"]
-    Phase -->|însumează o dată| Scenario["Scenariu → clasă → Overview"]
-    Publication["Publicare snapshot"] -->|explică separat| Detail["Tooltip fază / pas aserțiuni"]
+    Execution["Execuție"] -->|furnizează| Timing["ReportPhaseTiming"]
+    Timing -->|proiectează| Phase["Fază"]
+    Phase -->|însumează| Scenario["Totaluri"]
+    Publication["Publicare"] -->|explică| Detail["Tooltip"]
 ```
 
 <details>
@@ -1442,13 +1577,14 @@ Constructorul public `AssertionAuditReport(session, ...)` păstrează ownership-
 sesiunii pentru publisherii standalone și fixture-urile existente.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Scope["Owner class / suite"] -->|deține| Run["AssertionAuditRun"]
-    Run -->|publică pe| Worker["Thread raport"]
+    Scope["Clasă / suită"] -->|deține| Run["AssertionAuditRun"]
+    Run -->|publică| Worker["Thread raport"]
     Invocation["Invocări JUnit"] -->|păstrează| Audit["Audit izolat"]
-    Audit -->|alimentează| Scenario["Scenarii distincte"]
+    Audit -->|alimentează| Scenario["Scenarii"]
     Worker -->|grupează| Scenario
-    Worker -->|închide o dată| Artifact["Un artifact Extent"]
+    Worker -->|închide| Artifact["Extent HTML"]
 ```
 
 <details>
@@ -1484,13 +1620,14 @@ La lățime mai mare rămân coloanele și antetul sticky. Antetul semantic exis
 prin aceeași variabilă; un tabel scurt ocupă numai înălțimea conținutului său.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
-    Width["lățimea panoului<br/>nu doar fereastra"] -->|decide| Layout{"spațiu disponibil"}
-    Layout -->|peste 720 px| Columns["coloane<br/>antet sticky"]
-    Layout -->|maximum 720 px| Rows["valori verticale<br/>etichetă repetată"]
-    Columns -->|păstrează| Evidence["aceleași valori și verdicte"]
+    Width["Lățime panou"] -->|decide| Layout{"Spațiu util"}
+    Layout -->|peste 720 px| Columns["Coloane"]
+    Layout -->|maximum 720 px| Rows["Valori verticale"]
+    Columns -->|păstrează| Evidence["Valori + verdicte"]
     Rows -->|păstrează| Evidence
-    Evidence -->|derulează local| Audit["plafon comun<br/>ultimul rând accesibil"]
+    Evidence -->|derulează local| Audit["Scroll local"]
 ```
 
 <details>

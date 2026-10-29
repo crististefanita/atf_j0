@@ -7,8 +7,9 @@ fazele lifecycle și rezultatul PASS/FAIL/SKIP sunt contracte ale
 [Test Kit](../../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră) și
 [Reporting](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor).
 
-Restanțele includ corelarea payment și totalul comenzii Shop, runtime-ul E2E,
-billing-ul observat în suită și echivalența profilelor înaintea reducerii selecției.
+Restanțele includ identitatea/coșul înainte de checkout, totalul și factura Shop,
+runtime-ul E2E, billing-ul observat în suită și echivalența profilelor înaintea
+reducerii selecției.
 Contractele deja livrate aparțin [AutoEx](../../atf-test-auto-ex/README.md),
 [Shop](../../atf-test-practice-shop/README.md) și
 [ghidului auditului componentelor](../ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
@@ -22,39 +23,33 @@ documentară /10. Nu reprezintă o notă a codului sau un rezultat de test.
 
 | ID | Scor /100 | Diferența rămasă |
 |---|---:|---|
-| `CONSUMER-SHOP-PAYMENT-CAUSALITY-02` | 83 = 34 + 24 + 19 + 6 | răspuns payment reușit vechi selectat înaintea unui eșec mai nou |
+| `UI-LOCATOR-READINESS-01` | 79 = 32 + 23 + 17 + 7 | identitate și coș verificate după înregistrare, înaintea mutației checkout |
 | `CONSUMER-RUNTIME-BOUNDARY-03` | 77 = 31 + 18 + 20 + 8 | achiziție, publicare și lifecycle E2E rămase în contextul Shop |
-| `CONSUMER-SHOP-ORDER-TOTAL-02` | 72 = 30 + 20 + 16 + 6 | totalul pozitiv nu este corelat cu prețul și cantitatea cumpărate |
+| `CONSUMER-SHOP-ORDER-TOTAL-02` | 74 = 31 + 21 + 16 + 6 | total fără expected independent și corelare de factură prin substring |
 | `CONSUMER-SHOP-BILLING-STATE-01` | 71 = 29 + 22 + 14 + 6 | diferență de valoare billing între suită și lansare individuală |
-| `CONSUMER-COMPONENT-ASSERTIONS-01` | 63 = 25 + 18 + 16 + 4 | evaluator neutru reutilizabil în Validation, după corectarea boundary-urilor existente |
 | `CONSUMER-E2E-PROFILES-01` | 57 = 24 + 10 + 17 + 6 | reducerea repetării live numai după echivalență demonstrată |
 
-## CONSUMER-SHOP-PAYMENT-CAUSALITY-02 — răspunsul operației payment curente
+## UI-LOCATOR-READINESS-01 — identitate și coș înaintea checkout-ului
 
-**Owner:** selecția dovezilor din `ShopApiNetworkJournal` și etapa checkout Shop.
-Corecția privește validarea operației existente, fără retry ori replay de payment.
+**Prioritate: 79/100** = impact 32 + lacună 23 + lucrabil 17 + documentare 7.
+**Owner:** flow-ul business AutoEx; sincronizarea controlului rămâne la UI.
 
-- `paymentConfirmed()` caută ultimul `POST /payment/check` cu status 200;
-  filtrarea succesului precedă alegerea răspunsului curent.
-- Proba controlată prin subscripția publică a inspectorului capturează un 200
-  la secvența 1 și un 500 la secvența 2. Validarea payment publică secvența 1 și
-  toate comparațiile trec, deși ultimul răspuns capturat este eșuat.
-- `orderCreated(afterSequence, ...)` și registration au deja prag de secvență;
-  aceeași delimitare nu este transmisă de etapa `checkPayment()`.
+[Readiness-ul local](../../atf-test-auto-ex/README.md#readiness-înainte-de-checkout)
+are probe pentru țintă întârziată, absentă și ambiguă. Restanța privește starea
+business după înregistrare: `AutoExPurchaseUiFlow.reviewCheckout()` redeschide
+coșul și cheamă `proceedToCheckout()` înaintea citirii datelor de review.
+Validarea coșului din etapa anterioară înregistrării nu probează această tranziție.
 
-- [ ] Capturați pragul înaintea acțiunii UI existente și selectați mai întâi
-      răspunsul corelat cu acea acțiune; evaluați apoi statusul și body-ul.
-- [ ] Păstrați unicul click, metoda, ruta și verdictul curent; un 500 sau lipsa
-      unui răspuns nou nu poate împrumuta un PASS din istoricul anterior.
-- [ ] Probați succesul vechi urmat de eșec nou, lipsa unui răspuns nou, două
-      răspunsuri valide și trafic pentru altă rută; publicați secvența selectată.
-- [ ] Verificați și perechea cart add/read, unde selecția curentă filtrează tot
-      statusul 200; aplicați numai corelarea demonstrată, fără framework nou de retry.
-- [ ] Păstrați un singur raport, assertion-urile expandabile și limita 240 în
-      lansare individuală și prin suită; cazul negativ trebuie să rămână FAIL.
+- [ ] Verificați identitatea deținută și produsul/cantitatea din coș după Continue,
+      înainte de checkout, cu expected independent de observația curentă.
+- [ ] O sesiune pierdută, un cont străin sau un coș greșit opresc mutația și publică
+      comparația FAIL; nu re-adăugați produsul și nu creați alt cont.
+- [ ] Probați refuzul și cazul nominal individual și prin suita filtrată la același
+      caz; păstrați clickul unic, raportul comun și scope-ul scenariului.
 
-Proba delimitează un risc reproductibil al selectorului; nu demonstrează că
-purchase-urile remote trecute anterior au folosit un răspuns vechi.
+**Închidere:** aceeași precondiție business este verificată înaintea tranziției
+în ambele lansări. Proba locală a locatorului sau un purchase reușit nu înlocuiesc
+cazurile negative pentru identitate și coș.
 
 ## CONSUMER-RUNTIME-BOUNDARY-03 — responsabilitățile E2E rămase în Shop
 
@@ -78,17 +73,21 @@ Este completarea purchase-ului declarat, păstrând profilele UI și UI+API.
 
 - `ShopApiAssertions.order()` verifică numai `total > 0`, alături de identitatea
   comenzii și corelarea facturii; nu primește un total așteptat independent.
-- O probă cu JSON valid, factura corelată și `total=0.01` trece toate comparațiile.
+- Proba cu JSON valid, factura exactă și `total=0.01` trece toate comparațiile.
   `ShopCartPage.CartLine` păstrează numele și cantitatea, fără preț ori total.
+- Separat, `invoice_number=INV-12`, total pozitiv și confirmarea UI `INV-123`
+  trec corelarea: `uiConfirmation.contains(invoice)` acceptă un identificator
+  străin care conține prefixul. Această probă nu depinde de calculul monetar.
 
 - [ ] Propagați în flow-ul existent prețul, cantitatea și totalul așteptat din
       observațiile anterioare plății; nu construiți expected din răspunsul comenzii.
 - [ ] Reprezentați valorile monetare exact și documentați moneda și regula
       aplicației pentru calcul; nu introduceți rotunjiri sau taxe presupuse.
 - [ ] Comparați independent totalul și identitatea comenzii cu datele cumpărăturii;
-      în UI+API păstrați și corelarea facturii deja implementată.
+      corelați identificatorul exact al facturii, fără potrivire prin substring.
 - [ ] Probați un total pozitiv greșit, cantitate/preț greșite, câmp lipsă, tip greșit
-      și factura străină; un simplu HTTP 2xx nu poate transforma diferența în PASS.
+      și factura străină, inclusiv prefix/sufix comun; un simplu HTTP 2xx nu poate
+      transforma diferența în PASS.
 - [ ] Verificați rândul exact expected/actual în raport, cu plafonul 240 păstrat,
       pentru flow-ul guest și cel autentificat, individual și prin suită.
 
@@ -120,31 +119,6 @@ calculat greșit totalurile rulărilor remote observate.
 Un succes al altei clase purchase sau al profilului UI+API nu demonstrează
 criteriul clasei single-flow și nu închide această diferență.
 
-## CONSUMER-COMPONENT-ASSERTIONS-01 — evaluatorul neutru al componentelor
-
-**Owner al restanței:** Validation pentru evaluarea pură reutilizabilă.
-Fațada JUnit, politica rezultatului și publicarea componentelor sunt implementate.
-
-`ValidationEvaluator` evaluează deja contracte API; [limita sa actuală](../../atf-validation/README.md#limita-față-de-auditul-testelor-componente)
-exclude evaluatorul general pentru modele și componente. Acest item este o
-extindere de contract, nu un defect al auditului componentelor existent.
-
-Un API nou de evaluare rămâne în afara incrementului curent de mentenanță;
-auditul implementat nu depinde de această propunere.
-
-| Owner | Contract rămas |
-|---|---|
-| Testul consumerului | expected independent, observație și regula business |
-| Validation | evaluare pură și rezultat imutabil, reutilizând modelele Core potrivite |
-| Adaptorul consumerului | conversie către Kit/Reporting fără repetarea comparației |
-
-- [ ] Probați un model, un adaptor API și un adaptor UI din ambele module înaintea
-      extinderii API-ului; introduceți numai operatorii demonstrați de aceste cazuri.
-- [ ] Păstrați tipurile, `null` și mesajul concis când diferența depășește prefixul afișat;
-      limita implicită rămâne 240 inclusiv `…`, cu redactare înaintea plafonului.
-- [ ] Păstrați politicile JUnit și excepțiile așteptate în Kit, iar evaluarea pură în
-      Validation; fără dependență Kit către Core, Validation sau Reporting.
-
 ## CONSUMER-E2E-PROFILES-01 — variantele de evidence și acoperirea business
 
 **Owner:** consumerii pentru selecție; Reporting Tests pentru contractele neutre.
@@ -171,6 +145,13 @@ Agregarea coerentă între taburi nu certifică durata integrală a fazei.
       `ConsumerSuiteCoverageGovernanceTest` și boundary-urile nu se relaxează
       pentru a ascunde cazuri eliminate.
 
+## Extensii amânate
+
+Evaluatorul general de modele (`CONSUMER-COMPONENT-ASSERTIONS-01`) rămâne
+[design amânat la Validation](../../atf-validation/README.md#evaluator-general-pentru-modele).
+Nu este un defect al auditului JUnit implementat și nu condiționează refactorizările
+curente ori pasul standard de aserțiuni.
+
 ## Controlul modificărilor
 
 Incrementul se închide conform [ghidului de testare](../ATF_Testing_Guide.md#inventarul-executabil-după-mutări-și-reclasificare)
@@ -183,14 +164,6 @@ tuturor profilelor remote sau extracția runtime-ului E2E Shop.
 
 ```yaml
 testChanges:
-  - id: CONSUMER-CHECKOUT-READINESS-06
-    status: ACTIVE
-    base: 3219ef1ff546369d00a006cfc7434644251c6f9a
-    expires: 2026-11-26
-    reason: Adaugă probe browser locale pentru checkout întârziat, absent și ambiguu, după failure live matched 0 cu butonul prezent în captura ulterioară; păstrează clickul unic, comparațiile business și lipsa replay-ului mutațiilor.
-    proof: mvn -pl atf-test-auto-ex,atf-tests -am "-Dtest=AutoExCheckoutReadinessComponentTest,AutoExCartDomComponentTest,AutoExPurchaseUiAdapterComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=3219ef1ff546369d00a006cfc7434644251c6f9a" "-Dsurefire.failIfNoSpecifiedTests=false" test
-    paths:
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/purchase/AutoExCheckoutReadinessComponentTest.java
   - id: CONSUMER-PURCHASE-STAGES-05
     status: ACTIVE
     base: 3219ef1ff546369d00a006cfc7434644251c6f9a
@@ -265,14 +238,6 @@ testChanges:
       - atf-test-kit/src/test/java/atf/testkit/assertions/AuditedAssertionScopeComponentTest.java
       - atf-test-kit/src/test/java/atf/testkit/assertions/AuditedAssertionsTest.java
       - atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java
-  - id: CONSUMER-COHESION-INVENTORY-01
-    status: ACTIVE
-    base: 466a045e95a7336b183a7d75e0b369f8deb3082c
-    expires: 2026-11-26
-    reason: Actualizează inventarul exact al pachetului journey AutoEx cu AutoExAccountJourney deja prezent în sursele main; păstrează limita de coeziune și verificările tuturor pachetelor.
-    proof: mvn -pl atf-tests -am "-Dtest=AtfPackageCohesionGovernanceTest,WholeAtfGovernanceSuiteTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
-    paths:
-      - atf-tests/src/test/java/atf/api/tests/governance/AtfPackageCohesionGovernanceTest.java
   - id: CONSUMER-COMPONENT-ASSERTION-STEP-01
     status: ACTIVE
     base: 466a045e95a7336b183a7d75e0b369f8deb3082c

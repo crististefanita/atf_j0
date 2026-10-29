@@ -12,6 +12,9 @@ public record AtfAssertion(String name, String expected, String actual,
         resultStatus = resultStatus == null
                 ? (passed ? AtfReportStatus.PASS : AtfReportStatus.FAIL)
                 : resultStatus;
+        if (!passed && resultStatus == AtfReportStatus.PASS) {
+            throw new IllegalArgumentException("A failed comparison cannot declare PASS; supply its effective non-PASS outcome");
+        }
     }
 
     public AtfAssertion(String name, String expected, String actual, boolean passed) {

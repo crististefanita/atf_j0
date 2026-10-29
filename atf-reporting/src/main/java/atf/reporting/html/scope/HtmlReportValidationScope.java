@@ -82,7 +82,7 @@ public final class HtmlReportValidationScope implements AtfReportPorts.Validatio
         if (openRequests > 0) {
             throw new IllegalStateException("Validation cannot complete while a nested request is open");
         }
-        AtfReportStatus effective = AtfReportStatus.worst(childStatuses.aggregate(), status);
+        AtfReportStatus effective = childStatuses.resolve(status, model.assertions());
         model.complete(effective);
         semantic.complete(effective);
         console.publish(AtfConsoleEvent.completed(AtfConsoleEvent.Scope.VALIDATION,

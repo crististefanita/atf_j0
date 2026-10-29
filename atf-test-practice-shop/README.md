@@ -8,17 +8,18 @@ configurația, page objects, flow-urile și probele consumer; nu deține
 implementarea generică Playwright, Extent sau JUnit.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Config["YAML + fixture"] -->|configurează| Journey["Shop flow"]
-    Journey -->|folosește| Screens["pages + API client"]
+    Config["Inputs"] -->|setează| Journey["Shop flow"]
+    Journey -->|folosește| Screens["Pages + API"]
     Screens -->|conduce| Browser["atf-ui"]
-    Browser -->|vizitează| Site["Practice Shop"]
-    Browser -.->|UI_API observă| Inspector["network inspector"]
-    Inspector -->|înregistrează| Journal["Shop network journal"]
-    Journal -->|selectează| Checkpoint["Shop validation"]
-    Screens -->|validează UI| Checkpoint
-    Checkpoint -->|publică| Reporting["atf-reporting"]
-    Journey -->|diagnostică| Console["atf-console"]
+    Browser -->|vizitează| Site["Site UI"]
+    Browser -.->|observă| Inspector["Inspector"]
+    Inspector -->|reține| Journal["Journal"]
+    Journal -->|alege| Checkpoint["Validation"]
+    Screens -->|validează| Checkpoint
+    Checkpoint -->|publică| Reporting["Reporting"]
+    Journey -->|diagnostică| Console["Console"]
 ```
 
 <details>
@@ -33,6 +34,19 @@ flowchart LR
   exchange-urile selectate pentru checkpoint-uri;
 - `atf-reporting` și `atf-console` rămân ownerii generici ai output-ului; Shop
   deține mapping-ul și semantica business.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Pages + API | pages + API client |
+| Inspector | network inspector |
+| Journal | Shop network journal |
+| Validation | Shop validation |
+| setează | configurează |
+| observă | UI_API observă |
+| reține | înregistrează |
+| alege | selectează |
+| validează | validează UI |
 
 </details>
 
@@ -191,14 +205,15 @@ coordinatorul publică fiecare `ShopPurchaseCheckpoint` înaintea gate-ului și
 permite add-to-cart numai după toate cele patru verdicte PASS.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Inputs["CatalogInputs<br/>selecție + capabilități"] -->|alimentează| UI["Catalog stage<br/>observații UI/API"]
+    Inputs["Inputs"] -->|alimentează| UI["Catalog stage"]
     Flow["Catalog flow"] -->|cere ecranul| UI
-    UI -->|returnează| Checkpoint["checkpoint imutabil"]
-    Checkpoint -->|publică| Report["observer raport"]
-    Report -->|publicare reușită| Gate{"Verdict"}
-    Gate -->|PASS| Next["următorul ecran / add"]
-    Gate -->|FAIL| Stop["oprire înaintea mutației"]
+    UI -->|returnează| Checkpoint["Checkpoint"]
+    Checkpoint -->|publică| Report["Observer"]
+    Report -->|publicat| Gate{"Verdict"}
+    Gate -->|PASS| Next["Tranziție"]
+    Gate -->|FAIL| Stop["Stop"]
 ```
 
 <details>
@@ -209,6 +224,17 @@ sau absentă, timeout și eșec de publicare: fără retry, add-to-cart ori o ob
 următoare după eroare. Checkpoint-ul păstrează separat UI și API; validatorii,
 așteptările din configurație și ordinea traficului nu se reconstruiesc în coordinator.
 Un timeout înaintea observației nu inventează un checkpoint cu date inexistente.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Inputs | CatalogInputs · selecție + capabilități |
+| Catalog stage | Catalog stage · observații UI/API |
+| Checkpoint | checkpoint imutabil |
+| Observer | observer raport |
+| Tranziție | următorul ecran / add |
+| Stop | oprire înaintea mutației |
+| publicat | publicare reușită |
 
 </details>
 ### Contracte de ecran și locatori
@@ -392,10 +418,11 @@ Operația semantică inițială este numai `catalog-readiness`, mapată de
 `ShopBackendRecovery` din main la GET `/products`.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Yaml["YAML + adnotare"] -->|restrânge| Adapter["Adaptor Shop din main"]
-    Adapter -->|clasifică citirea| Scope["Scope UI înaintea acțiunii"]
-    Scope -->|înregistrează decizia| Evidence["Observații INFO în secvența UI"]
+    Yaml["YAML + adnotare"] -->|restrânge| Adapter["Adaptor"]
+    Adapter -->|clasifică| Scope["Scope UI"]
+    Scope -->|publică| Evidence["Decizie INFO"]
 ```
 
 <details>
@@ -415,6 +442,15 @@ flowchart LR
   UI-only nu activează apeluri API suplimentare sau precondiții API.
 - Deciziile publicate sunt INFO: politică, sursă, buget, încercare, motiv,
   receipt și timpi separați. Un FAIL deja publicat nu devine PASS.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Adaptor | Adaptor Shop din main |
+| Scope UI | Scope UI înaintea acțiunii |
+| Decizie INFO | Observații INFO în secvența UI |
+| clasifică | clasifică citirea |
+| publică | înregistrează decizia |
 
 </details>
 
@@ -633,6 +669,86 @@ mvn -pl atf-test-practice-shop -am "-Dtest=ShopComponentSuite" "-Dsurefire.failI
 | `ShopApiLiveSuite` | `ShopStandaloneApiReportTest`, cu opt-in-ul autentificat existent | nu intră în gate-ul local |
 | `ShopStandaloneApiReportTest` | login, catalog, filtrare/sortare din răspuns și mutații/read-back pe un coș izolat, adresă/payment prin HTTP live | invoice final, validitatea permanentă a fixture-ului sau autentificarea sesiunii UI |
 
+### Corelarea payment și coș cu observația curentă
+
+Journey-ul capturează `sequenceMarker()` înaintea verificării payment și
+înaintea adăugării produsului în coș. Journal-ul selectează ultima captură
+eligibilă după marcaj, apoi `ShopApiAssertions` evaluează statusul și JSON-ul.
+Un răspuns 400/500 rămâne dovada curentă, inclusiv când body-ul seamănă cu un succes.
+
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
+flowchart LR
+    Marker["Marcaj captură"] -->|precedă| Action["Un click UI"]
+    Action -->|produce| Observed["Răspuns observat"]
+    Observed -->|selectează| Current["Metodă + rută + ordine"]
+    Current -->|evaluează| Verdict["Validare API"]
+    Verdict -->|publică| Report["Checkpoint auditabil"]
+```
+
+<details>
+<summary><strong>Legendă — selecție, validare și lipsa răspunsului</strong></summary>
+
+- Corelarea folosește ordinea capturilor aceleiași sesiuni browser.
+  Payment cere `POST /payment/check` după marcaj și păstrează secvența selectată
+  în `API trace`, împreună cu event ID-ul din evidence.
+- Payment trece numai cu metoda așteptată, HTTP 200, JSON-ul de succes și
+  content type-ul corect. Mesajul UI deja vizibil este evaluat separat de API.
+- În checkpoint-ul API activ, capturarea payment se așteaptă pasiv în limita
+  timeout-ului paginii, inclusiv când textul UI vechi este deja vizibil.
+  Expirarea produce comparații FAIL pentru lipsa dovezii curente.
+- Pentru coș, marcajul trece explicit din etapa catalog în etapa checkout.
+  Add-ul trebuie să conțină exact produsul selectat; read-ul aparține aceleiași
+  resurse și trebuie capturat după ultimul add selectat.
+- Statusul HTTP al add-ului și al read-ului se verifică după selecție.
+  Un read anterior ultimului add sau unul pentru alt coș nu confirmă operația.
+- Lipsa capturii curente elimină selecția veche a checkpoint-ului.
+  Comparațiile lipsă apar ca FAIL la validarea API; se publică numai exchange-urile
+  observate, păstrând add-ul când lipsește doar read-ul.
+- Suprasarcinile fără marcaj rămân pentru compatibilitatea apelanților existenți.
+  Journey-ul folosește variantele cu marcaj explicit; `UI_ONLY` păstrează
+  checkpoint-urile API dezactivate.
+- Se execută acțiunea UI existentă o singură dată. Selecția, validarea și
+  publicarea sunt pasive și nu repetă payment, add sau read.
+- Valorile de aserțiune păstrează redactarea integrală înaintea plafonului
+  de 240 de caractere, inclusiv elipsa, în Tests, Fails și după expandare.
+
+</details>
+
+`ShopCurrentOperationEvidenceComponentTest` verifică jurnalul prin subscripția
+publică a inspectorului. `ShopCheckoutPaymentCorrelationComponentTest` exercită
+adaptorul checkout, un click real și HTTP loopback, inclusiv UI vechi de succes,
+răspuns 500 și lipsa unei cereri noi; raportul negativ păstrează verdictul FAIL.
+
+### Limitele validării comenzii
+
+`ShopApiAssertions.order()` verifică prezența ID-ului și facturii și cere un
+`total > 0`; nu compară încă suma cu prețul și cantitatea cumpărate. Corelarea
+confirmării UI folosește un substring, astfel încât `INV-12` poate fi acceptat
+în `INV-123`. Aceste limite sunt separate de fereastra cauzală payment/coș.
+
+[Restanța de total și identitate](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-shop-order-total-02--totalul-comenzii-față-de-cumpărăturile-curente)
+cere expected independent și identificator exact. Un purchase reușit nu
+certifică aceste cazuri negative.
+
+### Eroare API cu istoric parțial
+
+`ShopApiRunReport` consumă snapshot-ul Core prin `ShopApiEvidenceMapper`,
+în main. Request-ul eșuat primește istoricul typed înaintea finalizării
+raportului, păstrând cauza primară și celelalte exchange-uri observate.
+
+- Ultimul răspuns din altă încercare nu devine răspuns terminal.
+  Un timeout sau transport eșuat nu primește HTTP 0 ori un body inventat.
+- Anularea în backoff păstrează apelurile efectuate și retry-ul planificat,
+  fără încă un dispatch. Publicarea nu reexecută operația business.
+- `ShopTerminalExecutionComponentTest` verifică adaptorul în Extent/fallback;
+  `ShopApiBusinessRunComponentTest` păstrează probele succes/FAIL și cleanup.
+- Aserțiunile componente rămân în pasul standard colapsat, cu redactare înaintea
+  plafonului 240. Transportul controlat rămâne distinct de verdictul live.
+
+Producerul și disponibilitatea sunt la [Core](../atf-core/README.md#istoric-la-eroare-terminală),
+iar randarea este la [Reporting](../atf-reporting/README.md#execuție-api-terminată-fără-răspuns).
+
 ### De ce raportul API nu arată ca raportul UI
 
 API și UI folosesc aceleași setări Extent și aceeași redactare; evidence-ul
@@ -640,6 +756,7 @@ API și UI folosesc aceleași setări Extent și aceeași redactare; evidence-ul
 intrări tipizate, factory-ul clientului și factory-ul auditului.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px","actorFontSize":"15px","messageFontSize":"12px","noteFontSize":"12px"},"themeCSS":".actor { font-size: 15px !important; } .messageText, .labelText, .loopText, .noteText { font-size: 12px !important; }","sequence":{"actorFontSize":15,"messageFontSize":12,"noteFontSize":12,"width":120,"height":42,"actorMargin":40,"messageMargin":24,"mirrorActors":false,"wrap":true,"wrapPadding":6}}}%%
 sequenceDiagram
     participant Test as Test API Shop
     participant Run as Runtime main
@@ -733,13 +850,14 @@ Notificarea locației este independentă de generarea HTML.
   comparații păstrează diagnosticul. Testele unit rămân în afara obligației de raportare.
 
 ```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Test[Test componentă Shop] -->|verifică integral| Kit[Audit Kit]
-    Kit -->|rânduri sigure + timing pe faze| Adapter[Adaptor Shop]
-    Adapter -->|mapează| Report[AssertionAuditReport]
-    Scope["Owner class / suite"] -->|deține| Run[AssertionAuditRun]
-    Run -->|împrumută sesiunea| Report
-    Report -->|publică colapsat| Step[Component assertions]
+    Test["Test"] -->|verifică| Kit["Audit Kit"]
+    Kit -->|transportă| Adapter["Adaptor"]
+    Adapter -->|mapează| Report["Assertion report"]
+    Scope["Owner"] -->|deține| Run["Audit run"]
+    Run -->|împrumută| Report
+    Report -->|publică| Step["Assertions"]
 ```
 
 <details>
@@ -764,6 +882,19 @@ flowchart LR
   aserțiunilor nu modifică numărul artifactelor sau politica opt-in a căii.
 - Metodele moștenite, parametrizarea și lifecycle-ul folosesc aceeași politică;
   scope-ul nu se propagă implicit pe alte thread-uri.
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Test | Test componentă Shop |
+| Adaptor | Adaptor Shop |
+| Assertion report | AssertionAuditReport |
+| Owner | Owner class / suite |
+| Assertions | Component assertions |
+| verifică | verifică integral |
+| transportă | rânduri sigure + timing pe faze |
+| împrumută | împrumută sesiunea |
+| publică | publică colapsat |
 
 </details>
 

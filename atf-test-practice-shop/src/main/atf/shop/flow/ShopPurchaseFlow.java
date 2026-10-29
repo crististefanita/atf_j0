@@ -70,8 +70,8 @@ public final class ShopPurchaseFlow {
         var context = new ShopPurchaseJourneyContext(page, actions, configuration,
                 checkpointPublisher, apiNetwork, locators, pageValidator,
                 homeScreenValidator, purchaseScreenValidator);
-        new ShopCatalogPurchaseStage(context.catalogInputs()).prepareCart();
-        return new ShopCheckoutFlow().complete(new ShopCheckoutPurchaseStage(context.checkoutInputs()),
+        long cartAdditionFence = new ShopCatalogPurchaseStage(context.catalogInputs()).prepareCart();
+        return new ShopCheckoutFlow().complete(new ShopCheckoutPurchaseStage(context.checkoutInputs(), cartAdditionFence),
                 checkpointPublisher::report, authenticated);
     }
 
