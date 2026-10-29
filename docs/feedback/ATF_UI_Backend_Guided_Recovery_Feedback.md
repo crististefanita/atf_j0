@@ -69,8 +69,12 @@ Observațiile INFO livrate sunt normate la
 proiecția structurată comună și matricea de acceptanță, fără parsarea mesajelor
 sau repetarea deciziei la renderer.
 
-- [ ] Reutilizați faptele typed existente în proiecția comună: politica și sursa ei, operația, indexul încercării,
-      bugetul, cauza, decizia permis/refuzat, schimbul BE asociat și starea DOM.
+- [ ] Compuneți faptele typed din trace, policy și signal în proiecția comună:
+      operație, încercare, decizie/motiv, sursa politicii, bugete și timpi măsurați.
+      Signal-ul păstrează deja scope-ul invocare/operație/frame/document și secvența;
+      rendererul primește corelarea neutră de la adaptor, fără parsarea mesajului.
+      Starea DOM apare numai dacă a fost observată; lipsa ei rămâne necapturată,
+      fără acțiuni sau capturi suplimentare pentru completarea tabelului.
       Distingerea observației de replay trebuie să fie vizibilă în raport.
       Separați durata încercării, backoff-ul și timpul total măsurat; o durată
       indisponibilă rămâne explicit necapturată, fără valoare HTTP inventată.

@@ -34,7 +34,7 @@ public final class HtmlReportSession implements AtfReportPorts.Session {
     private final Path reportPath;
     private final ReportingSettings settings;
     private final HtmlReportSemanticDocument document = new HtmlReportSemanticDocument();
-    private final AtfReportSemanticRecorder semantic = new AtfReportSemanticRecorder();
+    private final AtfReportSemanticRecorder semantic = new AtfReportSemanticRecorder(this::ensureOpen);
     private final HtmlReportTestsView testsView;
     private final HtmlReportCategoryView categoryView = new HtmlReportCategoryView();
     private final HtmlReportFailsView failsView;
@@ -67,7 +67,7 @@ public final class HtmlReportSession implements AtfReportPorts.Session {
         this.settings = Objects.requireNonNull(settings, "settings");
         this.testsView = new HtmlReportTestsView(settings, new SensitiveDataRedactor());
         this.failsView = new HtmlReportFailsView(settings);
-        this.console = console == null ? AtfConsoleSink.noOp() : console;
+        this.console = AtfConsoleSink.bestEffort(console);
         this.navigationScript = Objects.requireNonNull(navigationScript, "navigationScript");
     }
 
@@ -96,12 +96,14 @@ public final class HtmlReportSession implements AtfReportPorts.Session {
     public AtfReportPorts.Scenario startScenario(String testClass, String testPackage,
                                                  String scenario, Collection<String> tags) {
         ensureOpen();
-        var model = document.startScenario(testClass, testPackage, scenario, tags);
+        var stableTags = atf.reporting.model.ReportTagNormalizer.normalize(tags);
+        var handle = semantic.startScenario(testClass, testPackage, scenario, stableTags);
+        var model = document.startScenario(testClass, testPackage, scenario, stableTags);
         String name = (testClass == null ? "API tests" : testClass) + " :: "
                 + (scenario == null ? "Scenario" : scenario);
         console.publish(AtfConsoleEvent.started(AtfConsoleEvent.Scope.SCENARIO, name));
         return new HtmlReportScenarioScope(model, name,
-                semantic.startScenario(testClass, testPackage, scenario, tags), console);
+                handle, console);
     }
 
     @Override

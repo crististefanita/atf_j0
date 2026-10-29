@@ -113,8 +113,11 @@ src/test/atf/shop/tests
 
 `src/main` păstrează modelul de aplicație, locatoarele, paginile, flow-urile și
 contractele Shop care pot fi reutilizate de consumer, inclusiv factory-urile
-pure pentru captură și politica de screenshot. Contextul browser/report,
-Store-ul și extensiile JUnit rămân în test; `atf-test-kit` are scope de test.
+pure pentru captură și politica de screenshot. În layout-ul actual, contextul
+browser/report este încă în test;
+[extracția runtime-ului](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-runtime-boundary-03--responsabilitățile-e2e-rămase-în-shop)
+este o restanță distinctă. Store-ul, extensiile și rezolvarea JUnit rămân în test,
+iar `atf-test-kit` păstrează scope de test.
 Suita consumatorului rămâne concentrată pe `e2e`, `component` și `api`; `support`
 este infrastructură de test, nu un al treilea tip de test.
 
@@ -516,10 +519,44 @@ este dezactivat implicit (`10 s` timeout, `100 ms` polling dacă este activat).
 Cursorul de observație permite un read-back ulterior unei mutații; nu reexecută
 acțiunea și nu transformă timeout-ul în succes.
 
-Produsul trebuie să fie disponibil pentru vânzare: un produs epuizat poate
-dezactiva controlul cantității și este tratat ca precondiție eșuată. Înaintea
-unui E2E live, verifică disponibilitatea produsului ales; nu fixa un ID de
-catalog care se rotește.
+### Disponibilitatea produsului și cantitatea
+
+Stocul demo poate varia între lansări. Selecția păstrează numele/ruta configurate;
+nu substituie produsul și nu modifică stocul prin API pentru a obține PASS.
+
+| Stare observată | Comportament | Dovadă |
+|---|---|---|
+| Quantity încă dezactivat, fără verdict de stoc | așteaptă quantity activ ori markerul vizibil `out-of-stock`, în timeout-ul existent | acțiune native read-only, fără retry mutativ |
+| Marker `out-of-stock` vizibil | publică checkpoint-ul produsului FAIL înainte de quantity/cart | comparația `Product availability`, expected/actual și captura |
+| Quantity și Add to cart active, fără marker | aplică valoarea configurată și verifică `inputValue` înaintea clickului unic | `Fill`, `Expect value`, `Click` în aceeași secvență |
+| Valoare ajustată de aplicație ori stoc pierdut | oprește înainte de Add to cart; stocul este recitit și înainte de Fill | cauza originală și failure evidence |
+| Stare nesoluționată până la deadline | păstrează timeout-ul nativ; nu inventează verdictul „out of stock” | FAIL de infrastructură/încărcare distinct de stoc |
+
+`ShopProductAvailability` este snapshot-ul imutabil comun validatorului ecranului
+și guard-ului anterior mutației. `ShopLocators` deține selectorii, iar
+`ShopProductPage` compune acțiunile UI existente; Reporting și timeout-urile nu se modifică.
+
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
+flowchart LR
+    Product["Produs configurat"] -->|observă| Stock["Stoc și controale"]
+    Stock -->|publică| Check["Comparație"]
+    Check -->|FAIL| Stop["Oprire auditabilă"]
+    Check -->|PASS| Quantity["Cantitate observată"]
+    Quantity -->|confirmă valoarea| Cart["Add to cart unic"]
+```
+
+<details>
+<summary><strong>Legendă — disponibilitate și cantitate înaintea mutației</strong></summary>
+
+- UI-ul stabilit furnizează verdictul; un input dezactivat singur nu dovedește lipsa stocului.
+- Checkpoint-ul produsului se publică înaintea deciziei de continuare; FAIL păstrează comparațiile colapsabile standard.
+- Între checkpoint și Fill, snapshot-ul se recitește; o schimbare de stoc oprește mutația.
+- Verificarea valorii observate oprește clickul dacă aplicația ajustează cantitatea.
+- `ShopProductQuantityComponentTest` probează încărcarea întârziată, stocul epuizat, deadline-ul, valoarea ajustată și pierderea stocului.
+- Componentele folosesc `ShopComponentTest` și `AuditedAssertions`; probele renderer rămân în Reporting Tests.
+
+</details>
 
 ### Override-uri suportate
 
@@ -720,16 +757,42 @@ publică a inspectorului. `ShopCheckoutPaymentCorrelationComponentTest` exercit�
 adaptorul checkout, un click real și HTTP loopback, inclusiv UI vechi de succes,
 răspuns 500 și lipsa unei cereri noi; raportul negativ păstrează verdictul FAIL.
 
-### Limitele validării comenzii
+### Validarea independentă a totalului și facturii
 
-`ShopApiAssertions.order()` verifică prezența ID-ului și facturii și cere un
-`total > 0`; nu compară încă suma cu prețul și cantitatea cumpărate. Corelarea
-confirmării UI folosește un substring, astfel încât `INV-12` poate fi acceptat
-în `INV-123`. Aceste limite sunt separate de fereastra cauzală payment/coș.
+`ShopOrderExpectation` păstrează prețul unitar citit din pagina produsului și
+cantitatea configurată, înaintea adăugării în coș. Același snapshot imutabil
+ajunge la checkout și la validarea răspunsului comenzii.
 
-[Restanța de total și identitate](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-shop-order-total-02--totalul-comenzii-față-de-cumpărăturile-curente)
-cere expected independent și identificator exact. Un purchase reușit nu
-certifică aceste cazuri negative.
+- Calculul este exact: `BigDecimal`, preț × cantitate, fără `double`, toleranță,
+  rotunjire implicită, taxe presupuse sau conversie valutară. UI-ul curent
+  afișează `$`; elementul `unit-price` expune separat valoarea zecimală.
+- Coșul compară prețul unitar, totalul liniei și totalul coșului cu snapshot-ul,
+  alături de produs/cantitate. Diferența se publică și oprește checkout-ul.
+- API-ul cere un `total` numeric egal cu suma așteptată, ID și factură textuale.
+  Confirmarea UI trebuie să conțină exact un token complet de factură, egal cu
+  cel creat de server; `INV-12` nu corespunde lui `INV-123`, unui sufix sau mai multor facturi.
+
+Rândurile expected/actual păstrează bugetul redactat de 240. UI-only verifică
+sumele coșului fără a fabrica evidence API; UI+API adaugă aceeași comparație
+pentru comanda guest ori autentificată și păstrează fereastra cauzală existentă.
+
+`ShopOrderValidationComponentTest` acoperă diferențe monetare și de identitate,
+tipuri/câmpuri invalide și diferențe după preview.
+`ShopCheckoutOrderCorrelationComponentTest` folosește browser și HTTP loopback:
+snapshot anterior plății, refuz înaintea checkout-ului, un singur Confirm și
+verdictul API proiectat în checkpoint.
+
+### Limita dovezii comenzii curente
+
+Validarea valorilor nu închide încă selecția evidence-ului pentru eșecul comenzii:
+
+- `orderCreated()` caută numai răspunsuri 2xx după marcaj. Un 500 ulterior poate
+  fi ignorat în favoarea unui 201 din aceeași fereastră.
+- Lipsa unei selecții noi nu golește checkpoint-ul anterior. La prima evaluare
+  fără exchange, mapperul order cere totuși unul și aruncă o eroare de cardinalitate.
+- Regula payment/coș de mai sus este deja mai strictă. Extinderea ei la order
+  și paritatea pe absență sunt în
+  [feedback-ul consumerilor](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-shop-order-evidence-04--selecția-dovezii-comenzii-curente).
 
 ### Eroare API cu istoric parțial
 
@@ -795,9 +858,10 @@ sequenceDiagram
 </details>
 
 - UI: `ShopE2eTestSupport` partajează `UiExtentReportSession`, cu acțiuni și capturi.
-- Duratele E2E `SETUP` și `TEST BODY` sunt agregări ale dovezilor; nu folosesc încă
-  timing-ul typed al componentelor. Măsurarea explicită a execuției E2E rămâne în
-  [feedback-ul Reporting](../docs/feedback/ATF_Reporting_Feedback.md).
+- SETUP și TEST BODY folosesc timing monoton explicit prin `UiPhase.measureExecution()`;
+  capturile și publicarea dovezilor rămân separate. Setup-ul incomplet nu creează
+  TEST BODY; flush-ul HTML și eliberarea browserului rămân în afara execuției,
+  conform [contractului Reporting](../atf-reporting/README.md#timing-e2e-la-ownerul-runtime).
 - API: `ShopApiLiveSuite` selectează `ShopStandaloneApiReportTest`; testul păstrează
   oracolul și opt-in-ul, iar runtime-ul main deține execuția și artifactul.
 - `reports.api` stabilește directorul; numele folosește prefixul

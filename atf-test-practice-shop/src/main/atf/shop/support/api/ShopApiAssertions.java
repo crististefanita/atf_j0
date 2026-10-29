@@ -13,12 +13,15 @@ import atf.shop.api.contract.ShopApiJsonField;
 import atf.shop.api.contract.ShopApiQueryParameter;
 import atf.shop.api.ShopApiRoutes;
 import atf.shop.support.ShopJsonEvidence;
+import atf.shop.support.validation.ShopOrderExpectation;
+import atf.shop.support.validation.ShopPurchaseConfirmation;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.net.URI;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 import static atf.reporting.audit.ReportAuditChecks.check;
 
@@ -245,12 +248,15 @@ public final class ShopApiAssertions {
     }
 
     public static List<AtfAssertion> order(ShopApiNetworkJournal.Exchange order,
-                                           String uiConfirmation) {
+                                           String uiConfirmation, ShopOrderExpectation expectedOrder) {
+        Objects.requireNonNull(expectedOrder, "expectedOrder");
         JsonNode response = order == null ? null : ShopJsonEvidence.parse(order.responseBody());
         String invoice = response == null ? "" : response.path(
                 ShopApiJsonField.INVOICE_NUMBER.wireValue()).asText("");
         JsonNode total = response == null ? null : response.get(ShopApiJsonField.TOTAL.wireValue());
-        boolean positiveTotal = total != null && total.isNumber() && total.decimalValue().signum() > 0;
+        String observedInvoice = ShopPurchaseConfirmation.invoiceNumber(uiConfirmation);
+        boolean matchingTotal = total != null && total.isNumber()
+                && total.decimalValue().compareTo(expectedOrder.total()) == 0;
         return List.of(
                 check("API response · order creation", "2xx application/json",
                         order == null ? "missing" : order.summary(), order != null
@@ -260,13 +266,15 @@ public final class ShopApiAssertions {
                                 : "id=" + response.path(ShopApiJsonField.ID.wireValue()).asText("")
                                 + ", invoice=" + invoice,
                         response != null
-                                && !response.path(ShopApiJsonField.ID.wireValue()).asText("").isBlank()
+                                && response.path(ShopApiJsonField.ID.wireValue()).isTextual()
+                                && !response.path(ShopApiJsonField.ID.wireValue()).textValue().isBlank()
+                                && response.path(ShopApiJsonField.INVOICE_NUMBER.wireValue()).isTextual()
                                 && !invoice.isBlank()),
-                check("UI/API order correlation", "invoice number from order creation request is shown in confirmation",
-                        "invoice=" + invoice + "; UI=" + compact(uiConfirmation, 220),
-                        !invoice.isBlank() && uiConfirmation != null && uiConfirmation.contains(invoice)),
-                check("API response JSON · order total", "total is greater than zero",
-                        total == null ? "missing" : total.asText(), positiveTotal),
+                check("UI/API order correlation", invoice,
+                        observedInvoice.isBlank() ? "missing or ambiguous invoice" : observedInvoice,
+                        !invoice.isBlank() && invoice.equals(observedInvoice)),
+                check("API response JSON · order total", expectedOrder.total().toPlainString(),
+                        total == null ? "missing" : total.asText(), matchingTotal),
                 trace("order creation", order));
     }
 

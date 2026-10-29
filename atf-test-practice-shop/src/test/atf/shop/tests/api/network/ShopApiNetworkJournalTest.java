@@ -1,5 +1,7 @@
 package atf.shop.tests.api.network;
 
+import atf.shop.support.validation.ShopOrderExpectation;
+
 import atf.core.http.protocol.ApiUris;
 import atf.core.http.request.HttpMethod;
 import atf.shop.tests.support.ShopComponentTest;
@@ -87,7 +89,7 @@ class ShopApiNetworkJournalTest {
         capture(journal, exchange(HttpMethod.POST.value(), ShopApiRoutes.GUEST_INVOICE_CREATE, "{}",
                 "{\"id\":\"order-1\",\"invoice_number\":\"INV-1\",\"total\":24.02}"));
 
-        var assertions = journal.orderCreated(0L, "Thanks for your order! Invoice INV-1");
+        var assertions = journal.orderCreated(0L, "Thanks for your order! Invoice INV-1", ShopOrderExpectation.fromUi("12.01", 2));
 
         assertTrue(assertions.stream().allMatch(assertion -> assertion.passed()));
         assertEquals(List.of("/invoices/guest"), journal.evidence(ShopApiCheckpoint.ORDER).stream()
@@ -103,7 +105,7 @@ class ShopApiNetworkJournalTest {
         capture(journal, exchange(HttpMethod.POST.value(), ShopApiRoutes.INVOICE_CREATE, "{}",
                 "{\"id\":\"order-2\",\"invoice_number\":\"INV-2\",\"total\":24.02}"));
 
-        var assertions = journal.orderCreated(0L, "Thanks for your order! Invoice INV-2");
+        var assertions = journal.orderCreated(0L, "Thanks for your order! Invoice INV-2", ShopOrderExpectation.fromUi("12.01", 2));
 
         assertTrue(assertions.stream().allMatch(assertion -> assertion.passed()));
         assertEquals(List.of(ShopApiRoutes.INVOICE_CREATE), journal.evidence(ShopApiCheckpoint.ORDER).stream()
@@ -121,7 +123,7 @@ class ShopApiNetworkJournalTest {
         long fence = journal.sequenceMarker();
 
         var assertions = journal.orderCreated(fence,
-                "Thanks for your order! Your invoice number is INV-NEW.");
+                "Thanks for your order! Your invoice number is INV-NEW.", ShopOrderExpectation.fromUi("12.01", 2));
 
         assertFalse(assertions.stream().anyMatch(AtfAssertion::passed));
         assertTrue(journal.evidence(ShopApiCheckpoint.ORDER).isEmpty());

@@ -369,8 +369,8 @@ generic de meta-adnotări, superclass sau override per metodă.
 
 Selecția canalelor este un contract închis; redeschiderea cere un consumer nou
 sau o regresie. Paritatea și verdicturile au probe la ownerul
-[Reporting Tests](../atf-reporting-tests/README.md); controalele Git active sunt în
-[controalele Reporting](feedback/ATF_Reporting_Feedback.md).
+[Reporting Tests](../atf-reporting-tests/README.md); controalele Git verificate sunt în
+[baseline](ATF_Test_Changes_Baseline.md#controale-tehnice-verificate).
 Pentru dovezi și layout, contractele normative rămân
 [Reporting](ATF_Reporting_Contract.md), [display/layout](ATF_Reporting_Display_Contract.md)
 și [captura evidence](ATF_Evidence_Capture_Contract.md).

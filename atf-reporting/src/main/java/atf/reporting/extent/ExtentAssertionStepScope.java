@@ -20,7 +20,6 @@ final class ExtentAssertionStepScope implements AtfReportPorts.AssertionStep {
     private final String title;
     private final AtfReportSemanticRecorder.AssertionStepHandle semantic;
     private List<AtfAssertion> rows = List.of();
-    private boolean completed;
 
     ExtentAssertionStepScope(ExtentReportTree tree, ExtentPhaseScope phase, ExtentTest node,
                              String title, AtfReportSemanticRecorder.AssertionStepHandle semantic) {
@@ -42,19 +41,18 @@ final class ExtentAssertionStepScope implements AtfReportPorts.AssertionStep {
     @Override public void complete(AtfReportStatus status) {
         ensureOpen();
         AtfReportStatus effective = new ReportStatusAggregator().resolve(status, rows);
+        semantic.complete(effective);
         tree.renderAssertions(node, rows);
         tree.complete(node, effective);
         tree.markEnded(node);
         phase.record(effective);
-        semantic.complete(effective);
         tree.consoleCompleted(AtfConsoleEvent.Scope.VALIDATION, title, effective, node);
-        completed = true;
     }
 
-    @Override public void close() { completed = true; }
+    @Override public void close() { if (!semantic.isComplete()) complete(AtfReportStatus.FAIL); }
 
     private void ensureOpen() {
         tree.ensureOpen();
-        if (completed) throw new IllegalStateException("Assertion step is already complete");
+        semantic.ensureOpen();
     }
 }

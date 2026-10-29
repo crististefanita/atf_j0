@@ -1,9 +1,9 @@
 package atf.reporting.evidence;
+import atf.reporting.evidence.setup.ReportSetupEvidenceMarkup;
 import atf.reporting.api.evidence.ReportExecutionSummary;
 import atf.reporting.api.evidence.ReportTransportTiming;
 import atf.reporting.api.ReportAttemptRecord;
 import atf.reporting.model.ReportExecutionEvidence;
-import atf.reporting.markup.AtfReportEvidenceKeys;
 import atf.reporting.markup.AtfReportLabels;
 import atf.reporting.markup.AtfReportMarkup;
 import atf.reporting.markup.ExtentReportAssets;
@@ -11,13 +11,11 @@ import atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary;
 import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.evidence.markup.ReportEvidenceMarkup;
 import atf.reporting.evidence.markup.UiFlowProvenanceMarkup;
-import atf.reporting.evidence.markup.ReportEvidenceDisclosure;
 import atf.reporting.evidence.markup.ReportEvidenceJsonFormatter;
 import atf.reporting.evidence.diagnostic.ReportPhaseDiagnosticMarkup;
 import atf.reporting.model.diagnostic.ReportPhaseDiagnostic;
 import atf.reporting.model.ReportField;
 import atf.reporting.model.ReportJsonBody;
-import atf.reporting.model.ReportCheck;
 import atf.reporting.model.ReportScreenshot;
 import atf.reporting.ui.network.ReportNetworkAggregateMarkup;
 import atf.reporting.ui.network.ReportNetworkInspector;
@@ -74,36 +72,9 @@ public final class ExtentTransportEvidenceRenderer {
     }
 
     void renderSetupEvidence(ExtentTest node, List<ReportField> details) {
-        List<ReportCheck> checks = details.stream()
-                .filter(detail -> detail != null
-                        && detail.name().toLowerCase(java.util.Locale.ROOT)
-                                .startsWith(AtfReportEvidenceKeys.SETUP_CHECK_PREFIX))
-                .map(detail -> setupCheck(detail.value()))
-                .toList();
-        var rows = new java.util.ArrayList<List<String>>(checks.size());
-        for (int index = 0; index < checks.size(); index++) {
-            ReportCheck check = checks.get(index);
-            rows.add(List.of(check.check(), check.expected(), check.actual(),
-                    AtfReportStatus.orInfo(check.status()).resultMarker()));
-        }
-        boolean failed = checks.stream().anyMatch(check -> check.status() == AtfReportStatus.FAIL);
-        String label = AtfReportLabels.setupEvidence(checks.size());
-        String body = AtfReportMarkup.tableHtml(
-                AtfReportHtmlVocabulary.CssClass.ATF_SETUP_EVIDENCE_TABLE.value(),
-                ReportEvidenceTable.of(List.of(AtfReportLabels.CHECK, AtfReportLabels.EXPECTED,
-                        AtfReportLabels.ACTUAL, AtfReportLabels.RESULT), rows));
-        ReportEvidenceDisclosure disclosure = ReportEvidenceDisclosure.withEvidenceStatus(
-                AtfReportHtmlVocabulary.classList(
-                        AtfReportHtmlVocabulary.CssClass.SETUP_EVIDENCE,
-                        AtfReportHtmlVocabulary.CssClass.ATF_SETUP_EVIDENCE),
-                label, body, AtfReportEvidenceKeys.REPORT_SETUP,
-                failed ? AtfReportStatus.FAIL : AtfReportStatus.PASS);
+        var disclosure = ReportSetupEvidenceMarkup.disclosure(details, redactor, settings);
         String markup = ReportEvidenceMarkup.disclosure(disclosure);
-        if (failed) {
-            node.fail(markup);
-        } else {
-            node.info(markup);
-        }
+        if (disclosure.status() == AtfReportStatus.FAIL) node.fail(markup); else node.info(markup);
     }
 
     void renderNetworkAggregate(ExtentTest node,
@@ -116,20 +87,6 @@ public final class ExtentTransportEvidenceRenderer {
                                        ReportNetworkInspector.JourneyAggregate aggregate) {
         ReportNetworkAggregateMarkup.substepSections(aggregate)
                 .forEach(node::info);
-    }
-
-    private ReportCheck setupCheck(String value) {
-        String safe = value == null ? "" : value;
-        String[] parts = safe.split(" \\| (?:expected=|actual=|result=)", -1);
-        if (parts.length == 4) {
-            return new ReportCheck(parts[0], parts[1], parts[2], parseStatus(parts[3]));
-        }
-        return new ReportCheck(safe.isBlank() ? AtfReportLabels.SETUP_EVIDENCE : safe,
-                "", "", AtfReportStatus.INFO);
-    }
-
-    private AtfReportStatus parseStatus(String value) {
-        return AtfReportStatus.fromDisplayName(value);
     }
 
     private String requestEvidenceMarkup(List<ReportField> details, List<ReportJsonBody> json) {

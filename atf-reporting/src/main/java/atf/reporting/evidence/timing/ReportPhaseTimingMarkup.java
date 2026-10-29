@@ -13,6 +13,8 @@ public final class ReportPhaseTimingMarkup {
                 attribute(Attribute.EXECUTION_NANOS, Long.toString(timing.execution().toNanos())),
                 attribute(Attribute.EXECUTION_INTERVALS, Integer.toString(timing.intervals())),
                 attribute(Attribute.PUBLICATION_DURATION, Long.toString(publicationMillis)),
+                timing.evidence().map(value -> attribute(Attribute.CAPTURE_DURATION,
+                        Long.toString(AtfDurationFormatter.elapsedMillis(value.capture())))).orElse(""),
                 attribute(Attribute.TITLE, explanation(timing, publicationMillis)));
     }
     public static String badge(long millis, String explanation) {
@@ -27,7 +29,10 @@ public final class ReportPhaseTimingMarkup {
         return metadata(timing, publicationMillis) + badge(timing.durationMillis(), explanation(timing, publicationMillis), "execution");
     }
     private static String explanation(ReportPhaseTiming timing, long publicationMillis) {
-        return "Execution of " + timing.intervals() + " callbacks; snapshot publication: "
-                + AtfDurationFormatter.formatMillis(publicationMillis);
+        return "Execution of " + timing.intervals() + " callbacks; evidence capture: "
+                + timing.evidence().map(value -> AtfDurationFormatter.formatMillis(
+                        AtfDurationFormatter.elapsedMillis(value.capture()))).orElse("not measured")
+                + "; evidence publication before phase snapshot: " + AtfDurationFormatter.formatMillis(publicationMillis)
+                + "; final HTML flush excluded";
     }
 }

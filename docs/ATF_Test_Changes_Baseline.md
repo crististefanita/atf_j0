@@ -2274,12 +2274,13 @@ testChanges:
       păstrează guard-ul de locatori și nu relaxează oracole existente. Fișierul
       TerminalExecutionLocators păstrează controlul exact CORE-TERMINAL-EXECUTION-EVIDENCE-02;
       nu dublează ownerul eligibil pentru aceeași bază.
+      Controlul exact al inventarului Layer este transferat la CODE-SOURCE-READABILITY-03,
+      cu numele standalone finite păstrate și verificate de aceeași suită whole-ATF.
     proof: mvn -pl atf-reporting-tests,atf-tests -am "-Dtest=ReportingStandaloneVerdictComponentTest,ReportingVerdictProjectionComponentTest,AtfReportSemanticSnapshotTest,ComponentAssertionStepReportTest,LegacyPreviewBudgetComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=f5214994b4516c5ad1ecdad2e36b4866ee0d2a70" "-Dsurefire.failIfNoSpecifiedTests=false" test
     paths:
       - atf-reporting/src/test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/verdict/ReportingVerdictProjectionComponentTest.java
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/verdict/VerdictReportLocators.java
-      - atf-tests/src/test/java/atf/api/tests/governance/layers/AtfTestLayerArchitectureTest.java
   - id: REPORT-TIMEOUT-CONTRACT-ALIGNMENT-13
     status: VERIFIED
     base: f5214994b4516c5ad1ecdad2e36b4866ee0d2a70
@@ -2315,6 +2316,95 @@ testChanges:
     proof: mvn -pl atf-reporting-tests -am "-Dtest=ExtentReportAssetCleanupTest,ExtentReportSessionContractTest,UiTimeoutReportComponentTest,UiFailureReportContractTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
     paths:
       - atf-reporting-tests/src/test/java/atf/reporting/support/publication/CleanupPublicationFixture.java
+  - id: CODE-SOURCE-READABILITY-03
+    status: VERIFIED
+    base: f5214994b4516c5ad1ecdad2e36b4866ee0d2a70
+    expires: 2026-11-28
+    reason: >-
+      Reunește inventarul main/test declarat în POM, inclusiv layout-urile Shop,
+      fără relaxarea nivelurilor, numelor standalone sau excepțiilor existente.
+      Extinde detecția invocațiilor la namespace-urile ATF actuale prin lexerul
+      comun și probează rădăcini configurate/default, suprapuneri, output exclus,
+      cale invalidă, constructori, apeluri multiline, comentarii și literale.
+      Cele patru ajustări de call site folosesc importuri normale, fără oracole schimbate.
+      Fișierul Layer are acest unic owner pentru baza curentă, transferat din
+      controlul verdictului; TerminalExecutionProjectionTest păstrează controlul
+      CORE-TERMINAL-EXECUTION-EVIDENCE-02 și primește numai import normal.
+    proof: mvn -pl atf-test-practice-shop,atf-reporting-tests,atf-tests -am "-Dtest=ShopOrderValidationComponentTest,ShopCheckoutOrderCorrelationComponentTest,ShopCheckoutPaymentCorrelationComponentTest,ShopApiAssertionsTest,ShopApiNetworkJournalTest,ShopCheckoutFlowComponentTest,StaticUiExtentReportContractTest,UiFailureReportContractTest,TerminalExecutionProjectionTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=f5214994b4516c5ad1ecdad2e36b4866ee0d2a70" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/AtfSourceReadabilityGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/layers/AtfJavaSourceInventory.java
+      - atf-tests/src/test/java/atf/api/tests/governance/layers/AtfTestLayerArchitectureTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/e2e/uireport/StaticUiExtentReportContractTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/navigation/ReportNavigationFlow.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/section/runtime/SectionAuditFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failure/FailureFlowInspector.java
+
+  - id: CODE-SOURCE-READABILITY-04
+    status: VERIFIED
+    base: 9c13cdb004b8f00d275c239fea3856af529b3cf0
+    expires: 2026-11-28
+    reason: >-
+      Revede separat diferența rămasă după commitul live al dovezilor terminale și verdicturilor.
+      Păstrează controlul CODE-SOURCE-READABILITY-03 la baza lui originală; nu îl rebazează.
+      Acoperă același inventar comun și lexerul pentru lizibilitate, cu numele standalone,
+      excepțiile și oracolele existente păstrate. Cele cinci call site-uri Reporting
+      folosesc importuri normale; TerminalExecutionProjectionTest nu schimbă nicio comparație.
+    proof: mvn -pl atf-tests -am "-Dtest=WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=9c13cdb004b8f00d275c239fea3856af529b3cf0" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/AtfSourceReadabilityGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/layers/AtfJavaSourceInventory.java
+      - atf-tests/src/test/java/atf/api/tests/governance/layers/AtfTestLayerArchitectureTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/e2e/uireport/StaticUiExtentReportContractTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/navigation/ReportNavigationFlow.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/section/runtime/SectionAuditFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failure/FailureFlowInspector.java
+      - atf-reporting-tests/src/test/java/atf/reporting/api/execution/terminal/TerminalExecutionProjectionTest.java
+
+
+  - id: REPORT-SCOPE-ATOMICITY-14
+    status: VERIFIED
+    base: f5214994b4516c5ad1ecdad2e36b4866ee0d2a70
+    expires: 2026-11-28
+    reason: Adaugă regresii prin porturile publice Extent/fallback pentru completări repetate, mutații tardive, copii deschiși, close idempotent, FAIL la scope incomplet și consola best-effort. Refuzul păstrează snapshot-ul și permite publicarea; nu relaxează oracole sau plafoane.
+    proof: mvn -pl atf-reporting-tests,atf-tests -am "-Dtest=ReportScopeAtomicityComponentTest,AtfReportSemanticSnapshotTest,ExtentReportSessionLifecycleTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=f5214994b4516c5ad1ecdad2e36b4866ee0d2a70" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/lifecycle/ReportScopeAtomicityComponentTest.java
+  - id: REPORT-REQUEST-UI-EVIDENCE-16
+    status: VERIFIED
+    base: f5214994b4516c5ad1ecdad2e36b4866ee0d2a70
+    expires: 2026-11-28
+    reason: Probează în browser setup-ul prin fațada publică Extent/fallback la 240/18. Acțiunile, comparațiile și captura sunt inspectabile; redactarea precede plafonul, verdictul evaluat dincolo de preview rămâne FAIL chiar cu caller PASS, iar tastatura și absența HTTP fabricat sunt verificate.
+    proof: mvn -pl atf-reporting-tests -am "-Dtest=UiSetupFallbackParityComponentTest,AtfReportSemanticSnapshotTest,ReportScopeAtomicityComponentTest,UiAuditLifecycleTest,LegacyPreviewBudgetComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/lifecycle/UiSetupFallbackParityComponentTest.java
+  - id: REPORT-E2E-PHASE-TIMING-15
+    status: VERIFIED
+    base: f5214994b4516c5ad1ecdad2e36b4866ee0d2a70
+    expires: 2026-11-28
+    reason: Adaugă probe cu ceas controlat pentru fazele UI, excluderea capturilor/publicării și propagarea prin fațada UI. Instrumentează numai adaptorul lifecycle Shop existent, păstrând narațiunea business, oracolele, numărul de module și limita 240.
+    proof: mvn -pl atf-reporting-tests,atf-test-auto-ex,atf-test-practice-shop,atf-tests -am "-Dtest=UiPhaseExecutionTest,UiPhaseTimingLifecycleComponentTest,ReportPhaseTimingComponentTest,AutoExRuntimeBoundaryComponentTest,ShopE2eContextEvidenceProfileTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=f5214994b4516c5ad1ecdad2e36b4866ee0d2a70" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/timing/UiPhaseExecutionTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/timing/UiPhaseTimingLifecycleComponentTest.java
+  - id: REPORT-LIFECYCLE-CURRENT-BASE-17
+    status: VERIFIED
+    base: 9c13cdb004b8f00d275c239fea3856af529b3cf0
+    expires: 2026-11-28
+    reason: >-
+      Revede cele patru probe noi față de commitul live curent, fără rebazarea
+      controalelor 14/15/16. Păstrează refuzul fără mutație, close recuperabil,
+      timing-ul explicit și setup-ul Extent/fallback la 240/18; oracolele și
+      numărul de module rămân aceleași. Adaptorul Shop păstrează excepția
+      documentată de la testChanges și este verificat separat.
+    proof: mvn -pl atf-reporting-tests,atf-tests -am "-Dtest=ReportScopeAtomicityComponentTest,UiPhaseExecutionTest,UiPhaseTimingLifecycleComponentTest,UiSetupFallbackParityComponentTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=9c13cdb004b8f00d275c239fea3856af529b3cf0" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/lifecycle/ReportScopeAtomicityComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/timing/UiPhaseExecutionTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/timing/UiPhaseTimingLifecycleComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/lifecycle/UiSetupFallbackParityComponentTest.java
+
+
 ```
 
 </details>

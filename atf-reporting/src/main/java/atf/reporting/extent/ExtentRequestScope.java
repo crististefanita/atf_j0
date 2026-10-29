@@ -1,4 +1,5 @@
 package atf.reporting.extent;
+import atf.reporting.evidence.policy.UiActionScreenshotPolicy;
 import atf.reporting.model.ReportExecutionEvidence;
 import atf.reporting.console.AtfConsoleEvent;
 import atf.reporting.contract.AtfReportPorts;
@@ -40,8 +41,6 @@ final class ExtentRequestScope implements AtfReportPorts.Request {
     private final List<ReportExecutionEvidence> executions = new ArrayList<>();
     private ReportNetworkInspector.JourneyAggregate networkAggregate;
     private ExtentTest networkAggregateNode;
-    private int openValidations;
-    private boolean closed;
 
     ExtentRequestScope(ExtentReportTree tree, ExtentPhaseScope phase, ExtentTest request,
                        String requestTitle, AtfReportSemanticRecorder.RequestHandle semantic) {
@@ -62,6 +61,7 @@ final class ExtentRequestScope implements AtfReportPorts.Request {
     }
 
     @Override public void detail(String name, String value) {
+        ensureRequestOpen();
         String redacted = tree.redactor().redactField(name, value);
         details.add(new ReportField(tree.normalizeDetailName(name), redacted));
         semantic.detail(name);
@@ -74,6 +74,7 @@ final class ExtentRequestScope implements AtfReportPorts.Request {
     }
 
     @Override public void body(ReportJsonBody body) {
+        ensureRequestOpen();
         String redacted = tree.redactor().redactJson(body.body());
         json.add(new ReportJsonBody(body.label(), redacted, body.direction(), body.format()));
         semantic.json(body.label());
@@ -85,14 +86,20 @@ final class ExtentRequestScope implements AtfReportPorts.Request {
         if (base64Png == null || base64Png.isBlank()) {
             throw new IllegalArgumentException("base64Png must not be blank");
         }
-        screenshots.add(new ReportScreenshot(title, base64Png));
+        var screenshot = new ReportScreenshot(title, base64Png);
+        var candidate = new ArrayList<>(screenshots); candidate.add(screenshot);
+        UiActionScreenshotPolicy.validate(uiActions, candidate);
+        screenshots.add(screenshot);
         semantic.screenshot();
     }
 
     @Override public void uiActions(java.util.Collection<AtfUiActionRecord> actions) {
         ensureRequestOpen();
-        if (actions != null) uiActions.addAll(actions);
-        semantic.uiActions(actions);
+        var stable = actions == null ? List.<AtfUiActionRecord>of() : List.copyOf(actions);
+        var candidate = new ArrayList<>(uiActions); candidate.addAll(stable);
+        UiActionScreenshotPolicy.validate(candidate, screenshots);
+        semantic.uiActions(stable);
+        uiActions.addAll(stable);
     }
 
     @Override public void uiActionDetailsMode(ReportUiActionDetailsMode mode) {
@@ -101,6 +108,7 @@ final class ExtentRequestScope implements AtfReportPorts.Request {
     }
 
     @Override public void execution(ReportExecutionEvidence result) {
+        ensureRequestOpen();
         if (result != null) {
             executions.add(result);
             semantic.execution();
@@ -108,6 +116,7 @@ final class ExtentRequestScope implements AtfReportPorts.Request {
     }
 
     @Override public void networkAggregate(ReportNetworkInspector.JourneyAggregate aggregate) {
+        ensureRequestOpen();
         networkAggregate = aggregate;
         if (ReportNetworkAggregateMarkup.hasContent(aggregate) && networkAggregateNode == null) {
             networkAggregateNode = request.createNode(
@@ -119,9 +128,9 @@ final class ExtentRequestScope implements AtfReportPorts.Request {
 
     @Override public void complete(AtfReportStatus status) {
         ensureRequestOpen();
-        if (openValidations > 0) {
-            throw new IllegalStateException("Request cannot complete while a validation is open");
-        }
+        UiActionScreenshotPolicy.validate(uiActions, screenshots);
+        var effective = statuses.resolve(status);
+        semantic.complete(effective);
         if (isSetupEvidence()) {
             tree.renderSetupEvidence(request, details);
             tree.renderUiActions(request, uiActions, screenshots, detailsMode);
@@ -142,20 +151,16 @@ final class ExtentRequestScope implements AtfReportPorts.Request {
             tree.complete(networkAggregateNode, AtfReportStatus.PASS);
             tree.markEnded(networkAggregateNode);
         }
-        var effective = statuses.resolve(status);
         tree.complete(request, effective);
         tree.markEnded(request);
         phase.record(effective);
-        semantic.complete(effective);
         tree.consoleCompleted(AtfConsoleEvent.Scope.REQUEST,
                 requestTitle, effective, request);
         onComplete.accept(effective);
-        closed = true;
     }
 
     @Override public AtfReportPorts.Validation startValidation(String title) {
         ensureRequestOpen();
-        openValidations++;
         String validationTitle = title == null ? "Validation" : title;
         tree.consoleStarted(AtfConsoleEvent.Scope.VALIDATION, validationTitle);
         // A validation is a substep of the Gherkin-shaped request/statement.
@@ -167,12 +172,11 @@ final class ExtentRequestScope implements AtfReportPorts.Request {
 
     void record(AtfReportStatus status) { statuses.record(status); }
     ExtentPhaseScope phase() { return phase; }
-    void validationCompleted() { openValidations--; }
-    @Override public void close() { closed = true; }
+    @Override public void close() { if (!semantic.isComplete()) complete(AtfReportStatus.FAIL); }
 
     private void ensureRequestOpen() {
         tree.ensureOpen();
-        if (closed) throw new IllegalStateException("Request is closed");
+        semantic.ensureOpen();
     }
 
     private boolean isSetupEvidence() {

@@ -77,10 +77,16 @@ public final class ShopLocators {
     private static final String PRODUCT_DESCRIPTION = DATA_TEST.equalsSelector("product-description");
     private static final String PRODUCT_QUANTITY =
             HtmlElement.INPUT.attributeEquals(DATA_TEST, "quantity");
+    private static final String PRODUCT_OUT_OF_STOCK = DATA_TEST.equalsSelector("out-of-stock");
+    private static final String PRODUCT_AVAILABILITY = PRODUCT_QUANTITY + ":enabled:visible, "
+            + PRODUCT_OUT_OF_STOCK + ":visible";
     private static final String ADD_TO_CART =
             HtmlElement.BUTTON.attributeEquals(DATA_TEST, "add-to-cart");
     private static final String CART = HtmlElement.ANCHOR.attributeEquals(DATA_TEST, "nav-cart");
     private static final String CART_PRODUCT_TITLE = DATA_TEST.equalsSelector("product-title");
+    private static final String CART_PRODUCT_PRICE = DATA_TEST.equalsSelector("product-price");
+    private static final String CART_LINE_TOTAL = DATA_TEST.equalsSelector("line-price");
+    private static final String CART_TOTAL = DATA_TEST.equalsSelector("cart-total");
     private static final String CART_PRODUCT_QUANTITY =
             HtmlElement.INPUT.attributeEquals(DATA_TEST, "product-quantity");
     private static final String CART_PROCEED =
@@ -174,9 +180,15 @@ public final class ShopLocators {
     public AtfLocator productPrice(Page page) { return css(page, PRODUCT_PRICE); }
     public AtfLocator productDescription(Page page) { return css(page, PRODUCT_DESCRIPTION); }
     public AtfLocator productQuantity(Page page) { return css(page, PRODUCT_QUANTITY); }
+    /** Either purchasable controls or an explicit stock verdict; a disabled input alone is unresolved. */
+    public AtfLocator productAvailability(Page page) { return css(page, PRODUCT_AVAILABILITY); }
+    public AtfLocator productOutOfStock(Page page) { return css(page, PRODUCT_OUT_OF_STOCK); }
     public AtfLocator addToCart(Page page) { return css(page, ADD_TO_CART); }
     public AtfLocator cart(Page page) { return css(page, CART); }
     public AtfLocator cartProductTitle(Page page) { return css(page, CART_PRODUCT_TITLE); }
+    public AtfLocator cartProductPrice(Page page) { return css(page, CART_PRODUCT_PRICE); }
+    public AtfLocator cartLineTotal(Page page) { return css(page, CART_LINE_TOTAL); }
+    public AtfLocator cartTotal(Page page) { return css(page, CART_TOTAL); }
     public AtfLocator cartProductQuantity(Page page) { return css(page, CART_PRODUCT_QUANTITY); }
     public AtfLocator cartProceed(Page page) { return css(page, CART_PROCEED); }
     public AtfLocator guestTab(Page page) { return css(page, GUEST_TAB); }
@@ -252,6 +264,9 @@ public final class ShopLocators {
             case PRODUCT_QUANTITY -> productQuantity(page);
             case ADD_TO_CART -> addToCart(page);
             case CART_PRODUCT_TITLE -> cartProductTitle(page);
+            case CART_PRODUCT_PRICE -> cartProductPrice(page);
+            case CART_LINE_TOTAL -> cartLineTotal(page);
+            case CART_TOTAL -> cartTotal(page);
             case CART_PRODUCT_QUANTITY -> cartProductQuantity(page);
             case CART_PROCEED -> cartProceed(page);
             case GUEST_TAB -> guestTab(page);

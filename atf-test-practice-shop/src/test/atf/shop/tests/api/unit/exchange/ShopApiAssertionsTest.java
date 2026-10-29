@@ -1,5 +1,7 @@
 package atf.shop.tests.api.unit.exchange;
 
+import atf.shop.support.validation.ShopOrderExpectation;
+
 import atf.core.http.protocol.HttpHeaderProfiles;
 import atf.core.http.request.HttpMethod;
 import atf.core.http.request.HttpHeader;
@@ -92,9 +94,9 @@ class ShopApiAssertionsTest {
                 "{\"id\":\"order-1\",\"invoice_number\":\"INV-2026000007\",\"total\":24.02}");
 
         var passing = ShopApiAssertions.order(order,
-                "Thanks for your order! Your invoice number is INV-2026000007.");
+                "Thanks for your order! Your invoice number is INV-2026000007.", ShopOrderExpectation.fromUi("12.01", 2));
         var mismatched = ShopApiAssertions.order(order,
-                "Thanks for your order! Your invoice number is INV-OTHER.");
+                "Thanks for your order! Your invoice number is INV-OTHER.", ShopOrderExpectation.fromUi("12.01", 2));
 
         assertTrue(passing.stream().allMatch(a -> a.passed()));
         assertFalse(mismatched.stream().filter(a -> a.name().equals("UI/API order correlation"))

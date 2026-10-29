@@ -483,7 +483,7 @@ Un total părinte nu însumează toți descendenții și nu amestecă o durată
 inclusivă cu aceiași copii. Durata tehnică proprie, dacă există, trebuie
 marcată distinct de totalul inclusiv.
 
-Pentru fazele componente cu `ReportPhaseTiming`, durata inclusivă este suma
+Pentru fazele cu `ReportPhaseTiming`, durata inclusivă este suma
 intervalelor callback-urilor executate, măsurată monoton înaintea publicării.
 Ea are prioritate față de timestamp-urile publicării Extent. Scenariul adună
 fazele directe o singură dată; badge-ul pasului de aserțiuni descrie publicarea
@@ -491,6 +491,14 @@ fazele directe o singură dată; badge-ul pasului de aserțiuni descrie publicar
 absent rămâne necunoscut. Aceste totaluri cumulative nu reprezintă wall-clock
 al suitei. Contractul și probele sunt la
 [ownerul Reporting](../atf-reporting/README.md#timing-măsurat-înaintea-publicării).
+
+- Fațada UI propagă timing-ul explicit; AutoEx și Shop delimitează fazele la
+  runtime prin `measureExecution()`, cu capturi și publicare instrumentate separat.
+- Cleanup-ul final, eliberarea browserului și flush-ul HTML nu măresc TEST BODY;
+  fazele de teardown explicit măsurate își păstrează propriul verdict și timp.
+- Lipsa timing-ului explicit păstrează agregarea legacy și semnificația sa;
+  captura nemăsurată și durata HTTP necapturată rămân necunoscute.
+
 
 Pentru navigatorul `Tests`, totalul clasei este suma totalurilor scenariilor
 directe vizibile în panoul clasei. Valoarea din stânga și cea din header-ul

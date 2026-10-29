@@ -31,11 +31,7 @@ final class ExtentValidationScope implements AtfReportPorts.Validation {
     private ReportUiActionDetailsMode detailsMode;
     private final List<ReportScreenshot> screenshots = new ArrayList<>();
     private final List<ReportScreenshot> mediaScreenshots = new ArrayList<>();
-    private boolean completed;
-    private boolean closed;
-    private boolean screenshotOptional;
     private ReportEvidenceOwner evidenceOwner = ReportEvidenceOwner.UNSPECIFIED;
-    private int openRequests;
 
     ExtentValidationScope(ExtentReportTree tree, ExtentRequestScope owner, ExtentTest validation,
                           String validationTitle, AtfReportSemanticRecorder.ValidationHandle semantic) {
@@ -62,8 +58,9 @@ final class ExtentValidationScope implements AtfReportPorts.Validation {
 
     @Override public void uiActions(Collection<AtfUiActionRecord> actions) {
         ensureOpen();
-        if (actions != null) uiActions.addAll(actions);
-        semantic.uiActions(actions);
+        var stable = actions == null ? List.<AtfUiActionRecord>of() : List.copyOf(actions);
+        semantic.uiActions(stable);
+        uiActions.addAll(stable);
     }
 
     @Override public void uiActionDetailsMode(ReportUiActionDetailsMode mode) {
@@ -90,12 +87,16 @@ final class ExtentValidationScope implements AtfReportPorts.Validation {
     }
 
     @Override public void complete(AtfReportStatus status) {
+        complete(status, false);
+    }
+
+    private void complete(AtfReportStatus status, boolean failure) {
         tree.ensureOpen();
-        if (completed) throw new IllegalStateException("Validation is already complete");
-        if (openRequests > 0) {
-            throw new IllegalStateException("Validation cannot complete while a nested request is open");
-        }
+        semantic.ensureOpen();
         AtfReportStatus effective = childStatuses.resolve(status, assertions);
+        if (!screenshots.isEmpty() && !mediaScreenshots.isEmpty()) throw new IllegalStateException("A validation cannot mix inline and media screenshots");
+        semantic.complete(effective);
+        boolean screenshotOptional = failure && screenshots.isEmpty() && mediaScreenshots.isEmpty();
         if (screenshotOptional) {
             tree.renderUiActionsAsMedia(validation, uiActions, detailsMode);
         } else if (mediaScreenshots.isEmpty() && screenshots.size() <= 1) {
@@ -104,9 +105,6 @@ final class ExtentValidationScope implements AtfReportPorts.Validation {
                 tree.renderScreenshots(validation, screenshots);
             }
         } else {
-            if (!screenshots.isEmpty() && !mediaScreenshots.isEmpty()) {
-                throw new IllegalStateException("A validation cannot mix inline and media screenshots");
-            }
             // A unified flow can aggregate many checkpoint screenshots into one
             // validation. Keep the ordered action table singular and publish all
             // screenshots as separate evidence links after it.
@@ -119,15 +117,11 @@ final class ExtentValidationScope implements AtfReportPorts.Validation {
         tree.markEnded(validation);
         tree.consoleCompleted(AtfConsoleEvent.Scope.VALIDATION,
                 validationTitle, effective, validation);
-        completed = true;
         owner.record(effective);
-        semantic.complete(effective);
-        owner.validationCompleted();
     }
 
     @Override public AtfReportPorts.Request startRequest(String title, String method, String path) {
         ensureOpen();
-        openRequests++;
         String requestTitle = tree.renderRequestTitle(title, method, path);
         tree.consoleStarted(AtfConsoleEvent.Scope.REQUEST, requestTitle);
         return new ExtentRequestScope(tree, owner.phase(), validation.createNode(requestTitle), requestTitle,
@@ -136,30 +130,19 @@ final class ExtentValidationScope implements AtfReportPorts.Validation {
 
     private void recordChildStatus(AtfReportStatus status) {
         childStatuses.record(status);
-        openRequests--;
     }
 
     @Override public void completeFailure(AtfReportStatus status) {
         // A failure may happen before a page can be captured, but an already
         // supplied screenshot is still first-class evidence and must not be
         // discarded by the failure completion path.
-        screenshotOptional = screenshots.isEmpty() && mediaScreenshots.isEmpty();
-        complete(status);
+        complete(status, true);
     }
 
-    @Override public void close() {
-        if (!closed) {
-            // A validation may exit through an exception before its normal
-            // complete() call. Release the owner's open-scope guard so the
-            // request can still publish its failure and close the console
-            // nesting deterministically.
-            if (!completed) owner.validationCompleted();
-            closed = true;
-        }
-    }
+    @Override public void close() { if (!semantic.isComplete()) completeFailure(AtfReportStatus.FAIL); }
 
     private void ensureOpen() {
         tree.ensureOpen();
-        if (completed || closed) throw new IllegalStateException("Validation is closed");
+        semantic.ensureOpen();
     }
 }

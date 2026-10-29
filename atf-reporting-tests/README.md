@@ -83,6 +83,9 @@ Proiecția contextului UI este verificată la componentă:
 | `UiFailureContextTest` + `UiFailureContextReportTest` | acțiune FAIL înaintea mesajului tehnic lung, lipsa excepției/acțiunii, acțiuni PASS urmate de eroare, prima secvență FAIL și graf cauze/suppressed cu referințe/cicluri, fără mutarea verdictului sau a dovezilor originale |
 | `UiFailureContextComponentTest` | Tests/Fails și backlink în Extent/fallback, preview 240/18, panou de 392 px, contextul acțiunii și timpul măsurat, relații inspectabile în diagnostice INFO și disclosure Enter/Space fără erori JavaScript |
 | `UiTimeoutReportComponentTest` | deadline nativ separat de timpul capturat și de contextul compact Fails; Extent/fallback la 240/18, primary/cause/suppressed redactate, HTML fără credențiale, owner și backlink, Enter/Space, ultimul rând și oracol negativ pentru diagnostic lipsă ori secret vizibil |
+| `ReportScopeAtomicityComponentTest` | completări repetate, scrieri tardive, close idempotent/FAIL, copii deschiși și sesiune închisă; refuz fără mutație și raport publicabil în Extent/fallback |
+| `UiSetupFallbackParityComponentTest` | setup păstrează comparațiile, acțiunile și captura în Extent/fallback; 240/18, redactare, Enter/Space și FAIL evaluat dincolo de preview, inclusiv cu caller PASS |
+| `UiPhaseExecutionTest` + `UiPhaseTimingLifecycleComponentTest` | execuție/capturi/publicare delimitate, clock controlat, cauza primară, zero/necunoscut, succes/FAIL/SKIP, setup incomplet, teardown eșuat și flow unificat peste faze |
 | `ReportPhaseDiagnosticTest` | conversie explicită, statusul fazei sursă, chei legacy delimitate, context nemodificat și rezultat imutabil; portul diagnostic nu creează HTTP |
 | `ReportPhaseAuditBrowserComponentTest` | Extent/fallback cu zero/unul/mai multe exchange-uri și cu/fără metadata; eșec JUnit, asociere lipsă, redacție și închiderea diagnosticului; Fails exclude notele fazei PASS; probe negative pentru bandă ascunsă, redenumită sau goală |
 

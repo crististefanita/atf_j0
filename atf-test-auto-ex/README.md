@@ -1299,9 +1299,10 @@ Clasele și cele trei suite principale pot fi lansate direct din IntelliJ.
   finalizează sesiunea de raportare la închiderea root-ului JUnit.
   Overview/System declară `Client = Playwright browser`; fallback-ul generic
   Reporting rămâne neutru pentru consumerii care nu furnizează acest context.
-- Durata E2E rămâne agregarea dovezilor UI/API; runtime-ul nu furnizează încă
-  timing typed de fază prin `UiPhase`. Diferența față de durata totală a
-  journey-ului este urmărită în [feedback-ul Reporting](../docs/feedback/ATF_Reporting_Feedback.md).
+- TEST BODY folosește timing monoton explicit prin `UiPhase.measureExecution()`.
+  Capturile și publicarea dovezilor sunt separate; execuția se oprește înaintea
+  cleanup-ului final și eliberării browserului. Flush-ul sesiunii rămâne separat,
+  conform [contractului Reporting](../atf-reporting/README.md#timing-e2e-la-ownerul-runtime).
 
 Contractele API și precondiția pentru `UI_API` sunt normate în acest README.
 `AutoExPurchaseSession` rămâne boundary intern al runtime-ului consumer; nu

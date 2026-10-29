@@ -7,9 +7,8 @@ fazele lifecycle și rezultatul PASS/FAIL/SKIP sunt contracte ale
 [Test Kit](../../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră) și
 [Reporting](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor).
 
-Restanțele includ identitatea/coșul înainte de checkout, totalul și factura Shop,
-runtime-ul E2E, billing-ul observat în suită și echivalența profilelor înaintea
-reducerii selecției.
+Restanțele includ selecția dovezii comenzii Shop, identitatea/coșul înainte de
+checkout, runtime-ul E2E, billing-ul observat în suită și echivalența profilelor.
 Contractele deja livrate aparțin [AutoEx](../../atf-test-auto-ex/README.md),
 [Shop](../../atf-test-practice-shop/README.md) și
 [ghidului auditului componentelor](../ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
@@ -23,11 +22,49 @@ documentară /10. Nu reprezintă o notă a codului sau un rezultat de test.
 
 | ID | Scor /100 | Diferența rămasă |
 |---|---:|---|
+| `CONSUMER-SHOP-ORDER-EVIDENCE-04` | 81 = 34 + 23 + 17 + 7 | eroarea curentă poate fi exclusă ori legată de evidence vechi |
 | `UI-LOCATOR-READINESS-01` | 79 = 32 + 23 + 17 + 7 | identitate și coș verificate după înregistrare, înaintea mutației checkout |
 | `CONSUMER-RUNTIME-BOUNDARY-03` | 77 = 31 + 18 + 20 + 8 | achiziție, publicare și lifecycle E2E rămase în contextul Shop |
-| `CONSUMER-SHOP-ORDER-TOTAL-02` | 74 = 31 + 21 + 16 + 6 | total fără expected independent și corelare de factură prin substring |
 | `CONSUMER-SHOP-BILLING-STATE-01` | 71 = 29 + 22 + 14 + 6 | diferență de valoare billing între suită și lansare individuală |
 | `CONSUMER-E2E-PROFILES-01` | 57 = 24 + 10 + 17 + 6 | reducerea repetării live numai după echivalență demonstrată |
+
+## CONSUMER-SHOP-ORDER-EVIDENCE-04 — selecția dovezii comenzii curente
+
+**Prioritate: 81/100** = impact 34 + lacună 23 + lucrabil 17 + documentare 7.
+**Owner:** journal-ul și mapping-ul business Shop în main; probele de selecție
+și ale adaptorului checkout rămân în testele Shop.
+
+`orderCreated()` filtrează după succes HTTP înaintea evaluării și actualizează
+selecția numai când găsește un răspuns 2xx. Probele folosesc subscripția publică
+a inspectorului, fără serviciu extern, pentru `/invoices/guest` și `/invoices`.
+
+| Observații controlate | Rezultat actual | Diferența de corectat |
+|---|---|---|
+| 201 apoi 500 după același marcaj; UI păstrează factura primului | selectează 201, toate comparațiile și proiecția sunt PASS | răspunsul final de eroare este ignorat |
+| 500 la prima evaluare | zero exchange-uri selectate; mapperul cere unul și aruncă `IllegalArgumentException` | diagnosticul este înlocuit de eroarea de cardinalitate |
+| checkpoint anterior evaluat, apoi 500 sau nicio captură după noul marcaj | păstrează exchange-ul vechi; comparațiile noi sunt FAIL | rândurile nu mai aparțin aceleiași observații |
+
+Traficul brut păstrează răspunsul 500; proba nu afirmă că el dispare din orice
+panou al raportului. Nu dovedește nici că serviciul real produce cele două
+răspunsuri la un singur Confirm.
+
+- [ ] Selectați observația eligibilă curentă prin operație și marcaj, apoi evaluați
+      statusul; reutilizați regula existentă de la payment/coș fără un nou transport.
+- [ ] Actualizați selecția și cu lista goală, astfel încât o evaluare nouă să nu
+      păstreze evidence-ul precedent. Păstrați identitatea capturii și ordinea.
+- [ ] Mapperul order păstrează comparațiile FAIL când captura lipsește, la fel
+      ca mapperii payment/coș; fără HTTP/body inventat sau cerință de cardinalitate
+      care ascunde diagnosticul. O cerere eșuată observată rămâne `Unavailable`.
+- [ ] Probați 201→500 în aceeași fereastră, 500 inițial, lipsa capturii după succes
+      și eșecul de transport, pentru guest/autentificat și checkpoint-uri surori.
+- [ ] Verificați adaptorul cu un singur Confirm, fără dispatch suplimentar; rândul
+      FAIL, statusul/body-ul curent și backlink-ul sunt inspectabile individual
+      și prin suită, cu raport unic, redactare și plafonul 240.
+
+**Închidere:** captura selectată și comparațiile descriu aceeași operație curentă;
+răspunsul final 500 nu este înlocuit de un 2xx, iar absența rămâne FAIL auditabil.
+Totalul independent și corelarea exactă a facturii sunt deja livrate la
+[ownerul Shop](../../atf-test-practice-shop/README.md#validarea-independentă-a-totalului-și-facturii).
 
 ## UI-LOCATOR-READINESS-01 — identitate și coș înaintea checkout-ului
 
@@ -56,7 +93,13 @@ cazurile negative pentru identitate și coș.
 **Owner:** Shop pentru runtime-ul aplicației; Kit/UI/Reporting pentru primitivele neutre.
 Protocolul componentă și runtime-ul API sunt extrase; `ShopE2eContext` păstrează
 achiziția browser/API, configurarea raportului, capturile și scenariile E2E.
+`FailureAwareCleanup` este deja compus; restanța privește separarea ownerilor,
+nu introducerea încă unei primitive de cleanup.
 
+- [ ] Delimitați mai întâi factory-urile `openReport()` și `openBrowser()` de
+      wiring-ul JUnit; runtime-ul primește explicit sink-ul și environment-ul.
+      `AtfConsoleTestContext`, Store-ul, adnotările și rezolvarea fixture-ului rămân
+      în test. Nu mutați clasele prin schimbarea package-ului și a scope-ului Kit.
 - [ ] Extrageți câte o responsabilitate runtime către main la owner, păstrând fațada
       business; Store-ul JUnit, fixture-ul și oracolul rămân în test.
 - [ ] Compuneți primitivele Kit existente pentru resurse neutre; nu mutați browser,
@@ -65,34 +108,6 @@ achiziția browser/API, configurarea raportului, capturile și scenariile E2E.
       și close; fiecare etapă se încearcă o dată, cu cauza primară și erorile secundare păstrate.
 - [ ] Păstrați scope-urile Maven și
       [boundary-ul guvernat](../../atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java).
-
-## CONSUMER-SHOP-ORDER-TOTAL-02 — totalul comenzii față de cumpărăturile curente
-
-**Owner:** modelele și validarea business Shop, în modulele existente.
-Este completarea purchase-ului declarat, păstrând profilele UI și UI+API.
-
-- `ShopApiAssertions.order()` verifică numai `total > 0`, alături de identitatea
-  comenzii și corelarea facturii; nu primește un total așteptat independent.
-- Proba cu JSON valid, factura exactă și `total=0.01` trece toate comparațiile.
-  `ShopCartPage.CartLine` păstrează numele și cantitatea, fără preț ori total.
-- Separat, `invoice_number=INV-12`, total pozitiv și confirmarea UI `INV-123`
-  trec corelarea: `uiConfirmation.contains(invoice)` acceptă un identificator
-  străin care conține prefixul. Această probă nu depinde de calculul monetar.
-
-- [ ] Propagați în flow-ul existent prețul, cantitatea și totalul așteptat din
-      observațiile anterioare plății; nu construiți expected din răspunsul comenzii.
-- [ ] Reprezentați valorile monetare exact și documentați moneda și regula
-      aplicației pentru calcul; nu introduceți rotunjiri sau taxe presupuse.
-- [ ] Comparați independent totalul și identitatea comenzii cu datele cumpărăturii;
-      corelați identificatorul exact al facturii, fără potrivire prin substring.
-- [ ] Probați un total pozitiv greșit, cantitate/preț greșite, câmp lipsă, tip greșit
-      și factura străină, inclusiv prefix/sufix comun; un simplu HTTP 2xx nu poate
-      transforma diferența în PASS.
-- [ ] Verificați rândul exact expected/actual în raport, cu plafonul 240 păstrat,
-      pentru flow-ul guest și cel autentificat, individual și prin suită.
-
-Aceasta este o limită a validării actuale, fără dovadă că aplicația demo a
-calculat greșit totalurile rulărilor remote observate.
 
 ## CONSUMER-SHOP-BILLING-STATE-01 — valoarea observată în suita E2E
 
@@ -133,8 +148,9 @@ Aceasta dovedește reutilizarea codului, nu echivalența rezultatului live sau a
 - [ ] Acoperiți failure-ul remote și celelalte profile; o suită limitată la
       cazul pozitiv nu închide billing-ul observat în suita Shop completă.
 
-Timing-ul E2E explicit rămâne în [feedback-ul Reporting](ATF_Reporting_Feedback.md#report-e2e-phase-timing-01--execuția-e2e-separată-de-agregarea-dovezilor).
-Agregarea coerentă între taburi nu certifică durata integrală a fazei.
+Timing-ul explicit, capturile și publicarea au contract la
+[Reporting](../../atf-reporting/README.md#timing-e2e-la-ownerul-runtime).
+O lansare filtrată la un caz nu certifică izolarea tuturor claselor suitei.
 
 - [ ] Înaintea reducerii selecției, demonstrați smoke-ul adaptorului pe succes
       și failure, plus contractele generice `ReportEvidenceProfileIntegrationTest`

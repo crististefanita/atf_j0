@@ -1,4 +1,5 @@
 package atf.shop.tests.support.lifecycle;
+import atf.reporting.ui.timing.UiPhaseExecution;
 
 import atf.reporting.ui.validation.UiApiValidationEvidence;
 
@@ -219,6 +220,7 @@ public final class ShopE2eContext implements AutoCloseable {
     public Scenario scenario(String reportClass, String title, String overview) {
         UiExtentReportSession.UiScenario scenario = startReportScenario(reportClass, overview);
         var setup = scenario.startPhase("SETUP");
+        setup.measureExecution();
         List<AtfAssertion> setupAssertions = setupAssertions(configuration);
         AtfReportStatus setupStatus = setupAssertions.stream().allMatch(AtfAssertion::passed)
                 ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
@@ -315,6 +317,8 @@ public final class ShopE2eContext implements AutoCloseable {
         private final UiExtentReportSession.UiScenario scenario;
         private final UiExtentReportSession.UiPhase setupPhase;
         private UiExtentReportSession.UiPhase body;
+        private final UiPhaseExecution setupExecution;
+        private UiPhaseExecution bodyExecution;
         private final String title;
         private final List<ReportNetworkInspector.Step> networkSteps = new ArrayList<>();
         private boolean complete;
@@ -326,7 +330,9 @@ public final class ShopE2eContext implements AutoCloseable {
                          UiExtentReportSession.UiPhase setupPhase) {
             this.scenario = scenario;
             this.setupPhase = setupPhase;
+            this.setupExecution = setupPhase == null ? null : setupPhase.measureExecution();
             this.body = setupPhase == null ? scenario.startPhase("TEST BODY") : null;
+            this.bodyExecution = body == null ? null : body.measureExecution();
             this.title = title == null || title.isBlank() ? "completed Practice Shop scenario" : title;
         }
 
@@ -343,7 +349,7 @@ public final class ShopE2eContext implements AutoCloseable {
                     ? ReportScreenshotPolicy.CapturePoint.CHECKPOINT
                     : ReportScreenshotPolicy.CapturePoint.FAILURE;
             ReportScreenshot screenshot = actions.snapshot().isEmpty()
-                    ? null : captureCheckpointScreenshot(stepTitle, point);
+                    ? null : setupExecution.capture(() -> captureCheckpointScreenshot(stepTitle, point));
             setupPhase.setup(keyword, stepTitle, page.url(), assertions,
                     ReportModelAdapters.uiActions(actions.drain()), new UiApiValidationEvidence(List.of(), (apiEvidence).stream()
                             .map(exchange -> new UiApiValidationEvidence.Exchange(exchange, List.of())).toList()), screenshot, status);
@@ -363,6 +369,7 @@ public final class ShopE2eContext implements AutoCloseable {
             setupFinished = true;
             if (status == AtfReportStatus.PASS) {
                 body = scenario.startPhase("TEST BODY");
+                bodyExecution = body.measureExecution();
             } else {
                 scenario.complete(status);
                 complete = true;
@@ -445,6 +452,7 @@ public final class ShopE2eContext implements AutoCloseable {
                          String evidenceTitle,
                          Collection<AtfAssertion> assertions) {
             if (body == null) throw new IllegalStateException("TEST BODY cannot start before setup passes");
+            bodyExecution.finishExecution();
             String payload = capture(page, evidenceTitle, ReportScreenshotPolicy.CapturePoint.FINAL);
             UiScreenValidation.Evidence evidence = new UiScreenValidation.Evidence(
                     evidenceTitle, payload, !payload.isBlank());
@@ -471,6 +479,7 @@ public final class ShopE2eContext implements AutoCloseable {
 
         public void complete(AtfReportStatus status) {
             if (body == null) throw new IllegalStateException("TEST BODY cannot start before setup passes");
+            bodyExecution.finishExecution();
             publishNetworkInspector();
             body.completeFinal(status);
             scenario.complete(status);
@@ -479,6 +488,7 @@ public final class ShopE2eContext implements AutoCloseable {
 
         public void fail(Page page, PlaywrightActionSequence actions, Throwable failure) {
             if (complete) return;
+            (bodyExecution == null ? setupExecution : bodyExecution).finishExecution();
             if (body == null && setupPhase != null) {
                 if (setupFinished) {
                     // A setup owner may already have published and closed a failed checkpoint.
@@ -551,9 +561,9 @@ public final class ShopE2eContext implements AutoCloseable {
 
         private String capture(Page page, String title,
                                ReportScreenshotPolicy.CapturePoint point) {
-            return evidenceProfile.capture(point, title, page.url(),
-                            browserCaptureProvider)
-                    .map(ReportScreenshot::base64Png).orElse("");
+            return (bodyExecution == null ? setupExecution : bodyExecution).capture(() ->
+                    evidenceProfile.capture(point, title, page.url(), browserCaptureProvider)
+                            .map(ReportScreenshot::base64Png).orElse(""));
         }
 
         @Override public void close() {

@@ -21,6 +21,7 @@ import atf.shop.routes.ShopUiRoutes;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 import java.net.URI;
 
 import static atf.testkit.assertions.AuditedAssertions.assertThrows;
@@ -35,7 +36,12 @@ class ShopPageContractTest {
         assertContract(ShopHomePage.class, ShopScreen.HOME, ShopUiRoutes.HOME, 16);
         assertContract(ShopProductPage.class, ShopScreen.PRODUCT,
                 ShopUiRoutes.PRODUCT_PATTERN, 5);
-        assertContract(ShopCartPage.class, ShopScreen.CART, ShopUiRoutes.CHECKOUT, 3);
+        assertContract(ShopCartPage.class, ShopScreen.CART, ShopUiRoutes.CHECKOUT, 6);
+        assertEquals(Set.of(ShopControl.CART_PRODUCT_TITLE, ShopControl.CART_PRODUCT_QUANTITY,
+                        ShopControl.CART_PROCEED, ShopControl.CART_PRODUCT_PRICE,
+                        ShopControl.CART_LINE_TOTAL, ShopControl.CART_TOTAL),
+                Set.copyOf(List.of(ShopCartPage.class.getAnnotation(ShopPageContract.class).requiredControls())),
+                "Cart contract retains identity/quantity and independently observed monetary controls");
         assertContract(ShopGuestCheckoutPage.class, ShopScreen.GUEST_CHECKOUT,
                 ShopUiRoutes.CHECKOUT, 4);
         assertContract(ShopBillingPage.class, ShopScreen.BILLING,

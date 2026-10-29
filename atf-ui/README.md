@@ -415,8 +415,8 @@ flowchart LR
 
 Observația INFO are durata de rând zero; probe/backoff/total sunt măsurători
 explicite în metadata, iar totalul cumulativ nu se însumează peste fiecare rând.
-Durata agregată a fazei E2E rămâne distinctă de totalul scope-ului BE, conform
-[restanței timing typed](../docs/feedback/ATF_Reporting_Feedback.md#report-e2e-phase-timing-01--execuția-e2e-separată-de-agregarea-dovezilor).
+Durata explicită a fazei E2E rămâne distinctă de totalul scope-ului BE, conform
+[contractului timing typed](../atf-reporting/README.md#timing-e2e-la-ownerul-runtime).
 Etichetele scurte păstrează următorul sens:
 
 | În schemă | Sens complet |

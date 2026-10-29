@@ -1,4 +1,5 @@
 package atf.autoex.runtime;
+import atf.reporting.ui.timing.UiPhaseExecution;
 
 import atf.core.http.request.HttpHeader;
 import atf.core.http.response.ApiExecutionResult;
@@ -61,6 +62,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
     private final PlaywrightUiSession browser;
     private final UiExtentReportSession.UiScenario scenario;
     private final UiExtentReportSession.UiPhase phase;
+    private final UiPhaseExecution execution;
     private final ReportEvidenceProfile evidenceProfile;
     private final boolean apiEnabled;
     private final AutoExRunLifecycle lifecycle;
@@ -84,6 +86,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
         this.browser = browser;
         this.scenario = scenario;
         this.phase = phase;
+        this.execution = phase.measureExecution();
         this.evidenceProfile = evidenceProfile;
         this.apiEnabled = apiEnabled;
         this.lifecycle = Objects.requireNonNull(lifecycle, "lifecycle");
@@ -295,8 +298,8 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
     }
 
     private String capture(String title) {
-        return UiScreenValidation.capture(page(), UiScreenValidationConfiguration.defaults(), title,
-                List.of(page().locator(AutoExSelectors.SENSITIVE_FIELDS))).base64Png();
+        return execution.capture(() -> UiScreenValidation.capture(page(), UiScreenValidationConfiguration.defaults(), title,
+                List.of(page().locator(AutoExSelectors.SENSITIVE_FIELDS))).base64Png());
     }
 
     private UiApiValidationEvidence networkValidationSinceCursor() {
@@ -317,6 +320,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
     public void finish(Throwable testFailure) throws Exception {
         if (finished) return;
         finished = true;
+        execution.finishExecution();
         Throwable terminalFailure = testFailure;
         boolean cleanupWasPending = failureCleanup != null;
         if (testFailure == null && cleanupWasPending) {
@@ -352,9 +356,9 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
         String screenshot = "";
         if (evidenceProfile.captures(ReportScreenshotPolicy.CapturePoint.FAILURE)) {
             try {
-                screenshot = UiScreenValidation.capture(page(), UiScreenValidationConfiguration.defaults(),
+                screenshot = execution.capture(() -> UiScreenValidation.capture(page(), UiScreenValidationConfiguration.defaults(),
                         "Failure state — sensitive fields masked",
-                        List.of(page().locator(AutoExSelectors.SENSITIVE_FIELDS))).base64Png();
+                        List.of(page().locator(AutoExSelectors.SENSITIVE_FIELDS))).base64Png());
             } catch (RuntimeException | Error captureFailure) {
                 failure.addSuppressed(captureFailure);
             }

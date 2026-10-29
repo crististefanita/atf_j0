@@ -7,6 +7,7 @@ import atf.shop.pages.ShopProductPage;
 import atf.shop.config.api.ShopApiCheckpoint;
 import atf.shop.support.ShopPurchaseTraceStep;
 import atf.shop.support.api.validation.ShopApiValidationResult;
+import atf.shop.support.validation.ShopOrderExpectation;
 
 import java.util.List;
 
@@ -18,13 +19,14 @@ final class ShopCatalogPurchaseStage implements ShopCatalogPurchaseFlow.Port {
     private ShopHomePage home;
     private ShopProductPage product;
     private long cartAdditionFence;
+    private ShopOrderExpectation expectedOrder;
     ShopCatalogPurchaseStage(ShopPurchaseJourneyContext.CatalogInputs context) {
         this.context = java.util.Objects.requireNonNull(context, "context");
     }
 
-    long prepareCart() {
+    PreparedCart prepareCart() {
         new ShopCatalogPurchaseFlow().prepareCart(this, context.checkpointPublisher()::report);
-        return cartAdditionFence;
+        return new PreparedCart(cartAdditionFence, expectedOrder);
     }
 
     @Override public ShopPurchaseCheckpoint openHome() {
@@ -112,7 +114,10 @@ final class ShopCatalogPurchaseStage implements ShopCatalogPurchaseFlow.Port {
     }
 
     @Override public void addConfiguredQuantity() {
+        expectedOrder = product.orderExpectation(context.selection().quantity());
         cartAdditionFence = context.apiNetwork().sequenceMarker();
         product.addConfiguredQuantity(context.selection().quantity());
     }
+
+    record PreparedCart(long additionFence, ShopOrderExpectation expectedOrder) { }
 }

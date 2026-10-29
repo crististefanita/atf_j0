@@ -11,13 +11,16 @@ import java.util.Objects;
 /** Component validation slices for the non-home screens of the purchase journey. */
 public final class ShopPurchaseScreenValidator {
     private final ShopComponentAssertions components;
+    private final ShopLocators locators;
 
     public ShopPurchaseScreenValidator(ShopLocators locators) {
-        this.components = new ShopComponentAssertions(Objects.requireNonNull(locators, "locators"));
+        this.locators = Objects.requireNonNull(locators, "locators");
+        this.components = new ShopComponentAssertions(locators);
     }
 
     public List<AtfAssertion> product(Page page) {
         return concat(
+                List.of(ShopProductAvailability.observe(page, locators).assertion()),
                 components.rendered(page, ShopControl.PRODUCT_NAME, ShopControl.PRODUCT_PRICE,
                         ShopControl.PRODUCT_DESCRIPTION, ShopControl.PRODUCT_QUANTITY,
                         ShopControl.ADD_TO_CART),

@@ -1,4 +1,5 @@
 package atf.reporting.ui;
+import atf.reporting.contract.ReportStatusAggregator;
 import atf.reporting.contract.evidence.ReportEvidenceOwner;
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfGherkinKeyword;
@@ -93,6 +94,7 @@ public final class UiEvidencePublisher {
                       UiApiValidationEvidence apiValidation,
                       ReportScreenshot screenshot,
                       AtfReportStatus status) {
+        var effectiveStatus = new ReportStatusAggregator().resolve(defaultStatus(status, AtfReportStatus.PASS), assertions);
         String stepTitle = stepTitle(keyword, title);
         var request = phase.startRequest(stepTitle, "", "");
         try {
@@ -100,7 +102,7 @@ public final class UiEvidencePublisher {
             detailTarget(request, target);
             request.detail(AtfReportEvidenceKeys.EVIDENCE_TYPE, AtfReportEvidenceKeys.REPORT_SETUP);
             request.detail(AtfReportEvidenceKeys.SETUP_RESULT,
-                    defaultStatus(status, AtfReportStatus.PASS).displayValue());
+                    effectiveStatus.displayValue());
             if (assertions != null) {
                 int index = 0;
                 for (AtfAssertion assertion : assertions) {
@@ -115,7 +117,6 @@ public final class UiEvidencePublisher {
             request.uiActionDetailsMode(detailsMode);
             if (actions != null && !actions.isEmpty()) request.uiActions(actions);
             if (screenshot != null) request.screenshot(screenshot.title(), screenshot.base64Png());
-            AtfReportStatus effectiveStatus = defaultStatus(status, AtfReportStatus.PASS);
             if (!apiValidation.isEmpty()) {
                 effectiveStatus = AtfReportStatus.worst(effectiveStatus, apiValidation.status());
                 var validation = request.startValidation(API_VALIDATION);

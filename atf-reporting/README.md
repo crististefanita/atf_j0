@@ -1414,17 +1414,58 @@ flowchart LR
 
 </details>
 
+### Evidence UI și setup în fallback
+
+`ReportRequestUiEvidence` păstrează acțiunile, capturile și modul de disclosure
+în snapshot-ul fallback; contoarele nu înlocuiesc conținutul auditabil.
+`ReportSetupEvidenceMarkup` proiectează aceleași comparații setup în ambele renderere.
+
+- Expected/actual sunt redactate integral înaintea plafonului configurat,
+  implicit 240 inclusiv elipsa; un FAIL dincolo de preview rămâne FAIL.
+- `publishSetup` păstrează statusul aserțiunilor deja evaluate, chiar dacă
+  apelantul furnizează PASS; Reporting nu reevaluează comparația din textul afișat.
+- Un request cu acțiuni ACTION acceptă cel mult o captură inline distinctă.
+  Galeriile fără acțiuni și validările media își păstrează comportamentul;
+  inputul incompatibil este refuzat înaintea mutației, cu starea validă recuperabilă.
+- `UiSetupFallbackParityComponentTest` verifică 240/18, captura inspectabilă,
+  Enter/Space, verdictul și absența unui HTTP fictiv în Extent/fallback.
+
 ### Atomicitatea tranzițiilor de scope
 
-Modelul fallback poate fi modificat înaintea validării recorderului semantic:
+Recorderul semantic validează tranziția înaintea mutației modelului, nodurilor,
+contoarelor sau notificărilor. Extent și fallback folosesc aceeași decizie;
+un apel respins păstrează snapshot-ul și permite publicarea stării valide.
 
-- O a doua completare a unui request este respinsă, dar poate schimba deja modelul.
-- `close()` refuză ulterior publicarea din cauza diferenței dintre snapshot-uri.
-- Guard-ul previne publicarea inconsistentă; tranziția inițială rămâne neatomică.
+| Operație | Contract |
+|---|---|
+| `complete(status)` valid | o singură tranziție; dovezile copiilor păstrează politica FAIL/SKIP/INFO/WARNING |
+| completare repetată sau părinte cu copii deschiși | refuz fără efecte; copiii pot fi închiși, apoi părintele completat normal |
+| `close()` după completare | idempotent; fără notificări ori publicare duplicate |
+| `close()` înainte de completare, fără copii deschiși | completează FAIL; nu inventează un rezultat business PASS |
+| `close()` cu copii deschiși | refuz fără abandonarea părintelui ori decrementarea contoarelor |
+| scriere după completare/închiderea sesiunii | refuz înaintea mutației; snapshot-ul rămâne inspectabil |
 
-[Refactorizarea lifecycle-ului](../docs/feedback/ATF_Reporting_Feedback.md#report-scope-atomicity-11--refuz-fără-mutație-parțială)
-urmărește aceeași decizie de stare înaintea mutației, cu probe la porturile publice
-Extent/fallback și cu contract explicit pentru `complete` și `close`.
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
+flowchart LR
+    Caller["Apel"] -->|validează| Decision["Decizie semantică"]
+    Decision -->|acceptă| State["Stare"]
+    State -->|proiectează| Renderer["Extent / fallback"]
+    Decision -->|refuză| Intact["Stare intactă"]
+```
+
+<details>
+<summary><strong>Legendă — lifecycle validat înaintea efectelor</strong></summary>
+
+- Refuzul de protocol nu creează noduri, evidence, statusuri sau evenimente parțiale.
+- Închiderea implicită FAIL păstrează verdictul sigur al unui scope incomplet;
+  închiderea copiilor este explicită, fără rollback ori retry ascuns în renderer.
+- Consola este best-effort în ambele renderere; eroarea diagnostică nu întrerupe
+  tranziția și nu schimbă verdictul. Erorile reale de publicare își păstrează cauza.
+- `ReportScopeAtomicityComponentTest` verifică porturile publice, mutațiile tardive,
+  request-urile imbricate, refuzul recuperabil, sesiunea închisă și notificarea unică.
+
+</details>
 
 ## Proiecția sigură a aserțiunilor
 
@@ -1518,6 +1559,7 @@ flowchart LR
     Timing -->|proiectează| Phase["Fază"]
     Phase -->|însumează| Scenario["Totaluri"]
     Publication["Publicare"] -->|explică| Detail["Tooltip"]
+    Capture["Capturi"] -->|explică| Detail
 ```
 
 <details>
@@ -1539,6 +1581,8 @@ flowchart LR
   nu apare un eveniment public suplimentar sau request HTTP fictiv.
 - Publicarea este măsurată separat la nivel de fază; nu include flush-ul final
   al sesiunii. Console lifecycle continuă să descrie scope-ul publicării.
+- Capturile UI instrumentate au măsurare proprie; timpul lor nu se adaugă
+  execuției și nu este folosit ca latență HTTP.
 - `ReportPhaseTimingComponentTest` verifică paritatea semantică, Tests/Overview,
   valorile zero, totalurile fără dublare și redeschiderea cu tastatura.
 
@@ -1552,22 +1596,47 @@ probei, fără cerință deschisă de redactare pentru aceste date de test.
 
 Mascarea existentă a acțiunilor UI și plafonul 240 al aserțiunilor se păstrează.
 
-### Limita timing-ului E2E fără metadata explicită
+### Timing E2E la ownerul runtime
 
-Journey-urile E2E AutoEx și Shop nu furnizează încă `ReportPhaseTiming` prin
-fațada `UiPhase`. Agregarea lor curentă păstrează dovezile publicate, fără a
-certifica intervalul integral de execuție al fazei.
+`UiPhase.executionTiming(...)` propagă o valoare deja măsurată;
+`UiPhase.measureExecution()` deschide măsurarea explicită deținută de runtime.
+Cele două opțiuni sunt exclusive pentru aceeași fază.
 
-| Sursă | Semnificație în raport |
+`UiExtentReportSession.adaptScenario(...)` compune aceeași fațadă UI peste
+un port de scenariu Extent sau fallback. Hostul păstrează ownership-ul sesiunii
+și al flush-ului; profilul și izolarea scenariilor rămân explicite.
+
+| Interval | Ce măsoară și unde se închide |
 |---|---|
-| `execution` | timing typed furnizat explicit; folosit de componente |
-| `aggregated` fără timing typed | agregarea acțiunilor, transportului și nodurilor eligibile; nu este timpul total al journey-ului |
-| `data-atf-measured-duration-ms` | intervalul nativ al nodului Extent, păstrat separat; poate include publicarea |
-| durată HTTP necapturată | rămâne necunoscută; durata publicării nu dovedește latența request-ului |
+| execuție | timp monoton între deschiderea fazei și completare, fără capturile/publicarea instrumentate |
+| capturi | `UiPhaseExecution.capture(...)`; inclusiv captura eșuată, distinct de latența HTTP |
+| publicarea dovezilor | publisherii UI, flow-ul amânat și proiecția fazei până la snapshot; nu se adaugă peste execuție |
+| cleanup și resurse | runtime-ul oprește execuția înaintea cleanup-ului final și eliberării browserului |
+| flush HTML | sesiunea îl finalizează separat; nu intră în execuție sau în costul publicării înainte de snapshot |
+| sursă legacy fără timing | rămâne `aggregated`; timpul necunoscut nu devine zero măsurat |
 
-Tests, Category și Overview proiectează aceeași agregare; expandarea nu trebuie
-să o schimbe. Adoptarea timing-ului explicit E2E este cerință deschisă în
-[feedback-ul Reporting](../docs/feedback/ATF_Reporting_Feedback.md).
+AutoEx oprește TEST BODY înaintea lifecycle-ului final; Shop măsoară SETUP și
+TEST BODY distinct și nu inventează un body pentru setup incomplet. Capturile
+ambilor consumeri trec prin același boundary reutilizabil Reporting, fără JUnit
+sau dependență Test Kit în runtime-ul main.
+
+<details>
+<summary><strong>Metadate, totaluri și probe</strong></summary>
+
+- `ReportPhaseTiming` păstrează execuția, numărul intervalelor și opțional
+  `ReportPhaseEvidenceTiming`; constructorul legacy cu două argumente rămâne compatibil.
+- `data-atf-execution-duration-ms`, `data-atf-capture-duration-ms` și
+  `data-atf-publication-duration-ms` descriu surse distincte; captura absentă ca
+  măsurare nu este publicată ca zero cunoscut.
+- Tests, Category și Overview folosesc execuția typed o singură dată. Expandarea,
+  timestamp-urile native Extent și publicarea în faza terminală nu o înlocuiesc.
+- `UiPhaseExecutionTest` păstrează cauza primară și probează ceasul controlat;
+  `UiPhaseTimingLifecycleComponentTest` verifică succes/FAIL/SKIP, setup incomplet,
+  teardown eșuat și flow unificat peste faze în Extent/fallback.
+- Timing-ul componentelor rămâne la adaptorul Kit; durata HTTP necapturată
+  rămâne necunoscută. Totalurile cumulative nu reprezintă wall-clock-ul suitei.
+
+</details>
 
 ### Sesiunea comună a componentelor
 

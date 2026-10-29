@@ -1,5 +1,7 @@
 package atf.shop.support.api;
 
+import atf.shop.support.validation.ShopOrderExpectation;
+
 import atf.core.config.ApiTransportMode;
 import atf.core.http.response.ApiBodyEvidence;
 import atf.reporting.contract.AtfAssertion;
@@ -283,14 +285,15 @@ public final class ShopApiNetworkJournal {
      * click. A stale order response from an earlier attempt can never satisfy
      * the current confirmation checkpoint.
      */
-    public List<AtfAssertion> orderCreated(long afterSequence, String uiConfirmation) {
+    public List<AtfAssertion> orderCreated(long afterSequence, String uiConfirmation,
+                                          ShopOrderExpectation expectedOrder) {
         if (!enabled(ShopApiCheckpoint.ORDER)) return List.of();
         Exchange order = ShopApiExchangeSelector.latestOptional(
                 exchanges, ShopApiOperation.ORDER_CREATE,
                 exchange -> ShopApiHttpStatus.isSuccess(exchange.status())
                         && exchange.sequence() > afterSequence);
         if (order != null) store(ShopApiCheckpoint.ORDER, List.of(toEvidence(order)));
-        return ShopApiAssertions.order(order, uiConfirmation);
+        return ShopApiAssertions.order(order, uiConfirmation, expectedOrder);
     }
 
     public List<Exchange> exchanges() { return List.copyOf(exchanges); }

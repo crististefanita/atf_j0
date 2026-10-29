@@ -33,7 +33,7 @@ final class HtmlReportSemanticSnapshotMapper {
                     request.executions, request.children.stream()
                             .map(HtmlReportSemanticSnapshotMapper::mapNode).toList(),
                     request.status, request.uiActionCount, request.screenshotCount,
-                    request.networkAggregate);
+                    request.networkAggregate, request.uiEvidence());
         }
         var validation = (HtmlReportSemanticDocument.ValidationModel) node;
         return new ReportExecutionModel.Validation(validation.title, validation.assertions,

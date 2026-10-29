@@ -22,7 +22,6 @@ final class HtmlReportAssertionStepScope implements AtfReportPorts.AssertionStep
     private final Consumer<AtfReportStatus> onComplete;
     private final long startedAt = System.nanoTime();
     private List<AtfAssertion> rows = List.of();
-    private boolean completed;
 
     HtmlReportAssertionStepScope(HtmlReportSemanticDocument.AssertionStepModel model, String title,
                                   AtfReportSemanticRecorder.AssertionStepHandle semantic,
@@ -45,16 +44,13 @@ final class HtmlReportAssertionStepScope implements AtfReportPorts.AssertionStep
     @Override public void complete(AtfReportStatus status) {
         ensureOpen();
         AtfReportStatus effective = new ReportStatusAggregator().resolve(status, rows);
-        model.complete(effective);
         semantic.complete(effective);
+        model.complete(effective);
         onComplete.accept(effective);
         console.publish(AtfConsoleEvent.completed(AtfConsoleEvent.Scope.VALIDATION,
                 title, effective, HtmlReportScopeTiming.elapsedMillis(startedAt)));
-        completed = true;
     }
 
-    @Override public void close() { completed = true; }
-    private void ensureOpen() {
-        if (completed) throw new IllegalStateException("Assertion step is already complete");
-    }
+    @Override public void close() { if (!semantic.isComplete()) complete(AtfReportStatus.FAIL); }
+    private void ensureOpen() { semantic.ensureOpen(); }
 }

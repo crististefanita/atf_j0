@@ -76,7 +76,7 @@ public final class ExtentReportTree {
         this.evidence = new ExtentEvidenceRenderer(settings, redactor, detailsMode);
         this.defaultDetailsMode = detailsMode;
         this.ensureSessionOpen = ensureSessionOpen;
-        this.console = console == null ? AtfConsoleSink.noOp() : console;
+        this.console = AtfConsoleSink.bestEffort(console);
         this.startProbe = startProbe;
     }
 
@@ -289,11 +289,7 @@ public final class ExtentReportTree {
     }
 
     private void publishConsoleSafely(AtfConsoleEvent event) {
-        try {
-            console.publish(event);
-        } catch (RuntimeException ignored) {
-            // Console output is diagnostic; it must not interrupt report lifecycle or verdicts.
-        }
+        console.publish(event);
     }
 
 }

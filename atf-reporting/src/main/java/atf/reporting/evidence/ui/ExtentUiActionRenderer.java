@@ -1,4 +1,5 @@
 package atf.reporting.evidence.ui;
+import atf.reporting.evidence.policy.UiActionScreenshotPolicy;
 
 import atf.reporting.configuration.ReportingSettings;
 import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
@@ -57,11 +58,7 @@ public final class ExtentUiActionRenderer {
     public String markup(List<AtfUiActionRecord> actions, List<ReportScreenshot> screenshots) {
         if (actions == null || actions.isEmpty()) return "";
         List<ReportScreenshot> distinctScreenshots = ExtentReportAssets.distinctScreenshotModels(screenshots);
-        if (distinctScreenshots.size() > 1) {
-            throw new IllegalStateException(
-                    "A UI action sequence supports at most one Base64 screenshot; found "
-                            + distinctScreenshots.size());
-        }
+        UiActionScreenshotPolicy.validate(actions, distinctScreenshots);
         StringBuilder html = actionDisclosure(actions);
         for (ReportScreenshot screenshot : distinctScreenshots) {
             html.append(open(AtfReportHtmlVocabulary.Tag.DIV,

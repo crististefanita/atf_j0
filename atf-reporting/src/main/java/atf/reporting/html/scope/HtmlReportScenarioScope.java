@@ -16,7 +16,6 @@ public final class HtmlReportScenarioScope implements AtfReportPorts.Scenario {
     private final AtfConsoleSink console;
     private final ReportStatusAggregator phaseStatuses = new ReportStatusAggregator();
     private final long startedAt = System.nanoTime();
-    private boolean closed;
 
     public HtmlReportScenarioScope(HtmlReportSemanticDocument.ScenarioModel model,
                                    String consoleName,
@@ -36,18 +35,20 @@ public final class HtmlReportScenarioScope implements AtfReportPorts.Scenario {
     @Override
     public AtfReportPorts.Phase startPhase(String name) {
         ensureOpen();
-        var phase = model.addPhase(name);
         String phaseName = name == null ? "" : name;
+        var handle = semantic.startPhase(phaseName);
+        var phase = model.addPhase(name);
         console.publish(AtfConsoleEvent.started(AtfConsoleEvent.Scope.PHASE, phaseName));
         return new HtmlReportPhaseScope(phase, phaseName,
-                semantic.startPhase(phaseName), console, phaseStatuses::record);
+                handle, console, phaseStatuses::record);
     }
 
     @Override
     public void complete(AtfReportStatus status) {
+        ensureOpen();
         AtfReportStatus effective = phaseStatuses.resolve(status);
-        model.complete(effective);
         semantic.complete(effective);
+        model.complete(effective);
         console.publish(AtfConsoleEvent.completed(AtfConsoleEvent.Scope.SCENARIO,
                 consoleName, effective, HtmlReportScopeTiming.elapsedMillis(startedAt)));
     }
@@ -57,14 +58,7 @@ public final class HtmlReportScenarioScope implements AtfReportPorts.Scenario {
         return model.hasWarnings();
     }
 
-    @Override
-    public void close() {
-        closed = true;
-    }
+    @Override public void close() { if (!semantic.isComplete()) complete(AtfReportStatus.FAIL); }
 
-    private void ensureOpen() {
-        if (closed) {
-            throw new IllegalStateException("Scenario is closed");
-        }
-    }
+    private void ensureOpen() { semantic.ensureOpen(); }
 }

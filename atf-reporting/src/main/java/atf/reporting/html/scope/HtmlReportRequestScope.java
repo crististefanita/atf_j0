@@ -1,4 +1,8 @@
 package atf.reporting.html.scope;
+import atf.reporting.model.ReportScreenshot;
+import java.util.ArrayList;
+import atf.reporting.evidence.policy.UiActionScreenshotPolicy;
+import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
 
 import atf.reporting.model.ReportExecutionEvidence;
 import atf.reporting.model.ReportJsonBody;
@@ -12,6 +16,7 @@ import atf.reporting.html.HtmlReportSemanticDocument;
 import atf.reporting.semantic.AtfReportSemanticRecorder;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -24,7 +29,6 @@ public final class HtmlReportRequestScope implements AtfReportPorts.Request {
     private final Consumer<AtfReportStatus> onComplete;
     private ReportNetworkInspector.JourneyAggregate networkAggregate;
     private final long startedAt = System.nanoTime();
-    private boolean closed;
 
     public HtmlReportRequestScope(HtmlReportSemanticDocument.RequestModel model,
                                   String consoleName,
@@ -47,30 +51,36 @@ public final class HtmlReportRequestScope implements AtfReportPorts.Request {
 
     @Override
     public void detail(String name, String value) {
-        model.addDetail(name, value);
+        ensureOpen();
         semantic.detail(name);
+        model.addDetail(name, value);
     }
 
     @Override
     public void json(String label, String json) {
-        model.addJson(label, json);
-        semantic.json(label);
+        ensureOpen();
+        var body = new ReportJsonBody(label, json);
+        semantic.json(body.label());
+        model.addBody(body);
     }
 
     @Override
     public void body(ReportJsonBody body) {
-        model.addBody(body);
+        ensureOpen();
+        Objects.requireNonNull(body, "body");
         semantic.json(body.label());
+        model.addBody(body);
     }
 
     @Override
     public void execution(ReportExecutionEvidence result) {
-        model.execution(result);
-        semantic.execution();
+        ensureOpen();
+        if (result != null) { semantic.execution(); model.execution(result); }
     }
 
     @Override
     public void networkAggregate(ReportNetworkInspector.JourneyAggregate aggregate) {
+        ensureOpen();
         networkAggregate = aggregate;
         if (aggregate != null) semantic.detail("network.aggregate");
         model.networkAggregate(aggregate);
@@ -78,44 +88,54 @@ public final class HtmlReportRequestScope implements AtfReportPorts.Request {
 
     @Override
     public void screenshot(String title, String base64Png) {
-        model.addScreenshot();
+        ensureOpen();
+        if (base64Png == null || base64Png.isBlank()) throw new IllegalArgumentException("base64Png must not be blank");
+        var current = model.uiEvidence();
+        var candidate = new ArrayList<>(current.screenshots()); candidate.add(new ReportScreenshot(title, base64Png));
+        UiActionScreenshotPolicy.validate(current.actions(), candidate);
         semantic.screenshot();
+        model.addScreenshot(title, base64Png);
     }
 
     @Override
     public void uiActions(Collection<AtfUiActionRecord> actions) {
-        model.addUiActions(actions);
-        semantic.uiActions(actions);
+        ensureOpen();
+        var stable = actions == null ? List.<AtfUiActionRecord>of() : List.copyOf(actions);
+        var current = model.uiEvidence(); var candidate = new ArrayList<>(current.actions()); candidate.addAll(stable);
+        UiActionScreenshotPolicy.validate(candidate, current.screenshots());
+        semantic.uiActions(stable);
+        model.addUiActions(stable);
+    }
+
+    @Override public void uiActionDetailsMode(ReportUiActionDetailsMode mode) {
+        ensureOpen(); model.uiActionDetailsMode(mode);
     }
 
     @Override
     public AtfReportPorts.Validation startValidation(String title) {
         ensureOpen();
-        var validation = model.addValidation(title);
         String validationName = title == null ? "Validation" : title;
+        var handle = semantic.startValidation(validationName);
+        var validation = model.addValidation(validationName);
         console.publish(AtfConsoleEvent.started(AtfConsoleEvent.Scope.VALIDATION, validationName));
         return new HtmlReportValidationScope(validation, validationName,
-                semantic.startValidation(validationName), console);
+                handle, console);
     }
 
     @Override
     public void complete(AtfReportStatus status) {
+        ensureOpen();
+        var current = model.uiEvidence();
+        UiActionScreenshotPolicy.validate(current.actions(), current.screenshots());
+        semantic.complete(status);
         model.complete(status);
         AtfReportStatus effective = model.status();
-        semantic.complete(effective);
         console.publish(AtfConsoleEvent.completed(AtfConsoleEvent.Scope.REQUEST,
                 consoleName, effective, HtmlReportScopeTiming.elapsedMillis(startedAt)));
         onComplete.accept(effective);
     }
 
-    @Override
-    public void close() {
-        closed = true;
-    }
+    @Override public void close() { if (!semantic.isComplete()) complete(AtfReportStatus.FAIL); }
 
-    private void ensureOpen() {
-        if (closed) {
-            throw new IllegalStateException("Request is closed");
-        }
-    }
+    private void ensureOpen() { semantic.ensureOpen(); }
 }

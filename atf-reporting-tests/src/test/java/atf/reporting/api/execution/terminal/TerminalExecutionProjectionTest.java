@@ -1,5 +1,7 @@
 package atf.reporting.api.execution.terminal;
 
+import atf.core.http.response.ApiExecutionResult;
+
 import atf.core.http.execution.ApiExecutor;
 import atf.core.http.execution.evidence.ApiExecutionFailure;
 import atf.core.http.request.ApiRequest;
@@ -36,7 +38,7 @@ class TerminalExecutionProjectionTest {
         assertEquals(List.of("503", "Unavailable"), adapted.attemptHistory().stream().map(ReportAttemptRecord::statusLabel).toList());
         assertEquals("Unavailable", new ReportAttemptRecord(1, 0, Duration.ZERO, "RETRYABLE_FAILURE", "").statusLabel());
         assertThrows(IllegalArgumentException.class, () -> ReportModelAdapters.partialExecution(
-                new atf.core.http.response.ApiExecutionResult(new ApiResponse(200, "", Map.of(), Duration.ZERO, ""), 1, Duration.ZERO, List.of())));
+                new ApiExecutionResult(new ApiResponse(200, "", Map.of(), Duration.ZERO, ""), 1, Duration.ZERO, List.of())));
     }
 
     @Test void terminationIsTypedImmutableAndUsesTheConfiguredDiagnosticBudget() {

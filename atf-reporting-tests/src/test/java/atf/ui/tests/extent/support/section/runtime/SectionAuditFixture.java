@@ -1,4 +1,6 @@
 package atf.ui.tests.extent.support.section.runtime;
+
+import atf.ui.tests.extent.support.locators.ReportUiLocators;
 import atf.ui.tests.extent.support.audit.api.ApiReportContractValidation;
 import atf.ui.tests.extent.support.audit.mock.MockReportContractAuditor;
 import atf.ui.tests.extent.support.api.ApiReportExplorationFlow;
@@ -64,7 +66,7 @@ public final class SectionAuditFixture implements AutoCloseable {
         UiAuditFlow audit = new UiAuditFlow(context, configuration, owner.getSimpleName(),
                 owner.getPackageName(), tags, UiAuditGherkin.reportReady(spec.source()),
                 "Extent section audit failed", spec.sections().toString());
-        var locators = new atf.ui.tests.extent.support.locators.ReportUiLocators();
+        var locators = new ReportUiLocators();
         return new SectionAuditFixture(spec, setup, source, context, audit,
                 new ApiReportUiFlow(audit, locators),
                 new ApiReportExplorationFlow(audit, locators));

@@ -5,6 +5,8 @@ import atf.shop.config.ShopScreen;
 import atf.shop.locators.ShopControl;
 import atf.shop.locators.ShopLocators;
 import atf.shop.support.ShopPageContract;
+import atf.shop.support.validation.ShopOrderExpectation;
+import atf.shop.support.validation.ShopProductAvailability;
 import atf.shop.routes.ShopUiRoutes;
 import com.microsoft.playwright.Page;
 
@@ -29,15 +31,23 @@ public final class ShopProductPage {
         actions.assertVisible(locators.productPrice(page));
         actions.assertVisible(locators.productDescription(page));
         actions.assertVisible(locators.productQuantity(page));
-        actions.waitForEnabled(page, locators.productQuantity(page),
-                "product quantity is enabled after product data is ready");
+        actions.waitForVisible(locators.productAvailability(page));
         actions.assertVisible(locators.addToCart(page));
         return productName;
     }
 
+    public ShopOrderExpectation orderExpectation(int quantity) {
+        return ShopOrderExpectation.fromUi(actions.getText(locators.productPrice(page),
+                "unit price is captured before adding the configured quantity"), quantity);
+    }
+
     public void addConfiguredQuantity(int quantity) {
+        if (quantity < 1) throw new IllegalArgumentException("quantity must be positive");
+        actions.waitForVisible(locators.productAvailability(page));
+        ShopProductAvailability.observe(page, locators).requirePurchasable();
         actions.fill(locators.productQuantity(page), Integer.toString(quantity),
                 "configured product quantity is set");
+        actions.expectValue(locators.productQuantity(page), Integer.toString(quantity));
         actions.click(locators.addToCart(page), "configured product is added to the cart");
         actions.waitForText(page, locators.pageBody(page), "Product added to shopping cart",
                 "cart addition is acknowledged by the shop");

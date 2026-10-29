@@ -17,7 +17,6 @@ public final class ExtentScenarioScope implements AtfReportPorts.Scenario {
     private final String className;
     private final ReportStatusAggregator statuses = new ReportStatusAggregator();
     private final AtfReportSemanticRecorder.ScenarioHandle semantic;
-    private boolean closed;
 
     public ExtentScenarioScope(ExtentReportTree tree, ExtentTest test, String className,
                                AtfReportSemanticRecorder.ScenarioHandle semantic) {
@@ -48,14 +47,13 @@ public final class ExtentScenarioScope implements AtfReportPorts.Scenario {
     @Override public void complete(AtfReportStatus status) {
         ensureScenarioOpen();
         var effective = statuses.resolve(status);
+        semantic.complete(effective);
         tree.complete(test, effective);
         tree.markEnded(test);
         tree.markEnded(tree.classRoot(className));
         tree.recordClassStatus(className, effective);
-        semantic.complete(effective);
         tree.consoleCompleted(AtfConsoleEvent.Scope.SCENARIO,
                 className + " :: " + test.getModel().getName(), effective, test);
-        closed = true;
     }
 
     @Override public boolean hasWarnings() { return statuses.hasWarnings(); }
@@ -65,10 +63,10 @@ public final class ExtentScenarioScope implements AtfReportPorts.Scenario {
         ensureScenarioOpen();
         tree.renderPhaseDiagnostics(test, diagnostics);
     }
-    @Override public void close() { closed = true; }
+    @Override public void close() { if (!semantic.isComplete()) complete(AtfReportStatus.FAIL); }
 
     private void ensureScenarioOpen() {
         tree.ensureOpen();
-        if (closed) throw new IllegalStateException("Scenario is closed");
+        semantic.ensureOpen();
     }
 }

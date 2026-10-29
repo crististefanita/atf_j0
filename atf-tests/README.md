@@ -92,8 +92,7 @@ testelor de reporting în acest modul:
   inclusiv `atf-test-practice-shop`, `atf-test-kit` și `atf-reporting-tests`;
   pragul este de maximum opt clase, iar diagnosticul identifică modulul,
   package-ul și clasele concrete pentru orice hotspot nou sau excepție stale;
-- `AtfSourceReadabilityGovernanceTest` — importuri duplicate și invocații
-  fully-qualified care ascund intenția testului;
+- `AtfSourceReadabilityGovernanceTest` — importuri duplicate în sursele Maven main/test și invocații ATF complet calificate în reporting tests; comentariile și literalii sunt excluși lexical;
 - `layers.AtfTestLayerArchitectureTest` — inventariază rădăcinile `sourceDirectory` și `testSourceDirectory` din POM (cu default Maven), apoi verifică nivelul fiecărei clase executabile; fixture-urile imbricate nu schimbă nivelul clasei exterioare;
 - `layers.ConsumerSuiteCoverageGovernanceTest` — exact trei suite principale per consumer, fără clase omise, selecții suprapuse sau amestec local/E2E/API live; citește declarația ownerului și selectorii executabili, fără comentarii ori fixture-uri nested promovate la gate. Probează și scope-ul explicit al rapoartelor componentelor;
 - `consumers.ConsumerModuleArchitectureGovernanceTest` și `ConsumerAuditSourceGraphTest` — resolver comun de adnotări pentru audit/layer, alias-uri, moștenire și helperi importați; comentariile, literalii și fixture-urile nested nu exclud ownerul executabil. Analiza sursei nu înlocuiește proba launcher/raport;
@@ -163,6 +162,40 @@ repository; păstrează doar boundary-ul API/UI propriu compoziției reporting.
 
 </details>
 
+## Inventarul comun al surselor Java
+
+`layers.AtfJavaSourceInventory` este suport de test în `atf-tests`, folosit
+de guvernanța nivelurilor și a lizibilității. Citește aceleași rădăcini pentru
+fiecare POM, inclusiv `src/main` și `src/test` din Shop.
+
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
+flowchart LR
+    Pom["POM + defaults"] -->|determină| Roots["Inventar"]
+    Roots -->|alimentează| Scan["Guard-uri"]
+    Scan -->|identifică| Result["Diagnostic"]
+```
+
+<details>
+<summary><strong>Legendă — inventarul implementat al surselor</strong></summary>
+
+- POM + defaults: declarațiile directe `build/sourceDirectory` și
+  `build/testSourceDirectory`, cu valorile implicite Maven când lipsesc.
+- Inventar: fișiere Java distincte și ordonate, chiar când rădăcinile se suprapun.
+- Guard-uri: aceleași surse pentru arhitectură și importuri duplicate.
+- Diagnostic: fișierul/regula ori POM-ul care declară o rădăcină invalidă.
+
+</details>
+
+- Output-urile `target`, `artifacts`, `.tmp` și `.git` sunt excluse.
+  O rădăcină goală, ieșită din modul, nesigură sau cu expresie Maven
+  nerezolvată produce diagnostic, fără omisiune tăcută.
+- Inventarul citește căile literale din POM; nu înlocuiește effective POM,
+  moștenirea ori activarea profilelor Maven. Comentariile XML nu declară rădăcini.
+- Guard-ul expresiilor rămâne limitat la reporting tests și păstrează cele
+  trei adaptoare revizuite. Detectează namespace-urile ATF actuale și legacy,
+  constructori și apeluri pe mai multe linii, fără exemplele din comentarii/literale.
+
 ## Guvernanța schimbării testelor
 
 Testele din modulele ATF se schimbă prin controale tehnice structurate, legate
@@ -194,7 +227,7 @@ cererea fixează SHA-ul rezolvat, nu un ref mobil.
 
 | Informație | Owner documentar | Conținut |
 |---|---|---|
-| Cerință funcțională | feedback-ul domeniului, de exemplu [Reporting](../docs/feedback/ATF_Reporting_Feedback.md) | lacună observabilă, responsabil, criteriu și dovadă lipsă |
+| Cerință funcțională | feedback-ul domeniului, de exemplu [Consumer](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md) | lacună observabilă, responsabil, criteriu și dovadă lipsă |
 | Control tehnic activ | documentul feedback al ownerului din [`docs/feedback`](../docs/feedback/README.md) | numai intrări `ACTIVE` pentru diff-uri în lucru, alături de cerința pe care o autorizează |
 | Control tehnic verificat | [Registrul verificat](../docs/ATF_Test_Changes_Baseline.md) | context business, roluri, lifecycle și intrări `VERIFIED` colapsate |
 | Comportament stabil | README-ul sau contractul ownerului | regula implementată și demonstrată |

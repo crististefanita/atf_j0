@@ -1,4 +1,6 @@
 package atf.ui.tests.extent.support.inspection.failure;
+
+import atf.ui.tests.extent.support.api.ApiReportUiFlow;
 import atf.reporting.ui.contract.ReportUiContract;
 import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
 
@@ -50,7 +52,7 @@ public final class FailureFlowInspector {
 
         if (lifecycleOwnerPresent) {
             auditFlow.openTab(ReportUiContract.Tab.TESTS.hash());
-            new atf.ui.tests.extent.support.api.ApiReportUiFlow(auditFlow, locators)
+            new ApiReportUiFlow(auditFlow, locators)
                     .openOwner(testsPage, expectedOwner);
         }
         CollapsedState initialState = collapsedState(testsPage);

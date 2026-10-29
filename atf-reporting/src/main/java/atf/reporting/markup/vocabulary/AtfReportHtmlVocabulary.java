@@ -252,6 +252,7 @@ public final class AtfReportHtmlVocabulary {
         EXECUTION_NANOS("data-atf-execution-duration-nanos"),
         EXECUTION_INTERVALS("data-atf-execution-intervals"),
         PUBLICATION_DURATION("data-atf-publication-duration-ms"),
+        CAPTURE_DURATION("data-atf-capture-duration-ms"),
         DURATION("data-duration-ms"),
         DURATION_SOURCE("data-duration-source"),
         HIDDEN("hidden"),

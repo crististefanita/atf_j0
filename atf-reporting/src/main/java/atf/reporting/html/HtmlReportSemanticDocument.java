@@ -1,4 +1,5 @@
 package atf.reporting.html;
+import atf.reporting.model.evidence.ReportRequestUiEvidence;
 import atf.reporting.api.ReportModelAdapters;
 import atf.reporting.contract.evidence.ReportEvidenceOwner;
 import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
@@ -163,6 +164,11 @@ public final class HtmlReportSemanticDocument {
         final List<NodeModel> children = new ArrayList<>();
         final List<ReportExecutionEvidence> executions = new ArrayList<>();
         ReportNetworkInspector.JourneyAggregate networkAggregate;
+        final List<AtfUiActionRecord> uiActions = new ArrayList<>();
+        final List<ReportScreenshot> screenshots = new ArrayList<>();
+        ReportUiActionDetailsMode actionDetailsMode = ReportUiActionDetailsMode.INCLUDED_COLLAPSED;
+        public ReportRequestUiEvidence uiEvidence() { return new ReportRequestUiEvidence(uiActions, screenshots, actionDetailsMode); }
+        public void uiActionDetailsMode(ReportUiActionDetailsMode mode) { actionDetailsMode = Objects.requireNonNull(mode, "mode"); }
         int uiActionCount;
         int screenshotCount;
         AtfReportStatus status = AtfReportStatus.INFO;
@@ -218,7 +224,14 @@ public final class HtmlReportSemanticDocument {
         }
 
         public void addUiActions(Collection<AtfUiActionRecord> actions) {
-            uiActionCount += actions == null ? 0 : actions.size();
+            var stable = actions == null ? List.<AtfUiActionRecord>of() : List.copyOf(actions);
+            uiActions.addAll(stable);
+            uiActionCount += stable.size();
+        }
+
+        public void addScreenshot(String title, String base64Png) {
+            screenshots.add(new ReportScreenshot(title, base64Png));
+            screenshotCount++;
         }
 
         public void addScreenshot() {

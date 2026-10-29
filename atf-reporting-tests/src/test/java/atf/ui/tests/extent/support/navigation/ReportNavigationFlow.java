@@ -1,4 +1,6 @@
 package atf.ui.tests.extent.support.navigation;
+
+import atf.ui.tests.extent.support.section.extract.OverviewSectionExtractor;
 import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.audit.ReportAuditChecks;
 import atf.reporting.ui.contract.ReportUiContract;
@@ -113,7 +115,7 @@ public final class ReportNavigationFlow {
         CategorySnapshot category = inspectFirstCategory(categories);
         Page overview = auditFlow.openTabContinuing(ReportUiContract.Tab.OVERVIEW.hash());
         ReportAuditSnapshot.Overview overviewSnapshot =
-                new atf.ui.tests.extent.support.section.extract.OverviewSectionExtractor(locators)
+                new OverviewSectionExtractor(locators)
                         .inspect(overview, true);
         return new NavigationSnapshot(overview, baseline, passSelected, passScenarioCount,
                 combinedScenarioCount, activeTagCount, tagSelectionSteps, tagCombinationValid,

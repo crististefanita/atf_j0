@@ -14,6 +14,8 @@ import atf.shop.support.ShopPurchaseCheckpoint;
 import atf.shop.support.ShopPurchaseTraceStep;
 import atf.shop.support.api.validation.ShopApiValidationResult;
 import atf.shop.support.validation.ShopPageValidationResult;
+import atf.shop.support.validation.ShopOrderExpectation;
+import atf.shop.support.validation.ShopPurchaseConfirmation;
 
 import java.util.List;
 import java.util.Map;
@@ -25,10 +27,13 @@ import static atf.reporting.audit.ReportAuditChecks.check;
 final class ShopCheckoutPurchaseStage implements ShopCheckoutFlow.Port {
     private final ShopPurchaseJourneyContext.CheckoutInputs context;
     private final long cartAdditionFence;
+    private final ShopOrderExpectation expectedOrder;
 
-    ShopCheckoutPurchaseStage(ShopPurchaseJourneyContext.CheckoutInputs context, long cartAdditionFence) {
+    ShopCheckoutPurchaseStage(ShopPurchaseJourneyContext.CheckoutInputs context, long cartAdditionFence,
+                              ShopOrderExpectation expectedOrder) {
         this.context = Objects.requireNonNull(context, "context");
         this.cartAdditionFence = cartAdditionFence;
+        this.expectedOrder = Objects.requireNonNull(expectedOrder, "expectedOrder");
     }
 
     @Override
@@ -38,6 +43,7 @@ final class ShopCheckoutPurchaseStage implements ShopCheckoutFlow.Port {
         ShopCartPage cart = new ShopCartPage(page, context.locators(), context.actions());
         cart.open(context.cartUrl());
         ShopCartPage.CartLine line = cart.assertConfiguredLine(context.productName(), checkout.quantity());
+        ShopCartPage.CartAmounts amounts = cart.amounts();
         var cartApiAssertions = context.apiNetwork().cartReady(cartAdditionFence, checkout.quantity());
         var cartApiValidation = ShopApiValidationResult.cart(
                 context.apiNetwork().evidence(ShopApiCheckpoint.CART), cartApiAssertions)
@@ -50,7 +56,13 @@ final class ShopCheckoutPurchaseStage implements ShopCheckoutFlow.Port {
                         check("Cart product", context.productName(), line.productName(),
                                 line.productName().contains(context.productName())),
                         check("Cart quantity", Integer.toString(checkout.quantity()), line.quantity(),
-                                Integer.toString(checkout.quantity()).equals(line.quantity()))),
+                                Integer.toString(checkout.quantity()).equals(line.quantity())),
+                        check("Cart unit price", expectedOrder.unitPrice().toPlainString(), amounts.unitPrice(),
+                                expectedOrder.matchesDisplayedUnitPrice(amounts.unitPrice())),
+                        check("Cart line total", expectedOrder.total().toPlainString(), amounts.lineTotal(),
+                                expectedOrder.matchesDisplayedTotal(amounts.lineTotal())),
+                        check("Cart total", expectedOrder.total().toPlainString(), amounts.total(),
+                                expectedOrder.matchesDisplayedTotal(amounts.total()))),
                 List.of())
                 .withAdditionalAssertions(context.purchaseScreenValidator().cart(page))
                 .withApiValidation(cartApiValidation);
@@ -155,14 +167,14 @@ final class ShopCheckoutPurchaseStage implements ShopCheckoutFlow.Port {
         var confirmationPage = new ShopConfirmationPage(page, context.locators(), context.actions());
         long sequenceFence = context.apiNetwork().sequenceMarker();
         String confirmation = confirmationPage.confirmOrder();
-        var apiAssertions = context.apiNetwork().orderCreated(sequenceFence, confirmation);
+        var apiAssertions = context.apiNetwork().orderCreated(sequenceFence, confirmation, expectedOrder);
         var apiValidation = ShopApiValidationResult.order(
                 context.apiNetwork().evidence(ShopApiCheckpoint.ORDER), apiAssertions).reportingEvidence();
         var checkpoint = context.checkpoint(ShopPurchaseTraceStep.ORDER_CONFIRMATION,
                 context.pageValidator().validate(page, ShopConfirmationPage.class),
                 List.of(check("Order confirmation", "Thanks for your order! and invoice number",
                         confirmation, confirmation.contains("Thanks for your order!")
-                                && confirmation.contains("INV-"))), List.of())
+                                && !ShopPurchaseConfirmation.invoiceNumber(confirmation).isBlank())), List.of())
                 .withAdditionalAssertions(context.purchaseScreenValidator().orderConfirmation(page))
                 .withApiValidation(apiValidation);
         return new ShopCheckoutFlow.Observation<>(confirmation, checkpoint);

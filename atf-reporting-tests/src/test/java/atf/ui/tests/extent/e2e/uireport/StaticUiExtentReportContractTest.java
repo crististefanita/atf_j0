@@ -1,4 +1,6 @@
 package atf.ui.tests.extent.e2e.uireport;
+
+import atf.ui.tests.extent.support.uireport.contract.UiReportInput;
 import atf.testkit.AtfE2eTest;
 import atf.testkit.channel.AtfTestChannel;
 import atf.testkit.channel.TestChannel;
@@ -52,7 +54,7 @@ class StaticUiExtentReportContractTest {
                 : configuration.auditInputReport().orElseGet(
                         () -> UiReportContractInputFactory.create(configuration));
         fixture = UiReportContractFixture.open(getClass(), configuration,
-                new atf.ui.tests.extent.support.uireport.contract.UiReportInput(
+                new UiReportInput(
                         inputReport, ReportArtifactIdentity.read(inputReport)));
     }
 

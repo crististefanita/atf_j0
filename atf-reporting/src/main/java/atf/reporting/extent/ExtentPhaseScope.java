@@ -1,4 +1,6 @@
 package atf.reporting.extent;
+import atf.reporting.duration.AtfDurationFormatter;
+import atf.reporting.model.timing.ReportPhaseTiming;
 import atf.reporting.console.AtfConsoleEvent;
 import atf.reporting.contract.AtfReportPorts;
 import atf.reporting.contract.AtfReportStatus;
@@ -21,8 +23,7 @@ final class ExtentPhaseScope implements AtfReportPorts.Phase {
     private final ReportStatusAggregator statuses = new ReportStatusAggregator();
     private final List<ReportField> details = new ArrayList<>();
     private final AtfReportSemanticRecorder.PhaseHandle semantic;
-    private boolean closed;
-    private atf.reporting.model.timing.ReportPhaseTiming timing;
+    private ReportPhaseTiming timing;
     private final long publicationStarted = System.nanoTime();
 
     ExtentPhaseScope(ExtentReportTree tree, ExtentScenarioScope scenario, ExtentTest phase,
@@ -50,7 +51,7 @@ final class ExtentPhaseScope implements AtfReportPorts.Phase {
                 stepTitle, semantic.startAssertionStep(stepTitle));
     }
 
-    @Override public void executionTiming(atf.reporting.model.timing.ReportPhaseTiming value) {
+    @Override public void executionTiming(ReportPhaseTiming value) {
         ensurePhaseOpen();
         if (timing != null) throw new IllegalStateException("Phase timing is already supplied");
         timing = java.util.Objects.requireNonNull(value, "timing");
@@ -67,28 +68,30 @@ final class ExtentPhaseScope implements AtfReportPorts.Phase {
     }
 
     @Override public void complete(AtfReportStatus status) {
+        long completionStarted = System.nanoTime();
         ensurePhaseOpen();
         var effective = statuses.resolve(status);
+        semantic.complete(effective);
         scenario.renderDiagnostics(ReportPhaseDiagnostic.from(phaseName, details, effective));
         if (timing != null) {
-            long publicationMillis = Math.max(0L, (System.nanoTime() - publicationStarted) / 1_000_000L);
+            long publicationMillis = timing.evidence().map(value -> AtfDurationFormatter.elapsedMillis(
+                    value.publication().plusNanos(System.nanoTime() - completionStarted)))
+                    .orElseGet(() -> Math.max(0L, (System.nanoTime() - publicationStarted) / 1_000_000L));
             phase.info(atf.reporting.evidence.timing.ReportPhaseTimingMarkup.metadata(timing, publicationMillis));
         }
         tree.complete(phase, effective);
         tree.markEnded(phase);
         scenario.record(effective);
-        semantic.complete(effective);
         tree.consoleCompleted(AtfConsoleEvent.Scope.PHASE,
                 phaseName, effective, phase);
-        closed = true;
     }
 
     void record(AtfReportStatus status) { statuses.record(status); }
     ExtentTest node() { return phase; }
-    @Override public void close() { closed = true; }
+    @Override public void close() { if (!semantic.isComplete()) complete(AtfReportStatus.FAIL); }
 
     private void ensurePhaseOpen() {
         tree.ensureOpen();
-        if (closed) throw new IllegalStateException("Phase is closed");
+        semantic.ensureOpen();
     }
 }

@@ -248,6 +248,23 @@ Aceeași strategie se aplică dovezilor API fără a introduce browser:
 Captura vizuală este o variantă de evidence, nu un motiv pentru a duplica rendererul,
 session lifecycle-ul sau testele de status.
 
+### Alegerea dovezii înaintea verdictului
+
+Contractul de corelare separă alegerea observației de evaluarea rezultatului:
+
+- Consumerul leagă operația de invocare, metodă, rută și ordinea capturilor.
+  Un status 4xx/5xx este rezultat de evaluat; nu exclude captura pentru a găsi
+  un răspuns de succes anterior.
+- O evaluare nouă înlocuiește selecția checkpoint-ului, inclusiv cu lista goală.
+  Comparațiile și exchange-ul păstrează aceeași identitate și aceeași fereastră.
+- Absența păstrează comparațiile FAIL și diagnosticul, fără status/body fabricat.
+  Captura observată cu transport eșuat rămâne distinctă de lipsa oricărei capturi.
+- Reporting publică modelul primit; corelarea și refuzul unei dovezi străine
+  aparțin consumerului, fără recitirea serviciului sau repetarea acțiunii.
+
+Aceste reguli sunt cerințe ale boundary-ului; un comparator de valori corect
+nu demonstrează singur că fiecare adaptor selectează dovada potrivită.
+
 ## Unde se aprofundează
 
 | Întrebare | Owner |

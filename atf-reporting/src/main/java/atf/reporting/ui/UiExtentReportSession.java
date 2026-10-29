@@ -1,4 +1,8 @@
 package atf.reporting.ui;
+import java.util.function.LongSupplier;
+import atf.reporting.ui.timing.UiPhaseExecution;
+import atf.reporting.model.timing.ReportPhaseTiming;
+import atf.reporting.contract.AtfReportPorts;
 
 import atf.reporting.ui.network.ReportNetworkInspector;
 import atf.reporting.semantic.AtfReportSemanticSnapshot;
@@ -220,9 +224,13 @@ public final class UiExtentReportSession implements AutoCloseable {
                                     ReportEvidenceProfile scenarioProfile) {
         ReportEvidenceProfile requiredProfile = Objects.requireNonNull(
                 scenarioProfile, "scenarioProfile");
-        return new UiScenario(new UiScenarioLifecycle(
-                delegate.startScenario(testClass, testPackage, scenario, tags),
-                requiredProfile, scenario));
+        return adaptScenario(delegate.startScenario(testClass, testPackage, scenario, tags), requiredProfile, scenario);
+    }
+
+    /** Composes the same UI facade with an explicit renderer-neutral scenario, including a fallback host. */
+    public static UiScenario adaptScenario(AtfReportPorts.Scenario scenario, ReportEvidenceProfile profile, String title) {
+        return new UiScenario(new UiScenarioLifecycle(Objects.requireNonNull(scenario, "scenario"),
+                Objects.requireNonNull(profile, "profile"), title));
     }
 
     @Override
@@ -230,7 +238,7 @@ public final class UiExtentReportSession implements AutoCloseable {
         delegate.close();
     }
 
-    public final class UiScenario implements AutoCloseable {
+    public static final class UiScenario implements AutoCloseable {
         private final UiScenarioLifecycle lifecycle;
 
         private UiScenario(UiScenarioLifecycle lifecycle) {
@@ -256,8 +264,14 @@ public final class UiExtentReportSession implements AutoCloseable {
         }
     }
 
-    public final class UiPhase implements AutoCloseable {
+    public static final class UiPhase implements AutoCloseable {
         private final UiPhaseLifecycle lifecycle;
+
+        public void executionTiming(ReportPhaseTiming timing) { lifecycle.executionTiming(timing); }
+        public UiPhaseExecution measureExecution() { return lifecycle.measureExecution(System::nanoTime); }
+        public UiPhaseExecution measureExecution(LongSupplier ticks) {
+            return lifecycle.measureExecution(ticks);
+        }
 
         private UiPhase(UiPhaseLifecycle lifecycle) {
             this.lifecycle = lifecycle;

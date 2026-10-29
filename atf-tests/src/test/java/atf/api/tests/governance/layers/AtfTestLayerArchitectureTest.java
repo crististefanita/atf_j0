@@ -17,9 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,12 +36,6 @@ public class AtfTestLayerArchitectureTest {
             "(?m)^\\s*(?:public\\s+)?@interface\\s+(\\w+)\\b");
     private static final Pattern PACKAGE = Pattern.compile("(?m)^\\s*package\\s+([\\w.]+)\\s*;");
     private static final Pattern IMPORT = Pattern.compile("(?m)^\\s*import\\s+([\\w.]+)\\s*;");
-    private static final Pattern MAVEN_MAIN_SOURCE_DIRECTORY = Pattern.compile(
-            "(?s)<sourceDirectory>\\s*([^<]+?)\\s*</sourceDirectory>");
-    private static final Pattern MAVEN_TEST_SOURCE_DIRECTORY = Pattern.compile(
-            "(?s)<testSourceDirectory>\\s*([^<]+?)\\s*</testSourceDirectory>");
-    private static final Set<String> SOURCE_SCAN_EXCLUSIONS = Set.of(
-            ".git", ".tmp", "artifacts", "target");
     private static final Pattern TYPE_DECLARATION = Pattern.compile(
             "(?m)^\\s*(?:(?:public|protected|private|static|final|abstract|sealed|non-sealed)\\s+)*"
                     + "(?:class|interface|enum|record|@interface)\\s+\\w+");
@@ -256,8 +248,7 @@ public class AtfTestLayerArchitectureTest {
 
     public static Map<String, String> annotationSources(Path root) throws Exception {
         var result = new HashMap<String, String>();
-        Set<Path> sources = new LinkedHashSet<>(sourceFiles(root,
-                MAVEN_MAIN_SOURCE_DIRECTORY, "src/main/java"));
+        Set<Path> sources = new LinkedHashSet<>(AtfJavaSourceInventory.mainSources(root));
         sources.addAll(testSources(root));
         for (Path file : sources) {
             String source = Files.readString(file);
@@ -299,45 +290,7 @@ public class AtfTestLayerArchitectureTest {
     }
 
     static List<Path> testSources(Path projectRoot) throws Exception {
-        return sourceFiles(projectRoot, MAVEN_TEST_SOURCE_DIRECTORY, "src/test/java");
-    }
-
-    private static List<Path> sourceFiles(Path projectRoot, Pattern sourceDirectoryPattern,
-                                          String defaultDirectory) throws Exception {
-        Set<Path> roots = new LinkedHashSet<>();
-        try (Stream<Path> files = Files.walk(projectRoot)) {
-            for (Path pom : files.filter(path -> isPomOutsideBuildOutput(path, projectRoot)).toList()) {
-                Path moduleRoot = pom.getParent();
-                Matcher configuredRoot = sourceDirectoryPattern.matcher(Files.readString(pom));
-                Path sourceRoot = configuredRoot.find()
-                        ? moduleRoot.resolve(configuredRoot.group(1).trim()).normalize()
-                        : moduleRoot.resolve(defaultDirectory);
-                if (sourceRoot.startsWith(moduleRoot) && Files.isDirectory(sourceRoot)) {
-                    roots.add(sourceRoot);
-                }
-            }
-        }
-        List<Path> sources = new ArrayList<>();
-        for (Path sourceRoot : roots) {
-            try (Stream<Path> files = Files.walk(sourceRoot)) {
-                sources.addAll(files.filter(path -> path.toString().endsWith(".java")
-                                && !isInsideExcludedDirectory(path, projectRoot))
-                        .toList());
-            }
-        }
-        return sources.stream().distinct().sorted().toList();
-    }
-
-    private static boolean isPomOutsideBuildOutput(Path path, Path projectRoot) {
-        return path.getFileName().toString().equals("pom.xml")
-                && !isInsideExcludedDirectory(path, projectRoot);
-    }
-
-    private static boolean isInsideExcludedDirectory(Path path, Path projectRoot) {
-        for (Path segment : projectRoot.relativize(path)) {
-            if (SOURCE_SCAN_EXCLUSIONS.contains(segment.toString())) return true;
-        }
-        return false;
+        return AtfJavaSourceInventory.testSources(projectRoot);
     }
 
     private static boolean isStandaloneReportingTest(Path file, Path projectRoot) {

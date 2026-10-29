@@ -1,4 +1,6 @@
 package atf.reporting.ui;
+import atf.reporting.ui.timing.UiPhaseExecution;
+import atf.reporting.model.timing.ReportPhaseTiming;
 
 import atf.reporting.model.ReportScreenshot;
 import atf.reporting.ui.network.ReportNetworkInspector;
@@ -32,6 +34,8 @@ public final class UiPhaseLifecycle implements AutoCloseable {
     private final List<UiUnifiedFlowCheckpoint> unifiedCheckpoints = new ArrayList<>();
     private PendingNetworkSummary networkSummary;
     private boolean completed;
+    private ReportPhaseTiming suppliedTiming;
+    private UiPhaseExecution execution;
     private boolean unifiedFlowPublished;
 
     UiPhaseLifecycle(AtfReportPorts.Phase delegate,
@@ -47,6 +51,23 @@ public final class UiPhaseLifecycle implements AutoCloseable {
         this.scenarioTitle = scenarioTitle == null ? "" : scenarioTitle.trim();
         this.phaseName = phaseName == null ? "" : phaseName.trim();
         this.scenario = scenario;
+    }
+
+    void executionTiming(ReportPhaseTiming timing) {
+        ensureOpen();
+        if (suppliedTiming != null || execution != null) throw new IllegalStateException("UI phase timing is already supplied");
+        suppliedTiming = java.util.Objects.requireNonNull(timing, "timing");
+    }
+
+    UiPhaseExecution measureExecution(java.util.function.LongSupplier ticks) {
+        ensureOpen();
+        if (suppliedTiming != null || execution != null) throw new IllegalStateException("UI phase timing is already supplied");
+        execution = new UiPhaseExecution(ticks);
+        return execution;
+    }
+
+    private void publish(Runnable work) {
+        if (execution == null) work.run(); else execution.publish(work);
     }
 
     void step(String keyword, String title, String target, String base64Png,
@@ -121,7 +142,7 @@ public final class UiPhaseLifecycle implements AutoCloseable {
             scenario.retainUiFailures(assertions);
             return;
         }
-        evidencePublisher.publishSetup(keyword, title, target, assertions, actions, apiValidation, screenshot, status);
+        publish(() -> evidencePublisher.publishSetup(keyword, title, target, assertions, actions, apiValidation, screenshot, status));
         scenario.retainUiFailures(assertions);
     }
 
@@ -199,7 +220,7 @@ public final class UiPhaseLifecycle implements AutoCloseable {
 
     void outcome(String keyword, String title, String target, AtfReportStatus status) {
         ensureOpen();
-        evidencePublisher.publishOutcome(keyword, title, target, status);
+        publish(() -> evidencePublisher.publishOutcome(keyword, title, target, status));
     }
 
     void outcome(AtfGherkinKeyword keyword, String title, String target, AtfReportStatus status) {
@@ -209,7 +230,7 @@ public final class UiPhaseLifecycle implements AutoCloseable {
     void apiTrace(AtfGherkinKeyword keyword, String title, String target,
                   UiApiValidationEvidence apiValidation, AtfReportStatus status) {
         ensureOpen();
-        evidencePublisher.publishApiTrace(keyword.text(), title, target, apiValidation, status);
+        publish(() -> evidencePublisher.publishApiTrace(keyword.text(), title, target, apiValidation, status));
     }
 
     void uiValidation(String title, String target, String base64Png,
@@ -259,8 +280,8 @@ public final class UiPhaseLifecycle implements AutoCloseable {
             scenario.retainUiFailures(assertions);
             return;
         }
-        evidencePublisher.publishUiValidationAsMedia(title, target, base64Png,
-                assertions, actions, ReportScreenshotPolicy.CapturePoint.CHECKPOINT, status);
+        publish(() -> evidencePublisher.publishUiValidationAsMedia(title, target, base64Png,
+                assertions, actions, ReportScreenshotPolicy.CapturePoint.CHECKPOINT, status));
         scenario.retainUiFailures(assertions);
     }
 
@@ -270,8 +291,8 @@ public final class UiPhaseLifecycle implements AutoCloseable {
         ensureOpen();
         boolean noIndependentAction = actions == null || actions.stream()
                 .noneMatch(action -> action.status() == AtfReportStatus.FAIL);
-        evidencePublisher.publishFailure(title, target, actions, failure, base64Png,
-                noIndependentAction && scenario.reports(failure));
+        publish(() -> evidencePublisher.publishFailure(title, target, actions, failure, base64Png,
+                noIndependentAction && scenario.reports(failure)));
     }
 
     void complete(AtfReportStatus status) {
@@ -284,21 +305,24 @@ public final class UiPhaseLifecycle implements AutoCloseable {
 
     private void complete(AtfReportStatus status, boolean finalPhase) {
         ensureOpen();
+        if (execution != null) execution.finishExecution();
         var checkpoints = new ReportStatusAggregator();
         unifiedCheckpoints.forEach(checkpoint -> checkpoints.record(checkpoint.status()));
-        status = checkpoints.resolve(status);
+        var effective = checkpoints.resolve(status);
         if (scenario.crossPhaseUnifiedFlow()) {
-            scenario.retain(phaseName, status, List.copyOf(unifiedCheckpoints));
+            scenario.retain(phaseName, effective, List.copyOf(unifiedCheckpoints));
             unifiedCheckpoints.clear();
             if (finalPhase) {
-                evidencePublisher.publishCrossPhaseUnifiedFlow(scenarioTitle,
-                        scenario.publishableCheckpoints(), status);
+                publish(() -> evidencePublisher.publishCrossPhaseUnifiedFlow(scenarioTitle,
+                        scenario.publishableCheckpoints(), effective));
             }
         } else {
-            publishUnifiedFlow(status);
+            publishUnifiedFlow(effective);
         }
-        publishNetworkSummary();
-        delegate.complete(status == null ? AtfReportStatus.INFO : status);
+        publish(this::publishNetworkSummary);
+        var timing = execution == null ? suppliedTiming : execution.complete();
+        if (timing != null) delegate.executionTiming(timing);
+        delegate.complete(effective);
         completed = true;
     }
 
@@ -331,8 +355,8 @@ public final class UiPhaseLifecycle implements AutoCloseable {
             scenario.retainUiFailures(assertions);
             return;
         }
-        evidencePublisher.publishAction(keyword, title, target, base64Png, assertions,
-                status, validationKind, actions, apiValidation, capturePoint);
+        publish(() -> evidencePublisher.publishAction(keyword, title, target, base64Png, assertions,
+                status, validationKind, actions, apiValidation, capturePoint));
         scenario.retainUiFailures(assertions);
     }
 
@@ -353,8 +377,8 @@ public final class UiPhaseLifecycle implements AutoCloseable {
         if (flowMode != ReportEvidenceFlowMode.UNIFIED_FLOW
                 || unifiedCheckpoints.isEmpty() || unifiedFlowPublished) return;
         unifiedFlowPublished = true;
-        evidencePublisher.publishUnifiedFlow(scenarioTitle, phaseName,
-                List.copyOf(unifiedCheckpoints), status);
+        publish(() -> evidencePublisher.publishUnifiedFlow(scenarioTitle, phaseName,
+                List.copyOf(unifiedCheckpoints), status));
         unifiedCheckpoints.clear();
     }
 

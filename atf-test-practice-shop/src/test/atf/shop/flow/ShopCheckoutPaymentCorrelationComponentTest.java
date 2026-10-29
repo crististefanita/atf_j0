@@ -1,5 +1,7 @@
 package atf.shop.flow;
 
+import atf.shop.support.validation.ShopOrderExpectation;
+
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.evidence.ReportScreenshotPolicy;
@@ -66,7 +68,7 @@ class ShopCheckoutPaymentCorrelationComponentTest {
                     configuration.checkout(), new ShopPurchaseCheckpointPublisher(ignored -> { }), journal,
                     locators, new ShopPageValidator(locators), new ShopPurchaseScreenValidator(locators));
 
-            ShopPurchaseCheckpoint checkpoint = new ShopCheckoutPurchaseStage(inputs, 0L).checkPayment().checkpoint();
+            ShopPurchaseCheckpoint checkpoint = new ShopCheckoutPurchaseStage(inputs, 0L, ShopOrderExpectation.fromUi("12.01", 2)).checkPayment().checkpoint();
 
             assertTrue(checkpoint.uiAssertions().stream().allMatch(AtfAssertion::passed),
                     "The old visible success cannot decide the API verdict");

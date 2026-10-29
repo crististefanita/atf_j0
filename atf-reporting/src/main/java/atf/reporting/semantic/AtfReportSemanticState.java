@@ -76,6 +76,7 @@ final class AtfReportSemanticState {
         }
 
         String id() { return id; }
+        boolean completed() { return completed; }
 
         PhaseState startPhase(String name) {
             ensureOpen("scenario");
@@ -95,7 +96,7 @@ final class AtfReportSemanticState {
             completed = true;
         }
 
-        private void ensureOpen(String scope) {
+        void ensureOpen(String scope) {
             if (completed) throw new IllegalStateException(scope + " is already complete");
         }
 
@@ -156,7 +157,7 @@ final class AtfReportSemanticState {
             return completed;
         }
 
-        private void ensureOpen(String scope) {
+        void ensureOpen(String scope) {
             if (completed) throw new IllegalStateException(scope + " is already complete");
         }
 
@@ -183,7 +184,7 @@ final class AtfReportSemanticState {
         private AssertionStepState(String title) { this.title = title; }
 
         void assertions(Collection<AtfAssertion> assertions) {
-            if (completed) throw new IllegalStateException("Assertion step is already complete");
+            ensureOpen();
             assertionStatus = new ReportStatusAggregator().resolve(null, assertions);
             assertionNames.clear();
             if (assertions != null) assertions.stream().filter(Objects::nonNull)
@@ -191,11 +192,15 @@ final class AtfReportSemanticState {
         }
 
         void complete(AtfReportStatus status) {
-            if (completed) throw new IllegalStateException("Assertion step is already complete");
+            ensureOpen();
             var evidence = new ReportStatusAggregator();
             evidence.record(assertionStatus);
             this.status = evidence.resolve(status);
             completed = true;
+        }
+
+        void ensureOpen() {
+            if (completed) throw new IllegalStateException("Assertion step is already complete");
         }
 
         @Override public AtfReportStatus status() { return status; }
@@ -275,7 +280,7 @@ final class AtfReportSemanticState {
             return completed;
         }
 
-        private void ensureOpen() {
+        void ensureOpen() {
             if (completed) throw new IllegalStateException("request is already complete");
         }
 
@@ -350,7 +355,7 @@ final class AtfReportSemanticState {
             return completed;
         }
 
-        private void ensureOpen() {
+        void ensureOpen() {
             if (completed) throw new IllegalStateException("validation is already complete");
         }
 

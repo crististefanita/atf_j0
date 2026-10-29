@@ -1,4 +1,5 @@
 package atf.reporting.model;
+import atf.reporting.model.evidence.ReportRequestUiEvidence;
 import atf.reporting.contract.evidence.ReportEvidenceOwner;
 import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
 
@@ -127,7 +128,13 @@ public record ReportExecutionModel(List<Scenario> scenarios) {
                           List<ReportField> details, List<ReportJsonBody> json,
                           List<ReportExecutionEvidence> executions, List<Node> children,
                           AtfReportStatus status, int uiActionCount, int screenshotCount,
-                          ReportNetworkInspector.JourneyAggregate networkAggregate) implements Node {
+                          ReportNetworkInspector.JourneyAggregate networkAggregate, ReportRequestUiEvidence uiEvidence) implements Node {
+        public Request(String title, String method, String path, List<ReportField> details, List<ReportJsonBody> json,
+                       List<ReportExecutionEvidence> executions, List<Node> children, AtfReportStatus status,
+                       int uiActionCount, int screenshotCount, ReportNetworkInspector.JourneyAggregate networkAggregate) {
+            this(title, method, path, details, json, executions, children, status, uiActionCount, screenshotCount,
+                    networkAggregate, ReportRequestUiEvidence.empty());
+        }
         public Request(String title, String method, String path,
                        List<ReportField> details, List<ReportJsonBody> json,
                        ReportExecutionEvidence execution, List<Node> children,
@@ -145,6 +152,7 @@ public record ReportExecutionModel(List<Scenario> scenarios) {
         }
 
         public Request {
+            uiEvidence = uiEvidence == null ? ReportRequestUiEvidence.empty() : uiEvidence;
             title = title == null ? "" : title;
             method = method == null ? "" : method;
             path = path == null ? "" : path;

@@ -95,6 +95,11 @@ Un validator poate grupa în același tabel:
 Nu se creează câte un nod pentru fiecare assertion. Tabelul este agregat pentru
 response-ul curent, astfel încât toate abaterile să fie vizibile împreună.
 
+Corelarea alege observația curentă înaintea evaluării statusului, conform
+[contractului dovezii](ATF_Evidence_Capture_Contract.md#alegerea-dovezii-înaintea-verdictului).
+Un răspuns de eroare și lipsa capturii au diagnostice distincte; un 2xx mai vechi
+nu poate înlocui dovada operației evaluate.
+
 ## Durată și status în raport
 
 Regula vizibilă este:

@@ -1,4 +1,6 @@
 package atf.reporting.html.evidence;
+import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
+import atf.reporting.evidence.setup.ReportSetupEvidenceMarkup;
 import atf.reporting.api.evidence.ReportExecutionSummary;
 import atf.reporting.api.evidence.ReportTransportTiming;
 
@@ -100,6 +102,18 @@ public final class HtmlReportEvidenceView {
         renderTable(html, AtfReportHtmlVocabulary.classList(HELM_EVIDENCE_TABLE, HELM_TRACE_TABLE), details);
         renderJsonBodies(html, json, RESPONSE_JSON_BODY);
         html.append(closeTag(DIV)).append(ReportEvidenceMarkup.disclosureEnd());
+    }
+
+    public void renderRequestContext(StringBuilder html, ReportExecutionModel.Request request) {
+        if (ReportSetupEvidenceMarkup.isSetup(request.details())) {
+            html.append(ReportEvidenceMarkup.disclosure(ReportSetupEvidenceMarkup.disclosure(request.details(), redactor, settings)));
+        } else if (EvidenceTableFormatter.isCompactUiFlow(request.details())) {
+            renderUiFlowProvenance(html, request);
+        } else {
+            renderRequestDetails(html, request); renderResponseDetails(html, request);
+        }
+        var ui = request.uiEvidence();
+        renderUiEvidence(html, ui.actions(), ui.screenshots(), ui.detailsMode());
     }
 
     public void renderUiFlowProvenance(StringBuilder html, ReportExecutionModel.Request request) {
@@ -227,15 +241,20 @@ public final class HtmlReportEvidenceView {
     }
 
     private void renderUiEvidence(StringBuilder html, ReportExecutionModel.Validation validation) {
-        var rows = validation.uiActions().stream().map(action -> new AtfUiActionRecord(
+        renderUiEvidence(html, validation.uiActions(), validation.screenshots(), validation.actionDetailsMode());
+    }
+
+    private void renderUiEvidence(StringBuilder html, List<AtfUiActionRecord> records, List<ReportScreenshot> captures,
+                                  ReportUiActionDetailsMode detailsMode) {
+        var rows = records.stream().map(action -> new AtfUiActionRecord(
                 action.sequence(), redactor.redactText(action.operation()), redactor.redactText(action.target()),
                 redactor.redactText(action.expected()), redactor.redactText(action.observed()),
                 action.durationMillis(), action.status(), action.source())).toList();
         var actions = rows.stream().filter(row -> row.source() == AtfUiEvidenceSource.ACTION).toList();
         var observations = rows.stream().filter(row -> row.source() == AtfUiEvidenceSource.OBSERVE).toList();
-        var screenshots = ExtentReportAssets.distinctScreenshotModels(validation.screenshots());
+        var screenshots = ExtentReportAssets.distinctScreenshotModels(captures);
         boolean inlineScreenshot = !actions.isEmpty() && screenshots.size() == 1;
-        html.append(new ExtentUiActionRenderer(settings, validation.actionDetailsMode()).markup(actions,
+        html.append(new ExtentUiActionRenderer(settings, detailsMode).markup(actions,
                         inlineScreenshot ? screenshots : List.of()))
                 .append(new ExtentUiObservationRenderer(settings, redactor).markup(observations));
         for (ReportScreenshot screenshot : inlineScreenshot ? List.<ReportScreenshot>of() : screenshots) {
@@ -254,8 +273,7 @@ public final class HtmlReportEvidenceView {
                         request.title(), request.method(), request.path())))
                 .append(ReportEvidenceMarkup.statusBadge(request.status()))
                 .append(closeTag(DIV));
-        renderRequestDetails(html, request);
-        renderResponseDetails(html, request);
+        renderRequestContext(html, request);
         renderNetworkAggregateSubstep(html, request.networkAggregate());
         request.executions().forEach(execution -> renderExecution(html, execution));
         request.children().forEach(child -> {

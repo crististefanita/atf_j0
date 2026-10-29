@@ -12,6 +12,7 @@ import java.net.URI;
 /** Cart page object: product identity and quantity are checked before checkout. */
 @ShopPageContract(screen = ShopScreen.CART, route = ShopUiRoutes.CHECKOUT,
         requiredControls = {ShopControl.CART_PRODUCT_TITLE,
+                ShopControl.CART_PRODUCT_PRICE, ShopControl.CART_LINE_TOTAL, ShopControl.CART_TOTAL,
                 ShopControl.CART_PRODUCT_QUANTITY, ShopControl.CART_PROCEED})
 public final class ShopCartPage {
     private final Page page;
@@ -40,6 +41,15 @@ public final class ShopCartPage {
     public void proceed() {
         actions.click(locators.cartProceed(page), "cart proceeds to checkout identity");
     }
+
+    public CartAmounts amounts() {
+        return new CartAmounts(
+                actions.getText(locators.cartProductPrice(page), "cart unit price is observed"),
+                actions.getText(locators.cartLineTotal(page), "cart line total is observed"),
+                actions.getText(locators.cartTotal(page), "cart total is observed"));
+    }
+
+    public record CartAmounts(String unitPrice, String lineTotal, String total) { }
 
     public record CartLine(String productName, String quantity) {
     }
