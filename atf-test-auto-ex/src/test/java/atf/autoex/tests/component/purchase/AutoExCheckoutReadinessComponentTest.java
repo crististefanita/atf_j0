@@ -43,8 +43,8 @@ class AutoExCheckoutReadinessComponentTest {
         for (String markup : List.of("<body></body>",
                 "<a class='check_out'>Checkout one</a><a class='check_out'>Checkout two</a>")) {
             try (var browser = PlaywrightUiSession.open(UiBrowserConfiguration.defaults())) {
-                browser.page().setDefaultTimeout(60);
                 browser.page().setContent(markup);
+                browser.page().setDefaultTimeout(60);
                 var actions = browser.newActionSequence();
                 var cart = new CartPage(port(browser, actions));
                 assertThrows(RuntimeException.class, cart::proceedToCheckout);

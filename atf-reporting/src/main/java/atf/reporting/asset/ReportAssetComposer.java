@@ -31,7 +31,7 @@ public final class ReportAssetComposer {
 
     public static String tableViewportCss() {
         return LOADER.renderForPublication(ReportAsset.TABLE_VIEWPORT_CSS,
-                Map.of("TABLE_VIEWPORTS", ReportTableViewport.selectors(),
+                Map.of("TABLE_VIEWPORTS", ReportTableViewport.tableSurfaces(),
                         "SCROLL_SURFACES", ReportTableViewport.scrollSurfaces()));
     }
 
@@ -188,7 +188,7 @@ public final class ReportAssetComposer {
     }
 
     public static String fallbackNavigationScript() {
-        return LOADER.loadForPublication(ReportAsset.FALLBACK_NAVIGATION_JS) + tableViewportScript();
+        return LOADER.loadForPublication(ReportAsset.FALLBACK_NAVIGATION_JS) + extentEvidenceTableLayoutScript();
     }
 
     public static String extentEvidenceRolesScript() {
@@ -205,7 +205,7 @@ public final class ReportAssetComposer {
 
     public static String extentEvidenceTableLayoutScript() {
         return LOADER.renderForPublication(ReportAsset.EXTENT_EVIDENCE_TABLE_LAYOUT_JS, Map.of(
-                "TABLE_VIEWPORTS", ReportTableViewport.selectors(),
+                "TABLE_VIEWPORTS", ReportTableViewport.tableSurfaces(),
                 "DATA_TABLE_VIEWPORT", ReportTableViewport.DATA.cssClass())) + tableViewportScript();
     }
 

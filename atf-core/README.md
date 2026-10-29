@@ -6,6 +6,8 @@ cum este randat un raport.
 
 ## Pe scurt
 
+**Trasee rapide:** [Eroare și istoric](#istoric-la-eroare-terminală) · [Sync sigur](#manifest-și-promovare-guarded) · [Probă locală](#verificare-rapidă)
+
 | Deține | Consumatori | Limită |
 |---|---|---|
 | lifecycle, ports, HTTP vocabulary și module IDs | validation, mock, UI și guvernanță | nu publică HTML |
@@ -53,7 +55,7 @@ flowchart LR
 | configurație typed | `AtfConfiguration`, `AtfRuntimeSnapshot`, `ApiSettings`, `ReportingSettings` și snapshot-uri | nu recitește configurația în fiecare request |
 | source adapters | `config.source.ApiBootstrapConfigurationLoader`, `ApiEnvironment` | nu execută request-uri și nu deține catalogul Users/Posts |
 | statusuri | `AtfReportStatus`, `ReportStatusAggregator` | nu randă badge-uri |
-| file/source discovery | `AtfPathLocator`, `AtfJavaSourceReferences` | nu expune căi absolute și nu confundă exemplele din literali cu dependențe Java |
+| file/source discovery | `AtfPathLocator`, `AtfJavaSourceReferences` | rezolvă căi din rădăcinile callerului, fără căi de workstation hardcodate; nu confundă literalii cu dependențe Java |
 | reporting ports | `AtfReportPorts`, `ValidationSink`, `ReportStepScope`, `AtfConsoleEvent`, `AtfConsoleSink` | nu importă Extent, HTML, `System.out` sau implementarea `atf-console` |
 | redaction | `Redactor`, `RedactionContext`, strategiile de redaction | nu modifică input-ul original |
 | selecție API neutră | `ApiScenarioSelection` | declarațiile test-only `ApiScenarioSetup` și `ApiTestRef` aparțin TestKit; catalogul rămâne la consumator |
@@ -395,5 +397,27 @@ Testele din `atf-core` verifică separat:
 - `ApiScenarioSelection` și contractele de annotation fără JUnit/browser;
 
 Un test core nu generează raport HTML. Dovada vizuală și scenariile end-to-end
-ale raportării aparțin composition scope-ului `atf-reporting-tests`; `atf-tests` este doar
-shell de compatibilitate.
+ale raportării aparțin composition scope-ului `atf-reporting-tests`. `atf-tests` deține guvernanța whole-reactor; numai
+selecțiile legacy documentate păstrează rolul de compatibilitate.
+
+## Verificare rapidă
+
+| Decizie | Sursă și limită |
+|---|---|
+| Execuție, deadline și istoric terminal | [sursa ownerului](src/main/java/atf/core/http/execution/ApiExecutor.java); probă: [ApiTerminalExecutionEvidenceTest](src/test/java/atf/core/http/execution/ApiTerminalExecutionEvidenceTest.java) |
+| Dependențe și source-set-uri | [POM](pom.xml); scope-ul declarat este autoritatea pentru integrare |
+| Ce nu demonstrează această probă | Nu calculează verdictul business și nu publică HTML. |
+
+<details>
+<summary><strong>Comandă pentru proba locală</strong></summary>
+
+Rulați din rădăcina unui [staging extern](../docs/ATF_Build_And_Execution_Safety.md), cu JDK 21 și Maven.
+
+```powershell
+mvn -B -pl atf-core -am "-Dtest=ApiTerminalExecutionEvidenceTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+```
+
+Comanda selectează proba numită și construiește dependențele; nu declară
+trecerea întregului modul. Nu calculează verdictul business și nu publică HTML.
+
+</details>

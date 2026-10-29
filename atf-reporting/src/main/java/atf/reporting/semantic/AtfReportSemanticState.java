@@ -185,10 +185,11 @@ final class AtfReportSemanticState {
 
         void assertions(Collection<AtfAssertion> assertions) {
             ensureOpen();
-            assertionStatus = new ReportStatusAggregator().resolve(null, assertions);
+            var rows = assertions == null ? List.<AtfAssertion>of() : List.copyOf(assertions);
+            var result = new ReportStatusAggregator().resolve(null, rows);
             assertionNames.clear();
-            if (assertions != null) assertions.stream().filter(Objects::nonNull)
-                    .map(AtfAssertion::name).forEach(assertionNames::add);
+            rows.stream().map(AtfAssertion::name).forEach(assertionNames::add);
+            assertionStatus = result;
         }
 
         void complete(AtfReportStatus status) {
@@ -219,6 +220,7 @@ final class AtfReportSemanticState {
         private final List<String> jsonLabels = new ArrayList<>();
         private final List<ValidationState> validations = new ArrayList<>();
         private boolean executionPresent;
+        private boolean networkAggregatePresent;
         private int uiActionCount;
         private int screenshotCount;
         private AtfReportStatus status = AtfReportStatus.INFO;
@@ -243,6 +245,11 @@ final class AtfReportSemanticState {
         void execution() {
             ensureOpen();
             executionPresent = true;
+        }
+
+        void networkAggregate() {
+            ensureOpen();
+            networkAggregatePresent = true;
         }
 
         void uiActions(Collection<AtfUiActionRecord> actions) {
@@ -286,8 +293,10 @@ final class AtfReportSemanticState {
 
         @Override
         public AtfReportSemanticSnapshot.RequestSnapshot snapshot() {
+            var names = new ArrayList<>(detailNames);
+            if (networkAggregatePresent) names.add("network.aggregate");
             return new AtfReportSemanticSnapshot.RequestSnapshot(title, method, path,
-                    detailNames, jsonLabels, executionPresent, uiActionCount,
+                    names, jsonLabels, executionPresent, uiActionCount,
                     screenshotCount, validations.stream().map(ValidationState::snapshot).toList(), status);
         }
     }
@@ -321,9 +330,11 @@ final class AtfReportSemanticState {
 
         void assertions(Collection<AtfAssertion> assertions) {
             ensureOpen();
-            assertionStatus = new ReportStatusAggregator().resolve(null, assertions);
+            var rows = assertions == null ? List.<AtfAssertion>of() : List.copyOf(assertions);
+            var result = new ReportStatusAggregator().resolve(null, rows);
             assertionNames.clear();
-            if (assertions != null) assertions.stream().map(AtfAssertion::name).forEach(assertionNames::add);
+            rows.stream().map(AtfAssertion::name).forEach(assertionNames::add);
+            assertionStatus = result;
         }
 
         void uiActions(Collection<AtfUiActionRecord> actions) {
@@ -368,7 +379,7 @@ final class AtfReportSemanticState {
     }
 
     private static int sizeOf(Collection<?> values) {
-        return values == null ? 0 : values.size();
+        return values == null ? 0 : List.copyOf(values).size();
     }
 
     private static String normalizeLabel(String value, String fallback) {

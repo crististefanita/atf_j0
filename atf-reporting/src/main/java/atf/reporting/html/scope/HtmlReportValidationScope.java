@@ -45,8 +45,9 @@ public final class HtmlReportValidationScope implements AtfReportPorts.Validatio
     @Override
     public void assertions(Collection<AtfAssertion> assertions) {
         ensureOpen();
-        model.assertions(assertions);
-        semantic.assertions(assertions);
+        var stable = assertions == null ? List.<AtfAssertion>of() : List.copyOf(assertions);
+        semantic.assertions(stable);
+        model.assertions(stable);
     }
 
     @Override

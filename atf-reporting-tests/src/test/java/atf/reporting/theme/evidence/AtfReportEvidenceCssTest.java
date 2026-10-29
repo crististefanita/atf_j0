@@ -53,9 +53,14 @@ class AtfReportEvidenceCssTest {
                 () -> assertTrue(theme.contains("white-space:normal!important;overflow:visible!important;")),
                 () -> assertTrue(theme.contains(".atf-ui-action-table td:nth-child(5){width:14%!important;white-space:normal!important;overflow-wrap:anywhere!important}")),
                 () -> assertTrue(theme.contains(".atf-ui-action-table td:nth-child(6){width:12%!important;white-space:normal!important;overflow-wrap:anywhere!important}")),
-                () -> assertTrue(theme.contains("@container atf-evidence (max-width:720px)"),
-                        "the evidence panel width governs stacked audit values"),
-                () -> assertTrue(theme.contains("font-size:var(--atf-font-table-cell-size,12.6px)!important"),
+                () -> assertFalse(theme.contains("--atf-table-stacked"),
+                        "narrow detail panes must preserve tabular evidence columns"),
+                () -> assertTrue(theme.contains("overflow-x:auto!important"),
+                        "insufficient panel width uses local horizontal scrolling"),
+                () -> assertTrue(theme.contains("scrollbar-gutter:auto!important"),
+                        "short tables must not reserve an unused scrollbar lane"),
+                () -> assertTrue(theme.contains("position:sticky!important")),
+                () -> assertTrue(theme.contains("font-size:12.6px!important"),
                         "narrow panels retain the common readable body font"),
                 () -> assertFalse(theme.contains("body .atf-ui-action-table .atf-ui-action-result{max-width:100%!important;font-size:8px!important;line-height:1!important}")));
     }

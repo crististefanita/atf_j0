@@ -61,14 +61,16 @@ public record ShopApiValidationResult(List<ExchangeChecks> exchanges,
                 List.of());
     }
 
-    /** Order contract is bound to the created exchange; UI invoice matching is a cross-channel correlation. */
+    /** Order checks follow the current capture; missing evidence stays as correlations without an invented exchange. */
     public static ShopApiValidationResult order(List<ReportExecutionEvidence> evidence,
                                                  List<AtfAssertion> checks) {
         if (evidence != null && evidence.isEmpty() && checks != null && checks.isEmpty()) {
             return new ShopApiValidationResult(List.of(), List.of());
         }
-        requireSize(evidence, 1, "order exchange");
         requireSize(checks, 5, "order assertions");
+        Objects.requireNonNull(evidence, "order exchange");
+        if (evidence.isEmpty()) return new ShopApiValidationResult(List.of(), checks);
+        requireSize(evidence, 1, "order exchange");
         return new ShopApiValidationResult(List.of(group(evidence.getFirst(),
                 List.of(checks.get(0), checks.get(1), checks.get(3), checks.get(4)))),
                 List.of(checks.get(2)));

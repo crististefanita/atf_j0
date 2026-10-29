@@ -128,12 +128,9 @@ public final class ReportApiViewportProbe {
                 + "||!header||!last)return false;"
                 + "element.scrollTop=element.scrollHeight;"
                 + "const bounds=element.getBoundingClientRect();"
-                + "const table=element.querySelector('table'),stacked="
-                + "getComputedStyle(table).getPropertyValue('--atf-table-stacked').trim()==='1';"
-                + "const labels=Array.from(table.querySelectorAll('tbody tr')).every(r=>Array.from(r.cells).every(c=>"
-                + "c.getAttribute('data-atf-column-label')&&getComputedStyle(c,'::before').content!=='none'));"
-                + "return (stacked?labels:getComputedStyle(header).position==='sticky'"
-                + "&&header.getBoundingClientRect().top>=bounds.top-1)"
+                + "const table=element.querySelector('table');"
+                + "return getComputedStyle(table).display==='table'&&table.tHead.getBoundingClientRect().width>1"
+                + "&&getComputedStyle(header).position==='sticky'&&header.getBoundingClientRect().top>=bounds.top-1"
                 + "&&last.getBoundingClientRect().bottom<=bounds.bottom+1;}")),
                 "long table must scroll locally with sticky header and reachable last row");
     }

@@ -7,6 +7,8 @@ publisherul Extent sau page objects de produs.
 
 ## Pe scurt
 
+**Trasee rapide:** [Acțiuni](#acțiuni-și-locatori) · [Politica BE](#recuperare-be-prin-observație-pasivă) · [Captură și limite](#inspectorul-de-rețea--limită-generică-de-responsabilitate) · [Probă locală](#verificare-rapidă)
+
 | Input | Output | Boundary |
 |---|---|---|
 | YAML browser policy | browser/context/page | runtime generic |
@@ -31,7 +33,9 @@ flowchart LR
 - configurația descrie browserul și evidence-ul generic;
 - sesiunea compune browser, context și page, apoi înregistrează acțiuni;
 - atf-ui livrează payload-ul către consumer, nu decide verdictul și nu construiește HTML/CSS/Extent;
-- publisherul și auditul aparțin atf-reporting, iar scenariile concrete aparțin test scope-ului consumator.
+- publisherul HTML aparține Reporting; `UiScreenAudit` deține observația generică
+  a ecranului în UI, iar probele browser ale artifactului aparțin Reporting Tests;
+- scenariul concret și verdictul business rămân la consumer.
 Etichetele scurte păstrează următorul sens:
 
 | În schemă | Sens complet |
@@ -522,8 +526,9 @@ flowchart LR
   `statistics()` este snapshot-ul extins.
 - Captura este completă în scope la snapshot numai dacă nu are observații
   pierdute sau capturi în curs; nu certifică traficul viitor.
-- `observationsSince(cursor)` păstrează ordinea append-only și separă setup
-  de trafic cauzal. Colapsarea pentru prezentare nu mută cursorul.
+- `observationsSince(cursor)` păstrează ordinea append-only și delimitează
+  ferestrele de captură. Colapsarea pentru prezentare nu mută cursorul;
+  momentul recepției nu dovedește momentul pornirii request-ului.
 - Cookie/Set-Cookie, headerele auth și credentialele cu chei/path-uri cunoscute
   sunt redactate înainte de subscribers; redirecturile și Referer nu publică
   query-uri sau fragmente. Pseudo-headerele HTTP/2 nu dublează URL-ul brut în
@@ -551,6 +556,13 @@ storage și notificarea subscriberilor, inspectorul reconstruiește sau limiteaz
 URL/path, headers, body, auth/source, failure, service și signature. Testul
 negativ pentru input creat de caller protejează acest boundary.
 
+Completitudinea jurnalului raw și livrarea către subscriberi au limite distincte:
+
+- Excepția unui subscriber oprește notificările următoare; observația rămâne retained.
+- `capture(...)` propagă excepția, iar hook-ul browser o tratează diagnostic;
+  izolarea notificărilor are criteriu în
+  [feedback-ul UI](../docs/feedback/ATF_UI_Backend_Guided_Recovery_Feedback.md#ui-observer-delivery-02--izolarea-notificărilor-de-captură).
+
 - Body-urile capturate nu folosesc `trim()`; spațiile marginale și payload-ul
   numai din whitespace rămân date, nu absență.
 - Redacția și plafonul de preview rămân active înainte de storage/subscribers;
@@ -561,9 +573,11 @@ negativ pentru input creat de caller protejează acest boundary.
 Read-back după acțiune:
 
 - înainte de acțiune: capturează `observationCursor()`;
-- după acțiune: folosește `awaitAfter(cursor, predicate, timeout)`; un GET vechi
-  nu poate satisface settlement-ul curent;
-- limită: cursorul garantează ordinea, nu payload identity sau idempotency;
+- după acțiune: folosește `awaitAfter(cursor, predicate, timeout)`; un GET deja
+  capturat înainte de cursor nu poate satisface settlement-ul curent;
+- limită: cursorul garantează ordinea capturării, nu începutul request-ului,
+  payload identity sau idempotency. Un request anterior încă în zbor poate fi
+  capturat după cursor; asocierea cu acțiunea cere o corelare suplimentară;
   `await(...)` caută în tot jurnalul, iar nicio metodă nu repetă mutația.
 
 Contractul de retry Playwright:
@@ -630,3 +644,25 @@ Pentru procesul de sync și siguranță vezi
 [`docs/ATF_Build_And_Execution_Safety.md`](../docs/ATF_Build_And_Execution_Safety.md);
 pentru contractul vizual vezi
 [`atf-reporting/README.md`](../atf-reporting/README.md).
+
+## Verificare rapidă
+
+| Decizie | Sursă și limită |
+|---|---|
+| Captură bounded, filtrare și retenție | [sursa ownerului](src/main/java/atf/ui/network/UiNetworkInspector.java); probă: [UiNetworkInspectorComponentTest](src/test/java/atf/ui/network/UiNetworkInspectorComponentTest.java) |
+| Dependențe și source-set-uri | [POM](pom.xml); scope-ul declarat este autoritatea pentru integrare |
+| Ce nu demonstrează această probă | Retenția completă nu probează livrarea tuturor subscriberilor ori cauzalitatea unei acțiuni. |
+
+<details>
+<summary><strong>Comandă pentru proba locală</strong></summary>
+
+Rulați din rădăcina unui [staging extern](../docs/ATF_Build_And_Execution_Safety.md), cu JDK 21 și Maven.
+
+```powershell
+mvn -B -pl atf-ui -am "-Dtest=UiNetworkInspectorComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+```
+
+Comanda selectează proba numită și construiește dependențele; nu declară
+trecerea întregului modul. Retenția completă nu probează livrarea tuturor subscriberilor ori cauzalitatea unei acțiuni.
+
+</details>

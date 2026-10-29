@@ -70,6 +70,7 @@ final class ExtentRequestScope implements AtfReportPorts.Request {
     }
 
     @Override public void json(String label, String value) {
+        ensureRequestOpen();
         body(new ReportJsonBody(label == null || label.isBlank() ? "JSON BODY" : label, value));
     }
 
@@ -117,13 +118,17 @@ final class ExtentRequestScope implements AtfReportPorts.Request {
 
     @Override public void networkAggregate(ReportNetworkInspector.JourneyAggregate aggregate) {
         ensureRequestOpen();
+        if (aggregate == null) return;
+        semantic.networkAggregate();
         networkAggregate = aggregate;
         if (ReportNetworkAggregateMarkup.hasContent(aggregate) && networkAggregateNode == null) {
             networkAggregateNode = request.createNode(
                     "Network aggregate · " + aggregate.observations() + " exchanges");
             tree.markStarted(networkAggregateNode);
         }
-        semantic.detail("network.aggregate");
+        if (networkAggregateNode != null) {
+            networkAggregateNode.getModel().setName("Network aggregate · " + aggregate.observations() + " exchanges");
+        }
     }
 
     @Override public void complete(AtfReportStatus status) {

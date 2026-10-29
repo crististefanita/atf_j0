@@ -14,7 +14,6 @@ import atf.core.http.request.HttpMethod;
 import atf.core.http.request.MediaTypes;
 import atf.core.http.protocol.ApiUris;
 import atf.shop.api.ShopApiOperation;
-import atf.shop.api.contract.ShopApiHttpStatus;
 import atf.shop.api.contract.ShopApiJsonField;
 import atf.shop.api.ShopApiRoutes;
 import atf.shop.config.api.ShopApiConfiguration;
@@ -279,7 +278,6 @@ public final class ShopApiNetworkJournal {
         store(checkpoint, Arrays.stream(observed).filter(Objects::nonNull).map(this::toEvidence).toList());
     }
 
-    /** API confirmation for the order created by the final UI confirmation action. */
     /**
      * Binds order evidence to the exchange observed after the final Confirm
      * click. A stale order response from an earlier attempt can never satisfy
@@ -288,12 +286,26 @@ public final class ShopApiNetworkJournal {
     public List<AtfAssertion> orderCreated(long afterSequence, String uiConfirmation,
                                           ShopOrderExpectation expectedOrder) {
         if (!enabled(ShopApiCheckpoint.ORDER)) return List.of();
-        Exchange order = ShopApiExchangeSelector.latestOptional(
-                exchanges, ShopApiOperation.ORDER_CREATE,
-                exchange -> ShopApiHttpStatus.isSuccess(exchange.status())
-                        && exchange.sequence() > afterSequence);
-        if (order != null) store(ShopApiCheckpoint.ORDER, List.of(toEvidence(order)));
+        Exchange order = orderAfter(afterSequence);
+        storeObserved(ShopApiCheckpoint.ORDER, order);
         return ShopApiAssertions.order(order, uiConfirmation, expectedOrder);
+    }
+
+    /** Passive settlement also handles an old success message that is already visible before Confirm. */
+    public List<AtfAssertion> awaitOrderCreated(Page page, long afterSequence, String uiConfirmation,
+                                               ShopOrderExpectation expectedOrder) {
+        if (!enabled(ShopApiCheckpoint.ORDER)) return List.of();
+        try {
+            Objects.requireNonNull(page, "page").waitForCondition(() -> orderAfter(afterSequence) != null);
+        } catch (TimeoutError missingCapture) {
+            // The normal projection below clears old evidence and reports missing current observations.
+        }
+        return orderCreated(afterSequence, uiConfirmation, expectedOrder);
+    }
+
+    private Exchange orderAfter(long afterSequence) {
+        return ShopApiExchangeSelector.latestOptional(exchanges, ShopApiOperation.ORDER_CREATE,
+                exchange -> exchange.sequence() > afterSequence);
     }
 
     public List<Exchange> exchanges() { return List.copyOf(exchanges); }
@@ -305,7 +317,7 @@ public final class ShopApiNetworkJournal {
     }
 
     /**
-     * Returns only exchanges owned by the configured, successfully evaluated
+     * Returns only exchanges owned by the configured, evaluated
      * API checkpoints. The selection belongs to this consumer composition
      * boundary; the reporting renderer must remain unaware of Practice Shop
      * business concepts and must never receive unbound browser traffic.

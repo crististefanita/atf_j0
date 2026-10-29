@@ -16,16 +16,16 @@ particular.
 
 | Nivel | Documente | Întrebarea la care răspund |
 |---|---|---|
-| hartă | `ATF_Architecture.md`, README-ul root | cine deține ce și în ce direcție curg dependențele? |
-| contract | `ATF_Reporting_Contract.md`, `ATF_Reporting_Display_Contract.md`, ghidurile de modul | ce comportament semantic și ce formă vizibilă sunt stabile? |
-| evidence transversal | `ATF_Evidence_Capture_Contract.md` | cum se separă flow-ul, policy-ul, sursa și publisherul? |
-| practică | `README_Atf_BestPractices.md` | cum adăugăm cod fără drift? |
-| testare | `ATF_Testing_Guide.md` | ce layer, modul și proof aleg pentru un comportament? |
-| infrastructură de test | `ATF_Test_Infrastructure_Annotations.md` | cum declar nivelul, canalul, output-ul, setup-ul și documentația? |
+| hartă | [ATF_Architecture.md](ATF_Architecture.md), README-ul root | cine deține ce și în ce direcție curg dependențele? |
+| contract | [ATF_Reporting_Contract.md](ATF_Reporting_Contract.md), [ATF_Reporting_Display_Contract.md](ATF_Reporting_Display_Contract.md), ghidurile de modul | ce comportament semantic și ce formă vizibilă sunt stabile? |
+| evidence transversal | [ATF_Evidence_Capture_Contract.md](ATF_Evidence_Capture_Contract.md) | cum se separă flow-ul, policy-ul, sursa și publisherul? |
+| practică | [README_Atf_BestPractices.md](README_Atf_BestPractices.md) | cum adăugăm cod fără drift? |
+| testare | [ATF_Testing_Guide.md](ATF_Testing_Guide.md) | ce layer, modul și proof aleg pentru un comportament? |
+| infrastructură de test | [ATF_Test_Infrastructure_Annotations.md](ATF_Test_Infrastructure_Annotations.md) | cum declar nivelul, canalul, output-ul, setup-ul și documentația? |
 | suport E2E transversal | README-urile [Test Kit](../atf-test-kit/README.md), [Practice Shop](../atf-test-practice-shop/README.md) și [Automation Exercise](../atf-test-auto-ex/README.md), împreună cu [arhitectura ATF](ATF_Architecture.md) | ce primitive neutre se reutilizează în Test Kit, iar ce harness UI rămâne la consumer? |
-| design propus | `ATF_AI_Evaluation_Design.md` | ce boundary și contract țintă discutăm, fără a le declara livrate? |
-| execuție | `ATF_Build_And_Execution_Safety.md` | cum lucrăm fără să oprim run-uri? |
-| feedback / guvernanță | `feedback/README.md`, documentele active pe owner și `ATF_Test_Changes_Baseline.md` | ce gap observabil, regulă sau control tehnic de tranziție rămâne? |
+| design propus | [ATF_AI_Evaluation_Design.md](ATF_AI_Evaluation_Design.md) | ce boundary și contract țintă discutăm, fără a le declara livrate? |
+| execuție | [ATF_Build_And_Execution_Safety.md](ATF_Build_And_Execution_Safety.md) | cum lucrăm fără să oprim run-uri? |
+| feedback / guvernanță | [feedback/README.md](feedback/README.md), documentele active pe owner și [ATF_Test_Changes_Baseline.md](ATF_Test_Changes_Baseline.md) | ce gap observabil, regulă sau control tehnic de tranziție rămâne? |
 
 Indexul păstrează harta; detaliile sunt în documentul ownerului și cresc în
 specificitate pe măsură ce coborâm în pagină.
@@ -88,8 +88,8 @@ Ordinea completă de lectură este păstrată colapsată mai jos:
    și modelele comune.
 3. [../atf-mock/README.md](../atf-mock/README.md) — fake-ul determinist,
    catalogul YAML și transportul acceptance.
-4. [../atf-test-kit/README.md](../atf-test-kit/README.md) — contractul test-only
-   pentru nivelurile unit/component/integration/e2e și guard-ul transversal.
+4. [../atf-test-kit/README.md](../atf-test-kit/README.md) — contractele testelor,
+   nivelurile unit/component/integration/e2e și excepția Console `optional compile`.
 5. [../atf-reporting-tests/README.md](../atf-reporting-tests/README.md) — fixture-uri
    API, composition root și lifecycle de test.
 6. [../atf-validation/README.md](../atf-validation/README.md) — validarea
@@ -218,3 +218,14 @@ sunt interzise.
 - `scenario` = testul complet, cu fazele și verdictul final
 - `artifact` = raportul HTML autonom rezultat după finalizarea sesiunii
 
+
+## Cum verifici indexul
+
+| Întrebare | Autoritate și probă |
+|---|---|
+| Documentul există și fragmentul este navigabil? | [guard-ul README](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationReadmeStructureGovernanceTest.java) și [regresiile ancorelor](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationAnchorGovernanceTest.java) |
+| Cine deține contractul? | [Arhitectura](ATF_Architecture.md) și POM-ul ownerului; linkul din index nu transferă responsabilitatea |
+| Este regula livrată? | Codul și proba ownerului; [feedback-ul](feedback/README.md) separă restanța de contract |
+
+Validitatea linkurilor nu certifică semantica unui contract. Comanda gate-ului
+și limitele lui sunt la [ATF Tests](../atf-tests/README.md#verificare-rapidă).

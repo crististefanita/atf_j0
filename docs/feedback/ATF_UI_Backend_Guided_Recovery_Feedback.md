@@ -3,7 +3,7 @@
 ## Pe scurt
 
 **Stare: sincronizare nativă și politică BE read-only livrate; proiecția typed
-a observațiilor și continuitatea selectului rămân deschise.**
+a observațiilor, continuitatea selectului și izolarea subscriberilor rămân deschise.**
 Ownerii sunt UI pentru sincronizare, Kit pentru declarația neutră,
 consumerii pentru semantica operațiilor și Reporting pentru dovezile randate.
 
@@ -29,6 +29,7 @@ documentară /10. Nu reprezintă o notă a codului sau un procent de reproducere
 |---|---:|---|
 | `UI-RECOVERY-AUDIT-01` | 78 = 33 + 22 + 16 + 7 | încercări vizibile, verdict reconciliat și expandare completă |
 | `UI-NATIVE-SELECT-DETACH-01` | 74 = 31 + 20 + 16 + 7 | selectul înlocuit poate continua numai cu rezultat confirmat și activare unică |
+| `UI-OBSERVER-DELIVERY-02` | 69 = 28 + 18 + 16 + 7 | primul subscriber eșuat împiedică notificarea celui sănătos |
 
 ## UI-LOCATOR-READINESS-01 — așteptare înaintea activării unice
 
@@ -96,6 +97,41 @@ sau repetarea deciziei la renderer.
       Extent neutre rămân în `atf-reporting-tests`; policy/resolver și adaptoarele
       au teste la owner, fără cuplarea testelor de business la HTML.
 
+## UI-OBSERVER-DELIVERY-02 — izolarea notificărilor de captură
+
+**Prioritate: 69/100** = impact 28 + lacună 18 + lucrabil 16 + documentare 7.
+**Owner:** `UiNetworkInspector`; consumerii păstrează selecția și verdictul business.
+
+Proba browser controlată înscrie un subscriber care aruncă și apoi unul sănătos,
+execută un fetch 200 și citește rezultatele:
+
+| Limită observată | Rezultat |
+|---|---|
+| Browser | fetch 200 terminat normal |
+| Journal raw | retained=1, dropped=0, complete=true |
+| Subscriber sănătos, înscris după cel eșuat | zero notificări |
+
+`subscribers.forEach(...)` se oprește la prima eroare;
+`observeFinished()` tratează acea eroare ca diagnostic browser.
+
+Contorii raw descriu corect retenția; problema este livrarea către adaptoare.
+Proba existentă pentru subscriber eșuat verifică păstrarea observației, fără
+a verifica un subscriber ulterior. Contractul actual este la
+[UI](../../atf-ui/README.md#inspectorul-de-rețea--limită-generică-de-responsabilitate).
+
+- [ ] Izolați notificările astfel încât un subscriber eșuat să nu împiedice
+      ceilalți consumatori ai aceleiași observații; definiți explicit politica erorii.
+- [ ] Păstrați cauza primară și diagnosticul subscriberului, distinct de o eroare
+      de transport sau pierdere a observației. Nu modificați artificial contorii raw.
+- [ ] Probați două ordine de înscriere, mai multe erori și închiderea contextului,
+      prin `capture(...)` public și hook-ul browser, fără replay ori excepții înghițite
+      care ar pretinde livrare reușită către toate adaptoarele.
+- [ ] Păstrați redacția înaintea notificării, plafonul jurnalului și independența
+      de Reporting/Shop/AutoEx; diagnosticul proiectat păstrează limita 240.
+
+**Închidere:** observația reținută ajunge la subscriberii sănătoși, iar eșecul
+unuia are diagnostic explicit și nu schimbă verdictul acțiunii UI.
+
 ## Contracte păstrate și criteriu de închidere
 
 Auditul componentelor are deja evaluare JUnit unică și pas colapsabil standard,
@@ -114,3 +150,20 @@ o repetare manuală parțială nu închide criteriile de recuperare rămase.
 
 Controlul politicii BE livrate este în
 [baseline-ul verificat](../ATF_Test_Changes_Baseline.md#controale-tehnice-verificate).
+
+## Acceptanță pentru reevaluarea UI
+
+- Izolarea subscriberilor păstrează observația raw și diagnosticul fiecărei
+  livrări defecte; contorul de retenție nu certifică recepția în consumer.
+- Identitatea cererii înaintea răspunsului și scope-ul frame/document/invocare
+  se probează cu cerere veche întârziată și acțiune nouă, la boundary-ul generic;
+  semantica order și expected-ul rămân în Shop.
+- Politica existentă de recuperare nu devine retry al întregului test. Selecția
+  și geometria păstrează activarea unică, iar rezultatul necunoscut al unei
+  mutații rămâne refuz, nu permisiune de replay.
+- Rulați probele locale înaintea câte unui caz consumer relevant; browserul și
+  Reporting nu intră în Kit, iar adaptorul business nu repară rendererul prin CSS local.
+
+Nota se revede prin [rubrica de cod](../README_Atf_CodeBestPractices.md#rubrica-reevaluării-modulelor),
+cu criteriile independente închise la owner; o singură componentă verde nu
+certifică toate adaptările consumerilor.

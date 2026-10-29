@@ -5,10 +5,12 @@ consolă pentru evenimentele neutre ATF. Nu produce HTML și nu calculează
 verdicturi.
 
 Compozițiile de test conectează sursele externe la portul Core prin
-`AtfConsoleEvent.fromExternalEnums(...)`; acest modul consumă numai evenimente
-Core și configurația proprie.
+`AtfConsoleEvent.fromExternalEnums(...)`; reporterul consumă evenimente Core și configurația proprie. Adaptorul JUnit
+folosește separat Test Kit prin dependența `optional compile` declarată în POM.
 
 ## Pe scurt
+
+**Trasee rapide:** [Configurație](#configurație-yaml) · [Integrare JUnit](#integrare) · [Copii dinamici](#testare) · [Probă locală](#verificare-rapidă)
 
 Politica declarativă per clasă este implementată prin
 `@AtfConsoleMessages` din TestKit și aplicată de `AtfConsoleTestExtension` peste
@@ -91,7 +93,7 @@ atf-reporting  produce numai artifacte HTML/Extent
 - consola și detaliile sunt active implicit, inclusiv când YAML-ul lipsește;
 - `reporting.console.detailsEnabled: false` ascunde detaliile și body-urile;
   `reporting.console.enabled: false` oprește întreaga proiecție;
-- consola nu modifică statusul și nu cauzează un test.
+- consola proiectează diagnosticul; calculul verdictului rămâne la ownerul testului.
 
 ### Responsabilitatea asupra fluxurilor de ieșire
 
@@ -252,3 +254,25 @@ Testarea este împărțită după responsabilitate:
 - Pentru verdict și lifecycle per copil, folosește `AtfConsoleTestContext.dynamicTest(owner, displayName, body)`.
 - Factory-ul nu primește un start/end fals; helperul finalizează fiecare copil cu PASS, SKIP sau FAIL.
 - Copiii construiți direct cu `DynamicTest.dynamicTest` nu au proiecție console per-copil.
+
+## Verificare rapidă
+
+| Decizie | Sursă și limită |
+|---|---|
+| Proiecție de diagnostic din evenimente typed | [sursa ownerului](src/main/java/atf/console/AtfConsoleReporter.java); probă: [AtfConsoleReporterTest](src/test/java/atf/console/AtfConsoleReporterTest.java) |
+| Dependențe și source-set-uri | [POM](pom.xml); scope-ul declarat este autoritatea pentru integrare |
+| Ce nu demonstrează această probă | Output-ul consolei nu constituie verdict ori dovadă de publicare HTML. |
+
+<details>
+<summary><strong>Comandă pentru proba locală</strong></summary>
+
+Rulați din rădăcina unui [staging extern](../docs/ATF_Build_And_Execution_Safety.md), cu JDK 21 și Maven.
+
+```powershell
+mvn -B -pl atf-console -am "-Dtest=AtfConsoleReporterTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+```
+
+Comanda selectează proba numită și construiește dependențele; nu declară
+trecerea întregului modul. Output-ul consolei nu constituie verdict ori dovadă de publicare HTML.
+
+</details>

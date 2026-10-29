@@ -6,6 +6,8 @@ produce un `ApiResponse` reproductibil pentru fiecare request configurat.
 
 ## Pe scurt
 
+**Trasee rapide:** [Catalog YAML](#configurația-yaml) · [Matching](#potrivirea-și-prioritatea-rutelor) · [Probă offline](#verificare-rapidă)
+
 - **Input**: catalog de rute din `atf-mock.yaml` sau configurație built-in;
 - **Matching**: metodă, path, profil de autentificare, query, headere și body;
 - **Output**: status, headere, body, durată și URL păstrat pentru evidence;
@@ -311,3 +313,25 @@ tragă după el rendererul, browserul sau un domeniu de business.
 - [`ATF Architecture`](../docs/ATF_Architecture.md) — boundary-urile reactorului;
 - [`Bune practici de cod`](../docs/README_Atf_CodeBestPractices.md) — ownership,
   modele și stratificarea testelor.
+
+## Verificare rapidă
+
+| Decizie | Sursă și limită |
+|---|---|
+| Răspuns determinist prin portul ApiTransport | [sursa ownerului](src/main/java/atf/mock/AtfMockTransport.java); probă: [AtfMockTransportTest](src/test/java/atf/mock/AtfMockTransportTest.java) |
+| Dependențe și source-set-uri | [POM](pom.xml); scope-ul declarat este autoritatea pentru integrare |
+| Ce nu demonstrează această probă | Proba nu confirmă disponibilitatea unui serviciu real. |
+
+<details>
+<summary><strong>Comandă pentru proba locală</strong></summary>
+
+Rulați din rădăcina unui [staging extern](../docs/ATF_Build_And_Execution_Safety.md), cu JDK 21 și Maven.
+
+```powershell
+mvn -B -pl atf-mock -am "-Dtest=AtfMockTransportTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+```
+
+Comanda selectează proba numită și construiește dependențele; nu declară
+trecerea întregului modul. Proba nu confirmă disponibilitatea unui serviciu real.
+
+</details>

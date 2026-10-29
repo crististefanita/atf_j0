@@ -41,6 +41,13 @@ public final class ScrollableTableViewportBrowserProbe {
                   const top = element.scrollTop;
                   const clientHeight = element.clientHeight;
                   const scrollHeight = element.scrollHeight;
+                  element.scrollLeft=element.scrollWidth;
+                  const lastColumn=table?.tBodies[0]?.rows[0]?.lastElementChild;
+                  const columnsReachable=(!lastColumn || lastColumn.getBoundingClientRect().right
+                    <=element.getBoundingClientRect().right+2)
+                    && (!table || getComputedStyle(table).display==='table')
+                    && (element.scrollWidth<=element.clientWidth+2 || getComputedStyle(element).overflowX==='auto');
+                  element.scrollLeft=0;
                   return {
                     name: name + (index ? ' #' + (index + 1) : ''),
                     clientWidth: element.clientWidth,
@@ -55,7 +62,7 @@ public final class ScrollableTableViewportBrowserProbe {
                     hasHeader: !!header,
                     stickyHeader: !header || getComputedStyle(header).position === 'sticky'
                       && Math.abs(after - before) <= 2,
-                    contentFits: !table || table.scrollWidth <= element.clientWidth + 1
+                    columnsReachable
                   };
                 }));
               return {
@@ -227,7 +234,7 @@ public final class ScrollableTableViewportBrowserProbe {
                         Boolean.TRUE.equals(value.get("reachesEnd")),
                         Boolean.TRUE.equals(value.get("hasHeader")),
                         Boolean.TRUE.equals(value.get("stickyHeader")),
-                        Boolean.TRUE.equals(value.get("contentFits")), documentFits))
+                        Boolean.TRUE.equals(value.get("columnsReachable")), documentFits))
                 .toList();
     }
 
@@ -267,12 +274,10 @@ public final class ScrollableTableViewportBrowserProbe {
                               double clientWidth, double scrollWidth, double tableWidth,
                               double clientHeight, double scrollHeight, double scrollTopAtEnd,
                               double maxHeight, boolean longContent, boolean reachesEnd,
-                              boolean hasHeader, boolean stickyHeader, boolean contentFits,
+                              boolean hasHeader, boolean stickyHeader, boolean columnsReachable,
                               boolean documentFits) {
         public boolean valid() {
-            boolean horizontalFit = scrollWidth <= clientWidth + GEOMETRY_TOLERANCE_PX
-                    && tableWidth <= clientWidth + GEOMETRY_TOLERANCE_PX
-                    && contentFits && documentFits;
+            boolean horizontalFit = columnsReachable && documentFits;
             boolean sharedCap = Math.abs(maxHeight - SHARED_SCROLL_CAP_PX) <= GEOMETRY_TOLERANCE_PX
                     && clientHeight <= SHARED_SCROLL_CAP_PX + GEOMETRY_TOLERANCE_PX;
             boolean shortContentIsNatural = longContent

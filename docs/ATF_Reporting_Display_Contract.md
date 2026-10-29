@@ -134,6 +134,30 @@ assertions, setup și execution, inclusiv Category, tag audit și
 
 Nu duplicați pragul în renderer-e sau ca valoare locală de test.
 
+### Restabilirea prezentării tabelare a dovezilor
+
+Cerința aprobată pentru Actions, Audit observations și Assert este revenirea
+la tabele cu antet vizibil și coloane aliniate, inclusiv în panouri desktop
+imbricate. Lățimile se adaptează dinamic după conținut și spațiul real;
+valorile complete și verdictul nu sunt reconstruite din preview-ul de 240.
+
+Politica comună păstrează coloanele și măsoară antetul, valorile și fontul;
+coloanele scurte nu consumă cote procentuale fixe. Detaliile allocatorului și
+probele de geometrie sunt la [owner](../atf-reporting/README.md#lizibilitatea-dovezilor-în-panouri-înguste).
+
+- Tabelul ocupă întreaga lățime disponibilă, inclusiv când valorile sunt scurte;
+  spațiul suplimentar revine proporțional coloanelor de conținut, cu statusul și
+  timpul compacte, fără margine artificială la dreapta.
+- Aceeași regulă se aplică setup-ului și tabelelor Overview/Category/System;
+  maximele reale ale textului concurează pentru spațiu, fără plafon în pixeli
+  sau gutter rezervat când scrollbar-ul nu este necesar.
+- Păstrați wrapping-ul lizibil și înălțimea naturală; plafonul vertical și
+  antetul sticky rămân comune Extent/fallback.
+- Când coloanele nu încap lizibil, derularea orizontală este locală tabelului;
+  nu se extinde la document, screenshot sau disclosure-ul exterior.
+- Probe de acceptanță: antet/coloane vizibile, valori și ultimul rând accesibile,
+  expandare și redimensionare în ambele renderere, componente și E2E consumer.
+
 ### Tokens vizuale
 
 `AtfReportThemeTokens` și `AtfReportColors` sunt sursa valorilor; tabelul

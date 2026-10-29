@@ -7,6 +7,10 @@ README-urilor și a feedback-ului se folosește
 
 ## Pe scurt
 
+**Trasee rapide:** [ownership](#limite-de-responsabilitate-și-proprietari) ·
+[OOP](#oop-și-modele) · [layere](#structura-testelor) ·
+[probe](#verificarea-regulilor-de-cod)
+
 Codul ATF trebuie să fie ușor de citit din boundary spre detaliu:
 
 ```mermaid
@@ -549,3 +553,49 @@ Checklist obligatoriu pentru un modul de test:
 - [ ] Raportul spune precis ce a eșuat.
 - [ ] Documentația nu conține date de rulare, timestamp-uri, numărări de run,
       căi locale, linkuri `file:///` sau artifacte generate.
+
+## Verificarea regulilor de cod
+
+| Regulă | Owner executabil | Limita probei |
+|---|---|---|
+| Dependențe și namespace-uri | [ArchitectureModuleBoundaryTest](../atf-tests/src/test/java/atf/api/tests/governance/ArchitectureModuleBoundaryTest.java) | validează boundary-ul declarat, nu utilitatea fiecărei abstracții |
+| Amplasarea responsabilităților | [ArchitectureOwnershipBoundaryTest](../atf-tests/src/test/java/atf/api/tests/governance/ArchitectureOwnershipBoundaryTest.java) | excepțiile sunt explicite; verdictul business rămâne la consumer |
+| Coeziunea pachetelor | [AtfPackageCohesionGovernanceTest](../atf-tests/src/test/java/atf/api/tests/governance/AtfPackageCohesionGovernanceTest.java) | limita de inventar nu justifică împărțirea mecanică a unei clase |
+| Layer și surse Java | [AtfTestLayerArchitectureTest](../atf-tests/src/test/java/atf/api/tests/governance/layers/AtfTestLayerArchitectureTest.java) | include rădăcinile din POM; nu demonstrează acoperirea funcțională |
+
+[Comanda whole-ATF](../atf-tests/README.md#verificare-rapidă) rulează în staging.
+Testele unit/component ale ownerului verifică comportamentul schimbat;
+verdele guvernanței nu substituie aceste probe sau auditul de raport.
+
+## Rubrica reevaluării modulelor
+
+Nota modulului evaluează codul livrat și probele lui, separat de nota README-ului,
+readiness-ul unei propuneri și prioritatea backlog-ului. Aceeași rubrică se
+aplică tuturor modulelor; punctajele motivate se raportează în canalul reviziei.
+
+| Atribut | Maximum | Ce susține punctajul |
+|---|---:|---|
+| Corectitudine | 30 | oracol independent, nominal/negativ și refuz fără efecte nepermise |
+| Ownership și OOP | 25 | motive de schimbare delimitate, porturi și modele coerente, fără mutări mecanice |
+| Testabilitate | 20 | probe la boundary, deterministe, capabile să refuze comportamentul greșit |
+| Reziliență | 15 | cauză primară, restaurarea scope-ului, eliberare bounded și istoric fidel la eroare |
+| Operare | 10 | configurare explicită, execuție și output auditabile, fără resurse ascunse |
+
+- Un false PASS, pierderea cauzei funcționale, contaminarea unui scope sau un
+  shutdown fără limită, reproduse în boundary-ul declarat, împiedică declararea
+  unei note peste 91 până la rezolvarea și verificarea criteriului.
+- Închiderea include proba negativă care eșuează pe comportamentul anterior,
+  regresiile adiacente și guvernanța existentă; simpla adăugare a unui test nu
+  acordă puncte dacă oracolul repetă implementarea.
+- Pentru consumeri și schimbări vizibile în raportare, verificați câte un caz
+  relevant individual și prin suită, în Extent/fallback unde se aplică; păstrați
+  raportul unic, timing-ul, aserțiunile și expandările. Unit și fixture-urile
+  Reporting își păstrează categoriile, fără artifacte business fabricate.
+- Lipsa unei lacune demonstrate cere revalidare țintită, nu o refactorizare
+  inventată pentru punctaj. Numărul de module, clase, teste ori linii nu
+  substituie calitatea și nu extinde funcționalitatea incrementului.
+
+Reevaluarea folosește codul live după sync și probele executate în staging;
+nu promite automat puncte pentru închiderea unor checkbox-uri. Regula de
+[păstrare a scorurilor în canal](README_Atf_DocumentationBestPractices.md#rubrica-reviziei-editoriale)
+se aplică și acestei evaluări, fără scorecard datat în contractele proiectului.

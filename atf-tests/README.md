@@ -2,6 +2,8 @@
 
 ## Pe scurt
 
+**Trasee rapide:** [Whole-ATF](#suita-whole-atf-și-reziduul-de-compatibilitate) · [Rădăcini Java](#inventarul-comun-al-surselor-java) · [Controale Git](#guvernanța-schimbării-testelor) · [Gate și limite](#verificare-rapidă)
+
 - `atf-tests` este modulul de control al proiectului ATF;
 - verifică reactorul, boundary-urile Maven/source și gate-urile de arhitectură;
 - nu este owner pentru teste de produs;
@@ -322,10 +324,11 @@ randarea generică a raportului rămân în `atf-reporting-tests`.
 ```text
 mvn -pl atf-tests -am "-Dtest=WholeAtfGovernanceSuiteTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 mvn -pl atf-tests -am test
-mvn -pl atf-test-practice-shop -am "-Dtest=ShopConfigurationTest,ShopCheckoutConfigurationTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 mvn -pl atf-tests -am "-Dtest=ConsumerModuleArchitectureGovernanceTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
-mvn -pl atf-test-practice-shop -am "-Dtest=PurchaseE2eTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
+
+Comenzile de business sunt la [Shop](../atf-test-practice-shop/README.md#cum-se-verifică-modulul)
+și [AutoEx](../atf-test-auto-ex/README.md#rulare), cu opt-in-urile proprii.
 
 Build-urile se fac într-un staging extern (`${ATF_STAGING_ROOT}/...`), fără a
 opri execuții active. Se sincronizează numai fișierele aprobate, după recitirea
@@ -358,3 +361,25 @@ fără a transforma `+` în spațiu.
 link valid: `DOC-README-ANCHOR` identifică README-ul, linia și remedierea, chiar
 dacă heading-ul dispărut mai apare într-un exemplu fenced. Regula de heading
 urmează [convenția GitHub](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#section-links).
+
+## Verificare rapidă
+
+| Decizie | Sursă și limită |
+|---|---|
+| Boundary, ownership și documentație în întregul reactor | [sursa ownerului](src/test/java/atf/api/tests/governance/WholeAtfGovernanceSuiteTest.java); probă: [WholeAtfGovernanceSuiteTest](src/test/java/atf/api/tests/governance/documentation/DocumentationAnchorGovernanceTest.java) |
+| Dependențe și source-set-uri | [POM](pom.xml); scope-ul declarat este autoritatea pentru integrare |
+| Ce nu demonstrează această probă | Gate-ul nu dovedește un journey business ori randarea artifactului. |
+
+<details>
+<summary><strong>Comandă pentru proba locală</strong></summary>
+
+Rulați din rădăcina unui [staging extern](../docs/ATF_Build_And_Execution_Safety.md), cu JDK 21 și Maven.
+
+```powershell
+mvn -B -pl atf-tests -am "-Dtest=WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+```
+
+Comanda selectează proba numită și construiește dependențele; nu declară
+trecerea întregului modul. Gate-ul nu dovedește un journey business ori randarea artifactului.
+
+</details>

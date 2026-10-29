@@ -6,6 +6,8 @@ nu citește mock-uri sau fixture-uri de aplicație.
 
 ## Pe scurt
 
+**Trasee rapide:** [Arbore și ownership](#contractul-raportului) · [Assert și 240](#proiecția-sigură-a-aserțiunilor) · [Timing](#timing-e2e-la-ownerul-runtime) · [Tabele](#lizibilitatea-dovezilor-în-panouri-înguste) · [Probe și limite](#verificare-rapidă)
+
 - **producție** — contracte typed, modele semantice, renderer, asset-uri și
   publication; zero dependențe către module ATF;
 - **teste proprii** — verifică standalone boundary-ul și contracte locale fără
@@ -17,13 +19,8 @@ nu citește mock-uri sau fixture-uri de aplicație.
 - **adopție** — consumatorul furnizează inputul typed, statusul, evidence-ul și
   politica de output prin API-ul public.
 
-**Traseu de lectură:** [boundary](#limitele-librăriei-autonome-și-consumatorul-canonic) →
-[model semantic](#modelul-tipizat) → [contract](#contractul-raportului) →
-[structura de producție](#structura-producției) →
-[configurare](#intrări-și-configurare-în-bibliotecă) →
-[publicare](#publicare-și-ieșire) → [verificare](#verificare-pentru-contribuții).
-Structura package-urilor din `atf-reporting-tests` nu este duplicată aici;
-aparține README-ului acelui consumer.
+Contractele de semantică și display sunt legate din [contracte și feedback](#contracte-și-feedback).
+Structura harness-ului aparține [Reporting Tests](../atf-reporting-tests/README.md).
 
 ## Limitele librăriei autonome și consumatorul canonic
 
@@ -145,6 +142,9 @@ flowchart LR
 
 ## Modelele semantice și proiecția comună
 
+<details>
+<summary><strong>Detalii — modelele semantice și proiecția comună</strong></summary>
+
 Codul păstrează două modele immutable cu responsabilități locale distincte,
 legate printr-o proiecție comună. Astfel nu este nevoie să forțăm rendererul
 Extent și fallback-ul să împartă aceeași structură internă:
@@ -250,6 +250,8 @@ provider de sesiune: trace-ul poate varia la fiecare exchange, în timp ce
 snapshot-ul System este stabil pe durata raportului. Contractul combinat este
 verificat cu un consumer sintetic în `ReportTraceMetadataRenderingTest`.
 
+</details>
+
 ## Pornirea atomică a scenariilor și fazelor
 
 - Tag-urile caller-owned și profilul scenariului sunt validate înainte de
@@ -268,6 +270,9 @@ secundară și reutilizarea sesiunii. Probele sunt locale și deterministe; nu
 necesită endpoint extern sau journey de produs.
 
 ## Contractul raportului
+
+<details>
+<summary><strong>Detalii — contractul raportului</strong></summary>
 
 Regulile canonice pentru ierarhia vizibilă, glyph-ul inline, disclosure-uri,
 viewport, responsive layout și verificarea browser sunt în
@@ -299,8 +304,8 @@ TestCase
 | UI evidence | `SETUP` rămâne setup; în `TEST BODY`, acțiunile, observațiile, aserțiunile și verdictul UI sunt publicate sub unicul titlu `UI validation` |
 | UI `UNIFIED_FLOW` peste faze | Consumerul apelează `UiScenario.unifyAcrossPhases()` înainte de prima fază și `UiPhase.completeFinal(status)` la faza terminală. Pe succes UI-only, Reporting publică o singură validare UI cu un tabel ACTION, unul OBSERVE (dacă există observații) și unul assertions (dacă există aserțiuni), păstrând toate rândurile în ordine. Captura `FINAL` permisă apare sub tabelul Playwright, înaintea auditului; fazele/checkpoint-urile și verdictele sunt în `UI flow provenance`, separat de răspunsurile HTTP. UI+API, setup eșuat și politicile explicite cu capturi multiple păstrează validările pe checkpoint. `completeFinal(FAIL)` în `SETUP` nu creează `TEST BODY` sau o captură finală. Fără opt-in, comportamentul existent per fază rămâne valabil. |
 | layout | `＋/−` este inline înaintea propoziției; Request details, Response details și Execution evidence sunt disclosures surori în request; Contract validation este copilul lui; UI/API validations sunt copii surori ale aceluiași checkpoint Gherkin |
-| responsive evidence | la panou de maximum `720px`, valorile se așază vertical cu eticheta coloanei; decizia folosește containerul real, inclusiv într-o fereastră desktop. Nu apare scrollbar orizontal și nu se reduc valorile ori fontul ca să încapă | 
-| tabele cu derulare | containerele folosesc `height:auto` și `max-height:var(--atf-table-scroll-height)`, derivat din `AtfReportThemeTokens.TABLE_SCROLL_HEIGHT` (`500px` în prezent); conținutul scurt nu rezervă spațiu gol, conținutul lung derulează sub antetul fix în prezentarea pe coloane; prezentarea verticală repetă eticheta la fiecare valoare. Panourile JSON/cod nu intră în acest contract |
+| responsive evidence | antetul și coloanele rămân vizibile semantic și aliniate la orice lățime a panoului; spațiul insuficient produce scroll orizontal local, fără overflow al paginii, celule verticale sau micșorarea fontului |
+| tabele cu derulare | containerele folosesc `height:auto` și `max-height:var(--atf-table-scroll-height)`, derivat din `AtfReportThemeTokens.TABLE_SCROLL_HEIGHT` (`500px` în prezent); conținutul scurt nu rezervă spațiu gol, conținutul lung derulează sub antetul fix. Ultimul rând și ultima coloană rămân accesibile. Panourile JSON/cod nu intră în acest contract |
 | politica comună de viewport | `ReportTableViewport` și asset-ul `table-viewport.css` sunt comune Extent/fallback; builderul învelește implicit orice tabel de date, inclusiv setup, execution și familii viitoare. Regula nu depinde de titlu, contor, fază sau părinte `validation`; wrapperul este focusabil pentru scroll din tastatură |
 | limitele viewportului | un singur wrapper per tabel; tabelele de layout `Status / Details`, copiii și screenshot-urile nu intră în viewport. Normalizarea legacy verifică numai părintele direct al tabelului candidat și reutilizează wrapperul existent |
 | scroll local la input | `table-viewport.js` izolează rotița și navigarea din tastatură de panoul gazdă; inputurile, linkurile, summary-urile și panourile de cod își păstrează comportamentul. Există un singur binding delegat, fără scanări la fiecare gest |
@@ -703,7 +708,12 @@ titlul Gherkin apare o singură dată, iar validările UI/API și exchange evide
 coexistă sub acel checkpoint. Un card Gherkin duplicat este regresie a acestui
 contract, nu un ToDo activ.
 
+</details>
+
 ## Structura producției
+
+<details>
+<summary><strong>Detalii — structura producției</strong></summary>
 
 | Boundary | Owner principal | Output verificabil |
 |---|---|---|
@@ -811,9 +821,9 @@ disclosure reutilizează linkul media canonic pentru referințe și ascultă `to
 în capture deoarece evenimentul nu bubble-uiește; disclosure-ul JSON își păstrează
 ownership-ul și nu este confundat cu trace-ul vecin. Normalizarea scenariilor
 mută doar diagnosticele explicite în panel și elimină wrapper-ul de log vendor.
-Alocarea lățimilor distribuie proporțional slack-ul coloanelor rezervate într-o
-trecere, iar adapterul legacy inspectează doar părintele imediat al tabelului;
-viewport-urile noi sunt deținute de markup-ul Java.
+Alocarea comună păstrează lățimea măsurată a coloanelor tehnice și distribuie
+numai cererea de spațiu rămasă a conținutului flexibil. Adapterul legacy
+inspectează părintele imediat al tabelului; viewport-urile noi sunt deținute de markup-ul Java.
 
 `appendUiFailureEvidence` rulează pe nodurile typed `request` și `validation`:
 request-ul deține failure API, iar validarea UI deține eșecul
@@ -1002,7 +1012,12 @@ urmăresc numai în README-ul dedicat, nu se duplică în această librărie.
 
 </details>
 
+</details>
+
 ## Intrări și configurare în bibliotecă
+
+<details>
+<summary><strong>Detalii — intrări și configurare în bibliotecă</strong></summary>
 
 Producția `atf-reporting` deține numai configurația necesară publicării:
 `ReportingSettings`, `ExtentReportConfiguration`, contextul de pornire și loaderul
@@ -1204,6 +1219,8 @@ flowchart LR
 
 </details>
 
+</details>
+
 ## Publicare și ieșire
 
 Output-ul este configurabil prin `reporting.extent.outputDirectory` și
@@ -1381,6 +1398,9 @@ izolate în facade. Contractul se verifică separat prin teste de asset, compone
 
 ## Consistența statusului transmis de caller
 
+<details>
+<summary><strong>Detalii — consistența statusului transmis de caller</strong></summary>
+
 `ReportStatusAggregator.resolve(...)` reconciliază statusul callerului cu
 rezultatele efective ale rândurilor și scope-urilor copil. Evaluarea business
 rămâne la consumer; Reporting nu compară din nou expected cu actual.
@@ -1444,6 +1464,7 @@ un apel respins păstrează snapshot-ul și permite publicarea stării valide.
 | `close()` înainte de completare, fără copii deschiși | completează FAIL; nu inventează un rezultat business PASS |
 | `close()` cu copii deschiși | refuz fără abandonarea părintelui ori decrementarea contoarelor |
 | scriere după completare/închiderea sesiunii | refuz înaintea mutației; snapshot-ul rămâne inspectabil |
+| eroare la închiderea/publicarea sesiunii | cauza se propagă; sesiunea se închide, iar al doilea close nu reîncearcă publicarea |
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
@@ -1462,12 +1483,23 @@ flowchart LR
   închiderea copiilor este explicită, fără rollback ori retry ascuns în renderer.
 - Consola este best-effort în ambele renderere; eroarea diagnostică nu întrerupe
   tranziția și nu schimbă verdictul. Erorile reale de publicare își păstrează cauza.
+- Colecțiile de aserțiuni sunt capturate o singură dată înaintea actualizării
+  modelului și recorderului; un element null nu șterge rândurile valide anterioare.
+- Agregatul de rețea ocupă un singur slot semantic, indiferent de înlocuire sau
+  de detaliile adăugate ulterior; null este no-op pe un request încă deschis.
+- `ReportingScopeAtomicityComponentTest` adaugă probe pentru payload invalid,
+  input schimbător, agregat înlocuit și erori de publicare, fără comparații business.
 - `ReportScopeAtomicityComponentTest` verifică porturile publice, mutațiile tardive,
   request-urile imbricate, refuzul recuperabil, sesiunea închisă și notificarea unică.
 
 </details>
 
+</details>
+
 ## Proiecția sigură a aserțiunilor
+
+<details>
+<summary><strong>Detalii — proiecția sigură a aserțiunilor</strong></summary>
 
 `AssertionAuditReport` publică faze și pași de aserțiuni prin `AtfReportPorts.Session`;
 nu depinde de JUnit, Test Kit sau Validation. Consumerul îi furnizează identitatea,
@@ -1681,36 +1713,88 @@ Limita de 240 caractere și pasul `Component assertions` colapsat rămân acelea
 ### Lizibilitatea dovezilor în panouri înguste
 
 Lățimea ferestrei și lățimea disponibilă tabelului sunt măsurători diferite.
-`table-viewport.css` folosește containerul dovezii: la maximum `720px`, fiecare
-celulă ocupă lățimea rândului și păstrează eticheta antetului lângă valoare.
+Indentarea Extent poate lăsa un panou îngust chiar într-o fereastră desktop.
+`table-viewport.css` păstrează tabelul, antetul vizibil și celulele pe coloane;
+nu transformă rândurile în carduri la un breakpoint.
 
-La lățime mai mare rămân coloanele și antetul sticky. Antetul semantic există
-și în prezentarea verticală, iar scroll-ul rămâne local, focusabil și plafonat
-prin aceeași variabilă; un tabel scurt ocupă numai înălțimea conținutului său.
+Același allocator măsoară antetul, valorile, fontul și padding-ul în Extent și
+fallback. Tabelul ocupă întreaga lățime disponibilă; coloanele tehnice rămân
+compacte, iar spațiul se distribuie întâi cererii de conținut nesatisfăcute,
+apoi proporțional coloanelor flexibile.
+
+Politica acoperă setup, assertions, Actions/Audit, dovezile API și tabelele
+Overview/Category/System. Acestea din urmă își reutilizează containerul, iar
+totalurile numerice rămân compacte; colgroup-urile existente urmează alocarea comună.
+Tabelele de failure adăugate ulterior de runtime primesc aceeași politică,
+inclusiv viewport-ul comun când markup-ul lor inițial nu are un container.
+
+| Situație | Prezentare |
+|---|---|
+| Date scurte în toate coloanele | tabel pe întreaga lățime, fără margine artificială la dreapta; surplusul revine coloanelor de conținut |
+| Unele valori sunt lungi | coloanele respective primesc spațiul rămas; statusul și timpul păstrează lățimea măsurată |
+| Panoul nu permite nici antetele și baza lizibilă | scroll orizontal local, cu antet și toate coloanele accesibile |
+| Redimensionare, text nou sau redeschidere | invalidare incrementală și recalculare, fără reevaluarea aserțiunilor |
+
+Antetul sticky, fontul comun și plafonul vertical se păstrează; un tabel scurt
+ocupă numai înălțimea conținutului său. Nu există lățimi minime de tabel impuse
+după numărul coloanelor.
+
+Maximele textului în pixeli nu sunt plafonate: două mesaje lungi rămân
+diferențiabile, inclusiv la același număr de caractere. Gutter-ul nu rezervă
+spațiu gol la dreapta; numai scrollbar-ul cerut de conținut reduce lățimea utilă.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
     Width["Lățime panou"] -->|decide| Layout{"Spațiu util"}
-    Layout -->|peste 720 px| Columns["Coloane"]
-    Layout -->|maximum 720 px| Rows["Valori verticale"]
-    Columns -->|păstrează| Evidence["Valori + verdicte"]
-    Rows -->|păstrează| Evidence
+    Layout -->|suficient| Columns["Coloane pe lățimea completă"]
+    Layout -->|insuficient| Rows["Scroll orizontal local"]
+    Rows -->|păstrează| Columns
+    Columns -->|păstrează| Evidence["Antet + valori + verdicte"]
     Evidence -->|derulează local| Audit["Scroll local"]
 ```
 
 <details>
-<summary><strong>Legendă — prezentare adaptivă, model auditabil identic</strong></summary>
+<summary><strong>Legendă — coloane păstrate, scroll local auditabil</strong></summary>
 
-- Etichetele provin din antetul publicat, prin scriptul comun Extent/fallback;
-  nu sunt deduse din valorile de test și nu repetă evaluarea aserțiunilor.
+- Antetele publicate și ordinea coloanelor rămân aceleași în Extent/fallback;
+  fiecare celulă se aliniază cu propriul antet, fără repetarea lui în body.
 - Panourile înguste reduc indentarea rendererului; în fallback, lista și
   conținutul se așază vertical când containerul nu permite două coloane.
 - Preview-ul aserțiunilor rămâne redactat înaintea plafonului de 240 de caractere;
   rearanjarea CSS nu modifică textul sau verdictul.
-- `NarrowEvidenceReadabilityComponentTest` verifică lățimi standard, 591 și
-  392 px, plus panouri de 591/392 px într-un viewport desktop. Verifică
-  lățimea utilă, fontul, etichetele, rândul final și redeschiderea cu tastatura,
+- `NarrowEvidenceReadabilityComponentTest` verifică viewport-uri 1803/1280/591/392 px
+  și panouri 591/392/719/720/721 px într-un viewport desktop. Verifică
+  lățimea utilă, fontul, antetul, ultima coloană, rândul final și redeschiderea cu tastatura,
   alături de proiecția negativă și backlink-ul Fails → Tests.
+- `TableViewportBrowserComponentTest` respinge antetul ascuns, celulele verticale
+  și scroll-ul orizontal blocat, pe lângă probele existente pentru plafon și clipping.
+- `EvidenceColumnSizingComponentTest` compară geometria cu lățimea fizică
+  disponibilă, inclusiv setup, dashboard, colgroup, texte concurente și gutter gol;
+  un marker de layout prezent nu certifică singur randarea.
+
+</details>
+
+</details>
+
+## Verificare rapidă
+
+| Decizie | Sursă și limită |
+|---|---|
+| Snapshot semantic și verdict coerent standalone | [sursa ownerului](src/main/java/atf/reporting/extent/session/ExtentReportSession.java); probă: [ReportingStandaloneVerdictComponentTest](src/test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java) |
+| Dependențe și source-set-uri | [POM](pom.xml); scope-ul declarat este autoritatea pentru integrare |
+| Ce nu demonstrează această probă | Proba locală nu demonstrează randarea în browser; aceasta aparține Reporting Tests. |
+
+<details>
+<summary><strong>Comandă pentru proba locală</strong></summary>
+
+Rulați din rădăcina unui [staging extern](../docs/ATF_Build_And_Execution_Safety.md), cu JDK 21 și Maven.
+
+```powershell
+mvn -B -pl atf-reporting -am "-Dtest=ReportingStandaloneVerdictComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+```
+
+Comanda selectează proba numită și construiește dependențele; nu declară
+trecerea întregului modul. Proba locală nu demonstrează randarea în browser; aceasta aparține Reporting Tests.
 
 </details>

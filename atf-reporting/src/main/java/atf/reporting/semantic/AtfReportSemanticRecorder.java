@@ -137,6 +137,11 @@ public final class AtfReportSemanticRecorder {
             state.execution();
         }
 
+        public void networkAggregate() {
+            ensureOpen();
+            state.networkAggregate();
+        }
+
         public void uiActions(Collection<AtfUiActionRecord> actions) {
             ensureOpen();
             state.uiActions(actions);

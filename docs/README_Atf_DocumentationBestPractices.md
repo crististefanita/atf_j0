@@ -522,3 +522,17 @@ datate, istorice de rulări sau artifacte locale.
 - [ ] linkurile și `<details>` sunt validate;
 - [ ] contractul este în README-ul ownerului, iar feedback-ul conține doar gap-ul;
 - [ ] documentul a fost recitit împreună cu codul live.
+
+## Verificarea editorială la owner
+
+| Dimensiune | Probă nativă | Ce mai cere review manual |
+|---|---|---|
+| Structură și navigare | [README structure](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationReadmeStructureGovernanceTest.java) și [anchors](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationAnchorGovernanceTest.java) | traseul cititorului și sensul destinației |
+| Stil și proză | [style](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationStyleGovernanceTest.java) și [prose](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationProseGovernanceTest.java) | formularea exactă, densitatea utilă și primul ecran |
+| Diagrame și legende | [diagram governance](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationDiagramGovernanceTest.java) | randare, geometrie și păstrarea sensului |
+| Fidelitate factuală | cod/POM/test la owner, plus [harta modulelor](ATF_Architecture.md) | limita dintre comportament livrat, probă executată și propunere |
+
+Comanda de [guvernanță](../atf-tests/README.md#verificare-rapidă) se rulează în
+staging; artifactele Markdown randate se inspectează în TAB MCP. Rubrica
+editorială rămâne cea [de mai sus](#rubrica-reviziei-editoriale), fără praguri
+sau excepții introduse pentru o revizie particulară.

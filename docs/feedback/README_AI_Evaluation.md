@@ -2,6 +2,10 @@
 
 ## Pe scurt
 
+**Trasee rapide:** [livrat versus propus](../../atf-validation/README.md#comparatorul-ai--contract-implementat) ·
+[gap-uri](#gap-uri-rămase-pentru-evaluator) ·
+[readiness](#readiness-față-de-codul-curent) · [probe](#verificarea-comparatorului-livrat)
+
 Acest document separă gap-urile evaluatorului AI de readiness-ul implementării.
 Designul țintă și pattern-urile extrase din ATF1/.NET sunt în
 [designul AI al proiectului](../ATF_AI_Evaluation_Design.md).
@@ -147,3 +151,15 @@ workflow-ului și proiecția de raport rămân nedemonstrate. Guvernanța genera
 și inspectorul de rețea nu certifică AI quality. Ordinea domeniilor este în
 [registrul feedback](README.md), iar contractele și opțiunile proiectate sunt
 în [designul AI](../ATF_AI_Evaluation_Design.md).
+
+## Verificarea comparatorului livrat
+
+| Întrebare | Sursă și probă | Limită |
+|---|---|---|
+| Expected-ul și verdictul sunt independente de renderer? | [evaluator](../../atf-validation/src/main/java/atf/validation/ai/AiEvaluationEvaluator.java) și [AiEvaluationEvaluatorTest](../../atf-validation/src/test/java/atf/validation/ai/AiEvaluationEvaluatorTest.java) | comparație locală; nu invocă provider AI |
+| Ce este publicat de modul? | [Contractul Validation](../../atf-validation/README.md#comparatorul-ai--contract-implementat) și [proba locală](../../atf-validation/README.md#verificare-rapidă) | snapshot-ul nu este încă o proiecție AI în Extent |
+| Ce rămâne numai design? | [Design AI](../ATF_AI_Evaluation_Design.md) și criteriile din acest feedback | niciun YAML conceptual nu devine opțiune runtime prin documentare |
+
+Readiness-ul existent nu se recalculează printr-o îmbunătățire editorială.
+Calitatea acestui README și completitudinea funcționalității propuse sunt
+evaluări distincte, conform [rubricii documentare](../README_Atf_DocumentationBestPractices.md#rubrica-reviziei-editoriale).

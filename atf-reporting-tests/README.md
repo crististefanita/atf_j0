@@ -2,6 +2,8 @@
 
 ## Pe scurt
 
+**Trasee rapide:** [Alege proba](#matricea-de-integrare-și-limitele-verificate) · [Tabele și responsive](#probe-de-lizibilitate-a-panoului) · [Scope-uri](#refuz-recuperabil-al-scope-urilor) · [Browser local și limite](#verificare-rapidă)
+
 `atf-reporting-tests` verifică `atf-reporting` ca librărie reutilizabilă:
 
 - acoperă setup API/mock, renderer, publisher, browser read-only și ATF Debug;
@@ -28,6 +30,9 @@ verifică diferența Git și probele negative ale regulii.
   — ce rămâne specific aplicațiilor.
 
 </details>
+
+<details>
+<summary><strong>Catalogul probelor de failure și al regresiilor adiacente</strong></summary>
 
 `UiFailureReportContractTest` este proba browser annotation-driven pentru
 failure UI în Extent:
@@ -97,6 +102,8 @@ Testele JUnit declară intențiile; `support/inspection/disclosure` deține fixt
 și proba browser. Auditul reutilizabil folosește facade-ul din `support/locators`:
 identifică validarea UI după rol și acțiunile incluse, nu după titlu, și deschide
 ancestorii scenariu → fază → checkpoint → validare înaintea inspecției.
+
+</details>
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-10px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10}}}%%
@@ -390,6 +397,9 @@ publicare; mapping-ul local rămâne în probele Shop, fără copierea rendereru
   [probei browser de failure](src/test/java/atf/ui/tests/extent/e2e/failure/UiFailureReportContractTest.java).
 
 ## Matricea de integrare și limitele verificate
+
+<details>
+<summary><strong>Detalii — matricea de integrare și limitele verificate</strong></summary>
 
 `NetworkCaptureEvidenceTest` aparține pachetului
 `atf.ui.tests.extent.component.inspection.network`; cele cinci cazuri rămân
@@ -697,7 +707,12 @@ Ancorele de output sunt:
 - pentru `NoClassDefFoundError` în IntelliJ, verifică modulele `atf-reporting` și `atf-reporting-tests` și dependency graph-ul testului; nu duplica sau muta clasa pentru a compensa un model IDE stale;
 - reproduce întâi cu testul forked `ReportStagingWorkspaceTest` în reactorul Maven.
 
+</details>
+
 ## Limitele de responsabilitate ale aplicațiilor consumatoare
+
+<details>
+<summary><strong>Detalii — limitele de responsabilitate ale aplicațiilor consumatoare</strong></summary>
 
 Se aplică [regula comună de ownership](../docs/ATF_Testing_Guide.md#owner-ul-testului-business-adaptor-sau-infrastructură):
 acest README descrie boundary-ul Reporting, fără să mute testele consumerilor.
@@ -849,13 +864,50 @@ aparțin `atf-ui`; primitivele fără UI/Reporting aparțin Kit-ului existent.
 
 `NarrowEvidenceReadabilityComponentTest` folosește porturile publice Reporting
 și fixture-uri neutre Extent/fallback. Matricea include viewport 1280/591/392 px
-și panouri 591/392 px într-o fereastră desktop; măsoară și lățimea utilă a
-celulelor, nu numai absența overflow-ului. Valorile descriptive au pragul de
-120 px, cheile 80 px și statusul/timpul 36 px în prezentarea pe coloane;
-prezentarea verticală cere celule de minimum 120 px și etichete din antet.
+și panouri 591/392 px într-o fereastră desktop.
 
-Fixture-ul negativ publică UI/API frați, comparația independentă eșuată și
-`Failure evidence` real, prin `UiExtentReportSession`. Testul verifică datele,
-ultimul rând, Enter/Space și redeschiderea părintelui după Fails → Tests;
-nu reconstruiește un raport prin clonarea rândurilor DOM. Politica comună de
-înălțime și bugetele asset-urilor rămân gate-uri independente.
+| Probă | Contract măsurat |
+|---|---|
+| Lățime utilă | font comun, antet lizibil, celule fără clipping; datele scurte nu primesc cote procentuale artificiale |
+| Coloane | antet vizibil și celule aliniate pe întreaga lățime; scroll orizontal local când spațiul este insuficient, fără overflow al paginii |
+| Fixture negativ | UI/API frați, comparație independentă eșuată și `Failure evidence` real prin `UiExtentReportSession`, fără clonarea rândurilor DOM |
+| Acces | ultimul rând și ultima coloană, Enter/Space și redeschiderea părintelui după Fails → Tests |
+| Probe de refuz | `TableViewportBrowserComponentTest` respinge antetul ascuns, celulele verticale și scroll-ul orizontal blocat, alături de cap, clipping și wrapper dublu |
+| Gate-uri independente | politica de înălțime și bugetele asset-urilor; navigare locală cu săgețile în Extent/fallback |
+
+### Refuz recuperabil al scope-urilor
+
+`ReportScopeAtomicityComponentTest` și `ReportingScopeAtomicityComponentTest`
+folosesc porturile publice Extent/fallback pentru completări repetate, copii
+deschiși, input invalid, close FAIL, consolă best-effort și publicare eșuată.
+Snapshot-ul anterior rămâne intact după refuz; colecția callerului este capturată
+o singură dată, iar agregatul înlocuit nu produce drift la flush. Fixture-urile
+sunt neutre; selecția order și clickul unic aparțin testelor Shop.
+
+Suitele Reporting păstrează categoria lor de contracte și artifactele fixture;
+regula unui HTML agregat per suită business rămâne la adaptoarele Shop/AutoEx.
+
+</details>
+
+## Verificare rapidă
+
+| Decizie | Sursă și limită |
+|---|---|
+| Paritate Extent/fallback pe fixture locală | [sursa ownerului](src/test/java/atf/ui/tests/extent/support/inspection/table/TableViewportReportFixture.java); probă: [NarrowEvidenceReadabilityComponentTest](src/test/java/atf/ui/tests/extent/component/readability/NarrowEvidenceReadabilityComponentTest.java) |
+| Dependențe și source-set-uri | [POM](pom.xml); scope-ul declarat este autoritatea pentru integrare |
+| Ce nu demonstrează această probă | Fixture-ul local nu certifică o suită business completă. |
+
+<details>
+<summary><strong>Comandă pentru proba locală</strong></summary>
+
+Rulați din rădăcina unui [staging extern](../docs/ATF_Build_And_Execution_Safety.md), cu JDK 21 și Maven.
+Chromium Playwright trebuie să fie disponibil local; fixture-ul nu navighează pe Shop sau AutoEx.
+
+```powershell
+mvn -B -pl atf-reporting-tests -am "-Dtest=NarrowEvidenceReadabilityComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+```
+
+Comanda selectează proba numită și construiește dependențele; nu declară
+trecerea întregului modul. Fixture-ul local nu certifică o suită business completă.
+
+</details>

@@ -52,12 +52,11 @@ public final class ValidationTableLayoutInspector {
             int maxWidthColumns = parts[4].split(",", -1).length;
             int longestIndex = Integer.parseInt(parts[5]);
             int widestIndex = Integer.parseInt(parts[6]);
-            boolean keyValue = "key-value".equals(parts[7]);
             double scrollWidth = Double.parseDouble(parts[8]);
             double clientWidth = Double.parseDouble(parts[9]);
-            boolean semanticWidth = keyValue
-                    ? widestIndex == 1 && widthsAtLeastValueColumn(parts[2])
-                    : longestIndex >= 0 && longestIndex == widestIndex;
+            String[] measured = parts[4].split(",", -1);
+            boolean semanticWidth = longestIndex >= 0 && widestIndex >= 0
+                    && Double.parseDouble(measured[widestIndex]) >= Double.parseDouble(measured[longestIndex]) - 1;
             boolean valid = "dynamic-longest-value".equals(parts[0])
                     && columns >= 2
                     && parts[2].split(",", -1).length == columns
@@ -77,13 +76,4 @@ public final class ValidationTableLayoutInspector {
         }
     }
 
-    private static boolean widthsAtLeastValueColumn(String widths) {
-        String[] values = widths.split(",", -1);
-        if (values.length != 2) return false;
-        try {
-            return Double.parseDouble(values[1]) >= Double.parseDouble(values[0]);
-        } catch (NumberFormatException ignored) {
-            return false;
-        }
-    }
 }

@@ -7,6 +7,8 @@ HTML/CSS.
 
 ## Pe scurt
 
+**Trasee rapide:** [API public](#responsabilități-publice) · [Audit componentă](#limita-față-de-auditul-testelor-componente) · [Comparator AI](#comparatorul-ai--contract-implementat) · [Probe locale](#verificare-rapidă)
+
 | Input | Decision | Output |
 |---|---|---|
 | response + rules | contract evaluation | typed validation outcome |
@@ -277,3 +279,25 @@ Un consumator care are nevoie numai de validare depinde de:
 Pentru raportare Extent se adaugă separat `atf-reporting` și se furnizează un
 `ValidationSink`. Astfel pachetele pot fi versionate și reutilizate fără ca un
 consumator de contracte să tragă în classpath rendererul sau asset-urile HTML.
+
+## Verificare rapidă
+
+| Decizie | Sursă și limită |
+|---|---|
+| Evaluare pură și verdict typed | [sursa ownerului](src/main/java/atf/validation/evaluation/ValidationEvaluator.java); probă: [ResponseContractTest](src/test/java/atf/validation/ResponseContractTest.java) |
+| Dependențe și source-set-uri | [POM](pom.xml); scope-ul declarat este autoritatea pentru integrare |
+| Ce nu demonstrează această probă | Trecerea contractului nu validează transportul, rendererul sau un provider AI. |
+
+<details>
+<summary><strong>Comandă pentru proba locală</strong></summary>
+
+Rulați din rădăcina unui [staging extern](../docs/ATF_Build_And_Execution_Safety.md), cu JDK 21 și Maven.
+
+```powershell
+mvn -B -pl atf-validation -am "-Dtest=ResponseContractTest,ValidationPreviewRedactionTest,AiEvaluationEvaluatorTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+```
+
+Comanda selectează proba numită și construiește dependențele; nu declară
+trecerea întregului modul. Trecerea contractului nu validează transportul, rendererul sau un provider AI.
+
+</details>

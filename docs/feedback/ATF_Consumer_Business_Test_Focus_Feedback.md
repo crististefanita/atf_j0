@@ -7,8 +7,8 @@ fazele lifecycle și rezultatul PASS/FAIL/SKIP sunt contracte ale
 [Test Kit](../../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră) și
 [Reporting](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor).
 
-Restanțele includ selecția dovezii comenzii Shop, identitatea/coșul înainte de
-checkout, runtime-ul E2E, billing-ul observat în suită și echivalența profilelor.
+Restanțele includ cauzalitatea capturii order, identitatea/coșul înainte de checkout, runtime-ul E2E,
+billing-ul observat în suită, tranziția produsului AutoEx și echivalența profilelor.
 Contractele deja livrate aparțin [AutoEx](../../atf-test-auto-ex/README.md),
 [Shop](../../atf-test-practice-shop/README.md) și
 [ghidului auditului componentelor](../ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
@@ -22,49 +22,49 @@ documentară /10. Nu reprezintă o notă a codului sau un rezultat de test.
 
 | ID | Scor /100 | Diferența rămasă |
 |---|---:|---|
-| `CONSUMER-SHOP-ORDER-EVIDENCE-04` | 81 = 34 + 23 + 17 + 7 | eroarea curentă poate fi exclusă ori legată de evidence vechi |
+| `CONSUMER-SHOP-REQUEST-START-06` | 82 = 34 + 24 + 17 + 7 | o cerere anterioară, terminată după marcaj, poate valida noul Confirm |
 | `UI-LOCATOR-READINESS-01` | 79 = 32 + 23 + 17 + 7 | identitate și coș verificate după înregistrare, înaintea mutației checkout |
 | `CONSUMER-RUNTIME-BOUNDARY-03` | 77 = 31 + 18 + 20 + 8 | achiziție, publicare și lifecycle E2E rămase în contextul Shop |
 | `CONSUMER-SHOP-BILLING-STATE-01` | 71 = 29 + 22 + 14 + 6 | diferență de valoare billing între suită și lansare individuală |
+| `CONSUMER-AUTOEX-PRODUCT-TRANSITION-24` | 70 = 29 + 19 + 17 + 5 | timeout la detaliul produsului după click reușit, observat în suita filtrată |
 | `CONSUMER-E2E-PROFILES-01` | 57 = 24 + 10 + 17 + 6 | reducerea repetării live numai după echivalență demonstrată |
 
-## CONSUMER-SHOP-ORDER-EVIDENCE-04 — selecția dovezii comenzii curente
+## CONSUMER-SHOP-REQUEST-START-06 — cerere anterioară terminată după Confirm
 
-**Prioritate: 81/100** = impact 34 + lacună 23 + lucrabil 17 + documentare 7.
-**Owner:** journal-ul și mapping-ul business Shop în main; probele de selecție
-și ale adaptorului checkout rămân în testele Shop.
+**Prioritate: 82/100** = impact 34 + lacună 24 + lucrabil 17 + documentare 7.
+**Owner:** UI pentru identitatea generică a capturii; Shop pentru asocierea
+operației business. Rendererul proiectează datele primite, fără decizie de corelare.
 
-`orderCreated()` filtrează după succes HTTP înaintea evaluării și actualizează
-selecția numai când găsește un răspuns 2xx. Probele folosesc subscripția publică
-a inspectorului, fără serviciu extern, pentru `/invoices/guest` și `/invoices`.
+`ShopApiNetworkJournal.recordCapturedExchange()` alocă secvența la recepția
+răspunsului, iar `orderAfter()` filtrează după acea secvență. Proba controlată
+cu browser și HTTP loopback reproduce același rezultat pentru `/invoices/guest`
+și `/invoices`, atât prin adaptorul Page, cât și prin `UiNetworkInspector`:
 
-| Observații controlate | Rezultat actual | Diferența de corectat |
-|---|---|---|
-| 201 apoi 500 după același marcaj; UI păstrează factura primului | selectează 201, toate comparațiile și proiecția sunt PASS | răspunsul final de eroare este ignorat |
-| 500 la prima evaluare | zero exchange-uri selectate; mapperul cere unul și aruncă `IllegalArgumentException` | diagnosticul este înlocuit de eroarea de cardinalitate |
-| checkpoint anterior evaluat, apoi 500 sau nicio captură după noul marcaj | păstrează exchange-ul vechi; comparațiile noi sunt FAIL | rândurile nu mai aparțin aceleiași observații |
+1. Porniți un POST order și mențineți răspunsul în așteptare pe server.
+2. Luați marcajul și apăsați o dată Confirm; handlerul nou nu trimite alt POST,
+   iar pagina păstrează confirmarea facturii vechi.
+3. Eliberați răspunsul anterior, cu ID/factură și totalul compatibil cu fixture-ul.
+4. `awaitOrderCreated()` îl selectează, iar cele cinci comparații dau PASS;
+   serverul a primit exact o cerere înainte și după noul Confirm.
 
-Traficul brut păstrează răspunsul 500; proba nu afirmă că el dispare din orice
-panou al raportului. Nu dovedește nici că serviciul real produce cele două
-răspunsuri la un singur Confirm.
+Proba folosește hostul Shop mapat local în Chromium; nu afirmă că aplicația
+publică reproduce acest caz. Ea demonstrează că ordinea recepției nu dovedește
+începutul request-ului. Selecția ultimului status și eliminarea cache-ului vechi
+la captură absentă rămân contracte distincte, deja implementate la
+[owner](../../atf-test-practice-shop/README.md#dovada-comenzii-curente).
 
-- [ ] Selectați observația eligibilă curentă prin operație și marcaj, apoi evaluați
-      statusul; reutilizați regula existentă de la payment/coș fără un nou transport.
-- [ ] Actualizați selecția și cu lista goală, astfel încât o evaluare nouă să nu
-      păstreze evidence-ul precedent. Păstrați identitatea capturii și ordinea.
-- [ ] Mapperul order păstrează comparațiile FAIL când captura lipsește, la fel
-      ca mapperii payment/coș; fără HTTP/body inventat sau cerință de cardinalitate
-      care ascunde diagnosticul. O cerere eșuată observată rămâne `Unavailable`.
-- [ ] Probați 201→500 în aceeași fereastră, 500 inițial, lipsa capturii după succes
-      și eșecul de transport, pentru guest/autentificat și checkpoint-uri surori.
-- [ ] Verificați adaptorul cu un singur Confirm, fără dispatch suplimentar; rândul
-      FAIL, statusul/body-ul curent și backlink-ul sunt inspectabile individual
-      și prin suită, cu raport unic, redactare și plafonul 240.
+- [ ] Corelați începutul cererii cu acțiunea curentă printr-o identitate typed
+      observată la boundary-ul UI. Nu înlocuiți corelarea cu sleep, un timeout
+      mai mare sau presupunerea că toate cererile vechi s-au terminat.
+- [ ] O observație anterioară încă în zbor nu satisface noul Confirm; identitatea
+      indisponibilă rămâne explicită, fără succes dedus din factura deja vizibilă.
+- [ ] Probați răspuns vechi întârziat + cerere nouă absentă/201/500, pentru ambele
+      rute și adaptoare, cu câte un click și fără dispatch suplimentar.
+- [ ] Păstrați răspunsul vechi în istoricul raw, ordinea capturilor, selecția
+      checkpoint-urilor surori, totalul independent, raportul unic și plafonul 240.
 
-**Închidere:** captura selectată și comparațiile descriu aceeași operație curentă;
-răspunsul final 500 nu este înlocuit de un 2xx, iar absența rămâne FAIL auditabil.
-Totalul independent și corelarea exactă a facturii sunt deja livrate la
-[ownerul Shop](../../atf-test-practice-shop/README.md#validarea-independentă-a-totalului-și-facturii).
+**Închidere:** comanda selectată aparține invocării curente, nu doar unei
+ferestre de recepție compatibile; cazul negativ rămâne FAIL auditabil.
 
 ## UI-LOCATOR-READINESS-01 — identitate și coș înaintea checkout-ului
 
@@ -91,13 +91,16 @@ cazurile negative pentru identitate și coș.
 ## CONSUMER-RUNTIME-BOUNDARY-03 — responsabilitățile E2E rămase în Shop
 
 **Owner:** Shop pentru runtime-ul aplicației; Kit/UI/Reporting pentru primitivele neutre.
+
 Protocolul componentă și runtime-ul API sunt extrase; `ShopE2eContext` păstrează
 achiziția browser/API, configurarea raportului, capturile și scenariile E2E.
 `FailureAwareCleanup` este deja compus; restanța privește separarea ownerilor,
-nu introducerea încă unei primitive de cleanup.
+nu introducerea încă unei primitive de cleanup. `openReport(...)` are deja sink
+explicit și `openBrowser(...)` este separat ca metodă; ultimul încă citește
+`AtfConsoleTestContext` și construiește resursele în source-set-ul de test.
 
-- [ ] Delimitați mai întâi factory-urile `openReport()` și `openBrowser()` de
-      wiring-ul JUnit; runtime-ul primește explicit sink-ul și environment-ul.
+- [ ] Desprindeți compoziția runtime din cele două factory-uri deja delimitate
+      de wiring-ul JUnit; browserul primește explicit sink-ul și environment-ul.
       `AtfConsoleTestContext`, Store-ul, adnotările și rezolvarea fixture-ului rămân
       în test. Nu mutați clasele prin schimbarea package-ului și a scope-ului Kit.
 - [ ] Extrageți câte o responsabilitate runtime către main la owner, păstrând fațada
@@ -119,10 +122,16 @@ nu introducerea încă unei primitive de cleanup.
 - Raportul comun a păstrat comparația FAIL. O singură suită eșuată nu stabilește
   încă o cauză deterministă a diferenței dintre traseele de execuție.
 
-- [ ] Reproduceți cu suita și clasa individuală, păstrând exact aceeași configurație;
+Codul curent alege adresa prin `checkout.billingStrategy`, independent de canal.
+`configured-fields` compară cu fixture-ul; `postal-lookup` cere valorile generate
+non-empty și le raportează. Un PASS al ultimei strategii nu probează egalitatea
+cu fixture-ul și nu închide diferența istorică; limitele sunt la
+[owner](../../atf-test-practice-shop/README.md#dovezi-și-comportament-vizibil).
+
+- [ ] Reproduceți cu suita și clasa individuală, păstrând configurația și strategia billing;
       comparați ordinea acțiunilor, valorile DOM înainte și după lookup-ul postal,
-      evenimentele de input și state-ul per scenariu. Nu reintroduceți tastarea
-      peste câmpurile pe care lookup-ul Shop le completează.
+      evenimentele de input și state-ul per scenariu. La `postal-lookup`, nu
+      reintroduceți tastarea peste câmpurile pe care aplicația le completează.
 - [ ] Stabiliți dacă dublarea vine din aplicația publică, din sincronizarea
       lookup-ului sau din adaptor; corectați numai la ownerul dovedit. Păstrați
       expected-ul din fixture și actual-ul citit din UI, fără normalizare care
@@ -133,6 +142,31 @@ nu introducerea încă unei primitive de cleanup.
 
 Un succes al altei clase purchase sau al profilului UI+API nu demonstrează
 criteriul clasei single-flow și nu închide această diferență.
+
+## CONSUMER-AUTOEX-PRODUCT-TRANSITION-24 — detaliul produsului după navigare
+
+**Prioritate: 70/100** = impact 29 + lacună 19 + lucrabil 17 + documentare 5.
+**Owner:** AutoEx pentru tranziția business; UI pentru observația paginii și readiness.
+
+| Lansare observată | Rezultat și limită |
+|---|---|
+| `AutoExPurchaseUiE2eTest` individual | PASS în verificarea randării; nu demonstrează izolarea întregii suite |
+| Același caz prin `AutoExE2eSuite` filtrată | clickul `a[href^='/product_details/']` a trecut în 0,809 s; citirea `.product-information` a epuizat deadline-ul existent de 20 s înainte de checkout; JUnit și HTML au păstrat FAIL |
+| O reluare cu aceeași configurație | PASS cu deadline nemodificat; cauza rămâne de stabilit, fără reproducere deterministă |
+
+- [ ] Reproduceți cu aceeași clasă/configurație individual și prin suita filtrată;
+      păstrați și artifactul eșuat, nu deduceți stabilitate dintr-o reluare verde.
+- [ ] Observați URL-ul/documentul curent, titlul, locatorul și traficul browser
+      disponibil înaintea citirii; delimitați pagina produsului de redirecționare,
+      overlay și răspuns incomplet, fără a presupune una dintre aceste cauze.
+- [ ] Corectați la ownerul dovedit și compuneți mecanismele existente de
+      navigare/readiness; nu creșteți timeout-ul, nu repetați mutații și nu
+      adăugați un al doilea recovery generic ori un transport care reia clickul.
+- [ ] Probați nominalul și refuzul local înaintea journey-ului real; raportul
+      păstrează acțiunea, durata, cauza și comparațiile, fără verdict PASS fabricat.
+
+**Închidere:** tranziția este demonstrată cu expected independent în ambele
+lansări, iar eșecul rămâne auditabil; randarea corectă nu închide robustețea journey-ului.
 
 ## CONSUMER-E2E-PROFILES-01 — variantele de evidence și acoperirea business
 
@@ -168,116 +202,27 @@ Evaluatorul general de modele (`CONSUMER-COMPONENT-ASSERTIONS-01`) rămâne
 Nu este un defect al auditului JUnit implementat și nu condiționează refactorizările
 curente ori pasul standard de aserțiuni.
 
+## Acceptanță pentru reevaluarea Shop și AutoEx
+
+- Închideți întâi criteriile care pot confirma operația greșită sau pot executa
+  o mutație fără precondiția business; extracția runtime-ului nu compensează un
+  oracol insuficient. Billing-ul se compară cu aceeași strategie și configurație.
+- Un test de componentă care evaluează comparații publică pasul standard de
+  aserțiuni colapsat, cu expected independent, actual observat și rezultat
+  original; fără întoarcerea verdictului din textul trunchiat.
+- Probați refactorizarea cu un caz relevant individual și aceeași clasă prin
+  suită în fiecare consumer afectat; raportul business rămâne unic pe suită,
+  iar timing-ul, Fails → Tests și expandarea până la rând se păstrează.
+- Primitivele reutilizabile sunt în main la Kit/UI/Reporting ori consumer;
+  wiring-ul JUnit și fixture-ul de test rămân în test. Testele unitare și
+  fixture-urile Reporting nu primesc artificial contractul E2E business.
+
+Reevaluarea urmează [rubrica de cod](../README_Atf_CodeBestPractices.md#rubrica-reevaluării-modulelor),
+după implementare și dovadă negativă; închiderea editorială nu ridică nota modulului.
+
 ## Controlul modificărilor
 
-Incrementul se închide conform [ghidului de testare](../ATF_Testing_Guide.md#inventarul-executabil-după-mutări-și-reclasificare)
-și [protocolului de staging](../ATF_Build_And_Execution_Safety.md#regula-de-lucru-pentru-orice-schimbare).
-Controlul Git de mai jos protejează testele modificate; nu certifică echivalența
-tuturor profilelor remote sau extracția runtime-ului E2E Shop.
-
-<details>
-<summary><strong>Controale tehnice ale incrementelor</strong></summary>
-
-```yaml
-testChanges:
-  - id: CONSUMER-PURCHASE-STAGES-05
-    status: ACTIVE
-    base: 3219ef1ff546369d00a006cfc7434644251c6f9a
-    expires: 2026-11-26
-    reason: Adaugă probe auditate ale gate-urilor purchase AutoEx și catalog Shop; păstrează oracolele și selecțiile existente, identitatea erorilor și oprirea înaintea următoarei mutații.
-    proof: mvn -pl atf-test-auto-ex,atf-test-practice-shop,atf-tests -am "-Dtest=AutoExPurchaseFlowComponentTest,AutoExPurchaseUiAdapterComponentTest,AutoExCartFlowComponentTest,AutoExPurchaseBusinessComponentTest,ShopCatalogPurchaseFlowComponentTest,ShopCheckoutFlowComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=3219ef1ff546369d00a006cfc7434644251c6f9a" "-Dsurefire.failIfNoSpecifiedTests=false" test
-    paths:
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/purchase/AutoExPurchaseUiAdapterComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/purchase/AutoExPurchaseFlowComponentTest.java
-  - id: CONSUMER-AUDIT-SURGICAL-04
-    status: ACTIVE
-    base: 0a20e7c38f19ef02334e44419a2974d5fd01e398
-    expires: 2026-11-26
-    reason: Păstrează selecțiile și oracolele existente; probează cleanup GET fără replay, ownership class/suite și redacția diagnosticului. Corectează falsul pozitiv al inventarului care trata o suită-fixture nested drept gate nou; identifică declarația ownerului și păstrează allowlist-ul, acoperirea disjunctă și respingerea unui gate suplimentar real.
-    proof: mvn -pl atf-test-auto-ex,atf-tests -am "-Dtest=AutoExAccountCleanupRecoveryComponentTest,AutoExStoreAvailabilityComponentTest,AutoExAccountLifecycleComponentTest,AutoExApiReportScopeComponentTest,AutoExApiContractReportPublisherComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=0a20e7c38f19ef02334e44419a2974d5fd01e398" "-Dsurefire.failIfNoSpecifiedTests=false" test
-    paths:
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/navigation/AutoExAccountCleanupRecoveryComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/navigation/AutoExCleanupBrowserFixture.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/api/AutoExApiReportScopeComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/api/AutoExApiContractReportPublisherComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/api/AutoExApiContractReportExtension.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/suites/AutoExApiLiveSuite.java
-      - atf-tests/src/test/java/atf/api/tests/governance/layers/ConsumerSuiteCoverageGovernanceTest.java
-  - id: CONSUMER-AUDIT-BOUNDARIES-03
-    status: ACTIVE
-    base: 0a20e7c38f19ef02334e44419a2974d5fd01e398
-    expires: 2026-11-26
-    reason: Păstrează aserțiunile existente și adaugă probe pentru evaluare unică, redacție înaintea plafonului, recorder/fațadă, lifecycle, abort, template și erori de publicare; compune adaptorul AutoEx și întărește inventarul semantic al auditului fără relaxarea regulilor ori a selecției existente.
-    proof: mvn -pl atf-test-kit,atf-validation,atf-test-auto-ex,atf-test-practice-shop,atf-reporting-tests,atf-tests -am "-Dtest=AssertionProjectionTest,AtfJavaSourceReferencesTest,RedactionStrategiesTest,ConsumerAuditSourceGraphTest,ComponentAuditExtensionComponentTest,ValidationPreviewRedactionTest,AutoExComponentSuite,ShopComponentSuite,AssertionAuditPublicationComponentTest,ComponentAssertionStepReportTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=0a20e7c38f19ef02334e44419a2974d5fd01e398" "-Dsurefire.failIfNoSpecifiedTests=false" test
-    paths:
-      - atf-test-kit/src/test/java/atf/testkit/assertions/AssertionProjectionTest.java
-      - atf-core/src/test/java/atf/core/security/RedactionStrategiesTest.java
-      - atf-core/src/test/java/atf/core/files/AtfJavaSourceReferencesTest.java
-      - atf-test-kit/src/test/java/atf/testkit/assertions/ComponentAuditExtensionComponentTest.java
-      - atf-validation/src/test/java/atf/validation/ValidationPreviewRedactionTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/extension/AutoExExtentTestExtension.java
-      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/assertions/AssertionAuditPublicationComponentTest.java
-      - atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java
-      - atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerAuditSourceGraph.java
-      - atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerAuditSourceGraphTest.java
-      - atf-tests/src/test/java/atf/api/tests/governance/layers/AtfTestLayerArchitectureTest.java
-  - id: CONSUMER-COMPONENT-AUDIT-ALL-02
-    status: ACTIVE
-    base: db5f06c83ede6422b9509350136da9eca6111aa2
-    expires: 2026-11-26
-    reason: Mută numai apelurile JUnit ale componentelor pe fațada auditabilă comună; păstrează overload-urile, expected/actual și verdictul, excepțiile așteptate și izolarea lansărilor imbricate; adaugă probele neutre și guard-ul fără a relaxa regulile existente.
-    proof: mvn -pl atf-test-kit,atf-test-auto-ex,atf-test-practice-shop,atf-tests -am "-Dtest=AuditedAssertionsTest,AuditedAssertionScopeComponentTest,AutoExComponentSuite,ShopComponentSuite,WholeAtfGovernanceSuiteTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
-    paths:
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/api/AutoExApiContractComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/api/AutoExApiContractReportPublisherComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/api/AutoExApiResponseAssertionsComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/api/AutoExCatalogApiPreconditionComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/AutoExAccountCleanupDecisionComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/AutoExCatalogAssertionsComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/AutoExEvidenceProfileComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/AutoExPrivacyConsentHandlerComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/AutoExPurchaseTraceStepTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/AutoExStoreAssertionsComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/configuration/AutoExConfigurationLoaderComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExAccountDeletionSafetyComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExAccountLifecycleComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExCartDomComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExCartFlowComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExCheckoutAddressComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExInvoiceComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExPurchaseBusinessComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/lifecycle/AutoExRunLifecycleAdapterComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/lifecycle/AutoExRuntimeBoundaryComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/navigation/AutoExStoreAvailabilityComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/pages/AutoExPagePortsComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/extension/AutoExExtentTestExtension.java
-      - atf-test-kit/src/test/java/atf/testkit/assertions/AuditedAssertionScopeComponentTest.java
-      - atf-test-kit/src/test/java/atf/testkit/assertions/AuditedAssertionsTest.java
-      - atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java
-  - id: CONSUMER-COMPONENT-ASSERTION-STEP-01
-    status: ACTIVE
-    base: 466a045e95a7336b183a7d75e0b369f8deb3082c
-    expires: 2026-11-26
-    reason: Conectează comparațiile JUnit evaluate din configurarea AutoEx și Shop la pasul tipizat; recorderul neutru comun este în main Test Kit, iar adaptoarele JUnit păstrează mapping-ul și raportul per metodă.
-    proof: mvn -pl atf-test-kit,atf-test-auto-ex,atf-test-practice-shop,atf-tests -am "-Dtest=RecordedAssertionsTest,AutoExConfigurationLoaderComponentTest,ShopConfigurationTest,WholeAtfGovernanceSuiteTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
-    paths:
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/configuration/AutoExConfigurationLoaderComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/extension/AutoExExtentTestExtension.java
-      - atf-test-kit/src/test/java/atf/testkit/assertions/RecordedAssertionsTest.java
-  - id: AUTOEX-CONSUMER-COMPONENT-09
-    status: ACTIVE
-    base: fdbafdbaa4bdf617c9fd103ba0b917cc2efdc766
-    expires: 2026-11-26
-    reason: Păstrează probele protejate pentru lifecycle/configurația, porturile de pagină și portul UI al cart stories AutoEx; guard-urile verifică ownership-ul capabilităților și limita de opt clase. ShopComponentSuite rulează în aceeași verificare, iar politica de schimbări îl exclude explicit.
-    proof: mvn -pl atf-test-auto-ex,atf-test-practice-shop,atf-tests -am "-Dtest=AutoExComponentSuite,ShopComponentSuite,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=fdbafdbaa4bdf617c9fd103ba0b917cc2efdc766" "-Dsurefire.failIfNoSpecifiedTests=false" test
-    paths:
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/configuration/AutoExConfigurationLoaderComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExAccountLifecycleComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExCartFlowComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/pages/AutoExPagePortsComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/lifecycle/AutoExRuntimeBoundaryComponentTest.java
-      - atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java
-      - atf-tests/src/test/java/atf/api/tests/governance/AtfPackageCohesionGovernanceTest.java
-```
-
-</details>
+Schimbările noi urmează [baseline-ul tehnic](../ATF_Test_Changes_Baseline.md)
+și [guvernanța testelor](../../atf-tests/README.md#guvernanța-schimbării-testelor).
+Un control tehnic verificat nu închide criteriile business de mai sus.
+Verificarea și promovarea folosesc [staging-ul izolat](../ATF_Build_And_Execution_Safety.md#regula-de-lucru-pentru-orice-schimbare).

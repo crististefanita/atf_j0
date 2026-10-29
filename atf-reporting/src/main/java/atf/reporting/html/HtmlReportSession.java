@@ -120,8 +120,11 @@ public final class HtmlReportSession implements AtfReportPorts.Session {
     @Override
     public void close() {
         if (!closed) {
-            flush();
-            closed = true;
+            try {
+                flush();
+            } finally {
+                closed = true;
+            }
         }
     }
 

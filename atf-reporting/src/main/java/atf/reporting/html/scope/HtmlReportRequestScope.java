@@ -27,7 +27,6 @@ public final class HtmlReportRequestScope implements AtfReportPorts.Request {
     private final AtfReportSemanticRecorder.RequestHandle semantic;
     private final AtfConsoleSink console;
     private final Consumer<AtfReportStatus> onComplete;
-    private ReportNetworkInspector.JourneyAggregate networkAggregate;
     private final long startedAt = System.nanoTime();
 
     public HtmlReportRequestScope(HtmlReportSemanticDocument.RequestModel model,
@@ -59,7 +58,7 @@ public final class HtmlReportRequestScope implements AtfReportPorts.Request {
     @Override
     public void json(String label, String json) {
         ensureOpen();
-        var body = new ReportJsonBody(label, json);
+        var body = new ReportJsonBody(label == null || label.isBlank() ? "JSON BODY" : label, json);
         semantic.json(body.label());
         model.addBody(body);
     }
@@ -81,8 +80,8 @@ public final class HtmlReportRequestScope implements AtfReportPorts.Request {
     @Override
     public void networkAggregate(ReportNetworkInspector.JourneyAggregate aggregate) {
         ensureOpen();
-        networkAggregate = aggregate;
-        if (aggregate != null) semantic.detail("network.aggregate");
+        if (aggregate == null) return;
+        semantic.networkAggregate();
         model.networkAggregate(aggregate);
     }
 

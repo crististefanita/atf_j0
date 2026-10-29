@@ -2405,6 +2405,70 @@ testChanges:
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/lifecycle/UiSetupFallbackParityComponentTest.java
 
 
+  - id: REPORT-SCOPE-RECOVERY-15
+    status: VERIFIED
+    base: 9c13cdb004b8f00d275c239fea3856af529b3cf0
+    expires: 2026-11-28
+    reason: >-
+      Adaugă probe complementare după reconcilierea live: refuz fără mutații în Extent/fallback,
+      payload invalid, copii deschiși, close FAIL, consolă best-effort, erori de publicare și
+      înlocuirea agregatului fără drift. Păstrează controalele existente și limita 240.
+    proof: mvn -pl atf-reporting-tests,atf-test-practice-shop,atf-tests -am "-Dtest=ReportingScopeAtomicityComponentTest,ReportScopeAtomicityComponentTest,ExtentReportSessionLifecycleTest,UiAuditLifecycleTest,ReportingCoverageMatrixTest,ReportingVerdictProjectionComponentTest,ReportPhaseTimingComponentTest,LegacyPreviewBudgetComponentTest,ShopOrderEvidenceComponentTest,ShopCheckoutOrderCorrelationComponentTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=9c13cdb004b8f00d275c239fea3856af529b3cf0" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/lifecycle/ReportingScopeAtomicityComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/lifecycle/ScopeAtomicityFixture.java
+  - id: REPORT-ORDER-CURRENT-BASE-19
+    status: VERIFIED
+    base: 0a0998e2b5ba584a6cc97c30f4bb2b12074ab22e
+    expires: 2026-11-28
+    reason: >-
+      Revede aceleași surse după commitul live al lifecycle-ului și politicilor de evidence.
+      Păstrează controalele REPORT-SCOPE-RECOVERY-15 și AUTOEX-READINESS-FIXTURE-18 la baza
+      lor originală, fără rebazare. Acoperă noile probe complementare Reporting și numai
+      separarea pregătirii DOM de deadline-ul negativ AutoEx de 60 ms; toate oracolele rămân.
+    proof: mvn -pl atf-reporting-tests,atf-test-auto-ex,atf-tests -am "-Dtest=ReportingScopeAtomicityComponentTest,AutoExCheckoutReadinessComponentTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=0a0998e2b5ba584a6cc97c30f4bb2b12074ab22e" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/lifecycle/ReportingScopeAtomicityComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/lifecycle/ScopeAtomicityFixture.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/purchase/AutoExCheckoutReadinessComponentTest.java
+  - id: AUTOEX-READINESS-FIXTURE-18
+    status: VERIFIED
+    base: 9c13cdb004b8f00d275c239fea3856af529b3cf0
+    expires: 2026-11-28
+    reason: >-
+      Separă pregătirea DOM de deadline-ul probei negative, după timeout observat la setContent
+      înaintea acțiunii verificate. Menține exact 60 ms pentru readiness, refuzul absent/ambiguu,
+      clickul unic și aceleași comparații; nu schimbă logica framework-ului ori oracolele.
+    proof: mvn -pl atf-test-auto-ex,atf-tests -am "-Dtest=AutoExCheckoutReadinessComponentTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=9c13cdb004b8f00d275c239fea3856af529b3cf0" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/purchase/AutoExCheckoutReadinessComponentTest.java
+
+  - id: REPORT-README-NAVIGATION-22
+    status: VERIFIED
+    base: 0a0998e2b5ba584a6cc97c30f4bb2b12074ab22e
+    expires: 2026-11-12
+    reason: "Improve the protected Extent README navigation, ownership wording, live-source proof links and measured column-allocation contract without changing tests or governed rules."
+    proof: 'mvn -B -pl atf-tests -am "-Dtest=WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=0a0998e2b5ba584a6cc97c30f4bb2b12074ab22e" "-Dsurefire.failIfNoSpecifiedTests=false" test'
+    paths:
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/README.md
+
+  - id: REPORT-TABLE-COLUMNS-21
+    status: VERIFIED
+    base: 0a0998e2b5ba584a6cc97c30f4bb2b12074ab22e
+    expires: 2026-11-28
+    reason: Păstrează antetele vizibile și celulele în coloane conform corecției explicite a utilizatorului. Înlocuiește oracolul vertical cu geometrie de coloane și scroll local accesibil, păstrând fonturile, valorile, plafonul, verdictul și probele negative existente.
+    proof: mvn -pl atf-reporting-tests,atf-tests -am "-Dtest=EvidenceColumnSizingComponentTest,ValidationTableLayoutComponentTest,TableViewportBrowserComponentTest,NarrowEvidenceReadabilityComponentTest,ReportApiViewportParityComponentTest,AtfReportEvidenceCssTest,ReportAssetSizeInventoryTest,ComponentAssertionStepReportTest,LegacyPreviewBudgetComponentTest,WholeAtfGovernanceSuiteTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/table/TableViewportProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/readability/NarrowEvidenceReadabilityProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/viewport/ReportApiViewportProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/layout/ScrollableTableViewportBrowserProbe.java
+      - atf-reporting-tests/src/test/java/atf/reporting/theme/evidence/AtfReportEvidenceCssTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/layout/ValidationTableLayoutComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/layout/ValidationTableLayoutInspector.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/layout/EvidenceColumnSizingComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/layout/EvidenceColumnSizingProbe.java
+
 ```
 
 </details>

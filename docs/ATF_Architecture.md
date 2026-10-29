@@ -283,8 +283,9 @@ Regula pentru `SETUP` este:
 
 Cum ajunge traficul produs de browser la checkpoint-ul care îl explică?
 Selecția se aplică înainte de citirea body-ului și de consumarea bugetului
-jurnalului; un cursor separă observațiile de setup de cele cauzate ulterior
-de acțiunile UI.
+jurnalului; un cursor delimitează observațiile recepționate înainte și după
+baseline. Request-urile începute anterior și terminate ulterior cer corelare
+suplimentară; ordinea capturării nu dovedește singură cauzalitatea business.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%

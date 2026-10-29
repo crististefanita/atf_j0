@@ -62,3 +62,15 @@ flowchart LR
 
 Pentru implementare se citește documentul ownerului, apoi README-ul modulului
 afectat. Acest index trebuie să rămână scurt și stabil.
+
+## Verificarea regulii la owner
+
+| Ce schimbi | Probă de pornire | Limită |
+|---|---|---|
+| Cod și boundary | [WholeAtfGovernanceSuiteTest](../atf-tests/src/test/java/atf/api/tests/governance/WholeAtfGovernanceSuiteTest.java) | verifică regula guvernată, nu toate comportamentele aplicației |
+| README și legende | [Validatorii documentari](README_Atf_DocumentationBestPractices.md#verificarea-editorială-la-owner) | structura validă cere în continuare confruntare cu sursa live |
+| Test protejat | [Politica testChanges](../atf-tests/README.md#guvernanța-schimbării-testelor) | o schimbare editorială nu autorizează relaxarea testului |
+
+Gate-ul se execută în [TMP](ATF_Build_And_Execution_Safety.md), prin comanda
+[ATF Tests](../atf-tests/README.md#verificare-rapidă). Nu copiați checklist-ul
+în README-ul fiecărui modul; documentați acolo doar aplicarea lui concretă.

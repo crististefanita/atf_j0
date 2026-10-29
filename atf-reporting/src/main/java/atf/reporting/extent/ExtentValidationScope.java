@@ -53,7 +53,7 @@ final class ExtentValidationScope implements AtfReportPorts.Validation {
     @Override public void assertions(Collection<AtfAssertion> rows) {
         ensureOpen();
         assertions = rows == null ? List.of() : List.copyOf(rows);
-        semantic.assertions(rows);
+        semantic.assertions(assertions);
     }
 
     @Override public void uiActions(Collection<AtfUiActionRecord> actions) {

@@ -1,16 +1,20 @@
 # ATF Test Kit
 
-`atf-test-kit` este contractul transversal, strict test-only, pentru toate
-modulele ATF. Nu conține renderer, mock transport, browser sau cod de producție.
+`atf-test-kit` deține contractele transversale ale infrastructurii de test ATF.
+Nu conține renderer, mock transport, browser sau logică business.
+Consumerii îl declară în test scope; adaptorul JUnit din `atf-console` are
+excepția explicită `optional compile`, pentru adnotări și resolvere neutre.
 
 ## Pe scurt
+
+**Trasee rapide:** [Layer și ownership](#clasificare) · [Assert auditabil](#comparații-junit-cu-dovadă-neutră) · [Scope Maven](#dependențe) · [Probă locală](#verificare-rapidă)
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     ModuleTests[teste module] -->|declară| Kit[atf-test-kit]
     Kit -->|clasifică| Levels[test layers]
-    Kit -. nu intră .-> Production[production classpath]
+    Kit -. nu intră .-> Production[runtime business]
 ```
 
 <details>
@@ -19,14 +23,17 @@ flowchart LR
 - modulele declară stratul prin adnotare, iar kit-ul îl verifică;
 - cele patru straturi sunt executable test layers: unit, component, integration și E2E;
 - support este cod auxiliar, nu al cincilea strat executabil;
-- muchia punctată este o interdicție: test-kit-ul nu intră în classpath-ul de producție.
+- muchia punctată exclude Test Kit din runtime-ul business al consumerilor;
+- adaptorul JUnit Console păstrează excepția `optional compile`, fără propagare
+  tranzitivă implicită; [arhitectura](../docs/ATF_Architecture.md#harta-modulelor-platformă-și-consumatori)
+  și POM-ul Console documentează această limită.
 </details>
 
 | Conține | Nu conține | Gate |
 |---|---|---|
 | adnotări de nivel/canal/console/output/setup/docs/UI evidence, resolvere neutre | renderer, mock, browser | teste Test Kit; clasificarea globală în `atf-tests` |
 | clasificare test | business flow | fiecare clasă are un singur nivel |
-| reguli transversale | runtime dependency | fail-closed la drift |
+| reguli transversale | business runtime dependency | fail-closed la drift |
 
 ## Clasificare
 
@@ -41,7 +48,9 @@ Fiecare clasă executabilă declară exact un nivel:
 
 ### Ce verifică guvernanța
 
-- `AtfTestLayerArchitectureTest`, din `atf-tests` și suita whole-ATF, inspectează toate directoarele `*/src/test/java`;
+- `AtfTestLayerArchitectureTest`, din `atf-tests` și suita whole-ATF, folosește
+  inventarul comun `AtfJavaSourceInventory`: rădăcina Maven implicită sau
+  `testSourceDirectory` declarat în POM, inclusiv layout-ul `src/test` Shop;
 - verifică adnotarea, package-ul, importurile interzise și izolarea `support`;
 - rezolvă din surse și adnotările compuse, prin import sau același package,
   inclusiv compoziția imbricată; ciclurile nu inventează un nivel;
@@ -400,3 +409,25 @@ dependente de consumer.
   returnarea unui handle; succesul transferă cleanup-ul normal către run.
 - `ConsumerModuleArchitectureGovernanceTest` respinge recrearea copiei AutoEx,
   dependențele Kit către UI/Reporting și importurile consumer în probele neutre.
+
+## Verificare rapidă
+
+| Decizie | Sursă și limită |
+|---|---|
+| Comparație JUnit și dovadă neutră per invocare | [sursa ownerului](src/main/java/atf/testkit/assertions/ComponentAuditExtension.java); probă: [ComponentAuditExtensionComponentTest](src/test/java/atf/testkit/assertions/ComponentAuditExtensionComponentTest.java) |
+| Dependențe și source-set-uri | [POM](pom.xml); scope-ul declarat este autoritatea pentru integrare |
+| Ce nu demonstrează această probă | Rendererul, browserul și regula business aparțin ownerilor consumatori. |
+
+<details>
+<summary><strong>Comandă pentru proba locală</strong></summary>
+
+Rulați din rădăcina unui [staging extern](../docs/ATF_Build_And_Execution_Safety.md), cu JDK 21 și Maven.
+
+```powershell
+mvn -B -pl atf-test-kit -am "-Dtest=ComponentAuditExtensionComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+```
+
+Comanda selectează proba numită și construiește dependențele; nu declară
+trecerea întregului modul. Rendererul, browserul și regula business aparțin ownerilor consumatori.
+
+</details>

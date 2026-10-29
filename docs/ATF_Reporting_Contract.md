@@ -624,7 +624,7 @@ Tabelul își păstrează cele patru coloane în ordinea `ASSERTION`, `EXPECTED`
 Runtime-ul măsoară textul vizibil din toate rândurile, alocă proporțional mai
 mult spațiu coloanei cu valorile flexibile cele mai lungi și păstrează `RESULT`
 compact. Recalcularea se repetă la redimensionarea viewport-ului. Astfel,
-body-urile, listele și mesajele lungi rămân lizibile fără overflow orizontal,
+body-urile, listele și mesajele lungi rămân lizibile fără overflow al documentului,
 iar verificarea browser confirmă atât suma lățimilor, cât și faptul că acea
 coloană dominantă primește lățimea dominantă.
 
@@ -634,17 +634,20 @@ coloană dominantă primește lățimea dominantă.
 
 În prezentarea pe coloane a tabelelor key/value din trace și din detaliile request/response:
 
-- `FIELD`: lățimea cheilor vizibile, limitată la 20–38%;
-- `VALUE`: spațiul rămas, minimum 62% la lățimea disponibilă;
-- alte tabele: alocarea content-aware existentă, nemodificată;
-- la panou de maximum `720px`, prezentarea verticală pune fiecare valoare sub eticheta ei, fără scroll orizontal;
-- containerul real decide prezentarea, inclusiv în viewport desktop; fontul și plafonul comun de scroll rămân lizibile, iar antetul semantic este păstrat.
+- `FIELD` și `VALUE` folosesc aceleași măsurători de text/font ca restul coloanelor;
+- tabelul ocupă întreaga lățime disponibilă; spațiul revine întâi textului lung, apoi surplusul se distribuie proporțional conținutului;
+- nu se rezervă procente de 20–38% ori minimum 62% unei coloane prin numele ei;
+- antetul și celulele rămân pe coloane; când minimele lizibile nu încap, derularea orizontală este locală tabelului;
+- fontul, plafonul comun de scroll și verdictul rămân independente de geometrie.
 
 Markerii `data-atf-key-value-layout` și `data-atf-key-column-width` expun
-decizia alocării pe coloane pentru audit. `--atf-table-stacked: 1` identifică
-prezentarea verticală efectivă. `ValidationTableLayoutComponentTest` verifică
-contractul runtime, iar `ValidationTableLayoutInspector` verifică lățimile și
-absența overflow-ului în browser.
+decizia alocării pe coloane pentru audit. `ValidationTableLayoutComponentTest`
+verifică asset-ul comun, iar `EvidenceColumnSizingComponentTest` măsoară
+geometria, redistribuirea, mutațiile și absența coloanelor verticale în browser.
+
+Forma vizibilă și delimitarea derulării locale sunt la
+[contractul de display](ATF_Reporting_Display_Contract.md#restabilirea-prezentării-tabelare-a-dovezilor).
+Aceeași politică deservește Actions, Audit, Assert și dovezile API în Extent/fallback.
 
 ## Fails și legături
 

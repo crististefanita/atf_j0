@@ -38,10 +38,14 @@ public enum ReportTableViewport {
                 .collect(Collectors.joining(","));
     }
 
-    /** Vendor containers already own their table; adapt them without nesting a second viewport. */
-    public static String scrollSurfaces() {
-        return selectors() + ",.atf-tag-scroll,.atf-secondary-body.network-aggregate-scroll,"
+    /** Includes existing dashboard owners without nesting another viewport around their tables. */
+    public static String tableSurfaces() {
+        return selectors() + ",.atf-tag-scroll,"
                 + ".dashboard-view .category-container > .card > .card-body,"
                 + ".dashboard-view .sysenv-container > .card > .card-body";
+    }
+
+    public static String scrollSurfaces() {
+        return tableSurfaces() + ",.atf-secondary-body.network-aggregate-scroll";
     }
 }

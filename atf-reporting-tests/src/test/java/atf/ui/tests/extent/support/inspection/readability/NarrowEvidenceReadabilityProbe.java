@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Tests actual evidence widths, labels, complete values, local scroll and accessible final rows. */
 public final class NarrowEvidenceReadabilityProbe {
-    private static final int MINIMUM_READABLE_CELL_WIDTH = 120;
+    private static final int MINIMUM_READABLE_PANEL_WIDTH = 120;
     private static final ReportDisclosureLocators LOCATORS = new ReportDisclosureLocators();
 
     private static final ReportReadabilityLocators READABILITY = new ReportReadabilityLocators();
@@ -49,12 +49,12 @@ public final class NarrowEvidenceReadabilityProbe {
                     "the negative fixture must exercise the real Failure evidence validation node");
             var failures = new ArrayList<String>();
             int minimumTables = failure ? 4 : 12;
-            for (int viewport : List.of(1280, 591, 392)) {
+            for (int viewport : List.of(1803, 1280, 591, 392)) {
                 page.setViewportSize(viewport, 900);
                 measure(page, "viewport=" + viewport, failures, minimumTables);
             }
             page.setViewportSize(1280, 900);
-            for (int panel : List.of(591, 392)) {
+            for (int panel : List.of(591, 392, 719, 720, 721)) {
                 READABILITY.panel(page, fallback).evaluateAll(
                         "(items,width) => items.forEach(e => e.style.width=width+'px')", panel);
                 measure(page, "wide viewport; panel=" + panel, failures, minimumTables);
@@ -89,31 +89,39 @@ public final class NarrowEvidenceReadabilityProbe {
 
     @SuppressWarnings("unchecked")
     private static void measure(Page page, String context, List<String> failures, int minimumTables) {
+        page.evaluate("() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))");
         var rows = (List<Map<String, Object>>) page.evaluate("""
                 args => Array.from(document.querySelectorAll(args.surfaces)).flatMap(p => {
                   const t=Array.from(p.children).find(e=>e.tagName==='TABLE');
                   if(!t || !t.getBoundingClientRect().height) return [];
                   const messages=[];
-                  const stacked=getComputedStyle(t).getPropertyValue('--atf-table-stacked').trim()==='1';
+                  const style=getComputedStyle(p), head=t.tHead?.getBoundingClientRect();
+                  const borders=parseFloat(style.borderLeftWidth)+parseFloat(style.borderRightWidth);
+                  const scrollbar=p.scrollHeight>p.clientHeight?p.offsetWidth-p.clientWidth-borders:0;
+                  const available=p.getBoundingClientRect().width-borders-parseFloat(style.paddingLeft)
+                    -parseFloat(style.paddingRight)-scrollbar;
+                  if(Math.abs(t.getBoundingClientRect().width-Math.max(available,parseFloat(getComputedStyle(t).minWidth)||0))>2)
+                    messages.push('table leaves an artificial horizontal gap');
                   if(p.clientWidth<args.minimum) messages.push('evidence viewport too narrow: '+p.clientWidth);
-                  if(p.scrollWidth>p.clientWidth+2) messages.push('horizontal overflow');
-                  const header=Array.from(t.tHead?.rows[0]?.cells||[]).map(c=>c.textContent.trim());
+                  if(style.overflowX!=='auto') messages.push('horizontal scroll unavailable');
+                  if(document.documentElement.scrollWidth>document.documentElement.clientWidth+2)
+                    messages.push('document horizontal overflow');
+                  if(getComputedStyle(t).display!=='table' || !head || head.width<=1
+                      || getComputedStyle(t.tHead).clipPath!=='none') messages.push('column header hidden');
                   const cells=Array.from(t.tBodies).flatMap(b=>Array.from(b.rows)).flatMap(r=>Array.from(r.cells));
-                  if(!stacked) cells.forEach(c=>{
-                    const title=header[c.cellIndex]?.toLowerCase()||'';
-                    const minimum=/result|status|outcome|time|duration|attempt/.test(title)?36:
-                      /expected|actual|observed|value|detail/.test(title)?args.minimum:80;
-                    if(c.getBoundingClientRect().width<minimum) messages.push('compressed '+title+' column');
-                  });
-                  if(stacked) cells.forEach(c=>{
-                    const label=c.getAttribute('data-atf-column-label'), before=getComputedStyle(c,'::before');
-                    if(label!==header[c.cellIndex] || before.content==='none') messages.push('missing column label');
-                    const style=getComputedStyle(c), useful=c.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight);
-                    if(useful<args.minimum) messages.push('cell content below readable minimum: '+useful);
+                  cells.forEach(c=>{
+                    const box=c.getBoundingClientRect(), column=t.tHead.rows[0].cells[c.cellIndex]?.getBoundingClientRect();
+                    if(getComputedStyle(c).display!=='table-cell' || !column || Math.abs(box.x-column.x)>2
+                        || Math.abs(box.width-column.width)>2) messages.push('cell outside its column');
                     if(parseFloat(getComputedStyle(c).fontSize)<12) messages.push('cell font reduced');
                     if(c.scrollHeight>c.clientHeight+2 || c.scrollWidth>c.clientWidth+2)
                       messages.push('cell text clipped');
                   });
+                  p.scrollLeft=p.scrollWidth;
+                  const lastColumn=t.tBodies[0]?.rows[0]?.lastElementChild;
+                  if(lastColumn && lastColumn.getBoundingClientRect().right>p.getBoundingClientRect().right+2)
+                    messages.push('final column clipped');
+                  p.scrollLeft=0;
                   const cap=parseFloat(getComputedStyle(p).maxHeight);
                   if(p.clientHeight>cap+2) messages.push('scroll cap exceeded');
                   p.scrollTop=p.scrollHeight;
@@ -121,10 +129,10 @@ public final class NarrowEvidenceReadabilityProbe {
                   if(last && last.getBoundingClientRect().bottom>p.getBoundingClientRect().bottom+2)
                     messages.push('final row clipped');
                   p.scrollTop=0;
-                  return [{family:t.className,width:p.clientWidth,stacked,messages:[...new Set(messages)]}];
+                  return [{family:t.className,width:p.clientWidth,messages:[...new Set(messages)]}];
                 })
-                """, Map.of("surfaces", ReportTableViewport.selectors(),
-                "minimum", MINIMUM_READABLE_CELL_WIDTH));
+                """, Map.of("surfaces", ReportTableViewport.tableSurfaces(),
+                "minimum", MINIMUM_READABLE_PANEL_WIDTH));
         assertTrue(rows.size() >= minimumTables, "all real evidence families must be measured: " + context);
         rows.stream().filter(row -> !((List<?>) row.get("messages")).isEmpty())
                 .forEach(row -> failures.add(context + " " + row));

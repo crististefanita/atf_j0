@@ -1,6 +1,6 @@
 # Kit de testare UI pentru Extent
 
-Acest modul testează rendererul Extent produs de ATF. Nu testează aplicația
+Acest pachet din `atf-reporting-tests` testează rendererul Extent produs de ATF. Nu testează aplicația
 UI și nu introduce teste de API de business. API-ul este folosit aici doar ca
 setup declarativ, atunci când trebuie generat un raport pe care îl inspectăm
 read-only în browser.
@@ -373,7 +373,7 @@ configurației IDE, execută smoke-testul:
 
 Acesta este un control operațional la schimbări relevante, nu un ToDo permanent.
 
-Echivalent Maven, în staging sau local:
+Echivalent Maven, din rădăcina staging-ului extern:
 
 ```text
 mvn -pl atf-reporting-tests -am \
@@ -745,60 +745,54 @@ maximum rendered text width per column → reserve RESULT/TIME/STATUS
                  → render without overflow
 ```
 
-Regulile sunt dinamice, nu depend de un endpoint sau de un fixture anume:
+Regulile sunt dinamice și comune Extent/fallback:
 
-- măsoară textul real din headere și rânduri;
-- măsoară lățimea intrinsecă maximă a fiecărei coloane cu fontul efectiv al
-  celulei (`CanvasRenderingContext2D.measureText`), cu fallback determinist;
-- publică `data-atf-content-column-max-px` ca audit al maximului memorat pentru
-  fiecare coloană, în aceeași ordine cu `data-atf-content-column-widths`;
-- alocă spațiul proporțional cu maximele măsurate, apoi aplică limite min/max și
-  reechilibrează iterativ, astfel încât un singur diagnostic să nu monopolizeze
-  tabelul;
-- impune minime semantice pentru `ACTION`, `TARGET`, `ASSERTION/CHECK` și
-  `EXPECTED/ACTUAL/OBSERVED`, astfel încât coloanele de identificare să nu fie
-  împinse artificial la 10–12% și să producă wrap-uri inutile;
-- păstrează coloanele de status/timp compacte și lizibile;
-- aplică procentele pe header și body, cu limite min/max pentru coloanele de
-  conținut;
-- face o normalizare inițială globală, apoi lucrează incremental: fiecare tabel
-  păstrează un fingerprint al textului, fontului și lățimii disponibile, iar un
-  fingerprint identic oprește măsurarea și rescrierea inline;
-- urmărește mutațiile doar până la tabelul/containerul afectat; când browserul
-  oferă `ResizeObserver`, acesta programează tabelul redimensionat, iar fallback-ul
-  folosește `resize` cu un singur frame debounced (`requestAnimationFrame`);
-- tratează `hidden → visible`, `open → close` și tabelele adăugate ulterior ca
-  invalidări dirty ale zonei respective, nu ca rescannare funcțională a întregului
-  raport;
-- păstrează fallback-ul CSS și `table-layout: fixed`, deci nu introduce scroll
-  orizontal accidental.
+- măsoară antetele și maximele textului vizibil, cu fontul, padding-ul și
+  bordurile efective; păstrează maximele reale în pixeli, fără plafon artificial;
+- păstrează coloanele scurte, inclusiv status/timp/attempt, la lățimea măsurată;
+  spațiul disponibil se distribuie proporțional cererii rămase a textului lung;
+- tabelul ocupă întreaga lățime disponibilă; surplusul revine proporțional
+  coloanelor de conținut, păstrând compacte coloanele tehnice;
+- scade numai scrollbar-ul necesar conținutului, nu rezervă gutter pentru un
+  tabel scurt; proba compară lățimea fizică a containerului, nu numai `clientWidth`;
+- `VALUE` nu primește o cotă fixă peste un `FIELD` cu text mai lung;
+- păstrează antetul și celulele în coloane; scroll-ul orizontal apare numai în
+  wrapper dacă suma minimelor lizibile nu încape în panou;
+- publică `data-atf-content-column-max-px` și `data-atf-content-column-widths`
+  în aceeași ordine; markerii legacy validation și field/value rămân disponibili;
+- face o normalizare inițială, apoi folosește fingerprint-ul textului/fontului/
+  lățimii și un singur frame pentru tabelele afectate de mutații ori resize;
+- `ResizeObserver`, schimbarea textului, `hidden → visible` și deschiderea
+  părintelui invalidează local; cache-ul este actualizat după noua geometrie;
+- selectorul comun include tabelele din `ReportTableViewport`, inclusiv o
+  familie nouă; nu depinde de titlul cazului, endpoint sau lungimea fixture-ului.
 
-Tabelele `FIELD | VALUE` folosesc o regulă proprie pentru trace/API diagnostics:
+`EvidenceColumnSizingComponentTest` verifică în browser text lung în coloane
+diferite, coloane tehnice scurte, tabel pe întreaga lățime, redimensionare, mutație,
+redeschidere și familie adăugată ulterior. Include setup, texte cu același număr
+de caractere dar lățimi diferite și cereri concurente peste vechiul plafon.
+Familia de failure inserată ulterior este probată și fără wrapper inițial.
 
-| Coloană | Lățime |
-|---|---|
-| `FIELD` | lățimea intrinsecă a cheilor, limitată la `20%..38%` |
-| `VALUE` | spațiul rămas; minimum `62%` fără coloane tehnice rezervate |
+Oracolul măsoară dreptunghiurile reale și respinge lățimi egale artificiale,
+gutter gol ori celule verticale chiar dacă atributele de audit sunt încă prezente.
 
-Component contract-ul verifică markerii `data-atf-key-value-layout` și
-`data-atf-key-column-width`. Inspectorul acceptă `VALUE` ca dominantă chiar
-dacă o cheie izolată este mai lungă ca text.
-
-Tabelele agregate Overview (de exemplu `atf-tag-table`) sunt excluse: au
-contract de dashboard, coloane numerice fixe și sticky header. Nu sunt evidence
-tables și nu folosesc acest normalizator.
+Tabelele agregate Overview, Category și System folosesc același allocator în
+containerele lor existente, fără viewport imbricat suplimentar. Totalurile
+numerice păstrează lățimea măsurată; coloana de conținut primește surplusul.
+Colgroup-urile existente se sincronizează cu antetul și body-ul; tabelele vendor
+pentru layout/evenimente nu reprezintă tabele de date.
 
 ### Contractul de verificare
 
 - `ValidationTableLayoutComponentTest` — contractul minim pentru politică;
 - `ValidationTableLayoutInspector` — adapter OOP folosit de
   `UiValidationSectionExtractor` pentru toate familiile UI/API de evidence
-  tables;
+  tables; noua probă de sizing verifică separat geometria fără a avea încredere numai în markeri;
 - metrică — compară `data-atf-content-column-max-px` cu cea mai lată coloană
   flexibilă și verifică suma lățimilor plus overflow-ul;
 - E2E/MCP — verifică la `1440×900` și `1280×900`:
   - `data-atf-content-column-widths` este prezent;
-  - `scrollWidth === clientWidth` pentru tabelele vizibile;
+  - fiecare coloană este aliniată cu antetul și ultima coloană este accesibilă;
   - documentul și body-ul nu au overflow;
 - captura de audit — arată `OBSERVED/EXPECTED` mai largi când valorile sunt mai
   lungi și păstrează `RESULT` compact.
@@ -827,3 +821,16 @@ Un gate este acceptat numai când:
 - ✅ artifactul, manifestul și sursele staging/live sunt reconciliate;
 - ✅ rezultatul poate fi repetat de altă persoană din raport, fără cunoașterea
   implementării interne.
+
+## Verificare rapidă
+
+| Intenție | Probă și configurație | Limită |
+|---|---|---|
+| Componentă browser locală | [NarrowEvidenceReadabilityComponentTest](component/readability/NarrowEvidenceReadabilityComponentTest.java) | fixture Extent/fallback; fără journey pe site public |
+| E2E al artifactului | [contractele specializate](#contracte-e2e-specializate) și [rularea IntelliJ](#rulare-directă-din-intellij) | validează raportul, nu business-ul Shop/AutoEx |
+| Tabele Actions/Audit/Assert | [contractul de display](../../../../../../../../docs/ATF_Reporting_Display_Contract.md#restabilirea-prezentării-tabelare-a-dovezilor) | coloane măsurate în Extent/fallback, inclusiv resize și valori modificate |
+
+Comanda locală și precondiția Chromium sunt la
+[README-ul modulului](../../../../../../../README.md#verificare-rapidă).
+Politicile native, output-ul și verdictul rămân la ownerii existenți; pachetul
+de suport nu devine modul ori runtime de produs.

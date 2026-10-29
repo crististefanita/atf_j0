@@ -27,8 +27,31 @@ public final class TableViewportProbe {
                   || Math.abs(parseFloat(style.maxHeight) - cap) > 1) messages.push('wrong cap: ' + style.maxHeight);
               if (p.clientHeight > cap + 1) messages.push('viewport exceeds System cap');
               if (style.overflowY !== 'auto') messages.push('vertical overflow is ' + style.overflowY);
-              if (p.scrollWidth > p.clientWidth + 2 || table.getBoundingClientRect().width > p.clientWidth + 2)
-                messages.push('horizontal clipping');
+              if (style.overflowX !== 'auto') messages.push('horizontal scroll unavailable');
+              const borders=parseFloat(style.borderLeftWidth)+parseFloat(style.borderRightWidth);
+              const scrollbar=p.scrollHeight>p.clientHeight?p.offsetWidth-p.clientWidth-borders:0;
+              const available=r.width-borders-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight)-scrollbar;
+              if(Math.abs(table.getBoundingClientRect().width-Math.max(available,parseFloat(getComputedStyle(table).minWidth)||0))>2)
+                messages.push('table leaves an artificial horizontal gap');
+              const headerCells = Array.from(table.tHead?.rows[0]?.cells || []);
+              if (getComputedStyle(table).display !== 'table' || !headerCells.length
+                  || table.tHead.getBoundingClientRect().width <= 1
+                  || getComputedStyle(table.tHead).clipPath !== 'none') messages.push('column header hidden');
+              Array.from(table.tBodies).forEach(body => Array.from(body.rows).forEach(row => {
+                const cells = Array.from(row.cells);
+                cells.forEach((cell,index) => {
+                  const box=cell.getBoundingClientRect(), head=headerCells[index]?.getBoundingClientRect();
+                  if(getComputedStyle(cell).display !== 'table-cell' || !head
+                      || Math.abs(box.x-head.x)>2 || Math.abs(box.width-head.width)>2
+                      || index>0 && Math.abs(box.y-cells[0].getBoundingClientRect().y)>2)
+                    messages.push('cell outside its column');
+                });
+              }));
+              p.scrollLeft=p.scrollWidth;
+              const finalCell=table.tBodies[0]?.rows[0]?.lastElementChild;
+              if(finalCell && finalCell.getBoundingClientRect().right>r.right+2)
+                messages.push('last column clipped');
+              p.scrollLeft=0;
               const long = p.scrollHeight > p.clientHeight + 1;
               if (!long && p.clientHeight >= cap - 1 && table.getBoundingClientRect().height < cap - 4)
                 messages.push('short table reserves full viewport');
@@ -37,11 +60,7 @@ public final class TableViewportProbe {
               if (last && (!last.getClientRects().length || last.getBoundingClientRect().bottom > r.bottom + 2))
                 messages.push('last row clipped');
               const header = table.tHead?.rows[0]?.cells[0];
-              const stacked=getComputedStyle(table).getPropertyValue('--atf-table-stacked').trim()==='1';
-              if(stacked && Array.from(table.tBodies).some(b=>Array.from(b.rows).some(row=>
-                  Array.from(row.cells).some(c=>!c.getAttribute('data-atf-column-label')
-                    ||getComputedStyle(c,'::before').content==='none')))) messages.push('missing stacked cell heading');
-              if (long && !stacked && header && (getComputedStyle(header).position !== 'sticky'
+              if (long && header && (getComputedStyle(header).position !== 'sticky'
                   || Math.abs(header.getBoundingClientRect().top - r.top) > 3)) messages.push('header not sticky');
               const result = {family:table.className, cap, height:p.clientHeight,
                 scrollHeight:p.scrollHeight, long, messages};
@@ -138,7 +157,8 @@ public final class TableViewportProbe {
         try (Playwright playwright = Playwright.create();
              Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
             Page page = browser.newPage();
-            for (String defect : List.of("missing", "cap", "unbounded", "hidden", "double", "header", "last-row")) {
+            for (String defect : List.of("missing", "cap", "unbounded", "hidden", "double", "header", "last-row",
+                    "column-header", "stacked", "horizontal")) {
                 page.setContent(TableViewportReportFixture.componentHtml(false, defect.equals("unbounded") ? 1 : 40, false));
                 Locator table = LOCATORS.componentTables(page).first();
                 table.evaluate("""
@@ -150,6 +170,10 @@ public final class TableViewportProbe {
                           if(defect==='hidden') p.style.setProperty('overflow-y','hidden','important');
                           if(defect==='double') {const outer=p.cloneNode(false);p.replaceWith(outer);outer.appendChild(p);}
                           if(defect==='header') t.querySelector('th').style.setProperty('position','static','important');
+                          if(defect==='column-header') t.tHead.style.setProperty('clip-path','inset(50%)','important');
+                          if(defect==='stacked') Array.from(t.tBodies[0].rows).forEach(row=>Array.from(row.cells)
+                            .forEach(cell=>cell.style.setProperty('display','block','important')));
+                          if(defect==='horizontal') p.style.setProperty('overflow-x','hidden','important');
                           if(defect==='last-row') {
                             t.style.setProperty('display','block','important');
                             t.style.setProperty('height','100px','important');
@@ -221,6 +245,14 @@ public final class TableViewportProbe {
             page.waitForFunction("e => e.scrollTop >= e.scrollHeight - e.clientHeight - 1", viewport.elementHandle());
             assertEquals(parentScroll, outerScroll(viewport), "The final row must be reachable without scroll chaining");
             assertTrue(messages(measure(table)).isEmpty(), "Keyboard/mouse scroll must preserve geometry");
+            if (Boolean.TRUE.equals(viewport.evaluate("e => e.scrollWidth > e.clientWidth+2"))) {
+                viewport.focus();
+                viewport.press("ArrowRight");
+                page.waitForFunction("e => e.scrollLeft > 0", viewport.elementHandle());
+                viewport.press("ArrowLeft");
+                page.waitForFunction("e => e.scrollLeft === 0", viewport.elementHandle());
+                assertEquals(parentScroll, outerScroll(viewport), "Horizontal navigation remains local");
+            }
             return;
         }
         fail("The fixture must expose a long table for keyboard/mouse proof");

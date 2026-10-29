@@ -1,173 +1,69 @@
-function validationCellLength(value) {
-  return String(value == null ? '' : value)
-    .replace(/\s+/g, ' ')
-    .trim().length;
-}
-function validationClamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
-}
 var evidenceTableMeasureContext = document.createElement('canvas').getContext('2d'),
   EVIDENCE_STATUS_COLUMN = /(^|\b)(result|status|outcome)(\b|$)/,
   EVIDENCE_TIME_COLUMN = /(^|\b)(time|duration)(\b|$)/,
   EVIDENCE_ATTEMPT_COLUMN = /(^|\b)(attempt|attempts)(\b|$)/;
-function evidenceTableCellLength(cell) {
-  return validationCellLength(cell && cell.textContent);
-}
 function evidenceTableIntrinsicWidth(cell) {
-  var value = String(cell && cell.textContent ? cell.textContent : '')
-      .replace(/\s+/g, ' ')
-      .trim(),
+  var value = String(cell && cell.textContent ? cell.textContent : '').replace(/\s+/g, ' ').trim(),
     style = cell && window.getComputedStyle ? window.getComputedStyle(cell) : null,
-    context = evidenceTableMeasureContext;
-  if (!value) return 0;
-  if (!context) return validationClamp(value.length * 7.2 + 16, 24, 560);
-  context.font = style && style.font ? style.font : '12px sans-serif';
-  return validationClamp(context.measureText(value).width + 16, 24, 560);
+    context = evidenceTableMeasureContext,
+    padding = style ? parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
+      + parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth) : 16;
+  padding = Number.isFinite(padding) ? padding : 16;
+  if (context) context.font = style && style.font ? style.font : '12px sans-serif';
+  var measured = context ? context.measureText(value).width : value.length * 7.2;
+  return Math.max(measured + padding + 2, 24);
 }
 function evidenceTableHeader(table, index) {
   var header = table.tHead && table.tHead.rows && table.tHead.rows[0];
   return String(header && header.cells[index] ? header.cells[index].textContent : '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
+    .replace(/\s+/g, ' ').trim().toLowerCase();
 }
-function isKeyValue(headers) {
-  return headers.length === 2 && headers[0] === 'field' && headers[1] === 'value';
-}
+function isKeyValue(headers) { return headers.length === 2 && headers[0] === 'field' && headers[1] === 'value'; }
 function evidenceTableColumnKind(header) {
-  return EVIDENCE_STATUS_COLUMN.test(header) ? 1
-    : EVIDENCE_TIME_COLUMN.test(header) ? 2
-      : EVIDENCE_ATTEMPT_COLUMN.test(header) ? 3 : 0;
+  return EVIDENCE_STATUS_COLUMN.test(header) ? 1 : EVIDENCE_TIME_COLUMN.test(header) ? 2
+    : EVIDENCE_ATTEMPT_COLUMN.test(header) ? 3 : 0;
 }
-function evidenceTableReservedWidth(kind, count, index, longest, intrinsic, tableWidth) {
-  var measuredPercent = tableWidth && intrinsic[index]
-    ? (intrinsic[index] * 100) / tableWidth + 1.5 : 0;
-  if (kind === 1) {
-    return validationClamp(measuredPercent, count === 4 ? 8.5 : 9.5, 24);
-  }
-  if (kind === 2) {
-    return validationClamp(Math.max(10.5, measuredPercent), 10.5, 24);
-  }
-  if (kind === 3) {
-    return validationClamp(measuredPercent, 10, 24);
-  }
-  return validationClamp(8 + (longest[index] || 0) * 0.05, 8, 14);
+function evidenceTableNumericColumn(table, index) {
+  var values = Array.from(table.tBodies).flatMap(body => Array.from(body.rows))
+    .filter(row => row.cells[index]).map(row => row.cells[index].textContent.trim()).filter(Boolean);
+  return values.length > 0 && values.every(value => /^[+-]?\d+(?:[.,]\d+)?\s*%?$/.test(value));
 }
-function evidenceTableWidthWeights(intrinsic, longest, contentIndexes) {
-  return contentIndexes.map(index =>
-    validationClamp(intrinsic[index] || (longest[index] || 0) * 7.2 + 16, 24, 560));
-}
-function evidenceTableContentMinimumWidth(header, count, headerWidth, tableWidth) {
-  var semanticMinimum;
-  if (/(^|\b)action(\b|$)/.test(header)) semanticMinimum = count >= 5 ? 18 : 20;
-  else if (/(^|\b)target(\b|$)/.test(header)) semanticMinimum = count >= 5 ? 15 : 18;
-  else if (/(^|\b)(assertion|check|field)(\b|$)/.test(header)) semanticMinimum = 18;
-  else if (/(^|\b)(expected|actual|observed|value)(\b|$)/.test(header)) semanticMinimum = count >= 5 ? 13 : 18;
-  else semanticMinimum = count <= 3 ? 16 : 13;
-  var headerPercent = tableWidth ? (headerWidth * 100) / tableWidth + 1.5 : 0;
-  return Math.max(semanticMinimum, headerPercent);
-}
-function evidenceTableReservedMaximumWidth(kind, count) {
-  if (kind === 1) {
-    return count === 4 ? 13 : 14;
-  }
-  if (kind === 2) return 15;
-  if (kind === 3) return 14;
-  return 16;
-}
-function evidenceTableDistributeReservedSlack(widths, reservedIndexes, columnKinds, count) {
-  var total = widths.reduce((sum, value) => sum + (value || 0), 0),
-    remaining = Math.max(0, 100 - total),
-    capacities = reservedIndexes.map(index => Math.max(0,
-      evidenceTableReservedMaximumWidth(columnKinds[index], count) - (widths[index] || 0))),
-    capacityTotal = capacities.reduce((sum, value) => sum + value, 0);
-  if (remaining > 0.01 && capacityTotal) reservedIndexes.forEach((index, position) => {
-    widths[index] += Math.min(capacities[position], remaining * capacities[position] / capacityTotal);
-  });
-  return widths;
-}
-function evidenceTableAllocateWidths(intrinsic, longest, reservedIndexes, count, table, headers, headerWidths, columnKinds) {
-  var indexes = Array.from({ length: count }, (_, index) => index),
-    contentIndexes = indexes.filter(index => reservedIndexes.indexOf(index) < 0),
-    widths = indexes.map(index => reservedIndexes.indexOf(index) < 0
-      ? 0 : evidenceTableReservedWidth(columnKinds[index], count, index, longest,
-        intrinsic, table.clientWidth)),
-    reservedTotal = widths.reduce((sum, value) => sum + value, 0);
-  if (!contentIndexes.length) return widths;
-  var maximum = contentIndexes.length <= 3 ? 52 : 44,
-    minimums = contentIndexes.map(index => evidenceTableContentMinimumWidth(headers[index],
-      count, headerWidths[index], table.clientWidth)),
+/* Fill the host: meet measured demand first, then share surplus among flexible columns. */
+function evidenceTableAllocateWidths(intrinsic, table, headerWidths, columnKinds) {
+  var preferred = intrinsic.map((value, index) => Math.max(value || 24, headerWidths[index] || 24)),
+    minimums = preferred.map((value, index) => Math.ceil(Math.max(headerWidths[index] || 24,
+      columnKinds[index] ? value : Math.min(value, 96)))),
     minimumTotal = minimums.reduce((sum, value) => sum + value, 0);
-  if (reservedTotal > Math.max(0, 100 - minimumTotal)) {
-    var reservedScale = Math.max(0, 100 - minimumTotal)
-      / Math.max(1, reservedTotal);
-    reservedIndexes.forEach(index => { widths[index] *= reservedScale; });
-    reservedTotal = widths.reduce((sum, value) => sum + (value || 0), 0);
+  table.style.setProperty('--atf-content-min-width', minimumTotal + 'px');
+  var tableWidth = Math.max(minimumTotal, table.clientWidth),
+    remaining = Math.max(0, tableWidth - minimumTotal),
+    demand = preferred.map((value, index) => Math.max(0, value - minimums[index])),
+    demandTotal = demand.reduce((sum, value) => sum + value, 0),
+    fulfilled = Math.min(remaining, demandTotal),
+    widths = minimums.map((value, index) => value + (demandTotal ? fulfilled * demand[index] / demandTotal : 0)),
+    surplus = remaining - fulfilled;
+  if (surplus > 0) {
+    var flexible = preferred.map((_, index) => index).filter(index => !columnKinds[index]);
+    if (!flexible.length) flexible = preferred.map((_, index) => index);
+    var weightTotal = flexible.reduce((sum, index) => sum + preferred[index], 0);
+    flexible.forEach(index => { widths[index] += surplus * preferred[index] / weightTotal; });
   }
-  var available = Math.max(0, 100 - reservedTotal);
-  if (minimumTotal > available) {
-    var minimumScale = available / Math.max(1, minimumTotal);
-    minimums = minimums.map(value => value * minimumScale);
-  }
-  if (isKeyValue(headers)) {
-    var k = contentIndexes[0],
-      v = contentIndexes[1],
-      tableWidth = table.clientWidth,
-      keyWidth = validationClamp(Math.max(20,
-        tableWidth ? intrinsic[0] * 100 / tableWidth + 1.5 : 28), 20, 38);
-    keyWidth = Math.min(keyWidth, Math.max(20, available - 62));
-    widths[k] = keyWidth;
-    widths[v] = Math.max(0, available - keyWidth);
-    return widths;
-  }
-  var weights = evidenceTableWidthWeights(intrinsic, longest, contentIndexes);
-  var activeIndexes = contentIndexes.slice(),
-    remainingAvailable = available;
-  for (var pass = 0; pass < contentIndexes.length + 1; pass++) {
-    if (!activeIndexes.length) break;
-    var activeWeight = activeIndexes.reduce((sum, index) => sum + weights[contentIndexes.indexOf(index)], 0),
-      constrained = false;
-    activeIndexes.slice().forEach(index => {
-      var position = contentIndexes.indexOf(index),
-        proposed = remainingAvailable * weights[position] / Math.max(1, activeWeight),
-        minimum = minimums[position];
-      if (proposed < minimum) {
-        widths[index] = minimum;
-        remainingAvailable -= minimum;
-        activeIndexes.splice(activeIndexes.indexOf(index), 1);
-        constrained = true;
-      } else if (proposed > maximum) {
-        widths[index] = maximum;
-        remainingAvailable -= maximum;
-        activeIndexes.splice(activeIndexes.indexOf(index), 1);
-        constrained = true;
-      }
-    });
-    if (!constrained) {
-      activeIndexes.forEach(index => {
-        var position = contentIndexes.indexOf(index);
-        widths[index] = remainingAvailable * weights[position]
-          / Math.max(1, activeWeight);
-      });
-      break;
-    }
-    remainingAvailable = Math.max(0, remainingAvailable);
-  }
-  evidenceTableDistributeReservedSlack(widths, reservedIndexes, columnKinds, count);
   var total = widths.reduce((sum, value) => sum + value, 0);
-  return total ? widths.map(value => value * 100 / total) : widths;
+  return widths.map(value => value * 100 / total);
 }
 var ATF_EVIDENCE_TABLE_SELECTOR =
+  'table.helm-evidence-table,' +
   'table.atf-ui-action-table,' +
   'table.atf-ui-observation-table,' +
   'table.assertions,' +
   'table.atf-setup-evidence-table,' +
   'table.helm-evidence-table,' +
-  'table.helm-validation-table';
+  'table.helm-validation-table,' +
+  ':is(${TABLE_VIEWPORTS}) > table';
 var ATF_EVIDENCE_TABLE_LAYOUT_CACHE = '__atfEvidenceTableLayout';
 
 function evidenceTableCandidates(root) {
-  if (!root) return q(ATF_EVIDENCE_TABLE_SELECTOR);
+  if (!root) return Array.from(document.querySelectorAll(ATF_EVIDENCE_TABLE_SELECTOR));
   if (Array.isArray(root)) return root;
   if (root.matches && root.matches(ATF_EVIDENCE_TABLE_SELECTOR)) return [root];
   return root.querySelectorAll
@@ -178,7 +74,8 @@ function evidenceTableFingerprint(table, count) {
     font = style
       ? [style.fontFamily, style.fontSize, style.fontWeight, style.lineHeight].join('/')
       : '';
-  var parts = [String(count), String(table.clientWidth || 0), font];
+  var parts = [String(count), String(table.clientWidth || 0), font,
+    String(table.querySelectorAll(':scope > colgroup > col').length)];
   Array.from(table.rows || []).forEach(row => {
     Array.from(row.cells || []).forEach(cell => {
       parts.push(String(cell.textContent || '').replace(/\s+/g, ' ').trim());
@@ -227,28 +124,21 @@ function normalizeEvidenceTableColumns(root) {
       count = rows.length ? rows[0].cells.length : 0;
     if (count < 2) return;
     var headers = Array.from({ length: count }, (_, index) => evidenceTableHeader(table, index)),
-      columnKinds = headers.map(evidenceTableColumnKind),
+      columnKinds = headers.map((header, index) => evidenceTableColumnKind(header)
+        || (evidenceTableNumericColumn(table, index) ? 4 : 0)),
       headerRow = table.tHead && table.tHead.rows[0],
       headerWidths = headers.map((_, index) => evidenceTableIntrinsicWidth(
-        headerRow && headerRow.cells[index])),
-      tableWidth = table.clientWidth;
+        headerRow && headerRow.cells[index]));
     var cache = evidenceTableCache(table),
       fingerprint = evidenceTableFingerprint(table, count);
     if (cache.fingerprint === fingerprint) return;
-    var longest = [],
-      intrinsic = [];
+    var intrinsic = [];
     rows.forEach(row => {
       Array.from(row.cells || []).forEach((cell, index) => {
-        longest[index] = Math.max(longest[index] || 0, evidenceTableCellLength(cell));
         intrinsic[index] = Math.max(intrinsic[index] || 0, evidenceTableIntrinsicWidth(cell));
       });
     });
-    var reservedIndexes = [];
-    for (var index = 0; index < count; index++) {
-      if (columnKinds[index]) reservedIndexes.push(index);
-    }
-    var widths = evidenceTableAllocateWidths(intrinsic, longest, reservedIndexes, count,
-      table, headers, headerWidths, columnKinds);
+    var widths = evidenceTableAllocateWidths(intrinsic, table, headerWidths, columnKinds);
     var widthSignature = widths
         .map(value => value.toFixed(2) + '%')
         .join('|'),
@@ -258,8 +148,18 @@ function normalizeEvidenceTableColumns(root) {
     if (cache.widthSignature !== widthSignature) rows.forEach(row => {
       Array.from(row.cells || []).forEach((cell, index) => {
         var width = widths[index];
-        if (width) cell.style.setProperty('width', width.toFixed(2) + '%', 'important');
+        if (width) {
+          cell.style.setProperty('width', width.toFixed(2) + '%', 'important');
+          cell.style.setProperty('min-width', '0', 'important');
+          cell.style.setProperty('max-width', 'none', 'important');
+        }
       });
+    });
+    var columns = Array.from(table.querySelectorAll(':scope > colgroup > col'));
+    if (columns.length === count) columns.forEach((column, index) => {
+      column.style.setProperty('width', widths[index].toFixed(2) + '%', 'important');
+      column.style.setProperty('min-width', '0', 'important');
+      column.style.setProperty('max-width', 'none', 'important');
     });
     evidenceTableSetAttribute(table, 'data-atf-content-layout', 'dynamic-longest-value');
     evidenceTableSetAttribute(table, 'data-atf-content-column-count', String(count));
@@ -273,7 +173,7 @@ function normalizeEvidenceTableColumns(root) {
       evidenceTableSetAttribute(table, 'data-atf-validation-layout', 'dynamic-longest-value');
       evidenceTableSetAttribute(table, 'data-atf-validation-column-widths', widthSignature);
     }
-    cache.fingerprint = fingerprint;
+    cache.fingerprint = evidenceTableFingerprint(table, count);
     cache.widthSignature = widthSignature;
     cache.maxSignature = maxSignature;
   });
@@ -287,7 +187,7 @@ function bindValidationTableLayout() {
   window.__atfValidationTableLayoutBound = true;
   var pendingTables = new Set(),
     schedule = function (tables) {
-      (tables || q(ATF_EVIDENCE_TABLE_SELECTOR)).forEach(table => {
+      (tables || Array.from(document.querySelectorAll(ATF_EVIDENCE_TABLE_SELECTOR))).forEach(table => {
         pendingTables.add(table);
       });
       if (window.__atfValidationTableLayoutFrame != null) return;
@@ -301,7 +201,7 @@ function bindValidationTableLayout() {
         ? window.requestAnimationFrame(flush)
         : setTimeout(flush, 0);
   };
-  var initialTables = q(ATF_EVIDENCE_TABLE_SELECTOR);
+  var initialTables = Array.from(document.querySelectorAll(ATF_EVIDENCE_TABLE_SELECTOR));
   if (window.ResizeObserver) {
     window.__atfValidationTableResizeObserver = new ResizeObserver(function (entries) {
       var tables = Array.from(entries, entry => entry.target);

@@ -166,8 +166,18 @@ final class ShopCheckoutPurchaseStage implements ShopCheckoutFlow.Port {
         var page = context.page();
         var confirmationPage = new ShopConfirmationPage(page, context.locators(), context.actions());
         long sequenceFence = context.apiNetwork().sequenceMarker();
-        String confirmation = confirmationPage.confirmOrder();
-        var apiAssertions = context.apiNetwork().orderCreated(sequenceFence, confirmation, expectedOrder);
+        String confirmation;
+        try {
+            confirmation = confirmationPage.confirmOrder();
+        } catch (RuntimeException | Error primary) {
+            try {
+                context.apiNetwork().orderCreated(sequenceFence, "", expectedOrder);
+            } catch (RuntimeException | Error evidenceFailure) {
+                if (evidenceFailure != primary) primary.addSuppressed(evidenceFailure);
+            }
+            throw primary;
+        }
+        var apiAssertions = context.apiNetwork().awaitOrderCreated(page, sequenceFence, confirmation, expectedOrder);
         var apiValidation = ShopApiValidationResult.order(
                 context.apiNetwork().evidence(ShopApiCheckpoint.ORDER), apiAssertions).reportingEvidence();
         var checkpoint = context.checkpoint(ShopPurchaseTraceStep.ORDER_CONFIRMATION,

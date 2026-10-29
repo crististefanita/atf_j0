@@ -7,18 +7,16 @@ browserul și raportarea sunt furnizate de modulele ATF.
 
 ## Pe scurt
 
+**Trasee rapide:** [Journey](#journey-ul-de-cumpărare) · [API și UI_API](#api-direct-și-limita-evidence-ului-uiapi) · [Suite și opt-in](#cele-trei-suite-principale) · [Limita checkout](#readiness-înainte-de-checkout) · [Componentă sau E2E](#verificare-rapidă)
+
 - Acest modul deține journey-ul E2E și suportul specific site-ului AutoEx.
 - Gate-ul uzual selectează direct `AutoExPurchaseUiE2eTest` și execută cumpărarea o singură dată.
   Profilele de evidence sunt opțiuni de execuție ale aceluiași business, nu
   obiective suplimentare de acoperire.
 - `atf-ui` deține execuția browserului; `atf-reporting` deține modelarea și
   publicarea evidence-ului.
-- `@AtfUiEvidence(flow = UNIFIED_FLOW, screenshots = FINAL_AND_FAILURE)` produce o
-  secvență unificată de acțiuni și o captură
-  terminală la succes și captură la failure; `UI validation` include observația `Audit screen contract`,
-  înregistrată înainte de drenarea secvenței. Aceasta declară separat numărul
-  aserțiunilor și starea capturii, fără să devină acțiune Playwright sau sursă
-  de verdict.
+- [Profilul de evidence](#configurarea-evidence-ului) separă flow-ul, capturile și
+  detaliile acțiunilor; `Audit screen contract` observă dovada, fără verdict propriu.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
@@ -69,6 +67,9 @@ Etichetele scurte păstrează următorul sens:
 </details>
 
 ## Boundary-ul AutoEx
+
+<details>
+<summary><strong>Detalii — boundary-ul autoex</strong></summary>
 
 | Zonă | Conținut specific acestui consumer |
 |---|---|
@@ -162,7 +163,12 @@ se schimbă apelanții runtime sau dacă
 testul de arhitectură nu mai confirmă acest ownership; orice extracție generică
 trebuie demonstrată comportamental în ambii consumatori.
 
+</details>
+
 ## Contractul testelor AutoEx
+
+<details>
+<summary><strong>Detalii — contractul testelor autoex</strong></summary>
 
 - `@AtfE2eTest` și `@AtfTestChannel(UI/UI_API)` clasifică testele după
   boundary și canal; varianta UI este selecția uzuală de business.
@@ -291,6 +297,9 @@ Etichetele scurte păstrează următorul sens:
 | Cleanup | oprire + lifecycle cleanup |
 
 </details>
+
+</details>
+
 ## Suite și variante de evidence
 
 Rularea uzuală selectează `AutoExPurchaseUiE2eTest`: un cont, o comandă demo,
@@ -440,6 +449,9 @@ indisponibilitatea documentului, nu schimbarea locatorilor.
   element absent. Proba live rămâne în suita E2E.
 
 ## Journey-ul de cumpărare
+
+<details>
+<summary><strong>Detalii — journey-ul de cumpărare</strong></summary>
 
 Scenariul combină [Test Case 14 — Place Order: Register while Checkout](https://automationexercise.com/test_cases#collapse14)
 cu [Test Case 24 — Download Invoice after purchase](https://automationexercise.com/test_cases#collapse24):
@@ -629,6 +641,8 @@ sau prin gate-ul UI complet, independent de checkout/plată.
 cauzal al browserului rămân distincte; cele două căi reutilizează transportul
 `AutoExLiveApi`, fără retry automat al mutațiilor.
 
+</details>
+
 ## Coș și continuitatea sesiunii
 
 `AutoExCartUiE2eTest` delegă două povești independente către `AutoExCartJourney`.
@@ -705,6 +719,9 @@ Un selector Surefire de metodă (`Clasă#metodă`) se execută separat de clasel
   adresă rămân în `support.checkout`; coșul și factura au reguli pure în `business`.
 
 ## API direct și limita evidence-ului UI/API
+
+<details>
+<summary><strong>Detalii — api direct și limita evidence-ului ui/api</strong></summary>
 
 Rutele publice sunt inventariate în [API List](https://automationexercise.com/api_list).
 
@@ -1158,6 +1175,8 @@ pagina UI folosește `/products?search=...`, nu endpoint-ul direct
 `POST /api/searchProduct`. Astfel raportul nu amestecă setup-ul API cu traficul
 cauzal al interacțiunilor browserului.
 
+</details>
+
 ## Politica BE a catalogului
 
 `automationExercise.browser.recovery` este OFF implicit, cu allowlist gol și captură pasivă OFF.
@@ -1230,6 +1249,9 @@ Deadline-ul, refuzurile și limitele sunt în [UI](../atf-ui/README.md#recuperar
 indicatorul agregat de recuperare rămâne în [feedback-ul auditului](../docs/feedback/ATF_UI_Backend_Guided_Recovery_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent).
 
 ## Rulare
+
+<details>
+<summary><strong>Detalii — rulare</strong></summary>
 
 Din root-ul reactorului, testele componente offline:
 
@@ -1368,3 +1390,27 @@ opresc tranziția și rămân în secvența raportată.
 navigare, unul absent și unul ambiguu, prin browser și recorder reale. Oracolele
 coșului rămân independente; această sincronizare locală nu implementează
 [politica BE a catalogului](#politica-be-a-catalogului), care nu reexecută checkout-ul.
+
+</details>
+
+## Verificare rapidă
+
+| Decizie | Sursă și limită |
+|---|---|
+| Regulile purchase cu expected independent | [sursa ownerului](src/main/java/atf/autoex/flow/purchase/AutoExPurchaseUiFlow.java); probă: [AutoExPurchaseBusinessComponentTest](src/test/java/atf/autoex/tests/component/journey/AutoExPurchaseBusinessComponentTest.java) |
+| Dependențe și source-set-uri | [POM](pom.xml); scope-ul declarat este autoritatea pentru integrare |
+| Ce nu demonstrează această probă | Contractul de componentă nu confirmă site-ul public ori identitatea/coșul după înregistrare. |
+
+<details>
+<summary><strong>Comandă pentru proba locală</strong></summary>
+
+Rulați din rădăcina unui [staging extern](../docs/ATF_Build_And_Execution_Safety.md), cu JDK 21 și Maven.
+
+```powershell
+mvn -B -pl atf-test-auto-ex -am "-Dtest=AutoExPurchaseBusinessComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+```
+
+Comanda selectează proba numită și construiește dependențele; nu declară
+trecerea întregului modul. Contractul de componentă nu confirmă site-ul public ori identitatea/coșul după înregistrare.
+
+</details>

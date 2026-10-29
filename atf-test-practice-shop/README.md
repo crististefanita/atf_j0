@@ -2,6 +2,8 @@
 
 ## Pe scurt
 
+**Trasee rapide:** [Journey](#traseul-de-achiziție) · [Fixture și billing](#configurația-modulului) · [Dovada order](#dovada-comenzii-curente) · [Raport per suită](#raport-partajat--starea-consumerului) · [Componentă sau E2E](#verificare-rapidă)
+
 `atf-test-practice-shop` este modulul consumer care verifică UI-ul și API-ul
 real al aplicației Practice Software Testing. El deține fixture-ul aplicației,
 configurația, page objects, flow-urile și probele consumer; nu deține
@@ -63,6 +65,9 @@ Etichetele scurte păstrează următorul sens:
 
 ## Ce deține modulul
 
+<details>
+<summary><strong>Detalii — ce deține modulul</strong></summary>
+
 | Suprafață | Owner în modul | Limită |
 |---|---|---|
 | Configurație | `src/test/resources/atf-practice-shop.yaml`, `ShopConfigurationLoader` | valori și fixture-uri Practice Shop, nu configurare globală ATF |
@@ -118,6 +123,11 @@ browser/report este încă în test;
 [extracția runtime-ului](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-runtime-boundary-03--responsabilitățile-e2e-rămase-în-shop)
 este o restanță distinctă. Store-ul, extensiile și rezolvarea JUnit rămân în test,
 iar `atf-test-kit` păstrează scope de test.
+
+`openReport(...)` primește deja explicit sink-ul, iar `openBrowser(...)` este
+separat ca metodă. Achiziția browserului, journal-ul, capturile și scenariul
+rămân însă în `ShopE2eContext`; factory-ul browserului citește încă
+`AtfConsoleTestContext`. Existența celor două metode nu încheie extracția runtime-ului.
 Suita consumatorului rămâne concentrată pe `e2e`, `component` și `api`; `support`
 este infrastructură de test, nu un al treilea tip de test.
 
@@ -160,7 +170,12 @@ este probată în Reporting Tests, iar browserul și regulile Shop rămân local
 
 </details>
 
+</details>
+
 ## Traseul de achiziție
+
+<details>
+<summary><strong>Detalii — traseul de achiziție</strong></summary>
 
 Journey-ul guest folosește produsul și datele declarate în YAML:
 
@@ -290,7 +305,12 @@ Detaliile care definesc contractul consumerului sunt:
 Forma vizuală generică este în
 [contractul Reporting](../docs/ATF_Reporting_Contract.md#dovezile-unei-cereri).
 
+</details>
+
 ## Variantele E2E
+
+<details>
+<summary><strong>Detalii — variantele e2e</strong></summary>
 
 `ShopE2eSuite` declară prin `@ConfigurationParameter` scope-ul `suite`,
 ordonarea engine-ului Jupiter prin `ClassOrderer.OrderAnnotation` și dezactivarea
@@ -414,6 +434,8 @@ Contractul generic de lifecycle și randare este deținut de
   captură terminală permisă sub tabelul Playwright. Proveniența fazelor rămâne
   într-un disclosure UI; eșecul de setup și scenariile UI+API nu sunt compactate.
 
+</details>
+
 ## Politica BE a catalogului
 
 `practiceShop.recovery` este OFF implicit, cu allowlist gol și captură pasivă OFF.
@@ -488,6 +510,9 @@ Deadline-ul, refuzurile și limitele sunt în [UI](../atf-ui/README.md#recuperar
 indicatorul agregat de recuperare rămâne în [feedback-ul auditului](../docs/feedback/ATF_UI_Backend_Guided_Recovery_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent).
 
 ## Configurația modulului
+
+<details>
+<summary><strong>Detalii — configurația modulului</strong></summary>
 
 Sursa canonică este
 [`atf-practice-shop.yaml`](src/test/resources/atf-practice-shop.yaml). Loaderul
@@ -585,6 +610,8 @@ ale claselor E2E.
 
 </details>
 
+</details>
+
 ## Dovezi și comportament vizibil
 
 - `UI` păstrează validările și acțiunile browserului, dar nu publică API
@@ -615,6 +642,9 @@ ale claselor E2E.
   introduce și verifică valorile fixture-ului; `postal-lookup` introduce țara,
   codul poștal și numărul casei și validează câmpurile completate de aplicație.
   Aceeași strategie este păstrată în UI și UI_API; evidence-ul nu alege traseul.
+  La `postal-lookup`, strada, orașul și state sunt raportate și cerute non-empty;
+  aceasta probează completarea, nu egalitatea lor cu fixture-ul. La
+  `configured-fields`, aceleași câmpuri au comparații cu expected independent.
 - Meta-adnotarea `@WithE2eHarness` include `@AtfConsoleMessages(DETAILS)` și
   `@AtfReportPath`; după publicare, calea absolută Extent este trimisă la consolă
   când output-ul este activ. `reporting.console.enabled: false` rămâne
@@ -643,9 +673,9 @@ proba opt-in separată, iar testele generice pentru renderer și markup aparțin
 [`atf-reporting-tests`](../atf-reporting-tests/README.md).
 
 `PUT` pentru actualizarea cantității și `DELETE` pentru eliminarea unui produs
-sunt contracte API ale modulului, nu pași din purchase-ul E2E curent. În UI-only,
-pagina folosește lookup-ul propriu de adresă; UI+API setează valorile billing
-din fixture pentru validarea deterministă.
+sunt contracte API ale modulului, nu pași din purchase-ul E2E curent.
+Completarea billing-ului este aleasă de `checkout.billingStrategy`, independent
+de canalul UI/UI_API; schimbarea canalului nu schimbă fixture-ul checkout.
 
 </details>
 
@@ -657,6 +687,9 @@ locatori CSS și lifecycle-ul browserului generic sunt deținute de
 consumerul le configurează și le leagă de checkpoint-urile Practice Shop.
 
 ## Cum se verifică modulul
+
+<details>
+<summary><strong>Detalii — cum se verifică modulul</strong></summary>
 
 Comenzile de mai jos rulează suitele definite în `src/test`; `-am` construiește
 și modulele ATF de care depinde consumerul.
@@ -782,17 +815,61 @@ tipuri/câmpuri invalide și diferențe după preview.
 snapshot anterior plății, refuz înaintea checkout-ului, un singur Confirm și
 verdictul API proiectat în checkpoint.
 
-### Limita dovezii comenzii curente
+### Dovada comenzii curente
 
-Validarea valorilor nu închide încă selecția evidence-ului pentru eșecul comenzii:
+`ShopApiNetworkJournal.orderCreated()` selectează ultima observație `ORDER_CREATE`
+recepționată după marcajul anterior lui Confirm, pentru `POST /invoices/guest` sau `POST /invoices`.
+Statusul și body-ul sunt evaluate după selecție; nu filtrează candidatul curent.
 
-- `orderCreated()` caută numai răspunsuri 2xx după marcaj. Un 500 ulterior poate
-  fi ignorat în favoarea unui 201 din aceeași fereastră.
-- Lipsa unei selecții noi nu golește checkpoint-ul anterior. La prima evaluare
-  fără exchange, mapperul order cere totuși unul și aruncă o eroare de cardinalitate.
-- Regula payment/coș de mai sus este deja mai strictă. Extinderea ei la order
-  și paritatea pe absență sunt în
-  [feedback-ul consumerilor](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-shop-order-evidence-04--selecția-dovezii-comenzii-curente).
+| Fereastra curentă | Selecție și verdict | Publicare |
+|---|---|---|
+| 201 urmat de 500 | ultimul 500, inclusiv cu body de forma unui succes; FAIL | status, body și trace ale aceleiași capturi |
+| Checkpoint evaluat anterior, apoi 500 | noua captură înlocuiește selecția veche | event ID-ul curent, fără împrumutarea unui 201 |
+| Nicio captură după marcaj | selecție goală; cele cinci comparații rămân FAIL | corelări API fără request/response fabricat |
+| Cerere observată eșuată înainte de răspuns | captura rămâne selectată, cu `Unavailable` și cauza transportului | nu inventează HTTP 0/200 ori JSON |
+| Altă metodă/rută ori captură anterioară marcajului | nu înlocuiește operația eligibilă curentă | traficul rămâne în journal, fără a fi atribuit comenzii |
+
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
+flowchart LR
+    Fence["Marcaj Confirm"] -->|delimitează| Window["Observații eligibile"]
+    Window -->|alege ultima| Capture["Captură curentă"]
+    Window -->|fără captură| Empty["Selecție goală"]
+    Capture -->|înlocuiește| Selection["Checkpoint ORDER"]
+    Empty -->|golește| Selection
+    Selection -->|evaluează| Checks["Comparații"]
+    Checks -->|publică| Report["Extent / fallback"]
+```
+
+<details>
+<summary><strong>Legendă — selecție curentă înaintea evaluării</strong></summary>
+
+- Journal-ul reutilizează selectorul operației și `storeObserved`; lista goală elimină numai selecția ORDER.
+- Marcajul delimitează recepția capturilor, nu începutul cererilor; nu dovedește singur cauzalitatea clickului.
+- Trace-ul, ordinea și identitatea capturii sunt păstrate; istoricul brut și checkpoint-urile surori nu se șterg.
+- `ShopApiAssertions` evaluează aceeași captură; `ShopApiValidationResult.order` păstrează verificările lipsă ca aserțiuni, fără exchange inventat.
+- Corelarea fără factură API păstrează un expected explicit și separă lipsa API de valoarea UI; totalul folosește oracolul independent.
+- UI poate afișa o factură veche de succes; aceasta nu transformă 500-ul sau lipsa dovezii API în PASS.
+- `awaitOrderCreated` așteaptă pasiv captura în timeout-ul Page, inclusiv când UI afișează deja confirmarea veche.
+- Dacă UI aruncă, captura deja observată se leagă înaintea propagării aceleiași cauze; erorile secundare rămân suppressed.
+- Selecția și publicarea nu retrimit Confirm, nu recuperează order-ul prin alt transport și nu modifică timeout-ul.
+- `UI_ONLY` păstrează canalul API dezactivat; limitele de redactare și preview 240 se aplică valorilor din raport.
+
+</details>
+
+- `ShopOrderEvidenceComponentTest`: selecție și lipsa capturii;
+- `ShopOrderEvidenceSelectionComponentTest`: body de succes cu status 500,
+  cache precedent, lipsa capturii, transport și izolarea scenariilor;
+- `ShopCheckoutOrderCorrelationComponentTest`: un Confirm în browser, HTTP
+  loopback și proiecția checkpoint-ului în Extent/fallback, inclusiv Fails și backlink.
+
+Fereastra 201→500 folosește observații controlate; nu afirmă două răspunsuri HTTP
+la un singur POST. Proba adaptorului introduce captura veche în fixture înaintea
+marcajului și execută o singură cerere curentă; eșecul pre-HTTP nu ajunge la server.
+
+Limita marcajului rămâne deschisă: o cerere anterioară încă în zbor poate termina
+după Confirm și trece filtrul temporal. Asocierea cu acțiunea curentă este descrisă
+în [feedback-ul consumerului](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-shop-request-start-06--cerere-anterioară-terminată-după-confirm).
 
 ### Eroare API cu istoric parțial
 
@@ -1086,6 +1163,8 @@ Interacțiunea generică a raportului este probată în
 [Reporting Tests](../atf-reporting-tests/README.md); mapping-ul business rămâne Shop.
 Login-ul API nu dovedește automat autentificarea UI a aceluiași cont.
 
+</details>
+
 ## Modificări și întreținere
 
 - Schimbarea de produs sau checkout începe în configurația/fixture-ul Shop;
@@ -1151,3 +1230,25 @@ Etapele catalog/checkout din `ShopPurchaseFlow` sunt implementate; separarea
 business → flow UI → acțiuni compuse → Playwright este încă țintă de design.
 [Ghidul de testare](../docs/ATF_Testing_Guide.md#separarea-flow-urilor-business-ui-și-a-validărilor)
 definește boundary-urile și proba de componentă pentru primul increment.
+
+## Verificare rapidă
+
+| Decizie | Sursă și limită |
+|---|---|
+| Selecție și verificare a dovezii order | [sursa ownerului](src/main/atf/shop/support/api/ShopApiNetworkJournal.java); probă: [ShopOrderEvidenceComponentTest](src/test/atf/shop/tests/component/api/ShopOrderEvidenceComponentTest.java) |
+| Dependențe și source-set-uri | [POM](pom.xml); scope-ul declarat este autoritatea pentru integrare |
+| Ce nu demonstrează această probă | Captura recepționată după marcaj nu dovedește singură începutul cererii curente. |
+
+<details>
+<summary><strong>Comandă pentru proba locală</strong></summary>
+
+Rulați din rădăcina unui [staging extern](../docs/ATF_Build_And_Execution_Safety.md), cu JDK 21 și Maven.
+
+```powershell
+mvn -B -pl atf-test-practice-shop -am "-Dtest=ShopOrderEvidenceComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+```
+
+Comanda selectează proba numită și construiește dependențele; nu declară
+trecerea întregului modul. Captura recepționată după marcaj nu dovedește singură începutul cererii curente.
+
+</details>

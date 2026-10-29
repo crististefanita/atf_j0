@@ -255,6 +255,7 @@ public final class ShopApiAssertions {
                 ShopApiJsonField.INVOICE_NUMBER.wireValue()).asText("");
         JsonNode total = response == null ? null : response.get(ShopApiJsonField.TOTAL.wireValue());
         String observedInvoice = ShopPurchaseConfirmation.invoiceNumber(uiConfirmation);
+        String displayedInvoice = observedInvoice.isBlank() ? "missing or ambiguous invoice" : observedInvoice;
         boolean matchingTotal = total != null && total.isNumber()
                 && total.decimalValue().compareTo(expectedOrder.total()) == 0;
         return List.of(
@@ -270,8 +271,8 @@ public final class ShopApiAssertions {
                                 && !response.path(ShopApiJsonField.ID.wireValue()).textValue().isBlank()
                                 && response.path(ShopApiJsonField.INVOICE_NUMBER.wireValue()).isTextual()
                                 && !invoice.isBlank()),
-                check("UI/API order correlation", invoice,
-                        observedInvoice.isBlank() ? "missing or ambiguous invoice" : observedInvoice,
+                check("UI/API order correlation", invoice.isBlank() ? "present API invoice number" : invoice,
+                        invoice.isBlank() ? "API=missing; UI=" + displayedInvoice : displayedInvoice,
                         !invoice.isBlank() && invoice.equals(observedInvoice)),
                 check("API response JSON · order total", expectedOrder.total().toPlainString(),
                         total == null ? "missing" : total.asText(), matchingTotal),

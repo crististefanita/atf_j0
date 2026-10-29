@@ -6,17 +6,19 @@
   min-width: 0 !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
-  overflow-x: hidden !important;
+  overflow-x: auto !important;
   overflow-y: auto !important;
   overscroll-behavior: contain !important;
-  scrollbar-gutter: stable !important;
+  scrollbar-gutter: auto !important;
 }
 :is(${TABLE_VIEWPORTS}) > table {
   width: 100% !important;
+  min-width: var(--atf-content-min-width, 0px) !important;
   max-width: 100% !important;
   table-layout: fixed !important;
   margin: 0 !important;
 }
+/* Intrinsic containment keeps a narrow host pane from expanding with its table. */
 :is(${TABLE_VIEWPORTS}) { container: atf-evidence / inline-size; }
 .test-content-detail, [id='tests'] { container: atf-detail / inline-size; }
 @container atf-detail (max-width: 640px) {
@@ -41,51 +43,12 @@
     width: 100% !important;
   }
 }
-/* Narrow evidence keeps every value beside its own heading, at the actual panel width. */
-@container atf-evidence (max-width: 720px) {
-  table:has([data-atf-column-label]) {
-    --atf-table-stacked: 1;
-    display: block !important;
-  }
-  table:has([data-atf-column-label]) > :is(thead, colgroup) {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    overflow: hidden !important;
-    clip-path: inset(50%) !important;
-  }
-  table:has([data-atf-column-label]) > tbody,
-  table:has([data-atf-column-label]) > tbody > tr {
-    display: block !important;
-  }
-  table:has([data-atf-column-label]) > tbody > tr {
-    border-bottom: 2px solid var(--atf-border) !important;
-    padding: 4px 0 !important;
-  }
-  :root body table:has([data-atf-column-label]) > tbody > tr > [data-atf-column-label] {
-    display: block !important;
-    box-sizing: border-box !important;
-    width: 100% !important;
-    min-width: 100% !important;
-    max-width: 100% !important;
-    white-space: pre-wrap !important;
-    padding: 6px 5px !important;
-    text-align: left !important;
-    font-size: var(--atf-font-table-cell-size, 12.6px) !important;
-  }
-  :root body table:has([data-atf-column-label]) > tbody > tr > [data-atf-column-label]::before {
-    content: attr(data-atf-column-label);
-    display: block;
-    margin-bottom: 3px;
-    color: var(--atf-muted);
-    font-size: var(--atf-font-table-header-size, 11.2px);
-    line-height: 1.35;
-    font-weight: 400;
-  }
-}
 :is(${TABLE_VIEWPORTS}) > table :is(th, td) {
   overflow-wrap: anywhere !important;
   word-break: break-word !important;
+}
+:root body :is(${TABLE_VIEWPORTS}) > table td {
+  font-size: var(--atf-font-table-cell-size, 12.6px) !important;
 }
 :is(${SCROLL_SURFACES}) > table > thead th {
   position: sticky !important;
