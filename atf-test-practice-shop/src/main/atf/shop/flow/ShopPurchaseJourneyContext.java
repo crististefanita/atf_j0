@@ -6,6 +6,7 @@ import atf.ui.playwright.AtfLocator;
 import atf.ui.playwright.PlaywrightActionSequence;
 import atf.shop.config.ShopConfiguration;
 import atf.shop.config.ShopCheckoutConfiguration;
+import atf.shop.api.ShopApiRoutes;
 import atf.shop.locators.ShopLocators;
 import atf.shop.routes.ShopUiRoutes;
 import atf.shop.support.api.ShopApiNetworkJournal;
@@ -39,7 +40,8 @@ final class ShopPurchaseJourneyContext {
                                        ShopPurchaseScreenValidator purchaseScreenValidator) {
         ShopConfiguration fixture = Objects.requireNonNull(configuration, "configuration");
         this.catalogInputs = new CatalogInputs(page, actions, fixture.catalogSelection(), checkpointPublisher,
-                apiNetwork, locators, pageValidator, homeScreenValidator, purchaseScreenValidator);
+                apiNetwork, locators, pageValidator, homeScreenValidator, purchaseScreenValidator,
+                fixture.api().endpoint().resolve(ShopApiRoutes.PRODUCT_COLLECTION));
         this.checkoutInputs = new CheckoutInputs(page, actions, fixture.uri(ShopUiRoutes.CHECKOUT),
                 fixture.productName(), fixture.checkout(), checkpointPublisher,
                 apiNetwork, locators, pageValidator, purchaseScreenValidator);
@@ -53,7 +55,7 @@ final class ShopPurchaseJourneyContext {
                          ShopPurchaseCheckpointPublisher checkpointPublisher,
                          ShopApiNetworkJournal apiNetwork, ShopLocators locators,
                          ShopPageValidator pageValidator, ShopHomeScreenValidator homeScreenValidator,
-                         ShopPurchaseScreenValidator purchaseScreenValidator) {
+                         ShopPurchaseScreenValidator purchaseScreenValidator, URI catalogEndpoint) {
         CatalogInputs {
             Objects.requireNonNull(page, "page");
             Objects.requireNonNull(actions, "actions");
@@ -64,6 +66,7 @@ final class ShopPurchaseJourneyContext {
             Objects.requireNonNull(pageValidator, "pageValidator");
             Objects.requireNonNull(homeScreenValidator, "homeScreenValidator");
             Objects.requireNonNull(purchaseScreenValidator, "purchaseScreenValidator");
+            Objects.requireNonNull(catalogEndpoint, "catalogEndpoint");
         }
 
         ShopPurchaseCheckpoint checkpoint(ShopPurchaseTraceStep step,

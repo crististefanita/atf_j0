@@ -12,7 +12,7 @@ import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
 import atf.shop.config.ShopConfiguration;
 import atf.shop.config.ShopConfigurationLoader;
 import atf.shop.config.ShopValidationProfile;
-import atf.shop.tests.support.reporting.ShopReportSystemMetadata;
+import atf.shop.reporting.environment.ShopReportSystemMetadata;
 import atf.reporting.configuration.ReportEnvironmentSnapshot;
 import atf.reporting.configuration.ReportEnvironmentField;
 import org.junit.jupiter.api.Test;

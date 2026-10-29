@@ -1,8 +1,8 @@
 package atf.autoex.runtime;
 
 import atf.core.reporting.console.AtfConsoleSink;
-import atf.reporting.configuration.ReportEnvironmentField;
 import atf.reporting.configuration.ReportEnvironmentSnapshot;
+import atf.autoex.runtime.reporting.AutoExReportSystemMetadata;
 import atf.reporting.evidence.profile.ReportEvidenceProfile;
 import atf.reporting.ui.UiExtentReportOptions;
 import atf.reporting.ui.UiExtentReportSession;
@@ -23,12 +23,11 @@ public final class AutoExReportSession implements AutoCloseable {
 
     public static AutoExReportSession open(Path output, String name, AtfConsoleSink console,
                                            ReportEvidenceProfile evidence, UiBrowserConfiguration browser) {
-        var environment = ReportEnvironmentSnapshot.builder()
-                .put(ReportEnvironmentField.CLIENT, "Playwright browser · CSS zoom %d%%".formatted(browser.zoomPercent()))
-                .put(ReportEnvironmentField.BROWSER, browser.browser())
-                .put(ReportEnvironmentField.HEADLESS, Boolean.toString(browser.headless()))
-                .put(ReportEnvironmentField.VIEWPORT, "%d × %d".formatted(browser.viewportWidth(), browser.viewportHeight()))
-                .build();
+        return openWithEnvironment(output, name, console, evidence, AutoExReportSystemMetadata.browserOnly(browser, evidence));
+    }
+
+    public static AutoExReportSession openWithEnvironment(Path output, String name, AtfConsoleSink console,
+                                                           ReportEvidenceProfile evidence, ReportEnvironmentSnapshot environment) {
         return new AutoExReportSession(UiExtentReportSession.openConfigured(UiExtentReportOptions.builder(output)
                 .fileName(name).console(AutoExConsoleBridge.reportingSink(console))
                 .evidenceProfile(evidence).environment(environment).build()));

@@ -1,6 +1,9 @@
 package atf.ui.network;
 
 import atf.ui.config.UiNetworkInspectionConfiguration;
+import atf.ui.network.delivery.UiNetworkDeliveryFailure;
+import atf.ui.network.identity.UiRequestIdentity;
+import atf.ui.network.identity.UiRequestTimeline;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Request;
 import com.microsoft.playwright.Response;
@@ -32,6 +35,8 @@ public final class UiNetworkInspector implements AutoCloseable {
     private final AtomicLong sequence = new AtomicLong();
     private final List<UiNetworkObservation> observations = new CopyOnWriteArrayList<>();
     private final List<Consumer<UiNetworkObservation>> subscribers = new CopyOnWriteArrayList<>();
+    private final List<UiNetworkDeliveryFailure> deliveryFailures = new CopyOnWriteArrayList<>();
+    private final UiRequestTimeline requestStarts = new UiRequestTimeline();
     private final Object captureLock = new Object();
     private long accepted;
     private long excluded;
@@ -56,6 +61,7 @@ public final class UiNetworkInspector implements AutoCloseable {
         if (!configuration.enabled()) return;
         if (this.page != null) throw new IllegalStateException("UI network inspector is already attached");
         this.page = page;
+        requestStarts.attach(page);
         subscribers.add(subscriber);
         requestFinishedListener = this::observeFinished;
         requestFailedListener = this::observeFailure;
@@ -76,7 +82,13 @@ public final class UiNetworkInspector implements AutoCloseable {
         Request request = response.request();
         if (request == null) return Optional.empty();
         return captureSelected(request.url(), UiNetworkCapturePolicy.ResourceKind.fromPlaywright(request.resourceType()),
-                next -> UiNetworkObservation.from(response, next, configuration));
+                next -> started(UiNetworkObservation.from(response, next, configuration), request));
+    }
+
+    public UiRequestIdentity requestMarker() { return requestStarts.marker(); }
+    public UiRequestIdentity requestStarted() { return requestStarts.begin(); }
+    private UiNetworkObservation started(UiNetworkObservation observation, Request request) {
+        return observation.withRequestIdentity(requestStarts.identity(request).orElse(null));
     }
 
     /**
@@ -145,9 +157,12 @@ public final class UiNetworkInspector implements AutoCloseable {
             inFlight--;
         }
         // Subscriber failures cannot turn a retained observation into a dropped one.
-        subscribers.forEach(subscriber -> notifySafely(subscriber, observation));
+        notifySubscribers(observation);
         return Optional.of(observation);
     }
+
+    /** Retained causes for this owned capture scope; raw retention counters are unchanged. */
+    public List<UiNetworkDeliveryFailure> deliveryFailures() { return List.copyOf(deliveryFailures); }
 
     /** Returns lossless bounded observations in browser order. */
     public List<UiNetworkObservation> observations() {
@@ -237,6 +252,7 @@ public final class UiNetworkInspector implements AutoCloseable {
     }
 
     @Override public void close() {
+        requestStarts.close();
         if (page != null) {
             if (requestFinishedListener != null) page.offRequestFinished(requestFinishedListener);
             if (requestFailedListener != null) page.offRequestFailed(requestFailedListener);
@@ -253,11 +269,13 @@ public final class UiNetworkInspector implements AutoCloseable {
             captureSelected(request.url(), UiNetworkCapturePolicy.ResourceKind.fromPlaywright(request.resourceType()), next -> {
                 Response response = request.response();
                 if (response == null) throw new IllegalStateException("Completed request has no response");
-                return UiNetworkObservation.from(response, next, configuration);
+                return started(UiNetworkObservation.from(response, next, configuration), request);
             });
         } catch (RuntimeException transientBrowserState) {
             // Network evidence is diagnostic and must never abort the UI action
             // when the page replaces its execution context during navigation.
+        } finally {
+            requestStarts.forget(request);
         }
     }
 
@@ -268,12 +286,14 @@ public final class UiNetworkInspector implements AutoCloseable {
                     next -> {
                         Response response = request.response();
                         if (isAbortedAttachment(request.failure(), response)) {
-                            return UiNetworkObservation.fromAttachmentResponse(response, next, configuration);
+                            return started(UiNetworkObservation.fromAttachmentResponse(response, next, configuration), request);
                         }
-                        return UiNetworkObservation.fromFailure(request, next, configuration);
+                        return started(UiNetworkObservation.fromFailure(request, next, configuration), request);
                     });
         } catch (RuntimeException transientBrowserState) {
             // Evidence collection cannot replace the UI action's original outcome.
+        } finally {
+            requestStarts.forget(request);
         }
     }
 
@@ -289,13 +309,14 @@ public final class UiNetworkInspector implements AutoCloseable {
                 .anyMatch(value -> value.stripLeading().regionMatches(true, 0, "attachment", 0, 10));
     }
 
-    private static void notifySafely(Consumer<UiNetworkObservation> subscriber,
-                                     UiNetworkObservation observation) {
-        try { subscriber.accept(observation); }
-        catch (RuntimeException error) {
-            throw new IllegalStateException(
-                    "UI network observation subscriber failed for "
-                            + observation.requestSignature(), error);
+    private void notifySubscribers(UiNetworkObservation observation) {
+        var current = List.copyOf(subscribers);
+        for (int index = 0; index < current.size(); index++) {
+            try { current.get(index).accept(observation); }
+            catch (RuntimeException error) {
+                deliveryFailures.add(new UiNetworkDeliveryFailure(observation.sequence(), index,
+                        observation.requestSignature(), error));
+            }
         }
     }
 }

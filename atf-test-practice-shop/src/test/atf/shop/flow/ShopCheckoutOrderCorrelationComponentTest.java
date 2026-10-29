@@ -158,7 +158,7 @@ class ShopCheckoutOrderCorrelationComponentTest {
                     201, Map.of(), HttpHeaderProfiles.JSON_CONTENT, "{}",
                     "{\"id\":\"old-order\",\"invoice_number\":\"INV-12\",\"total\":24.02}",
                     "none", "none", "127.0.0.1", "CONTROLLED_PRIOR_CAPTURE", "", true,
-                    "", UiNetworkCapturePolicy.ResourceKind.FETCH));
+                    "", UiNetworkCapturePolicy.ResourceKind.FETCH).withRequestIdentity(inspector.requestStarted()));
             var expected = ShopOrderExpectation.fromUi("12.01", 2);
             assertTrue(journal.orderCreated(0L, "Thanks for your order! INV-12", expected).stream().allMatch(row -> row.passed()));
             var locators = new ShopLocators(); var actions = new PlaywrightActionSequence();

@@ -1,0 +1,19 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Owned catalog readiness fixture</title></head>
+<body><input id="search-query"><main id="products"></main><script>
+const config=new URLSearchParams(location.search),method=config.get('method')||'GET',mode=config.get('mode');
+const uri=mode==='unrelated'?'/other/products':'/products';
+fetch(uri,{method,body:method==='QUERY'||method==='POST'?'{"page":1,"sort":"name,asc"}':undefined})
+  .then(async response=>{
+    if(!response.ok)return;
+    const products=await response.json();
+    if(mode==='redirect'){location.href='/checkout';return;}
+    if(mode==='unexpected'&&!sessionStorage.getItem('catalogUnexpected')){
+      sessionStorage.setItem('catalogUnexpected','true');location.reload();return;
+    }
+    setTimeout(()=>{
+      for(const product of products){const card=document.createElement('a');
+        card.dataset.test='product-'+product.id;card.href='/product/'+product.id;
+        card.textContent=product.name;document.getElementById('products').append(card);}
+    },mode==='delayed'?120:mode==='budget'?2000:0);
+  });
+</script></body></html>

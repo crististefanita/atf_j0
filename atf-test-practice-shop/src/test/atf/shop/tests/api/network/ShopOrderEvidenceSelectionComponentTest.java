@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static atf.shop.tests.api.network.ShopApiJournalFixture.capture;
 import static atf.testkit.assertions.AuditedAssertions.assertEquals;
 import static atf.testkit.assertions.AuditedAssertions.assertFalse;
 import static atf.testkit.assertions.AuditedAssertions.assertTrue;
@@ -29,6 +28,16 @@ import static atf.testkit.assertions.AuditedAssertions.assertTrue;
 /** Current selection and projection through the public browser-observation subscription; no remote writes. */
 @ShopComponentTest
 class ShopOrderEvidenceSelectionComponentTest {
+    private final Map<ShopApiNetworkJournal, atf.ui.network.UiNetworkInspector> captures = new java.util.IdentityHashMap<>();
+    @org.junit.jupiter.api.AfterEach void closeCaptures() { captures.values().forEach(atf.ui.network.UiNetworkInspector::close); }
+    private void capture(ShopApiNetworkJournal journal, ShopApiNetworkJournal.Exchange exchange) {
+        var inspector = captures.computeIfAbsent(journal, key -> {
+            var value = new atf.ui.network.UiNetworkInspector(atf.ui.config.UiNetworkInspectionConfiguration.forHosts(
+                    List.of(java.net.URI.create(exchange.url()).getHost())));
+            key.attach(value); return value;
+        });
+        ShopApiJournalFixture.capture(journal, exchange, inspector);
+    }
     private static final ShopOrderExpectation EXPECTED = ShopOrderExpectation.fromUi("12.01", 2);
     private static final String CONFIRMATION = "Thanks for your order! Your invoice number is INV-12.";
     private static final String BODY = "{\"id\":\"order-current\",\"invoice_number\":\"INV-12\",\"total\":24.02}";

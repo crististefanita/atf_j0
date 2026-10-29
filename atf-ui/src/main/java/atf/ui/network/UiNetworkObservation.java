@@ -12,6 +12,8 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
+import atf.ui.network.identity.UiRequestIdentity;
 
 /** One redacted, bounded browser exchange; safe for a renderer-neutral adapter. */
 public record UiNetworkObservation(
@@ -32,7 +34,8 @@ public record UiNetworkObservation(
         String requestSignature,
         boolean responseBodyAvailable,
         String failureReason,
-        UiNetworkCapturePolicy.ResourceKind resourceKind) {
+        UiNetworkCapturePolicy.ResourceKind resourceKind,
+        Optional<UiRequestIdentity> requestIdentity) {
     private static final SensitiveDataRedactor REDACTOR = new SensitiveDataRedactor();
 
     public UiNetworkObservation {
@@ -51,6 +54,25 @@ public record UiNetworkObservation(
         requestSignature = normalize(requestSignature);
         failureReason = normalize(failureReason);
         resourceKind = resourceKind == null ? UiNetworkCapturePolicy.ResourceKind.OTHER : resourceKind;
+        requestIdentity = requestIdentity == null ? Optional.empty() : requestIdentity;
+    }
+
+    /** Legacy observations lack start evidence; receipt order never fabricates it. */
+    public UiNetworkObservation(long sequence, Instant capturedAt, String method, String url,
+                                String path, int status, Map<String, String> requestHeaders,
+                                Map<String, String> responseHeaders, String requestBody,
+                                String responseBody, String authMethod, String authSource,
+                                String service, String evidenceSource, String requestSignature,
+                                boolean responseBodyAvailable, String failureReason, UiNetworkCapturePolicy.ResourceKind resourceKind) {
+        this(sequence, capturedAt, method, url, path, status, requestHeaders, responseHeaders, requestBody,
+                responseBody, authMethod, authSource, service, evidenceSource, requestSignature,
+                responseBodyAvailable, failureReason, resourceKind, Optional.empty());
+    }
+
+    public UiNetworkObservation withRequestIdentity(UiRequestIdentity identity) {
+        return new UiNetworkObservation(sequence, capturedAt, method, url, path, status, requestHeaders,
+                responseHeaders, requestBody, responseBody, authMethod, authSource, service, evidenceSource,
+                requestSignature, responseBodyAvailable, failureReason, resourceKind, Optional.ofNullable(identity));
     }
 
     /** Compatibility constructor; browser observations always carry a known resource type. */
@@ -148,7 +170,7 @@ public record UiNetworkObservation(
         return new UiNetworkObservation(sequence, capturedAt, method, url, path, status,
                 requestHeaders, responseHeaders, requestBody, responseBody, authMethod,
                 authSource, consumerService, evidenceSource, requestSignature,
-                responseBodyAvailable, failureReason, resourceKind);
+                responseBodyAvailable, failureReason, resourceKind, requestIdentity);
     }
 
     public boolean requestFailed() {
@@ -189,7 +211,7 @@ public record UiNetworkObservation(
                 path(safeUrl), status, redact(requestHeaders), redact(responseHeaders),
                 safeRequestBody, safeResponseBody, safeAuthMethod, safeAuthSource,
                 safeService, safeEvidenceSource, signature(method, safeUrl, safeRequestBody),
-                responseBodyAvailable, safeFailureReason, resourceKind);
+                responseBodyAvailable, safeFailureReason, resourceKind, requestIdentity);
     }
 
     private static String[] authentication(Map<String, String> headers, String url) {

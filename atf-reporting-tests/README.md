@@ -55,6 +55,11 @@ disclosure-uri și dovezile browser este
 Acest README deține matricea probelor și responsabilitățile suitei; nu
 redefinește regulile vizuale în feedback sau în fixture-uri.
 
+`ReportUiEnvironmentTest` protejează vocabularul UI comun, politicile rezolvate
+și originile fără credentiale. `ReportGherkinSequenceTest` protejează ancorele,
+continuările și izolarea scenariilor; wiring-ul AutoEx/Shop rămâne probat în
+modulele consumerilor.
+
 Helper-ele reutilizate de probele HTML UI stau în
 `atf.reporting.ui.support`, nu în pachetul testelor de renderer. De exemplu,
 `ExtentReportUiEvidenceTestSupport` centralizează fixture-ul și verificările

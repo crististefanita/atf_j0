@@ -6,6 +6,7 @@ import com.microsoft.playwright.options.LoadState;
 import com.microsoft.playwright.options.WaitForSelectorState;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import java.net.URI;
 import java.time.Duration;
@@ -33,6 +34,21 @@ final class PlaywrightBrowserActions {
             page.waitForLoadState(LoadState.DOMCONTENTLOADED);
             return "document loaded";
         });
+    }
+
+    /** Consumer readiness and final native visibility share one nonrenewable action deadline. */
+    void awaitVisible(AtfLocator element, Consumer<PlaywrightActionSequence.ObservationBudget> readiness) {
+        Objects.requireNonNull(element, "element");
+        Objects.requireNonNull(readiness, "readiness");
+        recorder.run("Await visible", element.selector(), "locator is visible within the original deadline",
+                PlaywrightLocatorActions.isSensitiveTarget(element), () -> {
+                    var budget = new PlaywrightActionSequence.ObservationBudget(stateTimeout);
+                    readiness.accept(budget);
+                    element.locator().waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE)
+                            .setTimeout(budget.remainingMilliseconds()));
+                    budget.remainingMilliseconds();
+                    return "locator is visible; readiness and native observation share one deadline";
+                });
     }
 
     Page clickAndWaitForPopup(Page page, Locator locator, String locatorTarget, String expected) {

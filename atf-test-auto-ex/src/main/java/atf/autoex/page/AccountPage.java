@@ -69,6 +69,10 @@ public final class AccountPage extends AutoExPage {
         return text(AutoExSelectors.LOGGED_IN_NAME, "signed-in customer identity is read");
     }
 
+    public String loggedInNameIfPresent() {
+        return visible(AutoExSelectors.LOGGED_IN_NAME) ? loggedInName() : "";
+    }
+
     /** Arm before a real UI or API create attempt; both use the same identity-checked UI cleanup. */
     public void trackDisposableAccountCreation(AutoExTestAccount account) {
         run.accountLifecycle().creationAttempted(account);

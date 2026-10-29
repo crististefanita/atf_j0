@@ -25,6 +25,8 @@ import atf.shop.support.ShopJsonEvidence;
 import atf.shop.support.ShopLoginBodyRecovery;
 import atf.ui.network.UiNetworkInspector;
 import atf.ui.network.UiNetworkObservation;
+import atf.ui.network.identity.UiRequestIdentity;
+import atf.shop.support.api.correlation.ShopOrderRequestWindow;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.TimeoutError;
 
@@ -55,6 +57,7 @@ public final class ShopApiNetworkJournal {
     private final ShopApiTrafficCapture trafficCapture = new ShopApiTrafficCapture();
     private final List<Exchange> exchanges = new ArrayList<>();
     private final AtomicLong sequence = new AtomicLong();
+    private final ShopOrderRequestWindow orderWindow = new ShopOrderRequestWindow();
     private final EnumMap<ShopApiCheckpoint, List<ReportExecutionEvidence>> evidenceByCheckpoint =
             new EnumMap<>(ShopApiCheckpoint.class);
     private String productId;
@@ -80,7 +83,13 @@ public final class ShopApiNetworkJournal {
     public void attach(Page page) {
         Objects.requireNonNull(page, "page");
         if (!hasEnabledCheckpoint()) return;
-        page.onResponse(response -> trafficCapture.capture(response).ifPresent(this::recordCapturedExchange));
+        orderWindow.attach(page);
+        page.onResponse(response -> {
+            var request = response.request();
+            try { trafficCapture.capture(response).ifPresent(exchange -> recordCapturedExchange(exchange, orderWindow.identity(request))); }
+            finally { orderWindow.forget(request); }
+        });
+        page.onRequestFailed(orderWindow::forget);
     }
 
     /**
@@ -91,13 +100,16 @@ public final class ShopApiNetworkJournal {
     public void attach(UiNetworkInspector inspector) {
         Objects.requireNonNull(inspector, "inspector");
         if (!hasEnabledCheckpoint()) return;
+        orderWindow.attach(inspector);
         inspector.subscribe(this::recordCapturedObservation);
     }
 
     /** Records a sanitized exchange supplied by one of the public capture subscriptions. */
-    private void recordCapturedExchange(Exchange exchange) {
+    private void recordCapturedExchange(Exchange exchange, UiRequestIdentity start) {
         Objects.requireNonNull(exchange, "exchange");
-        exchanges.add(exchange.withTrace(sequence.incrementAndGet(), Instant.now(), phase(exchange.path())));
+        var captured = exchange.withTrace(sequence.incrementAndGet(), Instant.now(), phase(exchange.path()));
+        exchanges.add(captured);
+        orderWindow.record(captured, start);
     }
 
     private void recordCapturedObservation(UiNetworkObservation observation) {
@@ -107,7 +119,7 @@ public final class ShopApiNetworkJournal {
                         : ApiBodyEvidence.unavailable("Browser observation", observation.responseBody()), observation.requestHeaders(),
                 observation.responseHeaders()).withObservedAuthMethod(observation.authMethod());
         recordCapturedExchange(observation.requestFailed()
-                ? exchange.withFailureReason(observation.failureReason()) : exchange);
+                ? exchange.withFailureReason(observation.failureReason()) : exchange, observation.requestIdentity().orElse(null));
     }
 
     /** API precondition for the product-page purchase action. */
@@ -135,8 +147,11 @@ public final class ShopApiNetworkJournal {
 
     /** Sequence fence used to associate only the browser submission that followed the registration form. */
     public long sequenceMarker() {
+        orderWindow.markLegacy(sequence.get());
         return sequence.get();
     }
+
+    public UiRequestIdentity requestMarker() { return orderWindow.marker(); }
 
     /** Validates and owns the observed form POST; the route is discovered from this browser run, not guessed. */
     public List<AtfAssertion> registrationConfirmed(long afterSequence, URI apiEndpoint) {
@@ -285,8 +300,13 @@ public final class ShopApiNetworkJournal {
      */
     public List<AtfAssertion> orderCreated(long afterSequence, String uiConfirmation,
                                           ShopOrderExpectation expectedOrder) {
+        return orderCreated(orderWindow.legacy(afterSequence), uiConfirmation, expectedOrder);
+    }
+
+    public List<AtfAssertion> orderCreated(UiRequestIdentity marker, String uiConfirmation,
+                                          ShopOrderExpectation expectedOrder) {
         if (!enabled(ShopApiCheckpoint.ORDER)) return List.of();
-        Exchange order = orderAfter(afterSequence);
+        Exchange order = orderAfter(marker);
         storeObserved(ShopApiCheckpoint.ORDER, order);
         return ShopApiAssertions.order(order, uiConfirmation, expectedOrder);
     }
@@ -294,18 +314,23 @@ public final class ShopApiNetworkJournal {
     /** Passive settlement also handles an old success message that is already visible before Confirm. */
     public List<AtfAssertion> awaitOrderCreated(Page page, long afterSequence, String uiConfirmation,
                                                ShopOrderExpectation expectedOrder) {
+        return awaitOrderCreated(page, orderWindow.legacy(afterSequence), uiConfirmation, expectedOrder);
+    }
+
+    public List<AtfAssertion> awaitOrderCreated(Page page, UiRequestIdentity marker, String uiConfirmation,
+                                               ShopOrderExpectation expectedOrder) {
         if (!enabled(ShopApiCheckpoint.ORDER)) return List.of();
         try {
-            Objects.requireNonNull(page, "page").waitForCondition(() -> orderAfter(afterSequence) != null);
+            Objects.requireNonNull(page, "page").waitForCondition(() -> orderAfter(marker) != null);
         } catch (TimeoutError missingCapture) {
             // The normal projection below clears old evidence and reports missing current observations.
         }
-        return orderCreated(afterSequence, uiConfirmation, expectedOrder);
+        return orderCreated(marker, uiConfirmation, expectedOrder);
     }
 
-    private Exchange orderAfter(long afterSequence) {
+    private Exchange orderAfter(UiRequestIdentity marker) {
         return ShopApiExchangeSelector.latestOptional(exchanges, ShopApiOperation.ORDER_CREATE,
-                exchange -> exchange.sequence() > afterSequence);
+                exchange -> orderWindow.follows(exchange, marker));
     }
 
     public List<Exchange> exchanges() { return List.copyOf(exchanges); }

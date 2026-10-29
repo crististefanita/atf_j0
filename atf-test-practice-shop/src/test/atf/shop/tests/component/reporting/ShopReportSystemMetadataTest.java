@@ -3,7 +3,7 @@ package atf.shop.tests.component.reporting;
 import atf.reporting.configuration.ReportingSettings;
 import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.config.ShopConfigurationLoader;
-import atf.shop.tests.support.reporting.ShopReportSystemMetadata;
+import atf.shop.reporting.environment.ShopReportSystemMetadata;
 import atf.shop.config.ShopReportConfiguration;
 import atf.reporting.evidence.ReportScreenshotPolicy;
 import atf.reporting.configuration.ReportEnvironmentField;

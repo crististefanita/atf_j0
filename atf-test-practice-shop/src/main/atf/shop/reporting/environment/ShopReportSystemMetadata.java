@@ -1,4 +1,4 @@
-package atf.shop.tests.support.reporting;
+package atf.shop.reporting.environment;
 
 import atf.shop.config.ShopConfiguration;
 import atf.shop.reporting.ShopScreenshotPolicy;
@@ -6,13 +6,11 @@ import atf.core.config.ApiTransportMode;
 import atf.reporting.configuration.ReportingSettings;
 import atf.reporting.configuration.ReportEnvironmentField;
 import atf.reporting.configuration.ReportEnvironmentSnapshot;
-import atf.reporting.evidence.ReportScreenshotPolicy;
-import atf.reporting.evidence.profile.ReportEvidenceFlowMode;
+import atf.reporting.configuration.ui.ReportUiEnvironment;
 import atf.reporting.evidence.profile.ReportEvidenceProfile;
 
-import java.net.URI;
-import java.time.Duration;
 import java.util.Map;
+import java.util.Locale;
 
 /** Builds the safe, semantic configuration snapshot shown in Overview/System. */
 public final class ShopReportSystemMetadata {
@@ -65,41 +63,22 @@ public final class ShopReportSystemMetadata {
     private static ReportEnvironmentSnapshot.Builder snapshotValues(
             ShopConfiguration configuration,
             ReportEvidenceProfile evidenceProfile, String environment) {
-        var snapshot = ReportEnvironmentSnapshot.builder()
-                .put(ReportEnvironmentField.ENVIRONMENT,
-                        environment)
-                .put(ReportEnvironmentField.UI_HOST, origin(configuration.baseUrl()))
-                .put(ReportEnvironmentField.CLIENT, "Playwright browser")
-                .put(ReportEnvironmentField.BROWSER, browser(configuration))
-                .put(ReportEnvironmentField.PROFILE,
-                        profile(configuration))
-                .put(ReportEnvironmentField.UI_JOURNEY_PRECONDITION,
-                        journeyPrecondition(configuration))
-                .put(ReportEnvironmentField.RETRY_POLICY,
-                        configuration.uiRetry().summary())
-                .put(ReportEnvironmentField.SCREENSHOT_POLICY,
-                        screenshotPolicy(evidenceProfile.screenshotPolicy()))
-                .put(ReportEnvironmentField.UI_EVIDENCE_LAYOUT,
-                        evidenceLayout(evidenceProfile.flowMode()))
-                .put(ReportEnvironmentField.UI_ACTION_DETAILS,
-                        evidenceProfile.actionDetailsMode().configValue())
-                .put(ReportEnvironmentField.UI_TIMEOUT,
-                        humanDuration(configuration.browser().timeout()))
-                .put(ReportEnvironmentField.NAVIGATION_TIMEOUT,
-                        humanDuration(configuration.browser().navigationTimeout()))
-                .put(ReportEnvironmentField.SOURCE_BUILD,
-                        configuration.validationProfile().apiEvidenceRequired()
+        var browser = configuration.browser();
+        var snapshot = new ReportUiEnvironment(environment, configuration.baseUrl(),
+                new ReportUiEnvironment.Browser(browser.browser(), browser.headless(), browser.viewportWidth(), browser.viewportHeight(),
+                        browser.zoomPercent(), browser.timeout(), browser.navigationTimeout()),
+                profile(configuration), configuration.uiRetry().summary(), evidenceProfile,
+                configuration.validationProfile().apiEvidenceRequired()
                                 && configuration.api().mode() == ApiTransportMode.LIVE
                                 ? "Live HTTP evidence when observed"
                                 : configuration.validationProfile().apiEvidenceRequired()
                                 ? "Fixture transport boundary"
-                                : "External live website")
-                .put(ReportEnvironmentField.REPORTING,
-                        "Extent offline HTML · UI/API output roles separated");
+                                : "External live website").describe()
+                .put(ReportEnvironmentField.UI_JOURNEY_PRECONDITION, journeyPrecondition(configuration));
 
         if (configuration.validationProfile().apiEvidenceRequired()) {
             snapshot
-                    .put(ReportEnvironmentField.API_ENDPOINT, origin(configuration.api().endpoint()))
+                    .put(ReportEnvironmentField.API_ENDPOINT, ReportUiEnvironment.origin(configuration.api().endpoint()))
                     .put(ReportEnvironmentField.TRANSPORT_MODE,
                             configuration.api().mode() == ApiTransportMode.LIVE ? "LIVE HTTP" : "FIXTURE")
                     .put(ReportEnvironmentField.PRECONDITION, precondition(configuration))
@@ -111,10 +90,10 @@ public final class ShopReportSystemMetadata {
                                     + configuration.api().evidenceBinding().displayValue()
                                     + " · JSON in checkpoint evidence")
                     .put(ReportEnvironmentField.BODY_PREVIEW,
-                            String.format("%,d characters · full JSON remains in checkpoint evidence",
+                            String.format(Locale.ROOT, "%,d characters · full JSON remains in checkpoint evidence",
                                     configuration.reporting().systemBodyPreviewCharacters()))
                     .put(ReportEnvironmentField.API_TIMEOUT,
-                            humanDuration(configuration.api().timeout()));
+                            ReportUiEnvironment.duration(configuration.api().timeout()));
         }
         return snapshot;
     }
@@ -122,21 +101,6 @@ public final class ShopReportSystemMetadata {
     private static ReportEvidenceProfile configuredEvidenceProfile(
             ShopConfiguration configuration) {
         return ShopScreenshotPolicy.profile(configuration.reporting());
-    }
-
-    private static String evidenceLayout(ReportEvidenceFlowMode flowMode) {
-        return flowMode == ReportEvidenceFlowMode.UNIFIED_FLOW
-                ? "One consolidated flow" : "Checkpoint-by-checkpoint";
-    }
-
-    private static String screenshotPolicy(ReportScreenshotPolicy policy) {
-        return switch (policy) {
-            case EACH_CHECKPOINT -> "Each checkpoint";
-            case FINAL_ONLY -> "Final screenshot only";
-            case FAILURE_ONLY -> "Failures only";
-            case FINAL_AND_FAILURE -> "Final screenshot + failures";
-            case NONE -> "Disabled";
-        };
     }
 
     /**
@@ -147,13 +111,6 @@ public final class ShopReportSystemMetadata {
     public static Map<String, String> from(ShopConfiguration configuration,
                                            ReportingSettings reportingSettings) {
         return snapshot(configuration, reportingSettings).systemDisplayValues();
-    }
-
-    private static String browser(ShopConfiguration configuration) {
-        var browser = configuration.browser();
-        return browser.browser() + " · " + (browser.headless() ? "headless" : "headed")
-                + " · viewport " + browser.viewportWidth() + " × " + browser.viewportHeight()
-                + " · zoom " + browser.zoomPercent() + "%";
     }
 
     private static String profile(ShopConfiguration configuration) {
@@ -172,15 +129,4 @@ public final class ShopReportSystemMetadata {
                 : "guest checkout configuration ready";
     }
 
-    private static String humanDuration(Duration duration) {
-        long millis = duration.toMillis();
-        if (millis % 1_000 == 0) return (millis / 1_000) + "s";
-        return millis + "ms";
-    }
-
-    private static String origin(URI uri) {
-        if (uri == null || uri.getScheme() == null || uri.getHost() == null) return "configured";
-        String authority = uri.getRawAuthority();
-        return uri.getScheme() + "://" + (authority == null ? uri.getHost() : authority);
-    }
 }

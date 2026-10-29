@@ -225,8 +225,19 @@ flowchart LR
   `AccountPage` și cleanup-ul văd aceeași identitate și aceeași stare de ștergere.
   O creare incertă rămâne urmărită; altă identitate sau un cont împrumutat nu
   primește drept de ștergere. O ștergere începută fără confirmare nu se repetă.
-- Pilotul privește review-ul coșului. Restul separării business/UI este urmărit
-  în feedback; mutarea stării nu pretinde migrarea întregului journey.
+- După înregistrare, `AutoExCheckoutFlow` recitește identitatea și coșul curent
+  înainte de checkout. Expected-ul identității este `signupName()` al contului
+  creat de acest test; expected-ul coșului vine din configurația produsului.
+  `AutoExCheckoutAccess` publică cinci comparații în `CHECKOUT_PRECONDITIONS`:
+  client, produs, preț, cantitate și total. Un cont absent/străin, o diferență
+  sau publicarea eșuată blochează unica activare; fără refacerea contului/coșului.
+- Gate-ul business nu importă browser, configurație sau Reporting. Adaptorul
+  `AutoExCheckoutUiFlow` observă paginile, iar mapperul păstrează comparațiile
+  complete înaintea preview-ului de 240. Eșecul business rămâne cauza primară
+  chiar dacă publicarea eșuează; cauza publicării devine suppressed.
+- `AutoExCheckoutAccessComponentTest` și `AutoExCheckoutUiGateComponentTest`
+  probează modelul și etapa publică reală de review, inclusiv refuzurile;
+  vocabularul purchase păstrează cele 14 checkpoint-uri distincte.
 Etichetele scurte păstrează următorul sens:
 
 | În schemă | Sens complet |
@@ -666,6 +677,63 @@ Fiecare metodă primește o sesiune de browser izolată prin aceeași extensie A
   Gherkin și portul `AutoExTraceStep`; purchase rămâne separat, iar Reporting
   acceptă ambele vocabulare.
 
+## Overview și narațiune E2E
+
+AutoEx și Shop publică același vocabular operațional în Overview/System.
+`AutoExReportSystemMetadata` proiectează configurația efectivă în main, iar
+`ReportUiEnvironment` din Reporting păstrează formatarea comună.
+
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
+flowchart LR
+    Settings["YAML + adnotări"] -->|rezolvă| Scenario["Snapshot scenariu"]
+    Scenario -->|agregă| Common["Valori comune / Mixed"]
+    Common -->|afișează| System["Overview / System"]
+```
+
+<details>
+<summary><strong>Legendă — configurație efectivă, fără primul scenariu ca implicit</strong></summary>
+
+- Kit rezolvă canalul și declarația de evidence; adaptorul AutoEx o compune cu
+  YAML-ul înaintea resurselor. Snapshot-ul primește environment-ul explicit.
+- `Client` este `Playwright browser`; `Browser` include engine, headless/headed,
+  viewport și zoom în același format ca Shop.
+- Sunt publicate host-ul, profilul, timpii UI/navigare, retry-ul și politicile
+  efective pentru captură, layout și detalii de acțiune.
+- UI_API adaugă endpoint-ul, transportul, precondiția, inspectorul, captura body
+  și limita de observare. Browserul gestionează request-ul HTTP; timpul de
+  așteptare al observației nu este prezentat drept timeout al request-ului.
+- UI-only omite câmpurile API. Un raport comun primește snapshot-ul fiecărui
+  scenariu prin `includeScenarioEnvironment`; diferențele și câmpurile absente
+  la un frate devin `Mixed — varies by scenario`.
+- Originile omit user info, path, query și fragment. System păstrează
+  configurație operațională; datele de cont, card, flow și body rămân în afara lui.
+
+</details>
+
+Propozițiile folosesc ancore business și continuări `AND`, ca în Shop.
+`ReportGherkinSequence` este deținut de un singur `AutoExE2eRun`; aceeași formă
+efectivă ajunge la checkpoint și la rândul său din Scenario correlation.
+
+| Grupul purchase | Formă efectivă | Sens |
+|---|---|---|
+| Deschiderea magazinului și precondiția API opțională | `GIVEN`, apoi `AND` | starea inițială |
+| Căutare, detalii, coș, cont, checkout și payment | `WHEN`, apoi `AND` | aceeași acțiune business cu verificări intermediare |
+| Confirmarea comenzii | `THEN` | rezultatul achiziției |
+| Factură, ștergerea contului și ecran terminal | `AND` | continuarea rezultatului și cleanup-ul declarat |
+
+Cart și account își declară propriile ancore; o secvență nouă începe pentru
+fiecare scenariu. `AND`/`BUT` explicite rămân continuări, iar un eșec timpuriu
+nu primește un `THEN` de succes inventat.
+
+- Secvențierea schimbă doar cuvântul de legătură, păstrând titlul, ordinea,
+  gate-ul, aserțiunile, capturile și timpii execuției.
+- Precondițiile API-only își păstrează exchange-ul propriu; baseline-ul cauzal
+  le exclude din traficul UI ulterior, fără dublarea numărului de cereri.
+- `AutoExSystemMetadataComponentTest` verifică politicile rezolvate;
+  `AutoExE2eOverviewNarrativeComponentTest` verifică wiring-ul real JUnit,
+  raportul comun UI/UI_API și propozițiile efective pe HTTP loopback.
+
 ## Rute și locatori ai site-ului
 
 ### Vocabular și adrese
@@ -1009,7 +1077,7 @@ Diagrama comună pentru captură, baseline și publicare este în
 - `AutoExCatalogApiPrecondition` execută și publică o singură precondiție
   `GET /api/productsList` înainte să marcheze baseline-ul traficului browserului.
 - Inspectorul agregă numai schimburile observate după baseline. Precondiția
-  rămâne în checkpoint-ul ei `GIVEN`; nu este numărată din nou ca trafic UI/API
+  rămâne în checkpoint-ul ei de precondiție; nu este numărată din nou ca trafic UI/API
   cauzal.
 - Politica implicită selectează XHR/FETCH first-party înainte de buget și body
   capture. `includingOtherRequests()` adaugă cererile first-party care nu sunt
@@ -1382,9 +1450,9 @@ normal, cu verificarea de unicitate existentă. Nu condiționează sincronizarea
 de textul butonului și nu repetă mutația. Absența permanentă ori două controale
 opresc tranziția și rămân în secvența raportată.
 
-- Așteptarea nu verifică din nou identitatea/coșul după înregistrare; restanța
-  business și cazurile negative sunt la
-  [feedback-ul consumerilor](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#ui-locator-readiness-01--identitate-și-coș-înaintea-checkout-ului).
+- Identitatea/coșul după înregistrare sunt recitite de gate-ul business înaintea
+  acestei acțiuni, conform [contractului explicit](#gate-ul-coșului-și-ownerul-contului).
+  Sincronizarea locatorului și comparațiile business au owneri și probe distincte.
 
 `AutoExCheckoutReadinessComponentTest` probează un control inserat după
 navigare, unul absent și unul ambiguu, prin browser și recorder reale. Oracolele

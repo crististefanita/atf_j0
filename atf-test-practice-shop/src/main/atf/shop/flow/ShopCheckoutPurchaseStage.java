@@ -165,7 +165,7 @@ final class ShopCheckoutPurchaseStage implements ShopCheckoutFlow.Port {
     public ShopCheckoutFlow.Observation<String> confirmOrder() {
         var page = context.page();
         var confirmationPage = new ShopConfirmationPage(page, context.locators(), context.actions());
-        long sequenceFence = context.apiNetwork().sequenceMarker();
+        var sequenceFence = context.apiNetwork().requestMarker();
         String confirmation;
         try {
             confirmation = confirmationPage.confirmOrder();

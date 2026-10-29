@@ -3,6 +3,8 @@ package atf.autoex.flow.purchase;
 import atf.autoex.business.purchase.AutoExPurchaseFlow;
 import atf.autoex.business.cart.AutoExCartFlow;
 import atf.autoex.flow.cart.AutoExCartUiFlow;
+import atf.autoex.flow.cart.AutoExCheckoutUiFlow;
+import atf.autoex.business.checkout.AutoExCheckoutFlow;
 import atf.autoex.page.AccountPage;
 import atf.autoex.page.CartPage;
 import atf.autoex.page.CheckoutPage;
@@ -73,8 +75,11 @@ public final class AutoExPurchaseUiFlow implements AutoExPurchaseFlow.Port {
     @Override public void reviewCheckout() {
         cart = new CartPage(run);
         cart.openFromHeader();
-        cart.proceedToCheckout();
         accountPage = new AccountPage(run);
+        AutoExCheckoutFlow.enter(new AutoExCheckoutUiFlow(cart, accountPage, inputs.product()),
+                Objects.requireNonNull(account, "Owned registration must precede checkout").signupName(),
+                AutoExCheckoutAssertions.expectedLine(inputs.product(), inputs.product().expectedTotal()),
+                result -> run.checkpoint(AutoExPurchaseTraceStep.CHECKOUT_PRECONDITIONS, AutoExCheckoutAssertions.access(result)));
         String name = inputs.registration().displayName();
         String delivery = accountPage.deliveryAddress(name);
         String billing = accountPage.billingAddress(name);

@@ -304,11 +304,14 @@ destinația înaintea fiecărui fișier. Lock-ul extern per rădăcină coordone
 promotorii cooperanți; sursele staging rămân păstrate, fără ștergeri implicite.
 
 - Atomicitatea privește înlocuirea unui fișier, nu întregul lot.
-- Eligibilitatea surselor staging se verifică pe rând; o sursă lipsă ulterior
-  poate lăsa promovări anterioare efectuate. Prevalidarea completă are
-  [criteriu deschis](../docs/feedback/ATF_Core_Promotion_Feedback.md#core-promotion-preflight-26--surse-eligibile-înaintea-primei-scrieri).
-- Până la închiderea criteriului, operatorul verifică toate sursele înainte de
-  apel și reconciliază starea după orice eroare; nu reia orbește lotul parțial.
+- Guard-ul construiește planul complet înaintea primei scrieri: fiecare sursă
+  aprobată trebuie să fie fișier regulat, eligibil și deschizabil pentru citire.
+  O sursă ulterioară absentă sau director refuză întregul plan fără modificări live.
+- Execuția revalidează baseline-ul per destinație. Un eșec I/O sau un drift
+  apărut după prevalidare poate lăsa un lot parțial; operatorul recitește starea
+  efectivă înainte de reluare. Preflight-ul nu promite o tranzacție pentru lot.
+- `AtfPromotionPreflightTest` probează refuzul înaintea oricărei scrieri,
+  crearea concurentă și promovarea exclusiv a fișierelor aprobate.
 - Manifestul JSON portabil este audit al procesului, fără evidence în HTML
   sau sincronizare ca output generat.
 

@@ -34,7 +34,7 @@ final class ShopCatalogPurchaseStage implements ShopCatalogPurchaseFlow.Port {
         var locators = context.locators();
         var selection = context.selection();
         home = new ShopHomePage(page, locators, context.actions());
-        home.open(selection.homeUrl());
+        home.open(selection.homeUrl(), context.catalogEndpoint());
         context.assertVisible(locators.homeNavigation(page), locators.homeBrand(page),
                 locators.homeBanner(page));
         return context.checkpoint(ShopPurchaseTraceStep.CATALOG_HOME,

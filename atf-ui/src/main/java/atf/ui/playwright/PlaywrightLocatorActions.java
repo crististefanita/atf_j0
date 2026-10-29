@@ -221,7 +221,7 @@ final class PlaywrightLocatorActions {
         return value == null || value.isBlank() ? "<empty>" : value;
     }
 
-    private static boolean isSensitiveTarget(AtfLocator element) {
+    static boolean isSensitiveTarget(AtfLocator element) {
         return element.sensitiveData() || SENSITIVE_TARGET.matcher(element.selector()).find();
     }
 

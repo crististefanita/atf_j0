@@ -97,6 +97,7 @@ src/main/atf/shop
 ├── flow/         journey-ul semantic și stage-urile lui
 ├── evidence/     capture provider cu mascarea câmpurilor sensibile Shop
 ├── reporting/    politica de screenshot din configurația Shop
+├── runtime/      achiziția browserului și a sesiunii de raport, cu intrări explicite
 └── support/      checkpoint, validation, API report mapping și network journal Shop
 
 src/test/atf/shop/tests
@@ -118,16 +119,17 @@ src/test/atf/shop/tests
 
 `src/main` păstrează modelul de aplicație, locatoarele, paginile, flow-urile și
 contractele Shop care pot fi reutilizate de consumer, inclusiv factory-urile
-pure pentru captură și politica de screenshot. În layout-ul actual, contextul
-browser/report este încă în test;
-[extracția runtime-ului](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-runtime-boundary-03--responsabilitățile-e2e-rămase-în-shop)
-este o restanță distinctă. Store-ul, extensiile și rezolvarea JUnit rămân în test,
+pure pentru captură și politica de screenshot. `runtime.ShopBrowserRuntime`,
+`ShopRunReportFactory` și `reporting.environment.ShopReportSystemMetadata` dețin achiziția și proiecția
+configurației în main, cu sink și environment explicite.
+Store-ul, extensiile și rezolvarea JUnit rămân în test,
 iar `atf-test-kit` păstrează scope de test.
 
-`openReport(...)` primește deja explicit sink-ul, iar `openBrowser(...)` este
-separat ca metodă. Achiziția browserului, journal-ul, capturile și scenariul
-rămân însă în `ShopE2eContext`; factory-ul browserului citește încă
-`AtfConsoleTestContext`. Existența celor două metode nu încheie extracția runtime-ului.
+`ShopE2eContext` rezolvă `AtfConsoleTestContext` numai la boundary-ul de test și
+deleagă celor două factory-uri main. Resursele returnate aparțin harness-ului;
+eșecul achiziției închide browserul deja deschis și păstrează cauza primară.
+Contextul per scenariu compune cleanup-ul Kit și protocolul de publicare;
+nu exportă JUnit/Kit în artifactul runtime.
 Suita consumatorului rămâne concentrată pe `e2e`, `component` și `api`; `support`
 este infrastructură de test, nu un al treilea tip de test.
 
@@ -152,16 +154,17 @@ captura, profilele, maparea API și regulile de business. Primitivele neutre nu
 se dublează aici: escaping-ul selectorilor este în `atf-ui`, iar diagnosticul
 generic pentru body API indisponibil este în `atf-core`.
 
-`ShopReportSystemMetadata` rămâne în
-`src/test/atf/shop/tests/support/reporting` și proiectează
-configurația rulării în allowlist-ul System. În runtime,
-`atf.shop.reporting.ShopScreenshotPolicy` transformă politica YAML
-în `ReportEvidenceProfile`, iar `evidence.ShopBrowserCaptureProvider` aplică
-mascarea Shop înaintea capturii generice UI. Niciunul nu importă JUnit/Kit.
-Contextul folosește direct
-`ReportModelAdapters.uiActions(...)`; nu mai există un bridge local care doar
-retransmite apelul. Auditul comun al ecranului aparține `UiScreenAudit` din
-`atf-ui`, iar închiderea resursei aparține `CloseOnceResource` din Kit.
+`reporting.environment.ShopReportSystemMetadata` din main proiectează
+configurația rulării în allowlist-ul System. `ReportUiEnvironment` din Reporting
+formatează câmpurile comune AutoEx/Shop, iar consumerul adaugă politica sa API.
+
+- `atf.shop.reporting.ShopScreenshotPolicy` transformă politica YAML în
+  `ReportEvidenceProfile`; `evidence.ShopBrowserCaptureProvider` aplică mascarea
+  Shop înaintea capturii generice UI. Aceste adaptoare runtime nu importă JUnit/Kit.
+- Contextul folosește direct `ReportModelAdapters.uiActions(...)`, fără un
+  bridge local care doar retransmite apelul.
+- Auditul comun al ecranului aparține `UiScreenAudit` din `atf-ui`, iar
+  închiderea resursei aparține `CloseOnceResource` din Kit.
 
 Compoziția test-scoped transmite câmpurile evenimentului Reporting către
 `AtfConsoleEvent.fromExternalEnums(...)` din Core, apoi publică în sink-ul
@@ -213,6 +216,63 @@ erorilor și granițele stage-urilor fără browser.
 - `POST /payment/check` verifică metoda demo. Confirmarea explicită plasează comanda.
 - Checkpoint-ul `THEN` leagă mesajul de confirmare de numărul `INV-`; profilul `UI_API`
   corelează răspunsul API cu numărul afișat.
+
+### Încărcarea inițială a catalogului
+
+Journey-ul proiectează către `CatalogInputs` numai endpointul colecției din
+configurația API. `ShopHomePage.open(homeUrl, catalogEndpoint)` leagă explicit
+această citire de `ShopCatalogReadiness`; overload-ul de compatibilitate cu un
+singur URI păstrează așteptarea nativă existentă.
+
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
+flowchart LR
+    Read["Citire catalog"] -->|tranzitoriu confirmat| Refresh["Un GET home"]
+    Read -->|2xx| Dom["Verificare DOM"]
+    Refresh -->|același deadline| Dom
+    Read -->|refuz sau epuizare| Fail["FAIL"]
+    Dom -->|produs vizibil| Next["Gate-uri catalog"]
+    Dom -->|absent la termen| Fail
+```
+
+<details>
+<summary><strong>Legendă — citire repetată bounded și dovadă originală</strong></summary>
+
+- `Await visible` păstrează bugetul configurat de 20 s pentru grilă: pauza
+  `Retry-After`, GET-ul documentului și observația finală consumă același rest.
+  Navigarea inițială și așteptarea search-ului își păstrează contractele existente.
+- Numai răspunsul cererii curente, din frame-ul principal și de la endpointul
+  exact `/products`, poate autoriza o reîncărcare. Sunt eligibile 429/502/503/504
+  și resetarea/închiderea conexiunii, schimbarea rețelei ori timeout-ul de transport
+  confirmate de Chromium. Un răspuns absent sau o eroare necunoscută nu autorizează retry.
+- Reîncărcarea este un GET al paginii home. Aplicația reface citirea sa nativă
+  `GET`/`QUERY`, cu metoda și corpul originale; nu se trimite un GET API substitut.
+  Nu se reiau search-ul business, clickul produsului, coșul, checkout-ul sau comanda.
+- HTTP 200 nu înlocuiește produsul vizibil. Un refuz permanent, a doua eroare,
+  `Retry-After` peste buget sau alt document opresc încărcarea. Un reload extern
+  la același URL este tot alt document; scope-ul nu poate primi un nou deadline.
+- `Catalog response`, `Retry catalog home GET` și diagnosticul terminal sunt
+  observații INFO. Verdictul final aparține verificării DOM; cauza și FAIL-ul
+  original sunt păstrate. Diagnosticul include URL, document, număr de produse,
+  cereri observate și ultimul răspuns, fără corpul ori headerele de autentificare.
+  Fără răspuns HTTP, statusul este `unavailable`, separat de eroarea de transport.
+- Listener-ele se închid înainte de gate-urile de business. Acest protocol
+  explicit al încărcării home este separat de controllerul BE pasiv de mai jos;
+  nu îi schimbă opt-in-ul și nu activează retry global ori un client API în UI-only.
+
+`ShopCatalogReadinessComponentTest` verifică GET și QUERY pe HTTP loopback real:
+succes întârziat, 503→200, conexiune resetată, epuizare, 200 fără produse,
+403, `Retry-After`, buget comun, document înlocuit și rute/metode neeligibile.
+Comparațiile folosesc pasul standard `Component assertions`, colapsat implicit,
+cu limita 240. Fixture-ul artificial și serverul deținute de probă rămân în test.
+
+Verificarea live compară aceeași clasă individual și prin `ShopE2eSuite`
+filtrată, cu un singur HTML pe lansare. Un PASS eșantionat nu demonstrează
+disponibilitate continuă și nu atribuie retrospectiv incidentul vechi unui 503;
+acel artifact nu conținea clasificarea necesară. Noile diagnostice permit această
+distincție la owner, fără creșterea timeout-ului sau verdict PASS fabricat.
+
+</details>
 
 ### Gate-urile catalogului
 
@@ -818,7 +878,8 @@ verdictul API proiectat în checkpoint.
 ### Dovada comenzii curente
 
 `ShopApiNetworkJournal.orderCreated()` selectează ultima observație `ORDER_CREATE`
-recepționată după marcajul anterior lui Confirm, pentru `POST /invoices/guest` sau `POST /invoices`.
+a cărei cerere a început după marcajul anterior lui Confirm, în același scope,
+pentru `POST /invoices/guest` sau `POST /invoices`.
 Statusul și body-ul sunt evaluate după selecție; nu filtrează candidatul curent.
 
 | Fereastra curentă | Selecție și verdict | Publicare |
@@ -845,7 +906,9 @@ flowchart LR
 <summary><strong>Legendă — selecție curentă înaintea evaluării</strong></summary>
 
 - Journal-ul reutilizează selectorul operației și `storeObserved`; lista goală elimină numai selecția ORDER.
-- Marcajul delimitează recepția capturilor, nu începutul cererilor; nu dovedește singur cauzalitatea clickului.
+- `requestMarker()` delimitează începutul cererilor; o cerere veche terminată ulterior rămâne numai în raw.
+- Identitatea absentă sau din alt scope nu satisface ORDER. Ambele adaptoare, Page și inspector, păstrează aceeași regulă.
+- `sequenceMarker()` păstrează API-ul numeric pentru apelanții legacy și salvează și marcajul typed; recepția brută și checkpoint-urile surori își păstrează secvența.
 - Trace-ul, ordinea și identitatea capturii sunt păstrate; istoricul brut și checkpoint-urile surori nu se șterg.
 - `ShopApiAssertions` evaluează aceeași captură; `ShopApiValidationResult.order` păstrează verificările lipsă ca aserțiuni, fără exchange inventat.
 - Corelarea fără factură API păstrează un expected explicit și separă lipsa API de valoarea UI; totalul folosește oracolul independent.
@@ -867,9 +930,10 @@ Fereastra 201→500 folosește observații controlate; nu afirmă două răspuns
 la un singur POST. Proba adaptorului introduce captura veche în fixture înaintea
 marcajului și execută o singură cerere curentă; eșecul pre-HTTP nu ajunge la server.
 
-Limita marcajului rămâne deschisă: o cerere anterioară încă în zbor poate termina
-după Confirm și trece filtrul temporal. Asocierea cu acțiunea curentă este descrisă
-în [feedback-ul consumerului](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-shop-request-start-06--cerere-anterioară-terminată-după-confirm).
+`ShopRequestStartComponentTest` menține un POST anterior în zbor și probează
+cererea curentă absentă/201/500 pentru ambele rute și adaptoare, cu un singur
+Confirm și fără dispatch suplimentar. Răspunsul vechi nu dovedește comanda
+curentă; identitatea necunoscută sau străină este refuzată explicit.
 
 ### Eroare API cu istoric parțial
 

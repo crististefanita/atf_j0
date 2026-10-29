@@ -30,7 +30,7 @@ import atf.shop.support.ShopPurchaseTraceStep;
 import atf.shop.support.ShopAuditObservations;
 import atf.shop.support.api.ShopApiNetworkJournal;
 import atf.shop.evidence.ShopBrowserCaptureProvider;
-import atf.shop.tests.support.reporting.ShopReportSystemMetadata;
+import atf.shop.reporting.environment.ShopReportSystemMetadata;
 import atf.reporting.api.ReportModelAdapters;
 import atf.ui.audit.UiScreenAudit;
 import atf.shop.reporting.ShopScreenshotPolicy;
@@ -123,19 +123,9 @@ public final class ShopE2eContext implements AutoCloseable {
     public static UiExtentReportSession openReport(ShopConfiguration configuration,
                                                    ReportEvidenceProfile evidenceProfile,
                                                    atf.reporting.console.AtfConsoleSink console) {
-        ReportEvidenceProfile selectedProfile = java.util.Objects.requireNonNull(
-                evidenceProfile, "evidenceProfile");
-        String file = "ui-atf-practice-shop-e2e_"
-                + STAMP.withZone(Clock.systemDefaultZone().getZone()).format(Clock.systemDefaultZone().instant())
-                + ".html";
-        return UiExtentReportSession.openConfiguredResolved(
-                configuration.uiReportDirectory(), file,
-                java.util.Objects.requireNonNull(console, "console"),
-                selectedProfile,
-                ShopReportSystemMetadata.snapshot(configuration, selectedProfile,
-                        System.getProperty("atf.environment", ShopReportSystemMetadata.DEFAULT_ENVIRONMENT)));
+        return atf.shop.runtime.ShopRunReportFactory.open(configuration, evidenceProfile, console,
+                System.getProperty("atf.environment", ShopReportSystemMetadata.DEFAULT_ENVIRONMENT));
     }
-
     private static ShopE2eContext openBrowser(ShopConfiguration configuration,
                                                        ReportEvidenceProfile evidenceProfile,
                                                        UiExtentReportSession report,
@@ -144,28 +134,15 @@ public final class ShopE2eContext implements AutoCloseable {
         AtfConsoleSink console = AtfConsoleTestContext.current() == null
                 ? AtfConsoleReporter.configuredStdout()
                 : AtfConsoleTestContext.configuredSink();
-        PlaywrightUiSession browser = null;
+        var acquired = atf.shop.runtime.ShopBrowserRuntime.open(configuration, console);
         try {
-            browser = PlaywrightUiSession.open(configuration.browser(), console);
-            ShopBrowserCaptureProvider browserCaptureProvider =
-                    new ShopBrowserCaptureProvider(browser.page(),
-                            UiScreenValidationConfiguration.defaults());
-            ShopApiNetworkJournal apiNetwork =
-                    new ShopApiNetworkJournal(configuration.validationProfile(),
-                            configuration.api().evidenceBinding());
-            // Keep the Shop journal on its typed Page response adapter. The
-            // generic inspector remains available for reusable consumers, but
-            // registration navigation can replace the execution context while
-            // its response callback is still settling.
-            apiNetwork.attach(browser.page());
-            return new ShopE2eContext(configuration, evidenceProfile, report, browser, browserCaptureProvider,
-                    ownsReport, apiNetwork, environment);
-        } catch (RuntimeException | Error error) {
-            FailureAwareCleanup.closeAfterFailure(error, browser);
-            throw error;
+            return new ShopE2eContext(configuration, evidenceProfile, report, acquired.browser(), acquired.captures(),
+                    ownsReport, acquired.network(), environment);
+        } catch (RuntimeException | Error primary) {
+            FailureAwareCleanup.closeAfterFailure(primary, acquired.browser());
+            throw primary;
         }
     }
-
     private static Path projectRoot() {
         Path current = Path.of(System.getProperty("user.dir", ".")).toAbsolutePath().normalize();
         while (current != null) {

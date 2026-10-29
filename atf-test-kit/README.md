@@ -5,6 +5,11 @@ Nu conține renderer, mock transport, browser sau logică business.
 Consumerii îl declară în test scope; adaptorul JUnit din `atf-console` are
 excepția explicită `optional compile`, pentru adnotări și resolvere neutre.
 
+Rezoluția canalului și a declarațiilor UI evidence rămâne în Kit.
+Proiecția System și secvențierea vocabularului de raportare folosesc
+[primitivele Reporting](../atf-reporting/README.md#instantaneu-tipizat-pentru-overviewsystem),
+iar configurația concretă se proiectează în main la consumer.
+
 ## Pe scurt
 
 **Trasee rapide:** [Layer și ownership](#clasificare) · [Assert auditabil](#comparații-junit-cu-dovadă-neutră) · [Scope Maven](#dependențe) · [Probă locală](#verificare-rapidă)

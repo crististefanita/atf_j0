@@ -35,6 +35,20 @@ public final class ShopHomePage {
         actions.waitForVisible(locators.homeProductGridFirst(page));
     }
 
+    /** Only the initial catalog read can refresh its home document after an observed transient response. */
+    public void open(URI homeUrl, URI catalogEndpoint) {
+        try (var catalog = new atf.shop.support.catalog.ShopCatalogReadiness(page, homeUrl, catalogEndpoint, actions)) {
+            actions.navigate(page, homeUrl, "catalog home is loaded");
+            actions.waitForVisible(locators.searchQuery(page));
+            var product = locators.homeProductGridFirst(page);
+            try { actions.awaitVisible(product, budget -> catalog.await(product.locator(), budget)); }
+            catch (RuntimeException | Error failure) {
+                catalog.diagnose(failure, product.locator());
+                throw failure;
+            }
+        }
+    }
+
     public void search(String productName) {
         var searchQuery = locators.searchQuery(page);
         actions.fill(searchQuery, productName, "product search term is entered");

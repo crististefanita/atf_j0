@@ -2,6 +2,7 @@ package atf.autoex.support.checkout;
 
 import atf.reporting.contract.AtfAssertion;
 import atf.autoex.business.cart.AutoExCartResult;
+import atf.autoex.business.checkout.AutoExCheckoutAccess;
 import atf.autoex.config.AutoExConfiguration.Catalog;
 import atf.autoex.config.AutoExConfiguration.Registration;
 
@@ -23,6 +24,11 @@ public final class AutoExCheckoutAssertions {
     }
 
     public static List<AtfAssertion> cart(AutoExCartResult result) {
+        return result.checks().stream().map(check -> new AtfAssertion(
+                check.label(), check.expected(), check.actual(), check.passed())).toList();
+    }
+
+    public static List<AtfAssertion> access(AutoExCheckoutAccess result) {
         return result.checks().stream().map(check -> new AtfAssertion(
                 check.label(), check.expected(), check.actual(), check.passed())).toList();
     }

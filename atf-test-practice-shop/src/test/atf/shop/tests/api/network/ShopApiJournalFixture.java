@@ -25,12 +25,17 @@ final class ShopApiJournalFixture {
         String host = URI.create(exchange.url()).getHost();
         var inspector = new UiNetworkInspector(UiNetworkInspectionConfiguration.forHosts(List.of(host)));
         journal.attach(inspector);
+        capture(journal, exchange, inspector);
+    }
+
+    static void capture(ShopApiNetworkJournal journal, Exchange exchange, UiNetworkInspector inspector) {
+        String host = URI.create(exchange.url()).getHost();
         var observation = new UiNetworkObservation(1, Instant.EPOCH, exchange.method(), exchange.url(),
                 exchange.path(), exchange.status(), exchange.requestHeaders(), exchange.responseHeaders(),
                 exchange.requestBody(), exchange.responseBody(), exchange.authType(), "", host,
                 "COMPONENT_CAPTURE", exchange.signature(), !ApiBodyEvidence.isUnavailable(exchange.responseBody()),
                 exchange.failureReason(), UiNetworkCapturePolicy.ResourceKind.FETCH);
-        if (inspector.capture(observation).isEmpty()) {
+        if (inspector.capture(observation.withRequestIdentity(inspector.requestStarted())).isEmpty()) {
             throw new AssertionError("Fixture observation was excluded by the network capture policy");
         }
     }

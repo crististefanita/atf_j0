@@ -21,8 +21,8 @@ import java.util.UUID;
  *
  * <p>Only files present in the manifest are copied. Existing live content must
  * match the baseline; an explicitly absent baseline entry allows a new file but
- * rejects a parallel live creation. Any drift aborts the whole operation before
- * the first copy. The process lock also serializes cooperating promoters without
+ * rejects a parallel live creation. Initial drift and ineligible staging sources
+ * abort before the first copy. The process lock serializes cooperating promoters without
  * adding lock files to the checkout.</p>
  */
 public final class AtfPromotionGuard {
@@ -49,23 +49,36 @@ public final class AtfPromotionGuard {
             }
             List<String> initialConflicts = baseline.mismatches(live);
             if (!initialConflicts.isEmpty()) throw new AtfPromotionConflictException(initialConflicts);
+            List<PromotionFile> plan = preflight(stage, live, baseline);
 
             List<String> promoted = new ArrayList<>();
-            for (AtfPromotionManifest.Entry entry : baseline.entries()) {
-                Path destination = live.resolve(entry.relativePath()).normalize();
-                if (!entry.matches(destination)) {
-                    throw new AtfPromotionConflictException(List.of(entry.relativePath()));
+            for (PromotionFile file : plan) {
+                if (!file.baseline().matches(file.destination())) {
+                    throw new AtfPromotionConflictException(List.of(file.baseline().relativePath()));
                 }
-                Path source = stage.resolve(entry.relativePath()).normalize();
-                if (!source.startsWith(stage) || !Files.isRegularFile(source)) {
-                    throw new IOException("Approved staging file is missing: " + entry.relativePath());
-                }
-                copyAtomically(source, destination);
-                promoted.add(entry.relativePath());
+                copyAtomically(file.source(), file.destination());
+                promoted.add(file.baseline().relativePath());
             }
             return new PromotionResult(promoted);
         }
     }
+
+    /** A complete eligible plan precedes every write; execution remains atomic per file. */
+    private static List<PromotionFile> preflight(Path stage, Path live, AtfPromotionManifest baseline) throws IOException {
+        List<PromotionFile> plan = new ArrayList<>();
+        for (AtfPromotionManifest.Entry entry : baseline.entries()) {
+            Path source = stage.resolve(entry.relativePath()).normalize();
+            if (!source.startsWith(stage) || !Files.isRegularFile(source, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
+                throw new IOException("Approved staging file is missing or ineligible: " + entry.relativePath());
+            }
+            try (var input = FileChannel.open(source, StandardOpenOption.READ)) {
+                plan.add(new PromotionFile(entry, source, live.resolve(entry.relativePath()).normalize()));
+            }
+        }
+        return List.copyOf(plan);
+    }
+
+    private record PromotionFile(AtfPromotionManifest.Entry baseline, Path source, Path destination) { }
 
     private static void copyAtomically(Path source, Path destination) throws IOException {
         Path parent = destination.getParent();

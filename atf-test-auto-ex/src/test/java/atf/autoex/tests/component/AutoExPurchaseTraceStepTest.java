@@ -17,12 +17,14 @@ class AutoExPurchaseTraceStepTest {
         var steps = Arrays.stream(AutoExPurchaseTraceStep.values()).toList();
         var titles = steps.stream().map(AutoExPurchaseTraceStep::title).toList();
 
-        assertEquals(13, steps.size());
+        assertEquals(14, steps.size());
         assertEquals(steps.size(), titles.stream().distinct().count());
         assertTrue(steps.stream().allMatch(step -> step.keyword() != null
                 && step.title() != null && !step.title().isBlank()));
         assertEquals(AtfGherkinKeyword.GIVEN,
                 AutoExPurchaseTraceStep.CATALOG_API_PRECONDITION.keyword());
+        assertEquals(AtfGherkinKeyword.WHEN,
+                AutoExPurchaseTraceStep.CHECKOUT_PRECONDITIONS.keyword());
         assertEquals(AtfGherkinKeyword.THEN,
                 AutoExPurchaseTraceStep.TERMINAL_STATE.keyword());
     }

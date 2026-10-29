@@ -20,7 +20,7 @@ class ShopPurchaseStageInputsComponentTest {
         Set<String> fields = componentNames(ShopPurchaseJourneyContext.CatalogInputs.class);
 
         assertEquals(Set.of("page", "actions", "selection", "checkpointPublisher", "apiNetwork",
-                "locators", "pageValidator", "homeScreenValidator", "purchaseScreenValidator"), fields);
+                "locators", "pageValidator", "homeScreenValidator", "purchaseScreenValidator", "catalogEndpoint"), fields);
         assertTrue(componentTypes(ShopPurchaseJourneyContext.CatalogInputs.class)
                 .contains(ShopConfiguration.CatalogSelection.class));
     }

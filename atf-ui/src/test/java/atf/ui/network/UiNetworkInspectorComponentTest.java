@@ -272,8 +272,9 @@ class UiNetworkInspectorComponentTest {
                 (name, args) -> name.equals("request") ? broken : null);
         assertThrows(IllegalStateException.class, () -> inspector.capture(brokenResponse));
         inspector.subscribe(ignored -> { throw new IllegalStateException("consumer failure"); });
-        assertThrows(IllegalStateException.class,
-                () -> inspector.capture(response("/cart", "fetch", new AtomicInteger())));
+        assertTrue(inspector.capture(response("/cart", "fetch", new AtomicInteger())).isPresent());
+        assertEquals(1, inspector.deliveryFailures().size());
+        assertEquals("consumer failure", inspector.deliveryFailures().getFirst().cause().getMessage());
         assertEquals(new UiNetworkCaptureStatistics(2, 1, 0, 1, 0, false), inspector.statistics());
         assertFalse(inspector.statistics().complete());
     }

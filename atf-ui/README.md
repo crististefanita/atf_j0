@@ -324,6 +324,26 @@ override de bootstrap:
 - validatorul pur din `atf-reporting` decide dacă snapshot-ul DOM corespunde
   proiecției așteptate.
 
+### Readiness cu deadline comun
+
+`awaitVisible(AtfLocator, Consumer<ObservationBudget>)` compune pregătirea
+explicită a consumerului cu verificarea nativă finală a vizibilității. Ownerul
+`PlaywrightBrowserActions` folosește același recorder și timeout al secvenței;
+callback-ul primește numai restul bugetului, nu o metodă de resetare a lui.
+
+- Consumerul limitează fiecare apel nativ cu `remainingMilliseconds()`.
+  Un callback care termină după deadline este refuzat chiar dacă elementul este vizibil.
+- Un callback reușit nu înlocuiește verificarea nativă. Eroarea originală este
+  propagată, iar acțiunea finală rămâne FAIL dacă pregătirea sau vizibilitatea eșuează.
+- `Await visible` nu intră în allowlist-ul retry-ului global; întregul callback
+  nu este reluat automat. Politica unei citiri business rămâne la consumer.
+- Datele sensibile folosesc aceeași clasificare și redactare a locatorului ca
+  acțiunile existente; UI nu cunoaște rutele sau statusurile aplicației Shop.
+
+`PlaywrightReadinessBudgetComponentTest` verifică deadline-ul unic, cauza
+originală, lipsa replay-ului și obligația verificării native. Contractele
+`clickAndAwait`, pointer/JavaScript și retry read-only își păstrează probele separate.
+
 ### Activare JavaScript explicită
 
 `clickWithJavaScript(AtfLocator, String, Runnable)` este opt-in pentru un control
@@ -482,7 +502,7 @@ Fluxul cross-module și baseline-ul setup/causal au un singur owner în
 
 `UiNetworkInspector` este opt-in și restrâns la host-urile configurate:
 
-- listenerii observă `request-finished` și `request-failed`; nu execută replay și nu
+- listenerii observă începutul, `request-finished` și `request-failed`; nu execută replay și nu
   decid verdictul testului;
 - observațiile devin date typed, cu URL/query, headers și body redacted/bounded;
 - failure-ul fără response are status `Unavailable` și motiv explicit;
@@ -556,12 +576,27 @@ storage și notificarea subscriberilor, inspectorul reconstruiește sau limiteaz
 URL/path, headers, body, auth/source, failure, service și signature. Testul
 negativ pentru input creat de caller protejează acest boundary.
 
+Identitatea începutului și ordinea recepției au contracte distincte:
+
+| Limită | Contract |
+|---|---|
+| Început | `UiRequestTimeline` produce `UiRequestIdentity`: UUID al scope-ului și secvență locală, fără payload. |
+| Marcaj | `requestMarker()` citește pasiv browserul pentru a procesa evenimentele anterioare delimitării acțiunii. |
+| Selecție | `isAfter(...)` cere același scope și un început strict ulterior; secvența recepției rămâne separată. |
+| Compatibilitate | Observația legacy fără identitate rămâne necunoscută; redacția păstrează identitatea explicită. |
+| Adaptor propriu | Numai după observarea explicită a începutului folosește `requestStarted()` și `withRequestIdentity(...)`. |
+
 Completitudinea jurnalului raw și livrarea către subscriberi au limite distincte:
 
-- Excepția unui subscriber oprește notificările următoare; observația rămâne retained.
-- `capture(...)` propagă excepția cu sursa inițială; hook-ul browser o prinde
-  fără diagnostic de livrare distinct. Izolarea notificărilor are criteriu în
-  [feedback-ul UI](../docs/feedback/ATF_UI_Backend_Guided_Recovery_Feedback.md#ui-observer-delivery-02--izolarea-notificărilor-de-captură).
+- Fiecare notificare folosește același snapshot de subscriberi. Un `RuntimeException`
+  este izolat, iar subscriberii sănătoși primesc aceeași observație redactată,
+  indiferent de ordinea înscrierii sau de închiderea contextului în callback.
+- `deliveryFailures()` oferă un snapshot imuabil cu secvența observației,
+  ordinalul subscriberului, semnătura sigură și cauza originală; nu fabrică
+  erori HTTP și nu schimbă accepted/retained/dropped. Cauza nu se publică implicit în HTML.
+- Un `Error` fatal se propagă; inspectorul nu pretinde livrare completă în acest caz.
+- `UiNetworkDeliveryComponentTest` și `UiRequestIdentityComponentTest` probează
+  aceste limite prin portul public și fetch real în browser local, fără replay.
 
 - Body-urile capturate nu folosesc `trim()`; spațiile marginale și payload-ul
   numai din whitespace rămân date, nu absență.

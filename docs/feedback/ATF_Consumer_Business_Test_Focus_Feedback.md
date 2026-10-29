@@ -7,13 +7,16 @@ fazele lifecycle și rezultatul PASS/FAIL/SKIP sunt contracte ale
 [Test Kit](../../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră) și
 [Reporting](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor).
 
-Restanțele includ cauzalitatea capturii order, identitatea/coșul înainte de checkout, runtime-ul E2E,
-billing-ul observat în suită, catalogul inițial Shop, tranziția produsului AutoEx și echivalența profilelor.
+Restanțele includ probele achiziției parțiale Shop, billing-ul observat în suită,
+tranziția produsului AutoEx și echivalența profilelor.
 Contractele deja livrate aparțin [AutoEx](../../atf-test-auto-ex/README.md),
 [Shop](../../atf-test-practice-shop/README.md) și
 [ghidului auditului componentelor](../ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
 Politica BE read-only este documentată la [UI](../../atf-ui/README.md#recuperare-be-prin-observație-pasivă);
 auditul agregat păstrează [feedback separat](ATF_UI_Backend_Guided_Recovery_Feedback.md).
+
+Încărcarea inițială bounded a catalogului are [contract la Shop](../../atf-test-practice-shop/README.md#încărcarea-inițială-a-catalogului).
+Navigarea de la Fails la dovadă păstrează [criteriu separat Reporting](ATF_Reporting_Feedback.md#report-failure-deep-link-29--revenire-la-dovada-eșecului).
 
 ## Ordinea refactorizării
 
@@ -22,96 +25,10 @@ documentară /10. Nu reprezintă o notă a codului sau un rezultat de test.
 
 | ID | Scor /100 | Diferența rămasă |
 |---|---:|---|
-| `CONSUMER-SHOP-REQUEST-START-06` | 82 = 34 + 24 + 17 + 7 | o cerere anterioară, terminată după marcaj, poate valida noul Confirm |
-| `UI-LOCATOR-READINESS-01` | 79 = 32 + 23 + 17 + 7 | identitate și coș verificate după înregistrare, înaintea mutației checkout |
-| `CONSUMER-RUNTIME-BOUNDARY-03` | 77 = 31 + 18 + 20 + 8 | achiziție, publicare și lifecycle E2E rămase în contextul Shop |
 | `CONSUMER-SHOP-BILLING-STATE-01` | 71 = 29 + 22 + 14 + 6 | diferență de valoare billing între suită și lansare individuală |
 | `CONSUMER-AUTOEX-PRODUCT-TRANSITION-24` | 70 = 29 + 19 + 17 + 5 | timeout la detaliul produsului după click reușit, observat în suita filtrată |
-| `CONSUMER-SHOP-CATALOG-AVAILABILITY-27` | 65 = 25 + 18 + 17 + 5 | search disponibil, dar primul produs nu devine vizibil în suita filtrată; cauza rămâne de stabilit |
+| `CONSUMER-RUNTIME-BOUNDARY-03` | 61 = 22 + 14 + 18 + 7 | probă deterministă a achiziției parțiale în factory-ul main extras |
 | `CONSUMER-E2E-PROFILES-01` | 57 = 24 + 10 + 17 + 6 | reducerea repetării live numai după echivalență demonstrată |
-
-## CONSUMER-SHOP-REQUEST-START-06 — cerere anterioară terminată după Confirm
-
-**Prioritate: 82/100** = impact 34 + lacună 24 + lucrabil 17 + documentare 7.
-**Owner:** UI pentru identitatea generică a capturii; Shop pentru asocierea
-operației business. Rendererul proiectează datele primite, fără decizie de corelare.
-
-`ShopApiNetworkJournal.recordCapturedExchange()` alocă secvența la recepția
-răspunsului, iar `orderAfter()` filtrează după acea secvență. Proba controlată
-cu browser și HTTP loopback reproduce același rezultat pentru `/invoices/guest`
-și `/invoices`, atât prin adaptorul Page, cât și prin `UiNetworkInspector`:
-
-1. Porniți un POST order și mențineți răspunsul în așteptare pe server.
-2. Luați marcajul și apăsați o dată Confirm; handlerul nou nu trimite alt POST,
-   iar pagina păstrează confirmarea facturii vechi.
-3. Eliberați răspunsul anterior, cu ID/factură și totalul compatibil cu fixture-ul.
-4. `awaitOrderCreated()` îl selectează, iar cele cinci comparații dau PASS;
-   serverul a primit exact o cerere înainte și după noul Confirm.
-
-Proba folosește hostul Shop mapat local în Chromium; nu afirmă că aplicația
-publică reproduce acest caz. Ea demonstrează că ordinea recepției nu dovedește
-începutul request-ului. Selecția ultimului status și eliminarea cache-ului vechi
-la captură absentă rămân contracte distincte, deja implementate la
-[owner](../../atf-test-practice-shop/README.md#dovada-comenzii-curente).
-
-- [ ] Corelați începutul cererii cu acțiunea curentă printr-o identitate typed
-      observată la boundary-ul UI. Nu înlocuiți corelarea cu sleep, un timeout
-      mai mare sau presupunerea că toate cererile vechi s-au terminat.
-- [ ] O observație anterioară încă în zbor nu satisface noul Confirm; identitatea
-      indisponibilă rămâne explicită, fără succes dedus din factura deja vizibilă.
-- [ ] Probați răspuns vechi întârziat + cerere nouă absentă/201/500, pentru ambele
-      rute și adaptoare, cu câte un click și fără dispatch suplimentar.
-- [ ] Păstrați răspunsul vechi în istoricul raw, ordinea capturilor, selecția
-      checkpoint-urilor surori, totalul independent, raportul unic și plafonul 240.
-
-**Închidere:** comanda selectată aparține invocării curente, nu doar unei
-ferestre de recepție compatibile; cazul negativ rămâne FAIL auditabil.
-
-## UI-LOCATOR-READINESS-01 — identitate și coș înaintea checkout-ului
-
-**Prioritate: 79/100** = impact 32 + lacună 23 + lucrabil 17 + documentare 7.
-**Owner:** flow-ul business AutoEx; sincronizarea controlului rămâne la UI.
-
-[Readiness-ul local](../../atf-test-auto-ex/README.md#readiness-înainte-de-checkout)
-are probe pentru țintă întârziată, absentă și ambiguă. Restanța privește starea
-business după înregistrare: `AutoExPurchaseUiFlow.reviewCheckout()` redeschide
-coșul și cheamă `proceedToCheckout()` înaintea citirii datelor de review.
-Validarea coșului din etapa anterioară înregistrării nu probează această tranziție.
-
-- [ ] Verificați identitatea deținută și produsul/cantitatea din coș după Continue,
-      înainte de checkout, cu expected independent de observația curentă.
-- [ ] O sesiune pierdută, un cont străin sau un coș greșit opresc mutația și publică
-      comparația FAIL; nu re-adăugați produsul și nu creați alt cont.
-- [ ] Probați refuzul și cazul nominal individual și prin suita filtrată la același
-      caz; păstrați clickul unic, raportul comun și scope-ul scenariului.
-
-**Închidere:** aceeași precondiție business este verificată înaintea tranziției
-în ambele lansări. Proba locală a locatorului sau un purchase reușit nu înlocuiesc
-cazurile negative pentru identitate și coș.
-
-## CONSUMER-RUNTIME-BOUNDARY-03 — responsabilitățile E2E rămase în Shop
-
-**Owner:** Shop pentru runtime-ul aplicației; Kit/UI/Reporting pentru primitivele neutre.
-
-Protocolul componentă și runtime-ul API sunt extrase; `ShopE2eContext` păstrează
-achiziția browser/API, configurarea raportului, capturile și scenariile E2E.
-`FailureAwareCleanup` este deja compus; restanța privește separarea ownerilor,
-nu introducerea încă unei primitive de cleanup. `openReport(...)` are deja sink
-explicit și `openBrowser(...)` este separat ca metodă; ultimul încă citește
-`AtfConsoleTestContext` și construiește resursele în source-set-ul de test.
-
-- [ ] Desprindeți compoziția runtime din cele două factory-uri deja delimitate
-      de wiring-ul JUnit; browserul primește explicit sink-ul și environment-ul.
-      `AtfConsoleTestContext`, Store-ul, adnotările și rezolvarea fixture-ului rămân
-      în test. Nu mutați clasele prin schimbarea package-ului și a scope-ului Kit.
-- [ ] Extrageți câte o responsabilitate runtime către main la owner, păstrând fațada
-      business; Store-ul JUnit, fixture-ul și oracolul rămân în test.
-- [ ] Compuneți primitivele Kit existente pentru resurse neutre; nu mutați browser,
-      Extent sau configurație de aplicație în Kit și nu creați o bază JUnit cu resurse ascunse.
-- [ ] Probați achiziția parțială și eșecuri simultane la captură, diagnostic, complete
-      și close; fiecare etapă se încearcă o dată, cu cauza primară și erorile secundare păstrate.
-- [ ] Păstrați scope-urile Maven și
-      [boundary-ul guvernat](../../atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java).
 
 ## CONSUMER-SHOP-BILLING-STATE-01 — valoarea observată în suita E2E
 
@@ -170,30 +87,74 @@ criteriul clasei single-flow și nu închide această diferență.
 lansări, iar eșecul rămâne auditabil; randarea corectă nu închide robustețea journey-ului.
 
 
-## CONSUMER-SHOP-CATALOG-AVAILABILITY-27 — catalog inițial fără produse vizibile
+## CONSUMER-RUNTIME-BOUNDARY-03 — probele achiziției parțiale Shop
 
-**Prioritate: 65/100** = impact 25 + lacună 18 + lucrabil 17 + documentare 5.
-**Owner:** Shop pentru precondiția catalogului; UI pentru mecanica așteptării native.
+**Prioritate: 61/100** = impact 22 + lacună 14 + lucrabil 18 + documentare 7.
+**Owner:** Shop; primitivele neutre rămân în Kit/UI/Reporting.
 
-| Lansare observată | Rezultat și limită |
+Achiziția browser/journal/captură, factory-ul raportului și proiecția metadata
+sunt acum în main, cu sink și environment explicite. Harness-ul JUnit păstrează
+Store-ul și composition root-ul; guvernanța verifică această delegare fără
+relaxarea boundary-urilor existente. Contractul este la
+[Shop](../../atf-test-practice-shop/README.md#ce-deține-modulul).
+
+Probele existente acoperă cauza business plus publicare/close și profilele
+scenariilor-surori. Rămâne o lacună mai îngustă în probele factory-ului extras:
+
+- [ ] Introduceți o probă deterministă pentru achiziția parțială a capturilor
+      ori journal-ului după deschiderea browserului, fără mutarea fixture-ului în main.
+- [ ] Verificați că browserul se închide exact o dată, iar eșecul close-ului este
+      suppressed pe cauza inițială; o achiziție reușită transferă ownership-ul harness-ului.
+- [ ] Păstrați interfețele explicite și scope-urile Maven; nu construiți un container
+      de servicii sau un wrapper generic numai pentru a satisface proba.
+
+**Închidere:** proba negativă detectează o scurgere sau pierderea cauzei din
+factory-ul real; un E2E reușit nu substituie acest caz de eroare.
+
+### Reutilizare Shop/AutoEx — compuneți Kit-ul existent
+
+Analiza adiacentă catalogului este [delimitată la UI](ATF_UI_Backend_Guided_Recovery_Feedback.md#ui-readiness-reuse-30--consolidare-fără-schimbarea-protocoalelor).
+Browserul și politica de retry nu se mută în Kit; candidații neutri se evaluează
+la granița JUnit, unde ambele module au deja dependența `test`.
+
+**Shop este modelul de referință pentru alinierea AutoEx.** Extracția neutră
+păstrează contractele Shop și îmbunătățește organizarea internă; prezența unei
+primitive în AutoEx este o dovadă de utilizare, nu motiv să înlocuim modelul Shop.
+
+Proiecția comună `ReportUiEnvironment` este deja consumată în main de ambele
+module, la ownerul Reporting. `ReportGherkinSequence` este folosit în AutoEx;
+aceste primitive și mapper-ele System nu sunt candidați de mutat în Kit.
+
+| Loc inspectat | Refactorizare de evaluat, neimplementată |
 |---|---|
-| `ShopPurchaseE2eTest` prin `ShopE2eSuite` filtrată | navigarea și search-ul devin disponibile; primul `a[data-test^='product-']` nu devine vizibil în deadline-ul existent de 20 s; un HTML păstrează FAIL înaintea achiziției |
-| Același caz individual | PASS cu aceeași configurație și un HTML; nu separă încă indisponibilitatea aplicației, presiunea locală și alte cauze posibile |
+| `ShopE2eContext.open/openBrowser` și `AutoExRunFactory.open` | Shop folosește `FailureAwareCleanup`; AutoEx compune `TestRunInitialization`. Păstrați ownership-ul și ordinea Shop, apoi evaluați compoziția Kit; nu copiați factory-ul AutoEx peste Shop și nu creați o bază ce cunoaște ambele aplicații |
+| `ShopE2eTestSupport.SuiteReportResource` și `AutoExRunFactory.ReportResource` | ownership-ul raportului la Store este comun; Shop deține și conturi, iar AutoEx un `AutoExReportSession`. Evaluați `ScopedTestResource`/`CloseOnceResource` fără a muta Extent, credentiale sau profile în Kit |
+| `AutoExRunLifecycleAdapter` și teardown-ul Shop | `FailureEvidenceCleanup`/`FailureAwareCleanup` sunt deja neutre. Compuneți ordinea existentă prin porturi locale; runtime-ul din main nu importă JUnit/Kit |
+| Rezolvarea recovery din cele două factory-uri JUnit | `AtfUiRecoveryResolver` și planul sunt deja comune; trei linii de adaptare a configurației nu justifică un nou resolver ori un factory generic |
 
-- [ ] Reproduceți aceeași clasă individual/prin suită, cu resurse locale izolate;
-      păstrați artifactul FAIL și nu deduceți stabilitate dintr-o reluare verde.
-- [ ] Înregistrați URL-ul, starea documentului, numărul cardurilor și traficul
-      disponibil în fereastra așteptării; fără a atribui timeout-ul serviciului
-      sau codului înainte de dovada cauzei.
-- [ ] Probați local tranziția search vizibil → produse disponibile și refuzul
-      când produsele rămân absente; reutilizați readiness-ul existent la owner,
-      fără creșterea deadline-ului ori reluarea întregului journey.
-- [ ] Păstrați în Extent operația eșuată, durata, cauza și politica de captură;
-      un checkpoint neexecutat nu primește aserțiuni ori verdict PASS fabricate.
+- [ ] Înaintea extracției, fixați prin probe diferențele de ownership: raport
+      propriu vs raport comun, browser achiziționat parțial, conturile deținute și
+      includerea politicii de publicare a căii pentru fiecare clasă din suită.
+      Păstrați și metadatele System ale configurației efective per scenariu,
+      inclusiv agregarea `Mixed`; nu reveniți la configurația primei clase.
+- [ ] Verificați erori simultane la report close și account close. `finally`
+      din `SuiteReportResource.close()` permite închiderea conturilor, dar poate
+      masca eroarea raportului dacă ambele aruncă; constatarea este statică,
+      iar proba de injecție și reconcilierea cauzelor rămân de făcut.
+- [ ] Demonstrați două utilizări reale pentru orice API Kit nou, cu nominal,
+      achiziție parțială, rollback, close repetat și erori multiple. Dacă primitivele
+      existente acoperă contractul, închiderea se face prin compoziție, fără API nou.
+- [ ] Porniți matricea de acceptanță de la Shop: componentă/E2E, individual/suită,
+      UI/API/UI+API, faze și dovezi colapsabile. Aliniați AutoEx la contractele
+      aplicabile prin adaptoare locale, fără a adăuga operații business sau faze
+      artificiale numai pentru identitate structurală.
+- [ ] Păstrați aserțiunile componentelor auditabile în pasul standard colapsat,
+      un HTML individual/prin suită și contractul consolei după flush. Aceleași
+      probe verifică și absența dublei publicări/închideri, cu limita 240 și fără
+      creșterea numărului de module ori a timeout-urilor.
 
-**Închidere:** precondiția catalogului este demonstrată în ambele lansări,
-inclusiv prin proba negativă; randarea corectă nu închide disponibilitatea journey-ului.
-
+Aceste criterii completează `CONSUMER-RUNTIME-BOUNDARY-03`; nu declară defect
+al Kit-ului și nu închid celelalte restanțe business sau de randare.
 
 ## CONSUMER-E2E-PROFILES-01 — variantele de evidence și acoperirea business
 

@@ -68,15 +68,12 @@ public class ConsumerModuleArchitectureGovernanceTest {
                         "src/main/atf/shop/support/ShopE2eContext.java")),
                 "browser/report lifecycle must not ship with the Shop runtime");
 
-        for (String helper : List.of("support/reporting/ShopReportSystemMetadata.java")) {
-            assertTrue(Files.isRegularFile(testRoot.resolve(helper)),
-                    "Shop reporting adapter must remain test-scoped: " + helper);
-            assertFalse(Files.exists(module.resolve("src/main/atf/shop/" + helper)),
-                    "Shop reporting adapter must not enter the production artifact: " + helper);
-        }
+        assertFalse(Files.exists(testRoot.resolve("support/reporting/ShopReportSystemMetadata.java")),
+                "pure System metadata mapping must not be duplicated in the JUnit harness");
 
         for (String factory : List.of("evidence/ShopBrowserCaptureProvider.java",
-                "reporting/ShopScreenshotPolicy.java")) {
+                "reporting/ShopScreenshotPolicy.java",
+                "reporting/environment/ShopReportSystemMetadata.java")) {
             Path runtime = module.resolve("src/main/atf/shop/" + factory);
             assertTrue(Files.isRegularFile(runtime), "Shop runtime factory must have its main owner: " + factory);
             assertFalse(Files.exists(testRoot.resolve("support/" + factory)),
@@ -91,6 +88,29 @@ public class ConsumerModuleArchitectureGovernanceTest {
         for (String dependency : List.of("atf-core", "atf-console", "atf-reporting", "atf-ui")) {
             assertDependencyScope(pom, dependency, null);
         }
+    }
+
+    @Test
+    void shopRuntimeAcquisitionAndMetadataUseExplicitInputsOutsideJUnit() throws IOException {
+        Path module = module("atf-test-practice-shop");
+        for (String name : List.of("runtime/ShopBrowserRuntime.java", "runtime/ShopRunReportFactory.java",
+                "reporting/environment/ShopReportSystemMetadata.java")) {
+            Path owner = module.resolve("src/main/atf/shop/" + name);
+            assertTrue(Files.isRegularFile(owner), "Missing main runtime owner: " + name);
+            String source = Files.readString(owner);
+            for (String forbidden : List.of("org.junit", "atf.testkit")) {
+                assertFalse(AtfJavaSourceReferences.containsNamespace(source, forbidden),
+                        "Runtime owner depends on the runner: " + owner);
+            }
+            assertFalse(source.contains("System.getProperty") || source.contains("AtfConsoleTestContext"),
+                    "Runtime acquisition must receive its environment and sink explicitly: " + owner);
+        }
+        Path support = module.resolve("src/test/atf/shop/tests/support");
+        String context = Files.readString(support.resolve("lifecycle/ShopE2eContext.java"));
+        assertTrue(context.contains("ShopBrowserRuntime.open(") && context.contains("ShopRunReportFactory.open("),
+                "The harness must delegate acquisition to the main owners");
+        assertFalse(Files.exists(support.resolve("reporting/ShopReportSystemMetadata.java")),
+                "Do not duplicate the main metadata policy in the test adapter");
     }
 
     @Test

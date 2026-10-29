@@ -3,7 +3,7 @@
 ## Pe scurt
 
 **Stare: sincronizare nativă și politică BE read-only livrate; proiecția typed
-a observațiilor, continuitatea selectului și izolarea subscriberilor rămân deschise.**
+a observațiilor, continuitatea selectului și coeziunea readiness rămân deschise.**
 Ownerii sunt UI pentru sincronizare, Kit pentru declarația neutră,
 consumerii pentru semantica operațiilor și Reporting pentru dovezile randate.
 
@@ -29,7 +29,7 @@ documentară /10. Nu reprezintă o notă a codului sau un procent de reproducere
 |---|---:|---|
 | `UI-RECOVERY-AUDIT-01` | 78 = 33 + 22 + 16 + 7 | încercări vizibile, verdict reconciliat și expandare completă |
 | `UI-NATIVE-SELECT-DETACH-01` | 74 = 31 + 20 + 16 + 7 | selectul înlocuit poate continua numai cu rezultat confirmat și activare unică |
-| `UI-OBSERVER-DELIVERY-02` | 69 = 28 + 18 + 16 + 7 | primul subscriber eșuat împiedică notificarea celui sănătos |
+| `UI-READINESS-REUSE-30` | 68 = 26 + 18 + 18 + 6 | compoziție BE duplicată și observație/decizie/cleanup amestecate în catalogul Shop |
 
 ## UI-NATIVE-SELECT-DETACH-01 — continuitate după înlocuirea selectului
 
@@ -90,49 +90,125 @@ sau repetarea deciziei la renderer.
       Extent neutre rămân în `atf-reporting-tests`; policy/resolver și adaptoarele
       au teste la owner, fără cuplarea testelor de business la HTML.
 
-## UI-OBSERVER-DELIVERY-02 — izolarea notificărilor de captură
+## UI-READINESS-REUSE-30 — consolidare fără schimbarea protocoalelor
 
-**Prioritate: 69/100** = impact 28 + lacună 18 + lucrabil 16 + documentare 7.
-**Owner:** `UiNetworkInspector`; consumerii păstrează selecția și verdictul business.
+**Prioritate: 68/100** = impact 26 + lacună 18 + lucrabil 18 + documentare 6.
+**Owner:** UI pentru browser și compoziția neutră; Shop/AutoEx pentru politica
+operației; Kit numai pentru infrastructura JUnit neutră deja demonstrată.
 
-Proba browser controlată înscrie un subscriber care aruncă și apoi unul sănătos,
-execută un fetch 200 și citește rezultatele:
+Aceasta este o țintă de refactorizare, neimplementată. Inspecția codului live
+și a probelor existente identifică următoarele limite, fără a declara un nou
+incident E2E ori echivalența comportamentală a mecanismelor.
 
-| Limită observată | Rezultat |
+- **Model de referință: Shop.** Consolidarea pornește de la contractele și dovezile
+  Shop; AutoEx se aliniază la primitivele extrase unde semantica este aceeași.
+- Îmbunătățirea coeziunii Shop păstrează comportamentul lui, fără a transplanta
+  protocolul AutoEx sau a transforma policy-urile locale în reguli universale.
+
+| Cod inspectat | Oportunitate și limită de consolidare |
 |---|---|
-| Browser | fetch 200 terminat normal |
-| Journal raw | retained=1, dropped=0, complete=true |
-| Subscriber sănătos, înscris după cel eșuat | zero notificări |
-| Subscriber sănătos, înscris înaintea celui eșuat | o notificare; dependența de ordine rămâne demonstrată și prin `capture(UiNetworkObservation)` |
+| [ShopBackendRecovery](../../atf-test-practice-shop/src/main/atf/shop/support/recovery/ShopBackendRecovery.java) și [AutoExBackendRecovery](../../atf-test-auto-ex/src/main/java/atf/autoex/runtime/recovery/AutoExBackendRecovery.java) | `open(...)` repetă construirea controllerului și rândul INFO cu policy/attempt/source; consumerul trebuie să păstreze endpointul, metoda și clasificarea operației |
+| [ShopCatalogReadiness](../../atf-test-practice-shop/src/main/atf/shop/support/catalog/ShopCatalogReadiness.java) | aceeași clasă deține patru listener-e, identitatea cererii/documentului, clasificarea răspunsului, reload-ul și diagnosticul; separarea observației de decizia Shop permite probe independente |
+| [UiRecoveryObserver](../../atf-ui/src/main/java/atf/ui/playwright/recovery/UiRecoveryObserver.java) | există deja observație corelată și lifecycle de listener-e; refolosirea trebuie să păstreze limita 64, conflictele și refuzul documentului schimbat |
+| [AutoExCatalogSearch](../../atf-test-auto-ex/src/main/java/atf/autoex/runtime/catalog/AutoExCatalogSearch.java) | folosește deja `clickAndAwait` și bugetul comun; URL-ul decodat și produsul așteptat sunt postcondiții AutoEx, fără reload sau click repetat |
+| [AutoExReadOnlyNavigation](../../atf-test-auto-ex/src/main/java/atf/autoex/runtime/navigation/AutoExReadOnlyNavigation.java) | reload-ul unui document GET este permis numai pentru pagina queue-full și rutele locale; această regulă nu este politica răspunsului `/products` din Shop |
+| [UiRecoveryLoop](../../atf-ui/src/main/java/atf/ui/recovery/UiRecoveryLoop.java) și [RetryAfterParser](../../atf-core/src/main/java/atf/core/http/execution/RetryAfterParser.java) | parsări apropiate, cu gramatici și ancore temporale diferite; înlocuirea directă poate schimba refuzul inputului ori reînnoi delta-seconds |
 
-`subscribers.forEach(...)` se oprește la prima eroare. `capture(...)` păstrează
-cauza în excepția propagată, dar `observeFinished()` o prinde fără publicarea
-unui diagnostic de livrare distinct; retenția raw rămâne completă.
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
+flowchart LR
+    Candidate["Responsabilitate"] -->|browser| UI["atf-ui"]
+    Candidate -->|JUnit neutru| Kit["atf-test-kit"]
+    Candidate -->|business| App["Shop / AutoEx"]
+```
 
-Contorii raw descriu corect retenția; problema este livrarea către adaptoare.
-Proba existentă pentru subscriber eșuat verifică păstrarea observației, fără
-a verifica un subscriber ulterior. Contractul actual este la
-[UI](../../atf-ui/README.md#inspectorul-de-rețea--limită-generică-de-responsabilitate).
+<details>
+<summary><strong>Legendă — criteriul extracției propuse</strong></summary>
 
-- [ ] Izolați notificările astfel încât un subscriber eșuat să nu împiedice
-      ceilalți consumatori ai aceleiași observații; definiți explicit politica erorii.
-- [ ] Păstrați cauza primară și diagnosticul subscriberului, distinct de o eroare
-      de transport sau pierdere a observației. Nu modificați artificial contorii raw.
-- [ ] Probați două ordine de înscriere, mai multe erori și închiderea contextului,
-      prin `capture(...)` public și hook-ul browser, fără replay ori excepții înghițite
-      care ar pretinde livrare reușită către toate adaptoarele.
-- [ ] Păstrați redacția înaintea notificării, plafonul jurnalului și independența
-      de Reporting/Shop/AutoEx; diagnosticul proiectat păstrează limita 240.
+- Schema clasifică responsabilitatea unei extracții viitoare, nu dependențe
+  Maven noi și nici implementări deja livrate.
+- UI deține observația browserului, callback-ul bounded și metadatele neutre;
+  regula care autorizează o anumită operație rămâne la aplicație.
+- Kit păstrează declarații, scope și cleanup test-only fără `Page`, renderer,
+  YAML sau endpoint; cele două POM-uri consumer îl declară în `test` scope.
+- Testele rendererului și geometriei rămân în Reporting Tests; fixture-ul
+  business și expected-ul independent rămân la consumer.
 
-**Închidere:** observația reținută ajunge la subscriberii sănătoși, iar eșecul
-unuia are diagnostic explicit și nu schimbă verdictul acțiunii UI.
+</details>
+
+**Ordinea propusă și criterii de acceptanță:**
+
+- [ ] Caracterizați întâi cele trei protocoale: reobservarea BE pasivă nu trimite
+      alt request; Shop permite cel mult un GET home după tranzitoriu confirmat;
+      căutarea AutoEx păstrează un singur click. Nu introduceți un retry generic
+      care acceptă un callback de mutație sau deduce siguranța numai din verb.
+- [ ] Păstrați enum-urile operațiilor la consumer: aceeași cheie
+      `catalog-readiness` nu certifică aceeași cerere. Registrul pasiv Shop declară
+      GET, încărcarea home observă GET/QUERY, iar `UiRecoveryOperation` limitează
+      read-only la GET/HEAD; extracția nu lărgește implicit allowlist-ul comun.
+- [ ] Consolidați la UI compoziția repetată a celor două `*BackendRecovery.open`,
+      cu policy, operații și sink explicite. Păstrați fațadele consumerilor și
+      proiecția INFO existentă; criteriul typed al raportării rămâne separat la
+      `UI-RECOVERY-AUDIT-01`, fără un renderer ori formatter paralel în Kit.
+- [ ] Folosiți Shop ca baseline pentru rezultatele observabile, ownership și
+      raportul auditabil, apoi verificați adaptorul AutoEx pe aceeași capabilitate
+      neutră. Un helper deja existent în AutoEx nu devine implicit standardul
+      Shop și nu justifică rescrierea flow-ului sau așteptărilor lui business.
+- [ ] Desprindeți observația de regula Shop, apoi verificați dacă aceeași
+      capabilitate UI servește efectiv și controllerul pasiv/AutoEx. Nu transformați
+      automat `UiRecoveryObserver` într-un observer permisiv: QUERY/body, request
+      curent, concurență, frame și schimbarea documentului au contracte diferite.
+- [ ] Păstrați `ObservationBudget` existent la `awaitVisible`/`clickAndAwait`;
+      evitați un al doilea deadline în helper sau Kit. `UiRecoveryLoop` deține
+      propriul scope pasiv; o compoziție viitoare consumă restul bugetului primit,
+      fără să adune două plafoane ori să relaxeze verificarea nativă finală.
+- [ ] Înaintea unificării `Retry-After`, probați absent, invalid, overflow,
+      delta-seconds, dată HTTP, recepție veche și pauze succesive. Loop-ul UI
+      ancorează delta la `signal.capturedAt()`; parserul Core primește un clock
+      și fallback. Refactorizarea nu extinde implicit gramatica acceptată și nu
+      recalculează întregul delay la fiecare reobservare.
+- [ ] Caracterizați atașarea parțială și toate cele patru dezabonări. Lanțul
+      `finally` din `ShopCatalogReadiness.close()` încearcă cleanup-ul ulterior,
+      dar o a doua excepție poate masca prima; aceasta este o constatare statică,
+      fără injecție de failure executată în această analiză. Verificați cauza
+      primară, suppressed, self-suppression și close-once înaintea extracției.
+- [ ] Evaluați primitivele existente înaintea unui helper nou: `CleanupRegistry`
+      din Core are LIFO și colectează `RuntimeException`, iar `FailureAwareCleanup`
+      din Kit păstrează și `Error`, în test scope. Nu sunt substituibile orbește
+      și nu justifică mutarea Kit în runtime pentru cleanup-ul listener-elor.
+- [ ] Păstrați comparațiile neutre ale originii și identitatea documentului;
+      nu copiați încă o implementare `sameOrigin`. Orice schimbare a acceptării
+      schemei/hostului/portului implicit, a query-ului ori redirectului se probează
+      separat și nu se ascunde într-o mutare mecanică de clase.
+
+**Dovada cerută înainte de închidere:**
+
+- Regresiile existente `ShopCatalogReadinessComponentTest`,
+  `PlaywrightReadinessBudgetComponentTest`, cele două `*BackendRecoveryComponentTest`,
+  `AutoExSearchReadinessComponentTest` și `AutoExStoreAvailabilityComponentTest`
+  rămân oracole la owner, fără ștergeri sau relaxări pentru API-ul extras.
+- Contoare independente confirmă clickuri/request-uri/reload-uri; cazurile
+  GET/QUERY 503→200, 503 repetat, 200 fără produs, 403, document înlocuit și semnal
+  vechi/concurent păstrează același verdict, cauză și deadline.
+- Câte un E2E relevant din fiecare consumer, individual și prin suită filtrată,
+  păstrează raportul unic. Extent/fallback păstrează assertion-urile colapsabile,
+  limita 240, tabelele, capturile și totalurile; probele de randare sunt la
+  Reporting Tests, iar backlink-ul rămâne [criteriu separat](ATF_Reporting_Feedback.md#report-failure-deep-link-29--revenire-la-dovada-eșecului).
+- Instanțierea unui controller și getterul lui nu dovedesc folosirea BE în
+  journey: apelurile `begin(CATALOG_READINESS)` găsite în cei doi consumeri sunt
+  în componentele de recovery. Închiderea cere traseul real al capabilității
+  extrase, fără activarea implicită a unui mecanism sau promisiuni E2E noi.
+
+**Închidere:** duplicarea demonstrată are un singur owner reutilizabil, iar
+politicile aplicațiilor rămân explicite; aceleași 12 module, scope-uri Maven,
+deadline-uri și rezultate observabile sunt păstrate.
 
 ## Contracte păstrate și criteriu de închidere
 
 - Auditul componentelor are evaluare JUnit unică și pas colapsabil standard,
   conform [ghidului de testare](../ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
 - Așteptarea nativă și activarea unică sunt la [UI](../../atf-ui/README.md#așteptare-nativă-și-unicitate);
-  precondiția de identitate/coș rămâne la [consumer](ATF_Consumer_Business_Test_Focus_Feedback.md#ui-locator-readiness-01--identitate-și-coș-înaintea-checkout-ului).
+  precondiția de identitate/coș este la [consumer](../../atf-test-auto-ex/README.md#gate-ul-coșului-și-ownerul-contului).
 
 Bugetul redactat de 240, paritatea rendererelor și lizibilitatea dovezilor sunt
 contracte [Reporting](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor),

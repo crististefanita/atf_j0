@@ -194,9 +194,12 @@ class AutoExRuntimeBoundaryComponentTest {
         assertTrue(html.contains("no settled matching GET XHR/FETCH"));
         assertTrue(html.contains("Add-to-cart confirmation"));
         assertTrue(html.contains("Click"));
-        assertCheckpointStatus(html, "WHEN cart add correlation — HTTP 503", null, "fail-bg");
-        assertCheckpointStatus(html, "WHEN cart add correlation — HTTP 503", "UI validation", "pass-bg");
-        assertCheckpointStatus(html, "WHEN cart add correlation — HTTP 503", "API validation", "fail-bg");
+        assertCheckpointStatus(html, "WHEN cart add correlation — HTTP 201", null, "pass-bg");
+        assertCheckpointStatus(html, "AND cart add correlation — HTTP 503", null, "fail-bg");
+        assertCheckpointStatus(html, "AND cart add correlation — HTTP 503", "UI validation", "pass-bg");
+        assertCheckpointStatus(html, "AND cart add correlation — HTTP 503", "API validation", "fail-bg");
+        assertCheckpointStatus(html, "AND cart add correlation — request failed", null, "fail-bg");
+        assertCheckpointStatus(html, "AND cart add correlation — response missing", null, "fail-bg");
     }
 
     private static void assertCheckpointStatus(String html, String checkpoint, String validation,

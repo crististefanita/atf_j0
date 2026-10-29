@@ -223,6 +223,11 @@ var environment = ReportEnvironmentSnapshot.builder()
         .build();
 ```
 
+`ReportUiEnvironment` din `configuration.ui` formatează câmpurile operaționale
+comune AutoEx/Shop: browser, țintă, timeouts și politici efective de evidence.
+Consumerul furnizează valori rezolvate și adaugă numai semantica sa API;
+formatterul nu citește YAML, JVM, Playwright sau adnotări JUnit.
+
 Regulile snapshot-ului typed sunt explicite:
 
 - `ReportEnvironmentField` deține vocabularul și clasificarea semantică:
@@ -256,6 +261,11 @@ Regulile snapshot-ului typed sunt explicite:
   configurația operațională efectivă a run-ului.
 - `Suite`, `Test package`, `Flow`, `Fixture`, `Checkout` și payload-ul business
   nu se publică în `Overview/System`.
+
+`ReportGherkinSequence` este o primitivă opțională de compoziție pe scenariu.
+Ea transformă o ancoră repetată în `AND`, păstrează `AND`/`BUT` explicite și
+lasă consumerul să declare grupurile business; rendererul nu rescrie narațiunea.
+AutoEx transmite rezultatul unic atât checkpoint-ului, cât și corelării lui.
 
 Un consumer nou folosește contractele publice la nivelul la care există datele:
 
@@ -581,7 +591,7 @@ flowchart LR
 | Tests → Playwright action sequence | operația, locatorul, durata măsurată și contextul primei dovezi FAIL |
 | Tests → Audit observations | diagnostice INFO distincte: tip/mesaj primar, cauze, suppressed și observația originală; fiecare respectă bugetul |
 | Fails → Cause | context compact; mesajul nativ și markerul de redactare nu sunt obligatorii în acest rezumat |
-| Open in Tests | același scenariu și aceeași dovadă; diagnosticele se inspectează prin disclosure, inclusiv cu Enter/Space |
+| Open in Tests | identifică scenariul original; în eșecurile UI de fază, ancestorii dovezii pot rămâne colapsați; deschiderea automată completă are [criteriu separat](../docs/feedback/ATF_Reporting_Feedback.md#report-failure-deep-link-29--revenire-la-dovada-eșecului) |
 
 `UiFailureReportContractTest` verifică suprafețele prin fațada UI reală;
 `UiTimeoutReportComponentTest` verifică Extent/fallback la 240 și 18, redactarea

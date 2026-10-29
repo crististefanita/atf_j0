@@ -4,6 +4,7 @@ import atf.console.junit.AtfConsoleTestContext;
 import atf.console.junit.AtfConsoleTestExtension;
 import atf.console.junit.AtfReportPathOptIn;
 import atf.reporting.configuration.AtfReportConfigurationLoader;
+import atf.reporting.configuration.ReportEnvironmentSnapshot;
 import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.evidence.profile.ReportEvidenceProfile;
 import atf.reporting.ui.UiExtentReportSession;
@@ -14,12 +15,12 @@ import atf.testkit.evidence.AtfUiEvidenceResolver;
 import atf.testkit.files.AtfTestResourceReader;
 import atf.testkit.lifecycle.TestRunInitialization;
 import atf.testkit.output.ReportOutputDirectory;
-import atf.ui.config.UiBrowserConfiguration;
 import atf.ui.playwright.PlaywrightUiSession;
 import atf.autoex.config.AutoExConfiguration;
 import atf.autoex.config.AutoExConfigurationLoader;
 import atf.autoex.runtime.AutoExE2eRun;
 import atf.autoex.runtime.AutoExReportSession;
+import atf.autoex.runtime.reporting.AutoExReportSystemMetadata;
 import atf.autoex.runtime.config.AutoExProjectRoot;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
@@ -64,14 +65,15 @@ final class AutoExRunFactory {
         var output = ReportOutputDirectory.resolve(projectRoot, uiBase,
                 context.getRequiredTestClass());
         var console = AtfConsoleTestContext.configuredSink();
-        UiBrowserConfiguration reportBrowser = configuration.browser();
+        var environment = AutoExReportSystemMetadata.snapshot(configuration, evidence, channel == TestChannel.UI_API,
+                System.getProperty("atf.environment", AutoExReportSystemMetadata.DEFAULT_ENVIRONMENT));
         ReportResource reportResource = context.getRoot().getStore(NAMESPACE)
                 .getOrComputeIfAbsent(SUITE_REPORT_KEY,
                         ignored -> new ReportResource(output,
                                 AutoExReportSession.fileName(context.getRequiredTestMethod().getName()), context.getRequiredTestClass(),
-                                sessionEvidence, reportBrowser),
+                                sessionEvidence, environment),
                         ReportResource.class);
-        reportResource.include(context.getRequiredTestClass());
+        reportResource.include(context.getRequiredTestClass(), environment);
         UiExtentReportSession report = reportResource.report();
         AutoExConfiguration runConfiguration = configuration;
         return TestRunInitialization.create(
@@ -91,11 +93,14 @@ final class AutoExRunFactory {
         private final AutoExReportSession session;
         private final AtfReportPathOptIn paths = new AtfReportPathOptIn(AtfConsoleTestExtension.reportPathPublisher());
         private ReportResource(Path output, String name, Class<?> owner,
-                               ReportEvidenceProfile evidence, UiBrowserConfiguration browser) {
+                               ReportEvidenceProfile evidence, ReportEnvironmentSnapshot environment) {
             paths.include(owner);
-            session = AutoExReportSession.open(output, name, paths, evidence, browser);
+            session = AutoExReportSession.openWithEnvironment(output, name, paths, evidence, environment);
         }
-        private void include(Class<?> owner) { paths.include(owner); }
+        private void include(Class<?> owner, ReportEnvironmentSnapshot environment) {
+            paths.include(owner);
+            session.report().includeScenarioEnvironment(environment);
+        }
         private UiExtentReportSession report() { return session.report(); }
         @Override public void close() { session.close(); }
     }

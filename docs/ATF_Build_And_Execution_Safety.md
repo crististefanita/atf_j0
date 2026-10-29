@@ -180,10 +180,12 @@ nou. Nu se face overwrite neaprobat, reset sau ștergere implicită. Manifestul
 stochează numai căi relative, prezență, dimensiuni și digest-uri, nu căi locale
 absolute și nu este inclus în raportul HTML.
 
-Operatorul prevalidează toate sursele aprobate înainte de apel: existență,
-eligibilitate și căi reconciliate cu manifestul. Guard-ul curent verifică
-sursa în bucla de copiere; [prevalidarea completă](feedback/ATF_Core_Promotion_Feedback.md)
-rămâne deschisă, iar o eroare ulterioară poate lăsa un lot parțial promovat.
+Guard-ul prevalidează întregul plan înaintea primei scrieri: surse regulate,
+eligibile și deschizabile pentru citire, cu căile reconciliate cu manifestul.
+O sursă ulterioară absentă sau neeligibilă refuză lotul fără modificări live.
+Execuția revalidează fiecare destinație; un eșec I/O ori drift apărut ulterior
+poate lăsa un lot parțial promovat. Atomicitatea rămâne per fișier, fără rollback
+al lotului; probele permanente sunt la [Core](../atf-core/README.md#manifest-și-promovare-guarded).
 
 - Verificați și recitiți starea efectivă după orice eroare; nu interpretați
   excepția ca dovadă că niciun fișier nu s-a schimbat.

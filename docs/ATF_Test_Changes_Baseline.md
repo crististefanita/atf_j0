@@ -2515,6 +2515,77 @@ testChanges:
       - atf-reporting-tests/src/test/java/atf/reporting/theme/AtfReportFailsThemeTest.java
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/table/PublishedEvidenceTableMutation.java
 
+  - id: SHOP-CATALOG-BOUNDED-READ-28
+    status: VERIFIED
+    base: 0baa54b3ec94a74352ecc190cef4dba78e3158a4
+    expires: 2026-11-28
+    reason: >-
+      Probează încărcarea inițială cu un singur deadline, GET home numai după o
+      eroare tranzitorie confirmată și metoda/corpul QUERY originale. Extinde
+      proiecția CatalogInputs numai cu endpointul typed; păstrează izolarea
+      checkout-ului, gate-urile business, verdictul, limita 240 și cele 12 module.
+    proof: mvn -pl atf-test-practice-shop,atf-tests -am "-Dtest=ShopCatalogReadinessComponentTest,PlaywrightReadinessBudgetComponentTest,ShopCatalogPurchaseFlowComponentTest,ShopPurchaseStageInputsComponentTest,ShopBackendRecoveryComponentTest,PlaywrightClickPostconditionComponentTest,PlaywrightLocatorReadinessComponentTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=0baa54b3ec94a74352ecc190cef4dba78e3158a4" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-ui/src/test/java/atf/ui/playwright/PlaywrightReadinessBudgetComponentTest.java
+
+  - id: AUTOEX-OVERVIEW-NARRATIVE-PARITY-01
+    status: VERIFIED
+    base: 0baa54b3ec94a74352ecc190cef4dba78e3158a4
+    expires: 2026-11-28
+    reason: >-
+      Reproduce metadatele AutoEx limitate la browser și verifică proiecția
+      configurației efective per scenariu, inclusiv Mixed în raportul partajat.
+      Secvența Gherkin păstrează aceleași propoziții în checkpoint și Scenario
+      correlation, fără a schimba ordinea, verdictul, capturile sau plafonul 240.
+      Primitivele de raportare rămân în Reporting, rezoluția neutră în Kit,
+      iar mapping-ul aplicației în main la consumer.
+      Regresia cart păstrează verdicturile independente UI/API pentru HTTP 503,
+      request eșuat și răspuns absent, cu prima ancoră WHEN și continuări AND.
+      Guvernanța cere mapperul pur System în main, fără duplicat în test și
+      fără dependențe JUnit/Kit; contextul lifecycle rămâne în test.
+      Același boundary verifică delegarea achiziției Shop la factory-urile main,
+      cu sink și environment explicite, fără rezolvare JVM ascunsă.
+    proof: mvn -pl atf-reporting-tests,atf-test-auto-ex,atf-test-practice-shop,atf-tests -am "-Dtest=ReportUiEnvironmentTest,ReportGherkinSequenceTest,AutoExSystemMetadataComponentTest,AutoExE2eOverviewNarrativeComponentTest,ShopReportSystemMetadataTest,AutoExRuntimeBoundaryComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=0baa54b3ec94a74352ecc190cef4dba78e3158a4" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/configuration/ui/ReportUiEnvironmentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/gherkin/ReportGherkinSequenceTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/reporting/system/AutoExSystemMetadataComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/reporting/system/AutoExE2eOverviewNarrativeComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/extension/AutoExRunFactory.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/lifecycle/AutoExRuntimeBoundaryComponentTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java
+
+  - id: PROMOTION-PREFLIGHT-SAFETY-28
+    status: VERIFIED
+    base: 0baa54b3ec94a74352ecc190cef4dba78e3158a4
+    expires: 2026-11-12
+    reason: Refuse an incomplete approved staging plan before every live write, preserving conflict checks and per-file atomicity.
+    proof: mvn -B -pl atf-core,atf-tests -am "-Dtest=AtfPromotionPreflightTest,AtfPromotionGuardTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=0baa54b3ec94a74352ecc190cef4dba78e3158a4" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-core/src/test/java/atf/core/sync/AtfPromotionPreflightTest.java
+
+  - id: UI-REQUEST-DELIVERY-29
+    status: VERIFIED
+    base: 0baa54b3ec94a74352ecc190cef4dba78e3158a4
+    expires: 2026-11-12
+    reason: Preserve observed request-start ownership and isolate runtime subscriber failures without fabricating HTTP evidence or changing retention verdicts.
+    proof: mvn -B -pl atf-ui,atf-tests -am "-Dtest=UiNetworkDeliveryComponentTest,UiRequestIdentityComponentTest,UiNetworkInspectorComponentTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=0baa54b3ec94a74352ecc190cef4dba78e3158a4" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-ui/src/test/java/atf/ui/network/UiNetworkInspectorComponentTest.java
+      - atf-ui/src/test/java/atf/ui/network/delivery/UiNetworkDeliveryComponentTest.java
+      - atf-ui/src/test/java/atf/ui/network/identity/UiRequestIdentityComponentTest.java
+
+  - id: AUTOEX-CHECKOUT-OWNER-30
+    status: VERIFIED
+    base: 0baa54b3ec94a74352ecc190cef4dba78e3158a4
+    expires: 2026-11-12
+    reason: Require the owned customer and current cart before the single checkout activation, preserving independent assertions and failure precedence.
+    proof: mvn -B -pl atf-test-auto-ex,atf-tests -am "-Dtest=AutoExCheckoutAccessComponentTest,AutoExCheckoutUiGateComponentTest,AutoExPurchaseTraceStepTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=0baa54b3ec94a74352ecc190cef4dba78e3158a4" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/purchase/AutoExCheckoutAccessComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/purchase/AutoExCheckoutUiGateComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/AutoExPurchaseTraceStepTest.java
+
 ```
 
 </details>

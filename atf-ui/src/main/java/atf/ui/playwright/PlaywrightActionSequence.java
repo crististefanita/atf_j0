@@ -161,6 +161,11 @@ public final class PlaywrightActionSequence {
         locatorActions.waitForVisible(element);
     }
 
+    /** One deadline for explicit readiness work and the final native visibility check; never automatically replayed. */
+    public void awaitVisible(AtfLocator element, Consumer<ObservationBudget> readiness) {
+        browserActions.awaitVisible(element, readiness);
+    }
+
     /** Waits for a concrete DOM text marker and records the synchronization step. */
     public void waitForText(Page page, AtfLocator element, String expectedText, String expected) {
         browserActions.waitForText(page, element, expectedText, expected);

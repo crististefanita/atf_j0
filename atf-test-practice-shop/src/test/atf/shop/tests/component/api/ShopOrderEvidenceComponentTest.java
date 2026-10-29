@@ -30,6 +30,8 @@ import static atf.testkit.assertions.AuditedAssertions.assertTrue;
 
 @ShopComponentTest
 class ShopOrderEvidenceComponentTest {
+    private final Map<ShopApiNetworkJournal, UiNetworkInspector> captures = new java.util.IdentityHashMap<>();
+    @org.junit.jupiter.api.AfterEach void closeCaptures() { captures.values().forEach(UiNetworkInspector::close); }
     private static final ShopOrderExpectation EXPECTED = ShopOrderExpectation.fromUi("12.01", 2);
     private static final String CONFIRMATION = "Thanks for your order! Your invoice number is INV-12.";
     private static final String SUCCESS = "{\"id\":\"order-1\",\"invoice_number\":\"INV-12\",\"total\":24.02}";
@@ -113,14 +115,16 @@ class ShopOrderEvidenceComponentTest {
                 ShopApiEvidenceBinding.fromCsv(ShopValidationProfile.UI_API, checkpoints));
     }
 
-    private static void capture(ShopApiNetworkJournal journal, String route, int status, String body) {
-        var inspector = new UiNetworkInspector(UiNetworkInspectionConfiguration.forHosts(List.of("shop.fixture.test")));
-        journal.attach(inspector);
+    private void capture(ShopApiNetworkJournal journal, String route, int status, String body) {
+        var inspector = captures.computeIfAbsent(journal, key -> {
+            var value = new UiNetworkInspector(UiNetworkInspectionConfiguration.forHosts(List.of("shop.fixture.test")));
+            key.attach(value); return value;
+        });
         var observed = new UiNetworkObservation(1, Instant.EPOCH, "POST", "https://shop.fixture.test" + route,
                 route, status, Map.of(), Map.of("content-type", "application/json"), "{}", body, "none", "",
                 "shop.fixture.test", "COMPONENT_CAPTURE", "POST " + route + "#body=present", status > 0,
                 status < 0 ? "net::ERR_CONNECTION_RESET" : "", UiNetworkCapturePolicy.ResourceKind.FETCH);
-        assertTrue(inspector.capture(observed).isPresent(), "The controlled observation reaches the public subscription");
+        assertTrue(inspector.capture(observed.withRequestIdentity(inspector.requestStarted())).isPresent(), "The controlled observation reaches the public subscription");
     }
 }
 
