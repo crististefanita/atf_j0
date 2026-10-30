@@ -32,6 +32,24 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /** Faults are injected at public ports; the facade must preserve identities, order and scope ownership. */
 @AtfComponentTest
 class UiPublicationFailureComponentTest {
+    @Test void failureValidationAcquisitionKeepsItsCauseWhenRequestCleanupAlsoFails() {
+        var ports = new ControlledPorts("validation", Fault.ACQUIRE);
+        ports.failEveryClose = true;
+        Throwable observed = assertThrows(Throwable.class, () -> publish(Mode.FAILURE, ports));
+        assertSame(ports.primary, observed);
+        assertEquals(List.of("request"), new ArrayList<>(ports.closeFailures.keySet()));
+        assertEquals(new ArrayList<>(ports.closeFailures.values()), List.of(observed.getSuppressed()));
+    }
+
+    @Test void failureEvidenceClosesItsValidationBeforeTheRequestWhenBothClosuresFail() {
+        var ports = new ControlledPorts("validation", Fault.BODY_CLOSE);
+        ports.failEveryClose = true;
+        Throwable observed = assertThrows(Throwable.class, () -> publish(Mode.FAILURE, ports));
+        assertSame(ports.primary, observed);
+        assertEquals(List.of("validation", "request"), new ArrayList<>(ports.closeFailures.keySet()));
+        assertEquals(new ArrayList<>(ports.closeFailures.values()), List.of(observed.getSuppressed()));
+    }
+
     @Test void nestedApiCloseFailuresStaySuppressedOnTheOriginalAssertionPublicationFailure() {
         var ports = new ControlledPorts("assertions", Fault.BODY_CLOSE);
         ports.failEveryClose = true;
@@ -72,6 +90,8 @@ class UiPublicationFailureComponentTest {
         var phase = scenario.startPhase("TEST BODY");
         var checks = List.of(new AtfAssertion("Independent comparison", "ready", "ready", true));
         switch (mode) {
+            case FAILURE -> phase.failureEvidence("controlled failure", "local target", List.of(),
+                    new IllegalStateException("original business failure"));
             case OUTCOME -> phase.outcome(THEN, "the artifact is published", "local artifact", AtfReportStatus.PASS);
             case SETUP -> phase.setup(THEN, "the input is ready", "local target", checks, AtfReportStatus.PASS);
             case API_TRACE -> phase.apiTrace(THEN, "the exchange is observed", "local target", api(), AtfReportStatus.PASS);
@@ -104,8 +124,8 @@ class UiPublicationFailureComponentTest {
         });
     }
 
-    enum Mode { OUTCOME, SETUP, ACTION, MEDIA, API_TRACE, UNIFIED, CROSS_PHASE }
-    enum Fault { NONE, BODY, COMPLETE, CLOSE, BODY_CLOSE, COMPLETE_CLOSE, SELF_CLOSE, ERROR_CLOSE }
+    enum Mode { OUTCOME, SETUP, ACTION, MEDIA, API_TRACE, UNIFIED, CROSS_PHASE, FAILURE }
+    enum Fault { NONE, ACQUIRE, BODY, COMPLETE, CLOSE, BODY_CLOSE, COMPLETE_CLOSE, SELF_CLOSE, ERROR_CLOSE, ERROR_SELF_CLOSE }
 
     private static final class ControlledPorts {
         final String owner;
@@ -118,7 +138,7 @@ class UiPublicationFailureComponentTest {
         boolean failEveryClose;
         ControlledPorts(String owner, Fault fault) {
             this.owner = owner; this.fault = fault;
-            primary = fault == Fault.ERROR_CLOSE ? new AssertionError("controlled body error")
+            primary = fault == Fault.ERROR_CLOSE || fault == Fault.ERROR_SELF_CLOSE ? new AssertionError("controlled body error")
                     : new IllegalArgumentException("controlled publication failure");
         }
         AtfReportPorts.Scenario scenario() { return proxy(AtfReportPorts.Scenario.class, "scenario"); }
@@ -135,11 +155,13 @@ class UiPublicationFailureComponentTest {
                 if (call.equals("startPhase")) return proxy(AtfReportPorts.Phase.class, "phase");
                 if (call.equals("startRequest")) {
                     String child = node.equals("phase") ? "request" : "exchange";
+                    if (fault == Fault.ACQUIRE && child.equals(owner)) throw primary;
                     acquired.add(child);
                     return proxy(AtfReportPorts.Request.class, child);
                 }
                 if (call.equals("startValidation")) {
                     String child = node.equals("exchange") ? "assertions" : "validation";
+                    if (fault == Fault.ACQUIRE && child.equals(owner)) throw primary;
                     acquired.add(child);
                     return proxy(AtfReportPorts.Validation.class, child);
                 }
@@ -148,12 +170,14 @@ class UiPublicationFailureComponentTest {
                 }
                 if (node.equals(owner)) {
                     if (call.equals("close") && fault != Fault.NONE && fault != Fault.BODY && fault != Fault.COMPLETE) {
-                        if (fault == Fault.SELF_CLOSE) throw primary;
+                        if (fault == Fault.SELF_CLOSE || fault == Fault.ERROR_SELF_CLOSE) throw primary;
                         throw cleanup;
                     }
-                    if (call.equals("complete") && (fault == Fault.COMPLETE || fault == Fault.COMPLETE_CLOSE)) throw primary;
-                    if (!call.equals("close") && !call.equals("complete")
-                            && (fault == Fault.BODY || fault == Fault.BODY_CLOSE || fault == Fault.SELF_CLOSE || fault == Fault.ERROR_CLOSE)) throw primary;
+                    boolean completing = call.equals("complete") || call.equals("completeFailure");
+                    if (completing && (fault == Fault.COMPLETE || fault == Fault.COMPLETE_CLOSE)) throw primary;
+                    if (!call.equals("close") && !completing
+                            && (fault == Fault.BODY || fault == Fault.BODY_CLOSE || fault == Fault.SELF_CLOSE
+                            || fault == Fault.ERROR_CLOSE || fault == Fault.ERROR_SELF_CLOSE)) throw primary;
                 }
                 return null;
             }));

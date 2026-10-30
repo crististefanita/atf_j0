@@ -2,6 +2,8 @@
 
 ## Pe scurt
 
+**Context local:** [support](src/main/atf/shop/support/README.md) · [atlas ATF](../docs/ATF_Context_Atlas.md).
+
 **Trasee rapide:** [Journey](#traseul-de-achiziție) · [Fixture și billing](#configurația-modulului) · [Dovada order](#dovada-comenzii-curente) · [Raport per suită](#raport-partajat--starea-consumerului) · [Componentă sau E2E](#verificare-rapidă)
 
 `atf-test-practice-shop` este modulul consumer care verifică UI-ul și API-ul
@@ -672,6 +674,26 @@ ale claselor E2E.
 
 </details>
 
+### Confirmarea cauzală a adăugării în coș
+
+`ShopProductPage` compune `ShopCartAdditionConfirmation` cu originea API din
+configurația journey-ului. Observatorul se armează înainte de unicul click;
+request-ul deține confirmarea, iar toast-ul este numai diagnostic.
+
+| Criteriu | Dovada cerută |
+|---|---|
+| Apartenență | POST început după armare, pe resursa `/carts/{id}` a originii configurate |
+| Intenție | `product_id` din produsul deschis și cantitatea observată/configurată coincid cu payload-ul |
+| Acceptare | răspuns 2xx al aceluiași obiect Request, în deadline-ul clickului și al postcondiției |
+| Refuz | răspuns vechi/străin, payload diferit, eroare HTTP/network sau absența răspunsului nu confirmă mutația |
+
+- `clickAndAwait` înregistrează activarea și confirmarea în același buget;
+  nu reia clickul sau POST-ul, nici când retry-ul read-only este activ.
+- După acceptare se citește coșul: produsul, cantitatea și totalurile sunt
+  validate independent înainte de checkout. Un răspuns acceptat nu înlocuiește acest gate.
+- `ShopCartAcknowledgementComponentTest` acoperă toast normal/scurt/absent,
+  ownership-ul și refuzurile. Probele quantity existente păstrează aserțiunile.
+
 ## Dovezi și comportament vizibil
 
 - `UI` păstrează validările și acțiunile browserului, dar nu publică API
@@ -908,10 +930,15 @@ flowchart LR
 - Journal-ul reutilizează selectorul operației și `storeObserved`; lista goală elimină numai selecția ORDER.
 - `requestMarker()` delimitează începutul cererilor; o cerere veche terminată ulterior rămâne numai în raw.
 - Identitatea absentă sau din alt scope nu satisface ORDER. Ambele adaptoare, Page și inspector, păstrează aceeași regulă.
-- `sequenceMarker()` păstrează API-ul numeric pentru apelanții legacy și salvează și marcajul typed; recepția brută și checkpoint-urile surori își păstrează secvența.
-- Flow-ul Confirm folosește marcajul typed. În API-ul numeric, o captură procesată
-  în bariera pasivă poate separa cheia salvată de valoarea returnată.
-  [Compatibilitatea rămâne de corectat](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-shop-numeric-fence-34--snapshot-coerent-pentru-api-ul-legacy).
+- `sequenceMarker()` citește contorul recepțiilor după bariera pasivă și salvează
+  fence-ul typed la aceeași cheie returnată; capturile pending intră în snapshot.
+  Recepția brută, registration și payment își păstrează semantica numerică.
+- Două citiri cu aceeași recepție și același fence sunt idempotente. Dacă între
+  ele începe o cerere fără răspuns, numărul egal nu poate reprezenta două ferestre:
+  asocierea numerică devine ambiguă și ORDER o refuză, fără suprascriere tăcută.
+- Flow-ul Confirm folosește `requestMarker()` typed, independent de coliziunile
+  legacy. `ShopLegacyMarkerComponentTest` probează snapshot-ul, idempotența și
+  refuzul coliziunii prin adaptoarele Page și inspector.
 - Trace-ul, ordinea și identitatea capturii sunt păstrate; istoricul brut și checkpoint-urile surori nu se șterg.
 - `ShopApiAssertions` evaluează aceeași captură; `ShopApiValidationResult.order` păstrează verificările lipsă ca aserțiuni, fără exchange inventat.
 - Corelarea fără factură API păstrează un expected explicit și separă lipsa API de valoarea UI; totalul folosește oracolul independent.
@@ -1052,6 +1079,9 @@ Notificarea locației este independentă de generarea HTML.
 
 - Pasul standard este închis inițial; redactarea precede trunchierea, iar
   textele păstrează plafonul implicit de 240 de caractere inclusiv `…`, și după expandare.
+- Comparațiile numerice ori booleene explică invariantul în engleză.
+  `ShopOrderRequestStartComponentTest` distinge request-ul vechi, activarea unică
+  și exchange-ul curent, inclusiv statusul HTTP de eșec, fără schimbarea oracolului.
 - O excepție așteptată produce verificarea așteptării; un FAIL neconsumat nu
   poate rămâne JUnit PASS. Abortul păstrează SKIP și motivul real, fără rânduri inventate.
 - Guard-ul respinge un PASS fără verificări evaluate; un eșec anterior primei

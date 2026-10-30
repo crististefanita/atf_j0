@@ -18,6 +18,7 @@ import java.util.function.Consumer;
 public final class ApiExchangeEvidence {
     private ApiExchangeEvidence() { }
 
+    /** Publishes captured facts, including terminal exchanges without a response or a known resolved URL. */
     public static void publish(AtfReportPorts.Request node, ReportExecutionEvidence evidence) {
         Objects.requireNonNull(node, "node");
         project(evidence, node::detail, node::body);
@@ -47,8 +48,9 @@ public final class ApiExchangeEvidence {
 
     private static void project(ReportExecutionEvidence evidence,
                                 BiConsumer<String, String> detail, Consumer<ReportJsonBody> bodies) {
-        var response = Objects.requireNonNull(evidence.response(), "captured response");
-        projectRequest(evidence, response.url(), detail, bodies);
+        var response = evidence.response();
+        projectRequest(evidence, response == null ? "" : response.url(), detail, bodies);
+        if (response == null) return;
         detail.accept(ApiEvidenceField.HTTP_STATUS.label(), response.statusLabel());
         detail.accept("response.content.type", header(response.headers(), "content-type"));
         String headers = ApiManualReplay.relevantResponseHeaders(response.headers());

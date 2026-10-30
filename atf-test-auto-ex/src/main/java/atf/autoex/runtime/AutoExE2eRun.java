@@ -126,6 +126,12 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
     public atf.ui.playwright.recovery.UiBackendRecovery backendRecovery() { return backendRecovery; }
     public AutoExAccountLifecycle accountLifecycle() { return accountLifecycle; }
     public Page page() { return browser.page(); }
+    @Override public com.microsoft.playwright.Download download(String selector, String expected) {
+        prepareUiInteraction();
+        return new atf.autoex.runtime.invoice.AutoExInvoiceDownload(page(), actions, configuration.baseUrl(),
+                configuration.storeAvailabilityPolicy()).download(locator(selector), expected);
+    }
+
     public String currentUrl() { return page().url(); }
 
     /** Reads the configured product through the site's real, read-only catalog API. */

@@ -7,9 +7,8 @@ fazele lifecycle și rezultatul PASS/FAIL/SKIP sunt contracte ale
 [Test Kit](../../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră) și
 [Reporting](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor).
 
-Restanțele includ compatibilitatea marcajului numeric Shop, achiziția parțială,
-billing-ul observat în suită, tranziția produsului AutoEx, sensul aserțiunilor
-și echivalența profilelor.
+Restanțele includ achiziția parțială, billing-ul Shop, tranziția produsului
+AutoEx și echivalența profilelor.
 Contractele deja livrate aparțin [AutoEx](../../atf-test-auto-ex/README.md),
 [Shop](../../atf-test-practice-shop/README.md) și
 [ghidului auditului componentelor](../ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
@@ -26,54 +25,10 @@ documentară /10. Nu reprezintă o notă a codului sau un rezultat de test.
 
 | ID | Scor /100 | Diferența rămasă |
 |---|---:|---|
-| `CONSUMER-SHOP-NUMERIC-FENCE-34` | 73 = 28 + 21 + 18 + 6 | capturile procesate în citirea pasivă pot rupe asocierea marcajului numeric legacy |
 | `CONSUMER-SHOP-BILLING-STATE-01` | 71 = 29 + 22 + 14 + 6 | diferență de valoare billing între suită și lansare individuală |
 | `CONSUMER-AUTOEX-PRODUCT-TRANSITION-24` | 70 = 29 + 19 + 17 + 5 | timeout la detaliul produsului după click reușit, observat în suita filtrată |
-| `CONSUMER-COMPONENT-ASSERTION-INTENT-36` | 63 = 24 + 15 + 18 + 6 | unele rânduri auditabile afișează numai operația, sursa și valori fără semnificație explicită |
 | `CONSUMER-RUNTIME-BOUNDARY-03` | 61 = 22 + 14 + 18 + 7 | probă deterministă a achiziției parțiale în factory-ul main extras |
 | `CONSUMER-E2E-PROFILES-01` | 57 = 24 + 10 + 17 + 6 | reducerea repetării live numai după echivalență demonstrată |
-
-## CONSUMER-SHOP-NUMERIC-FENCE-34 — snapshot coerent pentru API-ul legacy
-
-**Prioritate: 73/100** = impact 28 + lacună 21 + lucrabil 18 + documentare 6.
-**Owner:** [ShopApiNetworkJournal](../../atf-test-practice-shop/src/main/atf/shop/support/api/ShopApiNetworkJournal.java)
-și [ShopOrderRequestWindow](../../atf-test-practice-shop/src/main/atf/shop/support/api/correlation/ShopOrderRequestWindow.java).
-
-Flow-ul Confirm folosește deja `requestMarker()` typed. `sequenceMarker()`
-salvează însă fence-ul sub valoarea contorului citită înaintea barierei pasive,
-apoi returnează contorul recitit după procesarea evenimentelor browserului.
-
-<details>
-<summary><strong>Probă — captura din bariera pasivă</strong></summary>
-
-Proba de port folosește un Page controlat: `title()` livrează observația pending
-prin `capture(...)`, cu identitatea explicită a începutului. Nu invocă recorderul
-privat și nu pretinde un incident observat pe magazinul public.
-
-| Marcaj | Captură procesată în barieră | Comanda nouă independentă | Comparații PASS |
-|---|---|---|---:|
-| Numeric | absentă | 201, factură exactă și total 24.02 | 5/5 |
-| Typed | prezentă înaintea fence-ului | aceeași comandă nouă | 5/5 |
-| Numeric | contorul trece 0 → 1 în `title()` | aceeași comandă nouă | 0/5 |
-
-În ultimul caz, cheia salvată este 0, valoarea returnată este 1, iar lookup-ul
-legacy nu găsește fence-ul pentru 1. Refuzul protejează împotriva unui PASS
-nejustificat, dar invalidează și comanda curentă validă.
-
-</details>
-
-- [ ] Capturați contorul recepției și fence-ul începutului într-un snapshot
-      coerent după procesarea evenimentelor anterioare acțiunii; returnarea nu schimbă cheia salvată.
-- [ ] Definiți explicit comportamentul a două marcaje numerice cu aceeași
-      secvență: mapa curentă suprascrie fence-ul precedent. Apelanții nu trebuie
-      să creadă că două valori identice reprezintă ferestre independente.
-- [ ] Păstrați semantica numerică folosită de registration/payment și marcajul
-      typed al Confirm-ului; fără schimbarea rutei, statusului, totalului sau receipt-ului brut.
-- [ ] Probați pending în barieră, lipsa pending-ului, marcaje repetate, start
-      necunoscut/străin și cerere veche întârziată, cu expected independent și un singur Confirm.
-
-**Închidere:** API-ul legacy validează comanda curentă după pending-ul din
-barieră și continuă să refuze cererea veche; raportul unic și plafonul 240 se păstrează.
 
 ## CONSUMER-SHOP-BILLING-STATE-01 — valoarea observată în suita E2E
 
@@ -131,37 +86,6 @@ criteriul clasei single-flow și nu închide această diferență.
 **Închidere:** tranziția este demonstrată cu expected independent în ambele
 lansări, iar eșecul rămâne auditabil; randarea corectă nu închide robustețea journey-ului.
 
-
-## CONSUMER-COMPONENT-ASSERTION-INTENT-36 — sensul comparației în raport
-
-**Prioritate: 63/100** = impact 24 + lacună 15 + lucrabil 18 + documentare 6.
-**Owner:** testele componentă Shop/AutoEx; infrastructura existentă Kit/Reporting.
-
-Rapoartele componentelor de mai jos permit expandarea scenariu → TEST BODY →
-Component assertions și păstrează expected/actual. Unele comparații fără mesaj cer însă
-deschiderea sursei pentru a afla ce exprimă un număr ori un boolean.
-
-| Exemplu verificat | Sens absent din eticheta rândului |
-|---|---|
-| [AutoExCheckoutUiGateComponentTest](../../atf-test-auto-ex/src/test/java/atf/autoex/tests/component/purchase/AutoExCheckoutUiGateComponentTest.java) | `5 / 5` numără verificările gate-ului; `1 / 1` numără checkout-urile; booleanul compară ordinea publicării față de checkout |
-| [ShopOrderRequestStartComponentTest](../../atf-test-practice-shop/src/test/atf/shop/flow/ShopOrderRequestStartComponentTest.java) | unele rânduri au mesaje business; altele arată numai numărul de exchange-uri selectate ori statusul lor |
-
-Este o lacună de lizibilitate a auditului, fără false PASS ori assertion lipsă
-demonstrate de aceste exemple. Nu justifică alt layer de assertion sau modificarea
-verdictului, grupării ori a fixture-ului business.
-
-- [ ] Adăugați mesaje declarative în engleză comparațiilor ambigue, prin
-      overload-urile existente. Păstrați expected-ul independent, evaluarea unică
-      și semantica mesajelor leneșe; nu calculați date ori observații suplimentare.
-- [ ] Verificați câte un caz relevant în fiecare modul, individual și prin suită:
-      rândul explică invariantul la expandare, cu sursa, valorile și verdictul intacte.
-      Păstrați redactarea, bugetul configurat și pasul standard inițial colapsat.
-- [ ] Limitați schimbarea la comparațiile care cer context; nu rescrieți mecanic
-      toate testele, nu dublați probele rendererului și respectați controlul testChanges.
-
-**Închidere:** cititorul identifică sensul comparațiilor vizate din raport,
-fără a reconstrui expresia din sursă. Regula stabilă este în
-[ghidul auditului](../ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
 
 ## CONSUMER-RUNTIME-BOUNDARY-03 — probele achiziției parțiale Shop
 

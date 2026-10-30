@@ -20,7 +20,12 @@ public final class UiRequestTimeline implements AutoCloseable {
     public synchronized void attach(Page owner) {
         if (page != null || closed) throw new IllegalStateException("Request timeline is already attached or closed");
         page = java.util.Objects.requireNonNull(owner, "page");
-        page.onRequest(listener);
+        try { page.onRequest(listener); }
+        catch (RuntimeException | Error failure) {
+            try { close(); }
+            catch (RuntimeException | Error cleanup) { if (cleanup != failure) failure.addSuppressed(cleanup); }
+            throw failure;
+        }
     }
     /** Explicit start seam for an adapter that already observed the request beginning. */
     public synchronized UiRequestIdentity begin() {

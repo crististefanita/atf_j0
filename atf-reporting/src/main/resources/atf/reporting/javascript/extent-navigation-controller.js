@@ -39,12 +39,13 @@ function scheduleTestViewNormalizationAt(delay) {
     scheduleTestViewNormalization();
   }, delay);
 }
-window.atfOpenTest = function (id, scenarioIndex, expansion, failureOrdinal) {
+window.atfOpenTest = function (id, scenarioIndex, expansion, failureOrdinal, failureKind) {
   var epoch = ++atfNavEpoch;
   var hash = 'test-id=' + id;
   if (scenarioIndex !== undefined) hash += '&scenario-index=' + scenarioIndex;
   if (expansion) hash += '&expand=' + expansion;
   if (failureOrdinal !== undefined) hash += '&failure-ordinal=' + encodeURIComponent(failureOrdinal);
+  if (failureKind) hash += '&failure-kind=' + encodeURIComponent(failureKind);
   window.location.hash = hash;
   atfActivate('test-view');
   var item = document.querySelector('.test-item[test-id="' + id + '"]');
@@ -62,7 +63,7 @@ window.atfOpenTest = function (id, scenarioIndex, expansion, failureOrdinal) {
         if (card) {
           openScenarioCard(card);
           if (expansion === 'ui-validation') openScenarioAuditPath(card);
-          if (failureOrdinal !== undefined) openScenarioFailurePath(card, failureOrdinal);
+          if (failureOrdinal !== undefined) openScenarioFailurePath(card, failureOrdinal, failureKind);
         }
       }, 120);
     }
@@ -135,7 +136,8 @@ function activateFromHash() {
       id = decodeURIComponent(view.substring(8)),
       scenario,
       expansion,
-      failureOrdinal;
+      failureOrdinal,
+      failureKind;
     parts.forEach(function (part) {
       if (part.indexOf('scenario-index=') === 0)
         scenario = decodeURIComponent(part.substring(15));
@@ -143,8 +145,10 @@ function activateFromHash() {
         expansion = decodeURIComponent(part.substring(7));
       if (part.indexOf('failure-ordinal=') === 0)
         failureOrdinal = decodeURIComponent(part.substring(16));
+      if (part.indexOf('failure-kind=') === 0)
+        failureKind = decodeURIComponent(part.substring(13));
     });
-    atfOpenTest(id, scenario, expansion, failureOrdinal);
+    atfOpenTest(id, scenario, expansion, failureOrdinal, failureKind);
   }
 }
 window.addEventListener('hashchange', activateFromHash);

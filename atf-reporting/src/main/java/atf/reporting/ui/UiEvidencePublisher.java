@@ -417,8 +417,9 @@ public final class UiEvidencePublisher {
      * Projects each API exchange into a request child of one semantic
      * {@code API validation}. This is deliberately the same typed request /
      * response / execution pipeline used by direct API reports: one exchange
-     * owns one request node, one request JSON, one response JSON and its own
-     * attempt history. The parent trace carries only causal context.
+     * owns one request node, its captured payloads and attempt history. A
+     * terminal exchange without a response retains its execution diagnostics.
+     * The parent trace carries only causal context.
      */
 
     private static final class ApiEvidencePublisher {
@@ -427,8 +428,7 @@ public final class UiEvidencePublisher {
             validation.assertions(apiValidation.assertions());
             int number = 0;
             for (var exchange : apiValidation.exchanges()) {
-                var evidence = exchange.evidence();
-                if (evidence.request() != null && evidence.response() != null) publishExchange(validation, exchange, ++number);
+                publishExchange(validation, exchange, ++number);
             }
         }
 

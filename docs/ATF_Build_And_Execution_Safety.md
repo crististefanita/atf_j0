@@ -182,7 +182,9 @@ absolute și nu este inclus în raportul HTML.
 
 Guard-ul prevalidează întregul plan înaintea primei scrieri: surse regulate,
 eligibile și deschizabile pentru citire, cu căile reconciliate cu manifestul.
-O sursă ulterioară absentă sau neeligibilă refuză lotul fără modificări live.
+O sursă ulterioară absentă sau neeligibilă ori un părinte existent al destinației
+care nu este director refuză lotul fără modificări live. Preflight-ul nu creează
+părinții lipsă; directoarele se creează numai pentru fișierul executat.
 Execuția revalidează fiecare destinație; un eșec I/O ori drift apărut ulterior
 poate lăsa un lot parțial promovat. Atomicitatea rămâne per fișier, fără rollback
 al lotului; probele permanente sunt la [Core](../atf-core/README.md#manifest-și-promovare-guarded).

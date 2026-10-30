@@ -38,7 +38,7 @@ public final class ExtentTransportEvidenceRenderer {
     }
 
     void renderPhaseDiagnostics(ExtentTest scenario, List<ReportPhaseDiagnostic> diagnostics) {
-        String markup = ReportPhaseDiagnosticMarkup.render(diagnostics, redactor);
+        String markup = ReportPhaseDiagnosticMarkup.render(diagnostics, redactor, settings.assertionMaxDisplayCharacters());
         if (!markup.isBlank()) scenario.info(markup);
     }
 

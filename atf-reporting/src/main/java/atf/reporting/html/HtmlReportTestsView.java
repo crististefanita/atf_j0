@@ -24,6 +24,7 @@ import static atf.reporting.html.HtmlReportMarkupSupport.phaseKey;
 public final class HtmlReportTestsView {
     private final SensitiveDataRedactor redactor;
     private final HtmlReportEvidenceView evidence;
+    private final int assertionPreviewLimit;
 
     HtmlReportTestsView() {
         this(ReportingSettings.defaults(), new SensitiveDataRedactor());
@@ -35,6 +36,7 @@ public final class HtmlReportTestsView {
 
     HtmlReportTestsView(ReportingSettings settings, SensitiveDataRedactor redactor) {
         Objects.requireNonNull(settings, "settings");
+        assertionPreviewLimit = settings.assertionMaxDisplayCharacters();
         this.redactor = Objects.requireNonNull(redactor, "redactor");
         this.evidence = new HtmlReportEvidenceView(settings, this.redactor);
     }
@@ -100,7 +102,7 @@ public final class HtmlReportTestsView {
                                 "Sum of measured phase execution") : "")
                 .append(AtfReportHtmlVocabulary.closeTag(AtfReportHtmlVocabulary.Tag.DIV));
         scenario.phases().forEach(phase -> html.append(ReportPhaseDiagnosticMarkup.render(
-                ReportPhaseDiagnostic.from(phase.name(), phase.details(), phase.status()), redactor)));
+                ReportPhaseDiagnostic.from(phase.name(), phase.details(), phase.status()), redactor, assertionPreviewLimit)));
         scenario.phases().forEach(phase -> renderPhase(html, phase));
         html.append(AtfReportHtmlVocabulary.closeTag(AtfReportHtmlVocabulary.Tag.ARTICLE));
     }

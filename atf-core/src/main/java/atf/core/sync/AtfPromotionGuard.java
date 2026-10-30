@@ -53,6 +53,8 @@ public final class AtfPromotionGuard {
 
             List<String> promoted = new ArrayList<>();
             for (PromotionFile file : plan) {
+                AtfPromotionManifest.assertSafeEntryPath(live, file.baseline().relativePath());
+                requireDirectoryParents(live, file.destination(), file.baseline().relativePath());
                 if (!file.baseline().matches(file.destination())) {
                     throw new AtfPromotionConflictException(List.of(file.baseline().relativePath()));
                 }
@@ -71,14 +73,26 @@ public final class AtfPromotionGuard {
             if (!source.startsWith(stage) || !Files.isRegularFile(source, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
                 throw new IOException("Approved staging file is missing or ineligible: " + entry.relativePath());
             }
+            Path destination = live.resolve(entry.relativePath()).normalize();
+            requireDirectoryParents(live, destination, entry.relativePath());
             try (var input = FileChannel.open(source, StandardOpenOption.READ)) {
-                plan.add(new PromotionFile(entry, source, live.resolve(entry.relativePath()).normalize()));
+                plan.add(new PromotionFile(entry, source, destination));
             }
         }
         return List.copyOf(plan);
     }
 
     private record PromotionFile(AtfPromotionManifest.Entry baseline, Path source, Path destination) { }
+
+    /** Structural checks only: missing parents remain approved but are never created by preflight. */
+    private static void requireDirectoryParents(Path live, Path destination, String relative) throws IOException {
+        for (Path parent = destination.getParent(); parent != null && parent.startsWith(live); parent = parent.getParent()) {
+            if (Files.exists(parent, java.nio.file.LinkOption.NOFOLLOW_LINKS)
+                    && !Files.isDirectory(parent, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
+                throw new IOException("Approved destination has an ineligible parent: " + relative);
+            }
+        }
+    }
 
     private static void copyAtomically(Path source, Path destination) throws IOException {
         Path parent = destination.getParent();

@@ -40,12 +40,11 @@ final class ReportExecutionProjectionAccumulator {
         Objects.requireNonNull(scenario, "scenario");
         tags.addAll(scenario.tags());
         switch (scenario.status()) {
-            case PASS -> passed++;
+            case PASS, WARNING -> passed++;
             case FAIL -> failed++;
             case SKIP -> skipped++;
             default -> {
-                // INFO and WARNING remain visible in Tests, but are not
-                // counted as passed/failed/skipped overview verdicts.
+                // INFO remains visible in Tests without a verdict count.
             }
         }
         scenario.phases().forEach(phase -> {

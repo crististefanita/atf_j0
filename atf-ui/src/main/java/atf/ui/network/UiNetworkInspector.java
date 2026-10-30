@@ -43,10 +43,11 @@ public final class UiNetworkInspector implements AutoCloseable {
     private long dropped;
     private long inFlight;
     private boolean limitReached;
-    private volatile boolean closed;
     private Page page;
     private Consumer<Request> requestFinishedListener;
     private Consumer<Request> requestFailedListener;
+    private boolean attaching;
+    private boolean closed;
 
     public UiNetworkInspector(UiNetworkInspectionConfiguration configuration) {
         this.configuration = Objects.requireNonNull(configuration, "configuration");
@@ -60,19 +61,25 @@ public final class UiNetworkInspector implements AutoCloseable {
         Objects.requireNonNull(page, "page");
         Objects.requireNonNull(subscriber, "subscriber");
         if (!configuration.enabled()) return;
-        if (this.page != null || closed) throw new IllegalStateException("UI network inspector is already attached or closed");
-        this.page = page;
-        try {
-            requestStarts.attach(page);
-            subscribers.add(subscriber);
-            requestFinishedListener = this::observeFinished;
-            page.onRequestFinished(requestFinishedListener);
-            requestFailedListener = this::observeFailure;
-            page.onRequestFailed(requestFailedListener);
-        } catch (RuntimeException | Error failure) {
-            try { close(); }
-            catch (RuntimeException | Error cleanup) { if (cleanup != failure) failure.addSuppressed(cleanup); }
-            throw failure;
+        synchronized (captureLock) {
+            if (this.page != null || closed) throw new IllegalStateException("UI network inspector is already attached or closed");
+            this.page = page;
+            attaching = true;
+            try {
+                requestStarts.attach(page);
+                requireOpenAttachment();
+                requestFinishedListener = this::observeFinished;
+                page.onRequestFinished(requestFinishedListener);
+                requireOpenAttachment();
+                requestFailedListener = this::observeFailure;
+                page.onRequestFailed(requestFailedListener);
+                requireOpenAttachment();
+                subscribers.add(subscriber);
+                attaching = false;
+            } catch (RuntimeException | Error failure) {
+                release(failure);
+                throw failure;
+            }
         }
     }
 
@@ -88,7 +95,7 @@ public final class UiNetworkInspector implements AutoCloseable {
 
     /** Component-test seam and a safe adapter entry point for custom capture. */
     public Optional<UiNetworkObservation> capture(Response response) {
-        if (!configuration.enabled() || response == null) return Optional.empty();
+        if (!configuration.enabled() || response == null || !acceptsCaptures()) return Optional.empty();
         Request request = response.request();
         if (request == null) return Optional.empty();
         return captureSelected(request.url(), UiNetworkCapturePolicy.ResourceKind.fromPlaywright(request.resourceType()),
@@ -135,7 +142,7 @@ public final class UiNetworkInspector implements AutoCloseable {
 
     private Optional<UiNetworkObservation> captureSelected(String url, UiNetworkCapturePolicy.ResourceKind type,
                                                           LongFunction<UiNetworkObservation> factory) {
-        if (!configuration.enabled() || closed) return Optional.empty();
+        if (!configuration.enabled()) return Optional.empty();
         boolean selected;
         try {
             selected = configuration.accepts(url) && configuration.capturePolicy().accepts(url, type);
@@ -143,7 +150,7 @@ public final class UiNetworkInspector implements AutoCloseable {
             selected = false;
         }
         synchronized (captureLock) {
-            if (closed) return Optional.empty();
+            if (closed || attaching) return Optional.empty();
             if (!selected) {
                 excluded++;
                 return Optional.empty();
@@ -163,13 +170,15 @@ public final class UiNetworkInspector implements AutoCloseable {
             synchronized (captureLock) { inFlight--; dropped++; }
             throw failure;
         }
+        List<Consumer<UiNetworkObservation>> delivery;
         synchronized (captureLock) {
             inFlight--;
-            if (closed) { dropped++; return Optional.empty(); }
+            if (closed || attaching) { dropped++; return Optional.empty(); }
             observations.add(observation);
+            delivery = List.copyOf(subscribers);
         }
         // Subscriber failures cannot turn a retained observation into a dropped one.
-        notifySubscribers(observation);
+        notifySubscribers(observation, delivery);
         return Optional.of(observation);
     }
 
@@ -264,12 +273,18 @@ public final class UiNetworkInspector implements AutoCloseable {
     }
 
     @Override public void close() {
+        Throwable failure = release(null);
+        if (failure instanceof RuntimeException runtime) throw runtime;
+        if (failure instanceof Error error) throw error;
+    }
+
+    private Throwable release(Throwable primary) {
         Page owner;
-        Consumer<Request> finished;
-        Consumer<Request> failed;
+        Consumer<Request> finished, failed;
         synchronized (captureLock) {
-            if (closed) return;
+            if (closed) return primary;
             closed = true;
+            attaching = false;
             owner = page;
             finished = requestFinishedListener;
             failed = requestFailedListener;
@@ -278,22 +293,32 @@ public final class UiNetworkInspector implements AutoCloseable {
             requestFailedListener = null;
             subscribers.clear();
         }
-        Throwable primary = null;
-        for (Runnable detach : List.<Runnable>of(requestStarts::close,
-                () -> { if (owner != null && finished != null) owner.offRequestFinished(finished); },
-                () -> { if (owner != null && failed != null) owner.offRequestFailed(failed); })) {
-            try { detach.run(); }
-            catch (RuntimeException | Error failure) {
-                if (primary == null) primary = failure;
-                else if (primary != failure) primary.addSuppressed(failure);
-            }
+        primary = release(primary, requestStarts::close);
+        if (owner != null && finished != null) primary = release(primary, () -> owner.offRequestFinished(finished));
+        if (owner != null && failed != null) primary = release(primary, () -> owner.offRequestFailed(failed));
+        return primary;
+    }
+
+    private static Throwable release(Throwable primary, Runnable removal) {
+        try { removal.run(); }
+        catch (RuntimeException | Error failure) {
+            if (primary == null) return failure;
+            if (primary != failure) primary.addSuppressed(failure);
         }
-        if (primary instanceof RuntimeException failure) throw failure;
-        if (primary instanceof Error failure) throw failure;
+        return primary;
+    }
+
+    private boolean acceptsCaptures() {
+        synchronized (captureLock) { return !closed && !attaching; }
+    }
+
+    private void requireOpenAttachment() {
+        if (closed) throw new IllegalStateException("UI network inspector closed during attachment");
     }
 
     private void observeFinished(Request request) {
-        if (request == null || closed) return;
+        if (request == null) return;
+        if (!acceptsCaptures()) { requestStarts.forget(request); return; }
         try {
             captureSelected(request.url(), UiNetworkCapturePolicy.ResourceKind.fromPlaywright(request.resourceType()), next -> {
                 Response response = request.response();
@@ -309,7 +334,8 @@ public final class UiNetworkInspector implements AutoCloseable {
     }
 
     private void observeFailure(Request request) {
-        if (request == null || closed) return;
+        if (request == null) return;
+        if (!acceptsCaptures()) { requestStarts.forget(request); return; }
         try {
             captureSelected(request.url(), UiNetworkCapturePolicy.ResourceKind.fromPlaywright(request.resourceType()),
                     next -> {
@@ -338,12 +364,7 @@ public final class UiNetworkInspector implements AutoCloseable {
                 .anyMatch(value -> value.stripLeading().regionMatches(true, 0, "attachment", 0, 10));
     }
 
-    private void notifySubscribers(UiNetworkObservation observation) {
-        List<Consumer<UiNetworkObservation>> current;
-        synchronized (captureLock) {
-            if (closed) return;
-            current = List.copyOf(subscribers);
-        }
+    private void notifySubscribers(UiNetworkObservation observation, List<Consumer<UiNetworkObservation>> current) {
         for (int index = 0; index < current.size(); index++) {
             try { current.get(index).accept(observation); }
             catch (RuntimeException error) {

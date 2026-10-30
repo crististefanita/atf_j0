@@ -71,8 +71,10 @@ public final class ShopOrderReportProbe {
         LOCATORS.tab(report, fallback, "Fails").click();
         var backlink = LOCATORS.failureLink(report, fallback);
         assertTrue(backlink.getAttribute("href").startsWith("#test-id="));
+        String expectedRoute = java.net.URI.create(backlink.getAttribute("href")).getFragment();
         backlink.click();
-        assertTrue(report.url().contains("test-id="), "Backlink targets the owning scenario");
+        assertEquals(expectedRoute, java.net.URI.create(report.url()).getFragment(),
+                "Backlink retains the exact owning scenario and failure ordinal after URI decoding");
         if (!fallback) LOCATORS.expandAll(report).click();
         assertTrue(response.isVisible(), "Failure backlink returns to the observed order checks");
         LOCATORS.tab(report, fallback, "Overview").click();

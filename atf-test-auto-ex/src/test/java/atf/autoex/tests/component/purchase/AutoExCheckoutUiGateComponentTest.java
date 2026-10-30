@@ -30,16 +30,20 @@ class AutoExCheckoutUiGateComponentTest {
         var flow = new AutoExPurchaseUiFlow(session, new ProductsPage(session, PRODUCT.productName()), INPUTS);
         flow.registerOwnedCustomer(); probe.calls.clear();
         if (mode.equals("owned")) flow.reviewCheckout();
-        else assertThrows(AutoExCheckoutValidationException.class, flow::reviewCheckout);
-        assertEquals(5, probe.gateRows.size());
+        else assertThrows(AutoExCheckoutValidationException.class, flow::reviewCheckout,
+                "An unsafe owner or cart stops checkout at the business gate");
+        assertEquals(5, probe.gateRows.size(), "The checkout gate retains all five identity, cart and total comparisons");
         assertTrue(probe.calls.indexOf("observe-customer") >= 0
                         && probe.calls.indexOf("observe-customer") < probe.calls.indexOf("publish-gate"),
                 "The page's bounded customer observation precedes the business gate publication");
-        assertEquals(probe.registeredName, probe.gateRows.getFirst().expected());
-        assertEquals(mode.equals("owned") ? 1 : 0, Collections.frequency(probe.calls, "checkout"));
-        assertTrue(probe.calls.indexOf("publish-gate") >= 0);
-        if (mode.equals("owned")) assertTrue(probe.calls.indexOf("publish-gate") < probe.calls.indexOf("checkout"));
-        else assertFalse(probe.gateRows.stream().allMatch(AtfAssertion::passed));
+        assertEquals(probe.registeredName, probe.gateRows.getFirst().expected(), "The gate's expected owner comes from this registration");
+        assertEquals(mode.equals("owned") ? 1 : 0, Collections.frequency(probe.calls, "checkout"),
+                "Only the accepted owner and current cart permit one checkout activation; unsafe modes dispatch none");
+        assertTrue(probe.calls.indexOf("publish-gate") >= 0, "Every checkout gate publishes its original comparisons");
+        if (mode.equals("owned")) assertTrue(probe.calls.indexOf("publish-gate") < probe.calls.indexOf("checkout"),
+                "The accepted business gate is published before the only checkout activation");
+        else assertFalse(probe.gateRows.stream().allMatch(AtfAssertion::passed),
+                "At least one independent comparison refuses the unsafe owner or cart");
     }
 
     private static final class Probe implements InvocationHandler {

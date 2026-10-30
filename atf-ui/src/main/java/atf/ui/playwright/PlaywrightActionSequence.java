@@ -97,6 +97,12 @@ public final class PlaywrightActionSequence {
         return browserActions.clickAndWaitForPopup(page, locator, locatorTarget, expected);
     }
 
+    /** Records one pointer activation and bounded event observation; never automatically replays the click. */
+    public com.microsoft.playwright.Download download(Page page, AtfLocator element, String expected,
+            java.util.function.BiConsumer<ObservationBudget, java.util.function.BooleanSupplier> readiness) {
+        return browserActions.download(page, element, expected, readiness);
+    }
+
     public String getText(Locator locator, String locatorTarget, String expected) {
         return locatorActions.getText(locator, locatorTarget, expected);
     }

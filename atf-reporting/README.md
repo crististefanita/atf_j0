@@ -6,7 +6,7 @@ nu citește mock-uri sau fixture-uri de aplicație.
 
 ## Pe scurt
 
-**Trasee rapide:** [Arbore și ownership](#contractul-raportului) · [Aserțiuni și buget](#proiecția-sigură-a-aserțiunilor) · [Timing](#timing-e2e-la-ownerul-runtime) · [Tabele](#lizibilitatea-dovezilor-în-panouri-înguste) · [Probe și limite](#verificare-rapidă)
+**Trasee rapide:** [Adopție JAR](#consumarea-bibliotecii-ca-jar) · [Arbore și ownership](#contractul-raportului) · [Aserțiuni și buget](#proiecția-sigură-a-aserțiunilor) · [Timing](#timing-e2e-la-ownerul-runtime) · [Tabele](#lizibilitatea-dovezilor-în-panouri-înguste) · [Probe și limite](#verificare-rapidă)
 
 - **producție** — contracte typed, modele semantice, renderer, asset-uri și
   publication; zero dependențe către module ATF;
@@ -21,6 +21,74 @@ nu citește mock-uri sau fixture-uri de aplicație.
 
 Contractele de semantică și display sunt legate din [contracte și feedback](#contracte-și-feedback).
 Structura harness-ului aparține [Reporting Tests](../atf-reporting-tests/README.md).
+Pentru consolidare, [atlasul codului](src/main/java/atf/reporting/README.md)
+selectează contextul pe responsabilitate: intrări, invariante, surse și probe locale.
+
+## Consumarea bibliotecii ca JAR
+
+Biblioteca se compilează pentru **Java 21**. Artefactul Maven este un JAR thin:
+aplicația îl consumă împreună cu dependențele runtime rezolvate din POM;
+`atf-reporting-tests` rămâne modul intern de verificare, nu dependență a aplicației.
+
+```xml
+<dependency>
+    <groupId>atf.api</groupId>
+    <artifactId>atf-reporting</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+```
+
+| Intrare | Responsabilitate |
+|---|---|
+| `AtfReportPorts` și modelele typed | consumerul furnizează observațiile și verdictul; biblioteca conservă și publică dovezile |
+| `ExtentReportSession` | rendererul Extent și publicarea finală la `close()` |
+| `HtmlReportSession` | rendererul fallback; are propriul lifecycle de publicare |
+| `UiExtentReportOptions` / `UiExtentReportSession` | profilul de evidence și compoziția checkpoint-urilor, fără browser sau executor HTTP |
+
+<details>
+<summary><strong>Exemplu Java — raport din observație furnizată de aplicație</strong></summary>
+
+```java
+import atf.reporting.configuration.ReportingSettings;
+import atf.reporting.contract.AtfAssertion;
+import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.extent.session.ExtentReportSession;
+import java.nio.file.Path;
+import java.util.List;
+
+public final class ReportExample {
+    public static void main(String[] args) {
+        if (args.length != 2) throw new IllegalArgumentException("Expected: output.html observed-state");
+        String expected = "ready";
+        String actual = args[1];
+        boolean passed = expected.equals(actual);
+        var status = passed ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
+        try (var session = new ExtentReportSession(Path.of(args[0]), ReportingSettings.defaults());
+             var scenario = session.startScenario("ConsumerExample", "the observed state is ready", List.of("component"));
+             var phase = scenario.startPhase("TEST BODY");
+             var checks = phase.startAssertionStep("Component assertions")) {
+            checks.assertions(List.of(new AtfAssertion("Observed state", expected, actual, passed)));
+            checks.complete(status);
+            phase.complete(status);
+            scenario.complete(status);
+        }
+        if (!passed) throw new AssertionError("Observed state differs; inspect the generated report");
+    }
+}
+```
+
+- Observația și comparația sunt ale aplicației; exemplul nu execută un test
+  business în interiorul bibliotecii și nu are nevoie de module ATF suplimentare.
+- Scope-urile sunt închise copil → părinte; artifactul final Extent este
+  disponibil după închiderea sesiunii. `flush()` nu înlocuiește acel `close()`.
+- Coordonatele descriu versiunea de dezvoltare din POM; publicarea unei versiuni
+  release și garanțiile de compatibilitate cer criteriile de mai jos.
+
+</details>
+
+JAR-ul fizic poate fi consumat separat de reactor. Pregătirea pentru release
+are încă [criterii active](../docs/feedback/ATF_Reporting_Feedback.md): redactarea
+JSON, configurația, API-ul și probele de izolare.
 
 ## Limitele librăriei autonome și consumatorul canonic
 
@@ -59,9 +127,10 @@ flowchart LR
 - `atf-reporting/pom.xml` este parentless și nu declară dependențe către module
   ATF în production;
 - `src/test` poate verifica boundary-ul standalone fără să contamineze JAR-ul;
-- `atf-reporting` este renderer-neutral și publică HTML prin API-ul
-  `atf.reporting.*`: contracte, records immutable, porturi, evidence,
-  snapshot și renderer;
+- `atf-reporting` publică HTML prin contracte typed, records immutable, porturi,
+  evidence, snapshot și renderer. Namespace-ul `atf.reporting.*` include și
+  implementări publice tehnic; inventarul API-ului susținut extern are
+  [criteriu separat](../docs/feedback/ATF_Reporting_Feedback.md#report-public-api-43--suprafață-susținută-și-ownership);
 - `ReportModelAdapters` este adaptorul public generic, reflection-only pentru request,
   execution/retry/provenance, assertions, UI actions și statusuri; decodarea URI
   este deținută de `ReportQueryParameters`. Aceste API-uri nu conțin reguli de
@@ -76,10 +145,11 @@ flowchart LR
   doar contextul propriu — de exemplu, trace-ul și redactarea identității Shop;
 - orice dependență test-scope din afara consumerului canonic este urmărită în
   [feedback-ul activ](../docs/feedback/README.md), nu duplicată ca TODO aici;
-- standalone înseamnă build independent de parent-ul reactorului și de artifacte
-  ATF; compoziția completă are owner separat în `atf-reporting-tests`;
-- ținta și dovada de decuplare se închid numai după verificarea codului și POM-ului
-  live.
+- POM-ul și runtime-ul nu cer parent-ul reactorului ori artifacte ATF.
+  Guard-ul propriu de dependențe caută încă rădăcina ATF: copierea modulului
+  singur nu trece integral gate-ul de teste. [Izolarea completă](../docs/feedback/ATF_Reporting_Feedback.md#report-standalone-isolation-41--modulul-copiat-singur)
+  cere această probă, separat de build-ul în checkout și de consumarea JAR-ului;
+- compoziția completă și oracolele browser rămân în `atf-reporting-tests`.
 
 </details>
 
@@ -312,6 +382,7 @@ eșuează. Proiecția exchange-urilor aparține colaboratorului intern
 | Body/complete și close eșuează | inițiala cu eroarea close în suppressed | fără reluarea publicării |
 | Numai close eșuează | aceeași eroare close | fără complete suplimentar |
 | Close aruncă aceeași instanță ca body | inițiala, fără self-suppression | o singură încercare close |
+| Achiziția copilului eșuează | aceeași eroare de achiziție | se închide părintele deținut, fără close pe copilul neobținut |
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
@@ -328,7 +399,7 @@ flowchart LR
 <details>
 <summary><strong>Legendă — ownership, ordine și proiecție API</strong></summary>
 
-- Protocolul privat de publicare închide request-ul și validările create,
+- Protocolul comun de publicare închide request-ul și validările create,
   inclusiv UI validation standard/media și API assertions.
 - Diagrama descrie protocolul comun de închidere. Publisherul de failure
   deține separat request-ul și validarea; copilul se închide înaintea părintelui,
@@ -337,15 +408,17 @@ flowchart LR
   sunt reexecutate pentru a compensa o eroare close.
 - Colaboratorul API primește `UiApiValidationEvidence` și porturi Reporting.
   Păstrează ownerul API, exchange-urile și aserțiunile evaluate la consumer.
-- Colaboratorul rămâne intern: fără tip public nou, dependență browser/JUnit,
-  modul suplimentar sau modificarea numărului maxim de tipuri pe pachet.
+- Colaboratorii rămân implementare internă: fără extinderea fațadei consumerilor,
+  dependență browser/JUnit, modul nou sau relaxarea limitei de tipuri pe pachet.
 - Gruparea flow-ului, politicile screenshot, timing-ul și preview-ul configurat
   păstrează contractele existente; cleanup-ul nu reevaluează comparații.
 
 </details>
 
 Proba `UiPublicationFailureComponentTest` injectează erori prin fațada publică,
-în outcome, setup, checkpoint, media, trace API și flow unificat în/peste faze.
+în outcome, setup, checkpoint, media, trace API, flow unificat în/peste faze și
+failure delegat. Matricea verifică și achiziția copilului, `Error` identic și
+erori multiple de cleanup, cu închidere copil înaintea părintelui.
 
 `UiFailurePublicationComponentTest` probează independent publisherul de failure,
 direct și prin fațadă: porturi fără cleanup în cascadă, achiziție parțială,
@@ -372,7 +445,7 @@ TestCase
 ├── TEST BODY (acțiunea și validarea)
 │   ├── Request
 │   │   ├── Request details + body (JSON / form / text / absent)
-│   │   ├── Response details + body (JSON / form / text / absent)
+│   │   ├── Response details + body (numai pentru response capturat)
 │   │   ├── Execution evidence
 │   │   └── Contract validation (când este evaluat un contract al răspunsului)
 │   │       └── aggregate assertion table
@@ -476,7 +549,7 @@ UI checkpoint
 └── API validation (numai când există exchange-uri selectate)
     └── HTTP exchange
         ├── Request details → method/path/url/auth/headers/transport/replay + REQUEST JSON
-        ├── Response details → status/content-type + RESPONSE JSON
+        ├── Response details → status/content-type + RESPONSE JSON (numai pentru response capturat)
         └── Execution evidence → attempts/retries/duration/outcome
 ```
 
@@ -542,13 +615,24 @@ Rendererul nu inventează statusuri.
 
 `ReportExecutionEvidence` poate avea response absent și metadata typed
 `Termination`; acestea aparțin execuției, separat de HTTP.
-`ApiExchangeEvidence.publishFailure` publică request-ul cunoscut, istoricul
-și diagnosticul, fără a decide verdictul consumerului.
+`ApiExchangeEvidence.publish` păstrează request-ul cunoscut, istoricul și
+diagnosticul inclusiv fără response. `publishFailure` permite și URL-ul rezolvat
+cunoscut de caller; niciuna dintre intrări nu decide verdictul consumerului.
+
+`UiApiValidationEvidence.Exchange` cere request capturat. Fără response, statusul
+explicit diferit de INFO ori aserțiunile evaluate furnizează verdictul; absența
+ambelor este refuzată prin `IllegalArgumentException` înaintea publicării.
+INFO singur este observație, nu verdict. Un canal API gol rămâne valid și INFO.
+
+Diagnosticul este inspectabil în Tests. Indexarea Fails a unui FAIL terminal
+fără assertions are încă [un criteriu separat](../docs/feedback/ATF_Reporting_Feedback.md#report-terminal-failure-index-48--cauza-transportului-în-indexul-fails):
+contextul generic Extent și omisiunea fallback nu sunt garanții de paritate.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Snapshot["Snapshot"] -->|convertește| Evidence["Execution evidence"]
+    Snapshot["Snapshot"] -->|validează| Verdict["Verdict explicit"]
+    Verdict -->|publică| Evidence["Execution evidence"]
     Evidence -->|proiectează| History["Încercări"]
     Evidence -->|separă| Diagnostic["Diagnostic"]
     History -->|afișează| Missing["Unavailable"]
@@ -564,18 +648,31 @@ flowchart LR
   inventează status, body ori response duration pentru încercarea terminală.
 - Terminarea și diagnosticul stau în disclosure-ul Execution evidence.
   În lipsa răspunsului nu apare un disclosure Response details fabricat.
+- Fiecare exchange valid rămâne copil API în setup, checkpoint, validare finală,
+  trace și flow unificat, inclusiv între faze. Lipsa response-ului nu filtrează
+  exchange-ul și nu renumerotează vecinii. FAIL/SKIP din aserțiuni domină PASS
+  transmis de caller; PASS pentru un eșec așteptat cere verdictul său explicit.
+- Un URL rezolvat necunoscut rămâne gol; ruta nu devine un URL inventat sau
+  o comandă replay. Terminarea absentă nu primește o cauză presupusă.
 - Zero dispatch-uri păstrează transportul selectat, fără afirmația că rețeaua
   a fost executată ori că replay-ul manual ar fi verificat.
 - Textul complet este redactat înaintea plafonului integral de 240 de
   caractere, inclusiv elipsa; bugetul personalizat se aplică la proiecție.
 - `TerminalExecutionProjectionTest` și `TerminalApiExecutionReportTest`
   verifică modelul, Extent/fallback, redacția, tastatura și ultimul rând.
+- `ReportingStandaloneVerdictComponentTest` protejează boundary-ul standalone, iar
+  `UiTerminalExchangeReportComponentTest` verifică arborele UI/API, diagnosticul,
+  încercările, totalurile și disclosure-ul în Extent/fallback, cu buget implicit
+  și personalizat. Probele folosesc snapshot-uri locale, fără dispatch HTTP.
+- Totalul pass-like din Overview este PASS + WARNING în ambele renderere;
+  verdictul WARNING rămâne distinct în arbore și nu devine failure în Fails.
 
 Etichetele scurte păstrează următorul sens:
 
 | În schemă | Sens complet |
 |---|---|
 | Snapshot | Snapshot consumer |
+| Verdict explicit | status caller diferit de INFO sau aserțiuni evaluate ale exchange-ului fără response |
 | Execution evidence | Execution evidence + Termination |
 | Încercări | Încercări în ordine |
 | Diagnostic | Diagnostic de execuție |
@@ -797,6 +894,9 @@ contract, nu un ToDo activ.
 </details>
 
 ## Structura producției
+
+[Atlasul pachetelor](src/main/java/atf/reporting/README.md) este intrarea pentru
+o revizie locală; inventarul de mai jos permite apoi găsirea detaliilor concrete.
 
 <details>
 <summary><strong>Detalii — structura producției</strong></summary>
@@ -1340,16 +1440,16 @@ o închidere prin mouse, Enter sau Space nu este anulată ulterior de acel callb
 
 #### Revenirea la comparația eșuată
 
-În Extent, Fails păstrează ordinalul comparației în scenariul original, alături
-de clasa și indexul scenariului. Același identificator este păstrat în hash,
+În Extent, Fails păstrează tipul dovezii și ordinalul ei în scenariul original,
+alături de clasa și indexul scenariului. Identificatorul este păstrat în hash,
 inclusiv după reload; textul trunchiat nu este folosit pentru identificare.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Index["Fails"] -->|identifică| Scenario["Scenariu + ordinal"]
+    Index["Fails"] -->|identifică| Scenario["Scenariu + tip + ordinal"]
     Scenario -->|deschide| Path["Fază / pas / validare"]
-    Path -->|arată| Row["Comparația originală"]
+    Path -->|arată| Row["Dovada originală"]
 ```
 
 <details>
@@ -1364,9 +1464,17 @@ flowchart LR
 - Oracolul verifică vizibilitatea înaintea oricărei expandări asistate și
   respinge faza închisă sub un scenariu vizibil. Vecinul PASS rămâne colapsat;
   verdictul și coloanele comparației originale se păstrează.
-- Pentru un diagnostic fără comparație se păstrează contextul scenariului;
-  această cale nu inventează un rând de assertion ori o identitate de transport.
-  Fallback-ul păstrează propria navigare, verificată separat de rendererul Extent.
+- Un FAIL fără comparații indexează diagnosticele de execuție existente, pe
+  faze, cu tip explicit. Fails arată DIAGNOSTIC și EVIDENCE; nu fabrică expected,
+  actual, validări contractuale sau identitate HTTP. Cauza respectă bugetul configurat.
+- Fallback-ul păstrează ordinalul proiecției semantice: diagnosticele fazei, apoi
+  comparațiile copiilor în ordinea arborelui. Backlink-ul deschide disclosure-ul
+  original și păstrează ruta la reload, inclusiv când diagnosticele sunt intercalate.
+  Ruta deține scroll-ul: restaurează după inițializarea documentului și layout-ul
+  coloanelor, fără restaurarea automată concurentă a poziției de către browser.
+- `PublishedFailureNavigationEdgeComponentTest` verifică separat aceste margini,
+  preview-uri configurate, tastatură, scroll și control negativ pentru ancestor
+  ascuns. Deschiderea legacy și cea exactă reutilizează aceeași funcție de reveal.
 
 </details>
 

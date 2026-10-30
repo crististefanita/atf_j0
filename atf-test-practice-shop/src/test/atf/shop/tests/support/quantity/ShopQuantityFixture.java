@@ -19,6 +19,13 @@ public final class ShopQuantityFixture implements AutoCloseable {
 
     public ShopQuantityFixture(State state) {
         page.setDefaultTimeout(500);
+        page.route("https://api.practicesoftwaretesting.com/**", route -> route.fulfill(new com.microsoft.playwright.Route.FulfillOptions()
+                .setContentType("application/json").setHeaders(java.util.Map.of("Access-Control-Allow-Origin", "*",
+                        "Access-Control-Allow-Methods", "POST,OPTIONS", "Access-Control-Allow-Headers", "content-type"))
+                .setBody("{}")));
+        page.route("http://quantity-fixture.test/**", route -> route.fulfill(new com.microsoft.playwright.Route.FulfillOptions()
+                .setContentType("text/html").setBody("<html></html>")));
+        page.navigate("http://quantity-fixture.test/product/fixture-product");
         page.setContent("""
                 <h1 data-test='product-name'>Pliers</h1>
                 <span data-test='unit-price'>$12.01</span>
@@ -28,6 +35,8 @@ public final class ShopQuantityFixture implements AutoCloseable {
                 <p data-test='out-of-stock' hidden>Out of stock</p>
                 <button data-test='add-to-cart' disabled onclick="window.adds++;
                   window.addedQuantity=document.querySelector('input').value;
+                  fetch('https://api.practicesoftwaretesting.com/carts/fixture-cart',{method:'POST',
+                    headers:{'Content-Type':'application/json'},body:JSON.stringify({product_id:'fixture-product',quantity:Number(window.addedQuantity)})});
                   document.querySelector('output').textContent='Product added to shopping cart'">Add to cart</button>
                 <output></output>
                 <script>

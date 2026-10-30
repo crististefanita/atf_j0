@@ -2624,6 +2624,41 @@ Controalele leagă probele independente de readiness, eliberarea resurselor și
 revenirea la comparația originală de perimetrul exact al revizuirii.
 
 <details>
+<summary><strong>Registru YAML — atașare indivizibilă și probe de boundary extinse</strong></summary>
+
+```yaml
+testChanges:
+  - id: UI-CAPTURE-ATTACH-38
+    status: VERIFIED
+    base: ddba3dee4dd4ecd544a8b1c22d31bae226eed5cf
+    expires: 2026-11-29
+    reason: Extinde proba existentă cu refuzul capturii înaintea ultimei înscrieri, close reentrant la fiecare hook, eșec înainte/după înscriere și toate cauzele rollback direct suppressed. Comportamentul live anterior este refuzat în cinci cazuri.
+    proof: mvn -B -pl atf-ui,atf-test-auto-ex,atf-reporting-tests,atf-test-practice-shop,atf-tests -am "-Dtest=UiNetworkLifecycleComponentTest,AutoExCustomerIdentityObservationComponentTest,UiPublicationFailureComponentTest,UiFailurePublicationComponentTest,AutoExComponentReportScopeComponentTest,ShopComponentReportScopeComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=ddba3dee4dd4ecd544a8b1c22d31bae226eed5cf" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-ui/src/test/java/atf/ui/network/lifecycle/UiNetworkLifecycleComponentTest.java
+  - id: AUTOEX-IDENTITY-DEADLINE-38
+    status: VERIFIED
+    base: ddba3dee4dd4ecd544a8b1c22d31bae226eed5cf
+    expires: 2026-11-29
+    reason: Extinde fixture-ul și testul existent cu owner străin întârziat și vizibilitate după deadline. Expected-ul nu înlocuiește observația, iar ambele refuzuri păstrează zero activări fără timeout mărit.
+    proof: mvn -B -pl atf-ui,atf-test-auto-ex,atf-reporting-tests,atf-test-practice-shop,atf-tests -am "-Dtest=UiNetworkLifecycleComponentTest,AutoExCustomerIdentityObservationComponentTest,UiPublicationFailureComponentTest,UiFailurePublicationComponentTest,AutoExComponentReportScopeComponentTest,ShopComponentReportScopeComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=ddba3dee4dd4ecd544a8b1c22d31bae226eed5cf" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/pages/AutoExCustomerIdentityObservationComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/support/identity/AutoExCustomerIdentityFixture.java
+  - id: REPORT-PUBLICATION-ACQUISITION-38
+    status: VERIFIED
+    base: ddba3dee4dd4ecd544a8b1c22d31bae226eed5cf
+    expires: 2026-11-29
+    reason: Extinde matricea publică la failure delegat, achiziția fiecărui scope, aceeași instanță Error și erori distincte de cleanup copil/părinte. Păstrează cazurile directe și protocolul live comun fără implementare paralelă.
+    proof: mvn -B -pl atf-ui,atf-test-auto-ex,atf-reporting-tests,atf-test-practice-shop,atf-tests -am "-Dtest=UiNetworkLifecycleComponentTest,AutoExCustomerIdentityObservationComponentTest,UiPublicationFailureComponentTest,UiFailurePublicationComponentTest,AutoExComponentReportScopeComponentTest,ShopComponentReportScopeComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=ddba3dee4dd4ecd544a8b1c22d31bae226eed5cf" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/publication/UiPublicationFailureComponentTest.java
+```
+
+</details>
+
+
+<details>
 <summary><strong>Registru YAML — controale VERIFIED pentru cele trei priorități</strong></summary>
 
 ```yaml
@@ -2632,8 +2667,8 @@ testChanges:
     status: VERIFIED
     base: addd434eaeec7a67fa58eb85256b843ae30c3db5
     expires: 2026-11-06
-    reason: Protejează observația bounded a identității prin pagina reală, refuzul identității străine sau indisponibile și activarea unică a checkout-ului. Păstrează cele cinci comparații ale gate-ului și scenariile existente.
-    proof: mvn "-Dtest=AutoExCustomerIdentityObservationComponentTest,AutoExCheckoutUiGateComponentTest,UiNetworkLifecycleComponentTest,UiFailurePublicationComponentTest,PublishedFailureNavigationComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Datf.test.heap.max=384m" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    reason: Protejează observația bounded a identității prin pagina reală, refuzul identității străine sau indisponibile și activarea unică a checkout-ului. Păstrează cele cinci comparații ale gate-ului și scenariile existente. Adaugă probe browser pentru text întârziat, document înlocuit și identitate străină întârziată, păstrând deadline-ul și activarea unică. Clarifică mesajele auditabile ale comparațiilor existente din gate-ul checkout, fără schimbarea valorilor, ordinii sau numărului evaluărilor.
+    proof: mvn "-Dtest=AutoExCustomerIdentityObservationComponentTest,AutoExCheckoutUiGateComponentTest,UiNetworkLifecycleComponentTest,UiFailurePublicationComponentTest,PublishedFailureNavigationComponentTest,PublishedFailureNavigationEdgeComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Datf.test.heap.max=384m" "-Dsurefire.failIfNoSpecifiedTests=false" test
     paths:
       - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/pages/AutoExCustomerIdentityObservationComponentTest.java
       - atf-test-auto-ex/src/test/java/atf/autoex/tests/support/identity/AutoExCustomerIdentityFixture.java
@@ -2642,22 +2677,129 @@ testChanges:
     status: VERIFIED
     base: addd434eaeec7a67fa58eb85256b843ae30c3db5
     expires: 2026-11-06
-    reason: Probe independente pentru atașare parțială, toate dezabonările, callback-uri după close și conservarea RuntimeException/Error fără self-suppression.
-    proof: mvn "-Dtest=AutoExCustomerIdentityObservationComponentTest,AutoExCheckoutUiGateComponentTest,UiNetworkLifecycleComponentTest,UiFailurePublicationComponentTest,PublishedFailureNavigationComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Datf.test.heap.max=384m" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    reason: Probe independente pentru atașare parțială, toate dezabonările, callback-uri după close și conservarea RuntimeException/Error fără self-suppression. Acoperă și timeline-ul folosit direct, rollback-ul propriei înscrieri și refuzul accesării unui Response de browser după close.
+    proof: mvn "-Dtest=AutoExCustomerIdentityObservationComponentTest,AutoExCheckoutUiGateComponentTest,UiNetworkLifecycleComponentTest,UiFailurePublicationComponentTest,PublishedFailureNavigationComponentTest,PublishedFailureNavigationEdgeComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Datf.test.heap.max=384m" "-Dsurefire.failIfNoSpecifiedTests=false" test
     paths:
       - atf-ui/src/test/java/atf/ui/network/lifecycle/UiNetworkLifecycleComponentTest.java
   - id: REPORT-FAILURE-OWNERSHIP-NAVIGATION-37
     status: VERIFIED
     base: addd434eaeec7a67fa58eb85256b843ae30c3db5
     expires: 2026-11-06
-    reason: Protejează publisherul de failure direct și delegat prin porturi fără cleanup în cascadă și navigarea exactă în SETUP/TEST BODY/TEARDOWN pentru UI/API/component, inclusiv controale negative și tastatură.
-    proof: mvn "-Dtest=AutoExCustomerIdentityObservationComponentTest,AutoExCheckoutUiGateComponentTest,UiNetworkLifecycleComponentTest,UiFailurePublicationComponentTest,PublishedFailureNavigationComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Datf.test.heap.max=384m" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    reason: Protejează publisherul de failure direct și delegat prin porturi fără cleanup în cascadă și navigarea exactă în SETUP/TEST BODY/TEARDOWN pentru UI/API/component, inclusiv controale negative și tastatură. Extinde navigarea la diagnostice typed fără comparații și fallback cu diagnostice intercalate, preview configurat, reload și oracole negative. Reconcilierea păstrează matricea publică de achiziție/cleanup extinsă live, verificată și la baza acestui audit.
+    proof: mvn "-Dtest=AutoExCustomerIdentityObservationComponentTest,AutoExCheckoutUiGateComponentTest,UiNetworkLifecycleComponentTest,UiFailurePublicationComponentTest,UiPublicationFailureComponentTest,PublishedFailureNavigationComponentTest,PublishedFailureNavigationEdgeComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Datf.test.heap.max=384m" "-Dsurefire.failIfNoSpecifiedTests=false" test
     paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/publication/UiPublicationFailureComponentTest.java
       - atf-reporting-tests/src/test/java/atf/reporting/ui/publication/UiFailurePublicationComponentTest.java
       - atf-reporting-tests/src/test/java/atf/reporting/support/failurecorrelation/FailureNavigationFixture.java
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/failurenavigation/FailureNavigationLocators.java
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failurenavigation/FailureNavigationProbe.java
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationEdgeComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failurenavigation/FailureNavigationEdgeProbe.java
+```
+
+</details>
+
+## Controlul corecției coșului și facturii
+
+<details>
+<summary><strong>Control tehnic — confirmare cauzală și download măsurat</strong></summary>
+
+Shop păstrează probele la ownerul său; controlul YAML enumeră numai căile
+protejate AutoEx/UI, conform `TestChangePolicy.protectedPath(...)`.
+
+```yaml
+testChanges:
+  - id: CONSUMER-CART-INVOICE-40
+    status: VERIFIED
+    base: addd434eaeec7a67fa58eb85256b843ae30c3db5
+    expires: 2026-11-30
+    reason: Probe deterministe pentru confirmarea request-ului de coș după o singură activare și recuperarea exclusivă a GET-ului facturii queue-full în deadline-ul inițial. Fixture-ul quantity primește un răspuns HTTP real controlat, păstrând assertions existente; backlink-ul compară exact fragmentul URI decodat și ordinalul, inclusiv ID-ul fallback encodat; Download păstrează cauza, timing-ul și cleanup-ul listenerului, fără replay de mutații.
+    proof: mvn -B "-Dtest=ShopCartAcknowledgementComponentTest,ShopProductQuantityComponentTest,ShopOrderRequestStartComponentTest,AutoExInvoiceDownloadComponentTest,AutoExPagePortsComponentTest,PlaywrightDownloadComponentTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/pages/AutoExInvoiceDownloadComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/support/invoice/AutoExInvoiceDownloadFixture.java
+      - atf-ui/src/test/java/atf/ui/playwright/download/PlaywrightDownloadComponentTest.java
+      - atf-ui/src/test/java/atf/ui/tests/support/download/UiDownloadPortFixture.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control tehnic — părinții destinației în preflight</strong></summary>
+
+```yaml
+testChanges:
+  - id: CORE-PROMOTION-PARENTS-41
+    status: VERIFIED
+    base: addd434eaeec7a67fa58eb85256b843ae30c3db5
+    expires: 2026-11-30
+    reason: Extinde proba publică de preflight cu părinte fișier existent sau schimbat după captură, inclusiv ancestor intermediar; păstrează toate sursele și fișierele live la refuz, fără creare de părinți în preflight sau tranzacție pretinsă pentru lot.
+    proof: mvn -B -pl atf-core,atf-test-practice-shop,atf-tests -am "-Dtest=AtfPromotionPreflightTest,AtfPromotionGuardTest,ShopLegacyMarkerComponentTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-core/src/test/java/atf/core/sync/AtfPromotionPreflightTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control YAML — verdict terminal și dovadă nested</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-TERMINAL-EXCHANGE-39
+    status: VERIFIED
+    base: ddba3dee4dd4ecd544a8b1c22d31bae226eed5cf
+    expires: 2026-11-13
+    reason: Refuză un exchange fără răspuns și fără verdict explicit ori aserțiuni evaluate. Probele negative detectează succesul implicit și pierderea copilului API; Extent și fallback păstrează diagnosticul, istoricul, vecinii PASS și bugetul configurat prin toate căile UI.
+    proof: mvn -B -pl atf-reporting-tests,atf-test-auto-ex,atf-test-practice-shop,atf-tests -am "-Dtest=ReportingStandaloneVerdictComponentTest,UiTerminalExchangeReportComponentTest,UiApiValidationContractComponentTest,TerminalExecutionProjectionTest,TerminalApiExecutionReportTest,AutoExComponentReportScopeComponentTest,ShopComponentReportScopeComponentTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=ddba3dee4dd4ecd544a8b1c22d31bae226eed5cf" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting/src/test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/execution/UiTerminalExchangeFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/execution/UiTerminalExchangeReportComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/execution/UiTerminalExchangeLocators.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/execution/UiTerminalExchangeProbe.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control tehnic — revalidarea facturii și download-ului la HEAD</strong></summary>
+
+```yaml
+testChanges:
+  - id: CONSUMER-CART-INVOICE-40-HEAD
+    status: VERIFIED
+    base: ddba3dee4dd4ecd544a8b1c22d31bae226eed5cf
+    expires: 2026-11-13
+    reason: Revalidează la baza HEAD probele live nemodificate pentru factura AutoEx și download-ul Playwright, integrate în timpul incrementului Reporting. Cele șapte cazuri invoice și opt cazuri download trec cu biblioteca actualizată; controlul bazei inițiale este păstrat separat, fără suprascrierea surselor consumerilor.
+    proof: mvn -B -pl atf-ui,atf-test-auto-ex,atf-tests -am "-Dtest=PlaywrightDownloadComponentTest,AutoExInvoiceDownloadComponentTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=ddba3dee4dd4ecd544a8b1c22d31bae226eed5cf" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/pages/AutoExInvoiceDownloadComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/support/invoice/AutoExInvoiceDownloadFixture.java
+      - atf-ui/src/test/java/atf/ui/playwright/download/PlaywrightDownloadComponentTest.java
+      - atf-ui/src/test/java/atf/ui/tests/support/download/UiDownloadPortFixture.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control YAML — verdict terminal la baza revizuirii</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-TERMINAL-EXCHANGE-39-REVIEW
+    status: VERIFIED
+    base: addd434eaeec7a67fa58eb85256b843ae30c3db5
+    expires: 2026-11-13
+    reason: Refuză un exchange fără răspuns și fără verdict explicit ori aserțiuni evaluate. Probele negative detectează succesul implicit și pierderea copilului API; Extent și fallback păstrează diagnosticul, istoricul, vecinii PASS și bugetul configurat prin toate căile UI.
+    proof: mvn -B -pl atf-reporting-tests,atf-test-auto-ex,atf-test-practice-shop,atf-tests -am "-Dtest=ReportingStandaloneVerdictComponentTest,UiTerminalExchangeReportComponentTest,UiApiValidationContractComponentTest,TerminalExecutionProjectionTest,TerminalApiExecutionReportTest,AutoExComponentReportScopeComponentTest,ShopComponentReportScopeComponentTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting/src/test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/execution/UiTerminalExchangeFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/execution/UiTerminalExchangeReportComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/execution/UiTerminalExchangeLocators.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/execution/UiTerminalExchangeProbe.java
 ```
 
 </details>

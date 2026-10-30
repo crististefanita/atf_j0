@@ -7,6 +7,8 @@ browserul și raportarea sunt furnizate de modulele ATF.
 
 ## Pe scurt
 
+**Context local:** [runtime](src/main/java/atf/autoex/runtime/README.md) · [atlas ATF](../docs/ATF_Context_Atlas.md).
+
 **Trasee rapide:** [Journey](#journey-ul-de-cumpărare) · [API și UI_API](#api-direct-și-limita-evidence-ului-uiapi) · [Suite și opt-in](#cele-trei-suite-principale) · [Limita checkout](#readiness-înainte-de-checkout) · [Componentă sau E2E](#verificare-rapidă)
 
 - Acest modul deține journey-ul E2E și suportul specific site-ului AutoEx.
@@ -242,14 +244,18 @@ flowchart LR
   vocabularul purchase păstrează cele 14 checkpoint-uri distincte.
 - `AccountPage.awaitLoggedInName()` folosește `AutoExCustomerIdentityObservation`:
   observație read-only, identitate unică, vizibilă și cu text nevid, în bugetul
-  nativ existent. Expected-ul clientului rămâne exclusiv la gate-ul business.
+  nativ existent. Locatorul așteaptă textul nevid prin Playwright, inclusiv după
+  înlocuirea documentului; nu face polling prin citiri `count()` în tranziție.
+  Expected-ul clientului rămâne exclusiv la gate-ul business.
 - Absența permanentă, textul gol sau selectorul ambiguu opresc observația;
   diagnosticul păstrează URL-ul, cardinalitatea, vizibilitatea, ultimul text
   și cauza nativă. Clientul străin vizibil este refuzat de gate, fără checkout.
 - `loggedInNameIfPresent()` rămâne observație imediată pentru callerii săi;
   review-ul checkout-ului folosește capabilitatea bounded. Proba browser locală
   `AutoExCustomerIdentityObservationComponentTest` trece prin pagină și adaptor;
-  fixture-urile acoperă identitatea întârziată, străină, absentă, goală și ambiguă.
+  fixture-urile acoperă identitatea întârziată, străină imediat/întârziat,
+  absentă, goală, ambiguă, textul întârziat și documentul înlocuit. Vizibilitatea
+  după deadline nu prelungește bugetul și nu permite checkout-ul după refuz.
 
 Etichetele scurte păstrează următorul sens:
 
@@ -511,6 +517,26 @@ cu [Test Case 24 — Download Invoice after purchase](https://automationexercise
 spațiilor de prezentare și folosește aceeași regulă pentru rândul din coș și
 checkout. Un nume corect nu poate ascunde un cod poștal, telefon, preț sau
 cantitate greșite.
+
+### Descărcarea cauzală a facturii
+
+`CheckoutPage` cere download-ul prin portul checkout; `AutoExE2eRun` compune
+`AutoExInvoiceDownload`, iar `PlaywrightActionSequence.download(...)` înregistrează
+activarea și așteptarea evenimentului într-o singură acțiune măsurată.
+
+| Observație | Decizie în bugetul inițial |
+|---|---|
+| Eveniment Download primit | citește artifactul; validatorul compară independent clientul și suma |
+| Document principal queue-full, GET pe exact href-ul invoice same-origin | poate relua numai acel GET, conform `storeAvailability`; clickul nu se repetă |
+| POST, document străin sau altă rută | refuză recuperarea; nu substituie metoda ori ținta |
+| Eveniment absent, încercări epuizate sau backoff care nu încape | FAIL al acțiunii Download, cu durată și cauză; fără deadline nou |
+
+- Ruta acceptată este `/download_invoice/` urmată de sufixul numeric observat,
+  fără query sau fragment. Nu se deduce o factură din expected ori dintr-un fișier vechi.
+- Listener-ele sunt scoped operației și se elimină la succes sau eșec. Cleanup-ul
+  distinct este suppressed pe cauza inițială, fără self-suppression.
+- `AutoExInvoiceDownloadComponentTest` probează descărcarea, queue-full, refuzurile
+  și clickul unic; `PlaywrightDownloadComponentTest` protejează recorderul generic.
 
 `AutoExInvoiceValidator` verifică textul facturii; mapperul păstrează rezultatul.
 Un fișier existent, dar gol ori al altei comenzi, produce FAIL. Aceste reguli sunt probate
@@ -976,6 +1002,9 @@ Notificarea locației este independentă de generarea HTML.
 
 - Pasul standard este închis inițial; redactarea precede trunchierea, iar
   textele păstrează plafonul implicit de 240 de caractere inclusiv `…`, și după expandare.
+- Comparațiile care afișează numai numere ori booleeni au mesaje declarative în
+  engleză. `AutoExCheckoutUiGateComponentTest` explică numărul verificărilor,
+  ownerul înregistrat și activarea/ordinea checkout-ului, fără schimbarea expected-ului.
 - O excepție așteptată produce verificarea așteptării; un FAIL neconsumat nu
   poate rămâne JUnit PASS. Abortul păstrează SKIP și motivul real, fără rânduri inventate.
 - Guard-ul respinge un PASS fără verificări evaluate; un eșec anterior primei

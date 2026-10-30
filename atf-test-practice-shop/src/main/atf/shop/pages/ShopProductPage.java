@@ -16,13 +16,19 @@ import com.microsoft.playwright.Page;
                 ShopControl.PRODUCT_DESCRIPTION, ShopControl.PRODUCT_QUANTITY,
                 ShopControl.ADD_TO_CART})
 public final class ShopProductPage {
+    private final java.net.URI apiEndpoint;
     private final Page page;
     private final ShopLocators locators;
     private final PlaywrightActionSequence actions;
 
     public ShopProductPage(Page page, ShopLocators locators,
                                    PlaywrightActionSequence actions) {
+        this(page, locators, actions, atf.shop.config.api.ShopApiConfiguration.defaults().endpoint());
+    }
+
+    public ShopProductPage(Page page, ShopLocators locators, PlaywrightActionSequence actions, java.net.URI apiEndpoint) {
         this.page = page; this.locators = locators; this.actions = actions;
+        this.apiEndpoint = java.util.Objects.requireNonNull(apiEndpoint);
     }
 
     public String assertLoaded(String expectedProductName) {
@@ -48,9 +54,9 @@ public final class ShopProductPage {
         actions.fill(locators.productQuantity(page), Integer.toString(quantity),
                 "configured product quantity is set");
         actions.expectValue(locators.productQuantity(page), Integer.toString(quantity));
-        actions.click(locators.addToCart(page), "configured product is added to the cart");
-        actions.waitForText(page, locators.pageBody(page), "Product added to shopping cart",
-                "cart addition is acknowledged by the shop");
+        String productId = atf.shop.support.api.ShopApiExchangeSelector.productIdFromPath(java.net.URI.create(page.url()).getPath());
+        new atf.shop.support.cart.ShopCartAdditionConfirmation(page, apiEndpoint, productId, quantity)
+                .activate(actions, locators.addToCart(page));
     }
 }
 

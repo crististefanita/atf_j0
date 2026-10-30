@@ -90,7 +90,7 @@ final class ShopCatalogPurchaseStage implements ShopCatalogPurchaseFlow.Port {
         actions.waitForVisible(productLink);
         actions.click(productLink, "matching product opens from search results");
 
-        product = new ShopProductPage(page, locators, actions);
+        product = new ShopProductPage(page, locators, actions, context.catalogEndpoint());
         String productName = product.assertLoaded(selection.productName());
         var productApiAssertions = context.apiNetwork().productReady(
                 selection.productName(), selectedProductPath);

@@ -5,5 +5,6 @@ import com.microsoft.playwright.Page;
 /** Checkout-page capabilities for the instrumented UI and its invoice download. */
 public interface AutoExCheckoutPagePort extends AutoExUiActions {
     Page page();
+    com.microsoft.playwright.Download download(String selector, String expected);
     boolean dismissGoogleVignetteIfPresent();
 }

@@ -16,6 +16,7 @@ particular.
 
 | Nivel | Documente | Întrebarea la care răspund |
 |---|---|---|
+| context progresiv | [ATF_Context_Atlas.md](ATF_Context_Atlas.md) | ce contract, intrare și probă citesc înainte de a extinde contextul? |
 | hartă | [ATF_Architecture.md](ATF_Architecture.md), README-ul root | cine deține ce și în ce direcție curg dependențele? |
 | contract | [ATF_Reporting_Contract.md](ATF_Reporting_Contract.md), [ATF_Reporting_Display_Contract.md](ATF_Reporting_Display_Contract.md), ghidurile de modul | ce comportament semantic și ce formă vizibilă sunt stabile? |
 | evidence transversal | [ATF_Evidence_Capture_Contract.md](ATF_Evidence_Capture_Contract.md) | cum se separă flow-ul, policy-ul, sursa și publisherul? |

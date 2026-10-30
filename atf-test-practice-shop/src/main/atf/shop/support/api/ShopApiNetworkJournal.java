@@ -147,8 +147,7 @@ public final class ShopApiNetworkJournal {
 
     /** Sequence fence used to associate only the browser submission that followed the registration form. */
     public long sequenceMarker() {
-        orderWindow.markLegacy(sequence.get());
-        return sequence.get();
+        return orderWindow.markLegacy(sequence::get);
     }
 
     public UiRequestIdentity requestMarker() { return orderWindow.marker(); }

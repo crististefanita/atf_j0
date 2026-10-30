@@ -38,45 +38,25 @@ function bindDisclosureKeyboard(header, toggle) {
     }
   }, true);
 }
-function openDeepLinkCard(card, open) {
-  if (!card || card.getAttribute('data-atf-node-open') === String(open)) return;
-  var header = card.querySelector(':scope>.card-header');
-  if (header) header.click();
-}
 function openScenarioAuditPath(card) {
-  if (!card) return;
-  var testBody = card.querySelector(
-      ':scope>.accordion>[data-atf-node-role="phase"][data-atf-phase-name="test-body"]'
-    );
-  if (!testBody) return;
-  var phaseNode = testBody.querySelector(':scope>.card-header .card-title .node');
-  if (testBody.getAttribute('data-atf-phase-open') !== 'true' && phaseNode)
-    phaseNode.click();
-  bindPhaseCollapse();
-  var thenNode = testBody.querySelector(
-      ':scope>.accordion>[data-atf-node-role="request"]'
-    );
-  openDeepLinkCard(thenNode, true);
-  var validation = thenNode && thenNode.querySelector(
-      ':scope>.accordion>[data-atf-node-role="validation"]'
-    );
-  openDeepLinkCard(validation, true);
-  if (validation) {
-    validation.querySelectorAll(':scope details').forEach(function (detail) {
-      detail.open = true;
-    });
-    if (validation.scrollIntoView)
-      validation.scrollIntoView({ block: 'center' });
-  }
+  var phase = card && card.querySelector(':scope>.accordion>[data-atf-phase-name="test-body"]'),
+    request = phase && phase.querySelector(':scope>.accordion>[data-atf-node-role="request"]'),
+    validation = request && request.querySelector(':scope>.accordion>[data-atf-node-role="validation"]');
+  if (!validation) return;
+  revealScenarioEvidence(card, validation);
+  q('details', validation).forEach(function (detail) { detail.open = true; });
 }
 /** Resolve the same scenario-local ordinal used by Fails, without reconstructing identity from preview text. */
-function openScenarioFailurePath(card, ordinal) {
+function openScenarioFailurePath(card, ordinal, kind) {
   var index = Number(ordinal) - 1;
   if (!Number.isInteger(index) || index < 0) return;
-  var target = failedAssertionRows(card)[index];
+  var target = (kind === 'diagnostic' ? failedDiagnosticRows(card) : failedAssertionRows(card))[index];
   if (!target) return;
+  revealScenarioEvidence(card, target);
+}
+function revealScenarioEvidence(card, target) {
   var ancestors = [];
-  for (var parent = target.parentElement; parent && parent !== card; parent = parent.parentElement)
+  for (var parent = target; parent && parent !== card; parent = parent.parentElement)
     ancestors.push(parent);
   ancestors.reverse().forEach(function (node) {
     if (node.tagName === 'DETAILS') node.open = true;

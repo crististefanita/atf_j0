@@ -259,6 +259,7 @@ public final class AtfReportHtmlVocabulary {
         EMPTY_STATE("data-atf-empty-state"),
         PHASE_NAME("data-atf-phase-name"),
         DIAGNOSTIC_STATUS("data-atf-diagnostic-status"),
+        FAILURE_ORDINAL("data-atf-failure-ordinal"),
         SCREENSHOT("data-atf-screenshot"),
         SCREENSHOT_REF("data-atf-screenshot-ref"),
         TAB("data-atf-tab"),

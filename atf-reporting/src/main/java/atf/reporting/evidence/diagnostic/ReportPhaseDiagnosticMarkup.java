@@ -13,6 +13,7 @@ import static atf.reporting.markup.AtfReportLabels.FIELD;
 import static atf.reporting.markup.AtfReportLabels.VALUE;
 import static atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary.Attribute.PHASE_NAME;
 import static atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary.Attribute.DIAGNOSTIC_STATUS;
+import static atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary.Attribute.ASSERTION_PREVIEW_LIMIT;
 import static atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary.CssClass.HELM_EVIDENCE_TABLE;
 import static atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary.CssClass.PHASE_DIAGNOSTICS;
 import static atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary.Tag.DIV;
@@ -26,6 +27,11 @@ public final class ReportPhaseDiagnosticMarkup {
     private ReportPhaseDiagnosticMarkup() { }
 
     public static String render(List<ReportPhaseDiagnostic> diagnostics, SensitiveDataRedactor redactor) {
+        return render(diagnostics, redactor, atf.reporting.configuration.ReportingSettings.DEFAULT_ASSERTION_MAX_DISPLAY_CHARACTERS);
+    }
+
+    public static String render(List<ReportPhaseDiagnostic> diagnostics, SensitiveDataRedactor redactor, int previewLimit) {
+        if (previewLimit <= 0) throw new IllegalArgumentException("diagnostic preview limit must be positive");
         if (diagnostics.isEmpty()) return "";
         String phase = diagnostics.getFirst().phase();
         List<List<String>> rows = diagnostics.stream()
@@ -35,6 +41,7 @@ public final class ReportPhaseDiagnosticMarkup {
         String table = AtfReportMarkup.tableHtml(HELM_EVIDENCE_TABLE.value(),
                 ReportEvidenceTable.of(List.of(FIELD, VALUE), rows));
         String body = openTag(DIV, attribute(PHASE_NAME, phase),
+                attribute(ASSERTION_PREVIEW_LIMIT, Integer.toString(previewLimit)),
                 attribute(DIAGNOSTIC_STATUS, statusValue(diagnostics.getFirst().status()))) + table + closeTag(DIV);
         return ReportEvidenceMarkup.disclosure(PHASE_DIAGNOSTICS.value(),
                 String.format("%s — %s", EXECUTION_DIAGNOSTICS, phase), body);

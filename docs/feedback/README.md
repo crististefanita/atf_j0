@@ -6,9 +6,9 @@ README-ului ownerului; controalele verificate aparțin baseline-ului testelor.
 ## Pe scurt
 
 - UI livrează politica BE read-only; rămân proiecția structurată, selectul înlocuit, coeziunea readiness și geometria iframe.
-- Reporting păstrează [cauza publicării directe](../../atf-reporting/README.md#cauza-publicării-și-scope-urile-deținute) la owner; rămâne coeziunea proiecției flow-ului; navigarea exactă și cleanup-ul de failure au probe la owner.
-- Consumerii păstrează deschise marcajul numeric Shop, billing-ul, tranziția produsului AutoEx, sensul comparațiilor și probele achiziției parțiale.
-- Core prevalidează sursele aprobate; [eligibilitatea părinților destinației](ATF_Core_Promotion_Feedback.md) rămâne de întărit.
+- Reporting produce un JAR consumabil extern; [pregătirea pentru release](ATF_Reporting_Feedback.md) cere corectarea redactării JSON și izolării, împreună cu API-ul și documentația.
+- Consumerii păstrează deschise billing-ul Shop, tranziția produsului AutoEx, probele achiziției parțiale și echivalența profilelor.
+- Core prevalidează sursele și părinții destinației fără scriere; [atomicitatea per fișier](../../atf-core/README.md#manifest-și-promovare-guarded) rămâne explicită.
 - Documentația are guard-uri structurale; [afirmațiile factuale critice](ATF_Documentation_Feedback.md) cer comparație independentă cu sursa executabilă.
 - Validation, Console, Mock și Debug UI au contractele de boundary și probele la owner; registrul păstrează numai lacunele deschise.
 
@@ -28,12 +28,11 @@ Un document cu mai multe gap-uri primește scorul celui mai urgent, nu suma lor.
 
 | Ordine | Feedback / owner | Scor /100 | Criteriul care decide ordinea |
 |---:|---|---:|---|
-| 1 | [UI — sincronizare și recuperare BE](ATF_UI_Backend_Guided_Recovery_Feedback.md) | **78** = 33 + 22 + 16 + 7 | proiecție typed (78), select înlocuit (74), coeziune readiness (68) |
-| 2 | [Consumer — dovezi E2E și runtime](ATF_Consumer_Business_Test_Focus_Feedback.md) | **73** = 28 + 21 + 18 + 6 | marcaj numeric (73), billing (71), tranziție produs AutoEx (70), sensul comparațiilor (63), achiziție parțială (61), profile (57) |
+| 1 | [Reporting — contracte și pregătire JAR](ATF_Reporting_Feedback.md) | **92** = 38 + 28 + 18 + 8 | redactare JSON (92), index Fails terminal (90), izolare (85), oracole și artifact (83), configurație (82), API (81), lifecycle (76), release (73), documentație (72), proiecția flow-ului (62) |
+| 2 | [UI — sincronizare și recuperare BE](ATF_UI_Backend_Guided_Recovery_Feedback.md) | **78** = 33 + 22 + 16 + 7 | proiecție typed (78), select înlocuit (74), coeziune readiness (68) |
 | 3 | [UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ |
-| 4 | [Core — părinții destinației](ATF_Core_Promotion_Feedback.md) | **66** = 25 + 18 + 18 + 5 | un părinte devenit fișier este descoperit după prima scriere; sursele valide sunt deja prevalidate |
+| 4 | [Consumer — dovezi E2E și runtime](ATF_Consumer_Business_Test_Focus_Feedback.md) | **71** = 29 + 22 + 14 + 6 | billing (71), tranziție produs AutoEx (70), achiziție parțială (61), profile (57) |
 | 5 | [Documentație — fidelitate factuală](ATF_Documentation_Feedback.md) | **63** = 23 + 17 + 17 + 6 | o coloană poate inversa sensul contractului și totuși trece guard-urile structurale |
-| 6 | [Reporting — proiecția flow-ului](ATF_Reporting_Feedback.md) | **62** = 24 + 17 + 16 + 5 | calculul proiecției și protocolul publicării au încă motive de schimbare amestecate |
 
 O componentă verde confirmă criteriul ei; închiderea unui gap cere întreaga
 probă declarată la owner. Evaluarea calității folosește separat
@@ -47,16 +46,16 @@ scope contaminat; reevaluarea urmează probei și sincronizării live.
 
 | Modul | Contract demonstrat sau criteriu rămas | Owner |
 |---|---|---|
-| Core | sursele sunt prevalidate; părinții destinației au criteriu separat | [promovarea guarded](../../atf-core/README.md#manifest-și-promovare-guarded) |
+| Core | sursele și părinții sunt prevalidate fără scriere; execuția rămâne atomică per fișier | [promovarea guarded](../../atf-core/README.md#manifest-și-promovare-guarded) |
 | Mock | query-ul și constrângerile distincte nu se reasociază printr-o etichetă ambiguă | [asocierea exactă în adaptor](../../atf-reporting-tests/README.md#fidelitatea-query-ului-și-asocierea-mock) |
 | Validation | cauza inițială supraviețuiește close-ului; refuzul one-shot precede callback-ul | [cauza și protocolul](../../atf-validation/README.md#cauza-primară-și-refuzul-înaintea-evaluării) |
 | Console | copilul restaurează contextul/sink-ul părintelui la succes, FAIL și SKIP | [scope imbricat](../../atf-console/README.md#restaurarea-contextelor-imbricate) |
-| Reporting | query-ul, cauza publicării directe/delegate și navigarea exactă sunt probate; proiecția flow-ului rămâne deschisă | [criteriul Reporting](ATF_Reporting_Feedback.md) |
-| UI | livrare izolată, start identity și cleanup complet la erori; proiecția typed și continuitatea selectului rămân deschise | [sincronizare](ATF_UI_Backend_Guided_Recovery_Feedback.md) și [geometrie](ATF_UI_Browser_Geometry_Feedback.md) |
+| Reporting | JAR și assets consumate extern; terminalul în Tests cere verdict și păstrează diagnosticul; indexul Fails, redacția, API-ul, lifecycle și release rămân deschise | [criteriile Reporting](ATF_Reporting_Feedback.md) |
+| UI | livrare izolată, start identity, atașare indivizibilă și cleanup la erori; proiecția typed și continuitatea selectului rămân deschise | [sincronizare](ATF_UI_Backend_Guided_Recovery_Feedback.md) și [geometrie](ATF_UI_Browser_Geometry_Feedback.md) |
 | Debug UI | close se termină bounded și cu request incomplet; rămâne read-only loopback | [shutdown](../../atf-debug-ui/README.md#închiderea-conexiunilor-deținute) |
-| Shop | Confirm typed cauzal; compatibilitate numerică, billing și achiziție parțială rămase | [criterii consumer](ATF_Consumer_Business_Test_Focus_Feedback.md) |
-| AutoEx | observația bounded și gate-ul identității sunt probate; tranziția produsului și izolarea extinsă rămân de demonstrat | [gate și readiness](../../atf-test-auto-ex/README.md#gate-ul-coșului-și-ownerul-contului) și [criterii consumer](ATF_Consumer_Business_Test_Focus_Feedback.md) |
-| Reporting Tests | oracole independente pentru query, randare, backlink și cleanup-ul publisherului de failure | [contractele și probele](../../atf-reporting-tests/README.md#fidelitatea-query-ului-și-asocierea-mock) |
+| Shop | marcaje numeric/typed și Confirm cauzale; billing și achiziție parțială rămase | [criterii consumer](ATF_Consumer_Business_Test_Focus_Feedback.md) |
+| AutoEx | observația bounded, gate-ul identității și download-ul măsurat sunt probate; tranziția produsului și izolarea extinsă rămân de demonstrat | [gate și readiness](../../atf-test-auto-ex/README.md#gate-ul-coșului-și-ownerul-contului) și [criterii consumer](ATF_Consumer_Business_Test_Focus_Feedback.md) |
+| Reporting Tests | oracole independente pentru query, randare, backlink, achiziție parțială și cleanup direct/delegat | [contractele și probele](../../atf-reporting-tests/README.md#erori-simultane-la-publicare-și-close) |
 | Test Kit | revalidarea protocolului JUnit și a binding-ului; reutilizare neutră numai după două utilizări reale | [limita reutilizării](../../atf-test-kit/README.md) |
 | ATF Tests | păstrarea gate-urilor și a probelor lor negative; nicio relaxare pentru lucrările de mai sus | [guvernanța ownerului](../../atf-tests/README.md) |
 

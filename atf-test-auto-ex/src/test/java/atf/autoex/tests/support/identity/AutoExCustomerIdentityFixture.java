@@ -27,7 +27,8 @@ public final class AutoExCustomerIdentityFixture implements AutoCloseable {
         try {
             var page = browser.page();
             page.route(base + "/**", route -> route.fulfill(new Route.FulfillOptions()
-                    .setContentType("text/html").setBody(document(mode))));
+                    .setContentType("text/html").setBody(document(mode.equals("replaced-document")
+                            && route.request().url().endsWith("/replacement") ? "owned" : mode))));
             page.navigate(base + "/cart");
             var actions = browser.newActionSequence();
             var observation = new AutoExCustomerIdentityObservation(page, actions);
@@ -53,7 +54,7 @@ public final class AutoExCustomerIdentityFixture implements AutoCloseable {
     @Override public void close() { browser.close(); }
 
     private static String document(String mode) {
-        String identity = mode.equals("foreign") ? "foreign customer" : mode.equals("empty") ? "" : "owned customer";
+        String identity = mode.endsWith("foreign") ? "foreign customer" : mode.equals("empty") || mode.equals("delayed-text") ? "" : "owned customer";
         String header = mode.equals("absent") ? "" : "<a><i class='fa-user'></i><b>" + identity + "</b></a>";
         if (mode.equals("ambiguous")) header += header;
         return """
@@ -61,7 +62,10 @@ public final class AutoExCustomerIdentityFixture implements AutoCloseable {
                 <div id='product-1'><h4>Blue Top</h4><span class='cart_price'>Rs. 500</span>
                 <span class='cart_quantity'><button>2</button></span><span class='cart_total'>Rs. 1000</span></div>
                 <a class='check_out' href='#checkout' onclick='window.checkouts=(window.checkouts||0)+1'>Checkout</a>
-                <script>setTimeout(()=>document.getElementById('header').style.display='block',150)</script>
-                """.formatted(mode.equals("delayed") ? "none" : "block", header);
+                <script>setTimeout(()=>document.getElementById('header').style.display='block',%d);%s</script>
+                """.formatted(mode.equals("delayed") || mode.equals("delayed-foreign") || mode.equals("replaced-document") || mode.equals("late") ? "none" : "block", header,
+                mode.equals("late") ? 1200 : 150,
+                mode.equals("replaced-document") ? "setTimeout(()=>location.href='/replacement',80)" : mode.equals("delayed-text")
+                        ? "setTimeout(()=>document.querySelector('#header b').textContent='owned customer',150)" : "");
     }
 }

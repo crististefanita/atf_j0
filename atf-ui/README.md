@@ -7,6 +7,8 @@ publisherul Extent sau page objects de produs.
 
 ## Pe scurt
 
+**Context local:** [playwright](src/main/java/atf/ui/playwright/README.md) · [network](src/main/java/atf/ui/network/README.md) · [atlas ATF](../docs/ATF_Context_Atlas.md).
+
 **Trasee rapide:** [Acțiuni](#acțiuni-și-locatori) · [Politica BE](#recuperare-be-prin-observație-pasivă) · [Captură și limite](#inspectorul-de-rețea--limită-generică-de-responsabilitate) · [Probă locală](#verificare-rapidă)
 
 | Input | Output | Boundary |
@@ -364,6 +366,19 @@ o postcondiție read-only care aruncă eroare dacă efectul așteptat lipsește.
 documentul principal și în iframe-uri same-origin/izolate. Fixture-ul este HTML
 neutru deținut de `atf-ui`, nu o reclamă sau o pagină business simulată.
 
+### Download instrumentat fără replay
+
+`PlaywrightActionSequence.download(...)` armează listener-ul înaintea clickului,
+transmite bugetul rămas observației callerului și cere evenimentul Download real.
+Întreaga operație are un singur record ACTION, cu status și timp măsurat.
+
+- Callback-ul consumerului poate observa ori relua un GET deținut explicit;
+  politica aplicației rămâne la consumer, fără endpoint-uri în UI.
+- Operația Download nu este eligibilă pentru retry-ul automat al recorderului.
+  Listener-ul se elimină și când înscrierea ori callback-ul eșuează.
+- Cauza originală și cleanup-ul distinct rămân inspectabile. Proba generică este
+  `PlaywrightDownloadComponentTest`; fixture-urile aplicației rămân la consumer.
+
 ## Validarea ecranului și capturi de ecran
 
 `UiScreenValidation.capture(page, configuration, title)` returnează un payload
@@ -604,12 +619,41 @@ Completitudinea jurnalului raw și livrarea către subscriberi au limite distinc
 - Toate dezabonările dobândite sunt încercate o singură dată. Prima eroare
   rămâne primară, inclusiv `Error`; erorile distincte devin suppressed.
   Un close repetat nu repetă operații cu rezultat nativ necunoscut.
+- `UiRequestTimeline` compensează propria înscriere și când este folosit direct,
+  fără inspector. Captura explicită după close nu dereferențiază un `Response`
+  de browser expirat; jurnalul deja reținut rămâne disponibil pentru audit.
 - Atașarea parțial eșuată este compensată local; cauza achiziției rămâne
-  primară și inspectorul incomplet nu acceptă capturi ori alți subscriberi.
+  primară, cu fiecare eroare distinctă de rollback direct în suppressed.
+  Până la ultima înscriere reușită nu se reține și nu se livrează nicio captură.
+  Close-ul reentrant oprește înscrierile următoare; scope-ul închis nu se redeschide.
   Un refuz nativ de dezabonare nu este prezentat drept retragere reușită.
 - `UiNetworkLifecycleComponentTest` injectează eșecuri în fiecare înscriere și
-  dezabonare, cauze multiple/identice, callback-uri tardive și close în timpul
-  capturii ori livrării. Regresiile de delivery și start identity rămân separate.
+  dezabonare, înainte/după efectul înscrierii, cauze multiple/identice, captură
+  în atașarea incompletă și close la înregistrare, captură ori livrare.
+  Regresiile de delivery și start identity rămân separate.
+
+Momentul în care scope-ul poate publica:
+
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
+flowchart LR
+    Pending["Atașare"] -->|toate hook-urile| Active["Captură activă"]
+    Active -->|close| Closed["Scope închis"]
+    Pending -->|eșec sau close| Closed
+    Closed -->|încearcă fiecare hook| Release["Retrageri"]
+```
+
+<details>
+<summary><strong>Legendă — atașare și închidere</strong></summary>
+
+- Atașarea devine activă numai după ultima înscriere; o captură prematură nu
+  consumă jurnalul și nu ajunge la subscriberi.
+- Scope-ul se închide înaintea retragerilor. O eroare de cleanup nu îl
+  redeschide și nu autorizează repetarea retragerii cu rezultat necunoscut.
+- Snapshot-ul unei livrări deja începute se termină; o captură aflată încă
+  în construcție la close este dropped. Page/context rămân deținute de sesiune.
+
+</details>
 
 - Body-urile capturate nu folosesc `trim()`; spațiile marginale și payload-ul
   numai din whitespace rămân date, nu absență.

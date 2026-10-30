@@ -65,18 +65,19 @@ class ShopOrderRequestStartComponentTest {
             page.waitForCondition(() -> Boolean.TRUE.equals(page.evaluate("window.oldDone")));
             assertEquals(currentStatus == 201, checkpoint.passed(), "Only the current successful POST may pass");
             assertEquals(1, ((Number) page.evaluate("window.clicks")).intValue(), "One Confirm click");
-            assertEquals(1, fixture.oldRequests());
+            assertEquals(1, fixture.oldRequests(), "Exactly one earlier request remains in flight before the current Confirm");
             assertEquals(currentStatus == 0 ? 0 : 1, fixture.currentRequests(), "No replay or additional order dispatch");
             assertEquals(currentStatus == 0 ? 1L : 2L, journal.exchanges().stream().filter(e -> e.method().equals("POST")).count(),
                     "The old response remains in the raw trace");
             var selected = journal.evidence(ShopApiCheckpoint.ORDER);
             if (currentStatus == 0) {
                 assertTrue(selected.isEmpty(), "An old in-flight response cannot become current order evidence");
-                assertTrue(journal.selectedEvidence().isEmpty());
+                assertTrue(journal.selectedEvidence().isEmpty(), "No selected evidence is published when only the old order response exists");
             } else {
-                assertEquals(1, selected.size());
-                assertEquals(currentStatus, selected.getFirst().response().status());
-                assertTrue(selected.getFirst().response().body().contains(currentStatus == 201 ? "current-order" : "current order failed"));
+                assertEquals(1, selected.size(), "The current Confirm owns one canonical order exchange");
+                assertEquals(currentStatus, selected.getFirst().response().status(), "Selected order evidence retains the current HTTP status, including failure");
+                assertTrue(selected.getFirst().response().body().contains(currentStatus == 201 ? "current-order" : "current order failed"),
+                        "Selected response content belongs to the current submission rather than the late old success");
             }
             if (inspectorAdapter && startObserved && currentStatus == 0 && route.equals(ShopApiRoutes.GUEST_INVOICE_CREATE)) {
                 try (var report = browser.newPage()) {

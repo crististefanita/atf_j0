@@ -30,7 +30,9 @@ public final class HtmlReportFailsView {
                 .append(AtfReportHtmlVocabulary.openTag(AtfReportHtmlVocabulary.Tag.DIV,
                         AtfReportHtmlVocabulary.classAttribute(
                                 AtfReportHtmlVocabulary.CssClass.FAIL_LIST)));
+        var ordinals = new java.util.HashMap<String, Integer>();
         for (var failure : snapshot.failures().items()) {
+            int ordinal = ordinals.merge(failure.scenarioId(), 1, Integer::sum);
             String status = ReportEvidenceMarkup.statusBadge(AtfReportStatus.FAIL);
             String content = status
                     + AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.STRONG,
@@ -42,9 +44,10 @@ public final class HtmlReportFailsView {
                     content,
                     AtfReportHtmlVocabulary.classAttribute(
                             AtfReportHtmlVocabulary.CssClass.FAIL_ROW),
+                    AtfReportHtmlVocabulary.attribute(AtfReportHtmlVocabulary.Attribute.FAILURE_ORDINAL, Integer.toString(ordinal)),
                     AtfReportHtmlVocabulary.attribute(
                             AtfReportHtmlVocabulary.Attribute.HREF,
-                            "#" + failure.scenarioId())));
+                            "#" + failure.scenarioId() + "&failure-ordinal=" + ordinal)));
         }
         if (snapshot.failures().isEmpty()) {
             html.append(AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.P,

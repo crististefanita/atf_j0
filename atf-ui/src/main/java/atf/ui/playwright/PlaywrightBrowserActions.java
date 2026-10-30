@@ -60,6 +60,34 @@ final class PlaywrightBrowserActions {
         });
     }
 
+    /** One activation and download observation share a deadline; recovery may only observe or repeat an owned GET. */
+    com.microsoft.playwright.Download download(Page page, AtfLocator element, String expected,
+            java.util.function.BiConsumer<PlaywrightActionSequence.ObservationBudget, java.util.function.BooleanSupplier> readiness) {
+        Objects.requireNonNull(page, "page"); Objects.requireNonNull(element, "element"); Objects.requireNonNull(readiness, "readiness");
+        return recorder.run("Download", element.selector(), expected, PlaywrightLocatorActions.isSensitiveTarget(element), () -> {
+            var budget = new PlaywrightActionSequence.ObservationBudget(stateTimeout);
+            var observed = new java.util.concurrent.atomic.AtomicReference<com.microsoft.playwright.Download>();
+            Consumer<com.microsoft.playwright.Download> listener = observed::set;
+            Throwable primary = null;
+            try {
+                page.onDownload(listener);
+                element.locator().click(new Locator.ClickOptions().setNoWaitAfter(true).setTimeout(budget.remainingMilliseconds()));
+                readiness.accept(budget, () -> observed.get() != null);
+                page.waitForCondition(() -> observed.get() != null,
+                        new Page.WaitForConditionOptions().setTimeout(budget.remainingMilliseconds()));
+                budget.remainingMilliseconds();
+                return observed.get();
+            } catch (RuntimeException | Error failure) { primary = failure; throw failure; }
+            finally {
+                try { page.offDownload(listener); }
+                catch (RuntimeException | Error cleanup) {
+                    if (primary == null) throw cleanup;
+                    if (primary != cleanup) primary.addSuppressed(cleanup);
+                }
+            }
+        }, ignored -> "download event received within the original action deadline");
+    }
+
     void pressKey(Page page, String key, String locatorTarget, String expected) {
         Objects.requireNonNull(page, "page");
         String target = PlaywrightActionSequence.requireLocatorTarget(locatorTarget);

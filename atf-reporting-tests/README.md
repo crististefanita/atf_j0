@@ -11,6 +11,11 @@
 - testele business aparțin modulului consumer, precum `atf-test-practice-shop`;
 - `atf-tests` rămâne dedicat guvernanței whole-ATF.
 
+Pentru extragere, artefactul candidat este `atf-reporting`; acest modul rămâne
+suport intern de verificare. Compilarea și rularea pe `target/classes` nu
+demonstrează singure consumarea JAR-ului publicat: [criteriul de izolare](../docs/feedback/ATF_Reporting_Feedback.md#report-standalone-isolation-41--modulul-copiat-singur)
+cere și un consumer fără surse sau module ATF în classpath.
+
 Schimbarea testelor, suportului sau resurselor din acest modul cere un control
 tehnic `testChanges` eligibil; [guvernanța whole-ATF](../atf-tests/README.md#guvernanța-schimbării-testelor)
 verifică diferența Git și probele negative ale regulii.
@@ -85,6 +90,7 @@ Proiecția contextului UI este verificată la componentă:
 | `ComponentAssertionStepReportTest` | același nod tipizat și 42 de rânduri în Extent/fallback; pas colapsat implicit, acces la ultimul rând și comutare cu mouse/Enter/Space în Chromium; FAIL în Extent are owner `component`, valori numerice exacte și deep-link redeschis până la tabel, fără request sau durată HTTP |
 | `PublishedEvidenceTableComponentTest` | UI/API/UI+API × Extent/fallback; valori literale în 12/40 de rânduri, inventar exact per owner, geometrie reală, expandări, resize și taburi; controalele negative detectează dovezi lipsă, clipping, plafon eliminat și FAIL schimbat în PASS |
 | `TerminalExecutionProjectionTest` + `TerminalApiExecutionReportTest` | snapshot parțial strict, 503 urmat de status indisponibil, terminare typed în Execution evidence, fără Response details fabricat; Extent/fallback păstrează plafonul 240, bugetul configurat, redactarea, ultimul rând și Enter/Space; zero dispatch-uri nu declară rețea executată |
+| `UiTerminalExchangeReportComponentTest` | checkpoint, setup, final, trace și flow unificat în/peste faze păstrează exchange-ul fără response între doi vecini PASS; diagnostic, attempts, totaluri și tastatură în Extent/fallback, cu buget implicit și personalizat; probele fără verdict sunt deținute de `ReportingStandaloneVerdictComponentTest` în biblioteca standalone |
 | `ReportPhaseTimingComponentTest` | timing typed identic în snapshot-urile Extent/fallback; browserul păstrează 12/345/0 ms pe faze, totalurile scenariu/clasă/Overview fără dublare și sursa execuției după expandare; publicarea rămâne separată |
 | `ComponentExecutionDiagnosticReportTest` | eroare după comparații PASS sau înaintea primei comparații; Fails fără request/durată HTTP inventate ori comparație PASS atribuită erorii; faze măsurate goale și 42 de rânduri în Extent/fallback, cu plafon 240 și tastatură |
 | Regresii adiacente | `ExtentReportRuntimeScriptTest` păstrează sursele duratelor; `ExtentReportSessionContractTest` separă câmpurile API/UI în Fails; `AtfReportEvidenceCssTest` protejează containerul și fontul comun, completat de măsurătorile reale din `NarrowEvidenceReadabilityComponentTest` |
@@ -104,6 +110,11 @@ Proiecția contextului UI este verificată la componentă:
 Fixture-ul browser este local și determinist; nu cere o nouă achiziție în
 Practice Shop. Raportul timestamped este dovadă de componentă, iar stările
 FAIL/WARNING sunt date deliberate ale fixture-ului.
+
+Inventarul numește contractele urmărite; nu certifică automat toate probele.
+Formele private JavaScript și contractele locatorilor au un
+[criteriu de reconciliere](../docs/feedback/ATF_Reporting_Feedback.md#report-test-oracles-47--contract-observabil-în-locul-formei-funcției).
+Un gate focalizat trecut nu înlocuiește rezultatul suitei canonice.
 
 ### Tabele publicate și inventar independent
 
@@ -303,16 +314,18 @@ apelate prin fațada UI publică; nu presupune un incident într-un renderer rea
 
 | Oracol independent | Contract probat |
 |---|---|
-| Instanța excepției inițiale | body/complete rămâne cauza; close devine suppressed |
+| Instanța excepției inițiale | achiziție/body/complete rămâne cauza; close distinct devine suppressed |
 | Evenimentele porturilor | fiecare scope achiziționat are un singur close, fără replay |
 | Aceeași excepție la body și close | fără self-suppression sau substituirea cauzei |
 | RuntimeException și Error | aceeași identitate și ordine în toate intrările probate |
-| Outcome, setup, checkpoint/media, API, unified | request, validation și API assertions se închid la owner |
+| Outcome, setup, checkpoint/media, API, unified, failure delegat | request, validation și API assertions se închid la owner |
+| Achiziție parțială | se închide părintele deținut, fără close pe copilul neobținut |
+| Erori multiple de cleanup | copilul precedă părintele în suppressed, cu identitățile originale |
 
 Snapshot-urile semantice și probele Extent/fallback verifică separat randarea;
 fault injection nu înlocuiește auditul HTML.
 
-Matricea directă este completată de `UiFailurePublicationComponentTest`, pentru
+Matricea publică este completată de `UiFailurePublicationComponentTest`, pentru
 `UiFailureEvidencePublisher` direct și prin fațadă. Porturile nu închid copiii în
 cascadă: lipsa close-ului validării este detectată independent. Achiziția parțială,
 erorile la body/complete/close, `Error` și self-suppression păstrează cauza inițială.
@@ -321,6 +334,12 @@ erorile la body/complete/close, `Error` și self-suppression păstrează cauza i
 assertion-step de componentă în toate fazele. Backlink-ul trebuie să deschidă
 comparația exactă fără helper de expandare; tastatura, reload-ul și scenariul
 vecin PASS sunt probate separat de geometria generală Extent/fallback.
+
+`PublishedFailureNavigationEdgeComponentTest` completează proba de navigare:
+
+- diagnostice fără comparații în toate fazele și fallback pentru UI/API/component;
+- dovada originală, bugetul configurat, ruta reîncărcată și diagnostice intercalate;
+- ancestor ascuns care invalidează oracolul, fără expandare asistată.
 
 ## Ordinea testelor și responsabilitatea protecțiilor
 

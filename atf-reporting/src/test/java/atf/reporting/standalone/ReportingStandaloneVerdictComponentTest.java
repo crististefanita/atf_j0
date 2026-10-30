@@ -1,5 +1,13 @@
 package atf.reporting.standalone;
 
+import atf.reporting.api.ReportRequest;
+import atf.reporting.api.ReportResponse;
+import atf.reporting.api.ReportTransportProvenance;
+import atf.reporting.model.ReportExecutionEvidence;
+import atf.reporting.ui.validation.UiApiValidationEvidence;
+import java.time.Duration;
+import java.util.Map;
+import org.junit.jupiter.params.provider.ValueSource;
 import atf.reporting.audit.AssertionAuditReport;
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfReportPorts;
@@ -170,5 +178,78 @@ class ReportingStandaloneVerdictComponentTest {
     private static String caughtException() {
         return assertThrows(IOException.class, () -> { throw new IOException("expected fixture rejection"); })
                 .getClass().getSimpleName();
+    }
+
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "IO_ERROR", "TIMEOUT", "CANCELLED"})
+    void absentResponseRequiresAnExplicitVerdictEvenWithOnlyInformationalAssertions(String outcome) {
+        var evidence = terminal(outcome);
+        for (var assertions : List.of(List.<AtfAssertion>of(),
+                List.of(new AtfAssertion("Observation", "unknown", "unknown", true, INFO)))) {
+            for (var status : java.util.Arrays.asList(null, INFO)) {
+                var failure = assertThrows(IllegalArgumentException.class,
+                        () -> new UiApiValidationEvidence.Exchange(evidence, assertions, status));
+                assertTrue(failure.getMessage().contains("explicit verdict"));
+            }
+        }
+        assertTrue(UiApiValidationEvidence.empty().isEmpty());
+        assertEquals(INFO, UiApiValidationEvidence.empty().status());
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = AtfReportStatus.class, names = {"PASS", "FAIL", "SKIP", "WARNING"})
+    void callerStatusIsPreservedWithoutInterpretingTheTerminalOutcome(AtfReportStatus expected) {
+        var evidence = terminal("IO_ERROR");
+        var exchange = new UiApiValidationEvidence.Exchange(evidence, List.of(), expected);
+        assertEquals(expected, exchange.status());
+        assertSame(evidence, exchange.evidence());
+        assertNull(exchange.evidence().response());
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = AtfReportStatus.class, names = {"PASS", "FAIL", "SKIP", "WARNING"})
+    void evaluatedAssertionsSupplyTheVerdictAndNeverLeakToSiblings(AtfReportStatus expected) {
+        var row = new AtfAssertion("Caller policy", "expected", "observed", expected != FAIL, expected);
+        var exchange = new UiApiValidationEvidence.Exchange(terminal("TIMEOUT"), List.of(row));
+        var sibling = new UiApiValidationEvidence.Exchange(captured(200), List.of());
+        assertEquals(expected, exchange.status());
+        assertEquals(PASS, sibling.status());
+        assertEquals(expected, new UiApiValidationEvidence(List.of(), List.of(sibling, exchange)).status());
+    }
+
+    @Test
+    void failedAndSkippedAssertionsCannotBeOverwrittenByAnExplicitPass() {
+        for (var status : List.of(FAIL, SKIP)) {
+            var row = new AtfAssertion("Caller policy", "ready", "unavailable", false, status);
+            assertEquals(status, new UiApiValidationEvidence.Exchange(terminal("CANCELLED"), List.of(row), PASS).status());
+        }
+    }
+
+    @Test
+    void rejectsAnUnpublishableExchangeBeforeItCanDisappearFromTheReport() {
+        var evidence = new ReportExecutionEvidence(null, 0, Duration.ZERO, List.of(), List.of(),
+                null, ReportTransportProvenance.UNKNOWN);
+        var failure = assertThrows(NullPointerException.class,
+                () -> new UiApiValidationEvidence.Exchange(evidence, List.of(), FAIL));
+        assertEquals("captured request", failure.getMessage());
+    }
+
+    @Test
+    void capturedResponseKeepsCompatibilityWithoutInterpretingHttpBusinessPolicy() {
+        assertEquals(PASS, new UiApiValidationEvidence.Exchange(captured(503), List.of()).status());
+        assertEquals(WARNING, new UiApiValidationEvidence.Exchange(captured(-1), List.of()).status());
+    }
+
+    private static ReportExecutionEvidence terminal(String outcome) {
+        var evidence = new ReportExecutionEvidence(null, 1, Duration.ofMillis(7), List.of(), List.of(),
+                ReportRequest.builder("GET", "/terminal").build(), ReportTransportProvenance.LIVE_HTTP);
+        return outcome.isEmpty() ? evidence : evidence.withTermination(outcome, "Controlled terminal diagnostic");
+    }
+
+    private static ReportExecutionEvidence captured(int status) {
+        return new ReportExecutionEvidence(new ReportResponse(status, "", Map.of(), Duration.ZERO, ""),
+                1, Duration.ZERO, List.of(), List.of(), ReportRequest.builder("GET", "/sibling").build(),
+                ReportTransportProvenance.ACCEPTANCE_MOCK);
     }
 }

@@ -135,6 +135,13 @@ function failureContextFor(item, anchor) {
   var ctx = failureContext(item);
   if (!anchor) return ctx;
   ctx.previewLimit = +(anchor.closest('[data-atf-preview-limit]') || anchor).getAttribute('data-atf-preview-limit') || 240;
+  var diagnostic = anchor.closest('.phase-diagnostics [data-atf-phase-name]');
+  if (diagnostic) return Object.assign(ctx, {
+    evidenceOwner: 'execution', ui: false, request: '', duration: '', checkpoint: '',
+    phase: diagnostic.getAttribute('data-atf-phase-name'), step: 'Execution',
+    validation: 'Execution diagnostics', diagnostic: text(anchor.cells[0], ''),
+    assertion: 'No contract comparison recorded', message: text(anchor.cells[1], '')
+  });
   var cells = Array.from(anchor.cells || [], cell => text(cell, '')),
     label = cells[0] || 'Assertion',
     expected = cells[1] || '',

@@ -307,14 +307,18 @@ promotorii cooperanți; sursele staging rămân păstrate, fără ștergeri impl
 - Guard-ul construiește planul complet înaintea primei scrieri: fiecare sursă
   aprobată trebuie să fie fișier regulat, eligibil și deschizabil pentru citire.
   O sursă ulterioară absentă sau director refuză întregul plan fără modificări live.
+- Părinții existenți ai fiecărei destinații trebuie să fie directoare. Preflight-ul
+  refuză un fișier intermediar, inclusiv apărut după capturarea manifestului,
+  înaintea oricărei copieri. Părinții absenți sunt permiși și se creează numai la execuție.
 - Execuția revalidează baseline-ul per destinație. Un eșec I/O sau un drift
   apărut după prevalidare poate lăsa un lot parțial; operatorul recitește starea
   efectivă înainte de reluare. Preflight-ul nu promite o tranzacție pentru lot.
 - `AtfPromotionPreflightTest` probează refuzul înaintea oricărei scrieri,
-  crearea concurentă și promovarea exclusiv a fișierelor aprobate.
-- Un părinte al destinației devenit fișier după captură nu apare ca drift al
-  intrării absente; eligibilitatea lui este descoperită în copiere. Proba și
-  hardening-ul propus sunt în [feedback-ul destinației](../docs/feedback/ATF_Core_Promotion_Feedback.md#core-promotion-destination-33--părinte-neeligibil-înaintea-execuției).
+  crearea concurentă, părinții direcți/intermediari neeligibili și promovarea
+  exclusiv a fișierelor aprobate. Refuzul păstrează sursele și nu creează părinți.
+- Baseline-ul urmărește conținutul fișierelor aprobate; părintele invalid este
+  o verificare structurală separată. Ea și refuzul symlink-urilor sunt reluate
+  înaintea copierii fiecărui fișier, fără a elimina posibilitatea unui eșec I/O ulterior.
 - Manifestul JSON portabil este audit al procesului, fără evidence în HTML
   sau sincronizare ca output generat.
 

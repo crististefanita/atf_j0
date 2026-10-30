@@ -4,6 +4,7 @@ import atf.testkit.AtfComponentTest;
 import atf.ui.config.UiNetworkInspectionConfiguration;
 import atf.ui.config.UiNetworkSettlementPolicy;
 import atf.ui.network.UiNetworkInspector;
+import atf.ui.network.identity.UiRequestTimeline;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Request;
 import com.microsoft.playwright.Response;
@@ -20,6 +21,30 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Page-port failures expose ownership independently of Chromium or renderer cascading cleanup. */
 @AtfComponentTest
 class UiNetworkLifecycleComponentTest {
+    @ParameterizedTest @ValueSource(strings = {"clean", "same", "distinct", "error"})
+    void aDirectTimelineCompensatesItsOwnFailedAttachment(String mode) {
+        var port = new PagePort();
+        Throwable primary = mode.equals("error") ? new AssertionError("attach") : new IllegalStateException("attach");
+        port.failures.put("onRequest", primary);
+        Throwable cleanup = mode.equals("same") ? primary : new IllegalStateException("rollback");
+        if (mode.equals("same") || mode.equals("distinct")) port.failures.put("offRequest", cleanup);
+        var timeline = new UiRequestTimeline();
+        assertSame(primary, assertThrows(Throwable.class, () -> timeline.attach(port.page())));
+        assertEquals(List.of("offRequest"), port.removals, "The direct owner compensates even a registration that throws after its side effect");
+        assertEquals(mode.equals("distinct") ? List.of(cleanup) : List.of(), List.of(primary.getSuppressed()));
+        assertThrows(IllegalStateException.class, timeline::begin, "A failed attachment cannot remain an active timeline");
+        port.listeners.values().forEach(callback -> callback.accept(port.request()));
+        assertEquals(0, port.requestReads.get(), "A native hook whose removal failed remains logically inert");
+        timeline.close();
+        assertEquals(1, port.removals.size(), "Repeated close does not repeat an uncertain native removal");
+    }
+
+    @Test void explicitCaptureAfterCloseNeverDereferencesAStaleBrowserResponse() {
+        var inspector = inspector(); inspector.close();
+        Response stale = proxy(Response.class, (name, args) -> { throw new AssertionError("Closed response read: " + name); });
+        assertTrue(inspector.capture(stale).isEmpty(), "A closed capture scope is a no-op before accessing browser-owned objects");
+    }
+
     @ParameterizedTest @CsvSource({"offRequest,false", "offRequestFinished,false", "offRequestFailed,false",
             "offRequest,true", "offRequestFinished,true", "offRequestFailed,true"})
     void everyListenerIsDetachedEvenWhenOneRemovalFails(String operation, boolean error) {
@@ -58,17 +83,50 @@ class UiNetworkLifecycleComponentTest {
         }
     }
 
-    @ParameterizedTest @ValueSource(strings = {"onRequest", "onRequestFinished", "onRequestFailed"})
-    void partialAttachmentRollsBackEveryAttemptedRegistration(String operation) {
+    @ParameterizedTest @CsvSource({"onRequest,false", "onRequest,true", "onRequestFinished,false",
+            "onRequestFinished,true", "onRequestFailed,false", "onRequestFailed,true"})
+    void partialAttachmentRollsBackEveryAttemptedRegistration(String operation, boolean beforeEffect) {
         var port = new PagePort();
         var primary = new IllegalStateException("attach " + operation);
         port.failures.put(operation, primary);
+        port.failBeforeRegistration = beforeEffect;
         var inspector = inspector();
         assertSame(primary, assertThrows(Throwable.class, () -> inspector.attach(port.page())));
         assertEquals(port.registrations.stream().map(name -> name.replace("on", "off")).toList(), port.removals);
         assertTrue(port.listeners.isEmpty(), "Even registration which throws after its side effect is rolled back");
         inspector.close();
         assertEquals(port.registrations.size(), port.removals.size());
+    }
+
+    @ParameterizedTest @ValueSource(strings = {"onRequest", "onRequestFinished", "onRequestFailed"})
+    void closingDuringRegistrationCannotInstallAnyLaterHook(String operation) {
+        var port = new PagePort(); var inspector = inspector();
+        port.onRegistration = name -> { if (name.equals(operation)) inspector.close(); };
+        assertThrows(IllegalStateException.class, () -> inspector.attach(port.page()));
+        assertTrue(port.listeners.isEmpty(), "Reentrant close leaves no later hook installed");
+        assertTrue(inspector.capture(port.response()).isEmpty(), "Partial attach cannot reopen a closed scope");
+    }
+
+    @Test void anIncompleteAttachmentCannotPublishBeforeAllRegistrationsSucceed() {
+        var port = new PagePort(); var inspector = inspector(); var deliveries = new AtomicInteger();
+        port.onRegistration = ignored -> assertTrue(inspector.capture(port.response()).isEmpty(),
+                "No publication from a partially attached scope");
+        inspector.attach(port.page(), ignored -> deliveries.incrementAndGet());
+        assertEquals(0, deliveries.get()); assertEquals(0, inspector.statistics().accepted());
+        assertTrue(inspector.capture(port.response()).isPresent());
+        assertEquals(1, deliveries.get(), "The first complete capture is delivered after attachment commits");
+        inspector.close();
+    }
+
+    @Test void everyRollbackFailureIsSuppressedDirectlyOnTheAcquisitionCause() {
+        var port = new PagePort(); var inspector = inspector();
+        var primary = new IllegalStateException("acquisition");
+        var first = new AssertionError("request removal"); var second = new IllegalArgumentException("finished removal");
+        port.failures.put("onRequestFailed", primary); port.failures.put("offRequest", first);
+        port.failures.put("offRequestFinished", second);
+        assertSame(primary, assertThrows(Throwable.class, () -> inspector.attach(port.page())));
+        assertEquals(List.of(first, second), List.of(primary.getSuppressed()), "All owned cleanup failures retain their direct relation");
+        assertEquals(List.of("offRequest", "offRequestFinished", "offRequestFailed"), port.removals);
     }
 
     @Test void attachmentFailureRemainsPrimaryWhenItsRollbackAlsoFailsWithTheSameOrAnotherCause() {
@@ -115,9 +173,15 @@ class UiNetworkLifecycleComponentTest {
         final List<String> registrations = new ArrayList<>(), removals = new ArrayList<>();
         final AtomicInteger requestReads = new AtomicInteger();
         Runnable onBody = () -> { };
+        Consumer<String> onRegistration = ignored -> { };
+        boolean failBeforeRegistration;
         Page page() { return proxy(Page.class, (name, args) -> {
             if (name.startsWith("onRequest")) {
+                if (failBeforeRegistration && failures.containsKey(name)) {
+                    registrations.add(name); throw failures.get(name);
+                }
                 registrations.add(name); listeners.put(name, callback(args));
+                onRegistration.accept(name);
             } else if (name.startsWith("offRequest")) {
                 removals.add(name);
                 if (!failures.containsKey(name)) listeners.remove(name.replace("off", "on"));
