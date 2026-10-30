@@ -60,66 +60,23 @@ nominale/negative proprii.
 
 ## Readiness față de codul curent
 
-Scorurile de mai jos sunt calibrări motivate de readiness, nu quality score
+Evaluarea de mai jos privește readiness-ul implementării, nu quality score
 al unui model și nici prioritățile registrului central. Contractul implementat
 rămâne la owner; designul propus nu este probă de livrare.
 
 ### Scorecard executiv
 
-| Axă | Scor | Ce dovedește scorul | Limita actuală |
-|---|---:|---|---|
-| Completitudinea designului de referință | **94/100** | contracte typed, expected/observed, evidence, grounding, review/state, score, hard-fail, snapshot, regression și workflow agentic | designul nu este încă executabil ca vertical slice |
-| Fundamentul ATF Java pentru evidence/reporting | **87/100** | request/response, retry history, provenance, auth observations, semantic snapshot și renderer-neutral projection | vocabularul este generic, nu AI-specific |
-| Validator generic reutilizabil | **66/100** | `ValidationEvaluator`, `ValidationTable`, validatori de contract API și comparator AI tipat | evaluatorul AI rămâne separat de rubricile business și de reporting |
-| AI evaluation implementată în ATF Java | **50/100** | comparatorul, hard-fails, invocation evidence, grounding per field, snapshot-ul `COMPLETE` și package cohesion sunt executabile și testate | clasificarea `AMBIGUOUS`, provider real, evidence ledger și proiecție raport lipsesc |
-| AI-assisted workflow governance | **31/100** | guvernanță whole-ATF și scope-uri `testChanges` cu Git, expirare, ownership unic și probe negative | lipsesc expected delta tipizat, proof ledger și handoff; acoperirea generală nu certifică workflow-ul agentic sau AI quality |
-| Pregătirea compoziției agentice | **25/100** | responsabilitățile sunt delimitate la ownerii existenți | lipsesc contractele runtime și controalele; numărul modulelor nu este criteriu de readiness |
-| Potrivirea principiilor ATF1 pentru adoptare | **86/100** | cold baseline, claim → proof → artifact, handoff, anti-copy și separarea orchestrator/execution/reporting sunt direct transferabile | nu trebuie importată economia de runs/slots ca runtime ATF |
-| Potrivirea pattern-urilor .NET pentru adoptare | **92/100** | read models typed, field decisions, retry contract, evidence policy, auth evidence și ownership unic | modelele sunt business-specific și trebuie transpuse, nu copiate |
-| Readiness pentru primul pilot AI | **78/100** | evaluatorul typed, snapshot complet, grounding allowlisted, matricea missing/invented și contractul invocation/fallback permit un pilot fără provider integrat | lipsesc publication path, run ledger și cazuri business negative |
+Implementarea rămâne **50/100**, conform evaluării existente: comparatorul,
+invocation provenance și snapshot-ul typed sunt livrate; clasificarea
+`AMBIGUOUS`, registrul de run, lifecycle-ul AI și proiecția raportului lipsesc.
+Această curățare editorială nu recalculează readiness-ul și nu închide cerințe.
 
-**Concluzie:** ATF Java are un evaluator deterministic cu invocation provenance,
-dar nu un vertical slice AI end-to-end: codul nu invocă modelul, nu dovedește
-grounding la nivel de run și nu publică un snapshot AI în raport. Un raport Extent
-frumos sau transportul `LIVE_HTTP` nu demonstrează evaluare AI.
-
-<details>
-<summary>Corespondența cerință–cod și dovezile ownerilor</summary>
-
-### Cerință față de codul curent
-
-| Cerință țintă | Cod observat live | Score |
-|---|---|---:|
-| expected separat de observed | `AiEvaluationCase` versionat și immutable se construiește separat de harta observed | **65/100** |
-| field-level typed comparison | opt moduri sigure, type/reason codes, weight, critical, source presence și output extra detectat implicit; regex restrâns este deferred | **86/100** |
-| missing information și non-invention | missing/invented critical, source/expected contradiction și undeclared output au probe negative; grounding-ul obligatoriu este evaluat separat și produce hard-fail când reference-ul lipsește ori nu este permis | **86/100** |
-| grounding și source references | allowlist per field, reference opac și probe `SUPPORTED` / `UNSUPPORTED` / `MISSING_REFERENCE` sunt implementate; `AMBIGUOUS` există numai ca valoare enum, fără clasificare în evaluator sau test; run ledger lipsește | **58/100** |
-| review și state transitions | există lifecycle/report status și consumeri UI, nu contract AI pentru review obligatoriu și tranziții permise | **22/100** |
-| invocation mode și fallback | `AiInvocationEvidence` distinge `REAL_AI`, `MOCK_MODEL`, `EXPLICIT_FALLBACK`, `UNKNOWN`; numai real cu references complete poate primi quality score | **74/100** |
-| score și hard-fail precedence | threshold, mismatch critic, missing/invented/undeclared rule IDs și `FAIL` independent de score sunt testate | **74/100** |
-| snapshot semantic renderer-neutral | `AiEvaluationSnapshot` păstrează rezultatul immutable, policy, completion time, grounding observations și invocation; evidence index și run-level trace încă lipsesc | **86/100** |
-| lifecycle și checkpoint unic | UI/API au phase lifecycle și evidence publisher; AI validation nu este încă un sibling semantic real al UI/API | **36/100** |
-| Extent/fallback parity | există semantic snapshot comun pentru raportare și fallback; nu există proiecție AI | **52/100** |
-| regression semantic delta | există snapshot și audit de raport, nu comparator AI pentru changed fields/grounding/review/invocation | **26/100** |
-| governance transversală | `WholeAtfGovernanceSuiteTest` acoperă boundary, ownership, coeziune, readability, documentație și politica schimbării testelor; scorul măsoară acoperirea, nu faptul că execuția curentă este verde | **82/100** |
-| governance pentru agent handoff | nu există încă proposal bounded, proof plan, machine-readable handoff sau compiled feedback | **18/100** |
-
-### Dovezi concrete din ATF Java
-
-Contractele deja implementate au documentație oficială; acest feedback nu
-menține un al doilea inventar al claselor ori al probelor lor.
-
-| Contract existent | Sursa normativă |
-|---|---|
-| Comparator AI, invocation, grounding, snapshot și organizarea pachetelor | [ATF Validation](../../atf-validation/README.md#comparatorul-ai--contract-implementat) |
-| Request/response, attempts/retry, provenance și semantic snapshot | [ATF Reporting](../../atf-reporting/README.md), [contractul de raportare](../ATF_Reporting_Contract.md) |
-| Observația bounded/redacted a traficului și politica fără replay | [ATF UI](../../atf-ui/README.md) |
-| Guvernanță transversală și probele modulelor | [ATF Tests](../../atf-tests/README.md), [ghidul de testare](../ATF_Testing_Guide.md) |
-
-Aceste capabilități oferă infrastructura pilotului; nu demonstrează încă
-invocarea unui provider AI, registrul de dovezi la nivel de run sau proiecția AI.
-
-</details>
+Contractul executabil este la [Validation](../../atf-validation/README.md#comparatorul-ai--contract-implementat);
+infrastructura generică de [raportare](../ATF_Reporting_Contract.md),
+[observație UI](../../atf-ui/README.md) și
+[guvernanță](../../atf-tests/README.md) nu dovedește singură o integrare AI.
+Tabelele de gap-uri de mai sus păstrează ID-ul, boundary-ul și proba lipsă;
+designul și opțiunile conceptuale rămân în documentul de proiect.
 
 ### Plan de adoptare în ordine corectă
 
@@ -145,12 +102,8 @@ probă de integrare și nu înlocuiește matricea deterministă.
 - Workflow-ul agentic are proposal/handoff valid și invalid; nu își modifică singur gate-urile.
 - La închidere, contractul demonstrat se promovează în README-ul ownerului și dispare din acest backlog.
 
-Scorul curent al implementării este **50/100**: comparatorul și snapshot-ul
-typed există, dar ambiguitatea grounding-ului, run ledger-ul, integrarea
-workflow-ului și proiecția de raport rămân nedemonstrate. Guvernanța generală
-și inspectorul de rețea nu certifică AI quality. Ordinea domeniilor este în
-[registrul feedback](README.md), iar contractele și opțiunile proiectate sunt
-în [designul AI](../ATF_AI_Evaluation_Design.md).
+Ordinea domeniilor este în [registrul feedback](README.md), iar contractele și
+opțiunile proiectate sunt în [designul AI](../ATF_AI_Evaluation_Design.md).
 
 ## Verificarea comparatorului livrat
 

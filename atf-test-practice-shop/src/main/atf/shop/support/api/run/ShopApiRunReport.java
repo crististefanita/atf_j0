@@ -6,7 +6,7 @@ import atf.core.reporting.console.AtfConsoleSink;
 import atf.reporting.contract.AtfReportPorts;
 import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.model.diagnostic.ReportPhaseDiagnostic;
-import atf.reporting.security.SensitiveDataRedactor;
+import atf.reporting.evidence.diagnostic.ReportFailureDescription;
 import atf.shop.support.ShopJsonEvidence;
 import atf.shop.support.api.ShopApiReportValidation;
 import atf.shop.support.reporting.ShopApiReportPublisher;
@@ -25,7 +25,6 @@ public final class ShopApiRunReport implements ShopApiBusinessRun.Audit {
     private final List<ApiExecutionResult> executions = new ArrayList<>();
     private final List<FailedRequest> failedRequests = new ArrayList<>();
     private final List<ShopApiReportValidation> validations = new ArrayList<>();
-    private final SensitiveDataRedactor redactor = new SensitiveDataRedactor();
     private Throwable failure;
     private boolean closed;
 
@@ -69,7 +68,7 @@ public final class ShopApiRunReport implements ShopApiBusinessRun.Audit {
                     passed &= ShopApiReportPublisher.publishLiveProvenance(phase, executions) == AtfReportStatus.PASS;
                 for (var validation : validations)
                     passed &= ShopApiReportPublisher.publishValidation(phase, validation) == AtfReportStatus.PASS;
-                if (failure != null) phase.diagnostic(ReportPhaseDiagnostic.Kind.EXECUTION_FAILURE, diagnostic(failure));
+                if (failure != null) phase.diagnostic(ReportPhaseDiagnostic.Kind.EXECUTION_FAILURE, ReportFailureDescription.describe(failure));
                 var status = passed ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
                 phase.complete(status);
                 scenario.complete(status);
@@ -93,24 +92,16 @@ public final class ShopApiRunReport implements ShopApiBusinessRun.Audit {
                 var snapshot = captured.orElseThrow();
                 atf.reporting.api.evidence.ApiExchangeEvidence.publishFailure(node,
                         atf.shop.support.api.ShopApiEvidenceMapper.toExecution(snapshot), snapshot.url(),
-                        snapshot.termination().name(), diagnostic(failed.failure()));
+                        snapshot.termination().name(), ReportFailureDescription.describe(failed.failure()));
                 node.complete(AtfReportStatus.FAIL);
                 return;
             }
             if (request.bodyText() != null && !request.bodyText().isBlank())
                 node.json("REQUEST JSON", ShopJsonEvidence.redact(request.bodyText()));
             node.detail("Response availability", "No HTTP response received");
-            node.detail("Execution failure", diagnostic(failed.failure()));
+            node.detail("Execution failure", ReportFailureDescription.describe(failed.failure()));
             node.complete(AtfReportStatus.FAIL);
         }
     }
 
-    private String diagnostic(Throwable error) {
-        Throwable cause = error;
-        for (int depth = 0; depth < 4 && cause.getCause() != null && cause.getCause() != cause; depth++)
-            cause = cause.getCause();
-        String text = cause.toString() + (cause == error ? "" : " (during " + error + ")");
-        String safe = redactor.redactText(text);
-        return safe.length() <= 240 ? safe : safe.substring(0, 239) + "…";
-    }
 }

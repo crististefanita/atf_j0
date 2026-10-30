@@ -5,6 +5,7 @@ import atf.shop.reporting.ShopScreenshotPolicy;
 import atf.core.config.ApiTransportMode;
 import atf.reporting.configuration.ReportingSettings;
 import atf.reporting.configuration.ReportEnvironmentField;
+import atf.ui.config.geometry.UiViewportScale;
 import atf.reporting.configuration.ReportEnvironmentSnapshot;
 import atf.reporting.configuration.ui.ReportUiEnvironment;
 import atf.reporting.evidence.profile.ReportEvidenceProfile;
@@ -74,6 +75,7 @@ public final class ShopReportSystemMetadata {
                                 : configuration.validationProfile().apiEvidenceRequired()
                                 ? "Fixture transport boundary"
                                 : "External live website").describe()
+                .put(ReportEnvironmentField.VIEWPORT, new UiViewportScale(browser).description())
                 .put(ReportEnvironmentField.UI_JOURNEY_PRECONDITION, journeyPrecondition(configuration));
 
         if (configuration.validationProfile().apiEvidenceRequired()) {

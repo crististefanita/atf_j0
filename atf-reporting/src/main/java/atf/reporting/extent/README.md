@@ -45,8 +45,8 @@ niciuna nu execută scenariul consumerului.
 
 ## Probe și consolidare
 
-`ReportingStandaloneVerdictComponentTest` verifică contracte locale;
-`UiPublicationFailureComponentTest` și probele de publicare din
+[ReportingStandaloneVerdictComponentTest](../../../../../test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java) verifică contracte locale;
+[UiPublicationFailureComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/ui/publication/UiPublicationFailureComponentTest.java) și probele de publicare din
 [Reporting Tests](../../../../../../../atf-reporting-tests/README.md) completează fault-path-ul și artifactul.
 
 Diferențele față de fallback și delimitarea API-ului public au

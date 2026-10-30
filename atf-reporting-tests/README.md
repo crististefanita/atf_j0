@@ -2,6 +2,8 @@
 
 ## Pe scurt
 
+**Diagnostic neutru:** [graf, buget și publicare](#diagnosticul-neutru-al-excepțiilor).
+
 **Trasee rapide:** [Alege proba](#matricea-de-integrare-și-limitele-verificate) · [Tabele și responsive](#probe-de-lizibilitate-a-panoului) · [Scope-uri](#refuz-recuperabil-al-scope-urilor) · [Browser local și limite](#verificare-rapidă)
 
 `atf-reporting-tests` verifică `atf-reporting` ca librărie reutilizabilă:
@@ -13,12 +15,30 @@
 
 Pentru extragere, artefactul candidat este `atf-reporting`; acest modul rămâne
 suport intern de verificare. Compilarea și rularea pe `target/classes` nu
-demonstrează singure consumarea JAR-ului publicat: [criteriul de izolare](../docs/feedback/ATF_Reporting_Feedback.md#report-standalone-isolation-41--modulul-copiat-singur)
-cere și un consumer fără surse sau module ATF în classpath.
+demonstrează singure consumarea JAR-ului publicat. [Gate-ul distribuției](#gate-ul-bibliotecii-distribuite)
+folosește și un consumer fără surse sau module ATF în classpath.
 
 Schimbarea testelor, suportului sau resurselor din acest modul cere un control
 tehnic `testChanges` eligibil; [guvernanța whole-ATF](../atf-tests/README.md#guvernanța-schimbării-testelor)
 verifică diferența Git și probele negative ale regulii.
+
+## Gate-ul bibliotecii distribuite
+
+`ReportingLibraryDistributionIntegrationTest` separă sursa izolată de consumarea
+JAR-ului. Copiază numai POM-ul și `src`, rulează `package` cu toate testele native,
+apoi creează alt proiect Maven, cu repository local propriu, care rezolvă POM-ul
+și coordonatele reale. Proba verifică hash-ul și CodeSource-ul JAR-ului încărcat.
+
+| Boundary | Oracol și limită |
+|---|---|
+| sursă fără reactor | guard-ul pornește de la propriul CodeSource; importurile/dependențele ATF și parent-ul sunt refuzate prin probe negative native |
+| classpath runtime | numai Reporting și tranzitivele Maven; fără Core, Kit, UI, JUnit, Playwright ori clase Reporting din reactor |
+| Extent și fallback | PASS/FAIL/PASS, diferență după 240, valori proiectate în buget și canary absent din artifact |
+| resursă runtime lipsă | o copie JAR fără `table-viewport.css` este refuzată separat de ambele renderere |
+
+Copiile, procesele Maven/Java și logurile rămân în TMP. Testul dovedește consumul
+acestui artifact; contractele de release și compatibilitatea întregului API public
+au [criterii distincte](../docs/feedback/ATF_Reporting_Feedback.md).
 
 <details>
 <summary><strong>Harta de lectură</strong></summary>
@@ -465,6 +485,10 @@ publicare; mapping-ul local rămâne în probele Shop, fără copierea rendereru
   sub tabel, politica `NONE`, proveniența UI separată de `Response details` și
   absența unui body inventat după setup eșuat. Regresiile existente pentru
   UI+API și capturi multiple rămân neschimbate.
+- Același test verifică pregătirea declarată direct în `TEST BODY`, fără
+  `SETUP` sau etichetă `Setup validation` inventate, cu assertions și FAIL
+  păstrate în ambele renderere. Alegerea fazelor guest/autentificate aparține
+  consumerului; proba Shop exercită harness-ul real, separat de fixture-ul neutru.
 
 | Componentă | Contract verificat | Invariantă |
 |---|---|---|
@@ -901,10 +925,30 @@ titlul lizibil nu este identitate de catalog.
 | conversie și subset cu multiplicitate | [ReportQueryContractComponentTest](src/test/java/atf/reporting/api/query/ReportQueryContractComponentTest.java): perechi duplicate, valori codificate, query incomplet și metadate absente |
 | reasociere cu sursa | [MockQueryAssociationComponentTest](src/test/java/atf/reporting/api/query/MockQueryAssociationComponentTest.java): nume prefix, coliziuni de etichetă, ambele ordini de catalog și rută necunoscută |
 | proiecție Extent/fallback | [QueryFailureReportComponentTest](src/test/java/atf/ui/tests/extent/component/verdict/QueryFailureReportComponentTest.java): FAIL păstrat împotriva unui complete(PASS), sibling pozitiv, Fails → Tests, disclosure și preview redactat 240 |
+| query observat și identitate privată | [ObservedQueryEvidenceComponentTest](src/test/java/atf/reporting/api/query/ObservedQueryEvidenceComponentTest.java): perechi ordonate, copiere imutabilă, amprente distincte în agregat și absente din ambele HTML-uri |
 
 Expected-urile sunt literale și independente de canonicalizerul producției.
 Fixture-ul de raportare folosește `AssertionStep`, fără request HTTP inventat;
 rulează direct și prin `AtfReportingComponentSuite`, în categoria Reporting.
+
+Traseul inspector → jurnal/mapper este probat în UI și în consumerii reali prin
+`UiObservedQueryFingerprintComponentTest`, `ShopObservedQueryComponentTest` și
+`AutoExObservedQueryComponentTest`. Captura redactată nu poate recupera valorile:
+amprenta păstrează numai identitatea, iar placeholder-ul nu devine un parametru.
+
+### Proiecții neutre fără transport fabricat
+
+| Contract | Probă la owner |
+|---|---|
+| assertion step în faza callerului | `AssertionAuditStepComponentTest`: FAIL păstrat din valorile complete, redacție și același nod non-HTTP în ambele renderere |
+| sumar diagnostic comun | `ReportAssertionSummaryTest`: redacție înaintea plafonului 240, fără schimbarea rândurilor ori verdictului business |
+| JSON semantic | `JsonEvidenceRedactionComponentTest` și `JsonEvidenceRedactorTest`: chei Unicode, nesting, non-string, duplicate și canary absent din întregul artifact |
+| YAML strict | `ReportingNumericConfigurationTest`: tip integral, interval, formele secțiunilor, chei deținute și defaults legitime |
+| cauza terminală în Fails | `TerminalFailureIndexComponentTest` și `TerminalFailureNavigationComponentTest`: request exact, assertions simultane, PASS terminal exclus inclusiv într-un scenariu FAIL, breakpoint îngust și reload până la dovada originală |
+
+Controlul fazei ascunse folosește `content-visibility`, separat de `display`-ul
+deținut de navigare. Oracolul verifică vizibilitatea reală, nu numai geometria;
+backlink-ul trebuie să deschidă dovada fără clickuri suplimentare care ar colapsa faza.
 
 ### Reutilizare neutră între module
 
@@ -991,6 +1035,19 @@ Suitele Reporting păstrează categoria lor de contracte și artifactele fixture
 regula unui HTML agregat per suită business rămâne la adaptoarele Shop/AutoEx.
 
 </details>
+
+## Diagnosticul neutru al excepțiilor
+
+[ReportFailureDescriptionTest](src/test/java/atf/reporting/evidence/diagnostic/ReportFailureDescriptionTest.java)
+protejează graful ciclic, ordinea cauză/suppressed, redactarea înainte de plafon
+și limita de 240. Aceste reguli nu depind de endpoint-uri sau de checkout.
+[ReportFailureDescriptionComponentTest](src/test/java/atf/reporting/evidence/diagnostic/ReportFailureDescriptionComponentTest.java)
+publică aceeași dovadă în Extent și fallback, păstrând faza, cauza, cleanup-ul și FAIL.
+
+Probele consumerilor păstrează wiring-ul real: configurație, contract API,
+raport unic individual/prin suită și aserțiuni auditabile. Un test care verifică
+acest adaptor rămâne la aplicație chiar când citește HTML-ul rezultat; nu se
+adaugă dependențe ale compoziției Reporting către modulele business.
 
 ## Verificare rapidă
 

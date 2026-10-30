@@ -105,6 +105,8 @@ public final class ShopLocators {
     private static final String AUTHENTICATED_PROCEED =
             HtmlElement.BUTTON.attributeEquals(DATA_TEST, "proceed-2");
     private static final String COUNTRY = HtmlElement.SELECT.attributeEquals(DATA_TEST, "country");
+    private static final String POSTCODE_LOOKUP_LOADING = DATA_TEST.equalsSelector("postcode-lookup-loading");
+    private static final String POSTCODE_LOOKUP_ERROR = DATA_TEST.equalsSelector("postcode-lookup-error");
     private static final String COUNTRY_SELECTED_OPTION = CssPseudoClass.CHECKED.applyTo(
             COUNTRY + " " + HtmlElement.OPTION.selector());
     private static final String POSTAL_CODE =
@@ -199,6 +201,8 @@ public final class ShopLocators {
     public AtfLocator guestProceed(Page page) { return css(page, GUEST_PROCEED); }
     public AtfLocator authenticatedProceed(Page page) { return css(page, AUTHENTICATED_PROCEED); }
     public AtfLocator country(Page page) { return css(page, COUNTRY); }
+    public AtfLocator postcodeLookupLoading(Page page) { return css(page, POSTCODE_LOOKUP_LOADING); }
+    public AtfLocator postcodeLookupError(Page page) { return css(page, POSTCODE_LOOKUP_ERROR); }
     public AtfLocator selectedCountry(Page page) { return css(page, COUNTRY_SELECTED_OPTION); }
     public AtfLocator postalCode(Page page) { return css(page, POSTAL_CODE); }
     public AtfLocator houseNumber(Page page) { return css(page, HOUSE_NUMBER); }

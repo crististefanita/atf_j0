@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><title>Owned select continuity</title>
+<div id="surface"></div>
+<script>
+ const params=new URLSearchParams(location.search);
+ const mode=location.pathname==='/ready'?'ready':params.get('mode');
+ const label=params.get('label');
+ const surface=document.getElementById('surface');
+ function control(old=false,options=true){
+   const select=document.createElement('select');select.id='target';
+   select.append(new Option('Red','red'));
+   if(options){const blue=new Option(mode==='label-attribute'?'Different visible text':label,'blue');
+     if(mode==='label-attribute')blue.label=label;select.append(blue);}
+   select.addEventListener('input',()=>fixtureInput(old));
+   select.addEventListener('change',()=>fixtureChange(old));
+   return select;
+ }
+ const original=control(!['ready','label-attribute','multi','empty','unconfirmed'].includes(mode),mode!=='option-replacement');
+ if(mode==='multi')original.multiple=true;
+ if(['replacement','repeated-replacement','ambiguous-replacement','late-ready','stays-disabled','frame-removed'].includes(mode))original.disabled=true;
+ if(mode==='hidden-replacement')original.hidden=true;
+ if(mode==='aria-replacement')original.setAttribute('aria-disabled','true');
+ if(mode==='fieldset-replacement'){
+   const fieldset=document.createElement('fieldset');fieldset.disabled=true;fieldset.append(original);surface.append(fieldset);
+ }else if(mode!=='missing')surface.append(original);
+ // A fixture activation starts the clock; setup and browser startup cannot consume the modelled delay.
+ window.arm=()=>{
+   if(mode==='document'){
+     original.disabled=true;setTimeout(()=>location.replace('/ready?label='+encodeURIComponent(label)),120);return;
+   }
+   if(mode==='frame-removed'){setTimeout(()=>parent.postMessage('remove-owned-select-frame','*'),120);return;}
+   if(['replacement','hidden-replacement','option-replacement','fieldset-replacement','aria-replacement','ambiguous-replacement','late-ready'].includes(mode)){
+     setTimeout(()=>{surface.replaceChildren(control());if(mode==='ambiguous-replacement')surface.append(control());},mode==='late-ready'?450:120);
+   }
+   if(mode==='repeated-replacement'){
+     for(const delay of [80,160,240])setTimeout(()=>{
+       const next=control(delay!==240);next.disabled=delay!==240;surface.replaceChildren(next);
+     },delay);
+   }
+ };
+ window.armNativeDetach=()=>{
+   document.querySelector('#target').disabled=true;
+   setTimeout(()=>surface.replaceChildren(control()),80);
+ };
+</script>
+</html>

@@ -34,6 +34,41 @@ class UiCrossPhaseCompactFlowComponentTest {
     private static final String TERMINAL_IMAGE = ReportTestScreenshots.SECOND_PIXEL_PNG;
 
     @Test
+    void bodyOnlyPreparationNeverInventsSetupAndRetainsItsVerdictInBothRenderers() throws Exception {
+        var profile = ReportEvidenceProfile.builder().flowMode(ReportEvidenceFlowMode.UNIFIED_FLOW)
+                .screenshotPolicy(ReportScreenshotPolicy.NONE).build();
+        Path directory = Files.createDirectories(Path.of(System.getProperty("atf.test.reportDirectory",
+                "target/body-only-proof")));
+        for (boolean extent : List.of(true, false)) {
+            for (boolean passed : List.of(true, false)) {
+                Path file = directory.resolve("body-only-" + extent + "-" + passed + "-" + System.nanoTime() + ".html");
+                var status = passed ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
+                try (AtfReportPorts.Session session = extent ? new ExtentReportSession(file) : new HtmlReportSession(file)) {
+                    var scenario = UiExtentReportSession.adaptScenario(session.startScenario(
+                            "BodyOnlyFixture", "atf.tests", "local body-only preparation", List.of("component", "ui")),
+                            profile, "local body-only preparation");
+                    scenario.unifyAcrossPhases();
+                    var body = scenario.startPhase("TEST BODY");
+                    body.step(AtfGherkinKeyword.GIVEN, "configuration is checked", "local configuration", "",
+                            List.of(new AtfAssertion("configuration field", "ready", passed ? "ready" : "rejected", passed)), status);
+                    body.completeFinal(status);
+                    scenario.complete(status);
+                }
+                String html = Files.readString(file).replaceAll(
+                        "(?is)<script\\b[^>]*>.*?</script>|<style\\b[^>]*>.*?</style>", "");
+                assertFalse(java.util.regex.Pattern.compile(">\\s*SETUP\\s*<").matcher(html).find());
+                assertTrue(java.util.regex.Pattern.compile(">\\s*TEST BODY\\s*<").matcher(html).find());
+                assertFalse(html.contains("Setup validation"));
+                assertTrue(html.contains("configuration field"));
+                assertEquals(!passed, html.contains("rejected"));
+                if (!passed) assertTrue(java.util.regex.Pattern.compile(
+                        ">\\s*FAIL\\s*<", java.util.regex.Pattern.CASE_INSENSITIVE).matcher(html).find(),
+                        "A rejected preparation must render an actual FAIL verdict, not only a Fails navigation label");
+            }
+        }
+    }
+
+    @Test
     void successfulUiOnlyFlowHasOneOrderedSetOfEvidenceInBothRenderers() throws Exception {
         for (boolean extent : List.of(true, false)) {
             String html = render(extent, ReportScreenshotPolicy.FINAL_ONLY, false);

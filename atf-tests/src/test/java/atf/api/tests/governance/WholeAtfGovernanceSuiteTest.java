@@ -10,6 +10,9 @@ import atf.api.tests.governance.documentation.DocumentationProseGovernanceTest;
 import atf.api.tests.governance.documentation.DocumentationReadmeStructureGovernanceTest;
 import atf.api.tests.governance.documentation.DocumentationStyleGovernanceTest;
 import atf.api.tests.governance.documentation.DocumentationTargetGovernanceTest;
+import atf.api.tests.governance.documentation.links.DocumentationLinkGovernanceTest;
+import atf.api.tests.governance.documentation.DocumentationAnchorGovernanceTest;
+import atf.api.tests.governance.documentation.factual.DocumentedBuildContractTest;
 import atf.api.tests.governance.documentation.DynamicPathDocumentationArchitectureTest;
 import atf.api.tests.governance.consumers.ConsumerModuleArchitectureGovernanceTest;
 import atf.api.tests.governance.layers.AtfTestLayerArchitectureTest;
@@ -36,6 +39,9 @@ import org.junit.platform.suite.api.Suite;
         DocumentationReadmeStructureGovernanceTest.class,
         DocumentationStyleGovernanceTest.class,
         DocumentationTargetGovernanceTest.class,
+        DocumentationLinkGovernanceTest.class,
+        DocumentationAnchorGovernanceTest.class,
+        DocumentedBuildContractTest.class,
         ConsumerModuleArchitectureGovernanceTest.class,
         AtfTestLayerArchitectureTest.class,
         ConsumerSuiteCoverageGovernanceTest.class

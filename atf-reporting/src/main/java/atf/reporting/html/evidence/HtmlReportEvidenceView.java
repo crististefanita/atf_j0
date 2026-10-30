@@ -145,7 +145,7 @@ public final class HtmlReportEvidenceView {
         if (execution == null) return;
         html.append(ReportEvidenceMarkup.disclosureStart(
                         EXECUTION_EVIDENCE.value(), AtfReportLabels.executionEvidence(execution.attempts())))
-                .append(openTag(DIV, ReportEvidenceMarkup.executionAttributes(execution, redactor)))
+                .append(openTag(DIV, ReportEvidenceMarkup.executionAttributes(execution, redactor, settings)))
                 .append(AtfReportMarkup.tableHtml(
                         AtfReportHtmlVocabulary.classList(HELM_EVIDENCE_TABLE, EXECUTION_TABLE),
                         ReportExecutionSummary.table(execution, redactor, settings)

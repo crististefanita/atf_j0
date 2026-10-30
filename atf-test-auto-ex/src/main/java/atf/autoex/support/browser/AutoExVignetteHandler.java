@@ -37,12 +37,55 @@ public final class AutoExVignetteHandler {
                 "Google vignette Close became unavailable; the test will not bypass the overlay"));
         String zoom = Objects.toString(page.evaluate(
                 "() => getComputedStyle(document.documentElement).zoom"));
-        actions.observation("Observed Google vignette", currentUrl,
+        actions.information("Observed Google vignette", currentUrl,
                 "visible Close control in the site's displayed advert",
                 "Close visible; document CSS zoom=" + zoom);
         actions.clickWithJavaScript(closeControl, CLOSE_EXPECTATION,
                 () -> page.waitForURL(url -> !url.contains(AutoExRoutes.GOOGLE_VIGNETTE_FRAGMENT)));
         return true;
+    }
+
+    /** Dismisses an interception inside the enclosing product action, without another timeout or timing total. */
+    public boolean dismissIfPresent(Page page, PlaywrightActionSequence actions,
+                                    PlaywrightActionSequence.ObservationBudget budget) {
+        Objects.requireNonNull(page, "page");
+        Objects.requireNonNull(actions, "actions");
+        Objects.requireNonNull(budget, "budget");
+        if (!onVignette(page)) return false;
+        try {
+            page.waitForCondition(() -> !onVignette(page) || readyCloseControl(page).isPresent(),
+                    new Page.WaitForConditionOptions().setTimeout(budget.remainingMilliseconds()));
+        } catch (TimeoutError unavailable) {
+            throw new IllegalStateException("Google vignette has no visible, enabled Close within the original "
+                    + "product action deadline; no overlay bypass or product click replay", unavailable);
+        }
+        if (!onVignette(page)) return false;
+        AtfLocator close = readyCloseControl(page).orElseThrow(() -> new IllegalStateException(
+                "Google vignette Close became unavailable; the product pointer will not be replayed"));
+        long started = System.nanoTime();
+        boolean activated = false, confirmed = false;
+        try {
+            // The parent Click owns the deadline and duration; this explicit DOM interaction is a child fact.
+            close.locator().evaluate("""
+                    element => {
+                      if (!element.isConnected || !element.getClientRects().length || element.disabled)
+                        throw new Error('Visible enabled Close is required');
+                      element.click();
+                    }
+                    """, null, new Locator.EvaluateOptions().setTimeout(budget.remainingMilliseconds()));
+            activated = true;
+            page.waitForURL(url -> !url.contains(AutoExRoutes.GOOGLE_VIGNETTE_FRAGMENT),
+                    new Page.WaitForURLOptions().setWaitUntil(com.microsoft.playwright.options.WaitUntilState.COMMIT)
+                            .setTimeout(budget.remainingMilliseconds()));
+            confirmed = true;
+            return true;
+        } finally {
+            actions.information("Google vignette Close", close.selector(), CLOSE_EXPECTATION,
+                    "explicit HTMLElement.click(); DOM activation, not trusted pointer; activated=" + activated
+                            + "; exit confirmed=" + confirmed + "; elapsed="
+                            + java.time.Duration.ofNanos(System.nanoTime() - started).toMillis()
+                            + " ms; included in enclosing product Click; no product click replay");
+        }
     }
 
     private static boolean onVignette(Page page) {

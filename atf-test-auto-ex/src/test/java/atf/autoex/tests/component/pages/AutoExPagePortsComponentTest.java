@@ -88,7 +88,7 @@ class AutoExPagePortsComponentTest {
             case "fill" -> { calls.add("fill-search"); yield null; }
             case "submitSearch" -> { assertEquals("Blue", arguments[0]); assertEquals("Blue Top", arguments[1]); calls.add("submit-search"); yield null; }
             case "waitForText" -> { calls.add("wait-for-configured-result:" + arguments[1]); yield null; }
-            case "clickFirst" -> { calls.add("open-first-result"); yield null; }
+            case "openFirstProduct" -> { assertEquals("Blue Top", arguments[0]); calls.add("open-first-result"); yield null; }
             case "text" -> {
                 calls.add("read-result");
                 yield AutoExSelectors.SEARCH_RESULT_PRODUCT_NAME.equals(arguments[0])

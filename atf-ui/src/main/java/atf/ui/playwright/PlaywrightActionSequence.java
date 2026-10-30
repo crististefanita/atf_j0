@@ -9,6 +9,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.LongSupplier;
 
 /**
  * Stable facade for ordered Playwright evidence.
@@ -36,10 +37,14 @@ public final class PlaywrightActionSequence {
     }
 
     PlaywrightActionSequence(UiActionTrace trace, Duration stateTimeout, UiRetryPolicy retryPolicy) {
+        this(trace, stateTimeout, retryPolicy, System::nanoTime);
+    }
+
+    PlaywrightActionSequence(UiActionTrace trace, Duration stateTimeout, UiRetryPolicy retryPolicy, LongSupplier ticks) {
         actionTimeout = stateTimeout;
         recorder = new UiActionRecorder(trace);
         recorder.setRetryPolicy(retryPolicy);
-        locatorActions = new PlaywrightLocatorActions(recorder);
+        locatorActions = new PlaywrightLocatorActions(recorder, stateTimeout, ticks);
         browserActions = new PlaywrightBrowserActions(recorder, stateTimeout);
     }
 
@@ -71,13 +76,20 @@ public final class PlaywrightActionSequence {
 
     /** One monotonic deadline for the pointer action and every read-only confirmation. */
     public static final class ObservationBudget {
-        private final long started = System.nanoTime();
+        private final LongSupplier ticks;
+        private final long started;
         private final long timeoutNanos;
 
-        ObservationBudget(Duration timeout) { timeoutNanos = timeout.toNanos(); }
+        ObservationBudget(Duration timeout) { this(timeout, System::nanoTime); }
+
+        ObservationBudget(Duration timeout, LongSupplier ticks) {
+            this.ticks = java.util.Objects.requireNonNull(ticks, "ticks");
+            started = ticks.getAsLong();
+            timeoutNanos = timeout.toNanos();
+        }
 
         public double remainingMilliseconds() {
-            long remaining = timeoutNanos - (System.nanoTime() - started);
+            long remaining = timeoutNanos - (ticks.getAsLong() - started);
             if (remaining <= 0) throw new IllegalStateException("Action observation budget exhausted");
             return Math.max(1d, remaining / 1_000_000d);
         }
@@ -117,7 +129,7 @@ public final class PlaywrightActionSequence {
         locatorActions.fill(element, value, expected);
     }
 
-    /** Selects a native option by its visible label while keeping the action in the trace. */
+    /** Observes readiness, then selects the native label once within one action deadline. */
     public void selectOption(AtfLocator element, String label, String expected) {
         locatorActions.selectOption(element, label, expected);
     }

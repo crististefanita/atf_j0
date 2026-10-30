@@ -29,9 +29,9 @@ construiesc în `semantic` și în documentul fallback.
 - Overview numără PASS + WARNING în totalul pass-like, conform contractului;
   WARNING rămâne distinct în scenariu și nu intră în Fails. Collectorul comun
   păstrează aceeași populație pentru totaluri, categorii și failure-uri.
-- Collectorul Fails nu indexează încă diagnosticul unui request FAIL fără
-  aserțiuni. [Criteriul terminal](../../../../../../../docs/feedback/ATF_Reporting_Feedback.md#report-terminal-failure-index-48--cauza-transportului-în-indexul-fails)
-  urmărește această limită separat de verdictul și execution evidence păstrate în Tests.
+- [ReportExecutionFailure](diagnostic/ReportExecutionFailure.java) proiectează
+  cauza transportului, iar collectorul o indexează numai dintr-un request FAIL.
+  Lipsa response-ului nu transformă un eșec așteptat PASS într-un failure de index.
 
 <details>
 <summary><strong>Tipuri ușor de confundat</strong></summary>
@@ -49,14 +49,14 @@ construiesc în `semantic` și în documentul fallback.
 
 ## Verificare
 
-`AtfReportSemanticSnapshotTest` compară populațiile rendererelor;
-`ReportingStandaloneVerdictComponentTest` păstrează verdictul local, iar
-`ReportTransportTimingTest` verifică disponibilitatea duratelor.
+[AtfReportSemanticSnapshotTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/semantic/AtfReportSemanticSnapshotTest.java) compară populațiile rendererelor;
+[ReportingStandaloneVerdictComponentTest](../../../../../test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java) păstrează verdictul local, iar
+[ReportTransportTimingTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/api/timing/ReportTransportTimingTest.java) verifică disponibilitatea duratelor.
 
 Probele sunt legate din [modul](../../../../../../README.md#verificare-rapidă)
 și [Reporting Tests](../../../../../../../atf-reporting-tests/README.md).
 
-- `ReportingStandaloneVerdictComponentTest` păstrează distincția dintre canal
+- [ReportingStandaloneVerdictComponentTest](../../../../../test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java) păstrează distincția dintre canal
   API gol, response absent și verdict furnizat de caller.
 - Fără response, un status diferit de INFO sau aserțiuni evaluate este obligatoriu;
   metadata de transport nu decide singură succesul.

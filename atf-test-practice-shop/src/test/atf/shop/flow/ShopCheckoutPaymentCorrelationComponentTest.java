@@ -66,7 +66,7 @@ class ShopCheckoutPaymentCorrelationComponentTest {
             var inputs = new ShopPurchaseJourneyContext.CheckoutInputs(page, new PlaywrightActionSequence(),
                     configuration.uri(atf.shop.routes.ShopUiRoutes.CHECKOUT), configuration.productName(),
                     configuration.checkout(), new ShopPurchaseCheckpointPublisher(ignored -> { }), journal,
-                    locators, new ShopPageValidator(locators), new ShopPurchaseScreenValidator(locators));
+                    locators, new ShopPageValidator(locators), new ShopPurchaseScreenValidator(locators), configuration.api().endpoint().resolve(atf.shop.api.ShopApiRoutes.POSTCODE_LOOKUP));
 
             ShopPurchaseCheckpoint checkpoint = new ShopCheckoutPurchaseStage(inputs, 0L, ShopOrderExpectation.fromUi("12.01", 2)).checkPayment().checkpoint();
 

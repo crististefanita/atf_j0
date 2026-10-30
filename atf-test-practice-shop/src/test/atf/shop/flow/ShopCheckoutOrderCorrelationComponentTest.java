@@ -62,7 +62,7 @@ class ShopCheckoutOrderCorrelationComponentTest {
                     java.net.URI.create(fixture.origin() + "/checkout"), configuration.productName(),
                     configuration.checkout(), new ShopPurchaseCheckpointPublisher(ignored -> { }),
                     new ShopApiNetworkJournal(ShopValidationProfile.UI_ONLY),
-                    locators, new ShopPageValidator(locators), new ShopPurchaseScreenValidator(locators));
+                    locators, new ShopPageValidator(locators), new ShopPurchaseScreenValidator(locators), configuration.api().endpoint().resolve(atf.shop.api.ShopApiRoutes.POSTCODE_LOOKUP));
             var stage = new ShopCheckoutPurchaseStage(inputs, 0L, expected);
             var failure = assertThrows(IllegalStateException.class,
                     () -> new ShopCheckoutFlow().complete(stage, ignored -> { }, false));
@@ -99,7 +99,7 @@ class ShopCheckoutOrderCorrelationComponentTest {
             var inputs = new ShopPurchaseJourneyContext.CheckoutInputs(page, actions,
                     configuration.uri(atf.shop.routes.ShopUiRoutes.CHECKOUT), configuration.productName(),
                     configuration.checkout(), new ShopPurchaseCheckpointPublisher(ignored -> { }), journal,
-                    locators, new ShopPageValidator(locators), new ShopPurchaseScreenValidator(locators));
+                    locators, new ShopPageValidator(locators), new ShopPurchaseScreenValidator(locators), configuration.api().endpoint().resolve(atf.shop.api.ShopApiRoutes.POSTCODE_LOOKUP));
 
             var stage = new ShopCheckoutPurchaseStage(inputs, 0L, expected);
             if (variant == OrderCase.HTTP_500_WITHOUT_UI) {
@@ -166,7 +166,7 @@ class ShopCheckoutOrderCorrelationComponentTest {
             var inputs = new ShopPurchaseJourneyContext.CheckoutInputs(page, actions,
                     configuration.uri(atf.shop.routes.ShopUiRoutes.CHECKOUT), configuration.productName(),
                     configuration.checkout(), new ShopPurchaseCheckpointPublisher(ignored -> { }), journal,
-                    locators, new ShopPageValidator(locators), new ShopPurchaseScreenValidator(locators));
+                    locators, new ShopPageValidator(locators), new ShopPurchaseScreenValidator(locators), configuration.api().endpoint().resolve(atf.shop.api.ShopApiRoutes.POSTCODE_LOOKUP));
             var checkpoint = new ShopCheckoutPurchaseStage(inputs, 0L, expected).confirmOrder().checkpoint();
             assertFalse(checkpoint.passed());
             assertEquals(AtfReportStatus.FAIL, checkpoint.apiValidation().status());

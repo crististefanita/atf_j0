@@ -1,0 +1,69 @@
+import atf.reporting.contract.*;
+import atf.reporting.configuration.ReportingSettings;
+import atf.reporting.extent.session.ExtentReportSession;
+import atf.reporting.html.HtmlReportSession;
+import atf.reporting.semantic.AtfReportSemanticSnapshot;
+import java.nio.file.*;
+import java.security.MessageDigest;
+import java.util.*;
+import static atf.reporting.contract.AtfReportStatus.*;
+
+public final class JarConsumer {
+    public static void main(String[] args) throws Exception {
+        Path loaded=Path.of(AtfReportPorts.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        if(!loaded.toString().endsWith(".jar")) throw new AssertionError("Not a physical JAR: "+loaded);
+        String hash=HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(loaded)));
+        if(!hash.equalsIgnoreCase(args[1])) throw new AssertionError("Unexpected JAR hash");
+        int runtimeJars=0;
+        for(String entry:System.getProperty("java.class.path").split(java.io.File.pathSeparator)) {
+            if(!entry.endsWith(".jar")) {
+                if(!Path.of(entry).toAbsolutePath().normalize().equals(Path.of("target/classes").toAbsolutePath().normalize()))
+                    throw new AssertionError("Unexpected classes directory: "+entry);
+                continue;
+            }
+            runtimeJars++;
+            try(var jar=new java.util.jar.JarFile(entry)) {
+                var forbidden=jar.stream().filter(item->!item.isDirectory()).map(java.util.jar.JarEntry::getName).filter(name->
+                        name.startsWith("atf/")&&!name.startsWith("atf/reporting/")
+                        ||name.startsWith("org/junit/")||name.startsWith("com/microsoft/playwright/")).findFirst();
+                if(forbidden.isPresent()) throw new AssertionError("Forbidden runtime package: "+forbidden.get());
+            }
+        }
+        System.out.println("MAVEN_RUNTIME_JARS="+runtimeJars+"; forbidden-ATF-runner-browser-packages=ABSENT");
+        for(String absent:List.of("atf.core.http.ApiClient","atf.ui.playwright.UiBrowserSession",
+                "atf.testkit.reporting.AssertionAuditExtension","org.junit.jupiter.api.Test","com.microsoft.playwright.Page")) {
+            try {Class.forName(absent);throw new AssertionError("Unexpected runtime dependency: "+absent);}
+            catch(ClassNotFoundException expected) { }
+        }
+        if(ReportingSettings.defaults().assertionMaxDisplayCharacters()!=240) throw new AssertionError("Preview contract changed");
+        Path out=Path.of(args[0]);Files.createDirectories(out);
+        for(boolean extent:args.length>2&&args[2].equals("FALLBACK")?List.of(false):List.of(true,false)) {
+            Path html=out.resolve(extent?"extent.html":"fallback.html");
+            try(var session=extent?(AtfReportPorts.Session)new ExtentReportSession(html):new HtmlReportSession(html)) {
+                publish(session,"Nominal",new AtfAssertion("Independent equality","ready","ready",true),PASS);
+                String prefix="x".repeat(300);
+                publish(session,"Controlled FAIL",new AtfAssertion("Difference beyond preview",prefix+"EXPECTED_TAIL",
+                        prefix+"ACTUAL_TAIL",false),PASS);
+                publish(session,"Redaction",new AtfAssertion("Authorization","Bearer probe-secret","Bearer probe-secret",true),PASS);
+                AtfReportSemanticSnapshot snapshot=extent?((ExtentReportSession)session).semanticSnapshot()
+                        :((HtmlReportSession)session).semanticSnapshot();
+                var statuses=snapshot.classes().getFirst().scenarios().stream().map(AtfReportSemanticSnapshot.ScenarioSnapshot::status).toList();
+                if(!statuses.equals(List.of(PASS,FAIL,PASS))) throw new AssertionError(statuses);
+            }
+            String content=Files.readString(html);
+            if(content.contains("probe-secret")) throw new AssertionError("Credential leaked");
+            if(content.contains("EXPECTED_TAIL")||content.contains("ACTUAL_TAIL")) throw new AssertionError("Unbounded preview");
+            if(!content.contains("Difference beyond preview")) throw new AssertionError("Missing evidence");
+            System.out.println("RENDERER="+(extent?"EXTENT":"FALLBACK")+"; statuses=PASS,FAIL,PASS; redaction=PASS; bounded-preview=PASS");
+        }
+        System.out.println("LOADED_REPORTING_JAR="+loaded+"; SHA256="+hash);
+    }
+    private static void publish(AtfReportPorts.Session session,String name,AtfAssertion assertion,AtfReportStatus requested) {
+        try(var scenario=session.startScenario("ExternalJar",name,List.of("component"))) {
+            try(var phase=scenario.startPhase("TEST BODY");var step=phase.startAssertionStep("Assertions")) {
+                step.assertions(List.of(assertion));step.complete(requested);phase.complete(requested);
+            }
+            scenario.complete(requested);
+        }
+    }
+}

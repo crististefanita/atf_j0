@@ -29,6 +29,11 @@ public final class ReportEvidenceMarkup {
     /** Machine-readable facts from the captured exchange, independent of display titles. */
     public static String executionAttributes(ReportExecutionEvidence execution,
                                              SensitiveDataRedactor redactor) {
+        return executionAttributes(execution, redactor, atf.reporting.configuration.ReportingSettings.defaults());
+    }
+
+    public static String executionAttributes(ReportExecutionEvidence execution, SensitiveDataRedactor redactor,
+                                             atf.reporting.configuration.ReportingSettings settings) {
         var request = execution.request();
         var response = execution.response();
         var attributes = new java.util.ArrayList<String>();
@@ -43,6 +48,12 @@ public final class ReportEvidenceMarkup {
             attributes.add(attribute(AtfReportHtmlVocabulary.Attribute.RESPONSE_BODY_AVAILABILITY,
                     response.bodyAvailability().name()));
         }
+        atf.reporting.model.diagnostic.ReportExecutionFailure.from(execution).ifPresent(failure -> {
+            attributes.add(attribute(AtfReportHtmlVocabulary.Attribute.TERMINAL_FAILURE, "true"));
+            attributes.add(attribute(AtfReportHtmlVocabulary.Attribute.TERMINAL_MESSAGE,
+                    atf.reporting.markup.ExtentReportNodeSupport.display(redactor.redactText(failure.message()), settings)));
+            attributes.add(attribute(AtfReportHtmlVocabulary.Attribute.TERMINAL_DURATION, failure.duration()));
+        });
         return String.join(" ", attributes);
     }
 

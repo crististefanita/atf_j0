@@ -69,6 +69,8 @@ public final class ApiExchangeEvidence {
                 ReportRequestSignature.forRequest(request)));
         ApiAuthenticationEvidence.publishTo(detail, request);
         if (!request.query().isEmpty()) detail.accept("query.params", request.query().toString());
+        if (!request.queryFingerprint().isEmpty() && request.queryParameters().isEmpty())
+            detail.accept("query.capture", "Not captured — opaque query identity retained internally");
         detail.accept("request.headers", ApiManualReplay.redactedHeaders(request));
         detail.accept("transport.provenance", evidence.attempts() == 0
                 ? "No request dispatched; selected transport: " + evidence.provenance().name()

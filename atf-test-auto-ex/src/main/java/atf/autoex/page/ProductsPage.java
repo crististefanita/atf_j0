@@ -27,7 +27,7 @@ public final class ProductsPage extends AutoExPage {
     public ProductPage openFirstProduct() {
         ui.waitForText(AutoExSelectors.SEARCH_RESULT_PRODUCT_NAME + " >> nth=0",
                 expectedProductName, "configured search result is ready");
-        clickFirst(AutoExSelectors.PRODUCT_DETAILS_LINK, "first matching product details open");
+        catalog.openFirstProduct(expectedProductName);
         return new ProductPage(ui);
     }
 }

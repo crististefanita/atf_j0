@@ -20,11 +20,11 @@ import atf.reporting.model.ReportScreenshot;
 import atf.reporting.model.ReportExecutionEvidence;
 import atf.reporting.ui.UiExtentReportSession;
 import atf.reporting.ui.network.ReportNetworkInspector;
-import atf.ui.config.UiScreenValidationConfiguration;
 import atf.ui.playwright.PlaywrightActionSequence;
 import atf.ui.playwright.PlaywrightUiSession;
 import atf.ui.playwright.UiScreenValidation;
 import atf.shop.config.ShopConfiguration;
+import atf.shop.config.ShopValidationProfile;
 import atf.shop.support.ShopPurchaseCheckpoint;
 import atf.shop.support.ShopPurchaseTraceStep;
 import atf.shop.support.ShopAuditObservations;
@@ -37,8 +37,6 @@ import atf.shop.reporting.ShopScreenshotPolicy;
 import com.microsoft.playwright.Page;
 
 import java.nio.file.Path;
-import java.time.Clock;
-import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +44,6 @@ import java.util.function.Consumer;
 
 /** Owns the browser/report lifecycle for one external Practice Shop suite. */
 public final class ShopE2eContext implements AutoCloseable {
-    private static final DateTimeFormatter STAMP = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss-SSS");
     private static final String NETWORK_INSPECTOR_SUMMARY_TITLE =
             "API network inspector — journey summary";
     private final ShopConfiguration configuration;
@@ -143,15 +140,6 @@ public final class ShopE2eContext implements AutoCloseable {
             throw primary;
         }
     }
-    private static Path projectRoot() {
-        Path current = Path.of(System.getProperty("user.dir", ".")).toAbsolutePath().normalize();
-        while (current != null) {
-            if (java.nio.file.Files.isRegularFile(current.resolve("atf-reporting/pom.xml"))) return current;
-            current = current.getParent();
-        }
-        return Path.of(System.getProperty("user.dir", ".")).toAbsolutePath().normalize();
-    }
-
     /** Shared component seam for setup failures; keeps the real cause on the setup phase. */
     static void publishSetupFailureEvidence(UiExtentReportSession.UiPhase phase, String target,
                                             Collection<atf.reporting.ui.model.AtfUiActionRecord> actions,
@@ -196,8 +184,12 @@ public final class ShopE2eContext implements AutoCloseable {
     /** Starts a report scenario with the concrete test identity of the caller. */
     public Scenario scenario(String reportClass, String title, String overview) {
         UiExtentReportSession.UiScenario scenario = startReportScenario(reportClass, overview);
-        var setup = scenario.startPhase("SETUP");
-        setup.measureExecution();
+        boolean consolidatedGuest = evidenceProfile.flowMode() == ReportEvidenceFlowMode.UNIFIED_FLOW
+                && configuration.validationProfile() == ShopValidationProfile.UI_ONLY
+                && !configuration.authenticatedE2eAllowed();
+        Scenario singleFlow = consolidatedGuest ? new Scenario(scenario, title, null) : null;
+        var preparation = singleFlow == null ? scenario.startPhase("SETUP") : singleFlow.body;
+        if (singleFlow == null) preparation.measureExecution();
         List<AtfAssertion> setupAssertions = setupAssertions(configuration);
         AtfReportStatus setupStatus = setupAssertions.stream().allMatch(AtfAssertion::passed)
                 ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
@@ -205,10 +197,15 @@ public final class ShopE2eContext implements AutoCloseable {
         ShopPurchaseTraceStep initialSetup = authenticated
                 ? ShopPurchaseTraceStep.AUTHENTICATED_FIXTURE_READY
                 : ShopPurchaseTraceStep.GUEST_CONFIGURATION_READY;
-        setup.setup(initialSetup.keyword(), initialSetup.title(),
+        if (singleFlow != null) {
+            preparation.step(initialSetup.keyword(), initialSetup.title(), "YAML checkout inputs", "",
+                    setupAssertions, setupStatus);
+            return singleFlow;
+        }
+        preparation.setup(initialSetup.keyword(), initialSetup.title(),
                 authenticated ? configuration.accountPolicy().evidenceTarget() : "YAML checkout inputs",
                 setupAssertions, setupStatus);
-        setup.complete(setupStatus);
+        preparation.complete(setupStatus);
         return new Scenario(scenario, title, null);
     }
 
@@ -271,20 +268,10 @@ public final class ShopE2eContext implements AutoCloseable {
     @Override public void close() {
         if (closed) return;
         closed = true;
-        Throwable failure = null;
-        if (backendRecovery != null) failure = FailureAwareCleanup.runAll(failure, backendRecovery::close);
-        try {
-            browser.close();
-        } catch (Throwable error) {
-            if (failure == null) failure = error; else failure.addSuppressed(error);
-        } finally {
-            if (ownsReport) try {
-                report.close();
-            } catch (Throwable error) {
-                if (failure == null) failure = error;
-                else failure.addSuppressed(error);
-            }
-        }
+        Throwable failure = FailureAwareCleanup.runAll(null,
+                () -> { if (backendRecovery != null) backendRecovery.close(); },
+                browser::close,
+                () -> { if (ownsReport) report.close(); });
         if (failure instanceof RuntimeException runtime) throw runtime;
         if (failure instanceof Error error) throw error;
         if (failure != null) throw new IllegalStateException("Practice Shop E2E teardown failed", failure);

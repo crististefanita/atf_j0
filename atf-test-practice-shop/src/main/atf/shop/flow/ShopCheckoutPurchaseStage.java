@@ -192,7 +192,7 @@ final class ShopCheckoutPurchaseStage implements ShopCheckoutFlow.Port {
 
     private ShopPageValidationResult validateConfiguredBilling(
             ShopBillingPage billing, ShopBillingAddress address) {
-        billing.fill(address);
+        billing.fill(address, context.postcodeEndpoint());
         return context.pageValidator().validateValues(context.page(), ShopBillingPage.class, Map.of(
                 ShopControl.COUNTRY, address.country(),
                 ShopControl.POSTAL_CODE, address.postalCode(),
@@ -204,7 +204,7 @@ final class ShopCheckoutPurchaseStage implements ShopCheckoutFlow.Port {
 
     private ShopPageValidationResult validateLookupBilling(
             ShopBillingPage billing, ShopBillingAddress address) {
-        billing.fillFromPostalLookup(address);
+        billing.fillFromPostalLookup(address, context.postcodeEndpoint());
         return context.pageValidator().validatePopulatedValues(context.page(), ShopBillingPage.class, Map.of(
                         ShopControl.COUNTRY, address.country(),
                         ShopControl.POSTAL_CODE, address.postalCode(),

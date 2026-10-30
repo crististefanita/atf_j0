@@ -11,7 +11,11 @@ function fallbackFailureTargets(scenario) {
   return [...scenario.querySelectorAll('section[data-atf-node-role="phase"]')].flatMap(phase => [
     ...diagnostics.filter(d => d.dataset.atfPhaseName.toLowerCase().replace(/ /g, '-') === phase.dataset.atfPhaseName)
       .flatMap(d => [...d.querySelectorAll('tbody tr')]),
-    ...[...phase.querySelectorAll('table.assertions tbody tr')].filter(row => row.cells[3]?.querySelector('.status-fail'))
+    ...[...phase.querySelectorAll('[data-atf-terminal-failure="true"], table.assertions tbody tr')].filter(row => {
+      if (!row.matches('[data-atf-terminal-failure="true"]')) return row.cells[3]?.querySelector('.status-fail');
+      const request = row.closest('[data-atf-node-role="request"]');
+      return request?.querySelector(':scope > .node-title .status-fail');
+    })
   ]);
 }
 function revealFallbackFailure(id, ordinal) {

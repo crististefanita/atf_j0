@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.StringJoiner;
 
 /**
@@ -22,6 +21,8 @@ import java.util.StringJoiner;
  */
 public final class ReportRequestSignature {
     private static final ObjectMapper JSON = new ObjectMapper();
+    private static final java.util.regex.Pattern QUERY_FINGERPRINT =
+            java.util.regex.Pattern.compile("#query=([0-9a-f]{64})(?=\\s*#body=|$)");
     private static final String ABSENT_BODY = "<absent>";
     private static final String UNKNOWN_BODY = "<not-captured>";
     private static final String BODY_FRAGMENT = "#body=";
@@ -35,7 +36,9 @@ public final class ReportRequestSignature {
     public static String forRequest(ReportRequest request) {
         if (request == null) return "";
         return request.method().trim().toUpperCase(Locale.ROOT) + " "
-                + safeTarget(request.path(), request.query())
+                + safeTarget(request.path(), request.queryParameters())
+                + (request.queryFingerprint().isEmpty() ? "" : (request.queryParameters().isEmpty() ? "?query-not-captured" : "")
+                        + "#query=" + request.queryFingerprint())
                 + BODY_FRAGMENT + requestBodyDigest(request);
     }
 
@@ -61,9 +64,22 @@ public final class ReportRequestSignature {
     public static String displaySignature(String signature) {
         if (signature == null || signature.isBlank()) return "";
         int marker = signature.indexOf(BODY_FRAGMENT);
-        if (marker < 0) return signature;
-        return signature.substring(0, marker) + BODY_FRAGMENT
+        if (marker < 0) {
+            int fingerprint = signature.indexOf("#query=");
+            return fingerprint < 0 ? signature : signature.substring(0, fingerprint);
+        }
+        String target = signature.substring(0, marker);
+        int queryFingerprint = target.indexOf("#query=");
+        if (queryFingerprint >= 0) target = target.substring(0, queryFingerprint);
+        return target + BODY_FRAGMENT
                 + bodyState(signature.substring(marker + BODY_FRAGMENT.length()));
+    }
+
+    /** Delimited interoperability seam; returns only an opaque digest, never an external signature or URL. */
+    public static String queryFingerprint(String signature) {
+        if (signature == null) return "";
+        var match = QUERY_FINGERPRINT.matcher(signature);
+        return match.find() ? match.group(1) : "";
     }
 
     /** Returns a semantic body state while keeping the internal digest private. */
@@ -115,14 +131,14 @@ public final class ReportRequestSignature {
         return node.toString();
     }
 
-    private static String safeTarget(String path, Map<String, String> query) {
+    private static String safeTarget(String path, ReportQueryParameters query) {
         String base = normalizePath(path);
         if (query == null || query.isEmpty()) return base;
         StringJoiner values = new StringJoiner("&");
-        query.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .forEach(entry -> values.add(encode(entry.getKey()) + "="
-                        + encode(isSensitive(entry.getKey()) ? "***REDACTED***" : entry.getValue())));
+        query.values().stream()
+                .sorted(Comparator.comparing(ReportQueryParameter::name))
+                .forEach(entry -> values.add(encode(entry.name()) + "="
+                        + encode(isSensitive(entry.name()) ? "***REDACTED***" : entry.value())));
         return base + "?" + values;
     }
 

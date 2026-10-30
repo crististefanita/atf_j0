@@ -23,6 +23,7 @@ public final class AutoExSelectors {
     public static final String SEARCH_RESULT_PRODUCT_NAME = ".features_items .productinfo p";
     public static final String PRODUCT_DETAILS_LINK = "a[href^='%s']".formatted(AutoExRoutes.PRODUCT_DETAILS.path());
     public static final String PRODUCT_INFORMATION = ".product-information";
+    public static final String PRODUCT_INFORMATION_NAME = PRODUCT_INFORMATION + " h2";
     public static final String QUANTITY = "#quantity";
     public static final String ADD_TO_CART = "button.cart";
     public static final String CART_ADD_CONFIRMATION = "#cartModal";

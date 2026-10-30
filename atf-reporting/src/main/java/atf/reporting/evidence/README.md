@@ -16,6 +16,7 @@ execută operația pentru a completa un rând lipsă.
 | acțiuni, observations și assertions UI | [ExtentUiEvidenceRenderer](ExtentUiEvidenceRenderer.java), [ui](ui) | owner și prezentare UI |
 | ordinea redactare/format/plafon | [ReportEvidenceJsonFormatter](markup/ReportEvidenceJsonFormatter.java) | politică comună Extent/fallback |
 | câmpuri și tabele | [EvidenceTableFormatter](EvidenceTableFormatter.java), [ReportEvidenceTable](ReportEvidenceTable.java) | structură și date de display |
+| sumar de excepție | [ReportFailureDescription](diagnostic/ReportFailureDescription.java) | graf bounded, redactare înainte de 240; fără decizie business |
 | imaginea atașată acțiunilor | [UiActionScreenshotPolicy](policy/UiActionScreenshotPolicy.java) | cardinalitate, fără captură browser |
 
 ## Pipeline-ul de citit împreună
@@ -37,16 +38,18 @@ execută operația pentru a completa un rând lipsă.
   numele său nu îl transformă într-un provider Playwright.
 - Verdictul se păstrează din intrarea typed. Trunchierea textului nu produce o
   comparație nouă și nu transformă expected/actual egale vizual în PASS.
-- Redactarea cheilor JSON Unicode și a valorilor sensibile non-string are
-  [criteriu activ](../../../../../../../docs/feedback/ATF_Reporting_Feedback.md#report-json-redaction-40--secretul-semantic-înaintea-formatării);
-  descrierea pipeline-ului nu dovedește acoperirea tuturor formelor de input.
+- [Redactorul JSON](../security/JsonEvidenceRedactor.java) interpretează cheia
+  semantică înaintea valorii; maschează și scalare/array/obiect, păstrează
+  câmpurile duplicate și nu modifică valorile folosite de caller la verdict.
+- [Sumarul assertion-urilor](diagnostic/ReportAssertionSummary.java) este numai
+  diagnostic sigur, cu redacție per câmp și plafon 240; nu reevaluează comparațiile.
 
 </details>
 
 ## Probe
 
-`ReportEvidenceJsonFormatterTest`, `ReportEvidenceTableTest` și
-`ReportEvidenceStyleContractTest` verifică proiecția; controalele de renderer și
+[ReportEvidenceJsonFormatterTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/evidence/markup/ReportEvidenceJsonFormatterTest.java), [ReportEvidenceTableTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/evidence/ReportEvidenceTableTest.java) și
+[ReportEvidenceStyleContractTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/evidence/ReportEvidenceStyleContractTest.java) verifică proiecția; controalele de renderer și
 browser sunt în [Reporting Tests](../../../../../../../atf-reporting-tests/README.md#tabele-publicate-și-inventar-independent).
 
 Pentru o modificare de secret/buget se citesc și

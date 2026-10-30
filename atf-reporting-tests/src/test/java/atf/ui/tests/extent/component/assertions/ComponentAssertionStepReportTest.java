@@ -176,9 +176,10 @@ class ComponentAssertionStepReportTest {
             page.waitForCondition(() -> "true".equals(scenario.getAttribute("data-atf-scenario-open")));
             assertEquals("true", scenario.getAttribute("data-atf-scenario-open"));
             var phase = PHASES.phases(scenario).first();
-            PHASES.header(phase).click();
             var step = PHASES.assertionStep(phase);
-            PHASES.header(step).click();
+            page.waitForCondition(() -> PHASES.assertionTable(step, false).isVisible());
+            assertEquals("true", phase.getAttribute("data-atf-phase-open"));
+            assertEquals("true", step.getAttribute("data-atf-node-open"));
             assertTrue(PHASES.assertionTable(step, false).isVisible());
             assertEquals(1, PHASES.assertionRows(PHASES.assertionTable(step, false)).count());
         }

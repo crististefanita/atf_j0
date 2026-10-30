@@ -28,29 +28,19 @@ Reactorul păstrează exact cele 12 module existente. Extinderile se implementea
 
 ### Harta modulelor: platformă și consumatori
 
+Platforma, scope-urile consumerilor și verificarea se citesc separat.
+Dependențele Maven și relațiile de guvernanță au sensuri distincte, explicite.
+
 ```mermaid
-%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; } .edgeLabel [data-id=\"L_Console_Kit_0\"] foreignObject { transform: translate(0px, -28px); } .edgeLabel [data-id=\"L_Ui_Core_0\"] foreignObject { transform: translate(-24px, -18px); } .edgeLabel [data-id=\"L_Shop_Ui_0\"] foreignObject { transform: translate(-24px, -28px); } .edgeLabel [data-id=\"L_Shop_Kit_0\"] foreignObject { transform: translate(24px, -18px); } .edgeLabel [data-id=\"L_AutoEx_Core_0\"] foreignObject { transform: translate(24px, -18px); } .edgeLabel [data-id=\"L_AutoEx_Console_0\"] foreignObject { transform: translate(-24px, -28px); } .edgeLabel [data-id=\"L_ReportingTests_Reporting_0\"] foreignObject { transform: translate(0px, 18px); } .edgeLabel [data-id=\"L_Governance_ReportingTests_0\"] foreignObject { transform: translate(0px, 18px); } .edgeLabel [data-id=\"L_AutoEx_Ui_0\"] foreignObject { transform: translate(24px, 28px); }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Mock["Mock"] -->|compile| Core["Core"]
-    Validation["Validation"] -->|compile| Core
-    Console["Console"] -->|compile| Core
-    Reporting["Reporting"]
+    Debug["Debug UI"] -->|compile| Console["Console"]
+    Console -->|compile| Core["Core"]
     Console -->|optional compile| Kit["Test Kit"]
+    Mock["Mock"] -->|compile| Core
+    Validation["Validation"] -->|compile| Core
     Ui["UI"] -->|compile| Core
-    Debug["Debug UI"] -->|compile| Console
-    Shop["Shop"] -->|compile| Core
-    Shop -->|compile| Console
-    Shop -->|compile| Reporting
-    Shop -->|compile| Ui
-    Shop -.->|test scope| Kit
-    AutoEx["AutoEx"] -->|compile| Core
-    AutoEx -->|compile| Reporting
-    AutoEx -->|compile| Ui
-    AutoEx -.->|test scope| Console
-    AutoEx -.->|test scope| Kit
-    ReportingTests["Reporting tests"] -.->|test composition| Reporting
-    Governance["Guvernanță"] -.->|guard, not dependency| Shop
-    Governance -.->|guard, not dependency| ReportingTests
+    Reporting["Reporting"]
 ```
 
 <details>
@@ -85,12 +75,41 @@ Etichetele scurte păstrează următorul sens:
 
 </details>
 
+**Dependențele consumerilor.** Matricea păstrează separat scope-urile din POM;
+lista dintr-o celulă înseamnă dependență directă către fiecare modul enumerat.
+
+| Consumer | `compile` | `test` |
+|---|---|---|
+| Shop | Core, Console, Reporting, UI | Test Kit |
+| AutoEx | Core, Reporting, UI | Console, Test Kit |
+
+**Relațiile de verificare.** Compoziția Reporting consumă biblioteca în test;
+guvernanța inspectează sursele consumerului și ale probelor Reporting.
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
+flowchart LR
+    Governance["Guvernanță"] -.->|guard, not dependency| Shop["Shop"]
+    Governance -.->|guard, not dependency| ReportingTests["Reporting tests"]
+    ReportingTests -.->|test composition| Reporting["Reporting"]
+```
+<details>
+<summary><strong>Legendă — compoziție și guvernanță</strong></summary>
+
+- `Reporting tests` înseamnă `atf-reporting-tests`; muchia `test composition`
+  este dependența sa `test` către `atf-reporting`.
+- `Guvernanță` înseamnă `atf-tests`; cele două muchii `guard, not dependency`
+  inspectează repository-ul și nu adaugă dependențe Maven către Shop sau Reporting Tests.
+- Scope-urile complete ale compozițiilor se citesc în POM-uri. Harta selectează
+  relațiile explicative, păstrând explicit diferența dintre consum și verificare.
+
+</details>
+
 În această diagramă, semnificația este dată de eticheta muchiei și nu trebuie
 dedusă din poziția nodurilor:
 
 - `atf-validation` și fixture-urile reporting depind de `atf-core`;
 - `atf-reporting` nu depinde de niciun modul ATF în production;
-- testele acestor responsabilități sunt în
+- testele de compoziție Reporting sunt în
   `atf-reporting-tests/src/test/java`, cu mock, consolă, Playwright și debug UI
   strict în test scope;
 - `atf-tests` rulează separat `atf.api.tests.governance.ArchitectureModuleBoundaryTest`
@@ -162,9 +181,10 @@ Etichetele scurte păstrează următorul sens:
 Limitele de compoziție și ownership sunt:
 
 - `atf-reporting-tests` rezolvă sursele deterministe, lifecycle-ul JUnit și auditul Playwright al raportului;
-- `atf-tests` deține testele aplicațiilor și guvernanța whole-ATF;
+- `atf-tests` deține guvernanța whole-ATF; testele aplicațiilor rămân în consumerii Shop și AutoEx;
 - production reporting nu primește `Page`, `Locator` sau JUnit;
-- `atf-core` nu primește catalogul concret sau loaderul YAML;
+- modelele Core nu citesc YAML și nu primesc catalogul concret; adaptorul de
+  surse `atf.core.config.source` rămâne separat și este apelat la composition root;
 - `atf-reporting` nu primește `Page` sau `Locator`;
 - separarea permite testare unit, component și E2E fără dublarea regulilor.
 
@@ -172,7 +192,7 @@ Limitele de compoziție și ownership sunt:
 
 | Modul | Deține | Nu deține |
 |---|---|---|
-| atf-core | request/response, transport, configurație, autentificare, retry, redaction, status, porturi și modelul neutru `ApiScenarioSelection` | HTML, CSS, Extent, JUnit, YAML, browser, adnotările test-only, cataloguri concrete și rute de produs |
+| atf-core | request/response, transport, configurație typed și adaptorul său de surse, autentificare, retry, redaction, status, porturi și `ApiScenarioSelection` | HTML, CSS, Extent, JUnit, citirea YAML din modelele neutre, browser, cataloguri concrete și rute de produs |
 | atf-mock | transport fake configurabil și catalog de răspunsuri deterministe | HTTP real, Extent, JUnit, validare de business |
 | atf-validation | contracte response, reguli, evaluator, verdict și publicare prin port neutru | HTTP, Extent, HTML, CSS, lifecycle |
 | atf-console | formatter pentru evenimentele de consolă, `ConsoleSettings`, YAML, nesting, statusuri, fallback ASCII/UTF-8 și ownership-ul exclusiv al stdout/stderr | HTML, Extent, apeluri HTTP, verdicturi inventate |
@@ -229,8 +249,8 @@ folosit de testele reporting prin scope `test`, nu de producția reporting;
 unit, componentă sau integrare, iar browserul rămâne un nivel separat de
 verificare.
 
-Există două niveluri pentru contractul UI, cu browserul doar în composition scope-ul
-`atf-reporting-tests`:
+Contractul UI are un kernel pur și două compoziții browser; browserul rămâne
+exclusiv în test scope-ul `atf-reporting-tests`:
 
 | Pachet | Input | Scop |
 |---|---|---|
@@ -238,8 +258,8 @@ Există două niveluri pentru contractul UI, cu browserul doar în composition s
 | `atf.reporting.ui.contract` | annotation, spec, check-uri, snapshot și validator pur | reguli structurale fără DOM/browser |
 | `atf.ui.tests.extent.e2e.uireport` | raport UI anterior, static | rezolvare input, tab-uri, structură DOM, stil, collapsed state, Fails și UI validation |
 
-Al doilea nu citește expected business values din YAML și nu cere request-uri
-API. El este pornit cu `@UiExtentReportContract` și `-Datf.ui.report=...`, apoi
+Auditul `atf.ui.tests.extent.e2e.uireport` nu citește expected business values
+din YAML și nu cere request-uri API. Pornește cu `@UiExtentReportContract` și `-Datf.ui.report=...`, apoi
 publică un artifact UI nou fără să modifice inputul.
 
 Lanțul observabil este:
@@ -581,8 +601,10 @@ Etichetele scurte păstrează următorul sens:
 
 - `AtfRuntimeSnapshot` păstrează `ApiSettingsSnapshot` și `ReportingSettings`
   fără YAML, filesystem, environment sau Extent în `atf-core`;
-- `atf-core` deține modelele typed și snapshot-urile; loaderul complet rămâne în
-  composition root-ul testului din `atf-reporting` sau al consumatorului;
+- `atf-core` deține modelele typed, snapshot-urile și adaptorul explicit
+  [ApiBootstrapConfigurationLoader](../atf-core/src/main/java/atf/core/config/source/ApiBootstrapConfigurationLoader.java).
+  Adaptorul citește sursele la composition root; modelele nu citesc YAML ori environment.
+  Compoziția de test API este în `atf-reporting-tests`, iar consumerii își păstrează wiring-ul;
 - `ApiModuleFactory` proiectează snapshot-ul în executorul API, iar reporting
   consumă separat politica sa;
 - `reporting.extent` rămâne responsabilitatea reporting; timeout, retry, auth,
@@ -608,7 +630,8 @@ Reconcilierea curentă separă contractul implementat de riscurile de evoluție:
 | raport UI read-only pe tab-urile principale | `@UiExtentReportContract` și `StaticUiExtentReportContractTest` | `atf-reporting-tests` |
 | HTML/CSS/JavaScript și asset manifest | contracte pure în `atf-reporting` | `UiReportArtifactContractTest` |
 | direcție module, ownership constante/CSS, output și import graph | boundary-uri Maven/source | `atf-tests` + architecture tests |
-| parity Extent ↔ fallback | `AtfReportSemanticSnapshot.from(ReportExecutionModel)` | parity guard înainte de render |
+| paritate Extent ↔ fallback | `AtfReportSemanticSnapshot` | [comparație între renderer-e în test](../atf-reporting-tests/src/test/java/atf/reporting/semantic/AtfReportSemanticSnapshotTest.java) |
+| consistență internă fallback | `AtfReportSemanticSnapshot.from(ReportExecutionModel)` | documentul și recorderul aceleiași sesiuni sunt comparate înainte de render |
 
 Acestea sunt capabilități închise și normative. Un document de feedback nu le
 repetă și nu le transformă într-un scor; se redeschid numai printr-o regresie
@@ -619,11 +642,11 @@ reproductibilă, o schimbare de consumator sau o schimbare publică de contract.
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Extent["Extent"]
-    Fallback["Fallback"]
+    Recorder["Recorder comun"]
+    Fallback["Model fallback"]
     Adapter["Snapshot"]
-    Guard["Parity guard"]
-    Extent -->|furnizează| Guard
+    Guard["Guard fallback"]
+    Recorder -->|furnizează| Guard
     Fallback -->|normalizează| Adapter
     Adapter -->|furnizează| Guard
     Guard -->|publică| Output["Views"]
@@ -632,19 +655,22 @@ flowchart LR
 <details>
 <summary><strong>Legendă — parity semantică între renderer-e</strong></summary>
 
-- Extent și fallback-ul intră în aceeași comparație semantică;
-- adapterul normalizează modelul, fără să forțeze aceeași structură internă;
-- guard-ul compară class, scenario, phase, request, validation și evidence counts;
+- guard-ul din `HtmlReportSession.render()` compară modelul fallback cu
+  recorderul semantic al aceleiași sesiuni, înaintea construirii views;
+- adapterul normalizează modelul fallback, fără să forțeze aceeași structură internă;
+- comparația acoperă class, scenario, phase, request, validation și evidence counts;
 - diferența se repară în provider/model, nu prin ascunderea ei în UI.
+- paritatea Extent/fallback se verifică separat, prin publicarea acelorași
+  fapte în ambele sesiuni și compararea snapshot-urilor în test.
 
 Etichetele scurte păstrează următorul sens:
 
 | În schemă | Sens complet |
 |---|---|
-| Extent | Extent model |
-| Fallback | fallback model |
+| Recorder comun | recorderul semantic al sesiunii fallback |
+| Model fallback | documentul de execuție fallback |
 | Snapshot | semantic snapshot |
-| Parity guard | parity guard |
+| Guard fallback | verificarea consistenței interne înainte de render |
 | Views | coherent views |
 
 </details>
@@ -652,11 +678,12 @@ Etichetele scurte păstrează următorul sens:
 | Model | Owner | Rol |
 |---|---|---|
 | `ReportExecutionModel` | fallback | proiecțiile `Overview`, `Categories`, `Fails` |
-| `AtfReportSemanticSnapshot` | Extent lifecycle | contractul semantic al sesiunii |
+| `AtfReportSemanticSnapshot` | recorder comun și adaptoare | contract semantic renderer-neutral |
 
-Adapterul comun verifică înainte de publicare arborele `class → scenario → phase
-→ request → validation`, package-ul și evidence counts. Modelele rămân separate;
-parity-ul nu cere aceeași structură internă.
+Guard-ul local verifică arborele `class → scenario → phase → request → validation`,
+package-ul și evidence counts. [AtfReportSemanticSnapshotTest](../atf-reporting-tests/src/test/java/atf/reporting/semantic/AtfReportSemanticSnapshotTest.java)
+compară separat rezultatele Extent/fallback. Modelele rămân distincte; renderul
+fallback nu deschide o sesiune Extent pentru a-și confirma outputul.
 
 ### Evoluție controlată și redeschidere
 
@@ -854,11 +881,12 @@ corect la click.
 | Contract | Owner |
 |---|---|
 | Cont, catalog, coș, checkout, confirmare și factură | runtime-ul și testele business Shop/AutoEx |
-| Extensie JUnit și configurarea scenariului aplicației | `src/test/java` al consumerului |
+| Extensie JUnit și configurarea scenariului aplicației | rădăcina testelor din POM: Shop `src/test`, AutoEx `src/test/java` |
 | Inițializare, close-once și compensare armată | pachetul `lifecycle` din `atf-test-kit`, fără modul nou |
 | Comparații JUnit cu dovada verificărilor evaluate | evaluare JUnit unică, display injectat și colectare pe faze în main Test Kit; consumerul adaptează rândurile sigure la `AssertionAuditReport` |
 | Audit neutru al ecranului, cursorul observațiilor și validarea capturii | `atf-ui`; fără dependență de Reporting sau JUnit |
 | Failure evidence, replay și profile de randare | `atf-reporting-tests`, cu fixture-uri neutre |
+| Descriere sigură a excepțiilor | `ReportFailureDescription` în Reporting; consumerul decide faza, exchange-ul și verdictul |
 | Clasificare globală și acoperirea disjunctă a celor trei suite principale | `atf-tests`, în suita whole-ATF |
 
 Clasele executabile ale fiecărui consumer sunt repartizate exact o dată între

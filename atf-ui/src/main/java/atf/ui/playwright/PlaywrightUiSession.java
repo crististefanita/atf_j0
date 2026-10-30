@@ -3,6 +3,7 @@ package atf.ui.playwright;
 import atf.core.reporting.console.AtfConsoleSink;
 import atf.ui.config.UiBrowserConfiguration;
 import atf.ui.config.UiRetryPolicy;
+import atf.ui.config.geometry.UiViewportScale;
 import atf.ui.network.UiNetworkInspector;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
@@ -54,6 +55,7 @@ public final class PlaywrightUiSession implements AutoCloseable {
                                            AtfConsoleSink console) {
         Objects.requireNonNull(configuration, "configuration");
         UiActionTrace trace = UiActionTrace.console(Objects.requireNonNull(console, "console"));
+        UiViewportScale geometry = new UiViewportScale(configuration);
         Playwright playwright = Playwright.create();
         try {
             BrowserType type = switch (configuration.browser()) {
@@ -67,8 +69,8 @@ public final class PlaywrightUiSession implements AutoCloseable {
             configuredExecutablePath().ifPresent(launchOptions::setExecutablePath);
             Browser browser = type.launch(launchOptions);
             BrowserContext context = browser.newContext(new Browser.NewContextOptions()
-                    .setViewportSize(new ViewportSize(configuration.viewportWidth(), configuration.viewportHeight())));
-            context.addInitScript(zoomInitScript(configuration.zoomPercent()));
+                    .setViewportSize(new ViewportSize(geometry.layoutWidth(), geometry.layoutHeight()))
+                    .setDeviceScaleFactor(geometry.deviceScaleFactor()));
             context.setDefaultTimeout(configuration.timeout().toMillis());
             context.setDefaultNavigationTimeout(configuration.navigationTimeout().toMillis());
             Page page = context.newPage();
@@ -87,20 +89,6 @@ public final class PlaywrightUiSession implements AutoCloseable {
 
     /** Generic opt-in network observer for consumers that need UI/API correlation. */
     public UiNetworkInspector networkInspector() { return networkInspector; }
-
-    /**
-     * Init scripts can run before the document element exists.  Keep the
-     * configurable zoom, but apply it only after the root is available so a
-     * normal report load never emits a page error.
-     */
-    static String zoomInitScript(int zoomPercent) {
-        return "(() => { if (window !== window.top) return; const applyZoom = () => { "
-                + "if (document.documentElement) { document.documentElement.style.zoom = '"
-                + zoomPercent + "%'; } }; "
-                + "if (document.documentElement) { applyZoom(); } "
-                + "else { document.addEventListener('DOMContentLoaded', applyZoom, { once: true }); }"
-                + " })();";
-    }
 
     /**
      * Allows CI/ATF Debug to point at an already provisioned Playwright browser

@@ -16,9 +16,6 @@ public final class AutoExBackendRecovery {
         var policy = configuration.browser().recovery();
         var operation = new UiRecoveryOperation(CATALOG_READINESS, UiRecoveryOperation.Safety.READ_ONLY,
                 configuration.baseUrl(), AutoExRoutes.PRODUCTS_API.resolve(configuration.baseUrl()), "GET");
-        return new UiBackendRecovery(page, policy, List.of(operation), trace -> actions.information(
-                "BE observation #" + trace.attempt(), trace.operation(),
-                "profile=" + policy.profile() + "; maxAttempts=" + policy.maxAttempts() + "; totalTimeout="
-                        + policy.totalTimeout() + "; source=" + policy.source(), trace.description()));
+        return UiBackendRecovery.recording(page, policy, List.of(operation), actions);
     }
 }

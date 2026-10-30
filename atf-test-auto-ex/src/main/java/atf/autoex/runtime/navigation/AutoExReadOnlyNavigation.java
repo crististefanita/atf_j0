@@ -1,11 +1,13 @@
 package atf.autoex.runtime.navigation;
 
 import atf.ui.config.UiRetryPolicy;
+import atf.ui.recovery.UiRecoveryOperation;
 import atf.ui.playwright.PlaywrightActionSequence;
 import atf.autoex.locator.AutoExRoutes;
 import atf.autoex.locator.AutoExSelectors;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Response;
+import com.microsoft.playwright.options.WaitUntilState;
 
 import java.net.URI;
 import java.util.Objects;
@@ -13,7 +15,7 @@ import java.util.Objects;
 import static atf.core.http.request.HttpMethod.GET;
 import static atf.ui.config.UiRetryOperation.NAVIGATE;
 
-/** Recovers only the site's explicit queue-full document on observed, allowlisted GET navigation. */
+/** Recovers explicit queue-full or observed HTTP 520/525 documents only on observed, allowlisted GET navigation. */
 public final class AutoExReadOnlyNavigation {
     private final Page page;
     private final PlaywrightActionSequence actions;
@@ -30,20 +32,61 @@ public final class AutoExReadOnlyNavigation {
     }
 
     public void recoverIfBusy() {
-        int attempt = 1;
-        while (isQueueFull()) {
+        recover(1, null);
+    }
+
+    /** One recovery scope retains its attempt count and the enclosing action's deadline. */
+    public Recovery within(PlaywrightActionSequence.ObservationBudget budget) {
+        return new Recovery(Objects.requireNonNull(budget));
+    }
+
+    public final class Recovery {
+        private final PlaywrightActionSequence.ObservationBudget budget;
+        private int attempt = 1;
+        private Recovery(PlaywrightActionSequence.ObservationBudget budget) { this.budget = budget; }
+        public void recoverIfBusy() { attempt = recover(attempt, budget); }
+    }
+
+    private int recover(int attempt, PlaywrightActionSequence.ObservationBudget budget) {
+        String reason;
+        while ((reason = transientReason()) != null) {
             URI current = URI.create(page.url());
             boolean safe = isReadOnlyDocument(current);
             String method = document == null ? "UNKNOWN" : document.method();
-            actions.observation("Store availability", current.getPath(), "store renders its business page",
-                    "queue full; document attempt " + attempt + "/" + policy.maxAttempts() + "; " + method);
+            actions.information("Store availability", current.getPath(), "store renders its business page",
+                    reason + "; document attempt " + attempt + "/" + policy.maxAttempts() + "; " + method);
             if (!safe || !policy.allows(NAVIGATE.label(), attempt)) {
-                throw new AutoExStoreUnavailableException(method, current.getPath(), attempt, policy.maxAttempts(), safe);
+                throw new AutoExStoreUnavailableException(reason, method, current.getPath(), attempt, policy.maxAttempts(), safe);
             }
+            if (budget != null && policy.backoff().toMillis() >= budget.remainingMilliseconds())
+                throw new IllegalStateException("Store GET recovery cannot fit in the original action deadline");
             policy.pause();
-            actions.navigate(page, current, "read-only store document recovers after queue full");
+            if (budget == null) actions.navigate(page, current, "read-only store document recovers after " + reason);
+            else {
+                actions.information("Store GET recovery", current.getPath(), "retry only the observed transient read-only document",
+                        "GET; " + reason + "; attempt=" + (attempt + 1) + "/" + policy.maxAttempts());
+                page.navigate(current.toString(), new Page.NavigateOptions().setWaitUntil(WaitUntilState.COMMIT)
+                        .setTimeout(budget.remainingMilliseconds()));
+            }
             attempt++;
         }
+        return attempt;
+    }
+
+    private String transientReason() {
+        if (document != null && document.uri().toString().equals(page.url()) && (document.status() == 520 || document.status() == 525)) return "HTTP " + document.status();
+        return isQueueFull() ? "queue full" : null;
+    }
+
+    public void requireProductDocument(URI expected) {
+        if (document == null || !"GET".equals(document.method()) || !expected.equals(document.uri())
+                || !expected.toString().equals(page.url()) || document.status() < 200 || document.status() >= 300)
+            throw new IllegalStateException("Product document is not a confirmed successful owned GET; " + description());
+    }
+
+    public String description() {
+        return document == null ? "document=unobserved" : "document=" + document.method() + "/" + document.status()
+                + "; observed path=" + document.uri().getPath();
     }
 
     private boolean isQueueFull() {
@@ -54,13 +97,13 @@ public final class AutoExReadOnlyNavigation {
     private void observeDocument(Response response) {
         var request = response.request();
         if (request.isNavigationRequest() && request.frame().equals(page.mainFrame())) {
-            document = new Document(request.method(), URI.create(response.url()));
+            document = new Document(request.method(), URI.create(response.url()), response.status());
         }
     }
 
     private boolean isReadOnlyDocument(URI current) {
-        if (document == null || !GET.value().equals(document.method()) || !sameOrigin(baseUrl, current)
-                || !sameOrigin(document.uri(), current)
+        if (document == null || !GET.value().equals(document.method()) || !UiRecoveryOperation.origin(baseUrl).equals(UiRecoveryOperation.origin(current))
+                || !UiRecoveryOperation.origin(document.uri()).equals(UiRecoveryOperation.origin(current))
                 || !Objects.equals(document.uri().getRawPath(), current.getRawPath())
                 || !Objects.equals(document.uri().getRawQuery(), current.getRawQuery())) return false;
         String path = current.getPath();
@@ -69,14 +112,5 @@ public final class AutoExReadOnlyNavigation {
                 && path.substring(AutoExRoutes.PRODUCT_DETAILS.path().length()).matches("[A-Za-z0-9_-]+");
     }
 
-    private static boolean sameOrigin(URI first, URI second) {
-        return Objects.equals(first.getScheme(), second.getScheme())
-                && Objects.equals(first.getHost(), second.getHost()) && port(first) == port(second);
-    }
-
-    private static int port(URI uri) {
-        return uri.getPort() >= 0 ? uri.getPort() : ("https".equalsIgnoreCase(uri.getScheme()) ? 443 : 80);
-    }
-
-    private record Document(String method, URI uri) { }
+    private record Document(String method, URI uri, int status) { }
 }

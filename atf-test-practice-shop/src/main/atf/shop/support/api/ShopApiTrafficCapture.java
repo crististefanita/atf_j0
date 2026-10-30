@@ -5,10 +5,19 @@ import atf.shop.support.ShopJsonEvidence;
 import com.microsoft.playwright.Response;
 
 import java.util.Optional;
+import java.net.URI;
+import atf.ui.recovery.UiRecoveryOperation;
 
 /** Captures and sanitizes one Practice Shop HTTP response from the current UI session. */
 final class ShopApiTrafficCapture {
     private static final String API_HOST = "api.practicesoftwaretesting.com";
+    private final String origin;
+
+    ShopApiTrafficCapture() { origin = null; }
+
+    ShopApiTrafficCapture(URI endpoint) {
+        origin = UiRecoveryOperation.origin(java.util.Objects.requireNonNull(endpoint, "endpoint"));
+    }
 
     Optional<ShopApiNetworkJournal.Exchange> capture(Response response) {
         if (response == null) return Optional.empty();
@@ -39,9 +48,11 @@ final class ShopApiTrafficCapture {
                 ShopJsonEvidence.redactHeaders(response.headers())));
     }
 
-    private static boolean isShopApi(String url) {
+    private boolean isShopApi(String url) {
         try {
-            return API_HOST.equals(java.net.URI.create(url).getHost());
+            URI actual = URI.create(url);
+            return origin == null ? API_HOST.equals(actual.getHost())
+                    : origin.equals(UiRecoveryOperation.origin(actual));
         } catch (RuntimeException ignored) {
             return false;
         }

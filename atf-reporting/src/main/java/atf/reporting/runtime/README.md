@@ -45,11 +45,11 @@ scenarii JUnit sau teste business ale consumerilor.
 
 ## Probe și context minim
 
-`ReportAssetContractTest` și `ReportAssetCompactorTest` verifică resursele;
-`ExtentReportRuntimeEvidenceComponentTest` verifică runtime-ul compus.
-`PublishedFailureNavigationComponentTest` verifică vizibilitatea comparației
+[ReportAssetContractTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/asset/ReportAssetContractTest.java) și [ReportAssetCompactorTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/asset/ReportAssetCompactorTest.java) verifică resursele;
+[ExtentReportRuntimeEvidenceComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/runtime/evidence/ExtentReportRuntimeEvidenceComponentTest.java) verifică runtime-ul compus.
+[PublishedFailureNavigationComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationComponentTest.java) verifică vizibilitatea comparației
 după backlink, cu un control negativ care ascunde un ancestor.
-`PublishedFailureNavigationEdgeComponentTest` completează diagnosticele fără
+[PublishedFailureNavigationEdgeComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationEdgeComponentTest.java) completează diagnosticele fără
 comparații, fallback-ul și păstrarea rutei/scroll-ului.
 
 Aceste probe sunt în [Reporting Tests](../../../../../../../atf-reporting-tests/README.md).

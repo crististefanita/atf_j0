@@ -155,9 +155,7 @@ public final class ShopApiReportPublisher {
 
     private static String expectedContractSummary(ShopApiReportValidation validation) {
         if (validation == null) return "No typed HTTP contract supplied";
-        return validation.assertions().stream()
-                .map(assertion -> assertion.name() + ": " + assertion.expected())
-                .collect(java.util.stream.Collectors.joining("; "));
+        return atf.reporting.evidence.diagnostic.ReportAssertionSummary.expected(validation.assertions());
     }
 
     /**
@@ -306,23 +304,8 @@ public final class ShopApiReportPublisher {
 
     public static AtfReportStatus publishValidation(AtfReportPorts.Phase phase,
                                                        ShopApiReportValidation reportValidation) {
-        var node = phase.startRequest(reportValidation.title(), "ASSERT", "business-flow");
-        AtfReportStatus status = AtfReportStatus.FAIL;
-        try {
-            node.detail("validation.scope", "business flow");
-            var validation = node.startValidation("Business flow validation");
-            try {
-                validation.assertions(reportValidation.assertions());
-                status = reportValidation.passed() ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
-                validation.complete(status);
-                node.complete(status);
-            } finally {
-                validation.close();
-            }
-        } finally {
-            node.close();
-        }
-        return status;
+        return atf.reporting.audit.AssertionAuditReport.publishStep(phase, reportValidation.title(),
+                reportValidation.assertions(), reportValidation.passed() ? AtfReportStatus.PASS : AtfReportStatus.FAIL);
     }
 
     private static long elapsedMillis(long startedAt) {

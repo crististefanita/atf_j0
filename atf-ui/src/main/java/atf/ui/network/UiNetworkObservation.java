@@ -210,7 +210,7 @@ public record UiNetworkObservation(
         return new UiNetworkObservation(sequence, capturedAt, method, safeUrl,
                 path(safeUrl), status, redact(requestHeaders), redact(responseHeaders),
                 safeRequestBody, safeResponseBody, safeAuthMethod, safeAuthSource,
-                safeService, safeEvidenceSource, signature(method, safeUrl, safeRequestBody),
+                safeService, safeEvidenceSource, signature(method, url, safeRequestBody, requestSignature),
                 responseBodyAvailable, safeFailureReason, resourceKind, requestIdentity);
     }
 
@@ -319,8 +319,28 @@ public record UiNetworkObservation(
     }
 
     private static String signature(String method, String url, String body) {
+        return signature(method, url, body, null);
+    }
+
+    private static String signature(String method, String url, String body, String previous) {
+        String rawQuery = URI.create(url).getRawQuery();
+        String fingerprint = rawQuery == null ? "" : rawQuery.equals("redacted-query") && previous != null
+                ? fingerprint(previous) : sha256(rawQuery);
         return normalize(method).toUpperCase(Locale.ROOT) + " " + safeTarget(url)
+                + (fingerprint.isEmpty() ? "" : " #query=" + fingerprint)
                 + " #body=" + sha256(body == null ? "<absent>" : body);
+    }
+
+    /** Opaque query identity survives sanitization; no raw query value is retained or disclosed. */
+    public String queryFingerprint() { return fingerprint(requestSignature); }
+    public static final String REDACTED_QUERY = "redacted-query";
+
+    private static final java.util.regex.Pattern QUERY_FINGERPRINT =
+            java.util.regex.Pattern.compile("#query=([0-9a-f]{64})(?=\\s*#body=|$)");
+
+    private static String fingerprint(String signature) {
+        var match = QUERY_FINGERPRINT.matcher(signature);
+        return match.find() ? match.group(1) : "";
     }
 
     private static String safeTarget(String url) {

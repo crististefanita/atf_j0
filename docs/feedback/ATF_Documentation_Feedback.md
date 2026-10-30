@@ -2,45 +2,40 @@
 
 ## Pe scurt
 
-Guvernanța verifică forma, diagramele, inventarul și linkurile documentației.
-Afirmațiile factuale critice cer și comparație cu ownerul executabil; o notă
-editorială sau un gate structural verde nu certifică singur această fidelitate.
+Forma, diagramele, inventarul și linkurile au guvernanță executabilă.
+[Guard-ul factual restrâns](../../atf-tests/README.md#documente-și-responsabilități)
+compară declarația celor 12 module și matricea Kit cu POM-urile reale, inclusiv
+mutanți care schimbă numai documentul. Acest contract nu certifică sensul întregii proze.
 
-## DOC-FACTUAL-CONTRACT-35 — probă semantică pentru afirmațiile critice
+## DOC-REPORTING-FACTUAL-36 — afirmațiile rămase la ownerul Reporting
 
-**Prioritate: 63/100** = impact 23 + lacună 17 + lucrabil 17 + documentare 6.
-**Owner:** documentul contractului; ATF Tests pentru o probă neutră ulterioară.
+**Prioritate: 55/100** = impact 20 + lacună 14 + lucrabil 15 + documentare 6.
+**Owner:** Reporting/Reporting Tests pentru documente; ATF Tests pentru un guard
+neutru numai după delimitarea afirmației și a sursei sale executabile.
 
-README-ul Reporting eticheta drept `Boundary permis` o coloană care enumera
-module ATF, browser și fixture-uri de business pentru `src/main`. Introducerea,
-POM-ul standalone și codul le exclud; formularea a fost corectată la owner.
-Restanța este detectarea unei asemenea contradicții, nu încă o regulă de stil.
-
-| Boundary inspectat | Ce demonstrează și ce rămâne manual |
+| Afirmație rămasă | Sursă și probă necesară |
 |---|---|
-| `DocumentationStyleGovernanceTest` și `DocumentationReadmeStructureGovernanceTest` | stil, structură și linkuri; nu sensul unei coloane de responsabilități |
-| `DocumentationAnchorGovernanceTest` | ținta și fragmentul există; propoziția de lângă link poate rămâne falsă |
-| POM, settings și enum-uri la owner | sursa executabilă pentru dependențe, scope și default-uri; trebuie comparată cu afirmația documentată |
+| README Reporting Tests descrie snapshot-ul ca probă a zoom-ului CSS efectiv | snapshot-ul verifică valori configurate; măsurarea browserului aparține UI și trebuie numită distinct |
+| README audit Extent afirmă viewport CSS stabil sub zoom atât în configurarea browserului, cât și în criteriul de geometrie | [contractul UI](../../atf-ui/README.md#geometria-nativă-a-contextului) derivă viewport-ul CSS și DPR; aliniați ambele propoziții, fără schimbarea rendererului |
+| izolarea standalone și preview-ul descrise în proză | criteriu de audit semantic, fără defect nou reprodus: confruntați afirmația cu POM/sursa și proba ownerului; default-ul 240 și exemplul configurat 18 au roluri distincte |
 
-- [ ] Delimitați un set mic de afirmații verificabile: cele 12 module, scope-ul
-      Kit al consumerilor, izolarea standalone Reporting și default-ul preview 240.
-      Nu construiți un parser general de proză sau un al doilea registru de adevăr.
-- [ ] Legați afirmația de sursa executabilă și owner, cu diagnosticul document,
-      fragment, valoare declarată și valoare observată. Exemplele configurabile,
-      precum preview 18 în probe, rămân distincte de default-ul produsului.
-- [ ] Proba negativă schimbă numai afirmația documentată: Kit `test` devine
-      `compile`, numărul modulelor devine 13 sau default-ul este greșit. Oracolul
-      trebuie să refuze contradicția cu source/POM neschimbate, fără expected
-      calculat din aceeași propoziție pe care încearcă să o verifice.
-- [ ] Ambiguitățile de limbaj și contradicțiile care nu au reprezentare typed
-      rămân criteriu de review manual. Nu declarați verificarea semantică completă
-      fiindcă au trecut regex-uri, ancore sau un eșantion de contracte.
-- [ ] Păstrați rubrica editorială, diagramele și contractele stabile la owner;
-      punctajele se raportează în canal. Nu modificați ori relaxați gate-urile
-      existente pentru a accepta o afirmație falsă.
+- [ ] Reconciliați afirmațiile din [README Reporting Tests](../../atf-reporting-tests/README.md)
+      și [README audit Extent](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/README.md)
+      cu distincția configurație publicată / geometrie măsurată / pixeli capturați.
+- [ ] Extindeți automatizarea numai pentru declarații stabile, cu diagnostic
+      document, fragment, valoare declarată, valoare observată și sursă executabilă.
+      Mutantul schimbă documentul, cu sursa neschimbată; fără registru paralel de adevăr.
+- [ ] Păstrați review-ul manual pentru ambiguități fără reprezentare typed.
+      Regex-urile, ancorele și gate-ul semantic restrâns nu declară fidelitate completă.
 
-**Închidere:** mutațiile factuale greșite sunt detectate independent, cu limitele
-automatizării declarate; documentația corectă și probele structurale rămân verzi.
+Aceste corecții aparțin perimetrului Reporting și rămân separate de incrementul
+consumerilor/UI. Nu relaxați gate-urile structurale ori factuale pentru o afirmație falsă.
 
-Regulile stabile sunt în [ghidul documentației](../README_Atf_DocumentationBestPractices.md#rubrica-reviziei-editoriale),
+Corecțiile factuale de geometrie sunt restanțe concrete; extinderea guard-ului
+rămâne o îmbunătățire delimitată, fără a cere un parser universal al prozei.
+
+**Închidere:** propozițiile corespund sursei, iar contradicțiile selectate sunt
+refuzate independent; limitele automatizării rămân explicite la owner.
+
+Rubrica editorială este în [ghidul documentației](../README_Atf_DocumentationBestPractices.md#rubrica-reviziei-editoriale),
 iar verificarea urmează [procesul izolat](../ATF_Build_And_Execution_Safety.md).

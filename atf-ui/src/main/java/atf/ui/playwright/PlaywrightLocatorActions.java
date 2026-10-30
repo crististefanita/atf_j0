@@ -8,7 +8,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.regex.Pattern;
 import com.microsoft.playwright.options.WaitForSelectorState;
-import com.microsoft.playwright.options.SelectOption;
+import com.microsoft.playwright.TimeoutError;
+import atf.ui.playwright.selection.PlaywrightSelectAction;
 
 /** Executes and records actions whose target is a Playwright locator. */
 final class PlaywrightLocatorActions {
@@ -25,9 +26,17 @@ final class PlaywrightLocatorActions {
                     + ")(?:$|[^a-z])",
             Pattern.CASE_INSENSITIVE);
     private final UiActionRecorder recorder;
+    private final Duration timeout;
+    private final java.util.function.LongSupplier ticks;
 
-    PlaywrightLocatorActions(UiActionRecorder recorder) {
+    PlaywrightLocatorActions(UiActionRecorder recorder, Duration timeout) {
+        this(recorder, timeout, System::nanoTime);
+    }
+
+    PlaywrightLocatorActions(UiActionRecorder recorder, Duration timeout, java.util.function.LongSupplier ticks) {
         this.recorder = Objects.requireNonNull(recorder, "recorder");
+        this.timeout = Objects.requireNonNull(timeout, "timeout");
+        this.ticks = Objects.requireNonNull(ticks, "ticks");
     }
 
     void click(Locator locator, String locatorTarget, String expected) {
@@ -64,7 +73,7 @@ final class PlaywrightLocatorActions {
         Objects.requireNonNull(element, "element");
         Objects.requireNonNull(postcondition, "postcondition");
         recorder.run("Click", element.selector(), expected, isSensitiveTarget(element), () -> {
-            var budget = new PlaywrightActionSequence.ObservationBudget(timeout);
+            var budget = new PlaywrightActionSequence.ObservationBudget(timeout, ticks);
             element.locator().click(new Locator.ClickOptions()
                     .setTimeout(budget.remainingMilliseconds()).setNoWaitAfter(true));
             try {
@@ -104,10 +113,10 @@ final class PlaywrightLocatorActions {
         String displayLabel = displayValue(element, label);
         recorder.run("Select option", target, withValue(expected, displayLabel, label),
                 isSensitiveTarget(element), () -> {
-            var selected = element.locator().selectOption(new SelectOption().setLabel(label));
-            // A detached select can return an empty result in the pinned driver; absence is not confirmation.
-            if (selected.isEmpty()) {
-                throw new IllegalStateException("Select option returned no confirmed selected value: " + target);
+            try {
+                new PlaywrightSelectAction(element, new PlaywrightActionSequence.ObservationBudget(timeout)).select(label);
+            } catch (TimeoutError failure) {
+                throw new TimeoutError("Select option original timeout " + timeout.toMillis() + "ms: " + failure.getMessage(), failure);
             }
             return "option selected: " + displayLabel;
         });

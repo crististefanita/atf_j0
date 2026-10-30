@@ -44,7 +44,8 @@ final class ShopPurchaseJourneyContext {
                 fixture.api().endpoint().resolve(ShopApiRoutes.PRODUCT_COLLECTION));
         this.checkoutInputs = new CheckoutInputs(page, actions, fixture.uri(ShopUiRoutes.CHECKOUT),
                 fixture.productName(), fixture.checkout(), checkpointPublisher,
-                apiNetwork, locators, pageValidator, purchaseScreenValidator);
+                apiNetwork, locators, pageValidator, purchaseScreenValidator,
+                fixture.api().endpoint().resolve(ShopApiRoutes.POSTCODE_LOOKUP));
     }
 
     CatalogInputs catalogInputs() { return catalogInputs; }
@@ -88,8 +89,9 @@ final class ShopPurchaseJourneyContext {
                           ShopPurchaseCheckpointPublisher checkpointPublisher,
                           ShopApiNetworkJournal apiNetwork, ShopLocators locators,
                           ShopPageValidator pageValidator,
-                          ShopPurchaseScreenValidator purchaseScreenValidator) {
+                          ShopPurchaseScreenValidator purchaseScreenValidator, URI postcodeEndpoint) {
         CheckoutInputs {
+            Objects.requireNonNull(postcodeEndpoint, "postcodeEndpoint");
             Objects.requireNonNull(page, "page");
             Objects.requireNonNull(actions, "actions");
             Objects.requireNonNull(cartUrl, "cartUrl");

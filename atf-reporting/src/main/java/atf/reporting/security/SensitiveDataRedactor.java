@@ -42,10 +42,17 @@ public final class SensitiveDataRedactor {
 
     public String redactText(String value) {
         if (value == null) return null;
+        if (looksLikeJson(value)) {
+            return JsonEvidenceRedactor.redact(value, this::sensitiveField, this::redactPlain, replacement)
+                    .orElseGet(() -> redactPlain(value));
+        }
+        return redactPlain(value);
+    }
+
+    private String redactPlain(String value) {
         String mask = Matcher.quoteReplacement(replacement);
         String multipartSafe = MultipartEvidenceRedactor.redact(value, replacement,
-                field -> SENSITIVE_FIELDS.contains(field.trim().toLowerCase(Locale.ROOT))
-                        || SECRET_FIELD_NAME.matcher(field.trim()).matches());
+                this::sensitiveField);
         String safe = JSON_SECRET.matcher(multipartSafe).replaceAll("$1" + mask + "$3");
         safe = AUTH.matcher(safe).replaceAll("$1$2$3" + mask);
         safe = BEARER_CREDENTIAL.matcher(safe).replaceAll("$1" + mask);
@@ -55,10 +62,23 @@ public final class SensitiveDataRedactor {
     }
 
     public String redactField(String field, String value) {
-        if (field != null && SENSITIVE_FIELDS.contains(
-                field.trim().toLowerCase(Locale.ROOT))) return replacement;
+        if (sensitiveField(field)) return replacement;
         return redactText(value);
     }
 
-    public String redactJson(String json) { return redactText(json); }
+    public String redactJson(String json) {
+        if (json == null) return null;
+        return JsonEvidenceRedactor.redact(json, this::sensitiveField, this::redactPlain, replacement)
+                .orElseGet(() -> looksLikeJson(json) ? "[invalid JSON omitted]" : redactPlain(json));
+    }
+
+    private boolean sensitiveField(String field) {
+        return field != null && (SENSITIVE_FIELDS.contains(field.trim().toLowerCase(Locale.ROOT))
+                || SECRET_FIELD_NAME.matcher(field.trim()).matches());
+    }
+
+    private static boolean looksLikeJson(String value) {
+        String trimmed = value.stripLeading();
+        return trimmed.startsWith("{") || trimmed.startsWith("[");
+    }
 }

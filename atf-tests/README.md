@@ -227,6 +227,31 @@ cererea fixează SHA-ul rezolvat, nu un ref mobil.
 
 ### Documente și responsabilități
 
+[DocumentationLinkGovernanceTest](src/test/java/atf/api/tests/governance/documentation/links/DocumentationLinkGovernanceTest.java)
+verifică destinațiile locale și fragmentele tuturor README-urilor și documentelor
+Markdown din `docs`, inclusiv atlase, arhitectură și feedback. Output-urile
+generate sunt excluse. [Probele ancorelor](src/test/java/atf/api/tests/governance/documentation/DocumentationAnchorGovernanceTest.java)
+verifică inclusiv un titlu redenumit într-un document care nu se numește README.
+Ambele intră în suita whole-ATF; `@DocumentationTarget` aplică aceeași verificare
+și documentelor selectate explicit. Existența țintei nu certifică sensul etichetei.
+
+[DocumentedBuildContractTest](src/test/java/atf/api/tests/governance/documentation/factual/DocumentedBuildContractTest.java)
+compară numărul declarat al modulelor și scope-ul Kit din matricea Shop/AutoEx
+cu POM-urile reale. Intră în suita whole-ATF; guard-ul structural rămâne separat.
+
+| Afirmație delimitată | Sursă executabilă | Refuz observabil |
+|---|---|---|
+| numărul modulelor din arhitectură | declarațiile directe `modules/module` din POM-ul reactorului | număr diferit, afirmație absentă ori duplicată |
+| Kit în matricea consumerului | dependența directă din POM; scope omis înseamnă `compile` | scope diferit, Kit absent ori prezent în ambele coloane |
+
+Mutanții schimbă numai documentul: `12→13`, Kit mutat în `compile`, rând eliminat
+sau duplicat. Diagnosticul indică documentul/linia, valoarea declarată, valoarea
+observată și POM-ul sursă, fără modificarea sursei executabile.
+
+Acest contract restrâns nu este un parser general al prozei și nu interpretează
+effective POM ori profile Maven. Celelalte afirmații se confruntă în continuare
+cu ownerul; default-urile și distribuția Reporting păstrează contractele bibliotecii.
+
 | Informație | Owner documentar | Conținut |
 |---|---|---|
 | Cerință funcțională | feedback-ul domeniului, de exemplu [Consumer](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md) | lacună observabilă, responsabil, criteriu și dovadă lipsă |
@@ -298,14 +323,14 @@ rulează separat și reutilizează contul nou în `ShopE2eSuite`.
 
 ```text
 atf-test-practice-shop/src/
-├── main/java/atf/shop/
+├── main/atf/shop/
 │   ├── api/         client, request factory și screen API flows
 │   ├── config/      records typed încărcate din YAML
 │   ├── locators/    singurul owner al selectorilor aplicației
 │   ├── pages/       page objects
 │   ├── flow/        pași de business compuși
 │   └── support/     context și evidence adapters
-├── test/java/atf/shop/tests/
+├── test/atf/shop/tests/
 │   ├── component/       teste rapide de module
 │   ├── api/component/   variații fake pozitive/negative
 │   ├── api/integration/ precondiție login live, opt-in
@@ -366,7 +391,7 @@ urmează [convenția GitHub](https://docs.github.com/en/get-started/writing-on-g
 
 | Decizie | Sursă și limită |
 |---|---|
-| Boundary, ownership și documentație în întregul reactor | [sursa ownerului](src/test/java/atf/api/tests/governance/WholeAtfGovernanceSuiteTest.java); probă: [WholeAtfGovernanceSuiteTest](src/test/java/atf/api/tests/governance/documentation/DocumentationAnchorGovernanceTest.java) |
+| Boundary, ownership și documentație în întregul reactor | [WholeAtfGovernanceSuiteTest](src/test/java/atf/api/tests/governance/WholeAtfGovernanceSuiteTest.java); [probe negative pentru ancore](src/test/java/atf/api/tests/governance/documentation/DocumentationAnchorGovernanceTest.java) |
 | Dependențe și source-set-uri | [POM](pom.xml); scope-ul declarat este autoritatea pentru integrare |
 | Ce nu demonstrează această probă | Gate-ul nu dovedește un journey business ori randarea artifactului. |
 

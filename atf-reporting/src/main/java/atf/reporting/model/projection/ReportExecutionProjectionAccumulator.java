@@ -62,6 +62,12 @@ final class ReportExecutionProjectionAccumulator {
                                   List<ReportExecutionModel.Node> nodes) {
         for (var node : nodes) {
             if (node instanceof ReportExecutionModel.Request request) {
+                if (request.status() == AtfReportStatus.FAIL) {
+                    request.executions().stream().flatMap(execution ->
+                                    atf.reporting.model.diagnostic.ReportExecutionFailure.from(execution).stream())
+                            .map(failure -> new ReportExecutionModel.Failure(scenario.id(), failure.label(), failure.message()))
+                            .forEach(failures::add);
+                }
                 collectFailures(scenario, request.children());
                 continue;
             }

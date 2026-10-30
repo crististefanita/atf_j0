@@ -42,8 +42,8 @@ dovezi. Nu este un browser și nu repară observații lipsă; semantica se verif
 
 ## Probe și criteriu rămas
 
-`HtmlReportSessionTest` și `AtfReportSemanticSnapshotTest` verifică modelul și
-paritatea; `UiFallbackFailureEvidenceTest` păstrează cauza și izolarea scenariilor.
+[HtmlReportSessionTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/html/HtmlReportSessionTest.java) și [AtfReportSemanticSnapshotTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/semantic/AtfReportSemanticSnapshotTest.java) verifică modelul și
+paritatea; [UiFallbackFailureEvidenceTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/ui/UiFallbackFailureEvidenceTest.java) păstrează cauza și izolarea scenariilor.
 Probe de browser și responsive sunt la [Reporting Tests](../../../../../../../atf-reporting-tests/README.md).
 
 Contractul comun flush/publicare/path/threading rămâne de închis în

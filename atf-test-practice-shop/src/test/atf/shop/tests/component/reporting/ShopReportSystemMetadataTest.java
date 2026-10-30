@@ -13,6 +13,14 @@ import atf.reporting.evidence.profile.ReportEvidenceProfile;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+import java.util.List;
+import java.util.UUID;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import atf.reporting.console.AtfConsoleSink;
+import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.ui.UiExtentReportSession;
+import atf.reporting.ui.UiExtentReportOptions;
 
 import static atf.testkit.assertions.AuditedAssertions.assertAll;
 import static atf.testkit.assertions.AuditedAssertions.assertFalse;
@@ -22,6 +30,26 @@ import static atf.testkit.assertions.AuditedAssertions.assertTrue;
 /** Verifies that the Practice Shop report exposes useful configuration without secrets or temp paths. */
 @ShopComponentTest
 class ShopReportSystemMetadataTest {
+    @Test
+    void nativeGeometryIsPublishedInTheSystemTable() throws Exception {
+        var configuration = ShopConfigurationLoader.load();
+        var environment = ShopReportSystemMetadata.snapshot(configuration);
+        var directory = Files.createDirectories(Path.of("target", "system-metadata-proof", UUID.randomUUID().toString()));
+        Path reportPath;
+        try (var report = UiExtentReportSession.openConfigured(
+                UiExtentReportOptions.builder(directory).fileName("shop-system.html")
+                        .console(AtfConsoleSink.noOp()).environment(environment).build())) {
+            reportPath = report.reportPath();
+            var scenario = report.startScenario("ShopGeometryMetadataFixture", getClass().getPackageName(),
+                    "configured geometry projection only", List.of("component"));
+            scenario.complete(AtfReportStatus.PASS);
+        }
+        String html = Files.readString(reportPath);
+        assertTrue(html.contains(ReportEnvironmentField.VIEWPORT.label()), "System publishes the native geometry row");
+        assertTrue(html.contains("1440 × 1000 requested output · 2057 × 1429 CSS · DPR 0.70"),
+                "System separates requested output, CSS layout and DPR");
+    }
+
     @Test
     void publishesTypedConsumerConfigurationAsSafeOverviewMetadata() {
         Map<String, String> metadata = ShopReportSystemMetadata.from(

@@ -9,6 +9,9 @@ function failureLink(id, scenario, ordinal, kind) {
   return '#' + [['test-id', id], ['scenario-index', scenario], ['failure-ordinal', ordinal], ['failure-kind', kind]]
     .map(([key, value]) => key + '=' + encodeURIComponent(value)).join('&');
 }
+function failureRecordId(id, scenario, ordinal, kind) {
+  return 'failure-' + id + '-' + scenario + '-' + (kind === 'assertion' ? '' : kind + '-') + ordinal;
+}
 function failureIndexMarkup(name, ctx, id, scenario, ordinal, kind) {
   var step = ctx.ui || ctx.evidenceOwner === 'component' || !ctx.request,
     fields = [['TEST', ctx.owner || 'API tests'], ['PHASE', ctx.phase]];
@@ -20,7 +23,7 @@ function failureIndexMarkup(name, ctx, id, scenario, ordinal, kind) {
     ['CAUSE', ctx.message, 'atf-failure-index-cause', ctx.previewLimit || 240]);
   return '<div class="atf-failure-index atf-failure-evidence" data-atf-evidence-owner="' +
     esc(ctx.evidenceOwner || (ctx.ui ? 'ui' : step ? 'execution' : 'api')) +
-    '" data-atf-failure-id="failure-' + esc(id) + '-' + esc(scenario) + '-' + esc(ordinal) +
+    '" data-atf-failure-id="' + esc(failureRecordId(id, scenario, ordinal, kind)) +
     '"><h4 class="atf-failure-index-title">' + esc(name) + '</h4>' +
     fields.map(field => failureIndexField(...field)).join('') +
     '<a class="atf-failure-open" href="' + esc(failureLink(id, scenario, ordinal, kind)) +
@@ -37,10 +40,11 @@ function selectFailure(index) {
 }
 function failureRecords() {
   return testItems().filter(item => statusOf(item) === 'fail').flatMap(item => {
-    var rows = failedAssertionRows(item), kind = 'assertion';
-    if (!rows.length) { rows = failedDiagnosticRows(item); kind = 'diagnostic'; }
-    if (!rows.length) { rows = [null]; kind = 'scenario'; }
-    return rows.map((assertionRow, ordinal) => ({ item, assertionRow, ordinal: ordinal + 1, kind }));
+    var records = [
+      ['assertion', failedAssertionRows(item)], ['diagnostic', failedDiagnosticRows(item)],
+      ['execution', failedExecutionEvidence(item)]
+    ].flatMap(([kind, rows]) => rows.map((assertionRow, ordinal) => ({ item, assertionRow, ordinal: ordinal + 1, kind })));
+    return records.length ? records : [{ item, assertionRow: null, ordinal: 1, kind: 'scenario' }];
   });
 }
 function failurePhaseRank(phase) {
@@ -77,9 +81,10 @@ function failureRow(record, index) {
   row.setAttribute('data-atf-test-id', id);
   row.setAttribute('data-atf-scenario-index', scenarioIndex);
   row.setAttribute('data-atf-failure-ordinal', String(record.ordinal));
+  row.setAttribute('data-atf-failure-kind', record.kind);
   row.setAttribute(
     'data-atf-failure-id',
-    'failure-' + id + '-' + scenarioIndex + '-' + record.ordinal
+    failureRecordId(id, scenarioIndex, record.ordinal, record.kind)
   );
   row.setAttribute('data-atf-failure-phase', ctx.phase);
   row.setAttribute(

@@ -60,8 +60,13 @@ public final class AtfReportConfigurationLoader {
 
         try {
             JsonNode root = YAML.readTree(absoluteConfig.toFile());
-            JsonNode reporting = root.path("reporting");
-            JsonNode extent = reporting.path("extent");
+            if (root == null || root.isMissingNode() || root.isNull()) root = YAML.createObjectNode();
+            if (!root.isObject()) throw new IllegalStateException("ATF report configuration root must be an object");
+            JsonNode reporting = section(root, "reporting", "reporting");
+            JsonNode extent = section(reporting, "extent", "reporting.extent");
+            keys(reporting, java.util.Set.of("assertionMaxDisplayCharacters", "bodyMaxDisplayCharacters", "extent", "console"), "reporting");
+            keys(extent, java.util.Set.of("enabled", "outputDirectory", "fileName", "timestampEnabled", "timestampPattern",
+                    "timestampZone", "screenshotPolicy"), "reporting.extent");
             int assertionLimit = integer(reporting, "assertionMaxDisplayCharacters",
                     ReportingSettings.DEFAULT_ASSERTION_MAX_DISPLAY_CHARACTERS);
             int bodyLimit = nonNegativeInteger(reporting, "bodyMaxDisplayCharacters",
@@ -142,7 +147,7 @@ public final class AtfReportConfigurationLoader {
     private static int integer(JsonNode parent, String name, int defaultValue) {
         JsonNode value = parent.path(name);
         if (value.isMissingNode() || value.isNull()) return defaultValue;
-        if (value.canConvertToInt()) {
+        if (value.isIntegralNumber() && value.canConvertToInt()) {
             int parsed = value.intValue();
             if (parsed > 0) return parsed;
         }
@@ -152,7 +157,7 @@ public final class AtfReportConfigurationLoader {
     private static int nonNegativeInteger(JsonNode parent, String name, int defaultValue) {
         JsonNode value = parent.path(name);
         if (value.isMissingNode() || value.isNull()) return defaultValue;
-        if (value.canConvertToInt()) {
+        if (value.isIntegralNumber() && value.canConvertToInt()) {
             int parsed = value.intValue();
             if (parsed >= 0) return parsed;
         }
@@ -169,6 +174,18 @@ public final class AtfReportConfigurationLoader {
                     "ATF report configuration value is invalid: reporting.extent.screenshotPolicy",
                     error);
         }
+    }
+
+    private static JsonNode section(JsonNode parent, String name, String key) {
+        JsonNode value = parent.path(name);
+        if (value.isMissingNode() || value.isNull() || value.isObject()) return value;
+        throw new IllegalStateException("ATF report configuration section must be an object: " + key);
+    }
+
+    private static void keys(JsonNode section, java.util.Set<String> supported, String prefix) {
+        section.fieldNames().forEachRemaining(name -> {
+            if (!supported.contains(name)) throw new IllegalStateException("Unknown ATF report configuration key: " + prefix + "." + name);
+        });
     }
 
 }

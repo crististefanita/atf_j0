@@ -63,7 +63,7 @@ public final class FailureNavigationEdgeProbe {
                 var diagnostic = LOCATORS.diagnostic(page, fallback, phase);
                 page.waitForCondition(diagnostic::isVisible);
                 assertEquals(0, LOCATORS.assertionRows(page, fallback).count(), "Execution failure never manufactures a contract comparison");
-                assertTrue(diagnostic.locator("td").nth(1).innerText().contains("phase=" + phase));
+                assertTrue(LOCATORS.cells(diagnostic).nth(1).innerText().contains("phase=" + phase));
                 page.reload(); page.waitForCondition(diagnostic::isVisible);
             }
             assertTrue(errors.isEmpty(), errors::toString);
@@ -77,9 +77,9 @@ public final class FailureNavigationEdgeProbe {
 
     private static void assertComparison(Locator row) {
         assertTrue(row.isVisible(), "The original failed comparison is visible without expanding the report in the harness");
-        assertEquals(4, row.locator("td").count());
-        assertEquals("Fail", row.locator("td").nth(3).innerText().trim(), "Fallback preserves its original failure badge");
-        assertEquals(1, row.locator("td").nth(3).locator(".status-fail").count());
+        assertEquals(4, LOCATORS.cells(row).count());
+        assertEquals("Fail", LOCATORS.cells(row).nth(3).innerText().trim(), "Fallback preserves its original failure badge");
+        assertEquals(1, LOCATORS.failedStatus(row).count());
         assertTrue(inViewport(row),
                 () -> "Navigation scrolls the exact original row into the viewport: "
                         + row.evaluate("row=>{const r=row.getBoundingClientRect();return [r.top,r.bottom,r.height,innerHeight]}"));

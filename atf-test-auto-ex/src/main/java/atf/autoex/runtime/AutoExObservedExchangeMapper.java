@@ -5,6 +5,7 @@ import atf.reporting.api.ReportAuthMethod;
 import atf.reporting.api.ReportAuthObservation;
 import atf.reporting.api.ReportAuthSource;
 import atf.reporting.api.ReportRequest;
+import atf.reporting.api.ReportQueryParameters;
 import atf.reporting.api.ReportRequestSignature;
 import atf.reporting.api.ReportResponse;
 import atf.reporting.api.ReportTraceMetadata;
@@ -16,6 +17,7 @@ import atf.ui.network.UiNetworkObservation;
 
 import java.util.List;
 import java.util.Locale;
+import java.net.URI;
 
 import static atf.reporting.ui.contract.ReportUiContract.Phase.TEST_BODY;
 
@@ -23,7 +25,12 @@ import static atf.reporting.ui.contract.ReportUiContract.Phase.TEST_BODY;
 public final class AutoExObservedExchangeMapper {
     private AutoExObservedExchangeMapper() { }
     public static ReportExecutionEvidence map(UiNetworkObservation observation) {
+        URI target = URI.create(observation.url());
+        var query = observation.queryFingerprint().isEmpty() && !UiNetworkObservation.REDACTED_QUERY.equals(target.getRawQuery())
+                ? ReportQueryParameters.fromUri(target) : ReportQueryParameters.empty();
         var request = ReportRequest.builder(observation.method(), observation.path())
+                .queryParameters(query)
+                .queryFingerprint(observation.queryFingerprint())
                 .headers(ReportRequestHeaders.observed(observation.requestHeaders()))
                 .authProfile(observation.authMethod())
                 .body(observation.requestBody(), ReportBodyAvailability.from(observation.requestBody()))

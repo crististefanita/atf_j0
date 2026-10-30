@@ -17,7 +17,8 @@ import org.junit.platform.suite.api.Suite;
         "atf.shop.tests.api.reporting",
         "atf.shop.tests.api.network",
         "atf.shop.tests.support",
-        "atf.shop.flow"
+        "atf.shop.flow",
+        "atf.shop.runtime"
 })
 @ShopComponentTest
 public class ShopComponentSuite { }

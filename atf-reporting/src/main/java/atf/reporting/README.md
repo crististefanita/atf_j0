@@ -7,6 +7,7 @@ fallback HTML. Atlasul leagă responsabilitățile de intrări, probe și contra
 citirea unei zone începe cu README-ul ei, apoi cu sursele schimbării concrete.
 
 [Adopție și contractul modulului](../../../../../README.md) ·
+[Context portabil JAR](../../../../../docs/README.md) ·
 [Atlas ATF](../../../../../../docs/ATF_Context_Atlas.md) ·
 [Criterii active de consolidare](../../../../../../docs/feedback/ATF_Reporting_Feedback.md)
 
@@ -18,6 +19,7 @@ citirea unei zone începe cu README-ul ei, apoi cu sursele schimbării concrete.
 | scope-uri Extent, flush, assets offline și publicare | [Extent](extent/README.md) | `ExtentReportSession` și pipeline-ul final |
 | arbore și views fallback | [HTML](html/README.md) | `HtmlReportSession` și modelul imutabil |
 | tabele, JSON, screenshot și disclosure | [Evidence](evidence/README.md) | formatare și markup, fără captură browser |
+| redactare semantică și credentiale | [Security](security/README.md) | proiecție sigură înaintea formatării și bugetului |
 | interacțiuni JS, vocabular DOM și asset-uri | [Runtime](runtime/README.md) | facade Java → resursă nativă → HTML |
 
 ## Cele două intrări către randare
@@ -49,12 +51,12 @@ flowchart LR
   oracolul de snapshot; un screenshot singur nu dovedește statusul corect.
 - Pentru exchange terminal: [boundary-ul verdictului](ui/validation/UiApiValidationEvidence.java),
   [proiecția comună](api/evidence/ApiExchangeEvidence.java) și publisherul UI.
-  `ReportingStandaloneVerdictComponentTest` și `UiTerminalExchangeReportComponentTest` verifică
+  [ReportingStandaloneVerdictComponentTest](../../../../test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java) și [UiTerminalExchangeReportComponentTest](../../../../../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/execution/UiTerminalExchangeReportComponentTest.java) verifică
   refuzul inputului nejudecat și păstrarea dovezii în ambele renderere.
 - Pentru o schimbare vizuală: markup-ul, vocabularul, resursa CSS/JS și proba
   browser; `runtime/tests` este codul filei Tests, nu un pachet de teste JUnit.
 - Pentru extragere: [POM-ul](../../../../../pom.xml), classpath-ul JAR-ului și
-  [izolarea](../../../../../../docs/feedback/ATF_Reporting_Feedback.md#report-standalone-isolation-41--modulul-copiat-singur).
+  [contextul portabil](../../../../../docs/README.md#patru-probe-distincte-ale-extracției).
   Un build în checkout nu înlocuiește copia izolată a modulului.
 - Configurația este capturată la [contextul procesului](configuration/AtfReportConfigurationContext.java)
   și interpretată de [loader](configuration/AtfReportConfigurationLoader.java).

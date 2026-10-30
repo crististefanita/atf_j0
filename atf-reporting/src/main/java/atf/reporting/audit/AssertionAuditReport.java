@@ -75,12 +75,7 @@ public final class AssertionAuditReport implements AutoCloseable {
         try (var phase = scenario.startPhase(name)) {
             if (timing != null) phase.executionTiming(timing);
             phase.detail("Test method", identity.method());
-            if (!assertions.isEmpty()) {
-                try (var step = phase.startAssertionStep("Component assertions")) {
-                    step.assertions(assertions);
-                    step.complete(AtfReportStatus.INFO);
-                }
-            }
+            publishStep(phase, "Component assertions", assertions, AtfReportStatus.INFO);
             if (diagnostic != null && !diagnostic.isBlank()) {
                 phase.diagnostic(status == AtfReportStatus.SKIP ? ReportPhaseDiagnostic.Kind.EXECUTION_ABORTED
                         : ReportPhaseDiagnostic.Kind.EXECUTION_FAILURE, redactor.redactText(diagnostic));
@@ -97,6 +92,21 @@ public final class AssertionAuditReport implements AutoCloseable {
                 completed = true;
             }
         });
+    }
+
+    /** Publishes a borrowed non-transport group; the caller retains the phase and full comparison rows. */
+    public static AtfReportStatus publishStep(AtfReportPorts.Phase phase, String title,
+                                              java.util.Collection<AtfAssertion> assertions, AtfReportStatus requested) {
+        Objects.requireNonNull(phase, "phase");
+        if (title == null || title.isBlank()) throw new IllegalArgumentException("Assertion step title is required");
+        var rows = List.copyOf(assertions);
+        var status = new atf.reporting.contract.ReportStatusAggregator().resolve(requested, rows);
+        if (rows.isEmpty()) return status;
+        try (var step = phase.startAssertionStep(title)) {
+            step.assertions(rows);
+            step.complete(status);
+        }
+        return status;
     }
 
     @Override public void close() {

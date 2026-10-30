@@ -289,8 +289,11 @@ Flow-urile și paginile specifice rămân la consumer. UI deține instrumentarea
 browserului, Reporting deține proiecția, iar Kit primește numai primitive neutre,
 fără vocabularul aplicației sau un motor generic de workflow.
 
-Acceptanța implementării este urmărită o singură dată în
-[feedback-ul consumerilor](feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-flow-layers-09--business-traseu-ui-și-validare-separate).
+Contractele și probele curente sunt la
+[etapele AutoEx](../atf-test-auto-ex/README.md#etapele-purchase-și-adaptorul-ui) și
+[separarea flow-ului Shop](../atf-test-practice-shop/README.md#baseline-pentru-separarea-flow-ului).
+Criteriile business rămase sunt în
+[acceptanța consumerilor](feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#acceptanță-pentru-reevaluarea-shop-și-autoex).
 
 <details>
 <summary><strong>Porturi, snapshot-uri și validări în arhitectura țintă</strong></summary>

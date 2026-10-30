@@ -26,6 +26,10 @@ selectează contextul pe responsabilitate: intrări, invariante, surse și probe
 
 ## Consumarea bibliotecii ca JAR
 
+[Contextul portabil al bibliotecii](docs/README.md) leagă intrările consumate,
+limitele și probele extracției folosind numai destinații din modul. Acesta este
+un punct de pornire pentru sursa extrasă; pregătirea release-ului rămâne separată.
+
 Biblioteca se compilează pentru **Java 21**. Artefactul Maven este un JAR thin:
 aplicația îl consumă împreună cu dependențele runtime rezolvate din POM;
 `atf-reporting-tests` rămâne modul intern de verificare, nu dependență a aplicației.
@@ -146,9 +150,12 @@ flowchart LR
 - orice dependență test-scope din afara consumerului canonic este urmărită în
   [feedback-ul activ](../docs/feedback/README.md), nu duplicată ca TODO aici;
 - POM-ul și runtime-ul nu cer parent-ul reactorului ori artifacte ATF.
-  Guard-ul propriu de dependențe caută încă rădăcina ATF: copierea modulului
-  singur nu trece integral gate-ul de teste. [Izolarea completă](../docs/feedback/ATF_Reporting_Feedback.md#report-standalone-isolation-41--modulul-copiat-singur)
-  cere această probă, separat de build-ul în checkout și de consumarea JAR-ului;
+  Guard-ul pornește de la CodeSource-ul propriilor teste și inspectează modulul
+  indiferent de numele directorului ori de working directory;
+- `ReportingLibraryDistributionIntegrationTest` copiază numai modulul într-un
+  TMP nou, rulează package cu testele locale, apoi consumă JAR-ul/POM-ul real
+  din alt proiect Maven. Verifică hash-ul încărcat, tranzitivele runtime și
+  refuzul ambelor renderere când copia JAR-ului pierde o resursă;
 - compoziția completă și oracolele browser rămân în `atf-reporting-tests`.
 
 </details>
@@ -159,6 +166,18 @@ flowchart LR
 unui model extern citește colecția `values()` înaintea view-ului legacy
 `asMap()`; un accessor defect este refuzat explicit. `asMap()` păstrează numai
 ultima valoare pe nume și este destinat compatibilității, nu validării.
+
+- `ReportRequest.queryParameters()` și builderul typed păstrează perechile
+  complete, inclusiv prin `toBuilder()` și adaptorul Core/reflection. `query()`
+  rămâne view-ul legacy last-value; constructorii existenți rămân disponibili.
+- Semnătura sortează numele, păstrează ordinea aparițiilor aceluiași nume și
+  maschează valorile sensibile conform politicii existente. Este identitate
+  de grupare a dovezii sigure, fără autoritate pentru selecție business ori replay.
+- Când UI elimină toate valorile query, captura păstrează numai o amprentă
+  opacă. `ReportRequest.queryFingerprint()` conservă această identitate prin
+  mapper, `toBuilder()` și trace; HTML-ul ascunde digestul și declară query-ul
+  necapturat, fără un parametru `redacted-query` fabricat. Inputul legacy care
+  a pierdut deja identitatea nu poate fi reconstruit.
 
 - Potrivirea este un subset cu multiplicitate: `tag=red&tag=blue` cere ambele
   perechi, iar două apariții identice cer două apariții observate.
@@ -517,6 +536,17 @@ flowchart LR
 
 ### Context de fază și diagnostic de execuție
 
+[ReportFailureDescription](src/main/java/atf/reporting/evidence/diagnostic/ReportFailureDescription.java)
+formează sumarul sigur al unei excepții existente: cel mult patru obiecte
+distincte, cauză și suppressed în ordine breadth-first, cu identitate pentru
+cicluri. Redactarea precede limita totală de 240 de caractere, inclusiv elipsa.
+Graful original și verdictul nu se modifică; sumarul nu este dovadă de request.
+
+AutoEx și Shop adaptează sumarul la faza și exchange-ul propriu. Probe generice
+de graf și publicare Extent/fallback sunt în
+[Reporting Tests](../atf-reporting-tests/README.md#diagnosticul-neutru-al-excepțiilor);
+compoziția și regulile business rămân verificate în modulele aplicațiilor.
+
 | Intrare | Owner și proiecție |
 |---|---|
 | `Phase.detail` | Context intern; nu publică `Audit details`, tabel de log sau wrapper gol în fază |
@@ -624,9 +654,16 @@ explicit diferit de INFO ori aserțiunile evaluate furnizează verdictul; absen�
 ambelor este refuzată prin `IllegalArgumentException` înaintea publicării.
 INFO singur este observație, nu verdict. Un canal API gol rămâne valid și INFO.
 
-Diagnosticul este inspectabil în Tests. Indexarea Fails a unui FAIL terminal
-fără assertions are încă [un criteriu separat](../docs/feedback/ATF_Reporting_Feedback.md#report-terminal-failure-index-48--cauza-transportului-în-indexul-fails):
-contextul generic Extent și omisiunea fallback nu sunt garanții de paritate.
+Un request FAIL terminal este indexat în Fails și fără assertions, prin
+`ReportExecutionFailure`. Contextul, cererea și timpul disponibil provin din
+același execution evidence; vecinii PASS nu furnizează fallback-uri de identitate.
+
+- Backlink-ul deschide originalul Execution evidence, inclusiv după reload.
+  Extent păstrează tipul `execution` și ordinalul său; fallback urmează ordinea
+  proiecției comune. Tipurile diferite au identități de navigare distincte.
+- O eroare de transport așteptată și judecată PASS nu este indexată. Cauza
+  terminală și o comparație business FAIL rămân dovezi distincte, fiecare o
+  singură dată; textul scurtat nu este cheie de deduplicare.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
@@ -636,6 +673,8 @@ flowchart LR
     Evidence -->|proiectează| History["Încercări"]
     Evidence -->|separă| Diagnostic["Diagnostic"]
     History -->|afișează| Missing["Unavailable"]
+    Diagnostic -->|FAIL| Index["Fails"]
+    Index -->|deschide originalul| Evidence
 ```
 
 <details>
@@ -677,6 +716,7 @@ Etichetele scurte păstrează următorul sens:
 | Încercări | Încercări în ordine |
 | Diagnostic | Diagnostic de execuție |
 | Unavailable | Unavailable, fără HTTP inventat |
+| Fails | index al cauzei typed, cu salt la dovada originală și identitate de navigare păstrată |
 | afișează | afișează absența |
 
 </details>
@@ -1211,6 +1251,17 @@ YAML. Consumatorul furnizează configurația; reporting-ul validează limitele,
 output directory, numele fișierului, timestamp policy și politica typed de captură
 înainte de publication.
 
+YAML-ul gol/null și secțiunile absente/null păstrează defaults. Rădăcina și
+secțiunile `reporting` / `reporting.extent`, când au conținut, trebuie să fie obiecte.
+Bugetele cer numere integrale în intervalul `int`: assertions strict pozitiv,
+body nenegativ; zero dezactivează numai plafonul body. Fracțiile și stringurile
+numerice sunt refuzate, fără conversie sau trunchiere implicită.
+
+Cheile necunoscute sunt refuzate în cele două secțiuni deținute. Celelalte
+secțiuni rădăcină și conținutul `reporting.console` aparțin altor owneri.
+`extent.enabled` este încărcat în configurație; callerul decide dacă deschide
+sesiunea. Constructorul direct al rendererului publică explicit, indiferent de acest flag.
+
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
@@ -1732,6 +1783,19 @@ flowchart LR
 `AssertionAuditReport` publică faze și pași de aserțiuni prin `AtfReportPorts.Session`;
 nu depinde de JUnit, Test Kit sau Validation. Consumerul îi furnizează identitatea,
 rândurile evaluate, statusul fazei și diagnosticul.
+
+`AssertionAuditReport.publishStep` publică și un grup non-HTTP într-o fază
+deținută de caller, fără să o închidă. Refolosește agregarea statusurilor typed;
+un FAIL evaluat nu poate fi slăbit de un PASS cerut, iar un grup gol nu fabrică pași.
+
+`ReportAssertionSummary` deține sumarele neutre de expected și failure folosite
+de consumeri. Redactează după numele câmpului înaintea bugetului integral de
+240, inclusiv elipsa; rândurile complete și decizia business rămân la caller.
+
+JSON-ul valid este redactat semantic înaintea formatării: cheile Unicode,
+valorile sensibile scalare/array/obiect și câmpurile duplicate sunt tratate fără
+pierderea câmpurilor nesensibile. Canalul JSON explicit omite documentul invalid;
+textul liber și sintaxa locatorilor păstrează redactorul textual, fără parsare impusă.
 
 Fazele acestui publisher se deschid după evaluare. Overload-ul cu
 `ReportPhaseTiming` primește separat durata execuției deja măsurate și numărul

@@ -71,7 +71,8 @@ class PlaywrightJavaScriptClickComponentTest {
                 "embedded control changes state", () -> assertEquals("activated:false", control.innerText()));
 
         var action = actions.snapshot().getFirst();
-        assertEquals("0.7", session.page().evaluate("getComputedStyle(document.documentElement).zoom"));
+        assertEquals("1", session.page().evaluate("getComputedStyle(document.documentElement).zoom"));
+        assertEquals(.7, ((Number)session.page().evaluate("devicePixelRatio")).doubleValue(), .000001);
         if (frameSelector.equals("#isolated")) {
             assertNull(session.page().evaluate("document.querySelector('#isolated').contentDocument"),
                     "the sandboxed frame has an opaque origin, inaccessible to the parent document");

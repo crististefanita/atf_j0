@@ -83,3 +83,9 @@ function failedAssertionRows(item) {
 function failedDiagnosticRows(item) {
   return q('.phase-diagnostics [data-atf-diagnostic-status="fail"] tbody tr', item);
 }
+function failedExecutionEvidence(item) {
+  return q('[data-atf-terminal-failure="true"]', item).filter(function (evidence) {
+    var request = evidence.closest('.card[data-atf-node-role="request"]');
+    return request && statusOf(request) === 'fail';
+  });
+}

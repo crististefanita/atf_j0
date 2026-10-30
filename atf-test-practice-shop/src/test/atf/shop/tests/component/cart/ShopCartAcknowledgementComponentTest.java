@@ -25,7 +25,8 @@ class ShopCartAcknowledgementComponentTest {
         try (var fixture = new ShopCartAcknowledgementFixture(mode)) {
             assertThrows(RuntimeException.class, fixture::add, "An unowned or unsuccessful response cannot authorize cart review");
             assertEquals(1, fixture.clicks(), "Failure never replays the product activation");
-            assertTrue(fixture.starts() <= 1, "The adapter never repeats the mutation request");
+            assertEquals(mode.equals("absent") ? 0 : 1, fixture.starts(),
+                    "The fixture emits exactly the planned mutation count; missing requests and replay are both observable");
             assertEquals(AtfReportStatus.FAIL, fixture.records().getLast().status(), "The original action's unmet postcondition remains FAIL");
         }
     }

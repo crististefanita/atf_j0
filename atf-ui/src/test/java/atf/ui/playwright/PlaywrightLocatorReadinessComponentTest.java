@@ -127,16 +127,20 @@ class PlaywrightLocatorReadinessComponentTest {
     }
 
     @ParameterizedTest @ValueSource(strings = {"replacement", "ambiguous-replacement"})
-    void detachedSelectWithoutNativeConfirmationFailsWithoutReplay(String mode) {
+    void selectReplacementIsObservedBeforeOneActivationOrStrictRefusal(String mode) {
         load(Action.SELECT, mode);
         var actions = actions();
-        var failure = assertThrows(IllegalStateException.class, () -> activate(Action.SELECT, actions));
-        assertTrue(failure.getMessage().contains("no confirmed selected value"), failure.getMessage());
-        assertEquals("0", session.page().locator("#activations").innerText());
+        if (mode.equals("replacement")) {
+            activate(Action.SELECT, actions);
+            assertSuccessfulActivation(Action.SELECT, actions);
+        } else {
+            var failure = assertThrows(PlaywrightException.class, () -> activate(Action.SELECT, actions));
+            assertTrue(failure.getMessage().contains("strict mode violation"), failure.getMessage());
+            assertEquals("0", session.page().locator("#activations").innerText());
+            assertTrue(session.page().locator("#target").all().stream().allMatch(target -> target.inputValue().equals("red")));
+            assertFailedRecord(actions, "#target");
+        }
         assertEquals(0, ((Number) session.page().evaluate("window.oldActivations")).intValue());
-        assertTrue(session.page().locator("#target").all().stream().allMatch(target -> target.inputValue().equals("red")));
-        assertFailedRecord(actions, "#target");
-        assertTrue(actions.snapshot().getFirst().observed().contains("no confirmed selected value"));
     }
 
     private void load(Action action, String mode) {

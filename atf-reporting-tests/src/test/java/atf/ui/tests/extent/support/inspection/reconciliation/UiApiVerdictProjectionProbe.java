@@ -112,10 +112,10 @@ public final class UiApiVerdictProjectionProbe {
                     assertEquals(1, openLink.count());
                     String href = openLink.getAttribute("href");
                     String scenarioAnchor = "scenario-index=" + expected.scenarioIndex();
-                    assertTrue(href != null && href.endsWith(scenarioAnchor), href);
+                    assertTrue(href != null && hasFragmentParameter(href, scenarioAnchor), href);
                     audit.actions().click(LOCATORS.failureDetailOpenAction(failurePage), "open the exact failure in Tests");
                     audit.actions().waitForVisible(LOCATORS.testsView(failurePage), ReportUiContract.Tab.TESTS.hash());
-                    assertTrue(failurePage.url().contains("#test-id=") && failurePage.url().endsWith(scenarioAnchor));
+                    assertTrue(failurePage.url().contains("#test-id=") && hasFragmentParameter(failurePage.url(), scenarioAnchor));
                     assertEquals("true", LOCATORS.scenarios(LOCATORS.visibleTestDetail(failurePage))
                             .nth(expected.scenarioIndex()).getAttribute("data-atf-scenario-open"));
                     String selectedScenario = LOCATORS.visibleTestDetail(failurePage).innerText();
@@ -123,7 +123,7 @@ public final class UiApiVerdictProjectionProbe {
                     inspected.screen("Open in Tests selects the exact original scenario", "Tests / " + expected.scenario(),
                             audit.capture(failurePage, "Original scenario: " + expected.scenario()), List.of(
                                     check("Scenario deep-link", scenarioAnchor, failurePage.url(),
-                                            failurePage.url().endsWith(scenarioAnchor)),
+                                            hasFragmentParameter(failurePage.url(), scenarioAnchor)),
                                     check("Selected scenario", expected.scenario(), selectedScenario,
                                             selectedScenario.contains(expected.scenario()))), AtfReportStatus.PASS);
                 });
@@ -253,4 +253,8 @@ public final class UiApiVerdictProjectionProbe {
 
     private record FailureExpectation(String scenario, String cause, ReportEvidenceOwner owner,
                                       String request, int scenarioIndex) { }
+    private static boolean hasFragmentParameter(String url, String expected) {
+        int fragment = url.indexOf('#');
+        return fragment >= 0 && java.util.Arrays.asList(url.substring(fragment + 1).split("&")).contains(expected);
+    }
 }

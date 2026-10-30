@@ -1,6 +1,6 @@
 package atf.api.tests.governance.documentation;
 
-import atf.api.tests.governance.documentation.links.MarkdownAnchorIndex;
+import atf.api.tests.governance.documentation.links.DocumentationLocalLinks;
 
 import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
@@ -11,7 +11,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static atf.api.tests.governance.AtfGovernanceTestSupport.locateProjectRoot;
@@ -28,8 +27,6 @@ public class DocumentationReadmeStructureGovernanceTest {
             Pattern.CASE_INSENSITIVE);
     private static final Pattern SUMMARY = Pattern.compile("^\\s*<summary(?:\\s|>)",
             Pattern.CASE_INSENSITIVE);
-    private static final Pattern MARKDOWN_LINK =
-            Pattern.compile("\\[[^\\]]+\\]\\(([^)]+)\\)");
 
     @Test
     void ownerReadmesKeepAReadableStableShape() throws Exception {
@@ -129,68 +126,7 @@ public class DocumentationReadmeStructureGovernanceTest {
     }
 
     static void inspectLocalLinks(Path path, Path root, List<String> lines,
-                                           List<DocumentationGovernanceSupport.Violation> violations) {
-        lines = MarkdownAnchorIndex.withoutFences(lines);
-        for (int index = 0; index < lines.size(); index++) {
-            Matcher matcher = MARKDOWN_LINK.matcher(lines.get(index));
-            while (matcher.find()) {
-                if (matcher.start() > 0 && lines.get(index).charAt(matcher.start() - 1) == '!') continue;
-                String destination = matcher.group(1).trim();
-                String target = destination.replaceFirst("^<", "").replaceFirst(">$", "");
-                if (isExternalOrConfigured(target)) continue;
-                int fragment = target.indexOf('#');
-                String anchor = fragment < 0 ? "" : target.substring(fragment + 1);
-                String file = fragment < 0 ? target : target.substring(0, fragment);
-                Path resolved;
-                try {
-                    resolved = file.isBlank() ? path : path.getParent().resolve(decode(file)).normalize();
-                    anchor = decode(anchor);
-                } catch (IllegalArgumentException invalid) {
-                    violations.add(DocumentationGovernanceSupport.violation(
-                            "DOC-README-LINK", root, path, index + 1,
-                            "local link has an invalid path or percent escape: " + destination,
-                            "local link destinations must be valid URI paths and fragments",
-                            "correct the path or encode the literal percent sign as %25"));
-                    continue;
-                }
-                if (!Files.exists(resolved)) {
-                    violations.add(DocumentationGovernanceSupport.violation(
-                            "DOC-README-LINK", root, path, index + 1,
-                            "local link points to missing target: " + destination,
-                            "owner README links must resolve from the file that declares them",
-                            "correct the relative path, or remove the link if the target is no longer an owner"));
-                } else if (!anchor.isEmpty() && resolved.getFileName().toString().toLowerCase(java.util.Locale.ROOT).endsWith(".md")) {
-                    try {
-                        if (!MarkdownAnchorIndex.anchors(Files.readAllLines(resolved)).contains(anchor)) {
-                            violations.add(DocumentationGovernanceSupport.violation(
-                                    "DOC-README-ANCHOR", root, path, index + 1,
-                                    "local link points to missing Markdown fragment: " + destination,
-                                    "the destination heading or explicit HTML anchor must exist outside fenced examples",
-                                    "correct the fragment, restore the destination heading, or add its stable HTML anchor"));
-                        }
-                    } catch (java.io.IOException unreadable) {
-                        violations.add(DocumentationGovernanceSupport.violation(
-                                "DOC-README-ANCHOR", root, path, index + 1,
-                                "Markdown link target could not be read: " + destination,
-                                "fragment validation requires a readable Markdown destination",
-                                "fix the target encoding or filesystem access"));
-                    }
-                }
-            }
-        }
-    }
-
-    private static String decode(String text) {
-        return java.net.URLDecoder.decode(text.replace("+", "%2B"), java.nio.charset.StandardCharsets.UTF_8);
-    }
-
-    private static boolean isExternalOrConfigured(String destination) {
-        String normalized = destination.toLowerCase(java.util.Locale.ROOT);
-        return normalized.startsWith("http://")
-                || normalized.startsWith("https://")
-                || normalized.startsWith("mailto:")
-                || normalized.startsWith("file:")
-                || destination.contains("${")
-                || destination.contains("<configured");
+                                  List<DocumentationGovernanceSupport.Violation> violations) {
+        DocumentationLocalLinks.validate(path, root, lines, violations);
     }
 }

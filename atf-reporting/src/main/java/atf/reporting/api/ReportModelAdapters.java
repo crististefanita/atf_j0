@@ -37,13 +37,16 @@ public final class ReportModelAdapters {
         }
         String method = requiredText(source, "method");
         String path = requiredText(source, "path");
-        return new ReportRequest(
+        var request = new ReportRequest(
                 method,
                 path,
                 stringMap(source, "query"),
                 stringMap(source, "headers"),
                 optionalText(source, "authProfile", NONE_AUTH_PROFILE),
                 optionalText(source, "bodyText", null));
+        Object pairs = optionalValue(source, "queryParameters");
+        return pairs == null ? request : request.toBuilder()
+                .queryParameters(ReportQueryParameters.from(pairs)).build();
     }
 
     public static ReportTransportProvenance provenance(Object source) {

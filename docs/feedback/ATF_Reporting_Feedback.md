@@ -2,29 +2,88 @@
 
 ## Pe scurt
 
-Biblioteca poate produce un JAR și poate randa Extent/fallback într-un consumer
-extern fără module ATF. Această probă nu închide pregătirea pentru release:
-rămân indexarea cauzei terminale în Fails, redactarea JSON incompletă și
-un gate de teste care depinde încă de checkout-ul ATF.
+Reporting deține publicarea neutră, sumarul sigur, query-ul typed și proiecția
+cauzei terminale. Sursa izolată și JAR-ul fizic au gate separat în
+[Reporting Tests](../../atf-reporting-tests/README.md#gate-ul-bibliotecii-distribuite).
 
-`atf-reporting-tests` rămâne modul intern de verificare. Fiecare increment de
-mai jos închide împreună codul, ownership-ul, proba și documentația; împachetarea
-nu justifică înghețarea unui contract greșit sau rescrierea flow-urilor consumerilor.
+- Pregătirea pentru release păstrează criterii distincte: API susținut,
+  lifecycle, distribuție și documentație portabilă. Expected-urile, endpoint-urile,
+  selecția business și captura Playwright rămân la ownerii lor.
+- Reporting Tests rămâne modul intern de verificare. Fiecare increment închide
+  împreună codul, ownership-ul, proba și documentația.
 
 ## Ordinea pregătirii
 
-Scorul este prioritate: impact /40 + lacună /30 + lucrabil /20 + datorie
-documentară /10. Nu este o notă a modulului ori un procent de acoperire.
+Incrementul JAR în lucru repară refuzul constructorului, bugetul assets și
+regresiile reproduse. Auditul structurii sursei rămâne la build-ul producătorului;
+probele runtime și consumerul Maven extern verifică aceeași bibliotecă și ca JAR.
+Niciun test nu este dezactivat, iar pragurile de layout și preview rămân în vigoare.
+
+<details>
+<summary><strong>Control YAML — lifecycle și gate-uri sursă/JAR</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-JAR-QUALITY-54
+    status: ACTIVE
+    base: addd434eaeec7a67fa58eb85256b843ae30c3db5
+    expires: 2026-11-13
+    reason: Cerinta explicita de a corecta Reporting si Reporting Tests la producator si a sincroniza consumerul binar. Pastreaza toate oracolele; auditul sursei se executa nativ la producator, iar runtime-ul si consumerul Maven folosesc JAR-ul real. Repara refuzul constructorului, selectia dovezii si fixture-urile fara relaxarea pragurilor sau excluderea testelor.
+    proof: mvn -B -pl atf-reporting-tests,atf-tests -am "-Dtest=AtfReportingUnitSuite,AtfReportingComponentSuite,AtfReportingIntegrationSuite,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/README.md
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/table/PublishedEvidenceTableLocators.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/audit/section/FailsSectionValidatorTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/section/extract/ApiReportStructureExtractor.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failure/FailureFlowInspector.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/failurenavigation/FailureJourneyLocators.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/section/module/FailsSectionAuditModule.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/layout/EvidenceTableVisibilityComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/navigation/FailureLinkIdentity.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/navigation/FailureLinkIdentityTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/reconciliation/UiApiVerdictProjectionProbe.java
+      - atf-reporting/pom.xml
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/diagnostic/ReportPhaseAuditLocators.java
+      - atf-reporting-tests/src/test/java/atf/reporting/extent/session/ExtentReportConstructionComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/runtime/core/ExtentReportRuntimeModuleTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/runtime/core/ExtentReportDurationRuntimeComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/theme/css/AtfReportThemeCompositionTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/UiExtentReportSessionCompositionTest.java
+      - atf-reporting/src/test/java/atf/reporting/standalone/ReportingSourceArchitectureTest.java
+      - atf-reporting/src/test/java/atf/reporting/standalone/ReportingModuleSource.java
+      - atf-reporting/src/test/java/atf/reporting/standalone/ReportingStandaloneDependencyTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/section/architecture/DomInspectorMigrationBoundaryTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/distribution/ReportingDistributionProbe.java
+      - atf-reporting-tests/src/test/java/atf/reporting/distribution/ReportingLibraryDistributionIntegrationTest.java
+      - atf-reporting-tests/src/test/resources/atf/reporting/distribution/JarConsumer.java.txt
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/config/ReportingTestResources.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/config/AtfUiConfigurationLoaderTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/support/ReportingTestResourcesIdeLaunchTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/extent/session/ExtentReportFailureProjectionContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/runtime/core/ExtentReportRuntimeScriptTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/runtime/section/ExtentReportRuntimeNavigationComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/UiFallbackFailureEvidenceTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/ExtentReportUiScreenshotContractTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/reconciliation/UiFailureCorrelationProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/diagnostic/ReportPhaseAuditProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/timing/ComponentExecutionDiagnosticReportTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/verdict/VerdictReportLocators.java
+```
+
+</details>
+
+
+- Restanțele de mai jos decid următorul increment. Contractele livrate sunt
+  legate la [ownerii lor](#contracte-existente); un gate focalizat nu închide
+  automat compatibilitatea API sau pregătirea întregului release.
+- Scorul este prioritate: impact /40 + lacună /30 + lucrabil /20 + datorie
+  documentară /10. Nu este o notă a modulului ori un procent de acoperire.
 
 | ID | Scor /100 | Criteriul care blochează închiderea |
 |---|---:|---|
-| `REPORT-JSON-REDACTION-40` | 92 = 38 + 28 + 18 + 8 | cheie JSON Unicode și valoare numerică sensibilă rămân în ambele HTML-uri |
-| `REPORT-TERMINAL-FAILURE-INDEX-48` | 90 = 36 + 28 + 18 + 8 | FAIL terminal fără assertions are context generic greșit în Fails Extent și lipsește din indexul fallback |
-| `REPORT-STANDALONE-ISOLATION-41` | 85 = 32 + 27 + 18 + 8 | modulul copiat singur are trei erori în gate-ul propriu |
-| `REPORT-TEST-ORACLES-47` | 83 = 34 + 26 + 16 + 7 | contractul de artifact și oracolele de navigare păstrează forme private vechi; există și un selector shorthand |
-| `REPORT-CONFIGURATION-42` | 82 = 30 + 25 + 19 + 8 | fracțiile sunt acceptate și trunchiate contrar contractului de întreg pozitiv |
+| `REPORT-SESSION-CONTRACT-44` | 86 = 33 + 26 + 19 + 8 | constructorul refuzat lasă un workspace cu lease activ; lifecycle-ul rendererelor cere contract explicit |
+| `REPORT-TEST-ORACLES-47` | 83 = 34 + 26 + 16 + 7 | restanțe de oracole pentru diagnostice/screenshot și containment-ul navigării fallback |
 | `REPORT-PUBLIC-API-43` | 81 = 31 + 24 + 17 + 9 | API-ul susținut, compatibilitatea și capabilitățile adaptoarelor nu sunt delimitate suficient |
-| `REPORT-SESSION-CONTRACT-44` | 76 = 28 + 23 + 17 + 8 | flush/publicare, path și threading diferă fără contract comun explicit |
 | `REPORT-RELEASE-CONTRACT-45` | 73 = 25 + 22 + 17 + 9 | lipsesc criteriile declarate ale pachetului și versiunii distribuite |
 | `REPORT-PORTABLE-DOCS-46` | 72 = 24 + 22 + 17 + 9 | contractele și linkurile README depind încă de documente din afara modulului |
 | `REPORT-FLOW-PROJECTION-36` | 62 = 24 + 17 + 16 + 5 | calculul proiecției și protocolul publicării rămân amestecate |
@@ -52,134 +111,43 @@ flowchart LR
 
 </details>
 
-## REPORT-JSON-REDACTION-40 — secretul semantic înaintea formatării
-
-**Prioritate: 92/100** = impact 38 + lacună 28 + lucrabil 18 + documentare 8.
-**Owner:** [SensitiveDataRedactor](../../atf-reporting/src/main/java/atf/reporting/security/SensitiveDataRedactor.java)
-și [ReportEvidenceJsonFormatter](../../atf-reporting/src/main/java/atf/reporting/evidence/markup/ReportEvidenceJsonFormatter.java).
-
-Consumerul JAR publică JSON valid cu cheia `to\u006ben` și un câmp `password`
-numeric. Ambele valori sintetice rămân în HTML-ul Extent și fallback, inclusiv
-cu body preview dezactivat; câmpul nesensibil de control este păstrat.
-
-- Regex-ul JSON recunoaște numele literal și valoarea string. Formatarea JSON
-  ulterioară decodează cheia Unicode după redactare; valoarea numerică nu este mascată.
-- Aceasta este o reproducere cu canary sintetic, fără credentiale reale și fără
-  transmitere externă. Nu se generalizează la orice input sau la redactorii altor module.
-
-**Același increment:**
-
-- [ ] Tratați cheia semantică și toate formele valorii sensibile înainte de
-      formatare/plafon: string, număr, boolean, array și obiect, inclusiv în liste.
-      Delimitați JSON valid de textul invalid și păstrați fallback-ul diagnostic sigur.
-- [ ] Păstrați politica de replacement și datele nesensibile; nu modificați
-      inputul folosit pentru verdict, asociere sau replay. Nu aplicați un regex
-      suplimentar numai în HTML-ul final.
-- [ ] Probați escape-uri Unicode în chei/valori, nesting, headers și body,
-      chei duplicate, input invalid și valori peste buget. Căutați canary-ul în
-      întregul artifact, în JSON/replay și în ambele renderere, nu doar într-o celulă.
-- [ ] Corectați împreună implementarea și [garanția de proiecție sigură](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor);
-      documentați precis formatele acoperite și degradarea inputului invalid.
-
-## REPORT-TERMINAL-FAILURE-INDEX-48 — cauza transportului în indexul Fails
-
-**Prioritate: 90/100** = impact 36 + lacună 28 + lucrabil 18 + documentare 8.
-**Owner:** [collectorul proiecțiilor](../../atf-reporting/src/main/java/atf/reporting/model/projection/ReportExecutionProjectionAccumulator.java),
-proiecția Fails Extent și navigarea către execution evidence.
-
-Consumerul JAR publică trei exchange-uri: PASS `/before`, FAIL `/terminal`
-cu IO_ERROR și fără assertions, PASS `/after`.
-
-| Suprafață | Observat în artifactul nou |
-|---|---|
-| Tests Extent/fallback | diagnosticul redactat și ambele attempts ale terminalului sunt inspectabile; scenariul este FAIL |
-| Fails Extent | cauză generică și REQUEST `/after`, deși acel vecin este PASS |
-| Fails fallback | `No failed assertions.`; acest FAIL nu este indexat |
-
-- [ ] Proiectați cauza typed din execution evidence atunci când exchange-ul
-      este FAIL; statusul explicit și diagnosticul nu trebuie transformate
-      într-o aserțiune business fabricată.
-- [ ] Păstrați identitatea exchange-ului, tipul și ordinalul dovezii. REQUEST
-      și durata provin din aceeași sursă; ultimul vecin cu HTTP nu este fallback
-      pentru o cauză terminală fără response.
-- [ ] Aliniați indexul Extent/fallback și saltul la execution evidence:
-      diagnosticul devine vizibil fără Expand all, inclusiv după reload.
-      WARNING/SKIP și un eșec așteptat PASS nu devin failure-uri de index.
-- [ ] Probați vecini înainte/după, zero attempts, terminal fără termination,
-      assertions FAIL simultane și diagnostice de fază deja publicate, fără
-      dublarea aceleiași cauze. Actualizați contractul și atlasul odată cu proba.
-
-## REPORT-STANDALONE-ISOLATION-41 — modulul copiat singur
-
-**Prioritate: 85/100** = impact 32 + lacună 27 + lucrabil 18 + documentare 8.
-**Owner:** [ReportingStandaloneDependencyTest](../../atf-reporting/src/test/java/atf/reporting/standalone/ReportingStandaloneDependencyTest.java)
-și gate-ul de consum al artefactului în Reporting Tests.
-
-| Probă efectuată | Rezultat | Limită |
-|---|---|---|
-| `mvn -f atf-reporting/pom.xml package` în snapshot ATF | 19 teste PASS și JAR produs | părinții filesystem conțin încă reactorul |
-| același modul copiat singur; `mvn test` | 19 teste, trei ERROR: `Cannot locate ATF project root` | guard-ul caută directorul frate `atf-reporting` și POM-ul rădăcinii |
-| consumer extern cu JAR fizic și dependențe runtime | Extent/fallback sunt produse; 54 resurse CSS/JS sunt în JAR | probe de adopție manuale, încă neprotejate de gate-ul canonic |
-
-Classpath-ul consumerului nu include `target/classes`, surse ATF, JUnit sau
-Playwright. Boundary-ul runtime autonom este confirmat; autonomia integrală
-a build-ului extras rămâne neînchisă.
-
-**Același increment:**
-
-- [ ] Faceți guard-ul să inspecteze propriul modul fără a cere reactorul;
-      păstrați toate cele trei refuzuri pentru dependențe și parent ATF.
-      Nu săriți testele și nu transformați absența rădăcinii în succes implicit.
-- [ ] Automatizați copierea doar a modulului într-un TMP cu nume arbitrar,
-      build/package și pornirea unui consumer din alt director, cu JAR și POM reale.
-      Includeți un control negativ care detectează resursa lipsă din JAR.
-- [ ] Verificați declarațiile POM și rezolvarea dependențelor externe, nu numai
-      un classpath alcătuit manual. Oracolele browser rămân la Reporting Tests.
-- [ ] Actualizați [limitele standalone](../../atf-reporting/README.md#limitele-librăriei-autonome-și-consumatorul-canonic)
-      și comanda de contribuție; separați build în checkout, modul extras și JAR consumat.
-
 ## REPORT-TEST-ORACLES-47 — contract observabil în locul formei funcției
 
 **Prioritate: 83/100** = impact 34 + lacună 26 + lucrabil 16 + documentare 7.
-**Owner:** [ExtentReportSessionContractTest](../../atf-reporting-tests/src/test/java/atf/reporting/extent/session/ExtentReportSessionContractTest.java)
-și [ReportArtifactEvidenceContracts](../../atf-reporting/src/main/java/atf/reporting/artifact/contract/ReportArtifactEvidenceContracts.java),
-cu oracolele de navigare din Reporting Tests.
+**Owner:** probele de compoziție și browser din Reporting Tests.
 
-Regresia largă separă forme private învechite de convenții de boundary încă obligatorii:
+Contractul artifactului verifică markerii publici typed și navigarea, nu corpul
+unei funcții JavaScript. Parsarea backlink-ului păstrează scenariul indiferent
+de parametrii suplimentari; locatorii expliciți rămân la ownerul lor.
 
-- Suitele unit/component/integration execută 1.278 de cazuri; 19 failures și
-  4 errors rămân în 18 clase. Aceleași cazuri eșuează și în copia live nouă,
-  fără corecția terminală; nu sunt clasificate automat drept defecte ale testelor.
+- `ExtentReportSessionContractTest`, `ReportUiLocatorsTest` și
+  `UiApiVerdictProjectionComponentTest` verifică markerii și identitatea.
+- `PublishedFailureNavigationComponentTest` și `PublishedFailureNavigationEdgeComponentTest`
+  protejează navigarea. Controlul negativ ascunde dovada originală;
+  reload trebuie să o facă accesibilă.
 
-| Owner / probă | Neconcordanță de reconciliat |
+| Restanță delimitată | Probă de închidere |
 |---|---|
-| `ExtentReportSessionContractTest` | două cazuri caută forme private JavaScript schimbate; eșuează identic și în copia live nouă, iar celelalte 13 trec |
-| `ReportArtifactEvidenceContracts` | aceeași semnătură privată produce `failure evidence projection`, inclusiv în `ApiSelectionMockPublisherComponentTest` |
-| corelare și verdict UI/API | `href.endsWith("scenario-index=...")` refuză parametrii typed adăugați după index; identitatea completă trebuie păstrată |
-| [FailureNavigationLocators](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/failurenavigation/FailureNavigationLocators.java) | shorthand de clasă refuzat și pe live de `ReportUiLocatorsTest`; nu se relaxează guard-ul |
-| `FailureNavigationEdgeProbe` | selectori compuși în inspector, refuzați de `UiSelectorBoundaryArchitectureTest`; se păstrează boundary-ul locatorilor |
-| diagnostice, screenshot și verdict | probe pentru owner `component`/`execution`, refuzul multi-screenshot, selectori ambigui și accesul la dovada originală cer oracole independente; eșecurile sunt reproduse și pe live |
+| diagnostice, screenshot și verdict | reconciliați separat cazurile pentru owner `component`/`execution`, refuzul multi-screenshot și selectorii ambigui; clasificați fiecare defect de implementare sau oracol |
+| refuzul screenshot-ului multiplu | `ExtentReportUiScreenshotContractTest` adaugă a doua captură distinctă înaintea `assertThrows`; `ExtentRequestScope.screenshot` validează imediat candidatul, astfel refuzul scapă oracolului plasat la `complete` |
+| diagnosticul componentei | `ComponentExecutionDiagnosticReportTest` așteaptă owner `component`, iar indexul publică `execution`; reconciliați regula cu natura cauzei, fără redenumire pentru verde |
+| două diagnostice cu aceeași etichetă | după setup AutoEx și refuzul cleanup-ului owned, `Fails` distinge cauzele și publică `failure-ordinal=2`, dar `Open in Tests` expandează prima eroare, lăsând cleanup-ul colapsat. Reprodus în Extent UI_API cu două grupuri `Failure evidence` / `Failure cause`; expandarea manuală păstrează diagnosticul corect. Proba de închidere selectează al doilea diagnostic, verifică exact cauza și grupul deschis, apoi reload și sensul invers; fără rezolvare numai după titlul comun |
+| root-ul fixture-urilor în consumer binar | `ReportingTestResources` cere POM-ul producției Reporting; resursele testelor trebuie să identifice modulul lor fără sursa bibliotecii |
+| backlink-ul timeout-ului UI fallback | `UiFallbackFailureEvidenceTest` cere `href="#<scenarioId>"`, dar artifactul publică `#test-id=<id>&failure-ordinal=1`; auditul TAB ajunge la scenariul, faza și comparația corecte. Înlocuiți oracolul literal cu identitatea parsată și proba de navigare, păstrând controalele negative pentru scenariu străin și parametri suplimentari |
+| starea asincronă după backlink | așteptați bounded scenariul țintă deschis; vizibilitatea tabului Tests singură nu dovedește finalizarea navigării |
+| fallback cu titlu lung | eticheta `repeat-520 — controlled FAIL with one native pointer activation` depășește sidebar-ul la 1280; verificați containment-ul și accesul real |
 
-- [ ] Păstrați intențiile existente: UI/API cu owner corect, câmpuri de transport
-      numai unde sunt capturate, toate cauzele și saltul către dovada originală.
-      Nu eliminați comparațiile numai pentru a obține verde.
-- [ ] Pentru markup, verificați structura semantică publicată. Pentru navigare,
-      folosiți DOM-ul real, identitatea scenariului/tipului/ordinalului, tastatura
-      și reload; refactorizarea unei funcții private nu trebuie să schimbe oracolul.
-- [ ] Aliniați contractul de artifact cu markerii și comportamentul public,
-      nu doar testele care îl apelează. Parsarea hash-ului păstrează identitatea
-      scenariului și a dovezii, inclusiv în probele de corelare UI/API.
-- [ ] Reconciliați cu `PublishedFailureNavigationComponentTest` și
-      `PublishedFailureNavigationEdgeComponentTest`, păstrând controale negative
-      independente. Migrați ownerul fiecărei comparații fără dublare sau gol de acoperire.
-- [ ] Înlocuiți shorthand-ul clasei cu forma explicită `[class~='token']`,
-      păstrând selecția exactă și toate probele de navigare existente.
-- [ ] Delimitați defectul de implementare de oracolul învechit pentru fiecare
-      failure/error reprodus; nu atribuiți automat problemele de owner, screenshot
-      ori selecție aceluiași fragment JavaScript și nu slăbiți guard-urile.
-- [ ] Rulați iar suitele canonice și actualizați inventarul de probe și controlul
-      Git al clasei schimbate. Un increment focalizat trecut nu certifică suita largă.
-
+- [ ] Probați fallback cu titlu lung, text fără spații și scenarii surori la 1280
+      și într-un panou îngust. Păstrați identitatea și tastatura, fără suprapunere
+      peste articol sau înlocuirea măsurătorii browser printr-un control CSS.
+- [ ] Păstrați ownerul UI/API, toate cauzele și dovada originală. Comparațiile
+      nu se elimină pentru a obține verde; expected-ul rămâne independent.
+- [ ] Reexecutați suitele canonice pentru inventarul rezidual înaintea închiderii.
+      Gate-ul focalizat nu certifică toate testele de diagnostic și screenshot;
+      rezultatele și logurile datate rămân în TMP, nu devin contract README.
+- [ ] Separați probele care inspectează sursa producătorului de regresiile
+      runtime ale JAR-ului. Păstrați comparațiile și verificați CodeSource-ul;
+      consumerul nu aduce sursa Reporting numai pentru a satisface un fixture.
 <details>
 <summary><strong>Control YAML — reconcilierea navigării existente în live</strong></summary>
 
@@ -189,7 +157,7 @@ testChanges:
     status: ACTIVE
     base: ddba3dee4dd4ecd544a8b1c22d31bae226eed5cf
     expires: 2026-11-13
-    reason: Urmărește diferența live existentă pentru navigarea typed și diagnostice, fără a o suprascrie cu incrementul terminal. Probe browser protejează comportamentul; convenția locatorilor și oracolele statice rămân de reconciliat prin criteriul 47, nu sunt declarate verificate de acest control.
+    reason: Urmareste diferenta fata de baza proprie pentru navigarea typed si diagnostice. Markerii publici, parsarea backlink-ului si locatorii expliciti protejeaza identitatea dovezii; criteriul 47 pastreaza separat diagnosticele, multi-screenshot si containment-ul fallback inca nedemonstrate complet.
     proof: mvn -B -pl atf-reporting-tests,atf-tests -am "-Dtest=PublishedFailureNavigationComponentTest,PublishedFailureNavigationEdgeComponentTest,ReportUiLocatorsTest,ExtentReportSessionContractTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=ddba3dee4dd4ecd544a8b1c22d31bae226eed5cf" "-Dsurefire.failIfNoSpecifiedTests=false" test
     paths:
       - atf-reporting-tests/src/test/java/atf/reporting/support/failurecorrelation/FailureNavigationFixture.java
@@ -199,33 +167,6 @@ testChanges:
 ```
 
 </details>
-
-## REPORT-CONFIGURATION-42 — configurație validată fără conversii ascunse
-
-**Prioritate: 82/100** = impact 30 + lacună 25 + lucrabil 19 + documentare 8.
-**Owner:** [AtfReportConfigurationLoader](../../atf-reporting/src/main/java/atf/reporting/configuration/AtfReportConfigurationLoader.java).
-
-`assertionMaxDisplayCharacters: 240.9` este acceptat ca 240, iar
-`bodyMaxDisplayCharacters: 10.7` devine 10. `canConvertToInt()` nu cere nod
-integral; rezultatul contrazice regula README pentru întregi pozitivi.
-
-- `reporting: 42` este acceptat cu valori implicite. O cheie greșită în secțiunea
-  deținută este ignorată; acestea cer o politică explicită, nu o presupunere nouă.
-- YAML-ul gol folosește defaults în proba curentă; nu îl clasificăm drept defect.
-
-**Același increment:**
-
-- [ ] Cereți număr integral, interval valid și tip corect pentru secțiunile
-      prezente. Păstrați defaults legitime și zero ca body preview nelimitat.
-- [ ] Definiți comportamentul cheilor necunoscute numai în secțiunile deținute;
-      configurația comună ATF nu este proprietatea exclusivă a Reporting.
-      Clarificați și ownerul aplicării câmpului `extent.enabled`.
-- [ ] Probați fracții, overflow, string numeric, boolean, secțiune scalar/list,
-      cheie greșită, input absent și un override valid. Erorile trebuie să indice
-      cheia înaintea creării artifactului; System arată numai valoarea efectivă validă.
-- [ ] Aliniați [intrările configurabile](../../atf-reporting/README.md#intrări-și-configurare-în-bibliotecă)
-      și [bugetul aserțiunilor](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor),
-      fără a slăbi documentația ca să accepte trunchierea observată.
 
 ## REPORT-PUBLIC-API-43 — suprafață susținută și ownership
 
@@ -263,9 +204,19 @@ Namespace-ul întreg nu poate deveni automat o promisiune de compatibilitate.
 
 ## REPORT-SESSION-CONTRACT-44 — lifecycle explicit pentru fiecare renderer
 
-**Prioritate: 76/100** = impact 28 + lacună 23 + lucrabil 17 + documentare 8.
+**Prioritate: 86/100** = impact 33 + lacună 26 + lucrabil 19 + documentare 8.
 **Owner:** [AtfReportPorts.Session](../../atf-reporting/src/main/java/atf/reporting/contract/AtfReportPorts.java),
 `ExtentReportSession` și `HtmlReportSession`.
+
+Proba Java consumă JAR-ul izolat, cu runtime-ul său Maven. Constructorul Extent
+cu `detailsMode=null` aruncă `NullPointerException` după achiziția publicației;
+workspace-ul rămas are încă lease-ul blocat în același proces.
+
+| Boundary observat | Rezultat | Cerință |
+|---|---|---|
+| argument refuzat la constructor | director și lease active după excepție | validare înaintea I/O și rollback al achiziției parțiale |
+| `flush()` cu raport anterior | Extent păstrează anteriorul; fallback îl înlocuiește | moment de publicare declarat per renderer |
+| acces secvențial din alt thread | Extent refuză; fallback acceptă | confinement ori sincronizare explicite |
 
 După `flush()`, proba JAR nu găsește fișierul final Extent, dar găsește fallback-ul;
 după `close()`, ambele există. Extent folosește workspace și publicare coordonată,
@@ -279,6 +230,12 @@ de pierdere a datelor sau motiv pentru a declara identice cele două renderere.
 
 **Același increment:**
 
+- [ ] Validați toate argumentele înaintea achiziției. Dacă inițializarea
+      vendorului, assets sau arborelui eșuează ulterior, eliberați publicația
+      deja deținută și păstrați cauza primară, inclusiv pentru `Error`.
+- [ ] Probați constructor refuzat înainte/după achiziție, asset lipsă și
+      refuz de cleanup. Workspace-ul nu rămâne cu lease activ, iar raportul
+      anterior este păstrat; succesul transferă ownership-ul exact o dată.
 - [ ] Declarați semantica `flush`, commit/publicare, `close` repetat, path și
       threading. Alegeți conștient ce este comun și ce rămâne specific rendererului.
 - [ ] Dacă se aliniază publicarea fallback, reutilizați protocolul de staging și
@@ -305,6 +262,19 @@ artefactul curent și nu propunem mutarea lor în Java sau într-un modul nou.
   tranzitiv. Compatibilitatea Extent și această dependență efectivă trebuie
   urmărite explicit; macro-ul are deja refuz dacă expresia a fost schimbată.
 
+Două build-uri forțate `clean package` cu aceleași surse și aceeași toolchain
+au produs bytes identici. Restanța privește toolchain-ul declarat și gate-ul
+automat de release, împreună cu metadatele și dependențele efectiv susținute.
+
+`ReportAssetSizeInventoryTest` deține pragurile executabile și inventarul
+nativ/publicat. Recalculați depășirile din resursele sursei și ale JAR-ului
+curente; numerele unei rulări anterioare nu sunt baseline normativ. Verificați
+identitatea resurselor înainte de a clasifica o diferență drept oracol învechit.
+
+- [ ] Reduceți depășirea la ownerul compoziției, păstrând toate suprafețele,
+      navigarea typed și oracolele browser. Pragurile nu cresc automat pentru
+      a accepta incrementul; orice reevaluare cere motiv și măsurare independente.
+
 **Același increment:**
 
 - [ ] Definiți Java minim, versiuni susținute, JAR thin/POM, politica pentru
@@ -323,8 +293,8 @@ artefactul curent și nu propunem mutarea lor în Java sau într-un modul nou.
 **Prioritate: 72/100** = impact 24 + lacună 22 + lucrabil 17 + documentare 9.
 **Owner:** README Reporting și contractele de raportare din documentația proiectului.
 
-README-ul are peste 1900 de linii și linkuri relative spre directoare părinte,
-inclusiv contracte normative din `../docs`. Copierea numai
+README-ul are linkuri relative spre directoare părinte, inclusiv contracte
+normative din `../docs`. Copierea numai
 a modulului păstrează codul, dar nu transportă acei owneri documentari.
 
 - Exemplul minim JAR din README este acum compilat și executat extern, cu un
@@ -332,6 +302,10 @@ a modulului păstrează codul, dar nu transportă acei owneri documentari.
 - [Atlasul pachetelor](../../atf-reporting/src/main/java/atf/reporting/README.md)
   oferă context local pentru UI, API, modele, renderere, evidence și runtime.
   Linkurile sale către probele interne nu reprezintă încă un pachet documentar de release.
+- [Contextul portabil](../../atf-reporting/docs/README.md) are numai destinații
+  interne modulului și explică separat sursa izolată, JAR-ul thin, POM-ul și
+  autonomia HTML. Această intrare este pregătită; portabilitatea tuturor
+  README-urilor și includerea în distribuție rămân deschise.
 - Inventarul tehnic și instrucțiunile contribuitorilor trebuie să rămână
   accesibile fără a ascunde intrările, verdictul și publicarea cerute de un adopter.
 
@@ -386,9 +360,14 @@ protocolul porturilor, cu ieșire observabilă identică și fără evaluări re
 
 ## Contracte existente
 
+
+
 | Informație | Owner |
 |---|---|
-| Exchange terminal cu verdict explicit și diagnostic nested în Tests | [Reporting](../../atf-reporting/README.md#execuție-api-terminată-fără-răspuns) |
+| Exchange terminal în Tests/Fails și backlink către execution evidence | [Reporting](../../atf-reporting/README.md#execuție-api-terminată-fără-răspuns) |
+| JSON semantic, canary-uri și degradarea inputului invalid | [Security](../../atf-reporting/src/main/java/atf/reporting/security/README.md) |
+| YAML strict și defaults legitime | [Reporting](../../atf-reporting/README.md#intrări-și-configurare-în-bibliotecă) |
+| Sursa izolată și JAR-ul fizic consumat extern | [Reporting Tests](../../atf-reporting-tests/README.md#gate-ul-bibliotecii-distribuite) |
 | Buget configurabil și valoarea efectivă în System | [Reporting](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor) |
 | Cauza publicării directe și închiderea scope-urilor | [Reporting](../../atf-reporting/README.md#cauza-publicării-și-scope-urile-deținute) |
 | Tranziții de scope și refuz fără mutație | [Reporting](../../atf-reporting/README.md#atomicitatea-tranzițiilor-de-scope) |

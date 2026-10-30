@@ -142,6 +142,17 @@ function failureContextFor(item, anchor) {
     validation: 'Execution diagnostics', diagnostic: text(anchor.cells[0], ''),
     assertion: 'No contract comparison recorded', message: text(anchor.cells[1], '')
   });
+  if (anchor.matches('[data-atf-terminal-failure="true"]')) {
+    var terminalPhase = anchor.closest('.card[data-atf-node-role="phase"]');
+    return Object.assign(ctx, {
+      evidenceOwner: 'execution', ui: false, checkpoint: '', step: 'Execution',
+      phase: terminalPhase ? text(terminalPhase, '.card-title a.node') : ctx.phase,
+      request: anchor.getAttribute('data-atf-request-method') + ' ' + anchor.getAttribute('data-atf-request-path'),
+      duration: anchor.getAttribute('data-atf-terminal-duration'), validation: 'Execution evidence',
+      diagnostic: 'Transport failure', assertion: 'No contract comparison recorded',
+      message: anchor.getAttribute('data-atf-terminal-message')
+    });
+  }
   var cells = Array.from(anchor.cells || [], cell => text(cell, '')),
     label = cells[0] || 'Assertion',
     expected = cells[1] || '',

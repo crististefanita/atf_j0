@@ -15,6 +15,7 @@ Sesiunea de browser deține pagina; inspectorul deține propriile listener-e.
 | valoare de identitate | [UiRequestIdentity](identity/UiRequestIdentity.java) | ordine în același scope; distinctă de receipt sequence |
 | date păstrate în jurnal | [UiNetworkObservation](UiNetworkObservation.java) | snapshot și sanitizare conform configurației |
 | trafic acceptat și capacitate | [UiNetworkCapturePolicy](UiNetworkCapturePolicy.java) | politică de captură, nu criteriu business |
+| compactare și repetări | [UiNetworkInspector.presentationObservations](UiNetworkInspector.java) | vedere de prezentare; jurnalul raw păstrează și răspunsul ulterior eșuat |
 
 ## Invariante de păstrat
 
@@ -27,6 +28,10 @@ Sesiunea de browser deține pagina; inspectorul deține propriile listener-e.
   Close nu anulează snapshot-ul subscriberilor unei livrări deja începute.
 - Ordinea pornirii request-ului nu este ordinea sosirii răspunsului. Consumerul
   decide apartenența business; jurnalul păstrat rămâne inspectabil după close.
+- Valorile query sunt eliminate din URL. Înaintea redactării, captura calculează
+  o amprentă SHA-256 opacă pentru identitate; resanitizarea o păstrează fără
+  recuperarea valorilor. Inputul legacy deja redactat, fără amprentă, rămâne necunoscut.
+  Adapterul de raportare nu publică digestul și nu tratează placeholder-ul drept query.
 
 ## Probe înainte de schimbare
 
@@ -35,6 +40,8 @@ Sesiunea de browser deține pagina; inspectorul deține propriile listener-e.
 | achiziție și cleanup, inclusiv Error/reentranță | [UiNetworkLifecycleComponentTest](../../../../../test/java/atf/ui/network/lifecycle/UiNetworkLifecycleComponentTest.java) |
 | identitatea scoped | [UiRequestIdentityComponentTest](../../../../../test/java/atf/ui/network/identity/UiRequestIdentityComponentTest.java) |
 | livrarea subscriberilor | [UiNetworkDeliveryComponentTest](../../../../../test/java/atf/ui/network/delivery/UiNetworkDeliveryComponentTest.java) |
+| identitate fără valori query expuse | [UiObservedQueryFingerprintComponentTest](../../../../../test/java/atf/ui/network/UiObservedQueryFingerprintComponentTest.java) |
+| raw lossless și compactare configurabilă | [UiNetworkPresentationStreamComponentTest](../../../../../test/java/atf/ui/network/UiNetworkPresentationStreamComponentTest.java) |
 
 Condițiile de retenție și exemplele consumer sunt în [contractul modulului](../../../../../../README.md).
 

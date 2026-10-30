@@ -399,6 +399,20 @@ dependență a Core către renderer.
 
 ## Determinism și concurență
 
+Probele concurente de anulare confirmă intrarea transportului prin barieră,
+apoi verifică rezultatul workerului în threadul JUnit prin `FutureTask`.
+Un sleep nu dovedește dispatch-ul, iar o aserțiune pierdută în worker nu este verdict JUnit.
+
+- Înainte de dispatch, transportul nu este apelat și future-ul nepredat rămâne neanulat.
+- După dispatch, future-ul predat este anulat, iar snapshot-ul păstrează încercarea
+  și categoria `CANCELLED`; eroarea workerului este observată de caller.
+- Cleanup-ul semnalizează anularea, întrerupe și face join bounded inclusiv la
+  eșecul probei; limitele API și ale join-ului nu se măresc pentru sincronizare.
+
+`ExecutionResilienceTest` verifică threadul real, iar
+`ApiTerminalExecutionEvidenceTest` verifică separat deadline-ul și snapshot-urile
+cu clock controlat. Testele unitare Core păstrează categoria fără raport HTML.
+
 Istoricul din `ApiExecutionResult` este disponibil când execuția întoarce un
 răspuns final. La eroare terminală, [snapshot-ul parțial](#istoric-la-eroare-terminală)
 păstrează încercările observate și cauza, fără a retrimite operația.
@@ -434,6 +448,8 @@ ale raportării aparțin composition scope-ului `atf-reporting-tests`. `atf-test
 selecțiile legacy documentate păstrează rolul de compatibilitate.
 
 ## Verificare rapidă
+
+Contractul concurent păstrează [distincția înainte/după dispatch](#determinism-și-concurență).
 
 | Decizie | Sursă și limită |
 |---|---|

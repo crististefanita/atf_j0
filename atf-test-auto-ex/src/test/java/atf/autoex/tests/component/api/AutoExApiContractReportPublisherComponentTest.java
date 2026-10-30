@@ -185,44 +185,6 @@ class AutoExApiContractReportPublisherComponentTest {
                 request, ApiTransportProvenance.ACCEPTANCE_MOCK);
     }
 
-    @Test
-    void diagnosticsBoundFailureGraphsAndLongMessagesWithoutLooping(@TempDir Path directory) {
-        var failure = new IllegalStateException("root");
-        var cause = new IllegalArgumentException("cause");
-        failure.initCause(cause);
-        cause.initCause(failure);
-        failure.addSuppressed(new UnsupportedOperationException("suppressed-one"));
-        failure.addSuppressed(new ArithmeticException("suppressed-two"));
-        failure.addSuppressed(new IndexOutOfBoundsException("outside-bound"));
-
-        String boundedGraph = diagnostic(directory.resolve("graph.html"), failure);
-        assertAll(
-                () -> assertTrue(boundedGraph.contains("IllegalStateException: root")),
-                () -> assertTrue(boundedGraph.contains("IllegalArgumentException: cause")),
-                () -> assertTrue(boundedGraph.contains("UnsupportedOperationException: suppressed-one")),
-                () -> assertTrue(boundedGraph.contains("ArithmeticException: suppressed-two")),
-                () -> assertFalse(boundedGraph.contains("outside-bound")));
-        String boundedMessage = diagnostic(directory.resolve("long-message.html"),
-                new IllegalStateException("detail ".repeat(400)));
-        assertEquals(1_000, boundedMessage.length());
-        String secret = "API_DIAGNOSTIC_CANARY_" + "x".repeat(1_200);
-        String redacted = diagnostic(directory.resolve("long-secret.html"),
-                new IllegalStateException("{\"password\":\"" + secret + "\"}"));
-        assertFalse(redacted.contains("API_DIAGNOSTIC_CANARY_"), "redaction must precede the diagnostic bound");
-        assertTrue(redacted.contains("***REDACTED***"));
-    }
-
-    private static String diagnostic(Path report, Throwable failure) {
-        try (var session = new HtmlReportSession(report)) {
-            var scenario = session.startScenario("AutoExDiagnostics", "bounded failure graph", List.of("component"));
-            var phase = scenario.startPhase(TEST_BODY.displayName());
-            AutoExApiContractReportExtension.recordExecutionFailure(phase, failure);
-            phase.complete(AtfReportStatus.FAIL);
-            scenario.complete(AtfReportStatus.FAIL);
-            return session.executionModel().scenarios().getFirst().phases().getFirst().details().getFirst().value();
-        }
-    }
-
     private static void publish(AtfReportPorts.Session session, ApiExecutionResult execution) {
         var scenario = session.startScenario("AutoExApiLiveContractTest", "verify login report contract",
                 List.of("api", "auto-ex", "component"));

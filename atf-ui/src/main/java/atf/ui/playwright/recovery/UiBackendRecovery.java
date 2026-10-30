@@ -1,6 +1,7 @@
 package atf.ui.playwright.recovery;
 
 import atf.ui.config.recovery.UiRecoveryConfiguration;
+import atf.ui.playwright.PlaywrightActionSequence;
 import atf.ui.recovery.*;
 import com.microsoft.playwright.Page;
 import java.time.*;
@@ -16,6 +17,16 @@ public final class UiBackendRecovery implements AutoCloseable {
     private final UUID invocation = UUID.randomUUID();
     private Scope active;
     private boolean closed;
+
+    /** Shared composition for the existing INFO audit; operations and safety remain declared by the consumer. */
+    public static UiBackendRecovery recording(Page page, UiRecoveryConfiguration policy,
+                                               Collection<UiRecoveryOperation> operations, PlaywrightActionSequence actions) {
+        Objects.requireNonNull(actions, "actions");
+        return new UiBackendRecovery(page, policy, operations, trace -> actions.information(
+                "BE observation #" + trace.attempt(), trace.operation(),
+                "profile=" + policy.profile() + "; maxAttempts=" + policy.maxAttempts() + "; totalTimeout="
+                        + policy.totalTimeout() + "; source=" + policy.source(), trace.description()));
+    }
 
     public UiBackendRecovery(Page page, UiRecoveryConfiguration policy, Collection<UiRecoveryOperation> operations, Consumer<UiRecoveryTrace> sink) {
         this.page = Objects.requireNonNull(page); this.policy = Objects.requireNonNull(policy); this.sink = Objects.requireNonNull(sink);

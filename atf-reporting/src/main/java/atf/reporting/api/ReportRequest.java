@@ -36,14 +36,15 @@ public final class ReportRequest {
     private ReportRequest(Builder builder) {
         String method = required(builder.method, "method");
         String path = required(builder.path, "path");
-        Map<String, String> query = immutable(builder.query);
+        ReportQueryParameters parameters = builder.queryParameters;
+        Map<String, String> query = immutable(parameters.asMap());
         Map<String, String> headers = immutable(builder.authoredHeaders);
         String profile = builder.authProfile == null || builder.authProfile.isBlank() ? "none" : builder.authProfile;
         var availability = builder.bodyAvailability == null
                 ? ReportBodyAvailability.from(builder.bodyText) : builder.bodyAvailability;
         var authentication = builder.authentication == null
                 ? ReportAuthObservation.from(profile, headers, query) : builder.authentication;
-        snapshot = new Snapshot(method, path, query, headers, profile,
+        snapshot = new Snapshot(method, path, query, parameters, builder.queryFingerprint, headers, profile,
                 builder.bodyText == null ? "" : builder.bodyText, authentication, availability,
                 Objects.requireNonNull(builder.headerEvidence, "headerEvidence"));
     }
@@ -51,7 +52,8 @@ public final class ReportRequest {
     public static Builder builder(String method, String path) { return new Builder(method, path); }
 
     public Builder toBuilder() {
-        Builder builder = builder(method(), path()).query(query()).authProfile(authProfile())
+        Builder builder = builder(method(), path()).queryParameters(queryParameters()).authProfile(authProfile())
+                .queryFingerprint(queryFingerprint())
                 .headers(headerEvidence()).body(bodyText(), bodyAvailability()).authentication(authObservation());
         builder.authoredHeaders = headers();
         return builder;
@@ -60,6 +62,10 @@ public final class ReportRequest {
     public String method() { return snapshot.method(); }
     public String path() { return snapshot.path(); }
     public Map<String, String> query() { return snapshot.query(); }
+    /** Complete ordered pairs; query() is the last-value compatibility view. */
+    public ReportQueryParameters queryParameters() { return snapshot.queryParameters(); }
+    /** Internal opaque identity for an observed query whose values were removed by capture policy. */
+    public String queryFingerprint() { return snapshot.queryFingerprint(); }
     /** Authored fields retained for compatibility; publication uses headerEvidence(). */
     public Map<String, String> headers() { return snapshot.headers(); }
     public String authProfile() { return snapshot.authProfile(); }
@@ -91,6 +97,7 @@ public final class ReportRequest {
     }
 
     private record Snapshot(String method, String path, Map<String, String> query,
+                            ReportQueryParameters queryParameters, String queryFingerprint,
                             Map<String, String> headers, String authProfile, String bodyText,
                             ReportAuthObservation authObservation, ReportBodyAvailability bodyAvailability,
                             ReportRequestHeaders headerEvidence) { }
@@ -98,7 +105,8 @@ public final class ReportRequest {
     public static final class Builder {
         private final String method;
         private final String path;
-        private Map<String, String> query = Map.of();
+        private ReportQueryParameters queryParameters = ReportQueryParameters.empty();
+        private String queryFingerprint = "";
         private Map<String, String> authoredHeaders = Map.of();
         private ReportRequestHeaders headerEvidence = ReportRequestHeaders.observed(Map.of());
         private String authProfile;
@@ -107,7 +115,16 @@ public final class ReportRequest {
         private ReportAuthObservation authentication;
 
         private Builder(String method, String path) { this.method = method; this.path = path; }
-        public Builder query(Map<String, String> value) { query = value; return this; }
+        public Builder query(Map<String, String> value) { return queryParameters(ReportQueryParameters.from(value)); }
+        public Builder queryParameters(ReportQueryParameters value) {
+            queryParameters = Objects.requireNonNull(value, "queryParameters"); queryFingerprint = ""; return this;
+        }
+        public Builder queryFingerprint(String value) {
+            String fingerprint = Objects.requireNonNull(value, "queryFingerprint");
+            if (!fingerprint.isEmpty() && !fingerprint.matches("[0-9a-f]{64}"))
+                throw new IllegalArgumentException("Observed query fingerprint must be empty or a SHA-256 digest");
+            queryFingerprint = fingerprint; return this;
+        }
         public Builder authProfile(String value) { authProfile = value; return this; }
         public Builder headers(ReportRequestHeaders value) {
             headerEvidence = Objects.requireNonNull(value, "headerEvidence");

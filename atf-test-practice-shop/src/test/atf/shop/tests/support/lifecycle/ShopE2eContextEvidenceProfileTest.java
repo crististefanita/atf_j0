@@ -29,6 +29,43 @@ import static atf.shop.tests.support.lifecycle.ShopE2eContext.startReportScenari
 
 @ShopComponentTest
 class ShopE2eContextEvidenceProfileTest {
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({
+            "UI_ONLY,UNIFIED_FLOW,false", "UI_ONLY,SCREEN_CHECKPOINTS,true", "UI_API,UNIFIED_FLOW,true"})
+    void guestPreparationBelongsToTheSelectedFlowWithoutRemovingItsAssertions(
+            ShopValidationProfile channel, ReportEvidenceFlowMode flow, boolean separateSetup) throws Exception {
+        var source = ShopConfigurationLoader.load();
+        var configured = source.browser();
+        var browser = new atf.ui.config.UiBrowserConfiguration(configured.baseUrl(), configured.browser(), true,
+                configured.timeout(), configured.navigationTimeout(), configured.viewportWidth(),
+                configured.viewportHeight(), configured.zoomPercent(), false);
+        Path output = Path.of(System.getProperty("atf.test.reportDirectory", temporaryReports.toString()))
+                .resolve("single-flow-phase-proof").resolve(channel + "-" + flow);
+        var configuration = new ShopConfiguration(source.baseUrl(), source.accountFile(), source.productName(),
+                source.productPath(), source.checkout(), browser, source.uiRetry(), channel, source.api(),
+                output, output, false, source.reporting());
+        var profile = ReportEvidenceProfile.builder().flowMode(flow)
+                .screenshotPolicy(ReportScreenshotPolicy.NONE).build();
+        Path reportPath;
+        try (var context = ShopE2eContext.open(configuration, profile)) {
+            reportPath = context.reportPath();
+            try (var scenario = context.scenario("ShopUiOnlySingleFlowPurchaseE2eTest",
+                    "local configuration phase proof", "local configuration projection; no public purchase")) {
+                scenario.complete();
+            }
+        }
+        String html = Files.readString(reportPath).replaceAll(
+                "(?is)<script\\b[^>]*>.*?</script>|<style\\b[^>]*>.*?</style>", "");
+        assertEquals(separateSetup, Pattern.compile(">\\s*SETUP\\s*<").matcher(html).find(),
+                "Only guest UI-only unified flow omits the separate SETUP phase");
+        assertTrue(Pattern.compile(">\\s*TEST BODY\\s*<").matcher(html).find(),
+                "The business phase remains present");
+        assertTrue(html.contains("Checkout mode"), "Guest configuration assertions are retained");
+        assertTrue(html.contains("Account fixture policy"), "Fixture policy checks are not silently removed");
+        assertTrue(separateSetup || !html.contains("Setup validation"),
+                "A body configuration check must not be mislabeled as setup validation");
+    }
+
     @TempDir
     Path temporaryReports;
 

@@ -28,9 +28,12 @@ public final class FailureNavigationProbe {
                 assertTrue(page.url().contains("failure-ordinal=" + ordinal), "Reloadable address retains exact assertion identity");
                 assertNotEquals("true", LOCATORS.sibling(page).getAttribute("data-atf-scenario-open"),
                         "The adjacent passing scenario is not expanded by failure navigation");
-                LOCATORS.phase(page, phase).evaluate("p=>{p.querySelector(':scope>.accordion').style.setProperty('display','none','important')}");
+                // Native navigation owns display and may update it after the first visible frame.
+                // The negative control hides the phase independently, then removes only its own mutation.
+                LOCATORS.phase(page, phase).evaluate("p=>p.style.setProperty('content-visibility','hidden','important')");
                 assertThrows(AssertionError.class, () -> assertVisible(page, phase),
                         "A visible scenario with a hidden phase must fail the independent oracle");
+                LOCATORS.phase(page, phase).evaluate("p=>p.style.removeProperty('content-visibility')");
                 open(page, ordinal, false);
                 page.waitForCondition(() -> LOCATORS.target(page, phase).isVisible());
                 assertVisible(page, phase);
@@ -55,8 +58,8 @@ public final class FailureNavigationProbe {
     private static void assertVisible(Page page, String phase) {
         var target = LOCATORS.target(page, phase);
         assertTrue(target.isVisible(), "The second checkpoint's original failed comparison is visible without Expand all");
-        assertEquals(4, target.locator("td").count());
-        assertTrue(target.locator("td").nth(3).innerText().contains("❌"), "The original FAIL remains a FAIL");
+        assertEquals(4, LOCATORS.cells(target).count());
+        assertTrue(LOCATORS.cells(target).nth(3).innerText().contains("❌"), "The original FAIL remains a FAIL");
         assertTrue((Boolean) target.evaluate("""
                 row => [...row.cells].every(cell => cell.getBoundingClientRect().width > 0)
                   && row.closest('table').getBoundingClientRect().width > 100

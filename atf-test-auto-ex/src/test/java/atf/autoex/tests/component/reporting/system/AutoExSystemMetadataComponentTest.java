@@ -38,6 +38,9 @@ class AutoExSystemMetadataComponentTest {
         String html = Files.readString(file);
         assertTrue(html.contains(ReportEnvironmentField.UI_TIMEOUT.label()), "System must publish the configured UI timeout");
         assertTrue(html.contains(ReportEnvironmentField.SCREENSHOT_POLICY.label()), "System must publish the effective screenshot policy");
+        assertTrue(html.contains(ReportEnvironmentField.VIEWPORT.label()), "System must publish the native geometry row");
+        assertTrue(html.contains("1440 × 1000 requested output · 2057 × 1429 CSS · DPR 0.70"),
+                "The serialized System table distinguishes output intent, CSS layout and pixel density");
     }
 
     @Test void resolvedScenarioAxesAndApiCaptureSettingsArePublishedTruthfully() {
@@ -45,7 +48,8 @@ class AutoExSystemMetadataComponentTest {
         var effective = ReportEvidenceProfile.builder().screenshotPolicy(ReportScreenshotPolicy.FINAL_ONLY)
                 .flowMode(ReportEvidenceFlowMode.UNIFIED_FLOW).actionDetailsMode(ReportUiActionDetailsMode.SUMMARY_ONLY).build();
         var values = AutoExReportSystemMetadata.snapshot(configuration, effective, true, "QA").values();
-        assertEquals(20, values.size());
+        assertEquals(21, values.size());
+        assertEquals("1440 × 1000 requested output · 2057 × 1429 CSS · DPR 0.70",values.get(ReportEnvironmentField.VIEWPORT));
         assertEquals("QA", values.get(ReportEnvironmentField.ENVIRONMENT));
         assertEquals("UI + API evidence", values.get(ReportEnvironmentField.PROFILE));
         assertEquals("Final screenshot only", values.get(ReportEnvironmentField.SCREENSHOT_POLICY));
@@ -60,7 +64,8 @@ class AutoExSystemMetadataComponentTest {
     @Test void uiOnlyHasTheCommonUiFieldsWithoutClaimingApiEvidence() {
         var configuration = AutoExConfigurationLoader.load();
         var values = AutoExReportSystemMetadata.snapshot(configuration, ReportEvidenceProfile.defaults(), false, "LOCAL").values();
-        assertEquals(13, values.size());
+        assertEquals(14, values.size());
+        assertTrue(values.containsKey(ReportEnvironmentField.VIEWPORT));
         assertEquals("UI evidence", values.get(ReportEnvironmentField.PROFILE));
         assertFalse(values.containsKey(ReportEnvironmentField.API_ENDPOINT));
         assertFalse(values.containsKey(ReportEnvironmentField.TRANSPORT_MODE));

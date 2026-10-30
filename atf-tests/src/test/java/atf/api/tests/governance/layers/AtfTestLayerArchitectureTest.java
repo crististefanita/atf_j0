@@ -44,7 +44,8 @@ public class AtfTestLayerArchitectureTest {
             "ReportingStandaloneContractTest.java", "ReportingStandaloneDependencyTest.java",
             "ReportingStandaloneEvidenceLayoutTest.java",
             "ReportingStandaloneEnvironmentSnapshotTest.java",
-            "ReportingStandaloneVerdictComponentTest.java");
+            "ReportingStandaloneVerdictComponentTest.java",
+            "StandaloneBoundaryRules.java", "StandaloneBoundaryRulesTest.java");
 
     @Test
     void testInventoryUsesConfiguredAndDefaultMavenRoots(@TempDir Path root) throws Exception {

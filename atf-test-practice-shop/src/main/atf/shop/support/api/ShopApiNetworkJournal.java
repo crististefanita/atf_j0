@@ -81,12 +81,21 @@ public final class ShopApiNetworkJournal {
     }
 
     public void attach(Page page) {
+        attach(page, trafficCapture);
+    }
+
+    /** Configured API origin, retaining the response-time delivery required by the existing business gates. */
+    public void attach(Page page, URI apiEndpoint) {
+        attach(page, new ShopApiTrafficCapture(apiEndpoint));
+    }
+
+    private void attach(Page page, ShopApiTrafficCapture capture) {
         Objects.requireNonNull(page, "page");
         if (!hasEnabledCheckpoint()) return;
         orderWindow.attach(page);
         page.onResponse(response -> {
             var request = response.request();
-            try { trafficCapture.capture(response).ifPresent(exchange -> recordCapturedExchange(exchange, orderWindow.identity(request))); }
+            try { capture.capture(response).ifPresent(exchange -> recordCapturedExchange(exchange, orderWindow.identity(request))); }
             finally { orderWindow.forget(request); }
         });
         page.onRequestFailed(orderWindow::forget);
@@ -117,7 +126,8 @@ public final class ShopApiNetworkJournal {
                 observation.method(), observation.path(), observation.url(), observation.status(),
                 observation.requestBody(), observation.responseBodyAvailable() ? observation.responseBody()
                         : ApiBodyEvidence.unavailable("Browser observation", observation.responseBody()), observation.requestHeaders(),
-                observation.responseHeaders()).withObservedAuthMethod(observation.authMethod());
+                observation.responseHeaders()).withObservedAuthMethod(observation.authMethod())
+                .withCapturedSignature(observation.requestSignature());
         recordCapturedExchange(observation.requestFailed()
                 ? exchange.withFailureReason(observation.failureReason()) : exchange, observation.requestIdentity().orElse(null));
     }
@@ -492,7 +502,8 @@ public final class ShopApiNetworkJournal {
                                   String role, String stepId, String initiator,
                                   String evidenceSource, String expected, String observed) {
             String digest = digest(method, path, status, requestBody, responseBody);
-            String signature = requestSignature(method, path, requestBody);
+            String signature = ReportRequestSignature.queryFingerprint(this.signature).isEmpty()
+                    ? requestSignature(method, path, requestBody) : this.signature;
             return new Exchange(method, path, url, status, requestBody, responseBody,
                     requestHeaders, responseHeaders, sequence, capturedAt, phase, signature, digest,
                     role, stepId, initiator, evidenceSource, expected, observed,
@@ -504,6 +515,12 @@ public final class ShopApiNetworkJournal {
                     requestHeaders, responseHeaders, sequence, capturedAt, phase, signature,
                     digest(method, path, status, requestBody, body), role, stepId, initiator,
                     evidenceSource, expected, observed, observedAuthMethod, failureReason);
+        }
+
+        public Exchange withCapturedSignature(String captured) {
+            return new Exchange(method, path, url, status, requestBody, responseBody, requestHeaders, responseHeaders,
+                    sequence, capturedAt, phase, captured, digest, role, stepId, initiator, evidenceSource,
+                    expected, observed, observedAuthMethod, failureReason);
         }
 
         public Exchange withPhase(String selectedPhase) {
@@ -577,17 +594,10 @@ public final class ShopApiNetworkJournal {
         private static String requestSignature(String method, String path, String requestBody) {
             String target = path == null ? "/" : path;
             URI uri = URI.create(ApiUris.httpsUrl("trace.invalid", target));
-            Map<String, String> query = new java.util.LinkedHashMap<>();
-            if (uri.getRawQuery() != null) {
-                for (String pair : uri.getRawQuery().split("&")) {
-                    String[] parts = pair.split("=", 2);
-                    query.put(java.net.URLDecoder.decode(parts[0], StandardCharsets.UTF_8),
-                            parts.length == 1 ? "" : java.net.URLDecoder.decode(parts[1], StandardCharsets.UTF_8));
-                }
-            }
-            return ReportRequestSignature.forRequest(new ReportRequest(
-                    method == null ? HttpMethod.GET.value() : method, uri.getRawPath(), query,
-                    Map.of(), "none", requestBody));
+            var request = ReportRequest.builder(method == null ? HttpMethod.GET.value() : method, uri.getRawPath())
+                    .queryParameters(atf.reporting.api.ReportQueryParameters.fromUri(uri))
+                    .body(requestBody, atf.reporting.api.evidence.ReportBodyAvailability.from(requestBody)).build();
+            return ReportRequestSignature.forRequest(request);
         }
     }
 }

@@ -7,7 +7,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Shared discovery and diagnostic vocabulary for documentation governance tests. */
-final class DocumentationGovernanceSupport {
+public final class DocumentationGovernanceSupport {
     private static final List<String> IGNORED_DIRECTORY_NAMES = List.of(
             ".git", "target", "artifacts", ".idea", "migration-copy-rejected",
             "migration-quarantine", ".presentation-build");
@@ -15,7 +15,7 @@ final class DocumentationGovernanceSupport {
     private DocumentationGovernanceSupport() {
     }
 
-    record Violation(String code, Path file, int line, String finding,
+    public record Violation(String code, Path file, int line, String finding,
                      String rule, String fix) {
         @Override
         public String toString() {
@@ -26,14 +26,14 @@ final class DocumentationGovernanceSupport {
         }
     }
 
-    static Violation violation(String code, Path root, Path file, int line,
+    public static Violation violation(String code, Path root, Path file, int line,
                                String finding, String rule, String fix) {
         Path relative = root.toAbsolutePath().normalize()
                 .relativize(file.toAbsolutePath().normalize());
         return new Violation(code, relative, line, finding, rule, fix);
     }
 
-    static void assertNoViolations(String area, List<Violation> violations) {
+    public static void assertNoViolations(String area, List<Violation> violations) {
         assertTrue(violations.isEmpty(), () -> {
             String details = violations.stream().map(Violation::toString).reduce("", String::concat);
             return area + " failed with " + violations.size()
@@ -52,8 +52,13 @@ final class DocumentationGovernanceSupport {
         return true;
     }
 
-    static boolean isGovernedMarkdown(Path root, Path path) {
+    public static boolean isGovernedMarkdown(Path root, Path path) {
         Path normalized = path.toAbsolutePath().normalize();
+        Path projectRoot = root.toAbsolutePath().normalize();
+        if (!normalized.startsWith(projectRoot)) return false;
+        for (Path part : projectRoot.relativize(normalized)) {
+            if (IGNORED_DIRECTORY_NAMES.contains(part.toString())) return false;
+        }
         Path docsRoot = root.resolve("docs").toAbsolutePath().normalize();
         return isReadme(path)
                 || (Files.isRegularFile(normalized)

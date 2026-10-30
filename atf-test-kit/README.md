@@ -363,8 +363,10 @@ browserului sau raportului în Kit. Primitivele din `lifecycle` există deja.
 - `@AtfUiEvidence` declară intenția, nu garantează că adaptorul citește o cheie
   YAML pentru fiecare axă; starea efectivă este documentată de consumer.
 
-Diferențele rămase și probele cerute sunt în
-[feedback-ul refactorizării](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md).
+Deciziile despre primitivele existente și ownership sunt în
+[atlas](../docs/ATF_Context_Atlas.md#reutilizare-fără-mutarea-politicii-aplicației);
+[feedback-ul consumerilor](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md)
+păstrează probele business rămase.
 
 ## Dependențe
 

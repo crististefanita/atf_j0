@@ -1,218 +1,65 @@
-# ATF — responsabilitățile rămase ale consumerilor
+# ATF — echivalența profilelor consumerilor
 
 ## Pe scurt
 
-Delegarea JUnit unică, redactarea înaintea plafonului, așteptările negative,
-fazele lifecycle și rezultatul PASS/FAIL/SKIP sunt contracte ale
-[Test Kit](../../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră) și
-[Reporting](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor).
+Achiziția și rollback-ul Shop au [contract și probă negativă la owner](../../atf-test-practice-shop/README.md#limita-suportului-partajat).
+Compoziția comună INFO, observația catalogului și cleanup-ul au ownership
+explicit în [atlas](../ATF_Context_Atlas.md#reutilizare-fără-mutarea-politicii-aplicației).
 
-Restanțele includ achiziția parțială, billing-ul Shop, tranziția produsului
-AutoEx și echivalența profilelor.
-Contractele deja livrate aparțin [AutoEx](../../atf-test-auto-ex/README.md),
-[Shop](../../atf-test-practice-shop/README.md) și
-[ghidului auditului componentelor](../ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
-Politica BE read-only este documentată la [UI](../../atf-ui/README.md#recuperare-be-prin-observație-pasivă);
-auditul agregat păstrează [feedback separat](ATF_UI_Backend_Guided_Recovery_Feedback.md).
+- Primitivele neutre rămân în Kit/UI/Reporting, suportul aplicației în main,
+  iar harness-ul, Store-ul și fixture-ul controlat rămân în test.
+- Probele locale de profile verifică extensiile E2E reale, HTTP 500/200,
+  browser/context proaspăt, localStorage izolat și un HTML individual/comun.
+  Ele nu înlocuiesc failure-ul dintr-un anumit punct business al journey-ului.
 
-Încărcarea inițială bounded a catalogului are [contract la Shop](../../atf-test-practice-shop/README.md#încărcarea-inițială-a-catalogului).
-Observația identității are [contract la AutoEx](../../atf-test-auto-ex/README.md#gate-ul-coșului-și-ownerul-contului); navigarea exactă la comparație aparține [Reporting](../../atf-reporting/README.md#revenirea-la-comparația-eșuată).
-
-## Ordinea refactorizării
-
-Scorul este prioritate: impact /40 + lacună /30 + lucrabil /20 + datorie
-documentară /10. Nu reprezintă o notă a codului sau un rezultat de test.
-
-| ID | Scor /100 | Diferența rămasă |
-|---|---:|---|
-| `CONSUMER-SHOP-BILLING-STATE-01` | 71 = 29 + 22 + 14 + 6 | diferență de valoare billing între suită și lansare individuală |
-| `CONSUMER-AUTOEX-PRODUCT-TRANSITION-24` | 70 = 29 + 19 + 17 + 5 | timeout la detaliul produsului după click reușit, observat în suita filtrată |
-| `CONSUMER-RUNTIME-BOUNDARY-03` | 61 = 22 + 14 + 18 + 7 | probă deterministă a achiziției parțiale în factory-ul main extras |
-| `CONSUMER-E2E-PROFILES-01` | 57 = 24 + 10 + 17 + 6 | reducerea repetării live numai după echivalență demonstrată |
-
-## CONSUMER-SHOP-BILLING-STATE-01 — valoarea observată în suita E2E
-
-**Owner:** flow-ul și observația billing din Practice Shop.
-
-- `ShopUiOnlySingleFlowPurchaseE2eTest` a trecut individual înainte și după
-  suită, dar a eșuat în `ShopE2eSuite`: checkpoint-ul billing a așteptat
-  `Alaska` și a observat `AlaskaAlaska` în câmpul state.
-- Raportul comun a păstrat comparația FAIL. O singură suită eșuată nu stabilește
-  încă o cauză deterministă a diferenței dintre traseele de execuție.
-
-Codul curent alege adresa prin `checkout.billingStrategy`, independent de canal.
-`configured-fields` compară cu fixture-ul; `postal-lookup` cere valorile generate
-non-empty și le raportează. Un PASS al ultimei strategii nu probează egalitatea
-cu fixture-ul și nu închide diferența istorică; limitele sunt la
-[owner](../../atf-test-practice-shop/README.md#dovezi-și-comportament-vizibil).
-
-- [ ] Reproduceți cu suita și clasa individuală, păstrând configurația și strategia billing;
-      comparați ordinea acțiunilor, valorile DOM înainte și după lookup-ul postal,
-      evenimentele de input și state-ul per scenariu. La `postal-lookup`, nu
-      reintroduceți tastarea peste câmpurile pe care aplicația le completează.
-- [ ] Stabiliți dacă dublarea vine din aplicația publică, din sincronizarea
-      lookup-ului sau din adaptor; corectați numai la ownerul dovedit. Păstrați
-      expected-ul din fixture și actual-ul citit din UI, fără normalizare care
-      ar transforma `AlaskaAlaska` în PASS.
-- [ ] Probați aceeași verificare în lansare individuală și prin suită; raportul
-      FAIL trebuie să arate comparația și să permită expandarea până la rândul
-      exact, iar raportul PASS trebuie să păstreze rândurile de validare.
-
-Un succes al altei clase purchase sau al profilului UI+API nu demonstrează
-criteriul clasei single-flow și nu închide această diferență.
-
-## CONSUMER-AUTOEX-PRODUCT-TRANSITION-24 — detaliul produsului după navigare
-
-**Prioritate: 70/100** = impact 29 + lacună 19 + lucrabil 17 + documentare 5.
-**Owner:** AutoEx pentru tranziția business; UI pentru observația paginii și readiness.
-
-| Lansare observată | Rezultat și limită |
-|---|---|
-| `AutoExPurchaseUiE2eTest` individual | PASS în verificarea randării; nu demonstrează izolarea întregii suite |
-| Același caz prin `AutoExE2eSuite` filtrată | clickul `a[href^='/product_details/']` a trecut în 0,809 s; citirea `.product-information` a epuizat deadline-ul existent de 20 s înainte de checkout; JUnit și HTML au păstrat FAIL |
-| O reluare cu aceeași configurație | PASS cu deadline nemodificat; cauza rămâne de stabilit, fără reproducere deterministă |
-
-- [ ] Reproduceți cu aceeași clasă/configurație individual și prin suita filtrată;
-      păstrați și artifactul eșuat, nu deduceți stabilitate dintr-o reluare verde.
-- [ ] Observați URL-ul/documentul curent, titlul, locatorul și traficul browser
-      disponibil înaintea citirii; delimitați pagina produsului de redirecționare,
-      overlay și răspuns incomplet, fără a presupune una dintre aceste cauze.
-- [ ] Corectați la ownerul dovedit și compuneți mecanismele existente de
-      navigare/readiness; nu creșteți timeout-ul, nu repetați mutații și nu
-      adăugați un al doilea recovery generic ori un transport care reia clickul.
-- [ ] Probați nominalul și refuzul local înaintea journey-ului real; raportul
-      păstrează acțiunea, durata, cauza și comparațiile, fără verdict PASS fabricat.
-
-**Închidere:** tranziția este demonstrată cu expected independent în ambele
-lansări, iar eșecul rămâne auditabil; randarea corectă nu închide robustețea journey-ului.
-
-
-## CONSUMER-RUNTIME-BOUNDARY-03 — probele achiziției parțiale Shop
-
-**Prioritate: 61/100** = impact 22 + lacună 14 + lucrabil 18 + documentare 7.
-**Owner:** Shop; primitivele neutre rămân în Kit/UI/Reporting.
-
-Achiziția browser/journal/captură, factory-ul raportului și proiecția metadata
-sunt acum în main, cu sink și environment explicite. Harness-ul JUnit păstrează
-Store-ul și composition root-ul; guvernanța verifică această delegare fără
-relaxarea boundary-urilor existente. Contractul este la
-[Shop](../../atf-test-practice-shop/README.md#ce-deține-modulul).
-
-Probele existente acoperă cauza business plus publicare/close și profilele
-scenariilor-surori. Rămâne o lacună mai îngustă în probele factory-ului extras:
-
-- [ ] Introduceți o probă deterministă pentru achiziția parțială a capturilor
-      ori journal-ului după deschiderea browserului, fără mutarea fixture-ului în main.
-- [ ] Verificați că browserul se închide exact o dată, iar eșecul close-ului este
-      suppressed pe cauza inițială; o achiziție reușită transferă ownership-ul harness-ului.
-- [ ] Păstrați interfețele explicite și scope-urile Maven; nu construiți un container
-      de servicii sau un wrapper generic numai pentru a satisface proba.
-
-- [ ] Curățați reziduurile extracției după verificarea apelanților:
-      `ShopE2eContext` păstrează `STAMP` și metoda privată `projectRoot()` fără
-      utilizări în clasă, deși factory-ul raportului este acum în main. Nu recreați
-      rezolvarea rădăcinii în harness și nu mutați fixture-uri în runtime.
-
-**Închidere:** proba negativă detectează o scurgere sau pierderea cauzei din
-factory-ul real; un E2E reușit nu substituie acest caz de eroare.
-
-### Reutilizare Shop/AutoEx — compuneți Kit-ul existent
-
-Analiza adiacentă catalogului este [delimitată la UI](ATF_UI_Backend_Guided_Recovery_Feedback.md#ui-readiness-reuse-30--consolidare-fără-schimbarea-protocoalelor).
-Browserul și politica de retry nu se mută în Kit; candidații neutri se evaluează
-la granița JUnit, unde ambele module au deja dependența `test`.
-
-Ownerii livrați pentru metadata, vocabular și achiziție sunt la
-[ghidul de cod](../README_Atf_CodeBestPractices.md#testul-exprimă-intenția-main-deține-capabilitatea).
-Shop rămâne [modelul de referință](../README_Atf_CodeBestPractices.md#suport-e2e-reutilizabil-fără-abstractizare-forțată).
-Criteriile de aici privesc Store-ul și cleanup-ul rămase; nu redeschid extracția
-factory-urilor deja livrate în main.
-
-| Loc inspectat | Refactorizare de evaluat, neimplementată |
-|---|---|
-| `ShopE2eTestSupport.SuiteReportResource` și `AutoExRunFactory.ReportResource` | ownership-ul raportului la Store este comun; Shop deține și conturi, iar AutoEx un `AutoExReportSession`. Evaluați `ScopedTestResource`/`CloseOnceResource` fără a muta Extent, credentiale sau profile în Kit |
-| `AutoExRunLifecycleAdapter` și teardown-ul Shop | `FailureEvidenceCleanup`/`FailureAwareCleanup` sunt deja neutre. Compuneți ordinea existentă prin porturi locale; runtime-ul din main nu importă JUnit/Kit |
-| Rezolvarea recovery din cele două factory-uri JUnit | `AtfUiRecoveryResolver` și planul sunt deja comune; trei linii de adaptare a configurației nu justifică un nou resolver ori un factory generic |
-
-- [ ] Înaintea extracției, fixați prin probe diferențele de ownership: raport
-      propriu vs raport comun, browser achiziționat parțial, conturile deținute și
-      includerea politicii de publicare a căii pentru fiecare clasă din suită.
-      Păstrați și metadatele System ale configurației efective per scenariu,
-      inclusiv agregarea `Mixed`; nu reveniți la configurația primei clase.
-- [ ] Verificați erori simultane la report close și account close. `finally`
-      din `SuiteReportResource.close()` permite închiderea conturilor, dar poate
-      masca eroarea raportului dacă ambele aruncă; constatarea este statică,
-      iar proba de injecție și reconcilierea cauzelor rămân de făcut.
-- [ ] Demonstrați două utilizări reale pentru orice API Kit nou, cu nominal,
-      achiziție parțială, rollback, close repetat și erori multiple. Dacă primitivele
-      existente acoperă contractul, închiderea se face prin compoziție, fără API nou.
-- [ ] Porniți matricea de acceptanță de la Shop: componentă/E2E, individual/suită,
-      UI/API/UI+API, faze și dovezi colapsabile. Aliniați AutoEx la contractele
-      aplicabile prin adaptoare locale, fără a adăuga operații business sau faze
-      artificiale numai pentru identitate structurală.
-- [ ] Păstrați aserțiunile componentelor auditabile în pasul standard colapsat,
-      un HTML individual/prin suită și contractul consolei după flush. Aceleași
-      probe verifică și absența dublei publicări/închideri, cu limita 240 și fără
-      creșterea numărului de module ori a timeout-urilor.
-
-Aceste criterii completează `CONSUMER-RUNTIME-BOUNDARY-03`; nu declară defect
-al Kit-ului și nu închid celelalte restanțe business sau de randare.
+Contractele sunt la [Shop](../../atf-test-practice-shop/README.md#limita-suportului-partajat),
+[AutoEx](../../atf-test-auto-ex/README.md#profile-uiapi-și-acoperirea-network-inspector)
+și [ghidul auditului componentelor](../ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
 
 ## CONSUMER-E2E-PROFILES-01 — variantele de evidence și acoperirea business
 
-**Owner:** consumerii pentru selecție; Reporting Tests pentru contractele neutre.
-Resolverul și probele Extent/fallback permit izolarea politicilor per scenariu;
-ele nu demonstrează singure echivalența tuturor adaptoarelor consumerilor.
+**Prioritate: 47/100** = impact 22 + lacună 8 + lucrabil 12 + documentare 5.
+**Owner:** consumerii pentru selecția business; Reporting Tests pentru
+contractele neutre de evidence și capturi.
 
-Inventarul din [README-ul modulului](../../atf-test-auto-ex/README.md#profile-uiapi-și-acoperirea-network-inspector)
-mapează Account, Cart și Purchase UI/UI+API la aceleași intrări de journey,
-separă politica de screenshot și păstrează Existing customer distinct pentru setup-ul API.
-Aceasta dovedește reutilizarea codului, nu echivalența rezultatului live sau a evidence-ului randat.
+| Boundary demonstrat | Ce nu închide singur |
+|---|---|
+| `ShopEvidenceProfileIsolationComponentTest` și `AutoExEvidenceProfileIsolationComponentTest` | failure individual UI/UI_API și failure → succes în profil opus; nu injectează eroarea în checkout-ul ori cleanup-ul unui cont real |
+| deadline-ul UI determinist, tranziția produsului și adaptorul Purchase AutoEx | probele locale separă ceasul de browser și păstrează cauza și oprirea înaintea add-ului; nu înlocuiesc failure-ul business Account/Cart/Purchase pe site-ul real |
+| aceeași intrare de journey pentru Account/Cart/Purchase UI și UI_API | reutilizarea codului nu demonstrează fiecare ramură de failure a adaptorului business |
+| `AutoExAccountCleanupRecoveryComponentTest`: confirmarea comenzii respinsă în UI/UI_API, validator/checkpoint reale, POST unic, captura păstrată și cleanup owned; invocare ulterioară independentă | contul acestei ramuri este prearmat; înregistrarea prin pagina reală are proba distinctă de mai jos |
+| același test: înregistrare nativă prin `AccountPage`, apoi aceeași eroare controlată UI/UI_API; signup/create unice, cleanup numai pentru identitatea proprie, refuz străin secundar, captură originală și vecin sănătos | documentele și răspunsurile sunt locale; nu certifică înregistrarea remote sau alternarea profilelor prin extensia și suita E2E complete |
+| același test: gate-ul coșului UI/UI_API prin pagina/adaptorul/flow-ul reale, preț DOM greșit, aceeași cauză și expected, fără checkout/replay; captură originală, cleanup owned și vecin sănătos | adăugarea locală este controlată; nu certifică înregistrarea remote, adăugarea publică din catalog, recalcularea, restaurarea sesiunii sau toate ramurile Cart |
+| suitele canonice nemodificate, cu profile și conturi | o execuție integrală verde nu măsoară stabilitatea în multe repetări și nu autorizează reducerea selecției |
 
-- [ ] Acoperiți failure-ul remote și celelalte profile; o suită limitată la
-      cazul pozitiv nu închide billing-ul observat în suita Shop completă.
+- [ ] Înaintea eliminării unui E2E repetitiv, completați probele locale Account,
+      Cart și Purchase cu alternarea UI/UI_API prin extensia E2E reală și resursa
+      de raport a suitei. Păstrați cauza/faza, cleanup-ul owned, captura inițială
+      și vecinul sănătos; matricea locală și smoke-ul extensiei nu se compun
+      implicit într-o probă a journey-ului complet.
+- [ ] Delimitați ramurile Cart încă neacoperite de această probă: adăugare din
+      catalogul public, recalculare și restaurare sesiune. Pentru fiecare caz
+      selectat cereți expected independent și zero replay al mutației.
+- [ ] Verificați în raportul E2E punctul business efectiv eșuat: checkpoint și
+      comparație expandabilă când eșuează validarea; diagnostic și captura
+      originală când eroarea este ridicată după un checkpoint reușit.
+      Contractele neutre de evidence nu substituie această integrare.
+- [ ] Reduceți inventarul protejat numai după aceste dovezi și păstrați lansarea
+      manuală ori profilul echivalent. `ConsumerSuiteCoverageGovernanceTest`,
+      opt-in-urile și oracolele existente nu se relaxează pentru a ascunde cazuri.
 
-Timing-ul explicit, capturile și publicarea au contract la
-[Reporting](../../atf-reporting/README.md#timing-e2e-la-ownerul-runtime).
-O lansare filtrată la un caz nu certifică izolarea tuturor claselor suitei.
-
-- [ ] Înaintea reducerii selecției, demonstrați smoke-ul adaptorului pe succes
-      și failure, plus contractele generice `ReportEvidenceProfileIntegrationTest`
-      și `UiScreenshotPolicyIntegrationTest`.
-- [ ] Păstrați lansarea manuală ori un profil echivalent și opt-in-urile
-      independente pentru API read-only/mutații; fără suită pentru fiecare captură.
-- [ ] Actualizați inventarul protejat numai după dovada echivalenței;
-      `ConsumerSuiteCoverageGovernanceTest` și boundary-urile nu se relaxează
-      pentru a ascunde cazuri eliminate.
-
-## Extensii amânate
-
-Evaluatorul general de modele (`CONSUMER-COMPONENT-ASSERTIONS-01`) rămâne
-[design amânat la Validation](../../atf-validation/README.md#evaluator-general-pentru-modele).
-Nu este un defect al auditului JUnit implementat și nu condiționează refactorizările
-curente ori pasul standard de aserțiuni.
+Selecțiile canonice sunt păstrate. Această restanță condiționează o optimizare
+ulterioară a repetării live; nu declară un nou incident al site-ului extern.
 
 ## Acceptanță pentru reevaluarea Shop și AutoEx
 
-- Închideți întâi criteriile care pot confirma operația greșită sau pot executa
-  o mutație fără precondiția business; extracția runtime-ului nu compensează un
-  oracol insuficient. Billing-ul se compară cu aceeași strategie și configurație.
-- Un test de componentă care evaluează comparații publică pasul standard de
-  aserțiuni colapsat, cu expected independent, actual observat și rezultat
-  original; fără întoarcerea verdictului din textul trunchiat.
-- Probați refactorizarea cu un caz relevant individual și aceeași clasă prin
-  suită în fiecare consumer afectat; raportul business rămâne unic pe suită,
-  iar timing-ul, Fails → Tests și expandarea până la rând se păstrează.
-- Primitivele reutilizabile sunt în main la Kit/UI/Reporting ori consumer;
-  wiring-ul JUnit și fixture-ul de test rămân în test. Testele unitare și
-  fixture-urile Reporting nu primesc artificial contractul E2E business.
+- Expected-ul rămâne independent de actual și de preview-ul redactat; unit
+  tests nu primesc artificial contractul Extent al componentelor/E2E.
+- Componentele auditate publică pasul standard colapsabil; un HTML și calea
+  absolută după flush se păstrează individual/prin suită, cu default preview 240.
+- Păstrați aceeași configurație business, deadline-urile și cele 12 module;
+  captura ori canalul de evidence nu schimbă politica operației executate.
 
-Reevaluarea urmează [rubrica de cod](../README_Atf_CodeBestPractices.md#rubrica-reevaluării-modulelor),
-după implementare și dovadă negativă; închiderea editorială nu ridică nota modulului.
-
-## Controlul modificărilor
-
-Schimbările noi urmează [baseline-ul tehnic](../ATF_Test_Changes_Baseline.md)
-și [guvernanța testelor](../../atf-tests/README.md#guvernanța-schimbării-testelor).
-Un control tehnic verificat nu închide criteriile business de mai sus.
-Verificarea și promovarea folosesc [staging-ul izolat](../ATF_Build_And_Execution_Safety.md#regula-de-lucru-pentru-orice-schimbare).
+Reevaluarea urmează [rubrica de cod](../README_Atf_CodeBestPractices.md#rubrica-reevaluării-modulelor).
+Controlul Git verificat se păstrează în [baseline](../ATF_Test_Changes_Baseline.md),
+iar build-ul și promovarea urmează [procesul izolat](../ATF_Build_And_Execution_Safety.md).

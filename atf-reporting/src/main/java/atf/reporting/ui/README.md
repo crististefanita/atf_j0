@@ -39,9 +39,9 @@ business aparțin consumerului.
   exchange valid, inclusiv fără response. Boundary-ul cere request și, fără
   response, verdict explicit ori aserțiuni evaluate; INFO singur nu îl furnizează.
   Diagnosticul și attempts rămân în Execution evidence, fără Response details inventat.
-- Diagnosticul terminal este inspectabil în Tests. Pentru un FAIL fără assertions,
-  [indexarea Fails](../../../../../../../docs/feedback/ATF_Reporting_Feedback.md#report-terminal-failure-index-48--cauza-transportului-în-indexul-fails)
-  rămâne de corectat; nu deduceți cauza din ultimul exchange frate.
+- Diagnosticul terminal este inspectabil în Tests și indexat pentru request-ul
+  FAIL prin [contractul comun](../../../../../../README.md#execuție-api-terminată-fără-răspuns).
+  Backlink-ul deschide execution evidence original, fără identitate împrumutată de la vecin.
 - Succesiunea Given/When/Then folosește contextul scenariului; continuările AND
   nu sunt o înlocuire globală a keyword-urilor în HTML.
 - Timing-ul execuției și cel al publicării sunt fapte separate; rendererul nu
@@ -51,12 +51,12 @@ business aparțin consumerului.
 
 ## Probe și criterii active
 
-- `UiApiValidationContractComponentTest`: forma și asocierea canalului API.
-- `ReportingStandaloneVerdictComponentTest` și `UiTerminalExchangeReportComponentTest`: refuzul
+- [UiApiValidationContractComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/ui/validation/UiApiValidationContractComponentTest.java): forma și asocierea canalului API.
+- [ReportingStandaloneVerdictComponentTest](../../../../../test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java) și [UiTerminalExchangeReportComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/execution/UiTerminalExchangeReportComponentTest.java): refuzul
   succesului implicit, toate căile UI și paritatea diagnosticului Extent/fallback.
-- `UiCrossPhaseCompactFlowComponentTest`: gruparea în/peste faze.
-- `UiPublicationFailureComponentTest`: body, achiziție și close prin fațada publică.
-- `UiPhaseTimingLifecycleComponentTest` și `ReportGherkinSequenceTest`: timing și vocabular.
+- [UiCrossPhaseCompactFlowComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/ui/profile/UiCrossPhaseCompactFlowComponentTest.java): gruparea în/peste faze.
+- [UiPublicationFailureComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/ui/publication/UiPublicationFailureComponentTest.java): body, achiziție și close prin fațada publică.
+- [UiPhaseTimingLifecycleComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/ui/timing/UiPhaseTimingLifecycleComponentTest.java) și [ReportGherkinSequenceTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/gherkin/ReportGherkinSequenceTest.java): timing și vocabular.
 
 Probele de compoziție și browser sunt în [Reporting Tests](../../../../../../../atf-reporting-tests/README.md).
 Boundary-ul standalone este verificat în

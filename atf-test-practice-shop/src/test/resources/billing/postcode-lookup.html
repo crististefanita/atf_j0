@@ -1,0 +1,43 @@
+<!doctype html><html><body>
+<form><select data-test="country" id="country"><option value="" selected>Choose</option><option value="US">United States of America (the)</option></select>
+<input data-test="postal_code" id="postal_code" value="53703"><input data-test="house_number" id="house_number" value="10">
+<input data-test="street" id="street" value="Old street"><input data-test="city" id="city" value="Old city"><input data-test="state" id="state" value="Old state">
+<div data-test="postcode-lookup-loading" id="loading" hidden>Loading</div><div data-test="postcode-lookup-error" hidden>Error</div></form>
+<script>
+const mode='__MODE__';
+window.inputCounts={};window.applyCount=0;window.pendingApply=null;let pending=0;
+const field=id=>document.getElementById(id);
+if(mode==='duplicate'){field('postal_code').value='';field('house_number').value='';}
+if(mode==='unchanged'){field('street').value='Wayne Lock';field('city').value='Cartwrightmouth';field('state').value='Alaska';}
+let priorPostal=field('postal_code').value,priorHouse=field('house_number').value;
+document.addEventListener('input',event=>{window.inputCounts[event.target.id]=(window.inputCounts[event.target.id]||0)+1;console.log('billing-input:'+event.target.id);});
+function apply(data){
+  if(data.applied)return;data.applied=true;
+  field('street').value=data.street;field('city').value=data.city;field('state').value=data.state;
+  window.applyCount++;pending--;field('loading').hidden=pending===0;
+}
+async function lookup(old=false){
+  const country=field('country').value,postcode=field('postal_code').value,house=field('house_number').value;
+  if(!old&&(!country||!postcode||!house||mode==='no-lookup'))return;
+  pending++;field('loading').hidden=false;
+  const query=new URLSearchParams({country:old?'US':country,postcode:old?'old':mode==='wrong-query'?'other':postcode,house_number:house||'10'});
+  const response=await fetch('/postcode-lookup?'+query);
+  const data=await response.json();window.pendingApply=data;
+  setTimeout(()=>apply(data),mode==='race'?500:mode==='pending'?100:0);
+}
+field('country').addEventListener('change',()=>lookup());
+field('postal_code').addEventListener('input',()=>{
+  const value=field('postal_code').value;
+  if(value!==priorPostal&&mode!=='duplicate')setTimeout(()=>lookup(),300);priorPostal=value;
+});
+field('house_number').addEventListener('input',()=>{
+  const value=field('house_number').value;
+  if(value!==priorHouse){setTimeout(()=>lookup(),mode==='duplicate'?250:300);if(mode==='duplicate')setTimeout(()=>lookup(),300);}
+  priorHouse=value;
+  if(mode==='document')setTimeout(()=>location.href='/replacement',330);
+});
+field('state').addEventListener('focus',()=>{
+  if(mode==='race'&&window.pendingApply&&!window.pendingApply.applied)queueMicrotask(()=>apply(window.pendingApply));
+});
+if(mode==='old-late')lookup(true);
+</script></body></html>

@@ -4,6 +4,12 @@
 
 **Context local:** [support](src/main/atf/shop/support/README.md) · [atlas ATF](../docs/ATF_Context_Atlas.md).
 
+`ShopApiRunReport` păstrează lifecycle-ul și verdictul business. Sumarul sigur
+al excepției este delegat către
+[Reporting](../atf-reporting/README.md#context-de-fază-și-diagnostic-de-execuție),
+cu [probe neutre în Reporting Tests](../atf-reporting-tests/README.md#diagnosticul-neutru-al-excepțiilor).
+Probele Shop continuă să verifice configurația, selecția exchange-ului și adaptorul real.
+
 **Trasee rapide:** [Journey](#traseul-de-achiziție) · [Fixture și billing](#configurația-modulului) · [Dovada order](#dovada-comenzii-curente) · [Raport per suită](#raport-partajat--starea-consumerului) · [Componentă sau E2E](#verificare-rapidă)
 
 `atf-test-practice-shop` este modulul consumer care verifică UI-ul și API-ul
@@ -482,7 +488,7 @@ publicare eșuată și două lansări succesive; aceste probe locale nu înlocui
 | Profilul scenariului | `ShopE2eContext` transmite profilul rezolvat la publicarea în sesiunea comună; config-ul furnizează baza, iar adnotarea poate suprascrie axele declarate. |
 | Izolarea scenariilor-surori | `ShopE2eContextEvidenceProfileTest` publică frați cu profile diferite pe succes și failure; probele neutre Reporting protejează proiecția și capturile. |
 | Overview/System | Fiecare scenariu contribuie cu snapshot-ul rezolvat. Valorile comune rămân exacte; un câmp diferit ori absent la un frate devine `Mixed — varies by scenario`. Mapperul primește explicit environment-ul capturat de composition root și nu citește starea JVM. |
-| Agregarea fazelor | În profilul `UNIFIED_FLOW`, Shop activează acumularea pe scenariu: `SETUP` și `TEST BODY` păstrează statusurile de fază, iar un singur nod Gherkin din faza terminală redă checkpoint-urile în ordine, cu provenance, assertions și API validation lângă checkpoint-ul lor. Un setup eșuat finalizează flow-ul în `SETUP`, fără `TEST BODY` sau captură terminală inventată. Profilurile `SCREEN_CHECKPOINTS` păstrează publicarea pe faze. |
+| Agregarea fazelor | În profilul `UNIFIED_FLOW`, Shop activează acumularea pe scenariu. Guest UI-only publică verificările configurației direct în `TEST BODY`, fără fază `SETUP`. Setup-ul autentificat păstrează faza și statusul propriu; un singur nod Gherkin terminal redă checkpoint-urile în ordine, cu provenance, assertions și API validation lângă checkpoint-ul lor. Un setup autentificat eșuat finalizează flow-ul în `SETUP`, fără `TEST BODY` sau captură terminală inventată. Profilurile `SCREEN_CHECKPOINTS` păstrează publicarea pe faze. |
 
 Contractul generic de lifecycle și randare este deținut de
 [`atf-reporting`](../atf-reporting/README.md#politică-tipizată-pentru-dovezile-de-captură).
@@ -584,7 +590,7 @@ checkout-ul modulului.
 | Cheie YAML | Valoare implicită relevantă | Efect în acest consumer |
 |---|---|---|
 | `baseUrl` | `https://practicesoftwaretesting.com` | singurul host de bază pentru rutele UI |
-| `browser`, `headless`, `timeout`, `navigationTimeout`, `viewport`, `zoomPercent` | Chromium, headed, 20 s, 45 s, 1440×1000, 70% | configurează browserul de test |
+| `browser`, `headless`, `timeout`, `navigationTimeout`, `viewport`, `zoomPercent` | Chromium, headed, 20 s, 45 s, ieșire cerută 1440×1000, 70% | context nativ cu viewport CSS 2057×1429 și DPR 0.70 |
 | `validation.profile` | `ui-api` | profilul de bază; adnotarea `@AtfTestChannel` a E2E-ului selectează explicit `UI` sau `UI_API` |
 | `validation.apiEvidence` | `product`, `registration`, `login`, `cart`, `payment`, `order` | checkpoint-urile cărora li se poate atașa API evidence |
 | `networkInspector` | enabled; allowlist `api.practicesoftwaretesting.com` | observă traficul real relevant; nu retrimite request-uri |
@@ -598,6 +604,13 @@ checkout-ul modulului.
 | `checkout.billingStrategy` | `configured-fields` | `configured-fields` sau `postal-lookup`; alegere business independentă de canal |
 | `authenticatedE2eEnabled` | `false` | default-ul YAML rămâne guest; profilul `@AuthenticatedE2e` activează explicit clasa autentificată |
 | `productName`, `productPath`, `checkout` | `Pliers`, `auto`, cantitate 2, Cash on Delivery | fixture-ul business al demo-ului; produsul este căutat după nume, nu după ID rotativ |
+
+Rândul `Viewport` din Overview/System folosește același calcul ca sesiunea:
+ieșire cerută, viewport CSS efectiv și DPR. Rotunjirea capturii și semantica
+full-page au contract la [ownerul UI](../atf-ui/README.md#geometria-nativă-a-contextului).
+[ShopPointerGeometryComponentTest](src/test/atf/shop/tests/component/geometry/ShopPointerGeometryComponentTest.java)
+verifică configurația Shop, pointerul trusted și refuzul overlay-ului cu browser
+headless local și assertions auditabile; nu simulează un checkout public.
 
 Inspectorul este bounded de setările consumerului din YAML: maximum `256`
 observații, preview de body de maximum `12000` caractere și compactarea numai a
@@ -724,9 +737,14 @@ request-ul deține confirmarea, iar toast-ul este numai diagnostic.
   introduce și verifică valorile fixture-ului; `postal-lookup` introduce țara,
   codul poștal și numărul casei și validează câmpurile completate de aplicație.
   Aceeași strategie este păstrată în UI și UI_API; evidence-ul nu alege traseul.
-  La `postal-lookup`, strada, orașul și state sunt raportate și cerute non-empty;
-  aceasta probează completarea, nu egalitatea lor cu fixture-ul. La
-  `configured-fields`, aceleași câmpuri au comparații cu expected independent.
+  La `postal-lookup`, observația este armată înaintea input-urilor și corelează
+  originea/ruta din `api.endpoint`, țara wire, codul poștal și numărul casei.
+  Numai răspunsul complet al unei cereri noi poate confirma câmpurile DOM;
+  valorile vechi non-empty, query-ul ambiguu și transportul fără răspuns nu dau PASS.
+  Un rezultat curent egal cu adresa veche este acceptat după finalizare; nu
+  cerem schimbarea artificială a valorilor. `configured-fields` păstrează
+  comparațiile cu fixture-ul independent: așteaptă finalizarea autofill-ului posibil,
+  fără să ceară ori să inventeze un lookup dacă aplicația nu îl emite.
 - Meta-adnotarea `@WithE2eHarness` include `@AtfConsoleMessages(DETAILS)` și
   `@AtfReportPath`; după publicare, calea absolută Extent este trimisă la consolă
   când output-ul este activ. `reporting.console.enabled: false` rămâne
@@ -767,6 +785,54 @@ deținute de [`atf-reporting`](../atf-reporting/README.md) și de
 locatori CSS și lifecycle-ul browserului generic sunt deținute de
 [`atf-ui`](../atf-ui/README.md). Acest README păstrează doar modul în care
 consumerul le configurează și le leagă de checkpoint-urile Practice Shop.
+
+## Confirmarea lookup-ului de adresă
+
+`ShopBillingPage` primește endpoint-ul explicit din contextul checkout-ului.
+`ShopPostalLookup` observă numai traficul browserului și compară răspunsul cu
+street/city/state citite independent; nu trimite HTTP suplimentar și nu reia input-uri.
+
+| Semnal | Rezultat |
+|---|---|
+| Cerere începută înaintea armării, alt frame/origin sau alți parametri | nu confirmă lookup-ul curent |
+| Răspuns curent 2xx, adresă non-empty și DOM concordant, fără cereri de lookup deținute pending | confirmare în bugetul observației |
+| HTTP eșuat, JSON invalid, adresă incompletă ori transport întrerupt | FAIL; datele private din JSON invalid nu intră în diagnosticul textual |
+| Nicio finalizare corelată, document schimbat ori DOM divergent | refuz sau deadline epuizat; fără PASS bazat pe câmpuri preexistente |
+
+Observația folosește [scope-ul UI](../atf-ui/README.md#scope-ul-listener-elor-de-observație)
+și bugetul existent `awaitVisible`; nu primește un timeout suplimentar.
+`ShopPostalLookupComponentTest` verifică metoda reală a paginii, iar
+`ShopBillingLookupTest` păstrează separat contractul recordului de adresă.
+
+### Sincronizarea input-urilor
+
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
+flowchart LR
+    Inputs["Țară + cod + număr"] -->|o singură introducere| Settle["Debounce + pending"]
+    Settle -->|configured-fields| Fill["Completează fixture-ul"]
+    Settle -->|postal-lookup| Read["Răspuns curent + DOM"]
+    Fill -->|compară independent| Audit["Expected / actual"]
+    Read -->|observă independent| Audit
+```
+
+<details>
+<summary><strong>Legendă — două strategii, același scope</strong></summary>
+
+- **Debounce + pending** consumă cele 300 ms ale protocolului aplicației și
+  finalizarea cererilor deținute în deadline-ul existent; nu adaugă un timeout.
+- `configured-fields` așteaptă și dispariția indicatorului de încărcare, apoi
+  introduce street/city/state o singură dată; absența lookup-ului este legitimă.
+- `postal-lookup` cere răspunsul curent complet și concordanța DOM. Valori vechi
+  identice sunt acceptate numai după acea dovadă, fără tastare peste autofill.
+- Callback-urile capturează metadata; citirea body-ului are loc în afara lor.
+  Predicatul nativ este monoton, apoi scope-ul verifică din nou cererile pending
+  și identitatea răspunsului înainte de întoarcere.
+- `ShopBillingSynchronizationComponentTest` provoacă inclusiv cursa care dubla
+  state-ul pe sursa veche, cereri duplicate/întârziate, înlocuirea documentului
+  și completare manuală fără lookup. Nu relaxați expected-ul și nu reexecutați input-ul.
+
+</details>
 
 ## Cum se verifică modulul
 
@@ -814,12 +880,23 @@ mvn -pl atf-test-practice-shop -am "-Dtest=ShopComponentSuite" "-Dsurefire.failI
 
 ### Boundary-ul probelor API
 
-| Probă | Dovedește | Nu dovedește |
+Tabelul descrie selecția și contractul exercitat; dovada comportamentului
+provine din rularea efectivă, cu sursele și profilul folosite atunci.
+
+| Probă | Contract exercitat | Nu dovedește |
 |---|---|---|
 | `ShopComponentSuite` | toate contractele locale de business și adaptoare, inclusiv unit/component și suportul package-private | comportamentul serviciului real |
 | `ShopE2eSuite` | toate variantele UI păstrate, cu purchase până la confirmarea comenzii și factură | nu înlocuiește contractele API directe |
 | `ShopApiLiveSuite` | `ShopStandaloneApiReportTest`, cu opt-in-ul autentificat existent | nu intră în gate-ul local |
 | `ShopStandaloneApiReportTest` | login, catalog, filtrare/sortare din răspuns și mutații/read-back pe un coș izolat, adresă/payment prin HTTP live | invoice final, validitatea permanentă a fixture-ului sau autentificarea sesiunii UI |
+
+`ShopUiNetworkSettlementComponentTest` verifică numai selecția read-back-ului
+Shop după cursor, cantitatea/produsul observate și lipsa dovezii la timeout.
+Fixture-ul livrează observații; nu execută o mutație și nu dovedește no-replay.
+
+Compactarea generică are [probă la UI](../atf-ui/src/test/java/atf/ui/network/UiNetworkPresentationStreamComponentTest.java).
+Activarea unică este verificată la [portul Shop real](src/test/atf/shop/tests/component/cart/ShopCartAcknowledgementComponentTest.java),
+prin contoare browser/request și refuzuri pentru răspunsuri vechi, străine sau eșuate.
 
 ### Corelarea payment și coș cu observația curentă
 
@@ -1301,6 +1378,35 @@ copiate aici ca reguli paralele.
 
 ### Limita suportului partajat
 
+Izolarea UI/UI_API are [probă prin harness-ul E2E real](src/test/atf/shop/tests/component/reporting/ShopEvidenceProfileIsolationComponentTest.java),
+cu HTTP loopback 500/200 și browser real. Failure-ul individual și failure-ul
+urmat de succes în profil opus păstrează cauza, captura și un HTML per lansare.
+
+| Axă | Contract verificat |
+|---|---|
+| browser și stare | fiecare invocare pornește pe `about:blank`; localStorage-ul scenariului anterior nu există |
+| evidence și rezultat | UI_API păstrează inspectorul; UI nu îl moștenește, iar scenariul sănătos rămâne PASS după failure-ul vecin |
+| operații executate | contorul serverului numără un singur GET per invocare; failure-ul nu autorizează replay |
+| captură configurabilă | factory-ul main transmite originea API configurată capturii de răspuns; UI_API cere exchange-ul real, iar UI cere zero exchange-uri în jurnal; livrarea necesară gate-urilor nu se mută automat la request-finished |
+| raport comun | scenariile selectate apar într-un HTML, cu configurațiile System agregate și comparația eșuată inspectabilă |
+
+Această probă verifică boundary-ul local al adaptorului. Înregistrarea, billing-ul,
+plata și izolarea suitei business cer în continuare execuția scenariilor reale;
+selecția canonică nu se reduce pe baza asemănării celor două profile.
+
+`ShopBrowserRuntime.open` păstrează achiziția în main și transferă resursele
+numai după asamblarea completă. La failure după deschiderea browserului, acesta
+este închis o dată; cauza inițială rămâne primară, iar cleanup-ul distinct este suppressed.
+
+- Seama factory-ului este package-private, pentru provocarea eșecurilor pe etape;
+  API-ul public, configurația și sink-ul rămân aceleași.
+- [ShopBrowserAcquisitionComponentTest](src/test/atf/shop/runtime/ShopBrowserAcquisitionComponentTest.java)
+  folosește browserul real și evenimentul nativ de close, inclusiv failure după atașarea journal-ului.
+
+- La succes, callerul deține browserul; factory-ul nu îl închide implicit.
+- Repetarea aceluiași throwable nu produce self-suppression, iar un `Error`
+  nu este înlocuit de o eroare ulterioară de cleanup.
+
 | Owner | Conține |
 |---|---|
 | Shop `src/main` | pagini, flow-uri, payload-uri, captură/politică Shop și validarea terminală `ShopPurchaseConfirmation`; fără JUnit/Test Kit |
@@ -1324,8 +1430,10 @@ main. Source-set-urile din tabelul de mai sus descriu implementarea curentă.
 - Cele trei gate-uri rămân complete până la probele de echivalență; politica
   capturilor nu justifică o a doua poveste business.
 
-Candidatele concrete, limitările guard-ului și acceptanța sunt în
-[feedback-ul refactorizării](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md).
+Deciziile de extracție și diferențele de ownership sunt în
+[atlas](../docs/ATF_Context_Atlas.md#reutilizare-fără-mutarea-politicii-aplicației);
+[feedback-ul profilelor](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md)
+păstrează dovada business necesară înaintea reducerii selecției.
 
 Etapele catalog/checkout din `ShopPurchaseFlow` sunt implementate; separarea
 business → flow UI → acțiuni compuse → Playwright este încă țintă de design.

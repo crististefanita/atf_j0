@@ -60,7 +60,7 @@ class ShopOrderRequestStartComponentTest {
             var inputs = new ShopPurchaseJourneyContext.CheckoutInputs(page, actions,
                     java.net.URI.create(fixture.origin() + "/checkout"), config.productName(), config.checkout(),
                     new ShopPurchaseCheckpointPublisher(ignored -> { }), journal, locators,
-                    new ShopPageValidator(locators), new ShopPurchaseScreenValidator(locators));
+                    new ShopPageValidator(locators), new ShopPurchaseScreenValidator(locators), config.api().endpoint().resolve(atf.shop.api.ShopApiRoutes.POSTCODE_LOOKUP));
             var checkpoint = new ShopCheckoutPurchaseStage(inputs, 0L, expected).confirmOrder().checkpoint();
             page.waitForCondition(() -> Boolean.TRUE.equals(page.evaluate("window.oldDone")));
             assertEquals(currentStatus == 201, checkpoint.passed(), "Only the current successful POST may pass");

@@ -54,7 +54,7 @@ import static atf.ui.network.UiNetworkCapturePolicy.ResourceKind.FETCH;
 import static atf.autoex.api.AutoExApiJsonField.NAME;
 import static atf.autoex.api.AutoExApiJsonField.PRICE;
 import static atf.autoex.api.AutoExApiJsonField.PRODUCTS;
-import static java.util.stream.Collectors.joining;
+import static atf.reporting.evidence.diagnostic.ReportAssertionSummary.failures;
 
 /** Caller-owned AutoEx browser/report runtime; it has no test framework dependency. */
 public final class AutoExE2eRun implements AutoExPurchaseSession {
@@ -180,6 +180,12 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
         actions.click(new AtfLocator(page().locator(selector).first(), selector), expected);
     }
 
+    @Override public void openFirstProduct(String expectedProduct) {
+        prepareUiInteraction();
+        new atf.autoex.runtime.catalog.AutoExProductTransition(page(), actions, configuration.baseUrl(), storeNavigation)
+                .open(expectedProduct);
+    }
+
     public void clickLast(String selector, String expected) {
         prepareUiInteraction();
         actions.click(new AtfLocator(page().locator(selector).last(), selector), expected);
@@ -251,7 +257,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
             networkSteps.add(ReportNetworkInspector.Step.from(keyword.text(), title, assertions, exchangeEvidence(apiValidation)));
         }
         if (!passed) throw new UiCheckpointFailure("UI checkpoint failed: " + title
-                + ". Failed assertions: " + failedAssertionSummary(assertions), assertions);
+                + ". Failed assertions: " + failures(assertions), assertions);
     }
 
     public void checkpoint(AutoExTraceStep step, List<AtfAssertion> assertions) {
@@ -278,7 +284,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
                 apiValidation, ReportScreenshotPolicy.CapturePoint.CHECKPOINT, AtfReportStatus.INFO);
         if (apiValidation.status() == AtfReportStatus.FAIL) {
             throw new AssertionError("API checkpoint failed: " + step.title()
-                    + ". Failed assertions: " + failedAssertionSummary(assertions));
+                    + ". Failed assertions: " + failures(assertions));
         }
     }
 
@@ -310,7 +316,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
                     title, assertions, exchangeEvidence(apiValidation)));
         }
         if (!passed) throw new UiCheckpointFailure("Final screen validation failed: " + title
-                + ". Failed assertions: " + failedAssertionSummary(assertions), assertions);
+                + ". Failed assertions: " + failures(assertions), assertions);
     }
 
     public void finalScreenshot(AutoExTraceStep step, List<AtfAssertion> assertions) {
@@ -348,10 +354,15 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
                     "E2E completed without explicitly deleting its disposable account");
         }
 
+        boolean failureBeforeCleanup = terminalFailure != null;
         terminalFailure = lifecycle.finish(terminalFailure, new AutoExRunLifecycle.Completion(
                 () -> {
                     if (failureCleanup != null) {
                         try { failureCleanup.run(); }
+                        catch (Exception | Error cleanupFailure) {
+                            if (failureBeforeCleanup) publishCleanupFailure(cleanupFailure);
+                            throw cleanupFailure;
+                        }
                         finally { failureCleanup = null; }
                     }
                 },
@@ -369,6 +380,16 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
             if (terminalFailure instanceof Exception exception) throw exception;
             if (terminalFailure instanceof Error error) throw error;
             throw new IllegalStateException("Automation Exercise E2E teardown failed", terminalFailure);
+        }
+    }
+
+    /** The original failure has already been captured; cleanup gets its own diagnostic, never a replacement image. */
+    private void publishCleanupFailure(Throwable failure) {
+        try {
+            phase.failureEvidence("Automation Exercise account cleanup failure", currentUrl(),
+                    ReportModelAdapters.uiActions(actions.drain()), failure, "");
+        } catch (RuntimeException | Error publicationFailure) {
+            if (publicationFailure != failure) failure.addSuppressed(publicationFailure);
         }
     }
 
@@ -465,7 +486,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
         networkSteps.add(ReportNetworkInspector.Step.from(keyword.text(), step.title(),
                 allAssertions, exchangeEvidence(apiValidation)));
         if (status == AtfReportStatus.FAIL) {
-            throw new AssertionError("Cart add checkpoint failed: " + failedAssertionSummary(allAssertions));
+            throw new AssertionError("Cart add checkpoint failed: " + failures(allAssertions));
         }
     }
 
@@ -484,7 +505,7 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
         phase.step(narrative.next(AtfGherkinKeyword.GIVEN), title, execution.request().path(), "", List.of(), List.of(),
                 apiValidation, ReportScreenshotPolicy.CapturePoint.CHECKPOINT, AtfReportStatus.INFO);
         markCausalApiTrafficBaseline();
-        if (!passed) throw new AssertionError("API setup failed: " + failedAssertionSummary(assertions));
+        if (!passed) throw new AssertionError("API setup failed: " + failures(assertions));
     }
 
     private List<UiNetworkObservation> causalApiObservations() {
@@ -504,13 +525,6 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
         dismissPrivacyPromptIfPresent();
         dismissGoogleVignetteIfPresent();
         storeNavigation.recoverIfBusy();
-    }
-
-    private static String failedAssertionSummary(List<AtfAssertion> assertions) {
-        return assertions.stream().filter(assertion -> !assertion.passed())
-                .map(assertion -> assertion.name() + " [expected=" + assertion.expected()
-                        + "; actual=" + assertion.actual() + "]")
-                .collect(joining("; "));
     }
 
     private AtfLocator locator(String selector) { return new AtfLocator(page().locator(selector), selector); }

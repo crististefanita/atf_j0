@@ -1,5 +1,7 @@
 package atf.api.tests.governance.documentation;
 
+import atf.api.tests.governance.documentation.links.DocumentationLinkGovernanceTest;
+
 import atf.testkit.documentation.DocumentationTarget;
 
 import atf.testkit.AtfComponentTest;
@@ -25,6 +27,7 @@ import static atf.api.tests.governance.AtfGovernanceTestSupport.locateProjectRoo
 @DocumentationTarget("atf-test-kit/README.md")
 @DocumentationTarget("docs/ATF_Api_Test_Guide.md")
 @DocumentationTarget("docs/ATF_Architecture.md")
+@DocumentationTarget("docs/ATF_Context_Atlas.md")
 @DocumentationTarget("docs/ATF_Build_And_Execution_Safety.md")
 @DocumentationTarget("docs/ATF_Evidence_Capture_Contract.md")
 @DocumentationTarget("docs/ATF_Reporting_Contract.md")
@@ -71,6 +74,8 @@ public class DocumentationTargetGovernanceTest {
             DocumentationDiagramGovernanceTest.validate(target, root, violations);
             if (DocumentationGovernanceSupport.isReadme(target)) {
                 DocumentationReadmeStructureGovernanceTest.validate(target, root, violations);
+            } else {
+                DocumentationLinkGovernanceTest.validate(target, root, violations);
             }
             DocumentationStyleGovernanceTest.validate(target, root, violations);
             DocumentationProseGovernanceTest.validate(target, root, violations);

@@ -5,11 +5,11 @@ README-ului ownerului; controalele verificate aparțin baseline-ului testelor.
 
 ## Pe scurt
 
-- UI livrează politica BE read-only; rămân proiecția structurată, selectul înlocuit, coeziunea readiness și geometria iframe.
-- Reporting produce un JAR consumabil extern; [pregătirea pentru release](ATF_Reporting_Feedback.md) cere corectarea redactării JSON și izolării, împreună cu API-ul și documentația.
-- Consumerii păstrează deschise billing-ul Shop, tranziția produsului AutoEx, probele achiziției parțiale și echivalența profilelor.
+- UI livrează politica BE read-only, continuitatea selectului, cleanup-ul observerilor și geometria nativă iframe; rămâne proiecția structurată a încercărilor la Reporting.
+- Reporting are gate pentru sursa izolată și JAR-ul consumat extern; [pregătirea pentru release](ATF_Reporting_Feedback.md) păstrează criteriile pentru API, lifecycle, oracole și documentație.
+- Consumerii corelează lookup-ul Shop cu răspunsul și DOM-ul curente; sincronizează autofill-ul și confirmă produsul după click; probele locale Account/Cart/Purchase păstrează failure-ul și cleanup-ul owned; integrarea lor prin extensia/suita E2E condiționează reducerea selecției.
 - Core prevalidează sursele și părinții destinației fără scriere; [atomicitatea per fișier](../../atf-core/README.md#manifest-și-promovare-guarded) rămâne explicită.
-- Documentația are guard-uri structurale; [afirmațiile factuale critice](ATF_Documentation_Feedback.md) cer comparație independentă cu sursa executabilă.
+- Documentația verifică linkurile și fragmentele în README-uri și docs; [afirmațiile factuale critice](ATF_Documentation_Feedback.md) cer comparație independentă cu sursa executabilă.
 - Validation, Console, Mock și Debug UI au contractele de boundary și probele la owner; registrul păstrează numai lacunele deschise.
 
 În incrementul curent păstrăm cele 12 module și îmbunătățim codul existent:
@@ -28,15 +28,21 @@ Un document cu mai multe gap-uri primește scorul celui mai urgent, nu suma lor.
 
 | Ordine | Feedback / owner | Scor /100 | Criteriul care decide ordinea |
 |---:|---|---:|---|
-| 1 | [Reporting — contracte și pregătire JAR](ATF_Reporting_Feedback.md) | **92** = 38 + 28 + 18 + 8 | redactare JSON (92), index Fails terminal (90), izolare (85), oracole și artifact (83), configurație (82), API (81), lifecycle (76), release (73), documentație (72), proiecția flow-ului (62) |
-| 2 | [UI — sincronizare și recuperare BE](ATF_UI_Backend_Guided_Recovery_Feedback.md) | **78** = 33 + 22 + 16 + 7 | proiecție typed (78), select înlocuit (74), coeziune readiness (68) |
-| 3 | [UI — geometrie browser](ATF_UI_Browser_Geometry_Feedback.md) | **72** = 31 + 25 + 10 + 6 | pointer în iframe la zoom CSS non-nativ |
-| 4 | [Consumer — dovezi E2E și runtime](ATF_Consumer_Business_Test_Focus_Feedback.md) | **71** = 29 + 22 + 14 + 6 | billing (71), tranziție produs AutoEx (70), achiziție parțială (61), profile (57) |
-| 5 | [Documentație — fidelitate factuală](ATF_Documentation_Feedback.md) | **63** = 23 + 17 + 17 + 6 | o coloană poate inversa sensul contractului și totuși trece guard-urile structurale |
+| 1 | [Reporting — contracte și pregătire JAR](ATF_Reporting_Feedback.md) | **86** = 33 + 26 + 19 + 8 | rollback al constructorului și lifecycle (86), oracole, backlink pentru diagnostice omonime și fixture-uri binare (83), API (81), release (73), documentație (72), proiecția flow-ului (62) |
+| 2 | [UI — sincronizare și recuperare BE](ATF_UI_Backend_Guided_Recovery_Feedback.md) | **78** = 33 + 22 + 16 + 7 | proiecție typed a încercărilor la Reporting (78) |
+| 3 | [Documentație — fidelitate factuală](ATF_Documentation_Feedback.md) | **55** = 20 + 14 + 15 + 6 | afirmații rămase despre geometrie, standalone și preview în perimetrul Reporting |
+| 4 | [Consumer — echivalență business](ATF_Consumer_Business_Test_Focus_Feedback.md) | **47** = 22 + 8 + 12 + 5 | integrarea E2E a probelor locale Account/Cart/Purchase și alternarea profilelor înaintea reducerii selecției |
 
 O componentă verde confirmă criteriul ei; închiderea unui gap cere întreaga
 probă declarată la owner. Evaluarea calității folosește separat
 [rubrica documentației](../README_Atf_DocumentationBestPractices.md#rubrica-reviziei-editoriale).
+
+În perimetrul fără Reporting rămâne [echivalența failure-urilor business](ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-e2e-profiles-01--variantele-de-evidence-și-acoperirea-business),
+înaintea reducerii selecției. Compoziția readiness, anularea deterministă,
+achiziția parțială și comparația document/POM au contracte și probe la owneri.
+
+- Proiecția typed `UI-RECOVERY-AUDIT-01` are owner Reporting.
+- Fidelitatea documentelor Reporting rămâne în același perimetru separat.
 
 ## Traiectoria modulelor peste 91
 
@@ -50,11 +56,11 @@ scope contaminat; reevaluarea urmează probei și sincronizării live.
 | Mock | query-ul și constrângerile distincte nu se reasociază printr-o etichetă ambiguă | [asocierea exactă în adaptor](../../atf-reporting-tests/README.md#fidelitatea-query-ului-și-asocierea-mock) |
 | Validation | cauza inițială supraviețuiește close-ului; refuzul one-shot precede callback-ul | [cauza și protocolul](../../atf-validation/README.md#cauza-primară-și-refuzul-înaintea-evaluării) |
 | Console | copilul restaurează contextul/sink-ul părintelui la succes, FAIL și SKIP | [scope imbricat](../../atf-console/README.md#restaurarea-contextelor-imbricate) |
-| Reporting | JAR și assets consumate extern; terminalul în Tests cere verdict și păstrează diagnosticul; indexul Fails, redacția, API-ul, lifecycle și release rămân deschise | [criteriile Reporting](ATF_Reporting_Feedback.md) |
-| UI | livrare izolată, start identity, atașare indivizibilă și cleanup la erori; proiecția typed și continuitatea selectului rămân deschise | [sincronizare](ATF_UI_Backend_Guided_Recovery_Feedback.md) și [geometrie](ATF_UI_Browser_Geometry_Feedback.md) |
+| Reporting | source/JAR gate, redacție JSON semantică, query privat și cauză terminală indexată; API-ul susținut, lifecycle și release păstrează criterii distincte | [criteriile Reporting](ATF_Reporting_Feedback.md) |
+| UI | pointerul iframe folosește context nativ; inspectorul, selectul și observerii își păstrează identitatea, activarea unică și cleanup-ul complet; proiecția typed rămâne la Reporting | [sincronizare](ATF_UI_Backend_Guided_Recovery_Feedback.md) și [geometria livrată](../../atf-ui/README.md#geometria-nativă-a-contextului) |
 | Debug UI | close se termină bounded și cu request incomplet; rămâne read-only loopback | [shutdown](../../atf-debug-ui/README.md#închiderea-conexiunilor-deținute) |
-| Shop | marcaje numeric/typed și Confirm cauzale; billing și achiziție parțială rămase | [criterii consumer](ATF_Consumer_Business_Test_Focus_Feedback.md) |
-| AutoEx | observația bounded, gate-ul identității și download-ul măsurat sunt probate; tranziția produsului și izolarea extinsă rămân de demonstrat | [gate și readiness](../../atf-test-auto-ex/README.md#gate-ul-coșului-și-ownerul-contului) și [criterii consumer](ATF_Consumer_Business_Test_Focus_Feedback.md) |
+| Shop | marcaje numeric/typed, Confirm și billing sincronizat; rollback-ul achiziției parțiale păstrează cauza și închide contextul nativ o dată | [criterii consumer](ATF_Consumer_Business_Test_Focus_Feedback.md) |
+| AutoEx | identitate, produs și factură confirmate bounded; smoke-ul extensiei izolează profilele; failure-ul din fiecare punct business condiționează reducerea selecției | [gate și readiness](../../atf-test-auto-ex/README.md#gate-ul-coșului-și-ownerul-contului) și [criterii consumer](ATF_Consumer_Business_Test_Focus_Feedback.md) |
 | Reporting Tests | oracole independente pentru query, randare, backlink, achiziție parțială și cleanup direct/delegat | [contractele și probele](../../atf-reporting-tests/README.md#erori-simultane-la-publicare-și-close) |
 | Test Kit | revalidarea protocolului JUnit și a binding-ului; reutilizare neutră numai după două utilizări reale | [limita reutilizării](../../atf-test-kit/README.md) |
 | ATF Tests | păstrarea gate-urilor și a probelor lor negative; nicio relaxare pentru lucrările de mai sus | [guvernanța ownerului](../../atf-tests/README.md) |
@@ -78,6 +84,13 @@ publication path, run ledger și workflow-ul propus. Readiness-ul său nu este
 prioritatea operațională de mai sus și nu se recalibrează editorial.
 
 ## Păstrare, promovare și verificare
+
+| Moment | Actualizarea cerută |
+|---|---|
+| înaintea refactorizării | confruntați feedback-ul cu sursa live; fixați triggerul, ownerul, observația și proba de închidere |
+| în timpul incrementului | reconciliați imediat constatarea nouă, limita probei ori schimbarea de scope; separați analiza statică de reproducere |
+| înaintea promovării | revalidați sursele live, probele și linkurile; un criteriu parțial rămâne deschis, cu restanța exactă |
+| după acceptare | promovați contractul stabil la owner și eliminați numai criteriul demonstrat, cu controalele și ancorele reconciliate |
 
 - Regula stabilă se promovează la owner înainte de eliminarea criteriului închis.
 - Fișierul fără gap-uri se elimină după reconcilierea controalelor și linkurilor;

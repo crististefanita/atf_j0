@@ -46,13 +46,17 @@ public final class ShopApiEvidenceMapper {
 
     static ReportExecutionEvidence toExecution(ShopApiNetworkJournal.Exchange exchange,
                                                String serviceAlias) {
-        var query = query(exchange.url());
-        var authentication = ReportAuthObservation.from("none", exchange.requestHeaders(), query);
+        String fingerprint = ReportRequestSignature.queryFingerprint(exchange.signature());
+        URI target = URI.create(exchange.url());
+        var query = fingerprint.isEmpty() && !atf.ui.network.UiNetworkObservation.REDACTED_QUERY.equals(target.getRawQuery())
+                ? ReportQueryParameters.fromUri(target) : ReportQueryParameters.empty();
+        var authentication = ReportAuthObservation.from("none", exchange.requestHeaders(), query.asMap());
         var capturedMethod = ReportAuthMethod.fromProfile(exchange.authType());
         if (capturedMethod != ReportAuthMethod.NONE) {
             authentication = new ReportAuthObservation(capturedMethod, authentication.source());
         }
-        ReportRequest request = ReportRequest.builder(exchange.method(), exchange.path()).query(query)
+        ReportRequest request = ReportRequest.builder(exchange.method(), exchange.path()).queryParameters(query)
+                .queryFingerprint(fingerprint)
                 .headers(ReportRequestHeaders.observed(ShopJsonEvidence.redactHeaders(exchange.requestHeaders())))
                 .authProfile("none").authentication(authentication)
                 .body(redactJson(exchange.requestBody()), ApiBodyEvidence.isUnavailable(exchange.requestBody())
@@ -116,7 +120,4 @@ public final class ShopApiEvidenceMapper {
         return ShopJsonEvidence.redact(value);
     }
 
-    private static Map<String, String> query(String url) {
-        return ReportQueryParameters.fromUri(URI.create(url)).asMap();
-    }
 }

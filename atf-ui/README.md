@@ -108,7 +108,7 @@ ui:
   timeout: PT10S
   navigationTimeout: PT45S
   viewport: { width: 1440, height: 900 }
-  # Page zoom used by Playwright screenshots; 70% shows more report evidence.
+  # Native context scale; output intent stays separate from the CSS layout.
   zoomPercent: 70
   screenshotOnFailure: true
   screenValidation:
@@ -121,23 +121,119 @@ ui:
 - opțiunile concrete descriu browserul și evidence-ul;
 - `ui.screenValidation.enabled` controlează numai capturarea screenshot-ului;
 - cheia nu activează testele și nu publică raportul;
-- `ui.zoomPercent` controlează zoom-ul CSS al documentului principal navigat;
-- scriptul nu aplică zoom suplimentar în iframe-uri; ele sunt deja scalate de container;
-- `70` poate fi folosit pentru inspecția rapoartelor Extent fără controale embedded;
-- pentru click-uri de pointer în iframe-uri, scara nativă `100` evită limita
-  de geometrie cunoscută; activarea DOM explicită descrisă mai jos nu o repară;
-- `viewport.width` și `viewport.height` rămân neschimbate;
+- `ui.zoomPercent` configurează geometria nativă a contextului; nu injectează
+  `zoom`, `transform` sau un script în documente;
+- `viewport.width` și `viewport.height` exprimă dimensiunea cerută a capturii;
+  viewport-ul CSS efectiv se calculează separat;
 - valoarea este validată în intervalul `25..200`, iar lipsa cheii păstrează `100`;
 - YAML-ul auditului Extent, override-urile `-Datf.ui.config`/`-Datf.ui.report`
   și rezoluția raportului inspectat aparțin harness-ului din
   `atf-reporting-tests`, nu bibliotecii `atf-reporting` sau adaptorului `atf-ui`.
   Fiecare consumer deține separat configurația aplicației sale.
 
-`PlaywrightUiSessionTest` verifică separarea scalei între documente și click-ul
-real pe un control embedded la scara nativă. Limitarea coordonatelor la zoom CSS
-non-nativ este urmărită separat în
-[feedback-ul de geometrie](../docs/feedback/ATF_UI_Browser_Geometry_Feedback.md).
-Proba de platformă nu fabrică reclame sau pagini ale unui consumer.
+### Geometria nativă a contextului
+
+[`UiViewportScale`](src/main/java/atf/ui/config/geometry/UiViewportScale.java)
+deține calculul pur, fără Playwright sau Reporting. Sesiunea aplică viewport-ul
+CSS și DPR înaintea primei pagini. Consumerii folosesc aceeași valoare pentru
+rândul `Viewport` din Overview/System, fără să declare o captură nemăsurată.
+
+| Configurație | Geometrie efectivă |
+|---|---|
+| ieșire cerută `1440 × 1000`, zoom `70` | viewport CSS `2057 × 1429`, DPR `0.70` |
+| regulă generală | DPR = zoom / 100; fiecare dimensiune CSS = round(ieșire / DPR), minimum 1 |
+| zoom `100` | viewport CSS egal cu dimensiunea cerută, DPR `1` |
+| captură de viewport | dimensiunea nativă poate diferi cu un pixel prin rotunjirea motorului |
+
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
+flowchart LR
+    Intent["Ieșire + zoom"] -->|calculează| Geometry["Viewport CSS + DPR"]
+    Geometry -->|configurează| Context["BrowserContext"]
+    Geometry -->|descrie| System["Overview / System"]
+    Context -->|moștenesc| Documents["Pagini + iframe-uri"]
+```
+
+<details>
+<summary><strong>Legendă — un calcul, două proiecții</strong></summary>
+
+- Consumerul furnizează configurația; `UiViewportScale` rezolvă geometria.
+- `PlaywrightUiSession` aplică valorile la context, înaintea paginilor.
+- Adaptoarele Shop/AutoEx publică descrierea aceleiași geometrii în System;
+  Reporting păstrează ownership-ul randării.
+- Pagina și iframe-ul primesc input nativ în spațiul lor CSS; nu există un
+  al doilea zoom aplicat copilului și nici o corecție manuală a coordonatelor.
+
+</details>
+
+<details>
+<summary><strong>Contract și probe — pointer, layout și evidence</strong></summary>
+
+- Aceeași geometrie se aplică paginilor noi, navigărilor și iframe-urilor;
+  documentele copil nu primesc o a doua scalare.
+- Este emulare a contextului, nu comanda de zoom din meniul browserului.
+  Media queries și layout-ul folosesc viewport-ul CSS efectiv; DPR este vizibil
+  aplicației. CSS-ul propriu al paginii rămâne nemodificat.
+- `fullPage` păstrează semantica unei capturi a întregului document, iar măștile
+  sunt rezolvate în aceeași geometrie. Dimensiunea de ieșire nu limitează o
+  captură full-page la înălțimea viewport-ului.
+- Overflow-ul dimensiunii CSS este refuzat înaintea achiziției browserului.
+  Nu există `force`, coordonate corectate manual sau replay pentru a obține PASS.
+- [UiViewportScaleTest](src/test/java/atf/ui/config/geometry/UiViewportScaleTest.java)
+  protejează calculul la 25/70/100/125/200 și overflow-ul.
+- [PlaywrightPointerGeometryComponentTest](src/test/java/atf/ui/playwright/geometry/PlaywrightPointerGeometryComponentTest.java)
+  verifică iframe-uri HTTP same/cross-origin și imbricate, trusted pointer,
+  focus/tastatură, scroll/fixed, navigări/popup, pixeli și măști. Overlay-ul,
+  controlul disabled și frame-ul eliminat păstrează refuzul, fără activare.
+- Proba cross-origin la 70% rulează în Chromium, Firefox și WebKit;
+  fixture-ul neutru nu certifică un journey extern sau CSS zoom introdus de site.
+- Activarea JavaScript explicită rămâne un contract separat; nu este fallback
+  pentru geometrie și nu produce un eveniment trusted.
+
+</details>
+
+### Gate-ul fixture-ului de geometrie
+
+Fixture-ul UI pregătește cele cinci documente, layout-ul și captura nativă
+în bugetul existent de navigare, apoi testează pointerul cu limita nativă de
+850 ms. Această pregătire aparține `src/test`, separat de runtime-ul aplicațiilor.
+
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
+flowchart LR
+    Load["Navigare"] -->|același buget 5 s| Ready["Documente inițializate"]
+    Ready -->|observă layout-ul| Layout["Cadre stabile"]
+    Layout -->|fără input| Paint["Captură nativă"]
+    Paint -->|o singură activare| Click["Pointer · 850 ms"]
+    Click -->|observă| Facts["Contor + trusted"]
+```
+
+<details>
+<summary><strong>Legendă — pregătire, deadline și oracole independente</strong></summary>
+
+- [PointerGeometryFixture.openReady](src/test/java/atf/ui/tests/support/geometry/PointerGeometryFixture.java)
+  consumă restul aceluiași buget monoton de 5 s pentru navigare, inițializarea
+  documentelor, trei observații egale ale dreptunghiurilor iframe în ritmul
+  `requestAnimationFrame` și captura PNG; fiecare etapă nu primește încă 5 s.
+- Inițializarea fixture-ului este explicită și verificabilă. Pregătirea nu
+  activează, nu focalizează și nu pre-derulează ținta; contorul browserului
+  rămâne zero înaintea singurului click nativ.
+- Clickul păstrează actionability, hit testing și auto-scroll native la 850 ms.
+  Overlay-ul, controlul disabled și frame-ul eliminat rămân refuzuri; nu se
+  folosesc trial click, activare DOM, force ori reluarea mutației pentru pregătire.
+- [PointerGeometryPreparationComponentTest](src/test/java/atf/ui/playwright/geometry/PointerGeometryPreparationComponentTest.java)
+  verifică inițializarea mai lungă decât plafonul pointerului la 70/100% și
+  epuizarea comună a bugetului de navigare și layout-ul continuu în mișcare,
+  cu zero activări la eșec, chiar dacă markerii documentelor sunt ready.
+- Matricea existentă păstrează toate frame-urile, scalele și motoarele, pixelii
+  independenți, măștile, tastatura și scroll-ul. PNG-ul pregătirii este dovadă
+  a viewport-ului capturat, nu dovadă că un iframe în afara lui a fost deja afișat.
+  Documentele originale standards/quirks mode sunt păstrate și verificate în browser.
+- Un timeout nativ ulterior rămâne FAIL și nu autorizează replay. Investigația
+  păstrează trace-ul primei activări și contoarele reale; o repetare verde nu
+  stabilește singură cauza unui eșec anterior.
+
+</details>
 
 ## Acțiuni și locatori
 
@@ -188,20 +284,40 @@ Report*Locators
 
 ### Așteptare nativă și unicitate
 
-`Click`, `Fill` și `Select option` folosesc operația strictă Playwright, care
-rezolvă ținta și așteaptă actionability în bugetul nativ al acelei operații.
+`Click`, `Fill` și `Select option` păstrează operația strictă Playwright.
+Selecția adaugă observație read-only înaintea primei activări native: locatorul
+este rezolvat din nou la fiecare observație, iar controlul trebuie să fie vizibil,
+enabled și să conțină opțiunea după proprietatea nativă `option.label`.
 Recorderul publică o singură acțiune; `UiRetryPolicy` nu reia mutația.
 
 O țintă absentă temporar poate deveni disponibilă; ambiguitatea rămâne eroare.
 `Select option` cere și confirmarea unei valori selectate: un rezultat nativ
 gol produce FAIL, cu selectorul păstrat, fără încercare suplimentară.
 
+| Owner | Responsabilitate |
+|---|---|
+| `PlaywrightSelectAction` | pregătire read-only și unicul apel `selectOption`; `fieldset`, ARIA și frame/document prin locatorul strict |
+| `PlaywrightLocatorActions` | redacție, record unic și context; cauza nativă pentru ținte nesensibile |
+| `ObservationBudget` | un deadline din timeout-ul secvenței; observația consumă buget, selecția primește numai restul |
+
+Adaptorul nu folosește sleep, force sau evenimente de selecție generate prin script.
+
+| Situație | Rezultat cerut |
+|---|---|
+| select înlocuit înaintea activării | observă ținta curentă și selectează nativ o singură dată |
+| țintă ambiguă, absentă sau nepregătită până la deadline | FAIL fără apel nativ de selecție |
+| valoare nativă neconfirmată după apel | FAIL; nu reia apelul și nu deduce succesul numai din valoarea DOM |
+| excepție după un eveniment deja produs | păstrează FAIL și diagnosticul permis de redacție; fără altă activare sau rollback |
+
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
-    Record["Recorder"] -->|deleagă| Native["Locator strict"]
+    Record["Recorder"] -->|click / fill| Native["Locator strict"]
+    Record -->|select| Observe["Observație read-only"]
+    Observe -->|pregătit în buget| Native
+    Observe -->|ambiguitate sau deadline| Fail["FAIL"]
     Native -->|țintă pregătită| Activate["Activare unică"]
-    Native -->|ambiguitate sau timeout| Fail["FAIL"]
+    Native -->|ambiguitate sau timeout| Fail
     Activate -->|rezultat confirmat| Pass["PASS"]
     Activate -->|select fără confirmare| Fail
 ```
@@ -213,15 +329,25 @@ flowchart LR
   cu unicitate și verificările specifice fiecărei operații.
 - `PlaywrightLocatorReadinessComponentTest` folosește browser și documente locale:
   țintă întârziată, lipsă permanentă, ambiguitate, document nou și țintă înlocuită.
-- Pentru click/fill, înlocuirea înaintea activării păstrează o singură mutație;
-  pentru select, lipsa confirmării native este respinsă explicit.
-- Continuitatea selecției după detach și precondițiile consumerului sunt urmărite
-  în [feedback-ul UI](../docs/feedback/ATF_UI_Backend_Guided_Recovery_Feedback.md).
+- `PlaywrightSelectContinuityComponentTest` numără separat apelurile native,
+  evenimentele input/change și activările controlului vechi. Acoperă înlocuire,
+  opțiune întârziată, lipsă, ambiguitate, frame same-origin/cross-origin, document,
+  label/multiple select, buget consumat, rezultat necunoscut și date sensibile.
+- Browserul fixture-ului aparține clasei de test, iar fiecare caz primește context
+  și pagină noi; startup-ul nu intră în deadline-ul selecției. Probele nu măresc
+  bugetul când browserul sau aplicația răspund lent.
+- Nicio observație nu schimbă valoarea ori dispatch-uiește evenimente. Driverul
+  fixat rămâne același; o înlocuire în cursul apelului nativ poate rămâne FAIL
+  neconfirmat, fără replay. Precondițiile business rămân la consumer.
+- Acțiunile sensibile păstrează diagnosticul sigur al recorderului, fără cauza
+  brută care ar putea divulga label-ul. Proba nesensibilă verifică identitatea
+  cauzei native.
 Etichetele scurte păstrează următorul sens:
 
 | În schemă | Sens complet |
 |---|---|
 | Recorder | Recorder · o operație |
+| Observație read-only | țintă și opțiune observate înaintea primei activări, în același deadline |
 | Locator strict | Locator strict · un buget de așteptare |
 | Activare unică | o activare |
 | FAIL | FAIL auditabil |
@@ -510,6 +636,73 @@ cererilor anterioare scope-ului nu îl pot autoriza.
 Operațiile aplicației sunt în main la consumeri; declarația neutră este în
 [Kit](../atf-test-kit/README.md#declarația-neutră-pentru-recuperare-be).
 
+## Scope-ul listener-elor de observație
+
+Contabilitatea `ObservationBudget` are [probă cu ticks controlați](src/test/java/atf/ui/playwright/ObservationBudgetComponentTest.java):
+confirmările consumă același deadline, expirarea exactă este refuzată și o
+fracțiune de milisecundă nu devine timeout nativ zero. [Integrarea browserului](src/test/java/atf/ui/playwright/PlaywrightReadinessBudgetComponentTest.java)
+verifică separat observația nativă, cauza inițială și absența replay-ului.
+
+`UiBackendRecovery.recording` compune controllerul și rândurile INFO folosite
+de Shop și AutoEx, cu policy, operații și recorder explicite. Endpoint-ul,
+metoda și clasificarea read-only rămân la consumer; nu se activează implicit BE.
+
+| Protocol | Observație și decizie păstrate |
+|---|---|
+| BE pasiv UI | GET/HEAD allowlisted, stamp invocare/operație/document, conflicte și maximum 64 de semnale; nicio retrimitere |
+| catalog Shop | ultimul GET/QUERY eligibil, request/frame/document curent; cel mult un GET home după tranzitoriu confirmat, în bugetul inițial |
+| navigare AutoEx | document GET și rută/origine de aplicație; queue-full ori 520/525 observat, cu politica proprie |
+
+Aceste protocoale nu se substituie. Shop separă observația de decizia de
+refresh în main; observerul pasiv UI nu devine permisiv pentru QUERY ori cereri concurente.
+
+- `Retry-After` în loop-ul pasiv ancorează delta la recepția semnalului și
+  refuză inputul invalid.
+- Parserul Core primește clock și fallback explicit; înlocuirea mecanică ar
+  schimba gramatica ori bugetul rămas.
+
+`UiListenerScope` deține atașarea și retragerea callback-urilor browserului.
+Observerul pasiv UI, catalogul Shop și lookup-ul adresei îl compun în main;
+politicile business și runnerul JUnit rămân la ownerii lor.
+
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":32,"padding":6,"diagramPadding":20}}}%%
+flowchart LR
+    Declarations["Declarații"] -->|atașează| Attach["Atașare"]
+    Attach -->|confirmă tot| Active["Activ"]
+    Attach -->|eșuează| Rollback["Rollback"]
+    Active -->|închide| Withdraw["Retragere"]
+    Rollback -->|retrage| Withdraw
+    Withdraw -->|păstrează| Causes["Cauze"]
+```
+
+<details>
+<summary><strong>Legendă — activare și retragere indivizibile pentru callback</strong></summary>
+
+- Declarațiile fixează perechile attach/detach înaintea efectelor browserului.
+- Atașarea incompletă nu este activă; rollback-ul și close-ul retrag toate
+  perechile declarate, cu callback-urile deja inactive.
+- Prima cauză rămâne primară, cauzele distincte ulterioare sunt suppressed;
+  repetarea aceleiași instanțe nu produce self-suppression.
+
+</details>
+
+| Moment | Contract |
+|---|---|
+| Declarare | toate perechile attach/detach sunt înregistrate înaintea primei atașări |
+| Atașare | `active()` devine true numai după succesul tuturor atașărilor; callback-urile verifică acest guard înaintea obiectelor driver |
+| Rollback | prima cauză a achiziției rămâne primară; fiecare eroare distinctă de cleanup devine suppressed, inclusiv `Error` |
+| Close | scope-ul devine inactiv înaintea retragerilor; toate sunt încercate în ordinea declarată, exact o dată |
+| Erori identice | identitatea obiectului exclude self-suppression și repetarea aceleiași cauze; cleanup-ul continuă |
+
+Un close eșuat consumă ownership-ul: toate retragerile au fost deja încercate,
+iar un al doilea close este inert. Scope-ul respectă thread-ul Playwright al
+callerului; nu introduce transport, replay ori un timeout nou.
+
+`UiListenerScopeComponentTest`, `UiRecoveryObserverLifecycleComponentTest` și
+`ShopCatalogLifecycleComponentTest` probează nominalul, atașarea parțială,
+cauzele identice/distincte și callback-urile reținute.
+
 ## Inspectorul de rețea — limită generică de responsabilitate
 
 Fluxul cross-module și baseline-ul setup/causal au un singur owner în
@@ -662,6 +855,14 @@ flowchart LR
 - `UiNetworkBodyFidelityComponentTest` probează capturarea browser locală,
   sanitizarea typed, notificarea subscriberilor și separarea semnăturilor.
 
+Jurnalul raw păstrează ordinea și statusul fiecărei observații. Compactarea
+prezentării reține prima observație a fiecărei secvențe cu aceeași semnătură;
+repetările neconsecutive și numărul total de apariții rămân inspectabile.
+
+`UiNetworkPresentationStreamComponentTest` verifică independent ordinea,
+`201→500`, politica dezactivată și repetițiile separate de alt request.
+O vedere compactată nu înlocuiește jurnalul folosit pentru selecția business.
+
 Read-back după acțiune:
 
 - înainte de acțiune: capturează `observationCursor()`;
@@ -758,3 +959,14 @@ Comanda selectează proba numită și construiește dependențele; nu declară
 trecerea întregului modul. Retenția completă nu probează livrarea tuturor subscriberilor ori cauzalitatea unei acțiuni.
 
 </details>
+
+## Deadline determinist al clickului cu postcondiție
+
+`ObservationBudgetComponentTest` verifică aritmetica și ownerul real
+`clickAndAwait` cu un ceas monoton controlat: pointerul, observațiile succesive
+și întoarcerea callback-ului consumă același deadline. Constructorii injectabili
+rămân package-private; execuția obișnuită folosește `System.nanoTime`.
+
+Durata raportată de recorder rămâne măsurată real, separat de ceasul probei.
+Probele browser verifică starea și activarea după pregătirea fixture-ului;
+nu deduc propagarea deadline-ului dintr-un prag wall-clock al sistemului.

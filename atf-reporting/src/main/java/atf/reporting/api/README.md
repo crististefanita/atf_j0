@@ -30,6 +30,12 @@ operații; acele responsabilități rămân în consumer.
 
 - `ReportQueryParameters.values()` păstrează aparițiile; `asMap()` este view
   legacy cu ultima valoare pe nume. Eticheta lizibilă nu este identitatea completă.
+- `ReportRequest.queryParameters()` păstrează aceste perechi prin builder și
+  adaptarea externă. Semnătura sigură păstrează multiplicitatea și ordinea
+  aparițiilor aceluiași nume; politica de mascare a credentialelor rămâne explicită.
+- Când politica de captură a eliminat valorile, `queryFingerprint()` păstrează
+  numai identitatea opacă. Nu reconstruiește perechile; digestul nu apare în HTML.
+  Schimbarea query-ului prin builder invalidează amprenta capturii precedente.
 - `partialExecution(...)` cere explicit disponibilitatea response-ului din
   snapshot-ul extern; istoricul și termination nu fabrică un răspuns nou.
 - Semnătura pentru prezentare și identitatea request-ului nu autorizează replay.
@@ -40,8 +46,8 @@ operații; acele responsabilități rămân în consumer.
 
 ## Probe și context adiacent
 
-- `TerminalExecutionProjectionTest`: adaptarea unui snapshot parțial și diagnosticul terminal.
-- `ReportTransportTimingTest`: durate și disponibilitate, fără timp inventat.
+- [TerminalExecutionProjectionTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/api/execution/terminal/TerminalExecutionProjectionTest.java): adaptarea unui snapshot parțial și diagnosticul terminal.
+- [ReportTransportTimingTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/api/timing/ReportTransportTimingTest.java): durate și disponibilitate, fără timp inventat.
 - Contractele de query și asociere sunt legate din [Reporting Tests](../../../../../../../atf-reporting-tests/README.md#fidelitatea-query-ului-și-asocierea-mock).
 
 Pentru statusul unui exchange atașat UI se citește și

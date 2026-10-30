@@ -42,11 +42,20 @@ class AutoExPurchaseUiAdapterComponentTest {
             var probe = new Probe(false, 200, actual);
             var adapter = probe.adapter();
             assertSame(probe.gateFailure, assertThrows(IllegalStateException.class, adapter::verifySelectedProduct));
-            assertEquals(List.of("checkpoint:PRODUCT_DETAILS"), probe.events);
+            assertEquals(List.of("openProduct:Blue Top", "checkpoint:PRODUCT_DETAILS"), probe.events);
             assertFalse(probe.rows.stream().allMatch(AtfAssertion::passed));
             assertEquals("Blue Top", probe.rows.getFirst().expected());
             assertEquals(actual, probe.rows.getFirst().actual());
         }
+    }
+
+    @Test
+    void unconfirmedProductTransitionPreservesTheCauseAndCannotReachTheBusinessCheckpoint() {
+        var probe = new Probe(false, 200, "Blue Top\nRs. 500\nIn Stock");
+        probe.transitionFailure = new IllegalStateException("owned product document not confirmed");
+        assertSame(probe.transitionFailure, assertThrows(IllegalStateException.class, probe.adapter()::verifySelectedProduct));
+        assertEquals(List.of("openProduct:Blue Top"), probe.events);
+        assertTrue(probe.rows.isEmpty(), "No business verdict or cart mutation can precede a confirmed product transition");
     }
 
     @Test
@@ -99,6 +108,7 @@ class AutoExPurchaseUiAdapterComponentTest {
         private final RuntimeException gateFailure = new IllegalStateException("checkpoint gate");
         private List<AtfAssertion> rows = List.of();
         private RuntimeException modalTimeout;
+        private RuntimeException transitionFailure;
 
         private Probe(boolean api, int status, String detailText) {
             this.api = api; this.status = status; this.detailText = detailText;
@@ -115,7 +125,11 @@ class AutoExPurchaseUiAdapterComponentTest {
                                     if (modalTimeout != null) throw modalTimeout;
                                 }
                                 return null;
-                            case "clickFirst": return null;
+                            case "openFirstProduct":
+                                assertEquals(PRODUCT.productName(), args[0]);
+                                events.add("openProduct:" + args[0]);
+                                if (transitionFailure != null) throw transitionFailure;
+                                return null;
                             case "text": return AutoExSelectors.PRODUCT_INFORMATION.equals(args[0])
                                     ? detailText : "Added! Your product has been added to cart.";
                             case "fill": events.add("fill:" + args[1]); return null;

@@ -16,6 +16,7 @@ import atf.reporting.contract.AtfReportPorts;
 import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.extent.session.ExtentReportSession;
 import atf.reporting.model.diagnostic.ReportPhaseDiagnostic;
+import atf.reporting.evidence.diagnostic.ReportFailureDescription;
 import atf.reporting.security.SensitiveDataRedactor;
 import atf.testkit.lifecycle.FailureAwareCleanup;
 import atf.testkit.output.ReportOutputDirectory;
@@ -28,12 +29,8 @@ import java.nio.file.Path;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Instant;
-import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -49,8 +46,6 @@ public final class AutoExApiContractReportExtension implements BeforeAllCallback
     public static final String REPORT_DIRECTORY_PROPERTY = "atf.autoex.api.report-directory";
     private static final String DEFAULT_REPORT_DIRECTORY = "artifacts/reports/api/auto-ex";
     private static final String REPORT_FILE_PREFIX = "api-atf-auto-ex-contract_";
-    private static final int MAX_DIAGNOSTIC_FAILURES = 4;
-    private static final int MAX_DIAGNOSTIC_LENGTH = 1_000;
     private static final ExtensionContext.Namespace NAMESPACE =
             ExtensionContext.Namespace.create(AutoExApiContractReportExtension.class);
     private static final String SESSION = "session";
@@ -214,30 +209,9 @@ public final class AutoExApiContractReportExtension implements BeforeAllCallback
 
     public static void recordExecutionFailure(AtfReportPorts.Phase phase, Throwable failure) {
         if (phase == null || failure == null) return;
-        String diagnostic = describeFailure(failure);
+        String diagnostic = ReportFailureDescription.describe(failure);
         diagnostic = atf.autoex.runtime.api.AutoExApiFailureEvidence.publish(phase, failure, diagnostic).orElse(diagnostic);
         phase.diagnostic(ReportPhaseDiagnostic.Kind.JUNIT_FAILURE, diagnostic);
-    }
-
-    private static String describeFailure(Throwable failure) {
-        var description = new StringBuilder();
-        Set<Throwable> seen = Collections.newSetFromMap(new IdentityHashMap<>());
-        var pending = new ArrayDeque<Throwable>();
-        pending.add(failure);
-        int relatedFailures = 0;
-        while (!pending.isEmpty() && relatedFailures < MAX_DIAGNOSTIC_FAILURES) {
-            Throwable current = pending.removeFirst();
-            if (!seen.add(current)) continue;
-            relatedFailures++;
-            if (!description.isEmpty()) description.append(" <- ");
-            description.append(current.getClass().getSimpleName());
-            String message = current.getMessage();
-            if (message != null && !message.isBlank()) description.append(": ").append(message.trim());
-            if (current.getCause() != null) pending.addLast(current.getCause());
-            for (Throwable suppressed : current.getSuppressed()) pending.addLast(suppressed);
-        }
-        String safe = new SensitiveDataRedactor().redactText(description.toString());
-        return safe.length() <= MAX_DIAGNOSTIC_LENGTH ? safe : safe.substring(0, MAX_DIAGNOSTIC_LENGTH);
     }
 
     public static Path resolveDirectory(Path projectRoot, String configured) {

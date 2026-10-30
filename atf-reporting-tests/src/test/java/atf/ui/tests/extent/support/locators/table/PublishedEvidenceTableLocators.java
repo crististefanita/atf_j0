@@ -19,7 +19,7 @@ public final class PublishedEvidenceTableLocators {
     public Locator closedDetails(Page page) { return page.locator("details:not([open]):visible"); }
     public Locator summaries(Page page) { return details(page).locator(":scope > summary"); }
     public Locator assertions(Page page) {
-        return page.locator("table.helm-validation-table:visible,table.assertions:visible");
+        return page.locator("table[class~='helm-validation-table']:visible,table[class~='assertions']:visible");
     }
     public Locator rows(Locator table) { return table.locator(":scope > tbody > tr"); }
     public Locator viewport(Locator table) { return table.locator(".."); }
@@ -31,7 +31,7 @@ public final class PublishedEvidenceTableLocators {
     public Locator firstCategory(Page page) { return common.categoryItems(page).first(); }
     public Locator firstFailure(Page page) { return common.failureItems(common.failsView(page)).first(); }
     public Locator failureDetail(Page page) { return common.failureDetail(common.failsView(page)); }
-    public Locator failurePanels(Page page) { return common.failsView(page).locator(":scope > .test-list,:scope > .test-content"); }
+    public Locator failurePanels(Page page) { return common.failsView(page).locator(":scope > [class~='test-list'],:scope > [class~='test-content']"); }
     public Locator view(Page page, boolean fallback, ReportUiContract.Tab tab) {
         return fallback ? page.locator("[id='" + fallbackTab(tab).value() + "']") : common.tabView(page, tab);
     }

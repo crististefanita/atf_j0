@@ -3,6 +3,7 @@ package atf.autoex.runtime.reporting;
 import atf.autoex.config.AutoExConfiguration;
 import atf.autoex.locator.AutoExRoutes;
 import atf.reporting.configuration.ReportEnvironmentField;
+import atf.ui.config.geometry.UiViewportScale;
 import atf.reporting.configuration.ReportEnvironmentSnapshot;
 import atf.reporting.configuration.ui.ReportUiEnvironment;
 import atf.reporting.evidence.profile.ReportEvidenceProfile;
@@ -23,7 +24,8 @@ public final class AutoExReportSystemMetadata {
         var snapshot = new ReportUiEnvironment(environment, configuration.baseUrl(), browser(browser),
                 apiEnabled ? "UI + API evidence" : "UI evidence",
                 "UI: " + retry(browser.retryPolicy()) + "; store navigation: " + retry(configuration.storeAvailabilityPolicy()),
-                evidence, apiEnabled ? "Browser HTTP evidence when observed" : "External live website").describe();
+                evidence, apiEnabled ? "Browser HTTP evidence when observed" : "External live website").describe()
+                .put(ReportEnvironmentField.VIEWPORT, new UiViewportScale(browser).description());
         if (apiEnabled) {
             var network = browser.networkInspection();
             snapshot.put(ReportEnvironmentField.API_ENDPOINT, ReportUiEnvironment.origin(AutoExRoutes.PRODUCTS_API.resolve(configuration.baseUrl())))
@@ -44,7 +46,8 @@ public final class AutoExReportSystemMetadata {
     /** Low-level legacy callers have a browser contract but no declared UI/API channel. */
     public static ReportEnvironmentSnapshot browserOnly(UiBrowserConfiguration browser, ReportEvidenceProfile evidence) {
         return new ReportUiEnvironment(DEFAULT_ENVIRONMENT, browser.baseUrl(), browser(browser),
-                "Channel declared by scenario", retry(browser.retryPolicy()), evidence, "Configured browser target").describe().build();
+                "Channel declared by scenario", retry(browser.retryPolicy()), evidence, "Configured browser target").describe()
+                .put(ReportEnvironmentField.VIEWPORT, new UiViewportScale(browser).description()).build();
     }
 
     private static ReportUiEnvironment.Browser browser(UiBrowserConfiguration browser) {

@@ -278,11 +278,22 @@ class PlaywrightActionSequenceTest {
     @Test
     void nativeOptionAndValueAssertionsRemainTraceable() {
         var selected = new ArrayList<String>();
+        var page = (com.microsoft.playwright.Page) Proxy.newProxyInstance(
+                com.microsoft.playwright.Page.class.getClassLoader(), new Class<?>[]{com.microsoft.playwright.Page.class},
+                (proxy, method, arguments) -> {
+                    if (method.getName().equals("waitForCondition")) {
+                        assertTrue(((java.util.function.BooleanSupplier) arguments[0]).getAsBoolean());
+                        return null;
+                    }
+                    throw new UnsupportedOperationException(method.getName());
+                });
         var locator = (com.microsoft.playwright.Locator) Proxy.newProxyInstance(
                 com.microsoft.playwright.Locator.class.getClassLoader(),
                 new Class<?>[]{com.microsoft.playwright.Locator.class},
                 (proxy, method, arguments) -> switch (method.getName()) {
                     case "count" -> 1;
+                    case "page" -> page;
+                    case "evaluate", "isVisible", "isEnabled" -> true;
                     case "selectOption" -> {
                         selected.add(((com.microsoft.playwright.options.SelectOption) arguments[0]).label);
                         yield List.of("cash-on-delivery");
@@ -305,6 +316,7 @@ class PlaywrightActionSequenceTest {
         assertEquals("Expect value", actions.snapshot().get(1).operation());
         assertEquals("2", actions.snapshot().get(1).observed());
         assertTrue(selected.getFirst().contains("Cash on Delivery"));
+        assertEquals(1, selected.size(), "Readiness does not invoke the mutating native selection");
     }
 
     @Test

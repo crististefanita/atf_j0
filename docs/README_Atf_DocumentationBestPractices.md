@@ -527,7 +527,8 @@ datate, istorice de rulări sau artifacte locale.
 
 | Dimensiune | Probă nativă | Ce mai cere review manual |
 |---|---|---|
-| Structură și navigare | [README structure](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationReadmeStructureGovernanceTest.java) și [anchors](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationAnchorGovernanceTest.java) | traseul cititorului și sensul destinației |
+| Structură | [README structure](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationReadmeStructureGovernanceTest.java) | primul ecran și traseul cititorului |
+| Linkuri și fragmente | [toate documentele guvernate](../atf-tests/src/test/java/atf/api/tests/governance/documentation/links/DocumentationLinkGovernanceTest.java) și [probe negative](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationAnchorGovernanceTest.java) | sensul etichetei și afirmația de lângă link |
 | Stil și proză | [style](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationStyleGovernanceTest.java) și [prose](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationProseGovernanceTest.java) | formularea exactă, densitatea utilă și primul ecran |
 | Diagrame și legende | [diagram governance](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationDiagramGovernanceTest.java) | randare, geometrie și păstrarea sensului |
 | Fidelitate factuală | cod/POM/test la owner, plus [harta modulelor](ATF_Architecture.md) | limita dintre comportament livrat, probă executată și propunere |
