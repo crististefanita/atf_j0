@@ -73,6 +73,8 @@ public final class AccountPage extends AutoExPage {
         return visible(AutoExSelectors.LOGGED_IN_NAME) ? loggedInName() : "";
     }
 
+    public String awaitLoggedInName() { return run.observeCustomerName(); }
+
     /** Arm before a real UI or API create attempt; both use the same identity-checked UI cleanup. */
     public void trackDisposableAccountCreation(AutoExTestAccount account) {
         run.accountLifecycle().creationAttempted(account);

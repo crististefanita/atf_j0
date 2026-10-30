@@ -2600,6 +2600,64 @@ testChanges:
       - atf-reporting-tests/src/test/java/atf/reporting/ui/publication/UiPublicationFailureComponentTest.java
       - atf-ui/src/test/java/atf/ui/network/UiNetworkRequestIdentityComponentTest.java
 
+  - id: REPORT-PREVIEW-CONFIGURATION-37
+    status: VERIFIED
+    base: addd434eaeec7a67fa58eb85256b843ae30c3db5
+    expires: 2026-11-29
+    reason: >-
+      Verifică bugetul implicit și configurat în colector și renderer, cu
+      valoarea efectivă în System, individual și prin suită, fără verdict din preview.
+    proof: mvn -B -pl atf-reporting-tests,atf-test-auto-ex,atf-test-practice-shop,atf-tests -am "-Dtest=ReportingPreviewConfigurationComponentTest,ReportingCoverageMatrixTest,AutoExComponentReportScopeComponentTest,ShopComponentReportScopeComponentTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/preview/ReportingPreviewConfigurationComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/governance/ReportingCoverageMatrixTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/extension/AutoExExtentTestExtension.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/reporting/AutoExComponentReportScopeComponentTest.java
+
+```
+
+</details>
+
+### Observarea identității, cleanup și navigare
+
+Controalele leagă probele independente de readiness, eliberarea resurselor și
+revenirea la comparația originală de perimetrul exact al revizuirii.
+
+<details>
+<summary><strong>Registru YAML — controale VERIFIED pentru cele trei priorități</strong></summary>
+
+```yaml
+testChanges:
+  - id: AUTOEX-IDENTITY-OBSERVATION-37
+    status: VERIFIED
+    base: addd434eaeec7a67fa58eb85256b843ae30c3db5
+    expires: 2026-11-06
+    reason: Protejează observația bounded a identității prin pagina reală, refuzul identității străine sau indisponibile și activarea unică a checkout-ului. Păstrează cele cinci comparații ale gate-ului și scenariile existente.
+    proof: mvn "-Dtest=AutoExCustomerIdentityObservationComponentTest,AutoExCheckoutUiGateComponentTest,UiNetworkLifecycleComponentTest,UiFailurePublicationComponentTest,PublishedFailureNavigationComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Datf.test.heap.max=384m" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/pages/AutoExCustomerIdentityObservationComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/support/identity/AutoExCustomerIdentityFixture.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/purchase/AutoExCheckoutUiGateComponentTest.java
+  - id: UI-CAPTURE-CLEANUP-32
+    status: VERIFIED
+    base: addd434eaeec7a67fa58eb85256b843ae30c3db5
+    expires: 2026-11-06
+    reason: Probe independente pentru atașare parțială, toate dezabonările, callback-uri după close și conservarea RuntimeException/Error fără self-suppression.
+    proof: mvn "-Dtest=AutoExCustomerIdentityObservationComponentTest,AutoExCheckoutUiGateComponentTest,UiNetworkLifecycleComponentTest,UiFailurePublicationComponentTest,PublishedFailureNavigationComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Datf.test.heap.max=384m" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-ui/src/test/java/atf/ui/network/lifecycle/UiNetworkLifecycleComponentTest.java
+  - id: REPORT-FAILURE-OWNERSHIP-NAVIGATION-37
+    status: VERIFIED
+    base: addd434eaeec7a67fa58eb85256b843ae30c3db5
+    expires: 2026-11-06
+    reason: Protejează publisherul de failure direct și delegat prin porturi fără cleanup în cascadă și navigarea exactă în SETUP/TEST BODY/TEARDOWN pentru UI/API/component, inclusiv controale negative și tastatură.
+    proof: mvn "-Dtest=AutoExCustomerIdentityObservationComponentTest,AutoExCheckoutUiGateComponentTest,UiNetworkLifecycleComponentTest,UiFailurePublicationComponentTest,PublishedFailureNavigationComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Datf.test.heap.max=384m" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/publication/UiFailurePublicationComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/failurecorrelation/FailureNavigationFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/failurenavigation/FailureNavigationLocators.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failurenavigation/FailureNavigationProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationComponentTest.java
 ```
 
 </details>

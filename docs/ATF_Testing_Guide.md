@@ -75,8 +75,15 @@ nu au această obligație; probele rendererului rămân o categorie separată î
 - `AuditedAssertions` și `RecordedAssertions` păstrează evaluarea JUnit unică;
   politica de rezultat, fazele și plafonul implicit de 240 de caractere sunt la
   [Test Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră).
+- Bugetul configurat se propagă din ownerul raportului în colector, inclusiv
+  peste implicit; `Overview → System` arată valoarea efectivă. Probele consumerilor
+  verifică lansarea individuală și prin suită, iar contractul comun este la
+  [Reporting](../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor).
 - Un test componentă reușit cere o verificare auditată; un diagnostic sau un pas
   HTTP fabricat nu înlocuiește comparația. Așteptările rămân independente de observații.
+- Comparațiile al căror sens nu rezultă din valori au mesaje declarative în
+  engleză: invariantul și obiectul verificat, fără date sensibile. Referința la
+  sursă ajută trasabilitatea, dar nu înlocuiește sensul rândului din raport.
 - Lansarea individuală și suita folosesc același adaptor al aplicației;
   validările Extent/fallback și interacțiunea disclosure-ului sunt probate la
   [Reporting Tests](../atf-reporting-tests/README.md).
@@ -152,6 +159,31 @@ o singură dată, cu fixture generică, la ownerul Reporting. Test Kit nu este u
 loc general de mutare a testelor: nu depinde de Reporting, Playwright sau codul
 consumerilor; candidatele se promovează numai dacă sunt primitive de infrastructură
 neutră, nu doar pentru că sunt folosite de două aplicații.
+
+### Proba fiecărui owner de resurse
+
+O fațadă publică poate delega către colaboratori cu protocoale de achiziție și
+cleanup diferite. Proba unui protocol nu certifică alt owner doar pentru că
+intrările au aceeași fațadă sau produc același raport.
+
+| Moment | Oracol independent |
+|---|---|
+| Achiziție parțială | se închid numai handle-urile primite, fără resursă pierdută |
+| Body sau complete eșuat | cauza primară păstrează identitatea; fiecare copil se închide înaintea părintelui |
+| Cleanup multiplu eșuat | toate închiderile deținute sunt încercate o dată; cauzele secundare rămân suppressed |
+| Aceeași instanță la body și close | nu apare self-suppression și nu se substituie cauza primară |
+
+Testul injectează erori prin portul public și înregistrează ordinea apelurilor;
+nu deduce cleanup-ul copilului dintr-un close al părintelui. Un renderer poate
+închide în cascadă, dar aceasta nu dovedește contractul publisherului neutru.
+Se disting cauza business primită ca evidence și cauza execuției publicării;
+cleanup-ul nu reevaluează verdictul și nu reexecută operația business.
+
+Aceste probe aparțin ownerului infrastructurii, cu fixture neutră; adaptarea
+business rămâne în consumer. Pentru Reporting se verifică separat proiecția
+semantică și randarea Extent/fallback, inclusiv aserțiuni colapsabile, bugetul
+configurat și redactarea. Nu este necesar un nou framework de lifecycle pentru a
+extinde matricea ownerului existent.
 
 ### Reducerea suitei fără pierdere de acoperire
 

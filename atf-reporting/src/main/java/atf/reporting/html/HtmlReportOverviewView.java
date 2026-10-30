@@ -9,6 +9,11 @@ import static atf.reporting.html.HtmlReportMarkupSupport.escape;
 /** Renders only the fallback Overview aggregate. */
 public final class HtmlReportOverviewView {
     String render(ReportExecutionModel snapshot) {
+        return render(snapshot, atf.reporting.configuration.ReportEnvironment.reportingSettings(
+                atf.reporting.configuration.ReportingSettings.defaults()).systemDisplayValues());
+    }
+
+    String render(ReportExecutionModel snapshot, java.util.Map<String, String> system) {
         var overview = snapshot.overview();
         String summary = metric("Tests", overview.tests()) + metric("Passed", overview.passed())
                 + metric("Failed", overview.failed()) + metric("Skipped", overview.skipped());
@@ -29,8 +34,20 @@ public final class HtmlReportOverviewView {
                         AtfReportHtmlVocabulary.CssClass.CONTRACT));
         return HtmlReportFallbackViewSupport.sectionStart(
                         AtfReportHtmlVocabulary.FallbackTab.OVERVIEW)
-                + body
+                + body + systemTable(system)
                 + HtmlReportFallbackViewSupport.sectionEnd();
+    }
+
+    private static String systemTable(java.util.Map<String, String> values) {
+        var rows = new StringBuilder();
+        rows.append(AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.TR,
+                AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.TH, "Name")
+                        + AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.TH, "Value")));
+        values.forEach((name, value) -> rows.append(AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.TR,
+                AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.TD, escape(name))
+                        + AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.TD, escape(value)))));
+        return AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.H3, "System")
+                + AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.TABLE, rows.toString());
     }
 
     private static String metric(String label, long value) {

@@ -11,6 +11,7 @@ import java.util.List;
 
 /** Account-page capabilities, including owned-account cleanup and its visible checkpoints. */
 public interface AutoExAccountPagePort extends AutoExUiActions {
+    String observeCustomerName();
     AutoExConfiguration configuration();
     AutoExAccountLifecycle accountLifecycle();
     Page page();

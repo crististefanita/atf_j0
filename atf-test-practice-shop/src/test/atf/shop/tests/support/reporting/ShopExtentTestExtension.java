@@ -45,7 +45,7 @@ public final class ShopExtentTestExtension implements ComponentAuditAdapter {
                 type.getPackageName(), title, method, List.of("component", "practice-shop")));
         return new ComponentAuditExtension.Publication() {
             @Override public AssertionValueDisplay display() {
-                return new AssertionValueDisplay(AssertionValueDisplay.DEFAULT_LIMIT, report::redactField);
+                return new AssertionValueDisplay(owner.run().assertionMaxDisplayCharacters(), report::redactField);
             }
             @Override public void publish(ComponentAssertionAudit.Result result) {
                 for (var phase : result.phases()) report.phase(phase.phase().name().replace('_', ' '),

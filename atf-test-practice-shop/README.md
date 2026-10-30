@@ -73,8 +73,8 @@ Etichetele scurte păstrează următorul sens:
 | Configurație | `src/test/resources/atf-practice-shop.yaml`, `ShopConfigurationLoader` | valori și fixture-uri Practice Shop, nu configurare globală ATF |
 | UI | `routes`, `locators`, `pages`, `flow` în `src/main/atf/shop` | semantică a aplicației; browserul generic rămâne în `atf-ui` |
 | API | `api` și `support/api` în același source root | contractele wire și maparea către dovezile Shop; transportul generic rămâne în `atf-core` |
-| Evidence runtime | `src/main/.../{evidence,reporting}` | factory-uri de captură și politică Shop, fără JUnit/Kit; rendererul rămâne în Reporting |
-| Harness consumer | `src/test/.../support/{lifecycle,reporting}` | ownership browser/report, metadata de rulare și integrare JUnit |
+| Evidence runtime | `src/main/.../{runtime,evidence,reporting}` | achiziție browser/journal, capturi, factory de raport și proiecție metadata Shop, fără JUnit/Kit |
+| Harness consumer | `src/test/.../support/{lifecycle,reporting}` | ownership al resurselor dobândite, composition root și integrare JUnit; rendererul rămâne în Reporting |
 | Teste | `src/test/atf/shop/tests` | compun și verifică Shop; testele reutilizabile ATF aparțin modulului care deține contractul generic |
 
 Comportamentele Shop folosesc `atf-core`, `atf-console`, `atf-reporting` și
@@ -96,7 +96,7 @@ src/main/atf/shop
 ├── pages/        page objects, inclusiv account flows
 ├── flow/         journey-ul semantic și stage-urile lui
 ├── evidence/     capture provider cu mascarea câmpurilor sensibile Shop
-├── reporting/    politica de screenshot din configurația Shop
+├── reporting/    politica de screenshot și proiecția metadata din configurația Shop
 ├── runtime/      achiziția browserului și a sesiunii de raport, cu intrări explicite
 └── support/      checkpoint, validation, API report mapping și network journal Shop
 
@@ -113,7 +113,7 @@ src/test/atf/shop/tests
 │   └── support/      fixture-uri și transporturi locale test-only
 └── support/
     ├── lifecycle/  context browser/report per scenariu și probele sale
-    ├── reporting/ metadata de rulare și probele adaptorului
+    ├── reporting/ adaptorul JUnit pentru raportare; mapping-ul metadata rămâne în main
     └── ...         fixture-uri, extension și probe E2E
 ```
 
@@ -264,7 +264,7 @@ flowchart LR
 succes întârziat, 503→200, conexiune resetată, epuizare, 200 fără produse,
 403, `Retry-After`, buget comun, document înlocuit și rute/metode neeligibile.
 Comparațiile folosesc pasul standard `Component assertions`, colapsat implicit,
-cu limita 240. Fixture-ul artificial și serverul deținute de probă rămân în test.
+cu bugetul configurat, implicit 240. Fixture-ul artificial și serverul deținute de probă rămân în test.
 
 Verificarea live compară aceeași clasă individual și prin `ShopE2eSuite`
 filtrată, cu un singur HTML pe lansare. Un PASS eșantionat nu demonstrează
@@ -561,7 +561,7 @@ catalogul întârziat, epuizarea și captura lipsă. Scrierile prin GET și oper
 necunoscute sunt refuzate înaintea browserului.
 
 Aserțiunile acestor componente rămân în pasul standard `Component assertions`,
-colapsat implicit, cu redactare înaintea plafonului integral de 240 de caractere.
+colapsat implicit, cu redactare înaintea plafonului configurat, implicit 240 de caractere.
 Unit și probele renderer din Reporting Tests își păstrează categoriile separate.
 
 </details>
@@ -841,7 +841,7 @@ flowchart LR
 - Se execută acțiunea UI existentă o singură dată. Selecția, validarea și
   publicarea sunt pasive și nu repetă payment, add sau read.
 - Valorile de aserțiune păstrează redactarea integrală înaintea plafonului
-  de 240 de caractere, inclusiv elipsa, în Tests, Fails și după expandare.
+  configurat, implicit 240 de caractere inclusiv elipsa, în Tests, Fails și după expandare.
 
 </details>
 
@@ -865,7 +865,7 @@ ajunge la checkout și la validarea răspunsului comenzii.
   Confirmarea UI trebuie să conțină exact un token complet de factură, egal cu
   cel creat de server; `INV-12` nu corespunde lui `INV-123`, unui sufix sau mai multor facturi.
 
-Rândurile expected/actual păstrează bugetul redactat de 240. UI-only verifică
+Rândurile expected/actual păstrează bugetul configurat după redactare. UI-only verifică
 sumele coșului fără a fabrica evidence API; UI+API adaugă aceeași comparație
 pentru comanda guest ori autentificată și păstrează fereastra cauzală existentă.
 
@@ -1040,7 +1040,7 @@ Notificarea locației este independentă de generarea HTML.
   rapoarte de diagnostic lângă artifactul principal al suitei.
 - Declarația aparține clasei Jupiter, inclusiv la lansarea unei metode în IntelliJ;
   o adnotare pe `@Suite` nu se propagă claselor selectate.
-- Detaliile lifecycle și preview-urile aserțiunilor de maximum 240 de caractere
+- Detaliile lifecycle și bugetul configurabil al aserțiunilor, implicit 240,
   rămân politici separate.
 
 | Caz | Dovadă în raport |
@@ -1081,7 +1081,11 @@ flowchart LR
 - Sumele fazelor/scenariilor nu sunt wall-clock al suitei; zero măsurat rămâne valid.
   Fixture-urile de clasă reușite nu sunt distribuite între scenarii.
 - `AssertionAuditRun` închide sesiunea comună la owner; fiecare invocare
-  închide numai scenariul său. Două suite au owneri separați chiar în același launcher.
+  primește de la acel owner bugetul configurat `reporting.assertionMaxDisplayCharacters`,
+  înaintea colectării, inclusiv peste implicitul 240. Valoarea efectivă apare în
+  `Overview → System`, la `Assertion preview`.
+- Fiecare invocare închide numai scenariul său. Două suite au owneri separați
+  chiar în același launcher.
 - [Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră) deține delegarea,
   colectarea pe invocare și reconcilierea rezultatului; consumerul injectează redacția și configurația.
 - [Reporting](../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor) deține

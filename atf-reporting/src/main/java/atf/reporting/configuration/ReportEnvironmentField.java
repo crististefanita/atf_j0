@@ -25,6 +25,7 @@ public enum ReportEnvironmentField {
     NETWORK_INSPECTOR("Network inspector", "Network"),
     RETRY_POLICY("Retry policy", "Network"),
     BODY_PREVIEW("Body preview", "Evidence"),
+    ASSERTION_PREVIEW("Assertion preview", "Evidence"),
     API_EVIDENCE("API evidence", "Evidence"),
     UI_EVIDENCE_LAYOUT("UI evidence layout", "Evidence"),
     UI_ACTION_DETAILS("UI action details", "Evidence"),

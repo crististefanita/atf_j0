@@ -15,7 +15,7 @@ public final class AutoExCheckoutUiFlow implements AutoExCheckoutFlow.Port {
     public AutoExCheckoutUiFlow(CartPage cart, AccountPage account, Catalog product) {
         this.cart = Objects.requireNonNull(cart); this.account = Objects.requireNonNull(account); this.product = Objects.requireNonNull(product);
     }
-    @Override public String customerName() { return account.loggedInNameIfPresent(); }
+    @Override public String customerName() { return account.awaitLoggedInName(); }
     @Override public AutoExOrderLine observe() { return cart.orderLine(product); }
     @Override public void proceedToCheckout() { cart.proceedToCheckout(); }
 }

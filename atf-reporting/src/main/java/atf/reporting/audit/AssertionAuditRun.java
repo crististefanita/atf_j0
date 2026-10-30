@@ -4,6 +4,7 @@ import atf.reporting.contract.AtfReportPorts;
 import atf.reporting.security.SensitiveDataRedactor;
 import atf.reporting.configuration.AtfReportConfigurationLoader;
 import atf.reporting.configuration.ReportEnvironmentSnapshot;
+import atf.reporting.configuration.ReportingSettings;
 import atf.reporting.console.AtfConsoleSink;
 import atf.reporting.extent.session.ExtentReportSession;
 import java.io.IOException;
@@ -24,17 +25,28 @@ public final class AssertionAuditRun implements AutoCloseable {
     private final AtfReportPorts.Session session;
     private final SensitiveDataRedactor redactor;
     private final PublicationExecutor executor;
+    private final ReportingSettings settings;
     private final AtomicBoolean closed = new AtomicBoolean();
 
     public AssertionAuditRun(AtfReportPorts.Session session, SensitiveDataRedactor redactor) {
-        this(session, redactor, PublicationExecutor.direct());
+        this(session, redactor, ReportingSettings.defaults(), PublicationExecutor.direct());
     }
 
-    private AssertionAuditRun(AtfReportPorts.Session session, SensitiveDataRedactor redactor, PublicationExecutor executor) {
+    /** Uses the same immutable settings as the supplied renderer; does not load process configuration. */
+    public AssertionAuditRun(AtfReportPorts.Session session, SensitiveDataRedactor redactor, ReportingSettings settings) {
+        this(session, redactor, settings, PublicationExecutor.direct());
+    }
+
+    private AssertionAuditRun(AtfReportPorts.Session session, SensitiveDataRedactor redactor,
+                              ReportingSettings settings, PublicationExecutor executor) {
         this.session = Objects.requireNonNull(session, "session");
         this.redactor = Objects.requireNonNull(redactor, "redactor");
         this.executor = executor;
+        this.settings = Objects.requireNonNull(settings, "settings");
     }
+
+    /** The collector must bound values using this run's resolved setting, before publication. */
+    public int assertionMaxDisplayCharacters() { return settings.assertionMaxDisplayCharacters(); }
 
     public static AssertionAuditRun extent(Path directory, String prefix, ReportEnvironmentSnapshot environment,
                                            AtfConsoleSink console) {
@@ -53,7 +65,7 @@ public final class AssertionAuditRun implements AutoCloseable {
         var executor = PublicationExecutor.dedicated();
         try {
             var session = executor.call(() -> new ExtentReportSession(file, settings, redactor, console, environment));
-            return new AssertionAuditRun(session, redactor, executor);
+            return new AssertionAuditRun(session, redactor, settings, executor);
         } catch (RuntimeException | Error failure) {
             executor.close();
             throw failure;

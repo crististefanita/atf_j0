@@ -32,6 +32,9 @@ class AutoExCheckoutUiGateComponentTest {
         if (mode.equals("owned")) flow.reviewCheckout();
         else assertThrows(AutoExCheckoutValidationException.class, flow::reviewCheckout);
         assertEquals(5, probe.gateRows.size());
+        assertTrue(probe.calls.indexOf("observe-customer") >= 0
+                        && probe.calls.indexOf("observe-customer") < probe.calls.indexOf("publish-gate"),
+                "The page's bounded customer observation precedes the business gate publication");
         assertEquals(probe.registeredName, probe.gateRows.getFirst().expected());
         assertEquals(mode.equals("owned") ? 1 : 0, Collections.frequency(probe.calls, "checkout"));
         assertTrue(probe.calls.indexOf("publish-gate") >= 0);
@@ -55,6 +58,10 @@ class AutoExCheckoutUiGateComponentTest {
                 case "fill" -> { if (args[0].equals(AutoExSelectors.SIGNUP_NAME)) registeredName = (String) args[1]; yield null; }
                 case "click", "clickLast", "clickFirst" -> { if (args[0].equals(AutoExSelectors.CHECKOUT)) calls.add("checkout"); yield null; }
                 case "visible" -> !mode.equals("absent");
+                case "observeCustomerName" -> {
+                    calls.add("observe-customer");
+                    yield mode.equals("absent") ? "" : text(AutoExSelectors.LOGGED_IN_NAME);
+                }
                 case "text" -> text((String) args[0]);
                 case "checkpoint" -> {
                     if (args[0] == AutoExPurchaseTraceStep.CHECKOUT_PRECONDITIONS) {

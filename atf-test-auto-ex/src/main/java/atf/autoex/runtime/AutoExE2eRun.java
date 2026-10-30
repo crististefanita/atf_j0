@@ -214,6 +214,11 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
         return page().locator(selector).isVisible();
     }
 
+    @Override public String observeCustomerName() {
+        prepareUiInteraction();
+        return new atf.autoex.runtime.account.AutoExCustomerIdentityObservation(page(), actions).read();
+    }
+
     public int count(String selector) {
         prepareUiInteraction();
         return page().locator(selector).count();

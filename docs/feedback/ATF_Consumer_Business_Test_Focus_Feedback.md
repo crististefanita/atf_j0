@@ -8,7 +8,8 @@ fazele lifecycle și rezultatul PASS/FAIL/SKIP sunt contracte ale
 [Reporting](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor).
 
 Restanțele includ compatibilitatea marcajului numeric Shop, achiziția parțială,
-billing-ul observat în suită, tranziția produsului AutoEx și echivalența profilelor.
+billing-ul observat în suită, tranziția produsului AutoEx, sensul aserțiunilor
+și echivalența profilelor.
 Contractele deja livrate aparțin [AutoEx](../../atf-test-auto-ex/README.md),
 [Shop](../../atf-test-practice-shop/README.md) și
 [ghidului auditului componentelor](../ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
@@ -16,7 +17,7 @@ Politica BE read-only este documentată la [UI](../../atf-ui/README.md#recuperar
 auditul agregat păstrează [feedback separat](ATF_UI_Backend_Guided_Recovery_Feedback.md).
 
 Încărcarea inițială bounded a catalogului are [contract la Shop](../../atf-test-practice-shop/README.md#încărcarea-inițială-a-catalogului).
-Navigarea de la Fails la dovadă păstrează [criteriu separat Reporting](ATF_Reporting_Feedback.md#report-failure-deep-link-29--revenire-la-dovada-eșecului).
+Observația identității are [contract la AutoEx](../../atf-test-auto-ex/README.md#gate-ul-coșului-și-ownerul-contului); navigarea exactă la comparație aparține [Reporting](../../atf-reporting/README.md#revenirea-la-comparația-eșuată).
 
 ## Ordinea refactorizării
 
@@ -28,6 +29,7 @@ documentară /10. Nu reprezintă o notă a codului sau un rezultat de test.
 | `CONSUMER-SHOP-NUMERIC-FENCE-34` | 73 = 28 + 21 + 18 + 6 | capturile procesate în citirea pasivă pot rupe asocierea marcajului numeric legacy |
 | `CONSUMER-SHOP-BILLING-STATE-01` | 71 = 29 + 22 + 14 + 6 | diferență de valoare billing între suită și lansare individuală |
 | `CONSUMER-AUTOEX-PRODUCT-TRANSITION-24` | 70 = 29 + 19 + 17 + 5 | timeout la detaliul produsului după click reușit, observat în suita filtrată |
+| `CONSUMER-COMPONENT-ASSERTION-INTENT-36` | 63 = 24 + 15 + 18 + 6 | unele rânduri auditabile afișează numai operația, sursa și valori fără semnificație explicită |
 | `CONSUMER-RUNTIME-BOUNDARY-03` | 61 = 22 + 14 + 18 + 7 | probă deterministă a achiziției parțiale în factory-ul main extras |
 | `CONSUMER-E2E-PROFILES-01` | 57 = 24 + 10 + 17 + 6 | reducerea repetării live numai după echivalență demonstrată |
 
@@ -130,6 +132,37 @@ criteriul clasei single-flow și nu închide această diferență.
 lansări, iar eșecul rămâne auditabil; randarea corectă nu închide robustețea journey-ului.
 
 
+## CONSUMER-COMPONENT-ASSERTION-INTENT-36 — sensul comparației în raport
+
+**Prioritate: 63/100** = impact 24 + lacună 15 + lucrabil 18 + documentare 6.
+**Owner:** testele componentă Shop/AutoEx; infrastructura existentă Kit/Reporting.
+
+Rapoartele componentelor de mai jos permit expandarea scenariu → TEST BODY →
+Component assertions și păstrează expected/actual. Unele comparații fără mesaj cer însă
+deschiderea sursei pentru a afla ce exprimă un număr ori un boolean.
+
+| Exemplu verificat | Sens absent din eticheta rândului |
+|---|---|
+| [AutoExCheckoutUiGateComponentTest](../../atf-test-auto-ex/src/test/java/atf/autoex/tests/component/purchase/AutoExCheckoutUiGateComponentTest.java) | `5 / 5` numără verificările gate-ului; `1 / 1` numără checkout-urile; booleanul compară ordinea publicării față de checkout |
+| [ShopOrderRequestStartComponentTest](../../atf-test-practice-shop/src/test/atf/shop/flow/ShopOrderRequestStartComponentTest.java) | unele rânduri au mesaje business; altele arată numai numărul de exchange-uri selectate ori statusul lor |
+
+Este o lacună de lizibilitate a auditului, fără false PASS ori assertion lipsă
+demonstrate de aceste exemple. Nu justifică alt layer de assertion sau modificarea
+verdictului, grupării ori a fixture-ului business.
+
+- [ ] Adăugați mesaje declarative în engleză comparațiilor ambigue, prin
+      overload-urile existente. Păstrați expected-ul independent, evaluarea unică
+      și semantica mesajelor leneșe; nu calculați date ori observații suplimentare.
+- [ ] Verificați câte un caz relevant în fiecare modul, individual și prin suită:
+      rândul explică invariantul la expandare, cu sursa, valorile și verdictul intacte.
+      Păstrați redactarea, bugetul configurat și pasul standard inițial colapsat.
+- [ ] Limitați schimbarea la comparațiile care cer context; nu rescrieți mecanic
+      toate testele, nu dublați probele rendererului și respectați controlul testChanges.
+
+**Închidere:** cititorul identifică sensul comparațiilor vizate din raport,
+fără a reconstrui expresia din sursă. Regula stabilă este în
+[ghidul auditului](../ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
+
 ## CONSUMER-RUNTIME-BOUNDARY-03 — probele achiziției parțiale Shop
 
 **Prioritate: 61/100** = impact 22 + lacună 14 + lucrabil 18 + documentare 7.
@@ -151,6 +184,11 @@ scenariilor-surori. Rămâne o lacună mai îngustă în probele factory-ului ex
 - [ ] Păstrați interfețele explicite și scope-urile Maven; nu construiți un container
       de servicii sau un wrapper generic numai pentru a satisface proba.
 
+- [ ] Curățați reziduurile extracției după verificarea apelanților:
+      `ShopE2eContext` păstrează `STAMP` și metoda privată `projectRoot()` fără
+      utilizări în clasă, deși factory-ul raportului este acum în main. Nu recreați
+      rezolvarea rădăcinii în harness și nu mutați fixture-uri în runtime.
+
 **Închidere:** proba negativă detectează o scurgere sau pierderea cauzei din
 factory-ul real; un E2E reușit nu substituie acest caz de eroare.
 
@@ -160,17 +198,14 @@ Analiza adiacentă catalogului este [delimitată la UI](ATF_UI_Backend_Guided_Re
 Browserul și politica de retry nu se mută în Kit; candidații neutri se evaluează
 la granița JUnit, unde ambele module au deja dependența `test`.
 
-**Shop este modelul de referință pentru alinierea AutoEx.** Extracția neutră
-păstrează contractele Shop și îmbunătățește organizarea internă; prezența unei
-primitive în AutoEx este o dovadă de utilizare, nu motiv să înlocuim modelul Shop.
-
 Ownerii livrați pentru metadata, vocabular și achiziție sunt la
 [ghidul de cod](../README_Atf_CodeBestPractices.md#testul-exprimă-intenția-main-deține-capabilitatea).
-Criteriile de aici privesc compoziția resurselor, Store-ul și cleanup-ul rămase.
+Shop rămâne [modelul de referință](../README_Atf_CodeBestPractices.md#suport-e2e-reutilizabil-fără-abstractizare-forțată).
+Criteriile de aici privesc Store-ul și cleanup-ul rămase; nu redeschid extracția
+factory-urilor deja livrate în main.
 
 | Loc inspectat | Refactorizare de evaluat, neimplementată |
 |---|---|
-| `ShopE2eContext.open/openBrowser` și `AutoExRunFactory.open` | Shop folosește `FailureAwareCleanup`; AutoEx compune `TestRunInitialization`. Păstrați ownership-ul și ordinea Shop, apoi evaluați compoziția Kit; nu copiați factory-ul AutoEx peste Shop și nu creați o bază ce cunoaște ambele aplicații |
 | `ShopE2eTestSupport.SuiteReportResource` și `AutoExRunFactory.ReportResource` | ownership-ul raportului la Store este comun; Shop deține și conturi, iar AutoEx un `AutoExReportSession`. Evaluați `ScopedTestResource`/`CloseOnceResource` fără a muta Extent, credentiale sau profile în Kit |
 | `AutoExRunLifecycleAdapter` și teardown-ul Shop | `FailureEvidenceCleanup`/`FailureAwareCleanup` sunt deja neutre. Compuneți ordinea existentă prin porturi locale; runtime-ul din main nu importă JUnit/Kit |
 | Rezolvarea recovery din cele două factory-uri JUnit | `AtfUiRecoveryResolver` și planul sunt deja comune; trei linii de adaptare a configurației nu justifică un nou resolver ori un factory generic |

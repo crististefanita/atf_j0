@@ -6,7 +6,7 @@ nu citește mock-uri sau fixture-uri de aplicație.
 
 ## Pe scurt
 
-**Trasee rapide:** [Arbore și ownership](#contractul-raportului) · [Assert și 240](#proiecția-sigură-a-aserțiunilor) · [Timing](#timing-e2e-la-ownerul-runtime) · [Tabele](#lizibilitatea-dovezilor-în-panouri-înguste) · [Probe și limite](#verificare-rapidă)
+**Trasee rapide:** [Arbore și ownership](#contractul-raportului) · [Aserțiuni și buget](#proiecția-sigură-a-aserțiunilor) · [Timing](#timing-e2e-la-ownerul-runtime) · [Tabele](#lizibilitatea-dovezilor-în-panouri-înguste) · [Probe și limite](#verificare-rapidă)
 
 - **producție** — contracte typed, modele semantice, renderer, asset-uri și
   publication; zero dependențe către module ATF;
@@ -46,10 +46,10 @@ flowchart LR
 - mock-ul, browserul, JUnit orchestration și fixture-urile nu intră în producția librăriei.
 </details>
 
-| Suprafață | Responsabilitate | Boundary permis |
+| Suprafață | Responsabilitate | Limită |
 |---|---|---|
-| `src/main` | librăria producție și artifactul publicat | orice modul ATF, browser, fixture de business |
-| `src/test` | guard-uri și contracte standalone | mock, Playwright, endpoint live |
+| `src/main` | librăria producție și artifactul publicat | fără dependențe către module ATF, browser sau fixture de business |
+| `src/test` | guard-uri și contracte standalone | fără mock, Playwright sau endpoint live; compoziția este la Reporting Tests |
 | `atf-reporting-tests` | consumatorul canonic pentru component/integration API și UI/E2E | nu intră în JAR-ul reporting |
 | alte module | pot consuma API-ul public pentru normalizarea modelelor la boundary-ul propriu; nu înlocuiesc composition root-ul canonic | policy-ul rămâne în consumer, iar cuplajele test-scope se urmăresc separat în feedback |
 
@@ -301,7 +301,8 @@ necesită endpoint extern sau journey de produs.
 
 ## Cauza publicării și scope-urile deținute
 
-`UiEvidencePublisher` păstrează cauza inițială când închiderea aceleiași dovezi
+Publicarea directă și `UiFailureEvidencePublisher` folosesc același protocol
+`ReportPublicationScope`: cauza inițială este păstrată când închiderea dovezii
 eșuează. Proiecția exchange-urilor aparține colaboratorului intern
 `ApiEvidencePublisher`; fațada, modelele și API-ul consumerilor rămân aceleași.
 
@@ -329,19 +330,30 @@ flowchart LR
 
 - Protocolul privat de publicare închide request-ul și validările create,
   inclusiv UI validation standard/media și API assertions.
+- Diagrama descrie protocolul comun de închidere. Publisherul de failure
+  deține separat request-ul și validarea; copilul se închide înaintea părintelui,
+  inclusiv după eșec la assertions sau complete.
 - Un copil defect se închide înaintea părintelui; body-ul și complete-ul nu
   sunt reexecutate pentru a compensa o eroare close.
 - Colaboratorul API primește `UiApiValidationEvidence` și porturi Reporting.
   Păstrează ownerul API, exchange-urile și aserțiunile evaluate la consumer.
 - Colaboratorul rămâne intern: fără tip public nou, dependență browser/JUnit,
   modul suplimentar sau modificarea numărului maxim de tipuri pe pachet.
-- Gruparea flow-ului, politicile screenshot, timing-ul și preview-ul 240
+- Gruparea flow-ului, politicile screenshot, timing-ul și preview-ul configurat
   păstrează contractele existente; cleanup-ul nu reevaluează comparații.
 
 </details>
 
 Proba `UiPublicationFailureComponentTest` injectează erori prin fațada publică,
 în outcome, setup, checkpoint, media, trace API și flow unificat în/peste faze.
+
+`UiFailurePublicationComponentTest` probează independent publisherul de failure,
+direct și prin fațadă: porturi fără cleanup în cascadă, achiziție parțială,
+body/complete/close și aceeași instanță `RuntimeException`/`Error`. Cauza business
+raportată rămâne separată de eroarea de publicare; comparațiile nu se reevaluează.
+
+Regula comună de verificare este în
+[ghidul de testare](../docs/ATF_Testing_Guide.md#proba-fiecărui-owner-de-resurse).
 
 ## Contractul raportului
 
@@ -580,8 +592,8 @@ Aceste rânduri nu reprezintă clickuri repetate și nu rescriu un FAIL publicat
 Receipt-ul și sursa politicii, operația, încercarea și timpii probe/backoff/total
 sunt observații auditabile; corpul HTTP și credentialele nu sunt capturate.
 
-Proiecția existentă păstrează disclosure-urile și plafonul integral de 240
-de caractere după redactarea textului complet. Indicatorul agregat de recuperare,
+Proiecția existentă păstrează disclosure-urile și plafonul configurat
+după redactarea textului complet. Indicatorul agregat de recuperare,
 abort SKIP și matricea completă UI/UI_API rămân în
 [feedback-ul auditului](../docs/feedback/ATF_UI_Backend_Guided_Recovery_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent).
 
@@ -635,7 +647,7 @@ flowchart LR
 | Tests → Playwright action sequence | operația, locatorul, durata măsurată și contextul primei dovezi FAIL |
 | Tests → Audit observations | diagnostice INFO distincte: tip/mesaj primar, cauze, suppressed și observația originală; fiecare respectă bugetul |
 | Fails → Cause | context compact; mesajul nativ și markerul de redactare nu sunt obligatorii în acest rezumat |
-| Open in Tests | identifică scenariul original; în eșecurile UI de fază, ancestorii dovezii pot rămâne colapsați; deschiderea automată completă are [criteriu separat](../docs/feedback/ATF_Reporting_Feedback.md#report-failure-deep-link-29--revenire-la-dovada-eșecului) |
+| Open in Tests | scenariul și ordinalul comparației eșuate deschid calea originală în Extent; faza, request-ul/pasul, validarea și disclosure-ul devin vizibile fără `Expand all` |
 
 `UiFailureReportContractTest` verifică suprafețele prin fațada UI reală;
 `UiTimeoutReportComponentTest` verifică Extent/fallback la 240 și 18, redactarea
@@ -1326,6 +1338,38 @@ O eroare I/O de alt tip nu este reîncercată; epuizarea limitei se propagă, ia
 Un salt mai nou sau inputul explicit în Tests invalidează callback-ul anterior;
 o închidere prin mouse, Enter sau Space nu este anulată ulterior de acel callback.
 
+#### Revenirea la comparația eșuată
+
+În Extent, Fails păstrează ordinalul comparației în scenariul original, alături
+de clasa și indexul scenariului. Același identificator este păstrat în hash,
+inclusiv după reload; textul trunchiat nu este folosit pentru identificare.
+
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
+flowchart LR
+    Index["Fails"] -->|identifică| Scenario["Scenariu + ordinal"]
+    Scenario -->|deschide| Path["Fază / pas / validare"]
+    Path -->|arată| Row["Comparația originală"]
+```
+
+<details>
+<summary><strong>Legendă — cale exactă și probă independentă</strong></summary>
+
+- `openScenarioFailurePath` rezolvă rândul indexat și deschide numai ancestorii
+  săi, inclusiv assertion-step și disclosure-urile native. SETUP, TEST BODY și
+  TEARDOWN folosesc aceeași cale; un checkpoint ulterior nu deschide primul pas.
+- `PublishedFailureNavigationComponentTest` verifică UI/API/component, panouri
+  înguste și desktop, tastatură, reload și navigare repetată. Etichetele repetate
+  și preview-urile identice nu pot substitui identitatea comparației.
+- Oracolul verifică vizibilitatea înaintea oricărei expandări asistate și
+  respinge faza închisă sub un scenariu vizibil. Vecinul PASS rămâne colapsat;
+  verdictul și coloanele comparației originale se păstrează.
+- Pentru un diagnostic fără comparație se păstrează contextul scenariului;
+  această cale nu inventează un rând de assertion ori o identitate de transport.
+  Fallback-ul păstrează propria navigare, verificată separat de rendererul Extent.
+
+</details>
+
 ### Prospețimea dovezii vizuale
 
 Un HTML generat înainte de recompilarea claselor sau a resurselor reporting este
@@ -1585,12 +1629,32 @@ Fazele acestui publisher se deschid după evaluare. Overload-ul cu
 `ReportPhaseTiming` primește separat durata execuției deja măsurate și numărul
 callback-urilor; publicarea snapshot-ului nu înlocuiește timpul metodei.
 
+Bugetul se configurează în YAML-ul Reporting și se capturează la deschiderea
+sesiunii. Implicitul este 240; sunt acceptate numai valori întregi pozitive:
+
+```yaml
+reporting:
+  assertionMaxDisplayCharacters: 240
+```
+
+`Overview → System` afișează `Assertion preview = N characters`, din setarea
+efectivă a rendererului, inclusiv în fallback. Metadata consumerului și
+agregarea scenariilor nu pot suprascrie acest fapt. O sesiune comună păstrează
+același buget pe durata ei; modificarea configurației cere o sesiune nouă.
+
+`AssertionAuditRun.assertionMaxDisplayCharacters()` furnizează același buget
+adaptoarelor componentelor AutoEx/Shop, înaintea colectării. Astfel o valoare
+configurată peste 240 nu este tăiată prematur la implicit. `bodyMaxDisplayCharacters`
+și limitele de captură HTTP sunt politici separate.
+
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     Raw[Valori integrale] -->|evaluează| Verdict[Verdict]
     Raw -->|redactează| Safe[Text sigur]
-    Safe -->|limitează| Preview[Preview · 240]
+    Safe -->|proiectează| Preview[Preview limitat]
+    Budget[Buget rezolvat] -->|limitează| Preview
+    Budget -->|afișează| System[Overview · System]
     Verdict -->|păstrează| Row[Rând auditat]
     Preview -->|completează| Row
 ```
@@ -1599,6 +1663,8 @@ flowchart LR
 <summary><strong>Legendă — redactare înaintea plafonului</strong></summary>
 
 - Diagrama descrie datele la runtime, nu dependențe Maven.
+- Bugetul rezolvat configurează colectorul și rendererul; System arată valoarea
+  aceleiași sesiuni, fără un implicit copiat în metadata consumerului.
 - Colectorul primește o politică de afișare la composition root; JSON-ul complet
   este redactat înainte de tăiere, astfel încât un secret lung să nu piardă contextul cheii.
 - Valoarea integrală decide verdictul; raportul primește numai text sigur și limitat,
@@ -1610,6 +1676,9 @@ flowchart LR
 - `AssertionPreviewBudgetTest` și `BoundedFailureEvidenceComponentTest` verifică
   limita decodată, redacția completă și absența dump-ului brut; proba contextului
   este în `UiSetupFailureEvidenceComponentTest`.
+- `ReportingPreviewConfigurationComponentTest` verifică YAML implicit/configurat,
+  System în ambele renderere, metadata contradictorie și refuzul valorilor nepozitive.
+  Probele de scope ale consumerilor verifică 18/240/480 individual și prin suită.
 - `LegacyPreviewBudgetComponentTest` verifică în browser porturile UI directe,
   limitele 240/18, secrete peste granița tăierii și verdictul diferit dincolo
   de preview. Fails și backlink-ul folosesc limita capturată de scenariu.
@@ -1783,7 +1852,7 @@ flowchart LR
 
 `AssertionAuditRunComponentTest` verifică ownership-ul, cauzele și concurența;
 probele consumerilor verifică scope-ul Jupiter și politica notificării finale.
-Limita de 240 caractere și pasul `Component assertions` colapsat rămân aceleași.
+Bugetul configurat al sesiunii și pasul `Component assertions` colapsat se păstrează.
 
 
 ### Lizibilitatea dovezilor în panouri înguste

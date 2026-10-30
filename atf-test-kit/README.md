@@ -159,6 +159,10 @@ dată comparația JUnit. Rândul `Check(name, expected, actual, passed)` este p�
 - `AssertionValueDisplay` primește politica de redactare a consumerului și o
   aplică pe textul complet, apoi limitează afișarea la 240 de caractere inclusiv
   `…` implicit. Limita pozitivă este configurabilă, iar expandarea nu o anulează.
+- Adaptorul consumerului primește bugetul efectiv de la ownerul raportului,
+  înaintea colectării; Kit nu citește YAML și nu depinde de Reporting.
+  [Contractul Reporting](../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor)
+  definește configurarea și valoarea afișată în System.
 - Proiecția defectă folosește `<display unavailable>`; nu reapelăm `toString()`
   în handler și nu înlocuim eroarea originală a comparației. Mesajele JUnit
   furnizate leneș rămân leneșe.

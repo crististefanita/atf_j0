@@ -33,6 +33,7 @@ function failureIndexMarkup(name, ctx, id, scenarioIndex, ordinal) {
     safeId +
     '&amp;scenario-index=' +
     safeScenario +
+    '&amp;failure-ordinal=' + esc(ordinal || 1) +
     '" title="Open the exact failing test in the Tests tab" data-atf-test-id="' +
     safeId +
     '" data-atf-scenario-index="' +
@@ -43,11 +44,11 @@ function failureIndexMarkup(name, ctx, id, scenarioIndex, ordinal) {
     safeId +
     "','" +
     safeScenario +
-    "');return false;}catch(error){}}window.location.hash='test-id='+encodeURIComponent('" +
+    "',undefined,'" + esc(ordinal || 1) + "');return false;}catch(error){}}window.location.hash='test-id='+encodeURIComponent('" +
     safeId +
     "')+'&scenario-index='+encodeURIComponent('" +
     safeScenario +
-    '\');return false;">Open in Tests</a></div>'
+    "')+'&failure-ordinal=" + esc(ordinal || 1) + "';return false;\">Open in Tests</a></div>"
   );
 }
 function selectFailure(index) {
@@ -58,7 +59,8 @@ function selectFailure(index) {
   for (var i = 0; i < rows.length; i++)
     rows[i].classList.toggle('active', i === index);
   var id = row.getAttribute('data-atf-test-id'),
-    scenarioIndex = row.getAttribute('data-atf-scenario-index');
+    scenarioIndex = row.getAttribute('data-atf-scenario-index'),
+    failureOrdinal = row.getAttribute('data-atf-failure-ordinal');
   detail.innerHTML = '';
   var indexMarkup = row.getAttribute('data-atf-index-html') || '';
   if (indexMarkup) detail.insertAdjacentHTML('beforeend', indexMarkup);
@@ -69,7 +71,7 @@ function selectFailure(index) {
       e.stopPropagation();
       if (typeof atfOpenTest === 'function') {
         try {
-          atfOpenTest(id, scenarioIndex);
+          atfOpenTest(id, scenarioIndex, undefined, failureOrdinal);
           return false;
         } catch (error) {}
       }
@@ -77,7 +79,7 @@ function selectFailure(index) {
         'test-id=' +
         encodeURIComponent(id) +
         '&scenario-index=' +
-        encodeURIComponent(scenarioIndex);
+        encodeURIComponent(scenarioIndex) + '&failure-ordinal=' + encodeURIComponent(failureOrdinal);
       return false;
     });
 }

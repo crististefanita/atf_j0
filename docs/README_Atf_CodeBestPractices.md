@@ -100,6 +100,10 @@ primitivelor neutre care se repetă și pot fi testate fără browser sau site.
 - `atf-test-kit` deține deja `TestRunInitialization`, `CloseOnceResource`,
   `FailureAwareCleanup`, `FailureEvidenceCleanup` și `ArmedCleanup`;
   reutilizează aceste contracte, nu recrea inițializarea sau cleanup-ul local.
+- Shop este modelul de referință pentru alinierea AutoEx: păstrează contractele
+  business, ownership-ul și dovezile auditabile Shop, apoi extrage capabilitatea
+  neutră aplicabilă ambilor consumeri. Coeziunea internă Shop poate fi îmbunătățită;
+  regula nu cere copierea selectorilor ori a flow-ului său în AutoEx.
 - Kit-ul nu primește Playwright, `Page`, sesiuni Extent, profile de captură,
   network inspector, YAML consumer sau vocabulary de journey. `atf-ui` îl
   consumă deja în test scope; dependența inversă ar crea un ciclu.

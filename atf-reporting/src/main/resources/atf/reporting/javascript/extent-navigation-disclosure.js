@@ -69,6 +69,26 @@ function openScenarioAuditPath(card) {
       validation.scrollIntoView({ block: 'center' });
   }
 }
+/** Resolve the same scenario-local ordinal used by Fails, without reconstructing identity from preview text. */
+function openScenarioFailurePath(card, ordinal) {
+  var index = Number(ordinal) - 1;
+  if (!Number.isInteger(index) || index < 0) return;
+  var target = failedAssertionRows(card)[index];
+  if (!target) return;
+  var ancestors = [];
+  for (var parent = target.parentElement; parent && parent !== card; parent = parent.parentElement)
+    ancestors.push(parent);
+  ancestors.reverse().forEach(function (node) {
+    if (node.tagName === 'DETAILS') node.open = true;
+    if (!node.matches('.card[data-atf-node-role]')) return;
+    var phase = node.getAttribute('data-atf-node-role') === 'phase',
+      panel = phase ? node.querySelector(':scope>.accordion') : nodePanel(node);
+    setDisclosureState(node, panel, true, phase ? 'data-atf-phase-open' : 'data-atf-node-open');
+    if (phase) applyPhaseBodyState(node, true);
+  });
+  normalizeValidationTableColumns();
+  if (target.scrollIntoView) target.scrollIntoView({ block: 'center' });
+}
 function collapseDirectScenarioCards() {
   q(atfScenarioCards).forEach(
     function (card) {

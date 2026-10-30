@@ -206,6 +206,8 @@ flowchart LR
     Journey["Journey"] -->|cere checkout| Business["Cart flow"]
     Business -->|observă| Port["Cart port"]
     Port -->|implementat de| UI["Adaptor UI"]
+    UI -->|așteaptă bounded| Identity["Identitate vizibilă"]
+    Identity -->|observă| Snapshot
     UI -->|operează| Page["CartPage"]
     Page -->|instrumentează| Recorder["Recorder"]
     Business -->|compară| Snapshot["Expected / observed"]
@@ -233,11 +235,22 @@ flowchart LR
   sau publicarea eșuată blochează unica activare; fără refacerea contului/coșului.
 - Gate-ul business nu importă browser, configurație sau Reporting. Adaptorul
   `AutoExCheckoutUiFlow` observă paginile, iar mapperul păstrează comparațiile
-  complete înaintea preview-ului de 240. Eșecul business rămâne cauza primară
+  complete înaintea preview-ului configurat. Eșecul business rămâne cauza primară
   chiar dacă publicarea eșuează; cauza publicării devine suppressed.
 - `AutoExCheckoutAccessComponentTest` și `AutoExCheckoutUiGateComponentTest`
   probează modelul și etapa publică reală de review, inclusiv refuzurile;
   vocabularul purchase păstrează cele 14 checkpoint-uri distincte.
+- `AccountPage.awaitLoggedInName()` folosește `AutoExCustomerIdentityObservation`:
+  observație read-only, identitate unică, vizibilă și cu text nevid, în bugetul
+  nativ existent. Expected-ul clientului rămâne exclusiv la gate-ul business.
+- Absența permanentă, textul gol sau selectorul ambiguu opresc observația;
+  diagnosticul păstrează URL-ul, cardinalitatea, vizibilitatea, ultimul text
+  și cauza nativă. Clientul străin vizibil este refuzat de gate, fără checkout.
+- `loggedInNameIfPresent()` rămâne observație imediată pentru callerii săi;
+  review-ul checkout-ului folosește capabilitatea bounded. Proba browser locală
+  `AutoExCustomerIdentityObservationComponentTest` trece prin pagină și adaptor;
+  fixture-urile acoperă identitatea întârziată, străină, absentă, goală și ambiguă.
+
 Etichetele scurte păstrează următorul sens:
 
 | În schemă | Sens complet |
@@ -874,7 +887,7 @@ clasă/suită, diagnosticul și închiderea raportului.
   care păstrează politica single-attempt existentă.
 - `AutoExTerminalExecutionComponentTest` verifică adaptorul pe transport
   controlat în Extent/fallback, fără a certifica serviciul public.
-- Aserțiunile componente rămân în pasul standard colapsat; limita de 240 și
+- Aserțiunile componente rămân în pasul standard colapsat; bugetul configurat și
   redactarea textului complet înaintea plafonului rămân obligatorii.
 
 Contractul producerului este la [Core](../atf-core/README.md#istoric-la-eroare-terminală),
@@ -919,7 +932,7 @@ flowchart LR
 - probele de lifecycle folosesc metadata `COMPONENT` și transport mock declarat;
   nu prezintă răspunsurile controlate ca execuții HTTP live;
 - diagnosticul API redactează mesajul integral înaintea plafonului său; limita
-  de afișare a aserțiunilor rămâne 240 de caractere;
+  de afișare a aserțiunilor este configurabilă, implicit 240 de caractere;
 - calea implicită este `artifacts/reports/api/auto-ex`, iar `@AtfReportPath`
   anunță locația.
 
@@ -992,7 +1005,11 @@ flowchart LR
 - Sumele fazelor/scenariilor nu sunt wall-clock al suitei; zero măsurat rămâne valid.
   Fixture-urile de clasă reușite nu sunt distribuite între scenarii.
 - `AssertionAuditRun` închide sesiunea comună la owner; fiecare invocare
-  închide numai scenariul său. Două suite au owneri separați chiar în același launcher.
+  primește de la acel owner bugetul configurat `reporting.assertionMaxDisplayCharacters`,
+  înaintea colectării, inclusiv peste implicitul 240. Valoarea efectivă apare în
+  `Overview → System`, la `Assertion preview`.
+- Fiecare invocare închide numai scenariul său. Două suite au owneri separați
+  chiar în același launcher.
 - [Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră) deține delegarea,
   colectarea pe invocare și reconcilierea rezultatului; consumerul injectează redacția și configurația.
 - [Reporting](../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor) deține
@@ -1308,7 +1325,7 @@ catalogul întârziat, epuizarea și captura lipsă. Scrierile prin GET și oper
 necunoscute sunt refuzate înaintea browserului.
 
 Aserțiunile acestor componente rămân în pasul standard `Component assertions`,
-colapsat implicit, cu redactare înaintea plafonului integral de 240 de caractere.
+colapsat implicit, cu redactare înaintea plafonului configurat, implicit 240 de caractere.
 Unit și probele renderer din Reporting Tests își păstrează categoriile separate.
 
 </details>

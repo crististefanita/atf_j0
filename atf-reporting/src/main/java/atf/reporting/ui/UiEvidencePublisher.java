@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import static atf.reporting.publication.ReportPublicationScope.publishScope;
 
 /**
  * Publishes the concrete UI evidence attached to one report phase.
@@ -549,21 +550,4 @@ public final class UiEvidencePublisher {
         return status == null ? fallback : status;
     }
 
-    /** One owned scope, one publication attempt; cleanup cannot replace or suppress itself onto the primary failure. */
-    private static void publishScope(Runnable body, Runnable close) {
-        Throwable primary = null;
-        try {
-            body.run();
-        } catch (RuntimeException | Error failure) {
-            primary = failure;
-            throw failure;
-        } finally {
-            try {
-                close.run();
-            } catch (RuntimeException | Error cleanup) {
-                if (primary == null) throw cleanup;
-                if (cleanup != primary) primary.addSuppressed(cleanup);
-            }
-        }
-    }
 }

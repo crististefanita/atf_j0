@@ -91,6 +91,7 @@ Proiecția contextului UI este verificată la componentă:
 | `AssertionAuditPublicationComponentTest` | proiecție redactată înaintea plafonului în Extent/fallback; păstrează rândul FAIL fără fragmente din secretul sintetic și SKIP cu `Abort reason`, fără aserțiuni fabricate |
 | `ReportingPreviewBudgetTest` | valoarea integrală afișată include elipsa în limită; null, limita exactă și bugetul JSON independent |
 | `LegacyPreviewBudgetComponentTest` | porturi UI directe în Extent/fallback; limite 240/18, redactare completă, verdict din valorile integrale și aceeași limită în Fails după backlink |
+| `ReportingPreviewConfigurationComponentTest` | YAML implicit 240 și configurat 18/480, valoarea efectivă în System Extent/fallback, metadata contradictorie refuzată și buget nepozitiv respins |
 | `UiFailureContextTest` + `UiFailureContextReportTest` | acțiune FAIL înaintea mesajului tehnic lung, lipsa excepției/acțiunii, acțiuni PASS urmate de eroare, prima secvență FAIL și graf cauze/suppressed cu referințe/cicluri, fără mutarea verdictului sau a dovezilor originale |
 | `UiFailureContextComponentTest` | Tests/Fails și backlink în Extent/fallback, preview 240/18, panou de 392 px, contextul acțiunii și timpul măsurat, relații inspectabile în diagnostice INFO și disclosure Enter/Space fără erori JavaScript |
 | `UiTimeoutReportComponentTest` | deadline nativ separat de timpul capturat și de contextul compact Fails; Extent/fallback la 240/18, primary/cause/suppressed redactate, HTML fără credențiale, owner și backlink, Enter/Space, ultimul rând și oracol negativ pentru diagnostic lipsă ori secret vizibil |
@@ -131,8 +132,11 @@ owner request/validation eșuat, cu prima comparație originală și fără dupl
 la navigări repetate; pasul component `assertion-step` nu participă la hook.
 
 Lățimea procentuală a primei coloane nu este un oracol estetic. Alocarea după
-conținut rămâne protejată de `EvidenceColumnSizingComponentTest`, iar limita
-240 și redactarea au probele dedicate existente.
+conținut rămâne protejată de `EvidenceColumnSizingComponentTest`.
+Bugetul configurabil și redactarea au probele dedicate existente.
+
+`ReportingCoverageMatrixTest` cere prezența probei pentru configurare/System
+și categoria ei componentă; verificarea comportamentului rămâne în acea probă.
 
 Pentru `ExtentReportDisclosureBrowserComponentTest`, `support/inspection/disclosure` deține fixture-ul
 și proba browser. Auditul reutilizabil folosește facade-ul din `support/locators`:
@@ -307,6 +311,16 @@ apelate prin fațada UI publică; nu presupune un incident într-un renderer rea
 
 Snapshot-urile semantice și probele Extent/fallback verifică separat randarea;
 fault injection nu înlocuiește auditul HTML.
+
+Matricea directă este completată de `UiFailurePublicationComponentTest`, pentru
+`UiFailureEvidencePublisher` direct și prin fațadă. Porturile nu închid copiii în
+cascadă: lipsa close-ului validării este detectată independent. Achiziția parțială,
+erorile la body/complete/close, `Error` și self-suppression păstrează cauza inițială.
+
+`PublishedFailureNavigationComponentTest` publică fixture-uri Extent cu UI/API și
+assertion-step de componentă în toate fazele. Backlink-ul trebuie să deschidă
+comparația exactă fără helper de expandare; tastatura, reload-ul și scenariul
+vecin PASS sunt probate separat de geometria generală Extent/fallback.
 
 ## Ordinea testelor și responsabilitatea protecțiilor
 

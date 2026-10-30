@@ -39,11 +39,12 @@ function scheduleTestViewNormalizationAt(delay) {
     scheduleTestViewNormalization();
   }, delay);
 }
-window.atfOpenTest = function (id, scenarioIndex, expansion) {
+window.atfOpenTest = function (id, scenarioIndex, expansion, failureOrdinal) {
   var epoch = ++atfNavEpoch;
   var hash = 'test-id=' + id;
   if (scenarioIndex !== undefined) hash += '&scenario-index=' + scenarioIndex;
   if (expansion) hash += '&expand=' + expansion;
+  if (failureOrdinal !== undefined) hash += '&failure-ordinal=' + encodeURIComponent(failureOrdinal);
   window.location.hash = hash;
   atfActivate('test-view');
   var item = document.querySelector('.test-item[test-id="' + id + '"]');
@@ -61,6 +62,7 @@ window.atfOpenTest = function (id, scenarioIndex, expansion) {
         if (card) {
           openScenarioCard(card);
           if (expansion === 'ui-validation') openScenarioAuditPath(card);
+          if (failureOrdinal !== undefined) openScenarioFailurePath(card, failureOrdinal);
         }
       }, 120);
     }
@@ -132,14 +134,17 @@ function activateFromHash() {
     var parts = hash.split('&'),
       id = decodeURIComponent(view.substring(8)),
       scenario,
-      expansion;
+      expansion,
+      failureOrdinal;
     parts.forEach(function (part) {
       if (part.indexOf('scenario-index=') === 0)
         scenario = decodeURIComponent(part.substring(15));
       if (part.indexOf('expand=') === 0)
         expansion = decodeURIComponent(part.substring(7));
+      if (part.indexOf('failure-ordinal=') === 0)
+        failureOrdinal = decodeURIComponent(part.substring(16));
     });
-    atfOpenTest(id, scenario, expansion);
+    atfOpenTest(id, scenario, expansion, failureOrdinal);
   }
 }
 window.addEventListener('hashchange', activateFromHash);

@@ -31,6 +31,7 @@ public final class ExtentReportSession implements AtfReportPorts.Session, AutoCl
     private final ExtentReportTree tree;
     private final AtfConsoleSink console;
     private final SensitiveDataRedactor environmentRedactor;
+    private final ReportingSettings settings;
     private final long ownerThreadId = Thread.currentThread().getId();
     private boolean closed;
 
@@ -78,7 +79,7 @@ public final class ExtentReportSession implements AtfReportPorts.Session, AutoCl
                         Map<String, String> systemInfo,
                         ReportUiActionDetailsMode detailsMode, LifecycleStartProbe startProbe) {
         this.reportPath = Objects.requireNonNull(reportPath, "reportPath").toAbsolutePath().normalize();
-        Objects.requireNonNull(settings, "settings");
+        this.settings = Objects.requireNonNull(settings, "settings");
         Objects.requireNonNull(redactor, "redactor");
         this.environmentRedactor = redactor;
         this.console = Objects.requireNonNull(console, "console");
@@ -91,7 +92,9 @@ public final class ExtentReportSession implements AtfReportPorts.Session, AutoCl
         spark.config().setCss(AtfReportTheme.sparkCss());
         reports = new ExtentReports();
         reports.attachReporter(spark);
-        ReportEnvironment.with(systemInfo, redactor).forEach(reports::setSystemInfo);
+        var environment = new java.util.LinkedHashMap<>(ReportEnvironment.with(systemInfo, redactor));
+        environment.putAll(ReportEnvironment.reportingSettings(settings).systemDisplayValues());
+        environment.forEach(reports::setSystemInfo);
         tree = new ExtentReportTree(reports, settings, redactor, this::ensureOpen, this.console,
                 Objects.requireNonNull(detailsMode, "detailsMode"),
                 Objects.requireNonNull(startProbe, "startProbe"));
@@ -144,7 +147,9 @@ public final class ExtentReportSession implements AtfReportPorts.Session, AutoCl
     /** Updates operational metadata through the same allowlist and redaction boundary as opening. */
     public void updateEnvironment(ReportEnvironmentSnapshot snapshot) {
         ensureOpen();
-        Objects.requireNonNull(snapshot, "snapshot").systemDisplayValues().forEach((name, value) -> {
+        var environment = new java.util.LinkedHashMap<>(Objects.requireNonNull(snapshot, "snapshot").systemDisplayValues());
+        environment.putAll(ReportEnvironment.reportingSettings(settings).systemDisplayValues());
+        environment.forEach((name, value) -> {
             String safe = environmentRedactor.redactField(name, value);
             reports.getReport().getSystemEnvInfo().removeIf(field -> name.equals(field.getName()));
             reports.setSystemInfo(name, safe);

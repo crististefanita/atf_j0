@@ -597,9 +597,19 @@ Completitudinea jurnalului raw și livrarea către subscriberi au limite distinc
 - Un `Error` fatal se propagă; inspectorul nu pretinde livrare completă în acest caz.
 - `UiNetworkDeliveryComponentTest` și `UiRequestIdentityComponentTest` probează
   aceste limite prin portul public și fetch real în browser local, fără replay.
-- Cleanup-ul după o dezabonare eșuată are o limită separată: prima eroare poate
-  împiedica retragerea listener-elor următoare și golirea subscriberilor.
-  Proba și criteriile sunt în [feedback-ul cleanup-ului](../docs/feedback/ATF_UI_Backend_Guided_Recovery_Feedback.md#ui-capture-cleanup-32--dezabonare-completă-și-scope-închis).
+- Închiderea logică precede dezabonarea: capturile noi și callback-urile native
+  ulterioare devin inerte, iar dovezile deja reținute rămân inspectabile.
+  Snapshot-ul subscriberilor a cărui livrare a început se termină chiar dacă
+  unul dintre subscriberi închide inspectorul.
+- Toate dezabonările dobândite sunt încercate o singură dată. Prima eroare
+  rămâne primară, inclusiv `Error`; erorile distincte devin suppressed.
+  Un close repetat nu repetă operații cu rezultat nativ necunoscut.
+- Atașarea parțial eșuată este compensată local; cauza achiziției rămâne
+  primară și inspectorul incomplet nu acceptă capturi ori alți subscriberi.
+  Un refuz nativ de dezabonare nu este prezentat drept retragere reușită.
+- `UiNetworkLifecycleComponentTest` injectează eșecuri în fiecare înscriere și
+  dezabonare, cauze multiple/identice, callback-uri tardive și close în timpul
+  capturii ori livrării. Regresiile de delivery și start identity rămân separate.
 
 - Body-urile capturate nu folosesc `trim()`; spațiile marginale și payload-ul
   numai din whitespace rămân date, nu absență.

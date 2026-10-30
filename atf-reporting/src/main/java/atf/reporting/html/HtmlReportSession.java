@@ -149,7 +149,8 @@ public final class HtmlReportSession implements AtfReportPorts.Session {
         html.append(testsView.render(snapshot));
         html.append(categoryView.render(snapshot));
         html.append(failsView.render(snapshot));
-        html.append(overviewView.render(snapshot));
+        html.append(overviewView.render(snapshot,
+                atf.reporting.configuration.ReportEnvironment.reportingSettings(settings).systemDisplayValues()));
         html.append(HtmlReportShell.close(navigationScript.source()));
         return html.toString();
     }

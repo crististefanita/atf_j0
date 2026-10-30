@@ -10,6 +10,12 @@ public final class ReportEnvironment {
     private ReportEnvironment() {
     }
 
+    /** Operational facts owned by the renderer, independent of consumer metadata and body capture. */
+    public static ReportEnvironmentSnapshot reportingSettings(ReportingSettings settings) {
+        return ReportEnvironmentSnapshot.builder().put(ReportEnvironmentField.ASSERTION_PREVIEW,
+                java.util.Objects.requireNonNull(settings, "settings").assertionMaxDisplayCharacters() + " characters").build();
+    }
+
     public static Map<String, String> defaults() {
         var metadata = new LinkedHashMap<String, String>();
         metadata.put("Environment", "LOCAL");
