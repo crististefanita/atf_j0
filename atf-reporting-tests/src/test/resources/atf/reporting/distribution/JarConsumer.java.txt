@@ -64,6 +64,7 @@ public final class JarConsumer {
             if(content.contains("probe-secret")) throw new AssertionError("Credential leaked");
             if(content.contains("EXPECTED_TAIL")||content.contains("ACTUAL_TAIL")) throw new AssertionError("Unbounded preview");
             if(!content.contains("Difference beyond preview")) throw new AssertionError("Missing evidence");
+            if(!content.contains("Physical JAR observation")) throw new AssertionError("Missing neutral evidence");
             System.out.println("RENDERER="+(extent?"EXTENT":"FALLBACK")+"; statuses=PASS,FAIL,PASS; redaction=PASS; bounded-preview=PASS");
         }
         System.out.println("LOADED_REPORTING_JAR="+loaded+"; SHA256="+hash);
@@ -71,6 +72,9 @@ public final class JarConsumer {
     private static void publish(AtfReportPorts.Session session,String name,AtfAssertion assertion,AtfReportStatus requested) {
         try(var scenario=session.startScenario("ExternalJar",name,List.of("component"))) {
             try(var phase=scenario.startPhase("TEST BODY");var step=phase.startAssertionStep("Assertions")) {
+                if(!phase.supportsObservations())throw new AssertionError("Missing observation capability");
+                phase.observation(new atf.reporting.model.ReportObservation("Physical JAR observation",
+                        List.of(new atf.reporting.model.ReportField("Invocation",name)),List.of(),List.of()));
                 step.assertions(List.of(assertion));step.complete(requested);phase.complete(requested);
             }
             scenario.complete(requested);

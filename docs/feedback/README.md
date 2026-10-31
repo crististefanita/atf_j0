@@ -12,8 +12,9 @@ Scorurile sunt priorități, nu note de calitate sau procente de acoperire. Form
 
 | Ordine | Owner și criteriu | Prioritate /100 | Restanță concretă |
 |---:|---|---:|---|
-| 1 | [Reporting](ATF_Reporting_Feedback.md) | 89 | aplicabilitatea inspectorului; timing capturat/publicare 88; API/release păstrează criterii separate |
-| 2 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md) | 89 | regresii permanente assertion-only/HTTP, Extent/fallback și oracol per scenariu |
+| 1 | [Validation](ATF_Validation_Feedback.md) | 96 | JSON malformat/missing și schema parțială pot produce PASS; reconciliere controlată a candidatului J2 |
+| 2 | [Reporting](ATF_Reporting_Feedback.md) | 89 | aplicabilitatea inspectorului; timing capturat/publicare 88; API/release păstrează criterii separate |
+| 3 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md) | 89 | regresii permanente assertion-only/HTTP, Extent/fallback și oracol per scenariu |
 
 Masca literală, corelarea comenzii, factura și lifecycle-urile deja livrate nu sunt relistate ca defecte. Rămân deschise numai negativele distincte descrise în feedback.
 

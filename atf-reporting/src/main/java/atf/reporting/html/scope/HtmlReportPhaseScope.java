@@ -62,6 +62,15 @@ public final class HtmlReportPhaseScope implements AtfReportPorts.Phase {
         model.addDetail(name, value);
     }
 
+    @Override public boolean supportsObservations() { return true; }
+
+    @Override public void observation(atf.reporting.model.ReportObservation value) {
+        ensureOpen();
+        java.util.Objects.requireNonNull(value, "observation");
+        semantic.observation(value);
+        model.addObservation(value);
+    }
+
     @Override public void executionTiming(ReportPhaseTiming value) {
         ensureOpen();
         if (timing != null) throw new IllegalStateException("Phase timing is already supplied");

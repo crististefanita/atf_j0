@@ -51,6 +51,21 @@ final class ExtentPhaseScope implements AtfReportPorts.Phase {
                 stepTitle, semantic.startAssertionStep(stepTitle));
     }
 
+    @Override public boolean supportsObservations() { return true; }
+
+    @Override public void observation(atf.reporting.model.ReportObservation value) {
+        ensurePhaseOpen();
+        java.util.Objects.requireNonNull(value, "observation");
+        String markup = atf.reporting.evidence.markup.ReportObservationMarkup.render(value, tree.settings(), tree.redactor());
+        String title = atf.reporting.markup.ExtentReportNodeSupport.display(tree.redactor().redactText(value.title()), tree.settings());
+        var node = phase.createNode(atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary.escapeHtml(title));
+        tree.markStarted(node);
+        semantic.observation(value);
+        node.info(markup);
+        tree.complete(node, AtfReportStatus.INFO);
+        tree.markEnded(node);
+    }
+
     @Override public void executionTiming(ReportPhaseTiming value) {
         ensurePhaseOpen();
         if (timing != null) throw new IllegalStateException("Phase timing is already supplied");

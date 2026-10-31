@@ -84,6 +84,9 @@ public record AtfReportSemanticSnapshot(List<ClassSnapshot> classes) {
                     request.execution() != null, request.uiActionCount(), request.screenshotCount(),
                     validationSnapshots(request.children()), request.status());
         }
+        if (node instanceof ReportExecutionModel.ObservationStep observation) {
+            return ObservationSnapshot.from(observation.value());
+        }
         var validation = (ReportExecutionModel.Validation) node;
         return new ValidationSnapshot(validation.title(),
                 validation.assertions().stream().map(assertion -> assertion.name()).toList(),
@@ -170,9 +173,26 @@ public record AtfReportSemanticSnapshot(List<ClassSnapshot> classes) {
         }
     }
 
-    public sealed interface NodeSnapshot permits RequestSnapshot, ValidationSnapshot, AssertionStepSnapshot {
+    public sealed interface NodeSnapshot permits RequestSnapshot, ValidationSnapshot, AssertionStepSnapshot, ObservationSnapshot {
         String title();
         AtfReportStatus status();
+    }
+
+    /** Label-only population; sensitive field/body values and paths never enter the snapshot. */
+    public record ObservationSnapshot(String title, List<String> fieldNames, List<String> bodyLabels,
+                                      List<String> artifactLabels) implements NodeSnapshot {
+        public ObservationSnapshot {
+            title = required(title, "title");
+            fieldNames = List.copyOf(fieldNames);
+            bodyLabels = List.copyOf(bodyLabels);
+            artifactLabels = List.copyOf(artifactLabels);
+        }
+        public static ObservationSnapshot from(atf.reporting.model.ReportObservation value) {
+            return new ObservationSnapshot(value.title(), value.fields().stream().map(field -> field.name()).toList(),
+                    value.bodies().stream().map(body -> body.label()).toList(),
+                    value.artifacts().stream().map(artifact -> artifact.label()).toList());
+        }
+        @Override public AtfReportStatus status() { return AtfReportStatus.INFO; }
     }
 
     public record AssertionStepSnapshot(String title, List<String> assertionNames,

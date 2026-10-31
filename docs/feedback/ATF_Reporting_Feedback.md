@@ -116,35 +116,6 @@ Namespace-ul întreg nu poate deveni automat o promisiune de compatibilitate.
       Consumerul extern și comparația binară a incrementului există; ele nu
       declară automat suport pentru fiecare clasă Java publică.
 
-### Consumer J3 — evidence public fără transport
-
-**Dovadă nouă:** consumerul speech J3 folosește J6 fizic, SHA-256
-`caebfbe51da5f00241f0c092281cb19fd3fc887ebe0e0a0a57cdca71f3d591c1c`.
-Auditul TAB din 2026-10-31 confirmă că `Phase.detail` nu afișează reference,
-transcript sau intervalele ASR. Contractul îl declară context intern; nu este
-un defect de comparație ori o autorizație de a transforma acest canal în log public.
-
-J3 publică acum comparația reală prin assertion-step, cu verdictul calculat
-o singură dată; observațiile complete sunt păstrate în JSON extern.
-Rămâne lipsa unui canal public neutru pentru observații fără transport.
-
-- [ ] Declarați o capabilitate explicită pentru evidence non-transport:
-      câmpuri, corp structurat și referință de artifact, fără inventarea unui
-      request HTTP sau a unui assertion tautologic pentru o valoare afișată.
-- [ ] Păstrați separat contextul intern al fazei și diagnosticele FAIL/ABORT;
-      un câmp informativ nu devine cauză de execuție sau assertion PASS.
-- [ ] Probați câmpuri distincte în două invocări parametrizate, text lung,
-      redactare, extindere cu tastatura și rândul final în Extent/fallback,
-      din aceeași pereche JAR/POM livrată și cu oracol independent de HTML.
-- [ ] Păstrați preview 240 și valorile complete ca artifact; documentați
-      explicit diferența dintre comparație, observație și verdict.
-- [ ] La implementare, protejați în J0 regresiile Reporting și consumatorii
-      UI/API existenți; validați J1/J2/J3 separat când li se livrează versiunea.
-
-**Închidere:** consumerul poate publica observații auditable fără workaround
-de transport și fără date cerute, dar absente din artifactul vizibil.
-Această cerință de API nu cere modificarea binarului J6 în incrementul J3.
-
 ## REPORT-RELEASE-CONTRACT-45 — ce conține și ce promite pachetul
 
 **Prioritate: 73/100** = impact 25 + lacună 22 + lucrabil 17 + documentare 9.

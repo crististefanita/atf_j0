@@ -1174,3 +1174,11 @@ Comanda selectează proba numită și construiește dependențele; nu declară
 trecerea întregului modul. Fixture-ul local nu certifică o suită business completă.
 
 </details>
+## Observații neutre și disclosure imbricat
+
+`ReportObservationComponentTest` protejează INFO neutru, absența HTTP fabricat,
+FAIL nemascat, preview 240, corp complet și URI. `ObservationBrowserProbe`
+verifică două invocări distincte, glyph local, Enter/Space, End și ultimul rând
+în Extent/fallback; fallback păstrează markerul nativ al browserului.
+Fixture-ul distribuției publică aceeași observație pe JAR-ul fizic, cu zero
+pachete Core/Kit/JUnit/Playwright în runtime-ul consumerului extern.

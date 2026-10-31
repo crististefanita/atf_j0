@@ -86,7 +86,7 @@ function collapseScenarioCards(force, root, open) {
   q(atfScenarioCards, root).forEach(
     function (scenario) {
       if (bulk) setDisclosureState(scenario, scenario.querySelector(':scope>.accordion'), next, 'data-atf-scenario-open');
-      scenario.querySelectorAll(':scope [data-atf-node-role]').forEach(function (card) {
+      scenario.querySelectorAll(':scope .card[data-atf-node-role]').forEach(function (card) {
         var role = card.getAttribute('data-atf-node-role'),
           panel = role === 'phase'
             ? card.querySelector(':scope>.accordion')

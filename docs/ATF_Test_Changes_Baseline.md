@@ -3629,3 +3629,24 @@ testChanges:
 ```
 
 </details>
+
+<details>
+<summary><strong>Control tehnic verificat — REPORT-OBSERVATION-J7</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-OBSERVATION-J7
+    status: VERIFIED
+    base: dfce0ac2162bfe13ba654d97ccaa765cb25aa7f0
+    expires: 2026-11-30
+    reason: Introduce observații neutre non-transport, preview 240 și redacție; probează Extent/fallback, glyph-uri imbricate independente, keyboard și scroll complet, plus gate pe JAR fizic. Nu relaxează assertions sau verdicturi.
+    proof: 'mvn -pl atf-reporting-tests -am "-Dtest=ReportObservationBrowserComponentTest,ReportObservationComponentTest,ReportBulkDisclosureComponentTest,AssertionAuditStepComponentTest,AssertionPreviewBudgetTest" "-Dsurefire.failIfNoSpecifiedTests=false" test'
+    paths:
+      - atf-reporting/src/test/java/atf/reporting/standalone/ReportingStandaloneObservationTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/audit/ReportObservationComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/audit/ReportObservationBrowserComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/observation/ObservationBrowserProbe.java
+      - atf-reporting-tests/src/test/resources/atf/reporting/distribution/JarConsumer.java.txt
+```
+
+</details>

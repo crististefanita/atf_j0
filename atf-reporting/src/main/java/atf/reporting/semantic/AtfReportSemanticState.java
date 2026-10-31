@@ -137,6 +137,11 @@ final class AtfReportSemanticState {
             return step;
         }
 
+        void observation(atf.reporting.model.ReportObservation value) {
+            ensureOpen("phase");
+            nodes.add(new ObservationState(java.util.Objects.requireNonNull(value, "observation")));
+        }
+
         void detail(String name) {
             ensureOpen("phase");
             detailNames.add(normalizeLabel(name, "DETAIL"));
@@ -167,11 +172,20 @@ final class AtfReportSemanticState {
         }
     }
 
-    sealed interface NodeState permits RequestState, ValidationState, AssertionStepState {
+    sealed interface NodeState permits RequestState, ValidationState, AssertionStepState, ObservationState {
         AtfReportSemanticSnapshot.NodeSnapshot snapshot();
 
         boolean completed();
         AtfReportStatus status();
+    }
+
+    private record ObservationState(AtfReportSemanticSnapshot.ObservationSnapshot value) implements NodeState {
+        ObservationState(atf.reporting.model.ReportObservation value) {
+            this(AtfReportSemanticSnapshot.ObservationSnapshot.from(value));
+        }
+        @Override public boolean completed() { return true; }
+        @Override public AtfReportStatus status() { return AtfReportStatus.INFO; }
+        @Override public AtfReportSemanticSnapshot.NodeSnapshot snapshot() { return value; }
     }
 
     static final class AssertionStepState implements NodeState {

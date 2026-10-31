@@ -36,8 +36,14 @@ tr.event-row:has([data-atf-execution-duration-ms]) { display: none !important; }
 .atf-disclosure-glyph:before {
   content: '＋' !important;
 }
-.step-detail[open] .atf-disclosure-glyph:before {
+.step-detail[open] > summary > .atf-disclosure-glyph:before {
   content: '−' !important;
+}
+/* Nested observations retain independent state and wrap prose between words. */
+.atf-observation-evidence pre.json-code {
+  white-space: pre-wrap !important;
+  word-break: normal !important;
+  overflow-wrap: anywhere !important;
 }
 .step-detail .se-title {
   color: var(--atf-accent) !important;

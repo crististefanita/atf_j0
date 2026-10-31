@@ -72,6 +72,8 @@ public final class AtfReportHtmlVocabulary {
 
     public enum CssClass {
         ASSERTIONS("assertions"),
+        OBSERVATION_EVIDENCE("atf-observation-evidence"),
+        OBSERVATION_BODY("atf-observation-body"),
         ASSERTION_EVIDENCE("assertion-evidence"),
         ACTIVE("active"),
         ATF_SETUP_EVIDENCE("atf-setup-evidence"),
@@ -222,6 +224,7 @@ public final class AtfReportHtmlVocabulary {
     }
 
     public enum Attribute {
+        TABINDEX("tabindex"),
         HREF("href"),
         SRC("src"),
         LANG("lang"),

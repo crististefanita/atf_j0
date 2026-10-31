@@ -2226,3 +2226,47 @@ trecerea întregului modul. Proba locală nu demonstrează randarea în browser;
 | API și distribuție | [criteriile de release](../docs/feedback/ATF_Reporting_Feedback.md) rămân distincte de compilarea ori consumarea candidatului JAR |
 
 Contractele livrate sunt descrise în secțiunile ownerilor. Lacunele rămân în feedback, cu [regresii permanente](../atf-reporting-tests/README.md#regresia-permanentă-a-fiecărui-defect-reporting) înaintea corecției și a unui nou JAR.
+## Observații publice fără transport
+
+J7 adaugă `Phase.supportsObservations()` și `Phase.observation(ReportObservation)`.
+Modelul este imuabil: titlu, câmpuri, corpuri TEXT/JSON și referințe de artifact.
+Observația este INFO, fără verdict și fără request/validation inventat. Ea nu
+poate slăbi un FAIL/SKIP. Adaptorul fără capabilitate refuză explicit publicarea;
+`Phase.detail` rămâne context intern.
+
+Extent și fallback folosesc aceeași proiecție: redacție înainte de escaping și
+preview, disclosure colapsat și corp accesibil cu tastatura până la final.
+Câmpurile folosesc bugetul assertion, implicit 240. Corpurile folosesc bugetul
+body configurat (implicit 100 în biblioteca standalone; J3 configurează 12000).
+Nu se trunchiază inputul înaintea evaluării. URI-urile file/http/https sunt
+referințe, nu fetch-uri; credential/query/fragment și scheme active sunt refuzate.
+O locație redactată nu rămâne ascunsă într-un href. Raw-ul complet rămâne la owner.
+
+Snapshot-ul semantic păstrează etichetele, fără valori/corpuri ori căi de artifact.
+`ObservationStep` și `ObservationSnapshot` extind arborii sealed. Simbolurile
+public/protected J6 sunt păstrate, dar un switch exhaustiv pe variantele vechi
+cere revizuire la recompilare; inventarul simbolurilor nu certifică acea logică.
+
+Regresiile native, cele de compoziție/browser și gate-ul JAR fizic aparțin J0.
+Glyph-ul unui copil depinde de propriul summary/open, iar End/Home/PageUp/PageDown
+folosesc politica comună de scroll pentru `atf-observation-body`. Bulk expand
+păstrează starea locală a dovezilor.
+
+
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":28,"padding":8,"diagramPadding":16}}}%%
+flowchart LR
+    Caller["Caller"] -->|date typed| Observation["Observație INFO"]
+    Observation -->|proiecție comună| Extent["Extent"]
+    Observation -->|proiecție comună| Html["Fallback"]
+    Observation -->|referință, fără fetch| Raw["Artifact extern"]
+```
+
+<details>
+<summary><strong>Legendă — informație și verdict</strong></summary>
+
+- Câmpul observat nu este assertion și nu inventează transport.
+- Rendererele împart escaping, redacție, preview și disclosure.
+- Callerul păstrează evaluarea, raw-ul și politica de retenție.
+
+</details>

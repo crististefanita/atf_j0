@@ -35,6 +35,9 @@ final class HtmlReportSemanticSnapshotMapper {
                     request.status, request.uiActionCount, request.screenshotCount,
                     request.networkAggregate, request.uiEvidence());
         }
+        if (node instanceof HtmlReportSemanticDocument.ObservationModel observation) {
+            return new ReportExecutionModel.ObservationStep(observation.value());
+        }
         var validation = (HtmlReportSemanticDocument.ValidationModel) node;
         return new ReportExecutionModel.Validation(validation.title, validation.assertions,
                 validation.status, validation.uiActionCount, validation.screenshotCount,

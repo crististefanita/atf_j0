@@ -110,11 +110,17 @@ public record ReportExecutionModel(List<Scenario> scenarios) {
         }
     }
 
-    public sealed interface Node permits Request, Validation, AssertionStep {
+    public sealed interface Node permits Request, Validation, AssertionStep, ObservationStep {
         AtfReportStatus status();
     }
 
     /** Assertion evidence for a component test, without a synthetic HTTP request. */
+    public record ObservationStep(ReportObservation value) implements Node {
+        public ObservationStep { Objects.requireNonNull(value, "observation"); }
+        public String title() { return value.title(); }
+        @Override public AtfReportStatus status() { return AtfReportStatus.INFO; }
+    }
+
     public record AssertionStep(String title, List<AtfAssertion> assertions,
                                 AtfReportStatus status) implements Node {
         public AssertionStep {

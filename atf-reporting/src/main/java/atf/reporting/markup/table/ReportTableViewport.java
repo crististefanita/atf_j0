@@ -46,6 +46,6 @@ public enum ReportTableViewport {
     }
 
     public static String scrollSurfaces() {
-        return tableSurfaces() + ",.atf-secondary-body.network-aggregate-scroll";
+        return tableSurfaces() + ",.atf-secondary-body.network-aggregate-scroll,.atf-observation-body";
     }
 }

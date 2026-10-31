@@ -25,6 +25,7 @@ public final class HtmlReportTestsView {
     private final SensitiveDataRedactor redactor;
     private final HtmlReportEvidenceView evidence;
     private final int assertionPreviewLimit;
+    private final ReportingSettings settings;
 
     HtmlReportTestsView() {
         this(ReportingSettings.defaults(), new SensitiveDataRedactor());
@@ -36,6 +37,7 @@ public final class HtmlReportTestsView {
 
     HtmlReportTestsView(ReportingSettings settings, SensitiveDataRedactor redactor) {
         Objects.requireNonNull(settings, "settings");
+        this.settings = settings;
         assertionPreviewLimit = settings.assertionMaxDisplayCharacters();
         this.redactor = Objects.requireNonNull(redactor, "redactor");
         this.evidence = new HtmlReportEvidenceView(settings, this.redactor);
@@ -147,6 +149,8 @@ public final class HtmlReportTestsView {
                     .append(AtfReportHtmlVocabulary.closeTag(AtfReportHtmlVocabulary.Tag.SUMMARY));
             evidence.renderAssertions(html, step.assertions());
             html.append(AtfReportHtmlVocabulary.closeTag(AtfReportHtmlVocabulary.Tag.DETAILS));
+        } else if (node instanceof ReportExecutionModel.ObservationStep observation) {
+            html.append(atf.reporting.evidence.markup.ReportObservationMarkup.render(observation.value(), settings, redactor));
         } else {
             throw new IllegalStateException("Unsupported report node: " + node.getClass().getName());
         }

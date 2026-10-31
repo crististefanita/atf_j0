@@ -79,6 +79,7 @@ final class ReportExecutionProjectionAccumulator {
                         .forEach(failures::add);
                 continue;
             }
+            if (node instanceof ReportExecutionModel.ObservationStep) continue;
             var validation = (ReportExecutionModel.Validation) node;
             validation.assertions().stream()
                     .filter(assertion -> assertion.resultStatus() == AtfReportStatus.FAIL)

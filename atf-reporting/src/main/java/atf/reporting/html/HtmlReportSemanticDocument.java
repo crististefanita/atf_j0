@@ -127,6 +127,10 @@ public final class HtmlReportSemanticDocument {
             return request;
         }
 
+        public void addObservation(atf.reporting.model.ReportObservation value) {
+            children.add(new ObservationModel(java.util.Objects.requireNonNull(value, "observation")));
+        }
+
         public AssertionStepModel addAssertionStep(String title) {
             var step = new AssertionStepModel(title);
             children.add(step);
@@ -140,6 +144,10 @@ public final class HtmlReportSemanticDocument {
         public void complete(AtfReportStatus status) {
             this.status = status;
         }
+    }
+
+    record ObservationModel(atf.reporting.model.ReportObservation value) implements NodeModel {
+        @Override public AtfReportStatus status() { return AtfReportStatus.INFO; }
     }
 
     public static final class AssertionStepModel implements NodeModel {

@@ -39,6 +39,11 @@ public final class AtfReportPorts {
         default void executionTiming(atf.reporting.model.timing.ReportPhaseTiming timing) {
             throw new UnsupportedOperationException("Execution timing is not supported");
         }
+        /** Discover support before publishing neutral, non-transport observations. */
+        default boolean supportsObservations() { return false; }
+        default void observation(atf.reporting.model.ReportObservation observation) {
+            throw new UnsupportedOperationException("Observations are not supported");
+        }
         Request startRequest(String title, String method, String path);
         /** A non-transport assertion group owned directly by this test phase. */
         default AssertionStep startAssertionStep(String title) {

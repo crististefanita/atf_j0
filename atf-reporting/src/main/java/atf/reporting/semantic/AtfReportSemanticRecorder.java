@@ -81,6 +81,11 @@ public final class AtfReportSemanticRecorder {
             return new AssertionStepHandle(state.startAssertionStep(title));
         }
 
+        public void observation(atf.reporting.model.ReportObservation value) {
+            ensureOpen();
+            state.observation(value);
+        }
+
         public void detail(String name) {
             ensureOpen();
             state.detail(name);
