@@ -48,8 +48,10 @@ sunt la ownerii lor, iar registrul păstrează numai criteriile încă deschise.
 | `REPORT-PUBLIC-API-43` | 81 = 31 + 24 + 17 + 9 | API-ul susținut, compatibilitatea și capabilitățile adaptoarelor nu sunt delimitate suficient |
 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) | 80 = 31 + 24 + 18 + 7 | criteriu separat al consumerului: oracol per scenariu și containment fallback |
 | `UI-RECOVERY-AUDIT-01` | 78 = 33 + 22 + 16 + 7 | proiecția typed a încercărilor, bugetelor și corelării rămâne la Reporting |
+| [REPORT-FALLBACK-VALIDATION-DISCLOSURE-99](#report-fallback-validation-disclosure-99--validarea-api-colapsabilă) | 76 = 28 + 24 + 17 + 7 | validarea API fallback nu oferă control de colapsare pentru tabelul agregat |
 | `REPORT-RELEASE-CONTRACT-45` | 73 = 25 + 22 + 17 + 9 | lipsesc criteriile declarate ale pachetului și versiunii distribuite |
 | `REPORT-PORTABLE-DOCS-46` | 72 = 24 + 22 + 17 + 9 | contractele și linkurile README depind încă de documente din afara modulului |
+| [REPORT-FALLBACK-RESULT-WIDTH-101](#report-fallback-result-width-101--badge-ul-statusului-depășește-coloana) | 64 = 24 + 19 + 15 + 6 | badge-ul Warning depășește RESULT și produce overflow evitabil |
 | `REPORT-FLOW-PROJECTION-36` | 62 = 24 + 17 + 16 + 5 | calculul proiecției și protocolul publicării rămân amestecate |
 | `REPORT-FALLBACK-INDEX-66` | 44 = 16 + 10 + 15 + 3 | indexul fallback reutilizează stilul badge-ului pe întregul link |
 
@@ -401,3 +403,62 @@ de Kafka/RabbitMQ și verdictul business la caller.
 Închidere după acceptarea designului: Extent/fallback conservă identități,
 timing, FAIL și dovezi incomplete; fixture-ul neutru și navigarea au regresii
 în Reporting Tests, fără expected-uri sau cod Eventuate în renderer.
+
+## REPORT-FALLBACK-VALIDATION-DISCLOSURE-99 — validarea API colapsabilă
+
+**Prioritate: 76/100** = impact 28 + lacună 24 + lucrabil 17 + documentare 7.
+**Owner:** Reporting; regresia neutră rămâne în Reporting Tests.
+
+Pe J7 consumat în J2, validarea API fallback afișează direct tabelul agregat,
+fără disclosure pentru Response contract. Cele patru coloane, cele trei
+valori JSON și verdicturile FAIL sunt corecte; limita privește navigarea și
+colapsarea, nu evaluarea Validation.
+
+- HtmlReportEvidenceView.renderValidation activează disclosure-ul assertions numai pentru compactUi; traseul API îl ocolește.
+- Clasificarea media type și falsele PASS din ContractValidators aparțin [Validation](ATF_Validation_Feedback.md#validation-media-92--tipul-json-nu-poate-fi-imitat-de-un-parametru); rendererul păstrează verdictul typed, fără a-l recalcula.
+- Reutilizați shell-ul semantic și mecanica de disclosure a bibliotecii, cu starea inițială colapsată și control Enter/Space; fără wrapper sau JavaScript în consumer.
+- Păstrați un singur tabel, rândurile originale, ultima comparație, preview-ul 240 și legătura Fails către ownerul exact; nominalele și vecinii rămân izolați.
+
+**Închidere:** API individual și agregat, PASS/FAIL/WARNING, sunt inspectabile
+și colapsabile în fallback; Extent și assertion-only păstrează contractele lor.
+Fixture-ul neutru și mutanții trebuie verificați pe sursă și JAR, în browser.
+
+<details>
+<summary><strong>Dovadă consumer J2 — limită observată pe J7</strong></summary>
+
+- Increment TMP: atf-j2-scalar-517c733433; scalar-matrix/fallback-scalar-containers.html.
+- SHA-256 JAR: 569d2babe6b9ec091cb1df6e1207110c611327ea15f1521955e847c837d9eb2a.
+- SHA-256 HTML: c4154d589759c3562a296d770fdc296473bf59bcf3ae3e784d38f0ea7952d2df.
+- Browser: Overview implicit, Tests cu tabel deja vizibil, fără buton de colapsare; Fails păstrează trei comparații, inclusiv ultima.
+- DOM public: tabelul ASSERTION/EXPECTED/ACTUAL/RESULT nu are ancestor details. Proba consumerului verifică valori/verdicturi, fără a certifica disclosure-ul absent.
+
+</details>
+## REPORT-FALLBACK-RESULT-WIDTH-101 — badge-ul statusului depășește coloana
+
+**Prioritate: 64/100** = impact 24 + lacună 19 + lucrabil 15 + documentare 6.
+**Owner:** Reporting pentru layout; Reporting Tests pentru componenta neutră.
+
+Pe J7, tabelul API cu trei comparații PASS și un WARNING afișează un scrollbar
+orizontal mic la viewport de 1280 px. Coloana RESULT măsoară aproximativ 56,9 px,
+iar badge-ul Warning 61,8 px; overflow-ul tabelului ajunge la 877 px pentru
+un părinte de 870 px. Valorile și verdictul sunt corecte.
+
+- Calculați minimumul util din footprint-ul stilizat al celulei, inclusiv badge, padding și border; lungimea textului singură nu dovedește că rezultatul încape.
+- Refolosiți politica dinamică existentă pentru toate coloanele și rendererele. Nu impuneți o proporție globală fixă și nu ascundeți overflow-ul sau textul ca să eliminați scrollbarul.
+- Păstrați wrapping, patru coloane, un singur tabel și preview 240; un panou într-adevăr îngust poate avea scroll limitat la tabel, cu ultima comparație accesibilă.
+
+**Închidere:** fixture-ul neutru PASS/FAIL/WARNING încape la lățimea normală
+fără overflow provocat de badge; panoul îngust rămâne navigabil. Mutația care
+restrânge RESULT sub dimensiunea badge-ului trebuie refuzată separat de verdict.
+
+<details>
+<summary><strong>Reproducere consumer — fără schimbarea rendererului</strong></summary>
+
+- Increment TMP atf-j2-media-cd3973d608; media-matrix/fallback-media-warning.html.
+- HTML SHA-256: 59cccb14ff23d6fcb659591510e1e982e9a3b315f04a89b799bc2fe0d29f1ed4.
+- JAR J7 SHA-256: 569d2babe6b9ec091cb1df6e1207110c611327ea15f1521955e847c837d9eb2a.
+- Browser: Tests, patru rânduri; Content-Type JSON are WARNING și ceilalți trei PASS.
+- DOM măsurat: RESULT clientWidth 56, scrollWidth 65; badge width 61,8; tabel width 869,6 și scrollWidth 877.
+- Receipt-ul de valori/verdicturi trece; el nu certifică geometria, care cere regresia de componentă dedicată.
+
+</details>

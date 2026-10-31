@@ -39,6 +39,10 @@ public final class AuditedAssertions {
         AuditedAssertionScope.check("assertEquals", expected + " ± " + delta, actual, null,
                 () -> Assertions.assertEquals(expected, actual, delta));
     }
+    public static void assertEquals(double expected, double actual, double delta, String message) {
+        AuditedAssertionScope.check("assertEquals", expected + " ± " + delta, actual, message,
+                () -> Assertions.assertEquals(expected, actual, delta, message));
+    }
     public static void assertNotEquals(Object expected, Object actual) {
         AuditedAssertionScope.check("assertNotEquals", AssertionValueDisplay.prefix("not ", expected), actual, null,
                 () -> Assertions.assertNotEquals(expected, actual));

@@ -1,50 +1,35 @@
-# ATF Validation — verdicturi JSON fără fals PASS
+# ATF Validation — contract JSON și criterii rămase
 
 ## Pe scurt
 
-J0 deține validarea comună. J3 consumă o copie de source identică pentru
-clasele afectate; nu folosește acest validator pentru WER sau parserul Whisper.
-Un candidat mai strict există în J2 și trebuie reconciliat la owner, apoi
-verificat distinct în consumeri. Nu declarăm acel candidat livrat în J0/J3.
+VALIDATION-STRICT-93 este închis pentru subsetul JSON documentat și acceptat
+separat în J0/J1/J2/J3. Contractul și probele permanente sunt în
+[README-ul ownerului](../../atf-validation/README.md#contract-json-și-subset-de-schemă),
+iar controlul CONTRACTS-J0-96 este în [registrul verificat](../ATF_Test_Changes_Baseline.md).
 
-## VALIDATION-STRICT-93 — JSON complet, missing distinct și subset de schemă explicit
+Clasificarea MIME de mai jos este un criteriu distinct, adăugat concurent.
+Candidatul J2 rămâne separat de acest increment; nu îl declarăm adoptat la
+owner sau în ceilalți consumeri. Core C1 și Reporting J7 rămân neschimbate.
 
-**Prioritate:** 96/100 = impact 40 + lacună 28 + lucrabil 20 + documentare 8.
-**Owner:** `atf-validation` la J0; J2 furnizează candidatul, J1/J2/J3 acceptanțe separate.
+## VALIDATION-MEDIA-92 — tipul JSON nu poate fi imitat de un parametru
 
-Probele externe pe sursa J3, identică cu J0 la aceste clase, au reprodus:
+**Prioritate: 86/100.** Ownerul este Validation comun în J0; Reporting nu
+clasifică headerul și nu trebuie să schimbe verdictul primit. Revizia live J0
+confirmă că toate cele cinci contracte canonice folosesc încă contains literal.
 
-| Trigger | Comportament observat | Comportament cerut |
+| Caz public | Comportament de refuzat | Contract necesar |
 |---|---|---|
-| `{"id":1} broken` | `validJson` acceptă primul obiect | întregul document trebuie consumat |
-| `jsonPathAbsent("$.value")` pe `not JSON` | PASS | JSON invalid nu dovedește absența |
-| `jsonPathType("$.missing", "null")` pe `{}` | PASS | missing și explicit null sunt distincte |
-| `additionalProperties:false` fără `properties`, input cu un câmp | valid | proprietatea suplimentară este respinsă |
-| keyword `const:42`, input `99` | valid prin ignorare | keyword suportat corect sau refuz explicit al subsetului |
+| userItem cu body valid și text/plain; profile="application/json" | PASS prin substring | FAIL numai pe cerința media type, cu payload-ul nominal păstrat |
+| application/vnd.atf.user+json | refuz prin absența substringului application/json | clasificare JSON prin tip/subtip concret |
+| header absent, wildcard, application/jsonp ori listă de tipuri | potrivire accidentală sau diagnostic lipsă | rând explicit nereușit în strict/warning |
 
-Sursele sunt [parserul](../../atf-validation/src/main/java/atf/validation/contract/JsonPathSupport.java),
-[regulile](../../atf-validation/src/main/java/atf/validation/contract/ResponseContractRuleSet.java)
-și [schema](../../atf-validation/src/main/java/atf/validation/contract/JsonSchemaValidator.java).
-Un subset de JSON Schema este acceptabil; ignorarea tăcută nu certifică un contract.
+- Reconcilează selectiv regula contentTypeJson, fațada și cele cinci contracte din [candidatul J2](../../../atf_j2/atf-validation/README.md#content-type--clasificare-semantică-json); păstrează refactorizările locale și contains literal compatibil.
+- Deleagă clasificarea către MediaTypes.isJson din Core. Nu copia parserul în Validation și nu confunda clasificarea tipului cu validarea body-ului sau a tuturor parametrilor MIME.
+- Păstrează identitate distinctă pentru rândul semantic, astfel încât regula și contains să fie compozabile fără duplicate assertion.
+- Transferă regresia publică în testele proprii Validation și verifică toate cele cinci contracte, inclusiv string parameters, charset, sufix JSON și diferențe după preview 240; expected-urile sunt independente de funcția testată.
+- Testele generice de proiecție rămân componente dedicate în Reporting Tests, cu assertions typed furnizate explicit. Nu muta ContractValidators ori algoritmul MIME în fixture-ul rendererului.
 
-- [ ] Reconcilează selectiv candidatul J2 `contract/json` și `contract/schema`
-  cu sursa și schimbările live J0; păstrează Git-ul, POM-urile și controalele
-  fiecărui deployment. Nu copia întregul modul ori directoarele de build.
-- [ ] Păstrează rezultat typed pentru document invalid, missing, null și value;
-  consumă întregul JSON și definește politica duplicatelor.
-- [ ] Validează capabilitățile/forma schemei înaintea instanței; keywords și
-  forme nesuportate sunt refuzate explicit, inclusiv în ramuri neatinse de input.
-- [ ] Adaugă regresii permanente pentru cele cinci trigger-e, strict/warning,
-  numere și forme de schemă invalide. Păstrează expected/actual integral la
-  evaluare, preview 240 și publicarea neutră a assertions.
-- [ ] Rulează nativele la owner și acceptanțele J1/J2/J3 pe sursa/binarul
-  efectiv distribuit. Candidatul J2 și cele 52 de regresii vechi verzi nu închid
-  automat această reconciliere.
-
-**Închidere:** niciunul dintre trigger-e nu mai produce valid/PASS incorect;
-contractul subsetului este în README-ul Validation, probele permanente sunt
-verzi și consumerii au acceptanțe proprii. Catalogul J3 rămâne de opt module,
-Core C1 și Reporting J7 nu cer schimbare doar pentru acest fix de Validation.
-
-[Owner Validation](../../atf-validation/README.md) ·
-[sincronizare](../ATF_Workspace_Synchronization.md) · [registru](README.md).
+**Închidere:** nicio potrivire falsă pe parametru, nominalele JSON concrete și
+contains compatibil sunt demonstrate la owner; acceptanțele deployment-urilor
+se execută separat. Cele 31 de regresii și baseline-ul cu 12 eșecuri din J2
+sunt dovezi ale candidatului, fără execuție sau livrare implicită J0/J1/J3.

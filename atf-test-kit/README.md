@@ -456,3 +456,10 @@ Comanda selectează proba numită și construiește dependențele; nu declară
 trecerea întregului modul. Rendererul, browserul și regula business aparțin ownerilor consumatori.
 
 </details>
+
+### Toleranță numerică auditată
+
+`AuditedAssertions.assertEquals(expected, actual, delta, message)` pentru
+`double` execută JUnit o singură dată și publică expected ± delta, actual
+și mesajul în assertion-step-ul standard. Nu reduce comparația la true/true;
+preview-ul rămâne 240, iar verdictul și cauza JUnit sunt păstrate.

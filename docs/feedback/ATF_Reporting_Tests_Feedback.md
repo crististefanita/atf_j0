@@ -100,3 +100,71 @@ Oracolul trebuie să refuze implementarea care atribuie costul de publicare exec
 |---|---|
 | J2 agregat: TEST BODY 109 ms, request copil 185 ms | [Dovada la owner](ATF_Reporting_Feedback.md#report-recorded-timing-83--execuție-capturată-și-cost-de-publicare) fixează artifactul și hash-ul |
 | native Core și expandări corecte | nu închid regresia temporală Reporting; fixture-ul neutru rămâne necesar |
+
+## REPORT-TEST-FALLBACK-VALIDATION-DISCLOSURE-99 — regresie neutră API
+
+**Prioritate: 76/100.** [Criteriul bibliotecii](ATF_Reporting_Feedback.md#report-fallback-validation-disclosure-99--validarea-api-colapsabilă)
+are reproducere J7 în J2: tabelul API este vizibil direct în Tests, fără
+control de colapsare. Valorile și verdicturile sunt corecte; probele de
+artifact existente nu detectează această limită de interacțiune.
+
+Regresia trebuie extrasă din proba consumerului în componente neutre dedicate,
+fără copierea harness-ului Eventuate sau dependență de ContractValidators.
+Clasificarea MIME are [regresie la ownerul Validation](ATF_Validation_Feedback.md#validation-media-92--tipul-json-nu-poate-fi-imitat-de-un-parametru).
+
+| Livrabil propus în Reporting Tests | Contract executabil |
+|---|---|
+| ApiValidationDisclosureComponentTest, cu AtfComponentTest | port public, stare inițială, tastatură și navigare la comparația exactă |
+| ApiValidationDisclosureFixtures | date sintetice și verdicturi typed independente; rând media type nereușit și vecini PASS |
+| integrare în AtfReportingComponentSuite | selecție individuală și prin suită; control Git exact, fără reguli relaxate |
+| oracol de artifact și browser | inventar per scenariu; fără validare satisfăcută de script, sibling sau copia DOM ascunsă |
+
+- [ ] Publicați un API sintetic cu trei comparații și vecini PASS, individual și agregat; includeți header text/plain cu profile="application/json" ca ACTUAL al unui rând FAIL explicit, fără reevaluare MIME în Reporting.
+- [ ] Verificați starea inițială închisă, click, Enter/Space, ultima comparație și revenirea din Fails la tabelul original; separat PASS, FAIL și WARNING.
+- [ ] Mutațiile elimină disclosure-ul, îl lasă deschis implicit ori mută ultima comparație la un sibling; fiecare variantă trebuie refuzată de oracolul scenariului.
+- [ ] Inversați doar verdicturile rândurilor HTTP status și Content-Type JSON, păstrând numărul de FAIL/WARNING. Componenta verifică verdictul fiecărui rând după identitate, nu numai totalurile sau statusul scenariului.
+- [ ] Repetați pe JAR-ul fizic și pe sursă, în ambele renderere; păstrați patru coloane, wrapping și preview 240, fără markup injectat de consumer.
+
+**Închidere:** proba reproduce limita veche și refuză mutanții independent de
+căutarea textului în scripturi sau de alt scenariu. Acceptanța J2 rămâne o
+probă de consumer, fără preluarea ownership-ului implementării Reporting.
+## REPORT-TEST-FALLBACK-RESULT-WIDTH-101 — geometria celulei RESULT
+
+**Prioritate: 64/100.** [Defectul bibliotecii](ATF_Reporting_Feedback.md#report-fallback-result-width-101--badge-ul-statusului-depășește-coloana)
+are reproducere J7: badge-ul Warning este mai lat decât coloana RESULT,
+producând overflow mic, deși patru coloane pot fi afișate în panoul normal.
+
+- [ ] Adăugați ApiValidationColumnWidthComponentTest cu AtfComponentTest și fixture neutru partajat cu testul de disclosure; integrați selecția în suita componentă și gate-ul JAR.
+- [ ] Publicați separat PASS, FAIL și WARNING, cu vecini PASS și header sintetic lung; expected-ul verdictului este furnizat direct, fără parser MIME sau dependency către Validation.
+- [ ] Măsurați în browser conținutul stilizat, padding-ul, celula și wrapperul la viewport 1280 px și panou îngust; tolerați doar rotunjirea subpixel, nu badge care depășește celula.
+- [ ] Restrângeți deliberat numai RESULT într-un mutant de artifact; oracolul geometric îl refuză, chiar dacă toate valorile și verdicturile rămân identice.
+- [ ] Păstrați accesul la ultima coloană și ultimul rând, wrapping și preview 240 în Extent/fallback; nu înlocuiți proba DOM cu substring în HTML sau cu un procent fix de coloană.
+
+**Închidere:** regresia reproduce overflow-ul vechi și refuză mutantul, apoi
+verifică sursa și JAR-ul real. Proba de valori din consumer rămâne acolo;
+fixture-ul și oracolul generic de geometrie sunt deținute permanent în J0.
+
+## REPORT-J7-GOVERNANCE-100 — coeziune și lizibilitate probate pe source
+
+**Prioritate:** 87/100 = impact 34 + lacună 26 + lucrabil 19 + documentare 8.
+**Owner:** modelul și regresiile generice Reporting la J0.
+
+Guvernanța completă a reprodus patru eșecuri existente în snapshot-ul inițial:
+modelul Reporting are nouă clase, pachetul de audit are zece teste și două
+probe observation folosesc apeluri ATF complet calificate. Inventarul finit
+J7, separat, este reconciliat cu testul Observation deja livrat.
+
+| Suprafață | Criteriu de rezolvare |
+|---|---|
+| `atf.reporting.model` | revedeți coeziunea celor nouă tipuri și compatibilitatea API înaintea separării; nu măriți implicit pragul opt și nu mutați tipuri publice fără plan de livrare |
+| `atf.reporting.audit` | separați observațiile/regresiile după responsabilitate, în source-set-ul de test J0; păstrați probele și numărul de module |
+| observation tests | importați normal API-urile ATF în locul apelurilor complet calificate; nu alterați expected-ul ori verdictul |
+| acceptanță | cele trei guard-uri vizate, nativele/regresiile Reporting și gate-ul JAR fizic trec; o schimbare de producție cere versiune și acceptanțe distincte la consumeri |
+
+**Închidere:** cele patru eșecuri dispar prin structură/importuri revizuite,
+cu probe comportamentale păstrate. Contractele Validation/profiluri/media/WER
+au trecut separat; nu declarăm guvernanța completă J0 verde în acest increment.
+
+[Model](../../atf-reporting/src/main/java/atf/reporting/model/ReportObservation.java) ·
+[probe](../../atf-reporting-tests/src/test/java/atf/reporting/audit/ReportObservationComponentTest.java) ·
+[guard](../../atf-tests/src/test/java/atf/api/tests/governance/AtfPackageCohesionGovernanceTest.java).

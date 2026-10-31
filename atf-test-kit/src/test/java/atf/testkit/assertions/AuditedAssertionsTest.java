@@ -70,4 +70,21 @@ class AuditedAssertionsTest {
         rows.equals("exact boundary", prefix, prefix);
         assertEquals(prefix, rows.checks().getLast().actual());
     }
+    @Test
+    void namedToleranceKeepsNumericFactsAndTheOriginalJUnitVerdict() {
+        var rows = new RecordedAssertions();
+        try (var scope = AuditedAssertionScope.open(getClass().getName(), "namedToleranceKeepsNumericFactsAndTheOriginalJUnitVerdict", rows)) {
+            AuditedAssertions.assertEquals(100.0, 101.5, 2.0, "PCM frames");
+            assertThrows(AssertionError.class, () ->
+                    AuditedAssertions.assertEquals(100.0, 105.0, 2.0, "outside frame tolerance"));
+        }
+        assertEquals(2, rows.checks().size());
+        var accepted = rows.checks().getFirst();
+        assertTrue(accepted.name().contains("PCM frames"));
+        assertEquals("100.0 ± 2.0", accepted.expected());
+        assertEquals("101.5", accepted.actual());
+        assertTrue(accepted.passed());
+        assertFalse(rows.checks().getLast().passed());
+        assertEquals("105.0", rows.checks().getLast().actual());
+    }
 }

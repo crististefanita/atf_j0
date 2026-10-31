@@ -347,3 +347,39 @@ Comanda selectează proba numită și construiește dependențele; nu declară
 trecerea întregului modul. Trecerea contractului nu validează transportul, rendererul sau un provider AI.
 
 </details>
+
+## Contract JSON și subset de schemă
+
+Evaluarea parsează cel mult o dată body-ul în contextul apelului. Documentul
+trebuie consumat integral; JSON malformat, chei duplicate și trailing data
+produc comparații negative. Contextul nu supraviețuiește între evaluări; portul public
+`ResponseValidationRule` rămâne compatibil.
+
+| Boundary | Contract executabil |
+|---|---|
+| Prezență | document invalid, cale invalidă, missing și valoare prezentă sunt distincte; explicit null este prezent |
+| Căi | proprietăți/indexuri `$.item[0].id`, forma simplă `item.id` și JSON Pointer cu escape-uri valide; wildcard/filter/recursive descent sunt refuzate |
+| Egalitate scalară | obiectele/array-urile nu devin șir gol; `jsonPathEquals` și membrii `everyArrayItemEquals` cer scalari |
+| Schema | preflight independent de instanță, inclusiv ramuri neatinse; schemă obiect sau boolean |
+| Tipuri și valori | `type` unic sau listă, `enum`, comparații numerice exacte; integer include valoarea numerică integrală |
+| Obiecte | `required`, `properties`, `additionalProperties` boolean/schemă; false funcționează și fără properties |
+| Array-uri | `items` boolean/schemă, `minItems`, `maxItems` |
+| Șiruri | `minLength`/`maxLength` în codepoints Unicode; `pattern` folosește regex Java valid |
+| Numere | `minimum`/`maximum` inclusiv, cu BigDecimal; fără conversie la double pentru verdict |
+| Metadate | `$schema` acceptă numai URI-ul draft 2020-12; `$comment`, `title`, `description`, `default`, `examples` sunt adnotări |
+| Nesuportat | orice alt keyword, inclusiv `const`, `$ref` și `format`, ori formă invalidă este refuzată; nu pretindem întregul JSON Schema |
+
+URI-ul acceptat este `https://json-schema.org/draft/2020-12/schema`.
+Un keyword refuzat rămâne refuzat chiar dacă inputul i-ar satisface sensul;
+`const:42` nu este ignorat nici pentru 42, nici pentru 99.
+
+Strict produce FAIL, iar politica warning păstrează rândurile negative și
+starea WARNING. Valorile integrale decid verdictul; proiecția auditului
+păstrează preview-ul 240, fără reevaluare în renderer.
+
+### Probe și integrare
+
+Regresii permanente: [prezență și containere](src/test/java/atf/validation/JsonPresenceContractTest.java)
+și [subsetul schemei](src/test/java/atf/validation/JsonSchemaContractTest.java).
+Acceptanța API sintetică în Extent/fallback verifică separat verdictul,
+rândurile și preview-ul; nu demonstrează transport real sau acuratețe speech.

@@ -50,6 +50,7 @@ public final class ResponseContract {
         return add(ruleSet.jsonPathExists(path));
     }
 
+    /** Compares a present JSON scalar's text; objects and arrays cannot match, including empty expected text. */
     public ResponseContract jsonPathEquals(String path, String expected) {
         requireText(path, "path");
         if (expected == null) throw new IllegalArgumentException("expected must not be null");
@@ -82,6 +83,7 @@ public final class ResponseContract {
         return add(ruleSet.jsonArraySize(path, expectedSize));
     }
 
+    /** Requires each array item to have a scalar property matching the text; an empty array satisfies this rule. */
     public ResponseContract everyArrayItemEquals(String path, String property, String expected) {
         requireText(path, "path");
         requireText(property, "property");
@@ -106,9 +108,10 @@ public final class ResponseContract {
         if (evaluated) throw new IllegalStateException("ResponseContract can be evaluated only once");
         if (rules.isEmpty()) throw new IllegalStateException("ResponseContract must contain at least one rule");
         evaluated = true;
+        var context = new ContractEvaluation(response, table);
         for (var rule : rules) {
             try {
-                rule.rule().evaluate(response, table);
+                rule.rule().evaluate(context);
             } catch (RuntimeException error) {
                 table.addFailure(rule.title(), "rule completed", error.getMessage(), error);
             }
@@ -132,5 +135,5 @@ public final class ResponseContract {
         if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " must not be blank");
     }
 
-    private record NamedRule(String title, ResponseValidationRule rule) { }
+    private record NamedRule(String title, ContextualRule rule) { }
 }

@@ -3650,3 +3650,24 @@ testChanges:
 ```
 
 </details>
+
+<details>
+<summary><strong>Control tehnic verificat — CONTRACTS-J0-96</strong></summary>
+
+```yaml
+testChanges:
+  - id: CONTRACTS-J0-96
+    status: VERIFIED
+    base: 79f1575e2e87319ce8935f9486d5392859009c5f
+    expires: 2026-11-30
+    reason: Reconcilează Validation strict din candidatul J2 la owner/consumer, cu missing-null-document invalid distincte și subset de schemă refuzat explicit; adaugă toleranța numerică denumită în Kit, fără relaxarea verdicturilor ori a preview-ului 240. Sincronizează inventarul finit J7 cu testul standalone Observation deja publicat; păstrează egalitatea exactă și limita de coeziune.
+    proof: 'mvn -B -ntp -pl atf-validation,atf-tests -am "-Dtest=JsonPresenceContractTest,JsonSchemaContractTest,AuditedAssertionsTest,AtfTestLayerArchitectureTest,TestChangeGovernanceTest" "-Dsurefire.failIfNoSpecifiedTests=false" test'
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/layers/AtfTestLayerArchitectureTest.java
+      - atf-test-kit/src/test/java/atf/testkit/assertions/AuditedAssertionsTest.java
+      - atf-validation/src/test/java/atf/validation/JsonPresenceContractTest.java
+      - atf-validation/src/test/java/atf/validation/JsonSchemaContractTest.java
+      - atf-validation/src/test/java/atf/validation/scalar/JsonScalarEqualityContractTest.java
+```
+
+</details>
