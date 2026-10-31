@@ -2689,10 +2689,7 @@ testChanges:
     paths:
       - atf-reporting-tests/src/test/java/atf/reporting/ui/publication/UiPublicationFailureComponentTest.java
       - atf-reporting-tests/src/test/java/atf/reporting/ui/publication/UiFailurePublicationComponentTest.java
-      - atf-reporting-tests/src/test/java/atf/reporting/support/failurecorrelation/FailureNavigationFixture.java
-      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/failurenavigation/FailureNavigationLocators.java
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationComponentTest.java
-      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationEdgeComponentTest.java
 ```
 
 </details>
@@ -2900,7 +2897,7 @@ testChanges:
     status: VERIFIED
     base: addd434eaeec7a67fa58eb85256b843ae30c3db5
     expires: 2026-11-30
-    reason: Înlocuiește zoom-ul CSS injectat cu scalarea nativă a contextului, cu viewport CSS și DPR explicite. Păstrează zoomPercent, dimensiunile cerute ale capturii și driverul; documentează rotunjirea nativă. Probe independente pentru pointer trusted, focus, tastatură, captură și refuzul overlay-ului în frame-uri reale same/cross-origin, fără force, dispatch sau replay. Contractele vechi ale scriptului se înlocuiesc cu probe ale comportamentului fără mutarea DOM-ului.
+    reason: Înlocuiește zoom-ul CSS injectat cu scalarea nativă a contextului, cu viewport CSS și DPR explicite. Păstrează zoomPercent, dimensiunile cerute ale capturii și driverul; documentează rotunjirea nativă. Probe independente pentru pointer trusted, focus, tastatură, captură și refuzul overlay-ului în frame-uri reale same/cross-origin, fără force, dispatch sau replay. Contractele vechi ale scriptului se înlocuiesc cu probe ale comportamentului fără mutarea DOM-ului. Extinde ownerul existent PlaywrightUiSessionTest cu 16 probe independente de achiziție/close pentru RuntimeException și Error, resurse returnate cu succes, ordinea release-ului, cauze distincte și self-suppression. Păstrează cele patru probe native și pragul de opt clase fără excepție nouă.
     proof: mvn -pl atf-test-practice-shop,atf-test-auto-ex,atf-tests -am "-Dtest=UiViewportScaleTest,PlaywrightPointerGeometryComponentTest,PlaywrightUiSessionTest,PlaywrightJavaScriptClickComponentTest,AutoExPointerGeometryComponentTest,ShopPointerGeometryComponentTest,AutoExSystemMetadataComponentTest,ShopReportSystemMetadataTest,AutoExE2eOverviewNarrativeComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Datf.test.heap.max=384m" "-Dsurefire.failIfNoSpecifiedTests=false" test
     paths:
       - atf-ui/src/test/java/atf/ui/config/geometry/UiViewportScaleTest.java
@@ -2950,7 +2947,6 @@ testChanges:
     paths:
       - atf-ui/src/test/java/atf/ui/network/UiObservedQueryFingerprintComponentTest.java
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/assertions/ComponentAssertionStepReportTest.java
-      - atf-tests/src/test/java/atf/api/tests/governance/layers/AtfTestLayerArchitectureTest.java
       - atf-reporting-tests/src/test/java/atf/reporting/api/execution/terminal/TerminalFailureIndexComponentTest.java
       - atf-reporting-tests/src/test/java/atf/reporting/api/query/ObservedQueryEvidenceComponentTest.java
       - atf-reporting-tests/src/test/java/atf/reporting/audit/AssertionAuditStepComponentTest.java
@@ -3033,7 +3029,6 @@ testChanges:
     reason: Inlocuieste selectia celulelor din inspector cu fatada locatorilor existenta, pastrand exact randul, verdictul, geometria si controalele negative. Guard-ul nu este relaxat; consumerul binar pastreaza aceleasi probe.
     proof: mvn -B -pl atf-reporting-tests,atf-tests -am "-Dtest=UiSelectorBoundaryArchitectureTest,PublishedFailureNavigationComponentTest,PublishedFailureNavigationEdgeComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Dsurefire.failIfNoSpecifiedTests=false" test
     paths:
-      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failurenavigation/FailureNavigationEdgeProbe.java
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failurenavigation/FailureNavigationProbe.java
 ```
 
@@ -3072,7 +3067,6 @@ testChanges:
     paths:
       - atf-tests/src/test/java/atf/api/tests/governance/documentation/factual/DocumentedBuildContracts.java
       - atf-tests/src/test/java/atf/api/tests/governance/documentation/factual/DocumentedBuildContractTest.java
-      - atf-tests/src/test/java/atf/api/tests/governance/WholeAtfGovernanceSuiteTest.java
 ```
 
 </details>
@@ -3103,7 +3097,7 @@ testChanges:
     status: VERIFIED
     base: addd434eaeec7a67fa58eb85256b843ae30c3db5
     expires: 2026-11-30
-    reason: Adaugă o componentă cu browser real și HTTP loopback 500/200, lansată prin extensia E2E reală. Verifică failure individual UI/UI_API și failure urmat de succes în profil opus, cu context și localStorage izolate, un GET per invocare, verdict original, captură și un HTML per lansare; păstrează selecțiile business și toate probele existente.
+    reason: Adaugă o componentă cu browser real și HTTP loopback 500/200, lansată prin extensia E2E reală. Verifică failure individual UI/UI_API și failure urmat de succes în profil opus, cu context și localStorage izolate, un GET per invocare, verdict original, captură și un HTML per lansare; păstrează selecțiile business și toate probele existente. Markerii verdictului și captura se verifică în markup fără scripturi/stiluri, cu control negativ care păstrează runtime-ul.
     proof: mvn -B -pl atf-test-auto-ex -am "-Dtest=AutoExEvidenceProfileIsolationComponentTest,AutoExEvidenceProfileComponentTest,AutoExRunLifecycleAdapterComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
     paths:
       - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/reporting/AutoExEvidenceProfileIsolationComponentTest.java
@@ -3113,22 +3107,7 @@ testChanges:
 
 ## Control tehnic verificat — pregătire body-only
 
-<details>
-<summary><strong>Control tehnic — fazele declarate de consumer</strong></summary>
 
-```yaml
-testChanges:
-  - id: UI-BODY-ONLY-PREPARATION
-    status: VERIFIED
-    base: addd434eaeec7a67fa58eb85256b843ae30c3db5
-    expires: 2026-11-30
-    reason: Adaugă o probă neutră cu HTML real Extent/fallback pentru pregătirea declarată în TEST BODY, cu assertions și refuz păstrate. Nu ascunde faze SETUP declarate explicit și nu mută politica Shop în Reporting. Proba consumerului verifică separat alegerea fazelor prin profil.
-    proof: mvn -pl atf-test-practice-shop,atf-reporting-tests,atf-tests -am "-Dtest=ShopE2eContextEvidenceProfileTest,ShopE2eSetupAssertionsTest,ShopE2eFailureReportComponentTest,ShopE2eFailureBoundaryTest,UiCrossPhaseCompactFlowComponentTest,UiSetupFailureEvidenceComponentTest,ReportEvidenceProfileIntegrationTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Dsurefire.failIfNoSpecifiedTests=false" "-Datf.test.heap.max=384m" test
-    paths:
-      - atf-reporting-tests/src/test/java/atf/reporting/ui/profile/UiCrossPhaseCompactFlowComponentTest.java
-```
-
-</details>
 ## Control tehnic verificat — setup cont, confirmare comandă/coș și cleanup pe profile AutoEx
 
 <details>
@@ -3179,6 +3158,299 @@ testChanges:
     proof: mvn -pl atf-test-auto-ex,atf-tests -am "-Dtest=ObservationBudgetComponentTest,AutoExProductTransitionComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Dsurefire.failIfNoSpecifiedTests=false" test
     paths:
       - atf-ui/src/test/java/atf/ui/playwright/ObservationBudgetComponentTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control tehnic — CONSUMER-BUSINESS-FAILURES-55</strong></summary>
+
+```yaml
+testChanges:
+  - id: CONSUMER-BUSINESS-FAILURES-55
+    status: VERIFIED
+    base: addd434eaeec7a67fa58eb85256b843ae30c3db5
+    expires: 2026-11-30
+    reason: Adaugă probe negative Account/Cart/Purchase UI/UI_API, individual și prin suită, cu journey real, expected independent, captură originală și contoare distincte pentru evenimente browser și navigări business. Probează timeout-urile efectiv trimise browserului pentru două recuperări GET în același buget și refuză reînnoirea prin mutant separat. Corectează listenerul de ștergere pentru query-uri browser cu pipe, probând traficul extern, owned și redirectul fără pierderea cauzei. Actualizează inventarul exact și întărește capabilitățile portului Account; păstrează selecțiile, toate guard-urile și excepția Git Shop. Citirea HTML în probele de acceptanță exclude scripturi/stiluri pentru a nu confunda selectorul FAIL cu dovada publicată; controlul negativ al artifactului păstrează JavaScript-ul. Extinde recalcularea/removal guest și eroarea generică după checkpoint PASS cu cleanup owned. Oracolul per invocare corelează verdict/cauză/captură identificabilă; mutanții locali refuză captura lipsă/reasociată, verdictul schimbat și cauza străină fără replay remote. Închide injecția unui fault neatins înaintea cleanup-ului; proba parcurge toate cele șase puncte, iar mutantul care omite închiderea este respins de citirea independentă de ownership.
+    proof: mvn -B -pl atf-ui,atf-test-auto-ex,atf-test-practice-shop,atf-tests -am "-Dtest=ObservationBudgetComponentTest,AutoExBusinessFaultComponentTest,ShopBusinessFaultComponentTest,ShopE2eContextEvidenceProfileTest,AutoExAccountDeletionSafetyComponentTest,AutoExAccountCleanupRecoveryComponentTest,AutoExReadOnlyBudgetBoundaryComponentTest,AutoExPagePortsComponentTest,AutoExProductTransitionComponentTest,AutoExPurchaseUiAdapterComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Datf.test.heap.max=384m" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/support/business/AutoExBusinessFault.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/business/AutoExBusinessFaultComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/e2e/failures/AutoExBusinessFailureAcceptance.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/e2e/failures/AutoExBusinessArtifactAudit.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/support/product/AutoExBorrowedBudgetProbe.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/navigation/AutoExReadOnlyBudgetBoundaryComponentTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/AtfPackageCohesionGovernanceTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control tehnic — REPORT-JAR-QUALITY-54</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-JAR-QUALITY-54
+    status: VERIFIED
+    base: addd434eaeec7a67fa58eb85256b843ae30c3db5
+    expires: 2026-11-13
+    reason: Cerinta explicita de a corecta Reporting si Reporting Tests la producator si a sincroniza consumerul binar. Pastreaza toate oracolele; auditul sursei se executa nativ la producator, iar runtime-ul si consumerul Maven folosesc JAR-ul real. Repara refuzul constructorului, selectia dovezii si fixture-urile fara relaxarea pragurilor sau excluderea testelor.
+    proof: mvn -B -pl atf-reporting-tests,atf-tests -am "-Dtest=AtfReportingUnitSuite,AtfReportingComponentSuite,AtfReportingIntegrationSuite,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/layers/AtfTestLayerArchitectureTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/README.md
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/table/PublishedEvidenceTableLocators.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/audit/section/FailsSectionValidatorTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/section/extract/ApiReportStructureExtractor.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failure/FailureFlowInspector.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/failurenavigation/FailureJourneyLocators.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/section/module/FailsSectionAuditModule.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/layout/EvidenceTableVisibilityComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/navigation/FailureLinkIdentity.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/navigation/FailureLinkIdentityTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/reconciliation/UiApiVerdictProjectionProbe.java
+      - atf-reporting/pom.xml
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/diagnostic/ReportPhaseAuditLocators.java
+      - atf-reporting-tests/src/test/java/atf/reporting/extent/session/ExtentReportConstructionComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/runtime/core/ExtentReportRuntimeModuleTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/runtime/core/ExtentReportDurationRuntimeComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/theme/css/AtfReportThemeCompositionTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/UiExtentReportSessionCompositionTest.java
+      - atf-reporting/src/test/java/atf/reporting/standalone/source/ReportingSourceArchitectureTest.java
+      - atf-reporting/src/test/java/atf/reporting/standalone/source/ReportingModuleSource.java
+      - atf-reporting/src/test/java/atf/reporting/standalone/ReportingStandaloneDependencyTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/section/architecture/DomInspectorMigrationBoundaryTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/distribution/ReportingDistributionProbe.java
+      - atf-reporting-tests/src/test/java/atf/reporting/distribution/ReportingLibraryDistributionIntegrationTest.java
+      - atf-reporting-tests/src/test/resources/atf/reporting/distribution/JarConsumer.java.txt
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/config/ReportingTestResources.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/config/AtfUiConfigurationLoaderTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/support/ReportingTestResourcesIdeLaunchTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/extent/session/ExtentReportFailureProjectionContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/runtime/core/ExtentReportRuntimeScriptTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/runtime/section/ExtentReportRuntimeNavigationComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/UiFallbackFailureEvidenceTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/ExtentReportUiScreenshotContractTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/reconciliation/UiFailureCorrelationProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/diagnostic/ReportPhaseAuditProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/timing/ComponentExecutionDiagnosticReportTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/verdict/VerdictReportLocators.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control tehnic — REPORT-METADATA-PLACEMENT-J3</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-METADATA-PLACEMENT-J3
+    status: VERIFIED
+    base: addd434eaeec7a67fa58eb85256b843ae30c3db5
+    expires: 2026-11-13
+    allowDelete: true
+    reason: Separa cele doua oracole existente pentru metadatele afisate ale clasei de probele mutatiilor sesiunii. Pastreaza continutul testelor si descoperirea prin suita unit; locul eliberat permite proba package-private a refuzului constructorului fara exceptie de coeziune.
+    proof: mvn -B -pl atf-reporting-tests,atf-tests -am "-Dtest=AtfReportingUnitSuite,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/extent/session/ExtentReportClassMetadataTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/extent/metadata/ExtentReportClassMetadataTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control tehnic — REPORT-NAVIGATION-RECONCILIATION-47</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-NAVIGATION-RECONCILIATION-47
+    status: VERIFIED
+    base: ddba3dee4dd4ecd544a8b1c22d31bae226eed5cf
+    expires: 2026-11-13
+    reason: Urmareste diferenta fata de baza proprie pentru navigarea typed si diagnostice. Markerii publici, parsarea backlink-ului si locatorii expliciti protejeaza identitatea dovezii; criteriul 47 pastreaza separat diagnosticele, multi-screenshot si containment-ul fallback inca nedemonstrate complet.
+    proof: mvn -B -pl atf-reporting-tests -am "-Dtest=PublishedFailureNavigationComponentTest,PublishedFailureNavigationEdgeComponentTest,ReportUiLocatorsTest,ExtentReportSessionContractTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/support/failurecorrelation/FailureNavigationFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/failurenavigation/FailureNavigationLocators.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationEdgeComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failurenavigation/FailureNavigationEdgeProbe.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control tehnic — REPORT-ORIGINAL-ROW-ORDINAL-J4</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-ORIGINAL-ROW-ORDINAL-J4
+    status: VERIFIED
+    base: addd434eaeec7a67fa58eb85256b843ae30c3db5
+    expires: 2026-11-13
+    reason: Reproduce pe raportul AutoEx ca ordinalul 2 selecteaza copia derivata a primei erori. Adauga doua grupuri UI omonime cu cate un singur FAIL, fara comparatie PASS care sa impiedice crearea sumarului; verifica dovada originala, ordinea inversa, reload si bugetele 18/240. Nu extinde timpii sau pragurile.
+    proof: mvn -B -pl atf-reporting-tests -am "-Dtest=PublishedFailureNavigationComponentTest,PublishedFailureNavigationEdgeComponentTest,ReportAssetSizeInventoryTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/support/failurecorrelation/FailureNavigationFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/failurenavigation/FailureNavigationLocators.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationEdgeComponentTest.java
+```
+
+</details>
+
+
+## Control tehnic verificat — ATF-GOVERNANCE-PERIMETER-61
+
+<details>
+<summary><strong>Control YAML — aceeași suită pentru sursă și JAR</strong></summary>
+
+```yaml
+testChanges:
+  - id: ATF-GOVERNANCE-PERIMETER-61
+    status: VERIFIED
+    base: addd434eaeec7a67fa58eb85256b843ae30c3db5
+    expires: 2026-11-20
+    reason: Cerința explicită sincronizează din J1 guvernanța source/binary și păstrează controalele producătorului. Repară țintele documentare și mutantul numeric, verifică manifestul/POM-ul/CodeSource-ul și dependențele reale ale JAR-ului, cu probe negative pentru module/artefacte alterate și aceeași selecție whole-ATF.
+    proof: mvn -B -pl atf-tests -am "-Dtest=WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Datf.test.heap.max=384m" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/AtfGovernanceTestSupport.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/DeploymentFixture.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/README.md
+```
+
+</details>
+
+<details>
+<summary><strong>Control tehnic — CONSUMER-ACCEPTANCE-SCOPE-58</strong></summary>
+
+```yaml
+testChanges:
+  - id: CONSUMER-ACCEPTANCE-SCOPE-58
+    status: VERIFIED
+    base: addd434eaeec7a67fa58eb85256b843ae30c3db5
+    expires: 2026-11-30
+    reason: Extrage numai override-ul scoped și colectarea artifactelor după caracterizarea CLI-urilor Shop/AutoEx. Callerul păstrează launcherul, filtrul și politica business; Kit nu primește dependențe Launcher/Reporting/Playwright. Probe unitare pentru succes, aceeași cauză RuntimeException/Error, restaurare present/absent și eșec de colectare fără proprietate scursă.
+    proof: mvn -B -pl atf-test-kit,atf-test-auto-ex,atf-test-practice-shop,atf-tests -am "-Dtest=ScopedAcceptanceRunTest,PlaywrightUiSessionTest,AutoExBusinessFaultComponentTest,ShopBusinessFaultComponentTest,WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Datf.test.heap.max=256m" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-kit/src/test/java/atf/testkit/lifecycle/ScopedAcceptanceRunTest.java
+```
+
+</details>
+
+
+## Control tehnic verificat — REPORT-UNIFIED-BODY-61
+
+<details>
+<summary><strong>Control YAML — proiecția body-only și regresiile JAR</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-UNIFIED-BODY-61
+    status: VERIFIED
+    base: addd434eaeec7a67fa58eb85256b843ae30c3db5
+    expires: 2026-11-13
+    reason: Cerinta explicita de a reproduce raportul Shop single-flow in producator, cu teste de componenta si contract, apoi de a valida si distribui un JAR nou in consumerul plat. Pastreaza capturile la FAIL, toate oracolele, pragurile si preview-ul implicit 240; adauga matricea body-only si diagnosticul geometric al regresiei fallback observate.
+    proof: mvn -B -pl atf-reporting-tests,atf-test-practice-shop,atf-tests -am "-Dtest=UiCrossPhaseCompactFlowComponentTest,BodyOnlyUnifiedFlowComponentTest,ShopE2eContextEvidenceProfileTest,PublishedFailureNavigationEdgeComponentTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/profile/UiCrossPhaseCompactFlowComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/flow/BodyOnlyUnifiedFlowFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/flow/BodyOnlyUnifiedFlowComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/flow/BodyOnlyUnifiedFlowProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/flow/BodyOnlyUnifiedFlowLocators.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failurenavigation/FailureNavigationEdgeProbe.java
+```
+
+</details>
+
+
+## Control tehnic verificat — REPORT-FLAT-CONSUMER-62
+
+<details>
+<summary><strong>Control YAML — guvernanța distribuției plate</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-FLAT-CONSUMER-62
+    status: VERIFIED
+    base: addd434eaeec7a67fa58eb85256b843ae30c3db5
+    expires: 2026-11-13
+    reason: Path-ul suitei whole-ATF este preluat de DOC-UI-GEOMETRY-62 la aceeași bază; selecțiile de deployment se păstrează. Cerinta explicita livreaza JAR/POM direct in lib si retrage Reporting Tests din J1 dupa gate. Pastreaza sursa completa, toate controalele de provenienta si dependente si oracolele negative; accepta numai catalogul final explicit si harness-ul temporar declarat.
+    proof: mvn -B -pl atf-tests -am "-Dtest=WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/GovernanceDeployment.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/GovernanceDeploymentTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/ReportingGovernanceSurface.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/ReportingGovernanceSurfaceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/BinaryReportingFixture.java
+      - atf-tests/src/test/java/atf/api/tests/governance/ArchitectureModuleBoundaryTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/ArchitectureOwnershipBoundaryTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/ConstantsOwnershipGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/console/ConsoleDefaultsGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/ReportingHarnessOwnership.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/ReportingHarnessOwnershipTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control tehnic — DOC-UI-GEOMETRY-62</strong></summary>
+
+```yaml
+testChanges:
+  - id: DOC-UI-GEOMETRY-62
+    status: VERIFIED
+    base: addd434eaeec7a67fa58eb85256b843ae30c3db5
+    expires: 2026-11-30
+    reason: Extinde prevenirea factuală selectivă la geometria UI și YAML-ul consumerilor, fără parser universal ori dependență către Reporting Tests. Compară implicitul generic cu modelul executabil și configurația livrată cu YAML-ul live; probele negative modifică numai documentul și păstrează source, linie, declared și observed în diagnostic. Extinde suita canonică, păstrează selecțiile de deployment deja livrate și preia exact path-ul suitei la baza curentă, fără controale eligibile duplicate. Nu relaxează niciun gate existent.
+    proof: mvn -B -pl atf-tests -am "-Dtest=DocumentedUiGeometryContractTest,DocumentedBuildContractTest,WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=addd434eaeec7a67fa58eb85256b843ae30c3db5" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/WholeAtfGovernanceSuiteTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/factual/DocumentedUiGeometryContracts.java
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/factual/DocumentedUiGeometryContractTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control tehnic — AUTOEX-INVOICE-TOKEN-67</strong></summary>
+
+```yaml
+testChanges:
+  - id: AUTOEX-INVOICE-TOKEN-67
+    status: VERIFIED
+    base: 4f6bd353bf23f499a1268e811116b5627522306c
+    expires: 2026-11-30
+    reason: Păstrează cele patru cazuri existente și adaugă negative pentru clauza monetară completă, inclusiv sufixe, fracții suplimentare și spații interne. Oracolul independent cere numai Invoice amount FAIL, actual fidel în model și în ambii adaptori; nominalele păstrează prefixul valutar, scala BigDecimal și punctuația propoziției. Testele noi refuză implementarea anterioară, folosesc citirea reală UTF-8 și aserțiuni auditate, fără relaxarea selecțiilor, replay sau modificarea Reporting.
+    proof: mvn -B -pl atf-test-auto-ex -am "-Dtest=AutoExInvoiceComponentTest" "-Datf.governance.testChanges.baseRef=4f6bd353bf23f499a1268e811116b5627522306c" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/journey/AutoExInvoiceComponentTest.java
+```
+
+</details>
+
+## Control tehnic verificat — REPORT-FLOW-CONTEXT-65
+
+<details>
+<summary><strong>Control verificat — REPORT-FLOW-CONTEXT-65</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-FLOW-CONTEXT-65
+    status: VERIFIED
+    base: addd434eaeec7a67fa58eb85256b843ae30c3db5
+    expires: 2026-11-20
+    reason: Cerinta explicita reanalizeaza Reporting live si pastreaza regresiile in producator inaintea distribuirii JAR. Caracterizeaza independent contextul UI per faza, HTTP real, PASS/FAIL si expandarea assertions; reproduce containment-ul titlurilor fallback si pastreaza controlul negativ care readuce nowrap. Foloseste locatorii in forma atributelor ceruta de guvernanta si proba API cu markeri contradictorii si compact. Nu relaxeaza praguri, timpi, preview-ul 240 sau inventarul existent.
+    proof: mvn -B -pl atf-reporting-tests -am "-Dtest=UnifiedFlowProvenanceFieldsTest,PhaseUnifiedFlowContextComponentTest,PhaseUnifiedFlowComponentTest,FallbackLongTitleComponentTest,UiSelectorBoundaryArchitectureTest,ReportUiLocatorsTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/evidence/UnifiedFlowProvenanceFieldsTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/flow/PhaseUnifiedFlowFixture.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/navigation/FallbackLongTitleFixture.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/profile/PhaseUnifiedFlowContextComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/flow/PhaseUnifiedFlowComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/layout/FallbackLongTitleComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/flow/PhaseUnifiedFlowProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/navigation/FallbackLongTitleProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/navigation/FallbackLongTitleLocators.java
 ```
 
 </details>

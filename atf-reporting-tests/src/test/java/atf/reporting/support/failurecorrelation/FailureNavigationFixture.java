@@ -19,6 +19,39 @@ public final class FailureNavigationFixture {
     public static final String SECRET = "navigation-private-credential";
     public static final List<String> PHASES = List.of("SETUP", "TEST BODY", "TEARDOWN");
 
+    public static Path publishRepeatedUiFailures(int limit) {
+        Path output = TestReportPaths.report("repeated-ui-failures-" + UUID.randomUUID() + ".html");
+        try (var session = new ExtentReportSession(output, new ReportingSettings(limit))) {
+            var sibling = session.startScenario("FailureNavigation", "PASS neighbour", List.of("component"));
+            var siblingPhase = sibling.startPhase("TEST BODY");
+            var siblingStep = siblingPhase.startAssertionStep("Healthy comparison");
+            siblingStep.assertions(List.of(new AtfAssertion("Independent PASS", "ready", "ready", true)));
+            siblingStep.complete(AtfReportStatus.PASS);
+            siblingStep.close();
+            siblingPhase.complete(AtfReportStatus.PASS);
+            siblingPhase.close();
+            sibling.complete(AtfReportStatus.PASS);
+            sibling.close();
+            var scenario = session.startScenario("FailureNavigation", "Repeated UI diagnostics", List.of("component"));
+            var phase = scenario.startPhase("TEST BODY");
+            for (String cause : List.of("primary failure", "cleanup refused")) {
+                var request = phase.startRequest("Failure checkpoint", "", "");
+                var validation = request.startValidation("Failure evidence");
+                validation.evidenceOwner(ReportEvidenceOwner.UI);
+                validation.assertions(List.of(new AtfAssertion("Failure cause", "no failure", cause, false)));
+                validation.complete(AtfReportStatus.FAIL);
+                validation.close();
+                request.complete(AtfReportStatus.FAIL);
+                request.close();
+            }
+            phase.complete(AtfReportStatus.FAIL);
+            phase.close();
+            scenario.complete(AtfReportStatus.FAIL);
+            scenario.close();
+        }
+        return output;
+    }
+
     public static Path publish(Owner owner) {
         return publish(owner, false, Evidence.ASSERTIONS, 240);
     }

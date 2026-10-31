@@ -90,7 +90,7 @@ class AutoExEvidenceProfileIsolationComponentTest {
                     .filter(p -> !p.toString().contains(".atf-extent-session-")).toList();
         }
         assertEquals(1, reports.size(), "one HTML per individual or shared launch");
-        String html = Files.readString(reports.getFirst());
+        String html = Files.readString(reports.getFirst()).replaceAll("(?is)<script\\b[^>]*>.*?</script>|<style\\b[^>]*>.*?</style>", "");
         for (var owner : owners) assertTrue(html.contains(owner.getSimpleName()));
         assertTrue(html.contains("Profile HTTP response"));
         assertTrue(html.contains("500"));

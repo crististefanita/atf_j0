@@ -137,9 +137,16 @@ public final class ReportPhaseAuditProbe {
                 verifyScenario(scenarios.nth(index), CASES.get(index), fallback);
             }
             LOCATORS.failsTab(page, fallback).click();
-            assertTrue(LOCATORS.fails(page, fallback).innerText().contains("observed status mismatch"),
+            var causes = new ArrayList<String>();
+            if (fallback) causes.add(LOCATORS.fails(page, true).innerText());
+            else for (int index = 0; index < LOCATORS.failureEntries(page).count(); index++) {
+                LOCATORS.failureEntries(page).nth(index).click();
+                causes.add(LOCATORS.failureIndex(page).innerText());
+            }
+            assertTrue(causes.stream().anyMatch(cause -> cause.contains("observed status mismatch")),
                     "Fails must retain the actual JUnit cause even without a contract assertion");
-            assertTrue(LOCATORS.fails(page, fallback).innerText().contains(ASSOCIATION_MESSAGE));
+            assertTrue(causes.stream().anyMatch(cause -> cause.contains(ASSOCIATION_MESSAGE)),
+                    "Each explicit diagnostic remains reachable through its own Fails record");
             assertAll(
                     () -> assertFalse(LOCATORS.body(page).textContent().contains(INTERNAL_VALUE)),
                     () -> assertTrue(errors.isEmpty(), () -> "Report runtime errors: " + errors));

@@ -25,6 +25,12 @@ dovezi. Nu este un browser și nu repară observații lipsă; semantica se verif
   O diferență semantică nu este compensată prin ascunderea unui rând HTML.
 - Views Tests, Categories, Fails și Overview provin din aceeași execuție;
   diagnosticul unei faze nu devine automat o aserțiune business nouă.
+- Contextul unui flow UI unificat folosește disclosure-ul neutru comun,
+  separat de response evidence; validările sale au propriul `Assertions · n`,
+  colapsat inițial. Agregarea per fază nu este reclasificată drept compactare.
+- Titlurile scenariilor și claselor rămân integrale și se împachetează în
+  sidebar. Sub sau la 760 px, navigarea precede articolul pe o singură coloană;
+  anchor-ul, statusul și identitatea scenariului rămân cele originale.
 
 <details>
 <summary><strong>Diferențe care trebuie citite explicit</strong></summary>
@@ -40,12 +46,14 @@ dovezi. Nu este un browser și nu repară observații lipsă; semantica se verif
 
 </details>
 
-## Probe și criteriu rămas
+## Probe și contractul sesiunii
 
 [HtmlReportSessionTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/html/HtmlReportSessionTest.java) și [AtfReportSemanticSnapshotTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/semantic/AtfReportSemanticSnapshotTest.java) verifică modelul și
 paritatea; [UiFallbackFailureEvidenceTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/ui/UiFallbackFailureEvidenceTest.java) păstrează cauza și izolarea scenariilor.
 Probe de browser și responsive sunt la [Reporting Tests](../../../../../../../atf-reporting-tests/README.md).
 
-Contractul comun flush/publicare/path/threading rămâne de închis în
-[REPORT-SESSION-CONTRACT-44](../../../../../../../docs/feedback/ATF_Reporting_Feedback.md#report-session-contract-44--lifecycle-explicit-pentru-fiecare-renderer).
+Semantica flush/publicare/path/threading este declarată în
+[contractul sesiunii](../../../../../../README.md#publicare-și-ieșire).
+Consumerul așteaptă momentul de publicare al rendererului ales și serializează
+accesul fallback; portul comun nu promite acces concurent.
 

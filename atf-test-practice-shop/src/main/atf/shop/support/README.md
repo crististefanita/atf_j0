@@ -75,6 +75,7 @@ un grup de aserțiuni nu mai este reprezentat printr-un request `ASSERT` artific
 | erori de lifecycle catalog | [ShopCatalogLifecycleComponentTest](../../../../test/atf/shop/tests/component/catalog/lifecycle/ShopCatalogLifecycleComponentTest.java) |
 | cursa autofill/input și refuzuri | [ShopBillingSynchronizationComponentTest](../../../../test/atf/shop/tests/component/billing/ShopBillingSynchronizationComponentTest.java) |
 | adresa lookup-ului curent | [ShopPostalLookupComponentTest](../../../../test/atf/shop/tests/component/billing/ShopPostalLookupComponentTest.java) |
+| failure Account/Cart/Purchase și frate sănătos | [acceptanța explicită](../../../../test/atf/shop/tests/e2e/failures/ShopBusinessFailureAcceptance.java) — flow și validări reale; injecție numai în test, raport individual/comun |
 
 Achiziția concretă începe în [ShopBrowserRuntime](../runtime/ShopBrowserRuntime.java).
 Contractele și probele celorlalte checkpoint-uri rămân în [contractul modulului](../../../../../README.md).

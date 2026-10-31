@@ -49,10 +49,15 @@ class ExtentReportUiScreenshotContractTest {
         assertAll(
                 () -> assertTrue(html.contains("href=\"data:image/png;base64," + ReportTestScreenshots.ONE_PIXEL_PNG + "\"")
                         && html.contains(">📷 base64 img</span>")),
-                () -> assertTrue(html.contains(".atf-ui-action-screenshot{display:flex!important;justify-content:flex-start!important;align-items:center!important;text-align:left!important;vertical-align:middle!important;width:100%!important;max-width:100%!important;")
+                () -> assertTrue(html.contains(".atf-ui-action-screenshot{display:flex!important;"
+                        + "justify-content:flex-start!important;align-items:center!important;text-align:left!important;"
+                        + "vertical-align:middle!important;width:100%!important;max-width:100%!important;")
                         && html.contains("padding:0!important")
                         && html.contains("overflow:visible!important;box-sizing:border-box!important")),
-                () -> assertTrue(html.contains(".atf-ui-action-screenshot-link{display:flex!important;flex-direction:row!important;align-items:center!important;align-self:center!important;justify-content:flex-start!important;flex-wrap:wrap!important;gap:4px!important;width:100%!important;max-width:100%!important;height:auto!important;min-height:18px!important;")),
+                () -> assertTrue(html.contains(".atf-ui-action-screenshot-link{display:flex!important;"
+                        + "flex-direction:row!important;align-items:center!important;align-self:center!important;"
+                        + "justify-content:flex-start!important;flex-wrap:wrap!important;gap:4px!important;"
+                        + "width:100%!important;max-width:100%!important;height:auto!important;min-height:18px!important;")),
                 () -> assertTrue(html.contains("text-decoration:none!important")),
                 () -> assertTrue(html.contains("class=\"atf-ui-action-sequence\"")),
                 () -> assertTrue(html.contains("href=\"data:image/png;base64," + ReportTestScreenshots.ONE_PIXEL_PNG + "\"")),
@@ -145,11 +150,12 @@ class ExtentReportUiScreenshotContractTest {
             step.uiActions(List.of(new AtfUiActionRecord(1, "Click", "#submit",
                     "page changes", "click completed", 12, AtfReportStatus.PASS)));
             step.screenshot("first state", ReportTestScreenshots.ONE_PIXEL_PNG);
-            step.screenshot("second state", ReportTestScreenshots.SECOND_PIXEL_PNG);
-
             assertThrows(IllegalStateException.class,
-                    () -> step.complete(AtfReportStatus.PASS),
+                    () -> step.screenshot("second state", ReportTestScreenshots.SECOND_PIXEL_PNG),
                     "an action table must have exactly one local screenshot");
+            step.complete(AtfReportStatus.PASS);
+            phase.complete(AtfReportStatus.PASS);
+            scenario.complete(AtfReportStatus.PASS);
         }
     }
 }

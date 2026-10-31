@@ -46,6 +46,19 @@ Etichetele scurte păstrează următorul sens:
 
 </details>
 
+## Alegerea și diagnosticul transportului
+
+| Observație | Verifică la owner | Rezultat cerut |
+|---|---|---|
+| request fără rută eligibilă | [matching și prioritate](#potrivirea-și-prioritatea-rutelor) | fallback-ul configurat, cu URL-ul păstrat |
+| două rute cu etichetă asemănătoare | [identitatea rutelor](src/test/java/atf/mock/MockRouteIdentityTest.java) | sursa selectată rămâne distinctă de eticheta diagnostică |
+| query duplicat sau gol | [catalog YAML](#configurația-yaml) | perechile nu se pierd prin conversie la map |
+| răspuns fake corect, raport greșit | [adaptorul consumerului](../atf-reporting-tests/README.md#fidelitatea-query-ului-și-asocierea-mock) | aceeași rută și aceleași dovezi sunt adaptate |
+
+Pornește cu `AtfMockTransport.defaults()` pentru o probă offline ori cu
+`fromConfiguration(...)` pentru catalogul explicit. Alegerea unui URL în
+request nu transformă transportul mock în transport live.
+
 ## Contractul modulului
 
 | Întrebare | Răspuns contractual |

@@ -49,8 +49,10 @@ niciuna nu execută scenariul consumerului.
 [UiPublicationFailureComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/ui/publication/UiPublicationFailureComponentTest.java) și probele de publicare din
 [Reporting Tests](../../../../../../../atf-reporting-tests/README.md) completează fault-path-ul și artifactul.
 
-Diferențele față de fallback și delimitarea API-ului public au
-[criterii active](../../../../../../../docs/feedback/ATF_Reporting_Feedback.md#report-session-contract-44--lifecycle-explicit-pentru-fiecare-renderer).
+Diferențele de flush, publicare și threading față de fallback sunt declarate în
+[contractul sesiunii](../../../../../../README.md#publicare-și-ieșire).
+Delimitarea API-ului susținut păstrează
+[criterii active](../../../../../../../docs/feedback/ATF_Reporting_Feedback.md#report-public-api-43--suprafață-susținută-și-ownership).
 La o modificare de finalizare se citesc și [assets](../asset/ReportAssetLoader.java)
 și [runtime](../runtime/README.md), deoarece HTML-ul final include aceste două boundary-uri.
 

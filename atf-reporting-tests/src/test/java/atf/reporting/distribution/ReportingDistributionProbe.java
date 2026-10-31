@@ -6,22 +6,18 @@ import java.security.MessageDigest;
 import java.util.*;
 import java.util.zip.*;
 
-/** Builds only the module, then consumes its real JAR/POM in an unrelated Maven project. */
+/** Consumes the actual deployment: isolated producer build or physical JAR with embedded Maven metadata. */
 final class ReportingDistributionProbe {
     private ReportingDistributionProbe() { }
     static Result verify(Path directory) throws Exception {
-        Path module=moduleDirectory();
-        var coordinates=coordinates(module.resolve("pom.xml"));
-        Path extracted=directory.resolve("isolated-source");Files.createDirectories(extracted);
-        Files.copy(module.resolve("pom.xml"),extracted.resolve("pom.xml"));
-        copyTree(module.resolve("src"),extracted.resolve("src"));
-        String build=DistributionProcesses.maven(extracted,"isolated-package","package");
-        Path artifact=extracted.resolve("target/"+coordinates.fileName()+".jar");
+        var input=prepareArtifact(directory);
+        var coordinates=input.coordinates();
+        Path artifact=input.jar();
         String hash=hash(artifact);
         Path repository=directory.resolve("published").resolve(coordinates.group().replace('.','/'))
                 .resolve(coordinates.artifact()).resolve(coordinates.version());Files.createDirectories(repository);
         Files.copy(artifact,repository.resolve(artifact.getFileName()));
-        Files.copy(extracted.resolve("pom.xml"),repository.resolve(coordinates.fileName()+".pom"));
+        Files.copy(input.pom(),repository.resolve(coordinates.fileName()+".pom"));
         Path consumer=directory.resolve("external-consumer");Files.createDirectories(consumer.resolve("src/main/java"));
         try(var source=ReportingDistributionProbe.class.getResourceAsStream("/atf/reporting/distribution/JarConsumer.java.txt")) {
             if(source==null) throw new IllegalStateException("Standalone consumer fixture is missing");
@@ -41,8 +37,32 @@ final class ReportingDistributionProbe {
         String brokenClasspath=consumer.resolve("target/classes")+java.io.File.pathSeparator+brokenDependencies;
         var extentRefusal=DistributionProcesses.run(consumer,"missing-extent-resource",java(brokenClasspath,consumer.resolve("negative-extent"),hash(broken),false));
         var fallbackRefusal=DistributionProcesses.run(consumer,"missing-fallback-resource",java(brokenClasspath,consumer.resolve("negative-fallback"),hash(broken),true));
-        return new Result(build,nominal,extentRefusal,fallbackRefusal,hash);
+        return new Result(input.build(),nominal,extentRefusal,fallbackRefusal,hash,input.sourceBuild());
     }
+    private static Artifact prepareArtifact(Path directory) throws Exception {
+        Path loaded=Path.of(ExtentReportSession.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        if(Files.isRegularFile(loaded)) {
+            Path pom=directory.resolve("binary-pom.xml");
+            try(var jar=new java.util.jar.JarFile(loaded.toFile())) {
+                var metadata=jar.getJarEntry("META-INF/maven/atf.api/atf-reporting/pom.xml");
+                if(metadata==null)throw new IllegalStateException("Reporting JAR has no embedded Maven POM");
+                try(var stream=jar.getInputStream(metadata)){Files.copy(stream,pom);}
+            }
+            var coordinates=coordinates(pom);
+            Path artifact=directory.resolve(coordinates.fileName()+".jar");
+            Files.copy(loaded,artifact);
+            return new Artifact(artifact,pom,coordinates,"",false);
+        }
+        Path module=moduleDirectory();
+        var coordinates=coordinates(module.resolve("pom.xml"));
+        Path extracted=directory.resolve("isolated-source");Files.createDirectories(extracted);
+        Files.copy(module.resolve("pom.xml"),extracted.resolve("pom.xml"));
+        copyTree(module.resolve("src"),extracted.resolve("src"));
+        String build=DistributionProcesses.maven(extracted,"isolated-package","package");
+        return new Artifact(extracted.resolve("target/"+coordinates.fileName()+".jar"),
+                extracted.resolve("pom.xml"),coordinates,build,true);
+    }
+    private record Artifact(Path jar,Path pom,Coordinates coordinates,String build,boolean sourceBuild) { }
     private static List<String> java(String classpath,Path reports,String hash,boolean fallback) {
         String executable=System.getProperty("os.name").startsWith("Windows")?"java.exe":"java";
         var command=new ArrayList<>(List.of(Path.of(System.getProperty("java.home"),"bin",executable).toString(),
@@ -111,5 +131,5 @@ final class ReportingDistributionProbe {
         String fileName() { return artifact+"-"+version; }
     }
     record Result(String isolatedBuild,DistributionProcesses.Result nominal,DistributionProcesses.Result extentRefusal,
-                  DistributionProcesses.Result fallbackRefusal,String jarHash) { }
+                  DistributionProcesses.Result fallbackRefusal,String jarHash,boolean sourceBuild) { }
 }

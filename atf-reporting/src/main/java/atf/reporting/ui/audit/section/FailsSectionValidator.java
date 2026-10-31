@@ -44,8 +44,8 @@ public final class FailsSectionValidator {
                         projection.tabs().toString(), tabProjected)));
         if (projection.hasStatusExpectation()) {
             long expectedFailures = projection.expectedStatusCount(AtfReportStatus.FAIL);
-            checks.add(ReportAuditChecks.check("Projected failure rows", String.valueOf(expectedFailures),
-                    String.valueOf(snapshot.failureCount()), expectedFailures == snapshot.failureCount()));
+            checks.add(ReportAuditChecks.check("Projected failed scenarios", String.valueOf(expectedFailures),
+                    String.valueOf(snapshot.failedScenarioCount()), expectedFailures == snapshot.failedScenarioCount()));
         }
         return structural.merge(ValidationResult.of(checks));
     }

@@ -32,8 +32,7 @@ function failureRequestIdentity(card) {
   if (!card) return '';
   var node = q('[data-atf-request-method]', card).find(candidate =>
     candidate.closest('.card[data-atf-node-role="request"]') === card);
-  return node ? node.getAttribute('data-atf-request-method') + ' ' +
-    node.getAttribute('data-atf-request-path') : '';
+  return node ? node.dataset.atfRequestMethod + ' ' + node.dataset.atfRequestPath : '';
 }
 function collectFailureState(item) {
   var state = {
@@ -135,21 +134,23 @@ function failureContextFor(item, anchor) {
   var ctx = failureContext(item);
   if (!anchor) return ctx;
   ctx.previewLimit = +(anchor.closest('[data-atf-preview-limit]') || anchor).getAttribute('data-atf-preview-limit') || 240;
-  var diagnostic = anchor.closest('.phase-diagnostics [data-atf-phase-name]');
+  var diagnostic = anchor.closest('.phase-diagnostics [data-atf-phase-name]'),
+    terminal = anchor.matches('[data-atf-terminal-failure="true"]');
+  if (diagnostic || terminal)
+    Object.assign(ctx, { evidenceOwner: 'execution', ui: false, request: '', duration: '',
+      checkpoint: '', step: 'Execution', assertion: 'No contract comparison recorded' });
   if (diagnostic) return Object.assign(ctx, {
-    evidenceOwner: 'execution', ui: false, request: '', duration: '', checkpoint: '',
-    phase: diagnostic.getAttribute('data-atf-phase-name'), step: 'Execution',
+    phase: diagnostic.getAttribute('data-atf-phase-name'),
     validation: 'Execution diagnostics', diagnostic: text(anchor.cells[0], ''),
-    assertion: 'No contract comparison recorded', message: text(anchor.cells[1], '')
+    message: text(anchor.cells[1], '')
   });
-  if (anchor.matches('[data-atf-terminal-failure="true"]')) {
+  if (terminal) {
     var terminalPhase = anchor.closest('.card[data-atf-node-role="phase"]');
     return Object.assign(ctx, {
-      evidenceOwner: 'execution', ui: false, checkpoint: '', step: 'Execution',
       phase: terminalPhase ? text(terminalPhase, '.card-title a.node') : ctx.phase,
       request: anchor.getAttribute('data-atf-request-method') + ' ' + anchor.getAttribute('data-atf-request-path'),
       duration: anchor.getAttribute('data-atf-terminal-duration'), validation: 'Execution evidence',
-      diagnostic: 'Transport failure', assertion: 'No contract comparison recorded',
+      diagnostic: 'Transport failure',
       message: anchor.getAttribute('data-atf-terminal-message')
     });
   }

@@ -1,6 +1,7 @@
 package atf.api.tests.governance;
 
 import atf.core.config.module.AtfModuleIds;
+import atf.api.tests.governance.distribution.ReportingGovernanceSurface;
 import atf.core.files.AtfFileTree;
 import atf.core.files.AtfJavaSourceInventory;
 import atf.core.files.AtfJavaSourceReferences;
@@ -130,21 +131,21 @@ public final class AtfGovernanceTestSupport {
 
     static void assertDependencyPresent(Path root, String module, String dependency)
             throws Exception {
-        String pom = Files.readString(root.resolve(module).resolve("pom.xml"));
+        String pom = modulePom(root, module);
         assertTrue(pom.contains("<artifactId>" + dependency + "</artifactId>"),
                 () -> module + " must depend on " + dependency);
     }
 
     static void assertDependencyAbsent(Path root, String module, String dependency)
             throws Exception {
-        String pom = Files.readString(root.resolve(module).resolve("pom.xml"));
+        String pom = modulePom(root, module);
         assertFalse(pom.contains("<artifactId>" + dependency + "</artifactId>"),
                 () -> module + " must not depend on " + dependency);
     }
 
     static void assertProductionDependencyAbsent(Path root, String module, String dependency)
             throws Exception {
-        String pom = Files.readString(root.resolve(module).resolve("pom.xml"));
+        String pom = modulePom(root, module);
         String marker = "<artifactId>" + dependency + "</artifactId>";
         int start = pom.indexOf(marker);
         if (start < 0) return;
@@ -157,7 +158,7 @@ public final class AtfGovernanceTestSupport {
 
     static void assertDependencyScope(Path root, String module, String dependency, String scope)
             throws Exception {
-        String pom = Files.readString(root.resolve(module).resolve("pom.xml"));
+        String pom = modulePom(root, module);
         String marker = "<artifactId>" + dependency + "</artifactId>";
         int dependencyStart = pom.indexOf(marker);
         assertTrue(dependencyStart >= 0,
@@ -172,7 +173,7 @@ public final class AtfGovernanceTestSupport {
 
     static void assertAllAtfDependenciesAreTestScoped(Path root, String module)
             throws Exception {
-        String pom = Files.readString(root.resolve(module).resolve("pom.xml"));
+        String pom = modulePom(root, module);
         var violations = new java.util.ArrayList<String>();
         int cursor = 0;
         while ((cursor = pom.indexOf("<dependency>", cursor)) >= 0) {
@@ -192,7 +193,7 @@ public final class AtfGovernanceTestSupport {
     }
 
     static void assertNoAtfDependencies(Path root, String module) throws Exception {
-        String pom = Files.readString(root.resolve(module).resolve("pom.xml"));
+        String pom = modulePom(root, module);
         var violations = new java.util.ArrayList<String>();
         int cursor = 0;
         while ((cursor = pom.indexOf("<dependency>", cursor)) >= 0) {
@@ -207,6 +208,11 @@ public final class AtfGovernanceTestSupport {
         }
         assertTrue(violations.isEmpty(), () -> module
                 + " must not declare ATF module dependencies: " + violations);
+    }
+
+    private static String modulePom(Path root, String module) throws Exception {
+        return module.equals(AtfModuleIds.REPORTING) ? ReportingGovernanceSurface.read(root).pom()
+                : Files.readString(root.resolve(module).resolve("pom.xml"));
     }
 
     private static String extractXmlValue(String block, String element) {

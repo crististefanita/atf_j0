@@ -84,10 +84,19 @@ public final class ApiReportStructureExtractor {
     public ReportAuditSnapshot.Failures extractFailures(Page page) {
         Locator view = locators.failsView(page);
         int failureCount = locators.failureNames(view).count();
+        var scenarios = new java.util.HashSet<List<String>>();
+        Locator rows = locators.failureItems(view);
+        for (int index = 0; index < rows.count(); index++) {
+            String owner = rows.nth(index).getAttribute("data-atf-test-id");
+            String scenario = rows.nth(index).getAttribute("data-atf-scenario-index");
+            if (owner == null || owner.isBlank() || scenario == null || scenario.isBlank())
+                throw new IllegalStateException("Fails row has no typed owner/scenario identity: " + index);
+            scenarios.add(List.of(owner, scenario));
+        }
         return new ReportAuditSnapshot.Failures(failureCount,
                 locators.primaryFailureDetails(view).count(),
                 locators.failureOpenLinks(view).count(),
-                failureCount == 0 && locators.failureEmptyState(view).count() == 1);
+                failureCount == 0 && locators.failureEmptyState(view).count() == 1, scenarios.size());
     }
 
     public ReportAuditSnapshot.Overview extractOverview(Page page, boolean includeHierarchy) {

@@ -1,4 +1,5 @@
-package atf.reporting.extent.session;
+package atf.reporting.extent.metadata;
+import atf.reporting.extent.session.ExtentReportSession;
 import atf.testkit.AtfUnitTest;
 import atf.reporting.contract.AtfReportStatus;
 import atf.core.http.request.HttpMethod;

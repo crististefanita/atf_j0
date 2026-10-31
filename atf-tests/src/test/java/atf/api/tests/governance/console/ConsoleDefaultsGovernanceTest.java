@@ -1,5 +1,7 @@
 package atf.api.tests.governance.console;
 
+import atf.api.tests.governance.distribution.ReportingHarnessOwnership;
+
 import atf.console.AtfConsoleConfigurationContext;
 import atf.console.AtfConsoleConfigurationLoader;
 import atf.console.ConsoleSettings;
@@ -43,12 +45,14 @@ public class ConsoleDefaultsGovernanceTest {
     @Test
     void canonicalEntryPointsDoNotDiscardConfiguredConsoleTelemetry() throws Exception {
         Path root = locateProjectRoot();
+        ReportingHarnessOwnership.read(root).inspect(() -> {
         require(root, "atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/audit/ReportAuditContext.java",
                 "ReportingTestConsole.configured()", "console.reporting()", "console.core()");
         require(root, "atf-reporting-tests/src/test/java/atf/reporting/api/tests/support/junit/ApiTestFixture.java",
                 "AtfConsoleReporter.configuredStdout()", "lifecycle.console()");
         require(root, "atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/api/ApiReportAuditSetup.java",
                 "AtfConsoleReporter.configuredStdout()");
+        });
         require(root, "atf-test-practice-shop/src/test/atf/shop/tests/support/lifecycle/ShopE2eContext.java",
                 "AtfConsoleReporter.configuredStdout()");
         require(root, "atf-test-practice-shop/src/main/atf/shop/api/ShopApiClient.java",

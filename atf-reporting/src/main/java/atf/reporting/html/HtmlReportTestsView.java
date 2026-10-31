@@ -169,7 +169,14 @@ public final class HtmlReportTestsView {
         evidence.renderRequestContext(html, request);
         evidence.renderNetworkAggregateSubstep(html, request.networkAggregate());
         request.executions().forEach(execution -> evidence.renderExecution(html, execution));
-        request.children().forEach(child -> renderNode(html, child));
+        request.children().forEach(child -> {
+            if (!EvidenceTableFormatter.uiFlowProvenanceFields(request.details()).isEmpty()
+                    && child instanceof ReportExecutionModel.Validation validation) {
+                evidence.renderCompactUiValidation(html, validation);
+            } else {
+                renderNode(html, child);
+            }
+        });
         html.append(AtfReportHtmlVocabulary.closeTag(AtfReportHtmlVocabulary.Tag.DIV));
     }
 }

@@ -3,6 +3,7 @@ package atf.api.tests.governance.documentation;
 import atf.api.tests.governance.documentation.links.DocumentationLinkGovernanceTest;
 
 import atf.testkit.documentation.DocumentationTarget;
+import atf.api.tests.governance.distribution.GovernanceDeployment;
 
 import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,7 @@ import static atf.api.tests.governance.AtfGovernanceTestSupport.locateProjectRoo
 @DocumentationTarget("docs/feedback/README.md")
 @DocumentationTarget("docs/feedback/README_AI_Evaluation.md")
 @DocumentationTarget("atf-tests/README.md")
+@DocumentationTarget("atf-tests/src/test/java/atf/api/tests/governance/distribution/README.md")
 @DocumentationTarget("atf-test-practice-shop/README.md")
 @DocumentationTarget("atf-test-auto-ex/README.md")
 @DocumentationTarget("atf-ui/README.md")
@@ -53,7 +55,7 @@ public class DocumentationTargetGovernanceTest {
         List<DocumentationGovernanceSupport.Violation> violations = new ArrayList<>();
 
         for (DocumentationTarget annotation : getClass().getAnnotationsByType(DocumentationTarget.class)) {
-            String configuredPath = annotation.value();
+            for (String configuredPath : GovernanceDeployment.read(root).documentationTargets(annotation.value())) {
             Path target = root.resolve(configuredPath).normalize();
             if (!target.startsWith(root) || !Files.isRegularFile(target)) {
                 violations.add(DocumentationGovernanceSupport.violation(
@@ -82,6 +84,7 @@ public class DocumentationTargetGovernanceTest {
             DynamicPathDocumentationArchitectureTest.validatePaths(target, root, violations);
             DynamicPathDocumentationArchitectureTest.validateGeneratedReportNames(
                     target, root, violations);
+            }
         }
 
         DocumentationGovernanceSupport.assertNoViolations(

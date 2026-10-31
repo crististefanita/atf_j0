@@ -1,6 +1,7 @@
 package atf.ui.tests.extent.support.inspection.reconciliation;
 
 import atf.reporting.support.failurecorrelation.UiFailureCorrelationFixture;
+import atf.reporting.support.navigation.FailureLinkIdentity;
 import atf.reporting.ui.contract.ReportUiContract;
 import atf.ui.tests.extent.support.audit.ReportAuditContext;
 import atf.ui.tests.extent.support.api.ApiReportUiFlow;
@@ -49,7 +50,8 @@ public final class UiFailureCorrelationProbe {
                         assertTrue(!text.contains("ASSERTION\nFailure cause"), text);
                     }
                     String anchor = "scenario-index=" + scenario;
-                    assertTrue(LOCATORS.failureDetailOpenLink(fails).getAttribute("href").endsWith(anchor));
+                    assertTrue(FailureLinkIdentity.parse(LOCATORS.failureDetailOpenLink(fails).getAttribute("href"))
+                            .hasParameter("scenario-index", Integer.toString(scenario)), "Backlink retains its exact scenario parameter");
                     audit.actions().click(LOCATORS.failureDetailOpenAction(page), "open original failing scenario");
                     audit.actions().waitForVisible(LOCATORS.testsView(page), ReportUiContract.Tab.TESTS.hash());
                     var original = LOCATORS.scenarios(LOCATORS.visibleTestDetail(page)).nth(scenario);
@@ -61,7 +63,8 @@ public final class UiFailureCorrelationProbe {
                     assertTrue(original.innerText().contains("Confirmation visible"));
                     inspected.screen("failure maps to its original checkpoint", "Tests / " + scenario,
                             audit.capture(page, "Failure correlation replay"), List.of(
-                                    check("Original scenario", anchor, page.url(), page.url().endsWith(anchor))),
+                                    check("Original scenario", anchor, page.url(),
+                                            FailureLinkIdentity.parse(page.url()).hasParameter("scenario-index", Integer.toString(scenario)))),
                             PASS);
                 });
             }

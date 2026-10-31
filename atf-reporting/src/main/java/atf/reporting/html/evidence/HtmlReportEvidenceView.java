@@ -110,6 +110,7 @@ public final class HtmlReportEvidenceView {
         } else if (EvidenceTableFormatter.isCompactUiFlow(request.details())) {
             renderUiFlowProvenance(html, request);
         } else {
+            renderUiFlowProvenance(html, request);
             renderRequestDetails(html, request); renderResponseDetails(html, request);
         }
         var ui = request.uiEvidence();
@@ -198,6 +199,15 @@ public final class HtmlReportEvidenceView {
     }
 
     public void renderValidation(StringBuilder html, ReportExecutionModel.Validation validation) {
+        renderValidation(html, validation, false);
+    }
+
+    /** Unified UI flow assertions retain a keyboard-operable disclosure, including the compact presentation. */
+    public void renderCompactUiValidation(StringBuilder html, ReportExecutionModel.Validation validation) {
+        renderValidation(html, validation, true);
+    }
+
+    private void renderValidation(StringBuilder html, ReportExecutionModel.Validation validation, boolean compactUi) {
         html.append(openTag(DIV, classAttribute(VALIDATION), attribute(NODE_ROLE, "validation"),
                         attribute(AtfReportHtmlVocabulary.Attribute.EVIDENCE_OWNER,
                                 validation.evidenceOwner().attributeValue())))
@@ -206,7 +216,11 @@ public final class HtmlReportEvidenceView {
                 .append(ReportEvidenceMarkup.statusBadge(validation.status()))
                 .append(closeTag(DIV));
         renderUiEvidence(html, validation);
+        boolean discloseAssertions = compactUi && !validation.assertions().isEmpty();
+        if (discloseAssertions) html.append(ReportEvidenceMarkup.disclosureStart(
+                AtfReportHtmlVocabulary.CssClass.ATF_UI_ASSERTIONS.value(), AtfReportLabels.assertions(validation.assertions().size())));
         renderAssertions(html, validation.assertions());
+        if (discloseAssertions) html.append(ReportEvidenceMarkup.disclosureEnd());
         validation.children().forEach(child -> {
             if (child instanceof ReportExecutionModel.Request request) {
                 renderNestedRequest(html, request);

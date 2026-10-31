@@ -1,4 +1,8 @@
 package atf.api.tests.governance;
+
+import atf.api.tests.governance.distribution.ReportingHarnessOwnership;
+
+import atf.api.tests.governance.distribution.ReportingGovernanceSurface;
 import atf.testkit.AtfComponentTest;
 
 import org.junit.jupiter.api.Test;
@@ -43,19 +47,15 @@ public class ConstantsOwnershipGovernanceTest {
         Path root = locateProjectRoot();
         var violations = new ArrayList<String>();
         for (String relative : REVIEWED_SOURCES) {
-            Path source = root.resolve(relative);
-            String content = stripTextBlocks(Files.readString(source));
-            for (Pattern pattern : FORBIDDEN_CANONICALS) {
-                if (pattern.matcher(content).find()) {
-                    violations.add(relative + " contains unowned canonical literal: " + pattern);
-                }
-            }
+            if (relative.startsWith("atf-reporting-tests/")) {
+                ReportingHarnessOwnership.read(root).inspect(() -> inspectCanonicalSource(root, relative, violations));
+            } else inspectCanonicalSource(root, relative, violations);
         }
         assertTrue(violations.isEmpty(), () -> "Constants ownership violations: " + violations);
     }
 
     @Test
-    void coreKeepsPathMechanicsGenericAndLeavesConcreteCatalogsAtTheirBoundaries() {
+    void coreKeepsPathMechanicsGenericAndLeavesConcreteCatalogsAtTheirBoundaries() throws Exception {
         Path root = locateProjectRoot();
         assertTrue(Files.isRegularFile(root.resolve(
                         "atf-core/src/main/java/atf/core/routing/ApiPathTemplate.java")),
@@ -63,8 +63,8 @@ public class ConstantsOwnershipGovernanceTest {
         assertTrue(!Files.exists(root.resolve(
                         "atf-core/src/main/java/atf/core/routing/ApiPaths.java")),
                 "core must not own a concrete product route catalog");
-        assertTrue(Files.isRegularFile(root.resolve(
-                        "atf-reporting-tests/src/test/java/atf/reporting/api/execution/routing/RoutePaths.java")));
+        ReportingHarnessOwnership.read(root).requireFile(root.resolve(
+                "atf-reporting-tests/src/test/java/atf/reporting/api/execution/routing/RoutePaths.java"));
         assertTrue(Files.isRegularFile(root.resolve(
                         "atf-mock/src/main/java/atf/mock/MockRoutePaths.java")));
     }
@@ -110,34 +110,36 @@ public class ConstantsOwnershipGovernanceTest {
 
     @Test
     void reportingTestsDoNotRepeatConcreteRouteOrEnvironmentLiterals() throws Exception {
-        Path root = locateProjectRoot();
-        Path reportingTests = root.resolve("atf-reporting-tests/src/test/java");
-        var violations = new ArrayList<String>();
-        try (Stream<Path> files = Files.walk(reportingTests)) {
-            files.filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(".java"))
-                    .forEach(path -> {
-                        String relative = root.relativize(path).toString().replace('\\', '/');
-                        if (LITERAL_OWNER_EXEMPTIONS.contains(relative)) return;
-                        String source;
-                        try {
-                            source = stripTextBlocks(Files.readString(path));
-                        } catch (java.io.IOException error) {
-                            throw new java.io.UncheckedIOException(error);
-                        }
-                        if (source.contains("/public/v2/") || source.contains("https://atf.local/")) {
-                            violations.add(relative);
-                        }
-                    });
-        }
-        assertTrue(violations.isEmpty(), () ->
-                "Reporting tests must use MockRoutePaths/ApiReportTestUrls, not concrete URL literals: " + violations);
+        ReportingHarnessOwnership.read(locateProjectRoot()).inspect(() -> {
+            Path root = locateProjectRoot();
+            Path reportingTests = root.resolve("atf-reporting-tests/src/test/java");
+            var violations = new ArrayList<String>();
+            try (Stream<Path> files = Files.walk(reportingTests)) {
+                files.filter(Files::isRegularFile)
+                        .filter(path -> path.toString().endsWith(".java"))
+                        .forEach(path -> {
+                            String relative = root.relativize(path).toString().replace('\\', '/');
+                            if (LITERAL_OWNER_EXEMPTIONS.contains(relative)) return;
+                            String source;
+                            try {
+                                source = stripTextBlocks(Files.readString(path));
+                            } catch (java.io.IOException error) {
+                                throw new java.io.UncheckedIOException(error);
+                            }
+                            if (source.contains("/public/v2/") || source.contains("https://atf.local/")) {
+                                violations.add(relative);
+                            }
+                        });
+            }
+            assertTrue(violations.isEmpty(), () ->
+                    "Reporting tests must use MockRoutePaths/ApiReportTestUrls, not concrete URL literals: " + violations);
+        });
     }
 
     @Test
     void reportingLibraryDoesNotExposeExecutionAsAProductionDependency() throws Exception {
         Path root = locateProjectRoot();
-        String pom = Files.readString(root.resolve("atf-reporting/pom.xml"));
+        String pom = ReportingGovernanceSurface.read(root).pom();
         assertFalse(pom.contains("<artifactId>atf-execution</artifactId>"),
                 "standalone reporting must not depend on execution; composition belongs to atf-reporting-tests");
     }
@@ -145,33 +147,42 @@ public class ConstantsOwnershipGovernanceTest {
     @Test
     void reportingLibraryKeepsValidationAsATestOnlyAdapter() throws Exception {
         Path root = locateProjectRoot();
-        String pom = Files.readString(root.resolve("atf-reporting/pom.xml"));
+        String pom = ReportingGovernanceSurface.read(root).pom();
         assertFalse(pom.contains("<artifactId>atf-validation</artifactId>"),
                 "standalone reporting must not depend on validation; composition belongs to atf-reporting-tests");
     }
 
     @Test
     void reportingTestsDoNotImportApplicationRouteCatalog() throws Exception {
-        Path root = locateProjectRoot();
-        Path reportingTests = root.resolve("atf-reporting-tests/src/test/java");
-        var violations = new ArrayList<String>();
-        try (Stream<Path> files = Files.walk(reportingTests)) {
-            files.filter(path -> path.toString().endsWith(".java"))
-                    .filter(path -> !path.getFileName().toString().equals("ConstantsOwnershipGovernanceTest.java"))
-                    .forEach(path -> {
-                try {
-                    String relative = root.relativize(path).toString().replace('\\', '/');
-                    if (LITERAL_OWNER_EXEMPTIONS.contains(relative)) return;
-                    if (Files.readString(path).contains("import atf.api.execution.routing.RoutePaths;")) {
-                        violations.add(relative);
+        ReportingHarnessOwnership.read(locateProjectRoot()).inspect(() -> {
+            Path root = locateProjectRoot();
+            Path reportingTests = root.resolve("atf-reporting-tests/src/test/java");
+            var violations = new ArrayList<String>();
+            try (Stream<Path> files = Files.walk(reportingTests)) {
+                files.filter(path -> path.toString().endsWith(".java"))
+                        .filter(path -> !path.getFileName().toString().equals("ConstantsOwnershipGovernanceTest.java"))
+                        .forEach(path -> {
+                    try {
+                        String relative = root.relativize(path).toString().replace('\\', '/');
+                        if (LITERAL_OWNER_EXEMPTIONS.contains(relative)) return;
+                        if (Files.readString(path).contains("import atf.api.execution.routing.RoutePaths;")) {
+                            violations.add(relative);
+                        }
+                    } catch (java.io.IOException error) {
+                        throw new java.io.UncheckedIOException(error);
                     }
-                } catch (java.io.IOException error) {
-                    throw new java.io.UncheckedIOException(error);
-                }
-            });
+                });
+            }
+            assertTrue(violations.isEmpty(), () ->
+                    "Reporting tests must use the mock route catalog, not execution RoutePaths: " + violations);
+        });
+    }
+
+    private static void inspectCanonicalSource(Path root, String relative, List<String> violations) throws Exception {
+        String content = stripTextBlocks(Files.readString(root.resolve(relative)));
+        for (Pattern pattern : FORBIDDEN_CANONICALS) {
+            if (pattern.matcher(content).find()) violations.add(relative + " contains unowned canonical literal: " + pattern);
         }
-        assertTrue(violations.isEmpty(), () ->
-                "Reporting tests must use the mock route catalog, not execution RoutePaths: " + violations);
     }
 
     private static String stripTextBlocks(String source) {

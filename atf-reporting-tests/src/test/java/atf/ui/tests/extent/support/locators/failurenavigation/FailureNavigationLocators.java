@@ -14,6 +14,7 @@ public final class FailureNavigationLocators {
     }
     public Locator target(Page page, String phase) { return phase(page, phase).locator("[class~='helm-validation-table'] tbody tr").nth(3); }
     public Locator sibling(Page page) { return scenarios(page).first(); }
+    public Locator siblingBody(Page page) { return sibling(page).locator(":scope > [class~='accordion']"); }
     public Locator fallbackFails(Page page) { return page.locator("button[data-tab='fails']"); }
     public Locator fallbackFailures(Page page) { return page.locator("#fails [class~='fail-row']"); }
     public Locator fallbackTarget(Page page, String name) {
@@ -30,6 +31,10 @@ public final class FailureNavigationLocators {
     }
     public Locator cause(Page page) { return page.locator("#atf-failure-detail [class~='atf-failure-index-cause'] [class~='atf-failure-value']"); }
     public Locator cells(Locator row) { return row.locator("td"); }
+    public Locator originalRepeatedFailure(Page page, int index) {
+        return scenarios(page).nth(1).locator("[data-atf-node-role='validation']").nth(index)
+                .locator("table[class~='helm-validation-table']").first().locator("tbody > tr");
+    }
     public Locator failedStatus(Locator row) { return cells(row).nth(3).locator("[class~='status-fail']"); }
     private Locator fallbackScenario(Page page) { return page.locator("#tests article[class~='scenario']").nth(1); }
     private Locator scenarios(Page page) { return page.locator("#test-view [class~='test-content-detail'] [class~='test-contents'] > [class~='mt-4'] > [class~='accordion'] > [class~='card']"); }

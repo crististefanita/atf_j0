@@ -81,9 +81,14 @@ directorului și prezența reactorului nu sunt condiții de succes.
 protejează importurile externe ATF, dependențele Maven și parent-ul interzis.
 
 `ReportingLibraryDistributionIntegrationTest` automatizează proba în proiectul
-intern de testare: numai sursa modulului este copiată, package include testele
-native, iar alt proiect Maven consumă coordonatele și POM-ul reale. Acesta nu
-devine o dependență a JAR-ului sau un pretext pentru skip tests.
+intern de testare. În reactor izolează sursa și execută testele native;
+într-un consumer binar pornește de la JAR-ul încărcat și POM-ul inclus în acesta.
+Ambele forme sunt consumate de un proiect Maven extern, cu aceleași probe.
+
+[Auditul sursei Java](../src/test/java/atf/reporting/standalone/source/ReportingSourceArchitectureTest.java)
+este nativ la producător; contractele de fațadă și delegare nu sunt eliminate.
+Consumerul runtime nu are nevoie de acele fișiere Java și nu le înlocuiește
+prin verificări dezactivate.
 
 În consumerul extern, classpath-ul aplicației conține JAR-ul Reporting și
 tranzitivele sale, fără clase ATF din `target/classes`, Core, UI, Kit, JUnit sau
@@ -94,6 +99,8 @@ Controlul negativ modifică numai o copie TMP a JAR-ului; elimină o resursă di
 [manifestul de assets](../src/main/java/atf/reporting/asset/ReportAsset.java)
 și verifică refuzul [loaderului](../src/main/java/atf/reporting/asset/ReportAssetLoader.java).
 Nu schimbă sursa, cache-ul Maven de lucru ori artifactul publicat.
+Constructorul sau publicarea refuzată păstrează raportul anterior și eliberează
+workspace-ul; proba externă verifică și acest rollback.
 
 </details>
 

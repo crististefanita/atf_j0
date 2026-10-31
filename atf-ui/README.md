@@ -15,7 +15,7 @@ publisherul Extent sau page objects de produs.
 |---|---|---|
 | YAML browser policy | browser/context/page | runtime generic |
 | Playwright actions | neutral action records | fără Extent |
-| screenshot/viewport | UI evidence | consumat de reporting la compoziție |
+| captură și geometrie nativă | dovezi UI și dimensiuni măsurabile | adaptate către Reporting de consumer |
 
 ## Diagramă de bază
 
@@ -75,6 +75,39 @@ statică și proiecția raportului aparțin `atf-reporting`, iar scenariile E2E 
 în [README-ul auditului browser](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/README.md).
 Modulul UI nu publică Extent și nu emite assertions de secțiune.
 
+## Traseul de integrare
+
+| Intenție | Owner și intrare | Dovadă |
+|---|---|---|
+| deschide browserul și contextul | [PlaywrightUiSession](src/main/java/atf/ui/playwright/PlaywrightUiSession.java) | [lifecycle, scală nativă și configurare](src/test/java/atf/ui/playwright/PlaywrightUiSessionTest.java) |
+| activează un control o dată | [click cu postcondiție](#click-unic-cu-postcondiție-explicită) | deadline comun și refuzul replay-ului |
+| verifică deadline-ul fără wall-clock fragil | [buget determinist](#deadline-determinist-al-clickului-cu-postcondiție) | [ObservationBudgetComponentTest](src/test/java/atf/ui/playwright/ObservationBudgetComponentTest.java) |
+| observă backend-ul fără mutație | [recuperare BE](#recuperare-be-prin-observație-pasivă) | trace typed și operație read-only declarată |
+| colectează trafic sau capturi | [inspector](#inspectorul-de-rețea--limită-generică-de-responsabilitate) / [audit ecran](#audit-comun-al-ecranului) | observație bounded, fără verdict business |
+
+Rezultatul aplicației aparține consumerului, iar HTML-ul aparține Reporting.
+Proba de scală verifică viewport-ul CSS și DPR native; snapshot-ul de metadata
+descrie configurația și nu substituie măsurătoarea browserului.
+
+### Lifecycle-ul sesiunii și limita probei
+
+`PlaywrightUiSession` deține Playwright, browser, context, pagină și inspector.
+Înregistrează release-ul imediat după dobândirea fiecărui owner. Pagina este
+închisă de context; nu primește un al doilea close independent.
+
+| Boundary | Contract verificat |
+|---|---|
+| achiziție parțială | `RuntimeException` și `Error` păstrează aceeași instanță; rollback-ul atinge numai resursele returnate cu succes |
+| release | inspector → context → browser → driver; fiecare etapă este încercată, chiar dacă cea anterioară eșuează |
+| cauze simultane | prima cauză rămâne primară; cauzele distincte urmează în `suppressed`, fără self-suppression |
+| close repetat | ownership-ul este consumat inclusiv când primul close eșuează; secvența nu se reexecută |
+
+[Proba lifecycle](src/test/java/atf/ui/playwright/PlaywrightUiSessionTest.java)
+folosește dubluri ale interfețelor driverului și o seamă package-private, fără
+hook public de fault. [Componenta nativă](src/test/java/atf/ui/playwright/PlaywrightUiSessionTest.java)
+verifică separat browserul, scala și pointerul. Probele listener-elor rămân
+distincte: ele nu substituie ownership-ul sesiunii ori politica contului consumer.
+
 ## Componentele runtime
 
 - `UiBrowserConfiguration` — browser, headless, timeout, navigation timeout și
@@ -132,6 +165,9 @@ ui:
   Fiecare consumer deține separat configurația aplicației sale.
 
 ### Geometria nativă a contextului
+
+Implicitul generic al `zoomPercent` este `100`; valorile configurate ale
+consumerilor sunt citite separat din YAML. Exemplul de mai jos nu schimbă acest implicit.
 
 [`UiViewportScale`](src/main/java/atf/ui/config/geometry/UiViewportScale.java)
 deține calculul pur, fără Playwright sau Reporting. Sesiunea aplică viewport-ul
@@ -907,6 +943,17 @@ runtime Playwright, `atf-reporting` rămâne reutilizabil ca librărie de raport
 iar `atf-reporting-tests` deține compoziția testelor librăriei, de la componentă
 și integration până la E2E și adaptoarele browser.
 
+## Deadline determinist al clickului cu postcondiție
+
+`ObservationBudgetComponentTest` verifică aritmetica și ownerul real
+`clickAndAwait` cu un ceas monoton controlat: pointerul, observațiile succesive
+și întoarcerea callback-ului consumă același deadline. Constructorii injectabili
+rămân package-private; execuția obișnuită folosește `System.nanoTime`.
+
+Durata raportată de recorder rămâne măsurată real, separat de ceasul probei.
+Probele browser verifică starea și activarea după pregătirea fixture-ului;
+nu deduc propagarea deadline-ului dintr-un prag wall-clock al sistemului.
+
 ## Verificare
 
 Teste runtime/config:
@@ -959,14 +1006,3 @@ Comanda selectează proba numită și construiește dependențele; nu declară
 trecerea întregului modul. Retenția completă nu probează livrarea tuturor subscriberilor ori cauzalitatea unei acțiuni.
 
 </details>
-
-## Deadline determinist al clickului cu postcondiție
-
-`ObservationBudgetComponentTest` verifică aritmetica și ownerul real
-`clickAndAwait` cu un ceas monoton controlat: pointerul, observațiile succesive
-și întoarcerea callback-ului consumă același deadline. Constructorii injectabili
-rămân package-private; execuția obișnuită folosește `System.nanoTime`.
-
-Durata raportată de recorder rămâne măsurată real, separat de ceasul probei.
-Probele browser verifică starea și activarea după pregătirea fixture-ului;
-nu deduc propagarea deadline-ului dintr-un prag wall-clock al sistemului.

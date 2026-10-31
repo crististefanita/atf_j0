@@ -14,7 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ExtentReportRuntimeNavigationComponentTest {
     private static final List<String> FUNCTIONS = List.of(
             "normalizeCodeBlocks", "normalizeDisclosureState", "captureDomContract",
-            "openScenarioCard", "setDisclosureState", "bindDisclosureKeyboard", "openDeepLinkCard", "openScenarioAuditPath",
+            "openScenarioCard", "setDisclosureState", "bindDisclosureKeyboard", "openScenarioFailurePath", "openScenarioAuditPath",
+            "revealScenarioEvidence",
             "collapseDirectScenarioCards", "collapseScenarioCards",
             "toggleScenario", "initializeScenarioCard", "bindScenarioCollapse",
             "hasRelevantScenarioNodes", "watchScenarioCards", "phaseDirectBody", "applyPhaseBodyState",

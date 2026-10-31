@@ -4,14 +4,42 @@ import atf.reporting.support.failurecorrelation.FailureNavigationFixture;
 import atf.reporting.support.failurecorrelation.FailureNavigationFixture.*;
 import atf.ui.tests.extent.support.locators.failurenavigation.FailureNavigationLocators;
 import com.microsoft.playwright.*;
+import com.microsoft.playwright.options.WaitUntilState;
 import java.nio.file.*;
 import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.*;
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 /** Oracles observe original rows before any assisted expansion and reject hidden ancestor regressions. */
 public final class FailureNavigationEdgeProbe {
     private static final FailureNavigationLocators LOCATORS = new FailureNavigationLocators();
     private FailureNavigationEdgeProbe() { }
+
+    public static void verifyRepeatedUiFailures(int limit, int width) throws Exception {
+        Path report = FailureNavigationFixture.publishRepeatedUiFailures(limit);
+        try (var playwright = Playwright.create();
+             var browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
+             var page = browser.newPage(new Browser.NewPageOptions().setViewportSize(width, 900))) {
+            page.setDefaultTimeout(4000);
+            page.navigate(report.toUri().toString(), new Page.NavigateOptions().setWaitUntil(WaitUntilState.DOMCONTENTLOADED));
+            var causes = java.util.List.of("primary failure", "cleanup refused");
+            for (int index : new int[]{1, 0, 1}) {
+                LOCATORS.fails(page).click();
+                assertEquals(2, LOCATORS.failures(page).count(), "Derived summaries never create extra failure causes");
+                LOCATORS.failures(page).nth(index).click();
+                assertEquals(Integer.toString(index + 1), LOCATORS.backlink(page).getAttribute("data-atf-failure-ordinal"));
+                LOCATORS.backlink(page).click();
+                var row = LOCATORS.originalRepeatedFailure(page, index);
+                assertThat(row).isVisible();
+                assertEquals(causes.get(index), LOCATORS.cells(row).nth(2).innerText());
+                page.reload(new Page.ReloadOptions().setWaitUntil(WaitUntilState.DOMCONTENTLOADED));
+                assertThat(row).isVisible();
+                assertEquals(causes.get(index), LOCATORS.cells(row).nth(2).innerText());
+                assertThat(LOCATORS.sibling(page)).hasAttribute("data-atf-scenario-open", "false");
+                assertThat(LOCATORS.siblingBody(page)).not().isVisible();
+            }
+        }
+    }
 
     public static void verifyFallback(Owner owner, int width, boolean mixed) throws Exception {
         Path report = FailureNavigationFixture.publish(owner, true, mixed ? Evidence.MIXED : Evidence.ASSERTIONS, 240);
@@ -29,11 +57,11 @@ public final class FailureNavigationEdgeProbe {
                 assertEquals(Integer.toString(ordinal), link.getAttribute("data-atf-failure-ordinal"));
                 link.press("Enter");
                 var target = LOCATORS.fallbackTarget(page, phase);
-                page.waitForCondition(() -> target.isVisible() && inViewport(target));
+                waitForFallbackTarget(page, target, report, owner, width, phase, "backlink");
                 assertComparison(target);
                 target.evaluate("row=>row.closest('[data-atf-node-role]').style.display='none'");
                 assertThrows(AssertionError.class, () -> assertComparison(target), "A collapsed original validation must fail the oracle");
-                page.reload(); page.waitForCondition(() -> target.isVisible() && inViewport(target)); assertComparison(target);
+                page.reload(); waitForFallbackTarget(page, target, report, owner, width, phase, "reload"); assertComparison(target);
             }
             assertTrue(errors.isEmpty(), errors::toString);
             page.screenshot(new Page.ScreenshotOptions().setPath(Path.of(report + "-verified.png")));
@@ -73,6 +101,20 @@ public final class FailureNavigationEdgeProbe {
 
     private static boolean inViewport(Locator row) {
         return (Boolean) row.evaluate("row=>{const r=row.getBoundingClientRect();return r.height>innerHeight?r.top<innerHeight&&r.bottom>0:r.top>=0&&r.bottom<=innerHeight}");
+    }
+
+    private static void waitForFallbackTarget(Page page, Locator row, Path report, Owner owner,
+                                               int width, String phase, String operation) {
+        try {
+            page.waitForCondition(() -> row.isVisible() && inViewport(row));
+        } catch (PlaywrightException failure) {
+            String geometry = row.evaluate("row=>{const r=row.getBoundingClientRect();return JSON.stringify({top:r.top,bottom:r.bottom,"
+                    + "height:r.height,width:r.width,viewport:[innerWidth,innerHeight],scroll:[scrollX,scrollY],"
+                    + "ancestors:Array.from(document.querySelectorAll('details')).filter(d=>d.contains(row)).map(d=>[d.className,d.open])})}").toString();
+            page.screenshot(new Page.ScreenshotOptions().setPath(Path.of(report + "-viewport-timeout.png")));
+            throw new AssertionError("Fallback target: " + owner + "/" + width + "/" + phase + "/" + operation
+                    + "; report=" + report + "; geometry=" + geometry, failure);
+        }
     }
 
     private static void assertComparison(Locator row) {

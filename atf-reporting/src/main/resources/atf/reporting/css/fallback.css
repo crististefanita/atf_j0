@@ -68,10 +68,11 @@ h3 {
 }
 .layout {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
   gap: 20px;
 }
 aside {
+  min-width: 0;
   border-right: 1px solid var(--atf-border);
   padding-right: 14px;
 }
@@ -82,6 +83,8 @@ aside {
   border-bottom: 1px solid var(--atf-border);
   color: var(--atf-text);
   text-decoration: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .test-link small {
   display: block;
@@ -104,6 +107,8 @@ aside {
   background: var(--atf-panel);
 }
 .scenario-title h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
   margin: 0;
   font-size: 18px;
 }
@@ -244,6 +249,9 @@ pre.json-code {
   border-radius: 4px;
   white-space: nowrap;
 }
+.test-link.status {
+  white-space: normal;
+}
 .status-pass {
   color: var(--atf-pass-text);
   background: var(--atf-pass);
@@ -263,6 +271,14 @@ pre.json-code {
 .status-info {
   color: var(--atf-info-text);
   background: var(--atf-info);
+}
+.scenario-title > .status,
+.node-title > .status {
+  flex-shrink: 0;
+}
+@media (max-width: 760px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  aside { border-right: 0; padding-right: 0; }
 }
 .tag-list {
   display: flex;

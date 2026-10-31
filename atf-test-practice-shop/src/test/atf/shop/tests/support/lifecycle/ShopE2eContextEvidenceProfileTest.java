@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static atf.testkit.assertions.AuditedAssertions.assertEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertFalse;
 import static atf.testkit.assertions.AuditedAssertions.assertTrue;
 import static atf.shop.tests.support.lifecycle.ShopE2eContext.startReportScenario;
 
@@ -64,6 +65,10 @@ class ShopE2eContextEvidenceProfileTest {
         assertTrue(html.contains("Account fixture policy"), "Fixture policy checks are not silently removed");
         assertTrue(separateSetup || !html.contains("Setup validation"),
                 "A body configuration check must not be mislabeled as setup validation");
+        if (!separateSetup) {
+            assertTrue(html.contains("UI flow provenance"), "Guest body-only unified flow uses the compact projection");
+            assertFalse(html.contains("TEST BODY · UI validation"), "Guest preparation is not a separate visual checkpoint group");
+        }
     }
 
     @TempDir

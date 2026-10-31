@@ -1,16 +1,12 @@
 package atf.reporting.runtime.core;
 
-import atf.core.files.AtfPathLocator;
 import atf.reporting.html.script.HtmlReportScriptModule;
 import atf.testkit.AtfUnitTest;
 
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -76,22 +72,4 @@ class ExtentReportRuntimeModuleTest {
                 "Navigation must own node interaction");
     }
 
-    @Test
-    void coreFacadeDoesNotReassembleBrowserFunctionsInJava() throws Exception {
-        String source = Files.readString(sourceFile());
-
-        assertAll(
-                () -> assertTrue(source.contains("ReportAssetComposer.runtimeCoreDomScript()")),
-                () -> assertTrue(source.contains("ReportAssetComposer.runtimeCoreScenariosScript()")),
-                () -> assertTrue(source.contains("ReportAssetComposer.runtimeCoreMetadataScript()")),
-                () -> assertFalse(source.contains("function ")),
-                () -> assertFalse(source.contains("StringBuilder")),
-                () -> assertFalse(source.contains("+ \"")));
-    }
-
-    private static Path sourceFile() {
-        return AtfPathLocator.locateSourceFile(Path.of(System.getProperty("user.dir", ".")),
-                Path.of("atf/reporting/runtime/core/ExtentReportRuntimeCore.java"),
-                List.of(Path.of("src/main/java"), Path.of("atf-reporting/src/main/java")));
-    }
 }

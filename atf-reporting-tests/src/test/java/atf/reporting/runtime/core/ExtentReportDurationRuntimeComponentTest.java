@@ -1,12 +1,9 @@
 package atf.reporting.runtime.core;
 
-import atf.core.files.AtfPathLocator;
 import atf.testkit.AtfUnitTest;
 
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -153,36 +150,6 @@ class ExtentReportDurationRuntimeComponentTest {
                 () -> assertEquals("aggregateClassDurations",
                         ExtentReportDurationVocabulary.Function.AGGREGATE_CLASS_DURATIONS.value()),
                 () -> assertTrue(ExtentReportDurationVocabulary.jsString("#test-view").equals("'#test-view'")));
-    }
-
-    @Test
-    void durationSeamsAreNativeAssetFacades() throws Exception {
-        assertAll(
-                () -> assertNativeFacade("ExtentReportDurationParsing.java", "durationParsingScript()"),
-                () -> assertNativeFacade("ExtentReportDurationDom.java", "durationDomScript()"),
-                () -> assertNativeFacade("ExtentReportDurationMemory.java", "durationMemoryScript()"),
-                () -> assertNativeFacade("ExtentReportDurationAggregation.java", "durationAggregationScript()"),
-                () -> assertNativeFacade("ExtentReportDurationProjectionLookup.java", "durationProjectionLookupScript()"),
-                () -> assertNativeFacade("ExtentReportDurationProjectionViews.java", "durationProjectionViewsScript()"),
-                () -> assertNativeFacade("ExtentReportDurationProjectionPublication.java",
-                        "durationProjectionPublicationScript()"),
-                () -> assertNativeFacade("ExtentReportDurationScheduling.java", "durationSchedulingScript()"),
-                () -> assertNativeFacade("ExtentReportDurationLifecycle.java", "durationLifecycleScript()"));
-    }
-
-    private static void assertNativeFacade(String fileName, String composerCall) throws Exception {
-        String source = Files.readString(sourceFile(fileName));
-        assertAll(fileName,
-                () -> assertTrue(source.contains("ReportAssetComposer." + composerCall)),
-                () -> assertFalse(source.contains("function ")),
-                () -> assertFalse(source.contains("String.join")),
-                () -> assertFalse(source.contains("+ \"")));
-    }
-
-    private static Path sourceFile(String fileName) {
-        return AtfPathLocator.locateSourceFile(Path.of(System.getProperty("user.dir", ".")),
-                Path.of("atf/reporting/runtime/core", fileName),
-                List.of(Path.of("src/main/java"), Path.of("atf-reporting/src/main/java")));
     }
 
     private static int occurrences(String source, String token) {

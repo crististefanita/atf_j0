@@ -4,6 +4,7 @@ import atf.shop.locators.ShopLocators;
 import atf.shop.pages.ShopProductPage;
 import atf.ui.config.UiBrowserConfiguration;
 import atf.ui.playwright.*;
+import atf.testkit.lifecycle.FailureAwareCleanup;
 import com.microsoft.playwright.*;
 import java.net.URI;
 import java.time.Duration;
@@ -15,7 +16,7 @@ public final class ShopCartAcknowledgementFixture implements AutoCloseable {
     private final URI origin = URI.create("http://shop-cart.test");
     private final PlaywrightUiSession browser;
     private final PlaywrightActionSequence actions;
-    private final AtomicInteger clicks = new AtomicInteger(), starts = new AtomicInteger();
+    private final AtomicInteger starts = new AtomicInteger();
     private Route old;
     private int persisted;
 
@@ -23,7 +24,6 @@ public final class ShopCartAcknowledgementFixture implements AutoCloseable {
         browser = PlaywrightUiSession.open(new UiBrowserConfiguration(origin, "chromium", true,
                 Duration.ofMillis(600), Duration.ofSeconds(3), 1000, 800, 100, true));
         actions = browser.newActionSequence(); var page = browser.page();
-        page.exposeFunction("activated", args -> clicks.incrementAndGet());
         page.route("**/*", route -> {
             var request = route.request(); String path = URI.create(request.url()).getPath();
             if (path.equals("/release-old")) { old.fulfill(json(200)); route.fulfill(new Route.FulfillOptions().setBody("released")); return; }
@@ -47,17 +47,27 @@ public final class ShopCartAcknowledgementFixture implements AutoCloseable {
                     : "fetch('" + endpoint + "',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product_id:'"
                     + product + "',quantity:" + quantity + "})}).then(()=>{"
                     + (mode.equals("no-toast") ? "" : "document.querySelector('output').textContent='Product added to shopping cart';")
-                    + (mode.equals("short-toast") ? "setTimeout(()=>document.querySelector('output').textContent='',0);" : "") + "})";
+                    + (mode.equals("short-toast") ? "setTimeout(()=>document.querySelector('output').textContent='',0);" : "") + "}).catch(()=>{})";
             route.fulfill(new Route.FulfillOptions().setContentType("text/html").setBody("""
+                    <!doctype html><html><body><script>window.activations=0;</script>
                     <input data-test='quantity' type='number' value='1'>
-                    <button data-test='add-to-cart' onclick="activated();%s">Add</button><output></output>
+                    <button data-test='add-to-cart' onclick="window.activations++;%s">Add</button><output></output>
+                    </body></html>
                     """.formatted(operation)));
         });
-        page.navigate(origin + "/product/pliers-id");
-        if (mode.equals("old-response")) page.waitForRequest(r -> r.method().equals("POST"), () -> page.evaluate("""
+        try {
+            page.navigate(origin + "/product/pliers-id");
+            // First paint is bounded separately from the unchanged 600 ms business action.
+            page.waitForFunction("() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))))",
+                    null, new Page.WaitForFunctionOptions().setTimeout(3000));
+            if (mode.equals("old-response")) page.waitForRequest(r -> r.method().equals("POST"), () -> page.evaluate("""
                 void fetch('/carts/cart-id',{method:'POST',headers:{'Content-Type':'application/json'},
                   body:JSON.stringify({product_id:'pliers-id',quantity:2})})
                 """));
+        } catch (RuntimeException | Error failure) {
+            FailureAwareCleanup.closeAfterFailure(failure, browser);
+            throw failure;
+        }
     }
     private static Route.FulfillOptions json(int status) {
         return new Route.FulfillOptions().setStatus(status).setContentType("application/json")
@@ -65,7 +75,7 @@ public final class ShopCartAcknowledgementFixture implements AutoCloseable {
                 .setBody("{\"result\":\"item added\"}");
     }
     public void add() { new ShopProductPage(browser.page(), new ShopLocators(), actions, origin).addConfiguredQuantity(2); }
-    public int clicks() { return clicks.get(); }
+    public int clicks() { return ((Number) browser.page().evaluate("window.activations")).intValue(); }
     public int starts() { return starts.get(); }
     public int persisted() { return persisted; }
     public java.util.List<atf.core.ui.AtfUiActionRecord> records() { return actions.snapshot(); }

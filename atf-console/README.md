@@ -4,10 +4,6 @@
 consolă pentru evenimentele neutre ATF. Nu produce HTML și nu calculează
 verdicturi.
 
-Compozițiile de test conectează sursele externe la portul Core prin
-`AtfConsoleEvent.fromExternalEnums(...)`; reporterul consumă evenimente Core și configurația proprie. Adaptorul JUnit
-folosește separat Test Kit prin dependența `optional compile` declarată în POM.
-
 ## Pe scurt
 
 **Trasee rapide:** [Configurație](#configurație-yaml) · [Integrare JUnit](#integrare) · [Copii dinamici](#testare) · [Probă locală](#verificare-rapidă)
@@ -37,6 +33,12 @@ Publicarea căii raportului este opt-in și independentă de detaliile testului:
 - adnotarea și agregarea pentru raportul partajat sunt implementate; contractul
   adnotării și al agregării este documentat în
   [contractul adnotărilor TestKit](../docs/ATF_Test_Infrastructure_Annotations.md#opt-in-pentru-calea-raportului).
+
+| Simptom | Verifică mai întâi | Limită |
+|---|---|---|
+| nu apar mesaje sau detalii | [politica YAML](#configurație-yaml) și [integrarea](#integrare) | politica mesajelor nu calculează verdictul |
+| HTML-ul există, dar locația nu este anunțată | [notificarea căii](#calea-raportului-publicat) | notificarea este opt-in, separată de generarea HTML |
+| copilul dinamic pierde contextul părintelui | [restaurarea scope-ului](#restaurarea-contextelor-imbricate) | helperul și extensia au probe distincte de formatter |
 
 ## Diagramă de bază
 
@@ -74,6 +76,10 @@ Etichetele scurte păstrează următorul sens:
 </details>
 
 ## Limite de responsabilitate
+
+Compozițiile de test conectează sursele externe la portul Core prin
+`AtfConsoleEvent.fromExternalEnums(...)`; reporterul consumă evenimente Core și configurația proprie. Adaptorul JUnit
+folosește separat Test Kit prin dependența `optional compile` declarată în POM.
 
 ```text
 atf-core       definește AtfConsoleEvent și AtfConsoleSink

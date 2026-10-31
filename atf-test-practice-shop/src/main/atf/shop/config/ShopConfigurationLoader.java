@@ -6,6 +6,8 @@ import atf.ui.config.UiRetryPolicy;
 import atf.ui.config.UiNetworkInspectionConfiguration;
 import atf.ui.config.UiNetworkSettlementPolicy;
 import atf.core.config.ApiTransportMode;
+import atf.core.config.module.AtfModuleIds;
+import atf.core.files.AtfPathLocator;
 import atf.reporting.evidence.ReportScreenshotPolicy;
 import atf.reporting.evidence.profile.ReportEvidenceFlowMode;
 import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
@@ -29,6 +31,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.List;
 import java.util.stream.StreamSupport;
 import java.util.LinkedHashSet;
 
@@ -363,15 +366,14 @@ public final class ShopConfigurationLoader {
     private static Path resolveDirectory(String configured) {
         Path path = Path.of(configured);
         if (path.isAbsolute()) return path.normalize();
-        Path current = Path.of(System.getProperty("user.dir", ".")).toAbsolutePath().normalize();
-        while (current != null) {
-            if (Files.isRegularFile(current.resolve("atf-reporting/pom.xml"))) {
-                return current.resolve(path).normalize();
-            }
-            current = current.getParent();
+        Path working = Path.of(System.getProperty("user.dir", ".")).toAbsolutePath().normalize();
+        try {
+            Path modulePom = AtfPathLocator.locateSourceFile(working, Path.of("pom.xml"),
+                    List.of(Path.of(AtfModuleIds.PRACTICE_SHOP)));
+            return modulePom.getParent().getParent().resolve(path).normalize();
+        } catch (IllegalStateException noShopReactor) {
+            return working.resolve(path).normalize();
         }
-        return Path.of(System.getProperty("user.dir", ".")).toAbsolutePath().normalize()
-                .resolve(path).normalize();
     }
 
     private static Path accountPath(String configured) {

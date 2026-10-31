@@ -1,5 +1,7 @@
 package atf.api.tests.governance.consumers;
 
+import atf.api.tests.governance.distribution.ReportingHarnessOwnership;
+
 import atf.core.files.AtfFileTree;
 import atf.core.files.AtfJavaSourceReferences;
 import atf.testkit.AtfIntegrationTest;
@@ -233,6 +235,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
         String sessionSource = Files.readString(session);
         String cartJourneySource = Files.readString(cartJourney);
         String cartJourneyPortSource = Files.readString(cartJourneyPort);
+        String accountJourneyPortSource = Files.readString(main.resolve("support/journey/AutoExAccountJourneyPort.java"));
         String catalogSearchPortSource = Files.readString(catalogSearchPort);
         String accountPortSource = Files.readString(accountPort);
         String checkoutPortSource = Files.readString(checkoutPort);
@@ -250,7 +253,8 @@ public class ConsumerModuleArchitectureGovernanceTest {
                         && sessionSource.contains("AutoExCheckoutPagePort"),
                 "the purchase session must add checkout to the narrower cart-story port");
         assertTrue(cartJourneySource.contains("AutoExCartJourneyPort")
-                        && cartJourneyPortSource.contains("AutoExAccountPagePort")
+                        && cartJourneyPortSource.contains("extends AutoExAccountJourneyPort")
+                        && accountJourneyPortSource.contains("extends AutoExAccountPagePort, AutoExHomePagePort")
                         && cartJourneyPortSource.contains("AutoExCatalogSearchPort")
                         && catalogSearchPortSource.contains("AutoExHomePagePort"),
                 "the UI cart story must compose only account and catalog-search capabilities");
@@ -258,6 +262,10 @@ public class ConsumerModuleArchitectureGovernanceTest {
                         || cartJourneyPortSource.contains("apiCheckpoint")
                         || cartJourneyPortSource.contains("AutoExCheckoutPagePort"),
                 "UI cart stories must not receive API-inspector or checkout capabilities");
+        assertFalse(accountJourneyPortSource.contains("AutoExCatalogSearchPort")
+                        || accountJourneyPortSource.contains("AutoExCheckoutPagePort")
+                        || accountJourneyPortSource.contains("inspectCatalogApi"),
+                "The account story receives no catalog, checkout or API inspector capability");
         assertFalse(sessionSource.contains("com.microsoft.playwright.Page"),
                 "browser access belongs only to the page ports that need it");
         assertTrue(accountPortSource.contains("AutoExAccountLifecycle")
@@ -374,7 +382,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
     }
 
     @Test
-    void sharedConsumerSupportIsWiredAtItsOwnerWithoutLocalCopies() throws IOException {
+    void sharedConsumerSupportIsWiredAtItsOwnerWithoutLocalCopies() throws Exception {
         Path kit = module("atf-test-kit");
         for (String primitive : List.of("lifecycle/CloseOnceResource", "lifecycle/ArmedCleanup")) {
             assertTrue(Files.isRegularFile(kit.resolve("src/main/java/atf/testkit/" + primitive + ".java")));
@@ -398,8 +406,8 @@ public class ConsumerModuleArchitectureGovernanceTest {
         assertTrue(support.contains("ShopPurchaseConfirmation.assertions(result)"));
         assertTrue(Files.isRegularFile(module("atf-ui").resolve(
                 "src/main/java/atf/ui/audit/UiScreenAudit.java")));
-        assertTrue(Files.isRegularFile(module("atf-reporting-tests").resolve(
-                "src/test/java/atf/reporting/ui/failure/UiSetupFailureEvidenceComponentTest.java")));
+        ReportingHarnessOwnership.read(AtfGovernanceTestSupport.locateProjectRoot()).requireFile(module("atf-reporting-tests").resolve(
+                "src/test/java/atf/reporting/ui/failure/UiSetupFailureEvidenceComponentTest.java"));
     }
 
     private static List<Path> javaFiles(Path... roots) throws IOException {

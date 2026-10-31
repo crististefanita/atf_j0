@@ -3,7 +3,7 @@ var evidenceTableMeasureContext = document.createElement('canvas').getContext('2
   EVIDENCE_TIME_COLUMN = /(^|\b)(time|timestamp|duration)(\b|$)/,
   EVIDENCE_ATTEMPT_COLUMN = /(^|\b)(attempt|attempts)(\b|$)/;
 function evidenceTableIntrinsicWidth(cell) {
-  var value = String(cell && cell.textContent ? cell.textContent : '').replace(/\s+/g, ' ').trim(),
+  var value = (cell && cell.textContent ? cell.textContent : '').replace(/\s+/g, ' ').trim(),
     style = cell && window.getComputedStyle ? window.getComputedStyle(cell) : null,
     context = evidenceTableMeasureContext,
     padding = style ? parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
@@ -17,7 +17,7 @@ function evidenceTableIntrinsicWidth(cell) {
 }
 function evidenceTableHeader(table, index) {
   var header = table.tHead && table.tHead.rows && table.tHead.rows[0];
-  return String(header && header.cells[index] ? header.cells[index].textContent : '')
+  return (header && header.cells[index] ? header.cells[index].textContent : '')
     .replace(/\s+/g, ' ').trim().toLowerCase();
 }
 function isKeyValue(headers) { return headers.length === 2 && headers[0] === 'field' && headers[1] === 'value'; }
@@ -76,17 +76,23 @@ function evidenceTableFingerprint(table, count) {
     font = style
       ? [style.fontFamily, style.fontSize, style.fontWeight, style.lineHeight].join('/')
       : '';
-  var parts = [String(count), String(table.clientWidth || 0), font,
-    String(table.querySelectorAll(':scope > colgroup > col').length)];
+  var parts = [count, table.clientWidth || 0, font,
+    table.querySelectorAll(':scope>colgroup>col').length];
   Array.from(table.rows || []).forEach(row => {
     Array.from(row.cells || []).forEach(cell => {
-      parts.push(String(cell.textContent || '').replace(/\s+/g, ' ').trim());
+      parts.push((cell.textContent || '').replace(/\s+/g, ' ').trim());
     });
   });
   return parts.join('|');
 }
 function evidenceTableSetAttribute(table, name, value) {
   if (table.getAttribute(name) !== value) table.setAttribute(name, value);
+}
+function evidenceTableSetWidth(cell, width) {
+  if (!width) return;
+  cell.style.setProperty('width', width.toFixed(2) + '%', 'important');
+  cell.style.setProperty('min-width', '0', 'important');
+  cell.style.setProperty('max-width', 'none', 'important');
 }
 function evidenceTableCache(table) {
   return table[ATF_EVIDENCE_TABLE_LAYOUT_CACHE]
@@ -124,7 +130,7 @@ function normalizeEvidenceTableColumns(root) {
     }
     var rows = Array.from(table.rows || []),
       count = rows.length ? rows[0].cells.length : 0;
-    if (count < 2) return;
+    if (count < 2 || table.closest('details:not([open])') || !table.getClientRects().length) return;
     var headers = Array.from({ length: count }, (_, index) => evidenceTableHeader(table, index)),
       columnKinds = headers.map((header, index) => evidenceTableColumnKind(header)
         || (evidenceTableNumericColumn(table, index) ? 4 : 0)),
@@ -148,20 +154,11 @@ function normalizeEvidenceTableColumns(root) {
         .map(value => Math.round(value || 0) + 'px')
         .join('|');
     if (cache.widthSignature !== widthSignature) rows.forEach(row => {
-      Array.from(row.cells || []).forEach((cell, index) => {
-        var width = widths[index];
-        if (width) {
-          cell.style.setProperty('width', width.toFixed(2) + '%', 'important');
-          cell.style.setProperty('min-width', '0', 'important');
-          cell.style.setProperty('max-width', 'none', 'important');
-        }
-      });
+      Array.from(row.cells || []).forEach((cell, index) => evidenceTableSetWidth(cell, widths[index]));
     });
-    var columns = Array.from(table.querySelectorAll(':scope > colgroup > col'));
+    var columns = Array.from(table.querySelectorAll(':scope>colgroup>col'));
     if (columns.length === count) columns.forEach((column, index) => {
-      column.style.setProperty('width', widths[index].toFixed(2) + '%', 'important');
-      column.style.setProperty('min-width', '0', 'important');
-      column.style.setProperty('max-width', 'none', 'important');
+      evidenceTableSetWidth(column, widths[index]);
     });
     evidenceTableSetAttribute(table, 'data-atf-content-layout', 'dynamic-longest-value');
     evidenceTableSetAttribute(table, 'data-atf-content-column-count', String(count));
@@ -177,7 +174,6 @@ function normalizeEvidenceTableColumns(root) {
     }
     cache.fingerprint = evidenceTableFingerprint(table, count);
     cache.widthSignature = widthSignature;
-    cache.maxSignature = maxSignature;
   });
 }
 function normalizeValidationTableColumns(root) {

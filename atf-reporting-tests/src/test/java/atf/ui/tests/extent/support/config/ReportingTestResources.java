@@ -85,13 +85,9 @@ public final class ReportingTestResources {
     private static Path locateProjectRoot(Path start) {
         Path current = start;
         while (current != null) {
-            if (Files.isRegularFile(current.resolve("atf-reporting/pom.xml"))) {
+            if (Files.isRegularFile(current.resolve("pom.xml"))
+                    && Files.isRegularFile(current.resolve("atf-reporting-tests/pom.xml"))) {
                 return current.toAbsolutePath().normalize();
-            }
-            if ("atf-reporting".equalsIgnoreCase(String.valueOf(current.getFileName()))
-                    && current.getParent() != null
-                    && Files.isRegularFile(current.getParent().resolve("atf-reporting/pom.xml"))) {
-                return current.getParent().toAbsolutePath().normalize();
             }
             current = current.getParent();
         }

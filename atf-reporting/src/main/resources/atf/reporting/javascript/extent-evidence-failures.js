@@ -1,139 +1,45 @@
 function uiFailureSource(card) {
-  var action = card.querySelector(
-      'details.atf-ui-action-sequence[data-atf-evidence-status="fail"]'
-    ),
-    observation = card.querySelector(
-      'details.atf-ui-observations[data-atf-evidence-status="fail"]'
-    ),
-    assertion =
-      card.querySelector(
-        'details.step-detail.assertion-evidence .helm-validation-table'
-      ) ||
-      card.querySelector(
-        '.atf-ui-assertions[data-atf-evidence-status="fail"] .helm-validation-table'
-      ),
+  var action = card.querySelector('details.atf-ui-action-sequence[data-atf-evidence-status="fail"]'),
+    observation = card.querySelector('details.atf-ui-observations[data-atf-evidence-status="fail"]'),
+    assertion = card.querySelector('details.step-detail.assertion-evidence .helm-validation-table, .atf-ui-assertions[data-atf-evidence-status="fail"] .helm-validation-table'),
     source = action || observation || assertion;
   if (!source) return null;
-  if (!action && !observation) {
-    var assertionBody = source.tBodies && source.tBodies[0],
-      assertionRow =
-        assertionBody && assertionBody.rows && assertionBody.rows[0];
-    if (
-      !assertionRow ||
-      (!assertionRow.querySelector('.atf-ui-action-result-fail') &&
-        String(assertionRow.textContent || '').indexOf('❌') < 0 &&
-        assertionRow.getAttribute('data-atf-assertion-status') !== 'fail')
-    )
-      return null;
-  }
-  var kind = action
-      ? 'Playwright action'
-      : observation
-        ? 'Audit observation'
-        : 'Assertion',
-    target = '',
-    expected = '',
-    observed = '',
-    result = '',
-    failed = source.querySelector('.atf-ui-action-result-fail');
-  if (failed) {
-    var cells = failed.closest('tr').cells;
-    target = cells[1] ? text(cells[1]) : '';
-    expected = cells[2] ? text(cells[2]) : '';
-    observed = cells[3] ? text(cells[3]) : '';
-  } else {
-    var body = source.tBodies && source.tBodies[0],
-      row = body && body.rows && body.rows[0];
-    if (row) {
-      var cells = row.cells;
-      target = kind === 'Assertion' && cells[0] ? text(cells[0]) : '';
-      expected = cells[1] ? text(cells[1]) : '';
-      observed = cells[2] ? text(cells[2]) : '';
-      result = cells[3] ? text(cells[3]) : '';
-    }
-  }
+  var failed = source.querySelector('.atf-ui-action-result-fail'),
+    row = failed ? failed.closest('tr') : source.tBodies?.[0]?.rows[0],
+    cells = row?.cells || [],
+    assertionOnly = !action && !observation;
+  if (assertionOnly && (!row || !failedAssertionRow(row))) return null;
   return {
-    kind: kind,
-    target: target,
-    expected: expected,
-    observed: observed,
-    result: result
+    kind: action ? 'Playwright action' : observation ? 'Audit observation' : 'Assertion',
+    target: failed ? text(cells[1]) : assertionOnly ? text(cells[0]) : '',
+    expected: text(cells[failed ? 2 : 1]),
+    observed: text(cells[failed ? 3 : 2]),
+    result: failed ? '' : text(cells[3])
   };
 }
+function uiFailureTable(headers, rows, kind) {
+  return '<table class="helm-evidence-table ' + kind + '"><thead><tr>' + headers + '</tr></thead><tbody>' +
+    rows.map(row => '<tr>' + row.map(value => '<td>' + esc(value) + '</td>').join('') + '</tr>').join('') + '</tbody></table>';
+}
 function assertionFailureTable(failure) {
-  return (
-    '<table class="helm-evidence-table helm-validation-table"><thead><tr><th>ASSERTION</th><th>EXPECTED</th><th>ACTUAL</th><th>RESULT</th></tr></thead><tbody><tr><td>' +
-    esc(failure.target || 'Assertion') +
-    '</td><td>' +
-    esc(failure.expected) +
-    '</td><td>' +
-    esc(failure.observed) +
-    '</td><td>' +
-    esc(failure.result || '❌') +
-    '</td></tr></tbody></table>'
-  );
+  return uiFailureTable('<th>ASSERTION</th><th>EXPECTED</th><th>ACTUAL</th><th>RESULT</th>',
+    [[failure.target || 'Assertion', failure.expected, failure.observed, failure.result || '❌']], 'helm-validation-table');
 }
 function appendUiFailureEvidence(card) {
-  var table = directEvidenceTable(card),
-    failure = uiFailureSource(card);
-  if (
-    !table ||
-    !failure ||
-    !table.tBodies.length ||
-    table.querySelector(':scope>tbody>tr.atf-ui-failure-evidence-row')
-  )
-    return;
-  var label =
-    '❌ ' +
-    failure.kind +
-    ' failed' +
-    (failure.kind === 'Assertion' || !failure.target
-      ? ''
-      : ' · ' + failure.target);
-  var row = document.createElement('tr');
+  var table = directEvidenceTable(card), failure = uiFailureSource(card);
+  if (!table || !failure || !table.tBodies.length ||
+      table.querySelector(':scope>tbody>tr.atf-ui-failure-evidence-row')) return;
+  var assertion = failure.kind === 'Assertion',
+    label = '❌ ' + failure.kind + ' failed' + (assertion || !failure.target ? '' : ' · ' + failure.target),
+    fields = [['TYPE', failure.kind], ['TARGET', failure.target], ['EXPECTED', failure.expected],
+      ['OBSERVED', failure.observed || 'failure was reported without an observed value']],
+    markup = assertion ? assertionFailureTable(failure) :
+      uiFailureTable('<th>FIELD</th><th>VALUE</th>', fields.filter(field => field[1]), 'atf-ui-failure-table'),
+    row = document.createElement('tr');
   row.className = 'event-row atf-ui-failure-evidence-row';
-  var status = document.createElement('td');
-  status.innerHTML = '<span class="badge log fail-bg">Fail</span>';
-  var timestamp = document.createElement('td');
-  timestamp.textContent = '';
-  var cell = document.createElement('td'),
-    details = document.createElement('details');
-  details.className =
-    'step-detail atf-ui-failure-evidence' +
-    (failure.kind === 'Assertion' ? ' assertion-evidence' : '');
-  details.setAttribute('data-atf-evidence-status', 'fail');
-  var summary = document.createElement('summary');
-  summary.setAttribute('aria-expanded', 'false');
-  summary.setAttribute('aria-label', label);
-  summary.innerHTML = disclosureSummary(label);
-  details.addEventListener('toggle', function () {
-    summary.setAttribute('aria-expanded', details.open ? 'true' : 'false');
-  });
-  var body = document.createElement('div');
-  body.className = 'body';
-  body.innerHTML =
-    failure.kind === 'Assertion'
-      ? assertionFailureTable(failure)
-      : '<table class="helm-evidence-table atf-ui-failure-table"><thead><tr><th>FIELD</th><th>VALUE</th></tr></thead><tbody><tr><td>TYPE</td><td>' +
-        esc(failure.kind) +
-        '</td></tr>' +
-        (failure.target
-          ? '<tr><td>TARGET</td><td>' + esc(failure.target) + '</td></tr>'
-          : '') +
-        (failure.expected
-          ? '<tr><td>EXPECTED</td><td>' + esc(failure.expected) + '</td></tr>'
-          : '') +
-        '<tr><td>OBSERVED</td><td>' +
-        esc(
-          failure.observed || 'failure was reported without an observed value'
-        ) +
-        '</td></tr></tbody></table>';
-  details.appendChild(summary);
-  details.appendChild(body);
-  cell.appendChild(details);
-  row.appendChild(status);
-  row.appendChild(timestamp);
-  row.appendChild(cell);
+  row.innerHTML = '<td><span class="badge log fail-bg">Fail</span></td><td></td><td>' +
+    '<details class="step-detail atf-ui-failure-evidence' + (assertion ? ' assertion-evidence' : '') + '" data-atf-evidence-status="fail">' +
+    '<summary aria-expanded="false" aria-label="' + esc(label) + '">' + disclosureSummary(label) + '</summary><div class="body">' + markup + '</div></details></td>';
   table.tBodies[0].appendChild(row);
 }
 function markLastSemanticEvidence() {

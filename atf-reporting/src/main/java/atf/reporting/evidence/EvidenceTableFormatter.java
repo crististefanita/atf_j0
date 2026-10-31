@@ -19,6 +19,10 @@ import static atf.reporting.markup.AtfReportEvidenceKeys.UI_FAILURE;
 import static atf.reporting.markup.AtfReportEvidenceKeys.UNIFIED_UI_FLOW;
 import static atf.reporting.markup.AtfReportEvidenceKeys.FLOW_PRESENTATION;
 import static atf.reporting.markup.AtfReportEvidenceKeys.COMPACT_UI_ONLY;
+import static atf.reporting.markup.AtfReportEvidenceKeys.FLOW_MODE;
+import static atf.reporting.markup.AtfReportEvidenceKeys.FLOW_SCENARIO;
+import static atf.reporting.markup.AtfReportEvidenceKeys.FLOW_PHASE;
+import static atf.reporting.markup.AtfReportEvidenceKeys.FLOW_CHECKPOINT_PREFIX;
 
 /** Gives request evidence one stable, human-readable vocabulary. */
 public final class EvidenceTableFormatter {
@@ -63,8 +67,10 @@ public final class EvidenceTableFormatter {
         if (isCompactUiFlow(details)) return List.of();
         boolean checkpoint = details.stream().anyMatch(detail -> detail != null
                 && isUiEvidenceType(detail.name(), detail.value()));
+        boolean unifiedFlow = isUnifiedUiFlow(details);
         return details.stream()
                 .filter(detail -> detail != null)
+                .filter(detail -> !unifiedFlow || !isUiFlowContext(detail.name()))
                 .filter(detail -> !isInternalUiContext(detail.name()))
                 .filter(detail -> !checkpoint || !isUiCheckpointPolicy(detail.name()))
                 .filter(detail -> !isRequestDetail(detail.name()))
@@ -72,21 +78,37 @@ public final class EvidenceTableFormatter {
                 .toList();
     }
 
-    /** Cross-phase UI provenance is rendered by its own disclosure, never as an HTTP response. */
+    /** Compact presentation is independent of the common unified-flow context. */
     public static boolean isCompactUiFlow(List<ReportField> details) {
-        return details != null && details.stream().anyMatch(detail -> detail != null
-                && EVIDENCE_TYPE.equalsIgnoreCase(detail.name())
-                && UNIFIED_UI_FLOW.equalsIgnoreCase(detail.value()))
+        return isUnifiedUiFlow(details)
                 && details.stream().anyMatch(detail -> detail != null
                 && FLOW_PRESENTATION.equalsIgnoreCase(detail.name())
                 && COMPACT_UI_ONLY.equalsIgnoreCase(detail.value()));
     }
 
     public static List<ReportField> uiFlowProvenanceFields(List<ReportField> details) {
-        if (!isCompactUiFlow(details)) return List.of();
+        if (!isUnifiedUiFlow(details)) return List.of();
+        boolean compact = isCompactUiFlow(details);
         return details.stream().filter(detail -> detail != null
                 && !FLOW_PRESENTATION.equalsIgnoreCase(detail.name()))
+                .filter(detail -> compact || isUiFlowContext(detail.name()))
                 .toList();
+    }
+
+    private static boolean isUnifiedUiFlow(List<ReportField> details) {
+        return details != null && details.stream().anyMatch(detail -> detail != null
+                && EVIDENCE_TYPE.equalsIgnoreCase(detail.name())
+                && UNIFIED_UI_FLOW.equalsIgnoreCase(detail.value()))
+                && details.stream().noneMatch(detail -> detail != null
+                && EVIDENCE_TYPE.equalsIgnoreCase(detail.name())
+                && !UNIFIED_UI_FLOW.equalsIgnoreCase(detail.value()));
+    }
+
+    private static boolean isUiFlowContext(String name) {
+        return name != null && (EVIDENCE_TYPE.equalsIgnoreCase(name) || FLOW_MODE.equalsIgnoreCase(name)
+                || FLOW_SCENARIO.equalsIgnoreCase(name) || FLOW_PHASE.equalsIgnoreCase(name)
+                || FLOW_PRESENTATION.equalsIgnoreCase(name)
+                || name.toLowerCase(Locale.ROOT).startsWith(FLOW_CHECKPOINT_PREFIX));
     }
 
     public static List<ReportField> requestFields(List<ReportField> details) {

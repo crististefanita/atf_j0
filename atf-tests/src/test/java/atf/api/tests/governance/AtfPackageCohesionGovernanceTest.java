@@ -50,7 +50,7 @@ public class AtfPackageCohesionGovernanceTest {
 
         Map<String, List<String>> inventory = productionPackageClassInventory(locateProjectRoot());
         assertEquals(Set.of("AutoExCatalogApiPrecondition.java", "AutoExPurchaseJourney.java",
-                        "AutoExAccountJourney.java",
+                        "AutoExAccountJourney.java", "AutoExAccountJourneyPort.java",
                         "AutoExCatalogSearchPort.java", "AutoExPurchaseSession.java",
                         "AutoExPurchaseTraceStep.java"),
                 Set.copyOf(inventory.getOrDefault("atf.autoex.support.journey", List.of())));

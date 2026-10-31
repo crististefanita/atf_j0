@@ -12,6 +12,11 @@ import atf.reporting.extent.session.ExtentReportSession;
 import atf.reporting.html.HtmlReportSession;
 import atf.reporting.markup.AtfReportEvidenceKeys;
 import atf.reporting.support.ReportTestScreenshots;
+import atf.reporting.support.flow.BodyOnlyUnifiedFlowFixture;
+import atf.reporting.semantic.AtfReportSemanticSnapshot;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.api.io.TempDir;
 import atf.reporting.ui.UiExtentReportSession;
 import atf.reporting.ui.model.AtfUiActionRecord;
 import atf.reporting.ui.model.AtfUiEvidenceSource;
@@ -142,6 +147,66 @@ class UiCrossPhaseCompactFlowComponentTest {
             assertEquals(0, count(html, "class=\"atf-ui-observations\""));
             assertEquals(0, count(html, extent
                     ? "class=\"atf-ui-assertions\"" : "class=\"assertions\""));
+        }
+    }
+
+
+    @ParameterizedTest
+    @CsvSource({"false,NONE", "true,NONE", "false,FINAL_ONLY", "true,FINAL_ONLY",
+            "false,EACH_CHECKPOINT", "true,EACH_CHECKPOINT"})
+    void aSuccessfulBodyAloneHasOneCompleteProjection(boolean fallback, ReportScreenshotPolicy policy,
+                                                     @TempDir Path output) throws Exception {
+        var published = BodyOnlyUnifiedFlowFixture.publish(output, fallback, policy, 240,
+                BodyOnlyUnifiedFlowFixture.Variant.SUCCESS);
+        var snapshot = published.snapshot();
+        assertEquals(1, snapshot.phaseCount());
+        var phase = snapshot.classes().getFirst().scenarios().getFirst().phases().getFirst();
+        assertEquals("TEST BODY", phase.name());
+        assertEquals(1, phase.nodes().size());
+        var flow = (AtfReportSemanticSnapshot.RequestSnapshot) phase.nodes().getFirst();
+        assertEquals(1, flow.validations().size(), "One body phase must not split the visual UI flow per checkpoint");
+        var validation = flow.validations().getFirst();
+        assertEquals(List.of("Configuration retained", "Product retained", "Quantity retained", "Order retained"),
+                validation.assertionNames());
+        assertEquals(6, validation.uiActionCount());
+        assertEquals(policy == ReportScreenshotPolicy.NONE ? 0 : 1, validation.screenshotCount());
+        assertEquals(AtfReportStatus.PASS, flow.status());
+        assertTrue(flow.detailNames().contains("flow.presentation"));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"false,FAILURE", "true,FAILURE", "false,SKIP", "true,SKIP", "false,API", "true,API",
+            "false,API_FAILURE", "true,API_FAILURE",
+            "false,MULTIPLE_CAPTURES", "true,MULTIPLE_CAPTURES", "false,SCREEN_CHECKPOINTS", "true,SCREEN_CHECKPOINTS"})
+    void bodyOnlyControlsRetainAllUncompactedFacts(boolean fallback, BodyOnlyUnifiedFlowFixture.Variant variant,
+                                                  @TempDir Path output) throws Exception {
+        var published = BodyOnlyUnifiedFlowFixture.publish(output, fallback, ReportScreenshotPolicy.EACH_CHECKPOINT,
+                240, variant);
+        var phase = published.snapshot().classes().getFirst().scenarios().getFirst().phases().getFirst();
+        var requests = phase.nodes().stream().map(AtfReportSemanticSnapshot.RequestSnapshot.class::cast).toList();
+        var validations = requests.stream().flatMap(request -> request.validations().stream()).toList();
+        assertEquals(variant == BodyOnlyUnifiedFlowFixture.Variant.SCREEN_CHECKPOINTS ? 4 : 1, requests.size());
+        assertTrue(validations.size() > 1, "The control requires its separate source groups");
+        assertFalse(requests.stream().anyMatch(request -> request.detailNames().contains("flow.presentation")));
+        assertEquals(6, validations.stream().mapToInt(AtfReportSemanticSnapshot.ValidationSnapshot::uiActionCount).sum());
+        assertEquals(variant == BodyOnlyUnifiedFlowFixture.Variant.MULTIPLE_CAPTURES ? 2 : 1,
+                validations.stream().mapToInt(AtfReportSemanticSnapshot.ValidationSnapshot::screenshotCount).sum());
+        var expectedNames = List.of("Configuration retained", "Product retained", "Quantity retained", "Order retained");
+        assertEquals(expectedNames, validations.stream().flatMap(validation -> validation.assertionNames().stream())
+                .filter(expectedNames::contains).toList());
+        var expectedStatus = variant == BodyOnlyUnifiedFlowFixture.Variant.FAILURE
+                || variant == BodyOnlyUnifiedFlowFixture.Variant.API_FAILURE ? AtfReportStatus.FAIL
+                : variant == BodyOnlyUnifiedFlowFixture.Variant.SKIP ? AtfReportStatus.SKIP : AtfReportStatus.PASS;
+        assertEquals(expectedStatus, phase.status());
+        if (variant == BodyOnlyUnifiedFlowFixture.Variant.API || variant == BodyOnlyUnifiedFlowFixture.Variant.API_FAILURE) {
+            var exchanges = validations.stream().flatMap(validation -> validation.requests().stream()).toList();
+            assertEquals(1, exchanges.size(), "The real mock exchange remains owned by its API validation");
+            assertEquals("GET", exchanges.getFirst().method());
+            assertEquals("/demo", exchanges.getFirst().path());
+            assertTrue(exchanges.getFirst().executionPresent());
+            assertEquals(expectedStatus, exchanges.getFirst().status());
+            assertEquals(List.of("API retained"), exchanges.getFirst().validations().stream()
+                    .flatMap(validation -> validation.assertionNames().stream()).toList());
         }
     }
 

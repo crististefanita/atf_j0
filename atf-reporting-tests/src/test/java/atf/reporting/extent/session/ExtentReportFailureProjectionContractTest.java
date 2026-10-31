@@ -49,11 +49,10 @@ class ExtentReportFailureProjectionContractTest {
                 () -> assertTrue(html.contains("function failureContext(item)")),
                 () -> assertTrue(html.contains("data-atf-failure-phase")),
                 () -> assertTrue(html.contains("class=\"atf-failure-open\"")
-                                && html.contains("atfOpenTest(id,scenarioIndex)")
-                                 && (html.contains("onclick=\"if(typeof atfOpenTest===")
-                                 || html.contains("onclick=\\\"if(typeof atfOpenTest==="))
-                                && html.contains("href=\"#test-id="),
-                        "Fails must expose an executable deep-link and a native hash fallback")
+                                && html.contains("data-atf-failure-ordinal")
+                                && html.contains("data-atf-failure-kind")
+                                && html.contains("failureLink(") && html.contains("test-id"),
+                        "Fails must retain typed source identity for delegated navigation and its native hash fallback")
         );
     }
 
@@ -94,8 +93,8 @@ class ExtentReportFailureProjectionContractTest {
                 () -> assertTrue(html.contains("var durationMs=atfDurationValue(rawDuration)")
                                 && html.contains("duration=durationMs===null?rawDuration:atfFormatDuration(durationMs)"),
                         "execution evidence duration must use the shared duration parser and formatter"),
-                () -> assertTrue(html.contains("if(!ctx.message||ctx.message.indexOf('PRIMARY:')<0)"),
-                        "an assertion row must not overwrite the primary/secondary cause chain"),
+                () -> assertTrue(html.contains("Scenario diagnostics: ") && html.contains("PRIMARY:"),
+                        "an API assertion must retain the scenario diagnostics alongside its own cause"),
                 () -> assertTrue(html.contains("PRIMARY: ") && html.contains("SECONDARY: "),
                         "the Fails projection must preserve the ordered cause chain")
         );

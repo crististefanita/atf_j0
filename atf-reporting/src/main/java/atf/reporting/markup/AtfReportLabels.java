@@ -78,6 +78,14 @@ public final class AtfReportLabels {
         return counted(REQUEST_DETAILS, fields, "field", "fields");
     }
 
+    public static String uiFlowContext(int fields) {
+        return counted("UI flow context", fields, "field", "fields");
+    }
+
+    public static String uiFlowProvenance(int checkpoints) {
+        return counted("UI flow provenance", checkpoints, CHECKPOINT, CHECKPOINTS);
+    }
+
     public static String assertions(int rows) {
         return String.format("Assertions · %d", rows);
     }

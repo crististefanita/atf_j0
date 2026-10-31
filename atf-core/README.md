@@ -45,6 +45,26 @@ flowchart LR
 
 </details>
 
+## Alege boundary-ul de integrare
+
+| Intenție | Intrare și dovadă | Consumerul păstrează |
+|---|---|---|
+| execută HTTP cu deadline comun | [ApiExecutor](src/main/java/atf/core/http/execution/ApiExecutor.java) → [istoric terminal](#istoric-la-eroare-terminală) | endpoint-ul, operația și verdictul business |
+| selectează transport live | [catalog explicit](#catalogul-live-explicit) | opt-in-ul și autentificarea |
+| rulează cleanup LIFO | [CleanupRegistry](src/main/java/atf/core/lifecycle/CleanupRegistry.java) | dobândirea resurselor și politica erorilor |
+| inspectează surse ori promovează fișiere | [referințe Java](#responsabilități) / [manifest guarded](#manifest-și-promovare-guarded) | root-urile și lista aprobată |
+
+Contractele Core și cele din biblioteca Reporting au owneri separați.
+Adaptorul consumerului face conversia explicită; similaritatea numelor nu
+creează o dependență runtime Reporting → Core.
+
+`CleanupRegistry` colectează `RuntimeException` și continuă acțiunile LIFO.
+Contractul său nu promite agregarea oricărui `Throwable`; un adaptor de browser
+trebuie să-și probeze separat achiziția parțială și cauza primară.
+
+- Contextul redactării este în [harta pachetului security](src/main/java/atf/core/security/README.md):
+  input original, strategie, fallback și limita dintre redactare și preview.
+
 ## Responsabilități
 
 | Zonă | Owner în `atf-core` | Nu face |

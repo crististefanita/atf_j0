@@ -2,6 +2,7 @@ package atf.reporting.ui;
 
 import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.html.HtmlReportSession;
+import atf.reporting.support.navigation.FailureLinkIdentity;
 import atf.reporting.ui.model.AtfUiActionRecord;
 import atf.testkit.AtfUnitTest;
 import org.junit.jupiter.api.Test;
@@ -65,9 +66,11 @@ class UiFallbackFailureEvidenceTest {
                         "fallback UI failure evidence must not create an HTTP request disclosure"),
                 () -> assertFalse(html.contains("<details class=\"step-detail response-evidence\""),
                         "fallback UI failure evidence must not create an HTTP response disclosure"),
-                () -> assertTrue(failsTab >= 0 && html.substring(failsTab)
-                                .contains("href=\"#" + failedScenarioId + "\""),
-                        "fallback Fails entry must link back to the owning scenario"),
+                () -> assertTrue(failsTab >= 0 && java.util.regex.Pattern.compile("href=\"(#[^\"]+)\"")
+                                .matcher(html.substring(failsTab)).results()
+                                .map(match -> FailureLinkIdentity.parse(match.group(1)))
+                                .anyMatch(link -> link.failureOf(failedScenarioId, 1)),
+                        "fallback Fails entry must link to the first exact failure in its owning scenario"),
                 () -> assertTrue(failsTab >= 0 && html.substring(failsTab).contains("Wait for visible #1")
                                 && html.substring(failsTab).contains("login-submit")
                                 && html.substring(failsTab).contains("elapsed=20000 ms"),

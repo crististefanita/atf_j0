@@ -32,7 +32,7 @@ class AtfUiConfigurationLoaderTest {
         Path resource = ReportingTestResources.resourcePath(ReportingTestResources.UI_RESOURCE);
 
         assertNotEquals(unrelated, root);
-        assertTrue(Files.isRegularFile(root.resolve("atf-reporting/pom.xml")));
+        assertTrue(Files.isRegularFile(root.resolve("atf-reporting-tests/pom.xml")));
         assertTrue(resource.startsWith(root));
         assertEquals(root.resolve("artifacts/reports/ui"),
                 ReportingTestResources.uiConfiguration().reportDirectory());

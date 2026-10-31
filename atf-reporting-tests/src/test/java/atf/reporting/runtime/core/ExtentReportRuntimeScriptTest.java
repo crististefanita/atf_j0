@@ -44,6 +44,8 @@ class ExtentReportRuntimeScriptTest {
         String overview = ExtentReportRuntimeOverview.script();
         String evidence = ExtentReportRuntimeEvidence.script();
         String navigation = ExtentReportRuntimeNavigation.script();
+        String failureRenderer = evidence.substring(evidence.indexOf("function appendUiFailureEvidence("),
+                evidence.indexOf("function markLastSemanticEvidence("));
 
         assertAll(
                 () -> assertTrue(core.contains("function q("),
@@ -97,8 +99,9 @@ class ExtentReportRuntimeScriptTest {
                         "Assertion failures must reuse the validation-table renderer"),
                 () -> assertTrue(evidence.contains("<th>ASSERTION</th><th>EXPECTED</th><th>ACTUAL</th><th>RESULT</th>"),
                         "dynamic assertion failures must align with the canonical assertion columns"),
-                () -> assertTrue(evidence.contains("failure.kind==='Assertion'?' assertion-evidence':''"),
-                        "dynamic assertion failures must use the assertion evidence semantic class"),
+                () -> assertTrue(failureRenderer.contains("atf-ui-failure-evidence")
+                                && failureRenderer.contains(" assertion-evidence"),
+                        "dynamic assertion renderer must publish the canonical assertion-evidence hook"),
                 () -> assertTrue(evidence.contains("details.step-detail.assertion-evidence .helm-validation-table"),
                         "Assertion failures must be discovered after legacy evidence is normalized"),
                 () -> assertTrue(evidence.contains("atf-validation-table-wrap"),
@@ -267,8 +270,9 @@ class ExtentReportRuntimeScriptTest {
                 () -> assertTrue(script.contains("failureContextFor")),
                 () -> assertTrue(script.contains("atf-failure-index")),
                 () -> assertTrue(script.contains("Open in Tests")),
-                () -> assertTrue(script.contains("window.location.hash"),
-                        "the Fails link must retain a direct hash fallback when the runtime facade is unavailable"),
+                () -> assertTrue(script.contains("failureLink(") && script.contains("failure-ordinal")
+                                && script.contains("failure-kind") && script.contains("href="),
+                        "the Fails link must retain exact native hash identity without relying on inline handlers"),
                 () -> assertTrue(script.contains("encodeURIComponent"),
                         "the direct Fails fallback must preserve the exact test and scenario identifiers"),
                 () -> assertTrue(script.contains("function renderFails(")),

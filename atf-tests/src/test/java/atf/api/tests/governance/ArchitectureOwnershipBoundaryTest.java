@@ -1,6 +1,9 @@
 package atf.api.tests.governance;
 
+import atf.api.tests.governance.distribution.ReportingHarnessOwnership;
+
 import atf.core.config.module.AtfModuleIds;
+import atf.api.tests.governance.distribution.ReportingGovernanceSurface;
 import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
 
@@ -155,6 +158,8 @@ public class ArchitectureOwnershipBoundaryTest {
 
     @Test
     void atfSourceRootsExposeOneJavaPackageRootWithoutAtfAtf() throws Exception {
+        var surface = ReportingGovernanceSurface.read(locateProjectRoot());
+        if (!surface.source()) { surface.assertBinaryLayout(); return; }
         Path module = locateProjectRoot().resolve(AtfModuleIds.REPORTING);
         Path main = module.resolve(MAIN_JAVA);
         Path tests = module.resolve(TEST_JAVA);
@@ -210,30 +215,32 @@ public class ArchitectureOwnershipBoundaryTest {
 
     @Test
     void reportUiAuditsUseOneSharedFlowBoundary() throws Exception {
-        Path root = locateProjectRoot().resolve(AtfModuleIds.REPORTING_TESTS).resolve(TEST_JAVA)
-                .resolve(REPORTING_UI_TESTS_PACKAGE);
-        var violations = new ArrayList<String>();
-        List<String> retired = List.of(
-                "exploratory/ApiExtentReportExploratoryTest.java",
-                "exploratory/ExistingExtentReportExploratoryTest.java",
-                "exploratory/ExistingExtentCategoriesExploratoryTest.java");
-        for (String relative : retired) {
-            if (Files.exists(root.resolve(relative))) violations.add("retired UI composition root was reintroduced: " + relative);
-        }
-        Path selected = root.resolve("e2e/section/SelectedApiTestsReportUiTest.java");
-        String selectedContent = Files.readString(selected);
-        if (!selectedContent.contains("@ApiScenarioSetup(tests =")
-                || !selectedContent.contains("@ApiTestRef(owner =")
-                || !selectedContent.contains("SectionAuditDynamicEngine")) {
-            violations.add("selected generated audit must be exact-method and section-engine based");
-        }
-        Path external = root.resolve("e2e/uireport/StaticUiExtentReportContractTest.java");
-        String externalContent = Files.readString(external);
-        if (!externalContent.contains("@UiExtentReportContract")
-                || !externalContent.contains("UiReportContractDynamicEngine")) {
-            violations.add("external UI report audit must remain the single opt-in browser gate");
-        }
-        assertTrue(violations.isEmpty(), () -> "UI audit flow boundary violations: " + violations);
+        ReportingHarnessOwnership.read(locateProjectRoot()).inspect(() -> {
+            Path root = locateProjectRoot().resolve(AtfModuleIds.REPORTING_TESTS).resolve(TEST_JAVA)
+                    .resolve(REPORTING_UI_TESTS_PACKAGE);
+            var violations = new ArrayList<String>();
+            List<String> retired = List.of(
+                    "exploratory/ApiExtentReportExploratoryTest.java",
+                    "exploratory/ExistingExtentReportExploratoryTest.java",
+                    "exploratory/ExistingExtentCategoriesExploratoryTest.java");
+            for (String relative : retired) {
+                if (Files.exists(root.resolve(relative))) violations.add("retired UI composition root was reintroduced: " + relative);
+            }
+            Path selected = root.resolve("e2e/section/SelectedApiTestsReportUiTest.java");
+            String selectedContent = Files.readString(selected);
+            if (!selectedContent.contains("@ApiScenarioSetup(tests =")
+                    || !selectedContent.contains("@ApiTestRef(owner =")
+                    || !selectedContent.contains("SectionAuditDynamicEngine")) {
+                violations.add("selected generated audit must be exact-method and section-engine based");
+            }
+            Path external = root.resolve("e2e/uireport/StaticUiExtentReportContractTest.java");
+            String externalContent = Files.readString(external);
+            if (!externalContent.contains("@UiExtentReportContract")
+                    || !externalContent.contains("UiReportContractDynamicEngine")) {
+                violations.add("external UI report audit must remain the single opt-in browser gate");
+            }
+            assertTrue(violations.isEmpty(), () -> "UI audit flow boundary violations: " + violations);
+        });
     }
 
     private static Path modulePath(Path root, String module, String... segments) {
@@ -242,11 +249,22 @@ public class ArchitectureOwnershipBoundaryTest {
         return path;
     }
 
-    private static void requireFile(Path path, String message) {
-        assertTrue(Files.isRegularFile(path), message + ": " + path);
+    private static boolean ownedFile(Path path) throws Exception {
+        Path root = locateProjectRoot();
+        return path.startsWith(root.resolve(AtfModuleIds.REPORTING))
+                ? ReportingGovernanceSurface.read(root).owns(path) : Files.isRegularFile(path);
     }
 
-    private static void forbidFile(Path path, String message) {
-        assertFalse(Files.exists(path), message + ": " + path);
+    private static void requireFile(Path path, String message) throws Exception {
+        Path root = locateProjectRoot();
+        if (path.startsWith(root.resolve(AtfModuleIds.REPORTING_TESTS))) ReportingHarnessOwnership.read(root).requireFile(path);
+        else assertTrue(ownedFile(path), message + ": " + path);
+    }
+
+    private static void forbidFile(Path path, String message) throws Exception {
+        Path root = locateProjectRoot();
+        boolean exists = path.startsWith(root.resolve(AtfModuleIds.REPORTING)) && !ReportingGovernanceSurface.read(root).source()
+                ? ReportingGovernanceSurface.read(root).owns(path) : Files.exists(path);
+        assertFalse(exists, message + ": " + path);
     }
 }

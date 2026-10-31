@@ -1,5 +1,6 @@
 package atf.ui.tests.extent.component.section.architecture;
 import atf.testkit.AtfComponentTest;
+import atf.reporting.ui.audit.section.JsonEvidenceValidator;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -15,18 +16,18 @@ class DomInspectorMigrationBoundaryTest {
     void migratedExtractorsAndPureValidatorsAreTheActiveBoundary() {
         Path root = projectRoot();
         Path test = root.resolve("atf-reporting-tests/src/test/java/atf/ui/tests/extent");
-        Path main = root.resolve("atf-reporting/src/main/java/atf/ui/tests/extent");
-        Path reporting = root.resolve("atf-reporting/src/main/java/atf/reporting/ui/audit/section");
+        ClassLoader library = JsonEvidenceValidator.class.getClassLoader();
         assertTrue(Files.isRegularFile(test.resolve("support/section/extract/EvidenceSectionExtractor.java")));
         assertTrue(Files.isRegularFile(test.resolve("support/section/extract/ApiReportStructureExtractor.java")));
         assertTrue(Files.isRegularFile(test.resolve("support/section/extract/FilterSectionExtractor.java")));
-        assertTrue(Files.isRegularFile(reporting.resolve("JsonEvidenceValidator.java")));
-        assertTrue(Files.isRegularFile(reporting.resolve("VisualEvidenceValidator.java")));
-        assertFalse(Files.exists(main.resolve("flows/inspection/ApiReportRequestEvidenceInspector.java")));
-        assertFalse(Files.exists(main.resolve("flows/inspection/ApiReportStructureInspector.java")));
-        assertFalse(Files.exists(main.resolve("flows/inspection/ApiReportFilterInspector.java")));
-        assertFalse(Files.exists(main.resolve("audit/CategoryScreenValidator.java")));
-        assertFalse(Files.exists(main.resolve("audit/EvidenceScreenValidator.java")));
+        assertTrue(library.getResource("atf/reporting/ui/audit/section/JsonEvidenceValidator.class") != null);
+        assertTrue(library.getResource("atf/reporting/ui/audit/section/VisualEvidenceValidator.class") != null);
+        for (String retired : java.util.List.of("flows/inspection/ApiReportRequestEvidenceInspector",
+                "flows/inspection/ApiReportStructureInspector", "flows/inspection/ApiReportFilterInspector",
+                "audit/CategoryScreenValidator", "audit/EvidenceScreenValidator")) {
+            assertFalse(library.getResource("atf/ui/tests/extent/" + retired + ".class") != null,
+                    "Retired production boundary returned: " + retired);
+        }
     }
 
     private static Path projectRoot() {

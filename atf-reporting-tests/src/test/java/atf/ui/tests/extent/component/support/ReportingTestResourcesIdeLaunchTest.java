@@ -45,7 +45,8 @@ class ReportingTestResourcesIdeLaunchTest {
 
     private static Path reactorRootFromReportingResource() {
         Path current = ReportingTestResources.resourcePath(ReportingTestResources.UI_RESOURCE).getParent();
-        while (current != null && !Files.isRegularFile(current.resolve("atf-reporting/pom.xml"))) {
+        while (current != null && (!Files.isRegularFile(current.resolve("pom.xml"))
+                || !Files.isRegularFile(current.resolve("atf-reporting-tests/pom.xml")))) {
             current = current.getParent();
         }
         assertNotNull(current, "reporting test resource must have the ATF reactor as an ancestor");

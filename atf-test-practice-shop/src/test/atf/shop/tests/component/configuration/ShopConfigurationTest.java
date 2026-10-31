@@ -1,6 +1,7 @@
 package atf.shop.tests.component.configuration;
 
 import atf.core.config.ApiTransportMode;
+import atf.core.config.module.AtfModuleIds;
 import atf.shop.tests.support.ShopComponentTest;
 import atf.testkit.assertions.RecordedAssertions;
 import atf.reporting.evidence.ReportScreenshotPolicy;
@@ -15,6 +16,8 @@ import atf.shop.routes.ShopUiRoutes;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -308,6 +311,62 @@ class ShopConfigurationTest {
     void rejectsAnUnboundedSystemPreviewPolicy() {
         assertThrows(IllegalArgumentException.class,
                 () -> new ShopReportConfiguration(0));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"false,ROOT", "false,MODULE", "false,NESTED", "true,ROOT", "true,MODULE", "true,NESTED"})
+    @ResourceLock("user.dir")
+    void relativeReportDirectoriesFollowTheOwningReactor(boolean reportingSource, String location, @TempDir Path temp) throws Exception {
+        Path root = Files.createDirectory(temp.resolve("reactor"));
+        Path module = Files.createDirectory(root.resolve(AtfModuleIds.PRACTICE_SHOP));
+        Files.writeString(root.resolve("pom.xml"), "<project><modules><module>atf-test-practice-shop</module></modules></project>");
+        Files.writeString(module.resolve("pom.xml"), "<project/>");
+        if (reportingSource) {
+            Path reporting = Files.createDirectory(root.resolve(AtfModuleIds.REPORTING));
+            Files.writeString(reporting.resolve("pom.xml"), "<project/>");
+        }
+        Path working = switch (location) {
+            case "ROOT" -> root;
+            case "MODULE" -> module;
+            default -> Files.createDirectories(module.resolve("target/launch"));
+        };
+        var configured = loadFromDirectory(reportConfiguration(temp, "proof/ui", "proof/api"), working);
+        assertEquals(root.resolve("proof/ui"), configured.uiReportDirectory(), "UI output belongs to the owning reactor with source or binary Reporting");
+        assertEquals(root.resolve("proof/api"), configured.apiReportDirectory(), "API output uses the same owning reactor from every launch directory");
+        assertTrue(Files.notExists(module.resolve("proof")), "Configuration resolution creates no module-local output");
+    }
+
+    @Test
+    @ResourceLock("user.dir")
+    void unrelatedReportingSourceCannotChooseTheShopOutputRoot(@TempDir Path temp) throws Exception {
+        Files.writeString(Files.createDirectory(temp.resolve(AtfModuleIds.REPORTING)).resolve("pom.xml"), "<project/>");
+        Path working = Files.createDirectory(temp.resolve("standalone"));
+        var configured = loadFromDirectory(reportConfiguration(temp, "proof/ui", "proof/api"), working);
+        assertEquals(working.resolve("proof/ui"), configured.uiReportDirectory(), "An unrelated Reporting checkout cannot capture UI output");
+        assertEquals(working.resolve("proof/api"), configured.apiReportDirectory(), "A standalone launch keeps its working directory when no Shop reactor exists");
+    }
+
+    @Test
+    @ResourceLock("user.dir")
+    void absoluteConfiguredReportDirectoriesRemainUnchanged(@TempDir Path temp) throws Exception {
+        Path working = Files.createDirectory(temp.resolve("standalone"));
+        Path ui = temp.resolve("chosen/ui").toAbsolutePath(), api = temp.resolve("chosen/api").toAbsolutePath();
+        var configured = loadFromDirectory(reportConfiguration(temp, ui.toString(), api.toString()), working);
+        assertEquals(ui, configured.uiReportDirectory(), "An absolute UI output is independent of reactor discovery");
+        assertEquals(api, configured.apiReportDirectory(), "An absolute API output is independent of reactor discovery");
+    }
+
+    private static Path reportConfiguration(Path directory, String ui, String api) throws Exception {
+        Path yaml = directory.resolve("report-directories.yaml");
+        Files.writeString(yaml, "practiceShop:\n  baseUrl: https://practicesoftwaretesting.com\n  reports:\n    ui: '"
+                + ui.replace("\\", "/").replace("'", "''") + "'\n    api: '" + api.replace("\\", "/").replace("'", "''") + "'\n");
+        return yaml;
+    }
+
+    private static atf.shop.config.ShopConfiguration loadFromDirectory(Path yaml, Path directory) {
+        String previous = System.getProperty("user.dir");
+        try { System.setProperty("user.dir", directory.toString()); return ShopConfigurationLoader.load(yaml); }
+        finally { if (previous == null) System.clearProperty("user.dir"); else System.setProperty("user.dir", previous); }
     }
 
     private static atf.shop.config.ShopConfiguration configuration() {

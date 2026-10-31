@@ -2,11 +2,13 @@ package atf.api.tests.governance.documentation.factual;
 
 import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.regex.Pattern;
 import static atf.api.tests.governance.AtfGovernanceTestSupport.locateProjectRoot;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,10 +21,13 @@ public class DocumentedBuildContractTest {
     @Test void aWrongDocumentedModuleCountFailsWithoutChangingThePom() throws Exception {
         Path root = locateProjectRoot(); byte[] pom = Files.readAllBytes(root.resolve("pom.xml"));
         String source = architecture(root);
-        String changed = source.replace("exact cele 12 module existente", "exact cele 13 module existente");
+        var declaration = Pattern.compile("exact cele (\\d+) module existente").matcher(source);
+        assertTrue(declaration.find(), "The source must expose one module declaration");
+        int observed = Integer.parseInt(declaration.group(1));
+        String changed = source.substring(0, declaration.start(1)) + (observed + 1) + source.substring(declaration.end(1));
         assertNotEquals(source, changed);
         var failures = DocumentedBuildContracts.inspect(root, changed);
-        assertEquals(1, failures.size()); assertTrue(failures.getFirst().contains("declared=13; observed=12; source=pom.xml"));
+        assertEquals(1, failures.size()); assertTrue(failures.getFirst().contains("declared=" + (observed + 1) + "; observed=" + observed + "; source=pom.xml"));
         assertTrue(failures.getFirst().startsWith("DOC-FACT docs/ATF_Architecture.md:"));
         assertArrayEquals(pom, Files.readAllBytes(root.resolve("pom.xml")));
     }
@@ -43,6 +48,21 @@ public class DocumentedBuildContractTest {
         assertFalse(DocumentedBuildContracts.inspect(root, source.replace(row, "")).isEmpty());
         assertFalse(DocumentedBuildContracts.inspect(root, source.replace(row, row + "\n" + row)).isEmpty());
         assertFalse(DocumentedBuildContracts.inspect(root, source.replace("Reactorul păstrează exact cele", "Reactorul are")).isEmpty());
+    }
+    @ParameterizedTest @ValueSource(ints={10, 11, 12})
+    void moduleCountMutantIsIndependentOfTheDeploymentSize(int count, @TempDir Path root) throws Exception {
+        String modules = java.util.stream.IntStream.range(0, count).mapToObj(n -> "<module>module-" + n + "</module>").collect(java.util.stream.Collectors.joining());
+        Files.writeString(root.resolve("pom.xml"), "<project><modules>" + modules + "</modules></project>");
+        for (String module : List.of("atf-test-practice-shop", "atf-test-auto-ex")) {
+            Files.createDirectory(root.resolve(module));
+            Files.writeString(root.resolve(module).resolve("pom.xml"), "<project><dependencies><dependency><artifactId>atf-test-kit</artifactId><scope>test</scope></dependency></dependencies></project>");
+        }
+        String document = "Reactorul păstrează exact cele " + count + " module existente.\n"
+                + "| Consumer | `compile` | `test` |\n|---|---|---|\n| Shop | Core | Test Kit |\n| AutoEx | Core | Test Kit |\n";
+        assertEquals(List.of(), DocumentedBuildContracts.inspect(root, document));
+        var failures = DocumentedBuildContracts.inspect(root, document.replace("cele " + count, "cele " + (count + 1)));
+        assertEquals(1, failures.size());
+        assertTrue(failures.getFirst().contains("declared=" + (count + 1) + "; observed=" + count + "; source=pom.xml"));
     }
     private static String architecture(Path root) throws Exception { return Files.readString(root.resolve("docs/ATF_Architecture.md")); }
 }

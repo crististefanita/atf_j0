@@ -39,6 +39,7 @@ public final class JarConsumer {
         Path out=Path.of(args[0]);Files.createDirectories(out);
         for(boolean extent:args.length>2&&args[2].equals("FALLBACK")?List.of(false):List.of(true,false)) {
             Path html=out.resolve(extent?"extent.html":"fallback.html");
+            Files.writeString(html,"previous-report");
             try(var session=extent?(AtfReportPorts.Session)new ExtentReportSession(html):new HtmlReportSession(html)) {
                 publish(session,"Nominal",new AtfAssertion("Independent equality","ready","ready",true),PASS);
                 String prefix="x".repeat(300);
@@ -49,6 +50,15 @@ public final class JarConsumer {
                         :((HtmlReportSession)session).semanticSnapshot();
                 var statuses=snapshot.classes().getFirst().scenarios().stream().map(AtfReportSemanticSnapshot.ScenarioSnapshot::status).toList();
                 if(!statuses.equals(List.of(PASS,FAIL,PASS))) throw new AssertionError(statuses);
+            } catch(RuntimeException | Error failure) {
+                if(!Files.readString(html).equals("previous-report"))
+                    throw new AssertionError("Rejected publication replaced the previous artifact",failure);
+                try(var files=Files.list(out)) {
+                    if(files.anyMatch(path->path.getFileName().toString().startsWith(".atf-extent-session-")))
+                        throw new AssertionError("Rejected publication leaked its workspace",failure);
+                }
+                System.out.println("WORKSPACE_ROLLBACK=PASS; previous-artifact=PRESERVED");
+                throw failure;
             }
             String content=Files.readString(html);
             if(content.contains("probe-secret")) throw new AssertionError("Credential leaked");

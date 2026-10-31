@@ -5,6 +5,8 @@ import atf.reporting.ui.contract.ReportUiContract;
 import atf.ui.tests.extent.support.lifecycle.UiAuditFlow;
 
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
+import atf.ui.tests.extent.support.locators.failurenavigation.FailureJourneyLocators;
+import atf.reporting.support.navigation.FailureLinkIdentity;
 import atf.reporting.audit.ReportAuditSnapshot;
 import atf.ui.tests.extent.support.section.extract.OverviewSectionExtractor;
 import com.microsoft.playwright.Locator;
@@ -18,15 +20,14 @@ import java.util.Objects;
  * Inspects one real failure journey without rebuilding the API report in the
  * browser layer: Tests → Fails → Open in Tests → Overview.
  *
- * <p>The selected scenario may remain visible as the navigation target, but
- * every phase, request/validation card and evidence disclosure must start
- * closed. This keeps failure navigation actionable without opening a wall of
- * technical trace on arrival.</p>
+ * <p>The initial document is collapsed. A failure backlink reveals the exact
+ * source row and its ancestors while keeping siblings closed.</p>
  */
 public final class FailureFlowInspector {
     private final UiAuditFlow auditFlow;
     private final ReportUiLocators locators;
     private final OverviewSectionExtractor overviewExtractor;
+    private final FailureJourneyLocators journeyLocators = new FailureJourneyLocators();
 
     public FailureFlowInspector(UiAuditFlow auditFlow, ReportUiLocators locators) {
         this.auditFlow = Objects.requireNonNull(auditFlow, "auditFlow");
@@ -80,7 +81,9 @@ public final class FailureFlowInspector {
             violations.add("Fails detail does not expose PRIMARY plus SECONDARY precedence");
         }
         boolean failureDeepLinkWorks = false;
+        FailureJourneyLocators.PathState expectedPath = null;
         if (openLinkCount > 0) {
+            var identity = FailureLinkIdentity.parse(locators.failureDetailOpenLink(fails).getAttribute("href"));
             auditFlow.actions().click(locators.firstFailureOpenAction(failsPage),
                     "first lifecycle failure opens in Tests");
             auditFlow.actions().waitForVisible(locators.testsView(failsPage),
@@ -88,10 +91,26 @@ public final class FailureFlowInspector {
             failureDeepLinkWorks = locators.testsView(failsPage).isVisible()
                     && failsPage.url().contains("#test-id=")
                     && failsPage.url().contains("scenario-index=");
+            var arrived = FailureLinkIdentity.parse(failsPage.url());
+            for (String parameter : List.of("test-id", "scenario-index", "failure-ordinal", "failure-kind"))
+                failureDeepLinkWorks &= arrived.hasParameter(parameter, identity.parameters().get(parameter));
+            int scenarioIndex = Integer.parseInt(identity.parameters().get("scenario-index"));
+            int ordinal = Integer.parseInt(identity.parameters().get("failure-ordinal"));
+            Locator scenario = locators.scenarios(locators.visibleTestDetail(failsPage)).nth(scenarioIndex);
+            Locator target = journeyLocators.target(scenario, identity.parameters().get("failure-kind"), ordinal);
+            auditFlow.actions().waitForVisible(journeyLocators.targetAction(scenario,
+                    identity.parameters().get("failure-kind"), ordinal));
+            expectedPath = journeyLocators.path(target);
+            failureDeepLinkWorks = failureDeepLinkWorks && target.isVisible() && expectedPath.open();
         }
         CollapsedState deepLinkState = collapsedState(failsPage);
-        if (!deepLinkState.navigationTargetCollapsed()) {
-            violations.add("Fails → Tests opens details: " + deepLinkState.summary());
+        failureDeepLinkWorks = failureDeepLinkWorks && expectedPath != null
+                && deepLinkState.expandedScenarioCount() == 1
+                && deepLinkState.expandedPhaseCount() == expectedPath.phases()
+                && deepLinkState.expandedNodeCount() == expectedPath.nodes()
+                && deepLinkState.openEvidenceCount() == expectedPath.evidence();
+        if (!failureDeepLinkWorks) {
+            violations.add("Fails → Tests must reveal only the exact source path: " + deepLinkState.summary());
         }
 
         Page overviewPage = auditFlow.openTab(ReportUiContract.Tab.OVERVIEW.hash());
@@ -104,7 +123,7 @@ public final class FailureFlowInspector {
         boolean valid = lifecycleOwnerPresent && failureCount > 0 && primaryCauseCount > 0
                 && rootCausePrecedenceVisible && openLinkCount > 0 && failureDeepLinkWorks
                 && initialState.detailsCollapsed()
-                && deepLinkState.navigationTargetCollapsed() && overview.complete()
+                && overview.complete()
                 && overviewFailureCount > 0;
         return new Observation(List.copyOf(ownerNames), lifecycleOwnerPresent, failureCount,
                 primaryCauseCount, openLinkCount, rootCausePrecedenceVisible, failureDeepLinkWorks, initialState,
@@ -116,7 +135,7 @@ public final class FailureFlowInspector {
         return new CollapsedState(
                 locators.expandedScenarioHeaders(tests).count(),
                 locators.expandedPhaseHeaders(tests).count(),
-                locators.expandedRequestOrValidationHeaders(tests).count(),
+                journeyLocators.expandedNodeHeaders(tests).count(),
                 locators.openEvidenceDisclosures(tests).count());
     }
 
@@ -138,22 +157,16 @@ public final class FailureFlowInspector {
     }
 
     public record CollapsedState(int expandedScenarioCount, int expandedPhaseCount,
-                                 int expandedRequestOrValidationCount,
+                                 int expandedNodeCount,
                                  int openEvidenceCount) {
         public boolean detailsCollapsed() {
             return expandedScenarioCount == 0 && expandedPhaseCount == 0
-                    && expandedRequestOrValidationCount == 0 && openEvidenceCount == 0;
-        }
-
-        /** A deep-link may keep its selected scenario open; descendants stay closed. */
-        public boolean navigationTargetCollapsed() {
-            return expandedScenarioCount <= 1 && expandedPhaseCount == 0
-                    && expandedRequestOrValidationCount == 0 && openEvidenceCount == 0;
+                    && expandedNodeCount == 0 && openEvidenceCount == 0;
         }
 
         public String summary() {
             return "scenario=" + expandedScenarioCount + ", phase=" + expandedPhaseCount
-                    + ", request/validation=" + expandedRequestOrValidationCount
+                    + ", nodes=" + expandedNodeCount
                     + ", evidence=" + openEvidenceCount;
         }
     }
@@ -173,8 +186,9 @@ public final class FailureFlowInspector {
             violations = List.copyOf(Objects.requireNonNull(violations, "violations"));
         }
 
+        /** Initial document state, before an explicit failure backlink is followed. */
         public boolean detailsCollapsed() {
-            return initialState.detailsCollapsed() && deepLinkState.navigationTargetCollapsed();
+            return initialState.detailsCollapsed();
         }
 
         public String collapsedSummary() {

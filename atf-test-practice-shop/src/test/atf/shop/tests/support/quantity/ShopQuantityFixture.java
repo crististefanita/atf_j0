@@ -3,6 +3,7 @@ package atf.shop.tests.support.quantity;
 import atf.shop.locators.ShopLocators;
 import atf.shop.pages.ShopProductPage;
 import atf.ui.playwright.PlaywrightActionSequence;
+import atf.testkit.lifecycle.FailureAwareCleanup;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
@@ -18,7 +19,16 @@ public final class ShopQuantityFixture implements AutoCloseable {
     private final PlaywrightActionSequence actions = new PlaywrightActionSequence();
 
     public ShopQuantityFixture(State state) {
+        try { prepare(state); }
+        catch (RuntimeException | Error failure) {
+            FailureAwareCleanup.closeAfterFailure(failure, playwright, browser, page);
+            throw failure;
+        }
+    }
+
+    private void prepare(State state) {
         page.setDefaultTimeout(500);
+        page.setDefaultNavigationTimeout(3000);
         page.route("https://api.practicesoftwaretesting.com/**", route -> route.fulfill(new com.microsoft.playwright.Route.FulfillOptions()
                 .setContentType("application/json").setHeaders(java.util.Map.of("Access-Control-Allow-Origin", "*",
                         "Access-Control-Allow-Methods", "POST,OPTIONS", "Access-Control-Allow-Headers", "content-type"))
@@ -27,6 +37,7 @@ public final class ShopQuantityFixture implements AutoCloseable {
                 .setContentType("text/html").setBody("<html></html>")));
         page.navigate("http://quantity-fixture.test/product/fixture-product");
         page.setContent("""
+                <!doctype html><html><body>
                 <h1 data-test='product-name'>Pliers</h1>
                 <span data-test='unit-price'>$12.01</span>
                 <p data-test='product-description'>Configured product description</p>
@@ -46,7 +57,10 @@ public final class ShopQuantityFixture implements AutoCloseable {
                   window.outOfStock=()=>{document.querySelector('input').disabled=true;
                     document.querySelector('button').disabled=true;document.querySelector('p[hidden]').hidden=false};
                 </script>
+                </body></html>
                 """);
+        page.waitForFunction("() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))))",
+                null, new Page.WaitForFunctionOptions().setTimeout(3000));
         switch (state) {
             case AVAILABLE -> page.evaluate("window.available()");
             case OUT_OF_STOCK -> page.evaluate("window.outOfStock()");

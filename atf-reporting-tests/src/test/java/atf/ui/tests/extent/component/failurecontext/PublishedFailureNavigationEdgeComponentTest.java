@@ -8,6 +8,10 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 @AtfComponentTest
 class PublishedFailureNavigationEdgeComponentTest {
+    @ParameterizedTest @CsvSource({"240,1280", "18,392"})
+    void repeatedUiFailureLabelsKeepTheirOriginalOrdinalAcrossReloadAndReverseNavigation(int limit, int width) throws Exception {
+        FailureNavigationEdgeProbe.verifyRepeatedUiFailures(limit, width);
+    }
     @ParameterizedTest @CsvSource({"UI,392", "API,1280", "COMPONENT,392"})
     void fallbackBacklinksOpenTheOriginalComparisonAndSurviveReload(Owner owner, int width) throws Exception {
         FailureNavigationEdgeProbe.verifyFallback(owner, width, false);

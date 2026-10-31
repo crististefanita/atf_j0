@@ -16,6 +16,7 @@ import atf.reporting.console.AtfConsoleSink;
 import atf.reporting.evidence.ReportScreenshotPolicy;
 import atf.reporting.model.ReportExecutionEvidence;
 import atf.reporting.support.TestReportPaths;
+import atf.reporting.support.navigation.FailureLinkIdentity;
 import atf.reporting.ui.UiExtentReportSession;
 import atf.reporting.ui.contract.ReportUiContract;
 import atf.reporting.ui.validation.UiApiValidationEvidence;
@@ -34,6 +35,7 @@ import java.util.Map;
 
 import static atf.reporting.contract.AtfGherkinKeyword.THEN;
 import static atf.reporting.audit.ReportAuditChecks.check;
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -116,8 +118,8 @@ public final class UiApiVerdictProjectionProbe {
                     audit.actions().click(LOCATORS.failureDetailOpenAction(failurePage), "open the exact failure in Tests");
                     audit.actions().waitForVisible(LOCATORS.testsView(failurePage), ReportUiContract.Tab.TESTS.hash());
                     assertTrue(failurePage.url().contains("#test-id=") && hasFragmentParameter(failurePage.url(), scenarioAnchor));
-                    assertEquals("true", LOCATORS.scenarios(LOCATORS.visibleTestDetail(failurePage))
-                            .nth(expected.scenarioIndex()).getAttribute("data-atf-scenario-open"));
+                    assertThat(LOCATORS.scenarios(LOCATORS.visibleTestDetail(failurePage))
+                            .nth(expected.scenarioIndex())).hasAttribute("data-atf-scenario-open", "true");
                     String selectedScenario = LOCATORS.visibleTestDetail(failurePage).innerText();
                     assertTrue(selectedScenario.contains(expected.scenario()));
                     inspected.screen("Open in Tests selects the exact original scenario", "Tests / " + expected.scenario(),
@@ -254,7 +256,8 @@ public final class UiApiVerdictProjectionProbe {
     private record FailureExpectation(String scenario, String cause, ReportEvidenceOwner owner,
                                       String request, int scenarioIndex) { }
     private static boolean hasFragmentParameter(String url, String expected) {
-        int fragment = url.indexOf('#');
-        return fragment >= 0 && java.util.Arrays.asList(url.substring(fragment + 1).split("&")).contains(expected);
+        int separator = expected.indexOf('=');
+        return separator > 0 && FailureLinkIdentity.parse(url)
+                .hasParameter(expected.substring(0, separator), expected.substring(separator + 1));
     }
 }

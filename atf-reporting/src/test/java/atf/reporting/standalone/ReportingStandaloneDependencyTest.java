@@ -1,5 +1,6 @@
 package atf.reporting.standalone;
 
+import atf.reporting.standalone.source.ReportingModuleSource;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -12,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ReportingStandaloneDependencyTest {
     @Test
     void productionSourceDoesNotImportAnotherAtfModule() throws Exception {
-        Path root = moduleRoot();
+        Path root = ReportingModuleSource.root();
         List<String> violations;
         try (var files = Files.walk(root.resolve("src/main/java"))) {
             violations = files.filter(Files::isRegularFile)
@@ -28,14 +29,14 @@ class ReportingStandaloneDependencyTest {
 
     @Test
     void reportingPomDoesNotDeclareAtfModuleDependencies() throws Exception {
-        String pom = Files.readString(moduleRoot().resolve("pom.xml"));
+        String pom = Files.readString(ReportingModuleSource.root().resolve("pom.xml"));
         assertTrue(!StandaloneBoundaryRules.hasAtfDependency(pom),
                 "atf-reporting production POM must not declare ATF module dependencies");
     }
 
     @Test
     void reportingPomDoesNotInheritTheWholeAtfReactor() throws Exception {
-        String pom = Files.readString(moduleRoot().resolve("pom.xml"));
+        String pom = Files.readString(ReportingModuleSource.root().resolve("pom.xml"));
         assertTrue(!StandaloneBoundaryRules.hasParent(pom),
                 "atf-reporting must remain buildable without inheriting the whole ATF reactor");
     }
@@ -48,14 +49,4 @@ class ReportingStandaloneDependencyTest {
         }
     }
 
-    private static Path moduleRoot() throws Exception {
-        Path current = Path.of(ReportingStandaloneDependencyTest.class.getProtectionDomain()
-                .getCodeSource().getLocation().toURI()).toAbsolutePath().normalize();
-        while (current != null) {
-            if (Files.isDirectory(current.resolve("src/main/java/atf/reporting"))
-                    && Files.isRegularFile(current.resolve("pom.xml"))) return current;
-            current = current.getParent();
-        }
-        throw new IllegalStateException("Cannot locate reporting module from its test CodeSource");
-    }
 }

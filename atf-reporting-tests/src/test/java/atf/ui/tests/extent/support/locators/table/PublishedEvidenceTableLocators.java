@@ -13,6 +13,7 @@ public final class PublishedEvidenceTableLocators {
     private final ReportReadabilityLocators readability = new ReportReadabilityLocators();
 
     public Locator tables(Page page) { return page.locator("table:visible"); }
+    public Locator dataTables(Locator scope) { return scope.locator("table[class~='helm-evidence-table']"); }
     public Locator firstOwner(Page page) { return common.testOwners(page).first(); }
     public Locator expandAll(Page page) { return readability.expandAll(page); }
     public Locator details(Page page) { return page.locator("details:visible"); }

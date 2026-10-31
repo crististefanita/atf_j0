@@ -51,10 +51,10 @@ public final class FailsSectionAuditModule implements ExtentSectionAuditModule {
                 FailureFlowInspector.Observation journey = new FailureFlowInspector(
                         fixture.audit(), fixture.flow().locators()).inspect(testsPage, expectedOwner);
                 result = result.merge(ValidationResult.of(List.of(
-                        check("Tests deep-link", "Tests + scenario-index",
+                        check("Tests deep-link", "Tests + exact source path; siblings collapsed",
                                 String.valueOf(journey.failureDeepLinkWorks()),
                                 journey.failureDeepLinkWorks()),
-                        check("Collapsed details", "0 expanded",
+                        check("Collapsed details", "initial: 0 expanded",
                                 journey.collapsedSummary(), journey.detailsCollapsed()),
                         check("Overview failure metric", "> 0",
                                 String.valueOf(journey.overviewFailureCount()),

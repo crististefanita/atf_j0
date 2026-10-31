@@ -8,7 +8,9 @@ import atf.reporting.api.ReportResponse;
 import atf.reporting.api.ReportTransportProvenance;
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfGherkinKeyword;
+import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.model.ReportExecutionEvidence;
+import atf.reporting.ui.validation.UiApiValidationEvidence;
 import atf.shop.tests.support.ShopComponentTest;
 import atf.ui.playwright.PlaywrightActionSequence;
 import atf.ui.playwright.UiScreenValidation;
@@ -27,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 
 import static atf.testkit.assertions.AuditedAssertions.assertEquals;
+import static atf.testkit.assertions.AuditedAssertions.assertFalse;
+import static atf.testkit.assertions.AuditedAssertions.assertSame;
 import static atf.testkit.assertions.AuditedAssertions.assertTrue;
 
 @ShopComponentTest
@@ -59,22 +63,31 @@ class ShopAuditObservationsTest {
     }
 
     @Test
-    void ignoresMalformedApiEvidenceWithoutInventingAnAuditExchange() {
+    void retainsResponseLessFailureWithoutInventingAnAuditExchange() {
         PlaywrightActionSequence actions = new PlaywrightActionSequence();
         Page page = page(CONFIGURATION.uri(ShopUiRoutes.CHECKOUT).toString());
+        var request = new ReportRequest(HttpMethod.POST.value(), "/checkout", Map.of(),
+                HttpHeaderProfiles.JSON_CONTENT, "bearer", "");
+        var evidence = new ReportExecutionEvidence(null, 1, Duration.ZERO, List.of(), List.of(),
+                request, ReportTransportProvenance.LIVE_HTTP)
+                .withTermination("TRANSPORT_FAILURE", "controlled connection reset before response");
         var checkpoint = new ShopPurchaseCheckpoint(
                 AtfGherkinKeyword.THEN,
                 "confirmation screen is displayed",
                 List.of(new AtfAssertion("Confirmation", "visible", "visible", true)),
-                List.of(new ReportExecutionEvidence(null, 1, Duration.ZERO, List.of(), List.of(), null,
-                        ReportTransportProvenance.LIVE_HTTP)));
+                new UiApiValidationEvidence(List.of(), List.of(
+                        new UiApiValidationEvidence.Exchange(evidence, List.of(), AtfReportStatus.FAIL))));
 
         ShopAuditObservations.recordCheckpoint(actions, page, checkpoint,
                 new UiScreenValidation.Evidence("confirmation", "", false));
 
-        assertEquals(2, actions.snapshot().size());
-        assertEquals("Replay checkpoint", actions.snapshot().get(0).operation());
-        assertEquals("Audit screen contract", actions.snapshot().get(1).operation());
+        var observations = actions.snapshot();
+        assertEquals(List.of("Replay checkpoint", "Audit screen contract"),
+                observations.stream().map(row -> row.operation()).toList());
+        assertFalse(checkpoint.passed(), "A passing screen cannot override the explicit transport failure");
+        assertSame(evidence, checkpoint.apiEvidence().iterator().next());
+        assertTrue(observations.stream().allMatch(row -> row.observed().contains("status=FAIL")),
+                "Missing HTTP response cannot become a successful audit observation");
     }
 
     @Test

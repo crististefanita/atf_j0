@@ -66,6 +66,23 @@ Direcția este intenționată:
 - `atf-reporting-tests` test scope verifică modulele prin fake-uri deterministe și
   scenarii de integrare; `atf-tests` păstrează numai guvernanța globală a reactorului.
 
+## Alege forma validării
+
+| Caz | Intrare și rezultat | Verificarea potrivită |
+|---|---|---|
+| response API și reguli | `ResponseContract` → `ValidationDecision` | [contracte pure](src/test/java/atf/validation/ResponseContractTest.java) |
+| evaluare și publicare prin port | `ResponseContractReporter` + `ValidationSink` | [protocol, refuz și cleanup](src/test/java/atf/validation/protocol/ValidationProtocolTest.java) |
+| comparație JUnit auditabilă | extensia consumerului → Test Kit | [limita auditului componentelor](#limita-față-de-auditul-testelor-componente) |
+| output AI deja furnizat | evaluator pur → snapshot immutable | [contractul implementat](#comparatorul-ai--contract-implementat) |
+
+Expected-ul este input independent; evaluarea produce verdictul înaintea
+redactării sau preview-ului. Alegerea profilului de raport și a rendererului
+aparține compoziției, iar publicarea nu reevaluează comparația.
+
+Pentru adopție, începe cu un rezultat pur și un sink controlat; adaugă
+integrarea rendererului numai la ownerul adaptorului. [Utilizarea ca JAR](#utilizare-ca-jar)
+și [proba locală](#verificare-rapidă) delimitează dependențele și acceptanța.
+
 ## Responsabilități publice
 
 | Componentă | Responsabilitate | Nu deține |

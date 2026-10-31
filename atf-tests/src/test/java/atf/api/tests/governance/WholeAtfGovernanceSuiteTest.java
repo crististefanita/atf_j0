@@ -5,6 +5,9 @@ import atf.api.tests.governance.changes.GitTestChangesTest;
 import atf.api.tests.governance.console.ConsoleDefaultsGovernanceTest;
 
 import atf.testkit.AtfIntegrationTest;
+import atf.api.tests.governance.distribution.GovernanceDeploymentTest;
+import atf.api.tests.governance.distribution.ReportingGovernanceSurfaceTest;
+import atf.api.tests.governance.distribution.ReportingHarnessOwnershipTest;
 import atf.api.tests.governance.documentation.DocumentationDiagramGovernanceTest;
 import atf.api.tests.governance.documentation.DocumentationProseGovernanceTest;
 import atf.api.tests.governance.documentation.DocumentationReadmeStructureGovernanceTest;
@@ -13,6 +16,7 @@ import atf.api.tests.governance.documentation.DocumentationTargetGovernanceTest;
 import atf.api.tests.governance.documentation.links.DocumentationLinkGovernanceTest;
 import atf.api.tests.governance.documentation.DocumentationAnchorGovernanceTest;
 import atf.api.tests.governance.documentation.factual.DocumentedBuildContractTest;
+import atf.api.tests.governance.documentation.factual.DocumentedUiGeometryContractTest;
 import atf.api.tests.governance.documentation.DynamicPathDocumentationArchitectureTest;
 import atf.api.tests.governance.consumers.ConsumerModuleArchitectureGovernanceTest;
 import atf.api.tests.governance.layers.AtfTestLayerArchitectureTest;
@@ -24,6 +28,9 @@ import org.junit.platform.suite.api.Suite;
 @AtfIntegrationTest
 @Suite
 @SelectClasses({
+        GovernanceDeploymentTest.class,
+        ReportingGovernanceSurfaceTest.class,
+        ReportingHarnessOwnershipTest.class,
         TestChangeGovernanceTest.class,
         TestChangePolicyTest.class,
         GitTestChangesTest.class,
@@ -42,6 +49,7 @@ import org.junit.platform.suite.api.Suite;
         DocumentationLinkGovernanceTest.class,
         DocumentationAnchorGovernanceTest.class,
         DocumentedBuildContractTest.class,
+        DocumentedUiGeometryContractTest.class,
         ConsumerModuleArchitectureGovernanceTest.class,
         AtfTestLayerArchitectureTest.class,
         ConsumerSuiteCoverageGovernanceTest.class

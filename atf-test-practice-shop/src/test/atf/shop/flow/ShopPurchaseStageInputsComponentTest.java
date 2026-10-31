@@ -3,6 +3,7 @@ package atf.shop.flow;
 import atf.shop.tests.support.ShopComponentTest;
 import atf.shop.config.ShopCheckoutConfiguration;
 import atf.shop.config.ShopConfiguration;
+import atf.shop.support.validation.ShopHomeScreenValidator;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -31,10 +32,12 @@ class ShopPurchaseStageInputsComponentTest {
 
         assertFalse(fields.contains("homeScreenValidator"));
         assertEquals(Set.of("page", "actions", "cartUrl", "productName", "checkout", "checkpointPublisher",
-                "apiNetwork", "locators", "pageValidator", "purchaseScreenValidator"), fields);
+                "apiNetwork", "locators", "pageValidator", "purchaseScreenValidator", "postcodeEndpoint"), fields);
         Set<Class<?>> types = componentTypes(ShopPurchaseJourneyContext.CheckoutInputs.class);
         assertTrue(types.contains(ShopCheckoutConfiguration.class));
         assertFalse(types.contains(ShopConfiguration.class));
+        assertFalse(types.contains(ShopHomeScreenValidator.class));
+        assertFalse(types.contains(ShopConfiguration.CatalogSelection.class));
     }
 
     @Test

@@ -13,8 +13,10 @@ iar integrarea runnerului rămâne în `src/test`.
 | un checkpoint sau finalizarea run-ului | [AutoExE2eRun](AutoExE2eRun.java) | fațadă peste browser, dovezi și portul de finalizare |
 | ownerul contului înainte de checkout | [observarea identității](account/AutoExCustomerIdentityObservation.java) | citește identitatea nevidă; gate-ul compară ownerul |
 | ordinea cleanup/publicare/close | [AutoExRunLifecycle](AutoExRunLifecycle.java) | port runtime; implementarea Kit/JUnit se află în test |
+| failure business controlat | [acceptanța explicită](../../../../../test/java/atf/autoex/tests/e2e/failures/AutoExBusinessFailureAcceptance.java) | fixture în test; journey real, captură originală, cleanup al contului deținut și JUnit FAIL păstrat |
 | configurație și sesiune de raport | [AutoExReportSession](AutoExReportSession.java) | factory și delegare către biblioteca Reporting |
 | download-ul facturii | [AutoExInvoiceDownload](invoice/AutoExInvoiceDownload.java) | un click; recuperare numai pentru GET-ul invoice queue-full observat |
+| verdictul sumei facturii | [validatorul pur](../business/invoice/AutoExInvoiceValidator.java) → [adaptorul](../support/checkout/AutoExInvoiceAssertions.java) | clauză completă, sintaxă înainte de BigDecimal și FAIL fidel; fără replay |
 | confirmarea produsului după click | [AutoExProductTransition](catalog/AutoExProductTransition.java) | un pointer, Close explicit dacă reclama interceptează, GET deținut 2xx și numele configurat; un singur buget |
 | reclama apărută după pointer | [AutoExVignetteHandler](../support/browser/AutoExVignetteHandler.java) | Close explicit, fără replay; child INFO în durata părintelui |
 | readiness read-only | [navigarea AutoEx](navigation/AutoExReadOnlyNavigation.java) | politică specifică documentului și originii AutoEx |

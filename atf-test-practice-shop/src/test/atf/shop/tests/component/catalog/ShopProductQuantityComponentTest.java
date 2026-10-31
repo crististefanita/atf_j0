@@ -53,7 +53,9 @@ class ShopProductQuantityComponentTest {
     @Test
     void unresolvedDisabledControlKeepsTheExistingNativeDeadline() {
         try (var fixture = new ShopQuantityFixture(State.UNRESOLVED)) {
-            assertThrows(TimeoutError.class, () -> fixture.product().assertLoaded("Pliers"));
+            var failure = assertThrows(TimeoutError.class, () -> fixture.product().assertLoaded("Pliers"));
+            assertTrue(failure.getMessage().contains("Timeout 500ms exceeded"),
+                    "Fixture preparation does not enlarge the native product-readiness deadline");
             assertEquals(0, fixture.fills());
             assertEquals(0, fixture.additions());
         }

@@ -47,7 +47,8 @@ navigării, apoi pointer la 850 ms. Runtime-ul nu primește un warm-up implicit.
 | pointer trusted, focus, captură și refuz la 70% | [PlaywrightPointerGeometryComponentTest](../../../../../test/java/atf/ui/playwright/geometry/PlaywrightPointerGeometryComponentTest.java) |
 | download, eveniment și cleanup | [PlaywrightDownloadComponentTest](../../../../../test/java/atf/ui/playwright/download/PlaywrightDownloadComponentTest.java) |
 | continuitatea selectului și refuzul replay-ului | [PlaywrightSelectContinuityComponentTest](../../../../../test/java/atf/ui/playwright/selection/PlaywrightSelectContinuityComponentTest.java) |
-| cauză, rollback și close-once | [UiListenerScopeComponentTest](../../../../../test/java/atf/ui/playwright/lifecycle/UiListenerScopeComponentTest.java) și [UiRecoveryObserverLifecycleComponentTest](../../../../../test/java/atf/ui/playwright/recovery/UiRecoveryObserverLifecycleComponentTest.java) |
+| achiziția sesiunii, cauze simultane și close-once | [PlaywrightUiSessionLifecycleComponentTest](../../../../../test/java/atf/ui/playwright/PlaywrightUiSessionTest.java); resurse returnate cu succes, release complet și aceeași cauză |
+| atașarea și retragerea listener-elor | [UiListenerScopeComponentTest](../../../../../test/java/atf/ui/playwright/lifecycle/UiListenerScopeComponentTest.java) și [UiRecoveryObserverLifecycleComponentTest](../../../../../test/java/atf/ui/playwright/recovery/UiRecoveryObserverLifecycleComponentTest.java) |
 
 Pentru ownership și capturi continuă în [README-ul UI](../../../../../../README.md);
 pentru operația business continuă la pagina/flow-ul consumerului. Un fixture

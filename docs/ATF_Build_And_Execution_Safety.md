@@ -123,6 +123,11 @@ Codul live și testele existente sunt contextul curent; staging-ul este doar
 locul sigur de lucru și nu devine automat o nouă sursă de adevăr. Nu opri
 procesele existente și nu reutiliza directorul altui proces.
 
+La refresh comparați hash-urile: o sursă copiată poate avea timestamp anterior
+claselor din `target`, iar Maven poate reutiliza acele clase. Folosiți un stage
+nou sau invalidați incrementalul numai în copia proprie, după terminarea
+build-ului anterior; păstrați dovezile deja produse în TMP.
+
 Raportul trebuie să fie nou, timestamped și păstrat în staging; nu se
 suprascrie raportul deschis sau output-ul unei rulări. În TAB MCP se verifică
 tab-uri, filtre, disclosure-uri, deep-link-uri, request/validation, Fails și
@@ -227,6 +232,14 @@ working directory-ul IDE/Maven.
 `TestChangeGovernanceTest` cere un checkout Git real și baseline-ul revizuirii.
 O copie simplă fără istoric nu constituie dovadă pentru acest gate și eșuează
 explicit; nu se dezactivează verificarea pentru a face staging-ul verde.
+
+- Staging-ul pornește fără checkout și preia snapshot-ul live, inclusiv absența
+  fișierelor șterse sau relocate. Verifică inventarul față de live; o clonă cu
+  checkout nu poate reintroduce implicit copia veche din `HEAD`.
+- Ref-ul remote se identifică înainte de fetch; nu se presupune numele `main`.
+  Fetch-ul nu autorizează pull, reset ori overwrite al refactorizărilor locale;
+  starea live și baza reală de review rămân intrări distincte ale reconcilierii.
+
 
 - Creează o clonă locală izolată, fără checkout și fără hardlink-uri.
 - Inițializează indexul clonei din `HEAD`, apoi copiază sursele live fără `.git`,

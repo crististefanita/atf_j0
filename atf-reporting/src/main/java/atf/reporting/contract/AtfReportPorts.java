@@ -15,12 +15,19 @@ import java.util.Collection;
 /** Public renderer contract. Consumers provide data; reporting owns rendering. */
 public final class AtfReportPorts {
     private AtfReportPorts() { }
+    /**
+     * Owns the renderer lifecycle. Close child scopes before their parent and
+     * close the session to obtain the final artifact. Renderer-specific flush,
+     * path and threading rules are declared by the concrete session.
+     */
     public interface Session extends AutoCloseable {
         Path reportPath();
         Scenario startScenario(String testClass, String scenario, Collection<String> tags);
         default Scenario startScenario(String testClass, String testPackage, String scenario,
                                        Collection<String> tags) { return startScenario(testClass, scenario, tags); }
+        /** Flushes this renderer's current state; it is not a portable commit operation. */
         void flush();
+        /** Completes publication; repeated close on the same owner is idempotent. */
         @Override void close();
     }
     public interface Scenario extends AutoCloseable {

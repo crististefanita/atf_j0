@@ -356,7 +356,6 @@ public final class UiEvidencePublisher {
     private Optional<CompactUiFlow> compactUiOnlyFlow(
             List<UiScenarioLifecycle.PhaseCheckpoint> entries, AtfReportStatus finalStatus) {
         if (finalStatus != AtfReportStatus.PASS
-                || entries.stream().map(UiScenarioLifecycle.PhaseCheckpoint::phase).distinct().count() < 2
                 || entries.stream().noneMatch(entry -> "TEST BODY".equals(entry.phase()))
                 || entries.stream().noneMatch(entry -> isUiEvidence(entry.checkpoint()))) {
             return Optional.empty();

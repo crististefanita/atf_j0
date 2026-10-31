@@ -143,6 +143,7 @@ final class ExtentRequestScope implements AtfReportPorts.Request {
             tree.renderUiFlowProvenance(request, details);
             tree.renderUiActions(request, uiActions, screenshots, detailsMode);
         } else {
+            tree.renderUiFlowProvenance(request, details);
             tree.renderRequestDetails(request, details, json);
             tree.renderResponseDetails(request, details, json);
             executions.forEach(execution -> tree.renderExecution(request, execution));

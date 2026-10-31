@@ -78,7 +78,8 @@ function failureEvidenceCandidate(card) {
   };
 }
 function failedAssertionRows(item) {
-  return q('.helm-validation-table tbody tr', item).filter(failedAssertionRow);
+  // Derived summaries never participate in the original evidence ordinal.
+  return q('.helm-validation-table tbody tr:not(.atf-ui-failure-evidence *)', item).filter(failedAssertionRow);
 }
 function failedDiagnosticRows(item) {
   return q('.phase-diagnostics [data-atf-diagnostic-status="fail"] tbody tr', item);

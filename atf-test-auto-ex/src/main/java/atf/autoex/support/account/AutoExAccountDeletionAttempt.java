@@ -29,7 +29,7 @@ public final class AutoExAccountDeletionAttempt implements AutoCloseable {
     }
 
     private void observe(Request request) {
-        URI destination = URI.create(request.url());
+        URI destination = requestAddress(request.url());
         if (endpoint.getScheme().equalsIgnoreCase(destination.getScheme())
                 && endpoint.getRawAuthority().equalsIgnoreCase(destination.getRawAuthority())
                 && endpoint.getRawPath().equals(destination.getRawPath())) {
@@ -42,6 +42,11 @@ public final class AutoExAccountDeletionAttempt implements AutoCloseable {
     }
 
     public int startedRequests() { return startedRequests; }
+
+    /** Browser queries may contain URI-illegal characters; neither endpoint matching nor diagnostics consumes them. */
+    private static URI requestAddress(String url) {
+        return URI.create(url.split("[?#]", 2)[0]);
+    }
 
     public Traffic traffic() { return new Traffic(startedRequests, requests); }
 
@@ -91,7 +96,7 @@ public final class AutoExAccountDeletionAttempt implements AutoCloseable {
             method = Objects.requireNonNull(method, "method");
             resourceType = Objects.requireNonNull(resourceType, "resourceType");
             redirectSourcePath = redirectSourcePath == null ? "none"
-                    : Objects.toString(URI.create(redirectSourcePath).getRawPath(), "none");
+                    : Objects.toString(requestAddress(redirectSourcePath).getRawPath(), "none");
         }
 
         public String description() {

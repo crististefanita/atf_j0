@@ -35,5 +35,9 @@ class FailsSectionValidatorTest {
 
         assertTrue(validator.validate(new ReportAuditSnapshot.Failures(1, 1, 1, false), projection).valid());
         assertFalse(validator.validate(new ReportAuditSnapshot.Failures(0, 0, 0, true), projection).valid());
+        assertTrue(validator.validate(new ReportAuditSnapshot.Failures(3, 1, 1, false, 1), projection).valid(),
+                "Several atomic causes can belong to one failed scenario");
+        assertFalse(validator.validate(new ReportAuditSnapshot.Failures(3, 1, 1, false, 2), projection).valid(),
+                "An additional failed scenario cannot be hidden by an atomic row count");
     }
 }

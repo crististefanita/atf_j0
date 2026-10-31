@@ -1,6 +1,10 @@
 package atf.api.tests.governance;
 
+import atf.api.tests.governance.distribution.ReportingHarnessOwnership;
+
 import atf.core.config.module.AtfModuleIds;
+import atf.api.tests.governance.distribution.GovernanceDeployment;
+import atf.api.tests.governance.distribution.ReportingGovernanceSurface;
 import atf.testkit.AtfComponentTest;
 
 import org.junit.jupiter.api.Test;
@@ -62,11 +66,11 @@ public class ArchitectureModuleBoundaryTest {
     @Test
     void rootPomExposesTheCanonicalReactorModuleCatalog() throws Exception {
         Path root = locateProjectRoot();
-        String pom = Files.readString(root.resolve("pom.xml"));
-        assertTrue(AtfModuleIds.REACTOR_MODULES.stream()
-                        .allMatch(module -> pom.contains("<module>" + module + "</module>")),
-                () -> "Root POM must expose every canonical reactor module: "
-                        + AtfModuleIds.REACTOR_MODULES);
+        var deployment = GovernanceDeployment.read(root);
+        assertEquals(deployment.reportingSource() ? AtfModuleIds.REACTOR_MODULES : AtfModuleIds.REACTOR_MODULES.stream()
+                        .filter(module -> !module.equals(AtfModuleIds.REPORTING))
+                        .filter(module -> !module.equals(AtfModuleIds.REPORTING_TESTS)
+                                || deployment.sourceModules().contains(AtfModuleIds.REPORTING_TESTS)).toList(), deployment.sourceModules());
     }
 
     @Test
@@ -74,8 +78,9 @@ public class ArchitectureModuleBoundaryTest {
         Path root = locateProjectRoot();
         var violations = new ArrayList<String>();
         for (AtfGovernanceRules.SourceRule rule : AtfGovernanceRules.PRODUCTION_SOURCE_RULES) {
-            assertNoForbidden(moduleSource(root, rule.module(), false),
-                    rule.forbiddenTokens(), violations);
+            if (rule.module().equals(AtfModuleIds.REPORTING) && !GovernanceDeployment.read(root).reportingSource())
+                violations.addAll(ReportingGovernanceSurface.read(root).forbiddenReferences(rule.forbiddenTokens()));
+            else assertNoForbidden(moduleSource(root, rule.module(), false), rule.forbiddenTokens(), violations);
         }
         assertTrue(violations.isEmpty(), () -> "Architecture boundary violations: " + violations);
     }
@@ -99,8 +104,11 @@ public class ArchitectureModuleBoundaryTest {
     void reportingProductionCodeDoesNotReachIntoExecutionOrBusinessValidation() throws Exception {
         Path root = locateProjectRoot();
         var violations = new ArrayList<String>();
-        assertNoForbiddenReportingCore(moduleSource(root, AtfModuleIds.REPORTING, false),
-                AtfGovernanceRules.REPORTING_FORBIDDEN_PRODUCTION_PACKAGES, violations);
+        if (GovernanceDeployment.read(root).reportingSource())
+            assertNoForbiddenReportingCore(moduleSource(root, AtfModuleIds.REPORTING, false),
+                    AtfGovernanceRules.REPORTING_FORBIDDEN_PRODUCTION_PACKAGES, violations);
+        else violations.addAll(ReportingGovernanceSurface.read(root).forbiddenReferences(
+                AtfGovernanceRules.REPORTING_FORBIDDEN_PRODUCTION_PACKAGES));
         assertNoForbidden(moduleSource(root, AtfModuleIds.CONSOLE, false),
                 List.of("atf.reporting", "com.aventstack"), violations);
         assertTrue(violations.isEmpty(), () -> "Reporting boundary violations: " + violations);
@@ -114,9 +122,8 @@ public class ArchitectureModuleBoundaryTest {
         assertTrue(Files.isRegularFile(root.resolve(
                         "atf-core/src/main/java/atf/core/lifecycle/CleanupRegistry.java")),
                 "generic lifecycle cleanup belongs to core");
-        assertTrue(Files.isRegularFile(root.resolve(
-                        "atf-reporting-tests/src/test/java/atf/reporting/api/execution/ApiModule.java")),
-                "concrete API fixtures belong to reporting-tests test scope");
+        ReportingHarnessOwnership.read(root).requireFile(root.resolve(
+                "atf-reporting-tests/src/test/java/atf/reporting/api/execution/ApiModule.java"));
     }
 
     @Test
@@ -127,15 +134,18 @@ public class ArchitectureModuleBoundaryTest {
 
     @Test
     void reportingCompositionIsExplicitlyTestOnlyAndConsumesStandaloneReporting() throws Exception {
-        Path root = locateProjectRoot();
-        assertDependencyScope(root, AtfModuleIds.REPORTING_TESTS, AtfModuleIds.REPORTING, "test");
-        assertAllAtfDependenciesAreTestScoped(root, AtfModuleIds.REPORTING_TESTS);
+        ReportingHarnessOwnership.read(locateProjectRoot()).inspect(() -> {
+            Path root = locateProjectRoot();
+            assertDependencyScope(root, AtfModuleIds.REPORTING_TESTS, AtfModuleIds.REPORTING, "test");
+            assertAllAtfDependenciesAreTestScoped(root, AtfModuleIds.REPORTING_TESTS);
+        });
     }
 
     @Test
     void testOnlyCompositionModulesConsumeFrameworkModulesOnlyInTestScope() throws Exception {
         Path root = locateProjectRoot();
         assertAll(AtfModuleIds.TEST_ONLY_COMPOSITION_MODULES.stream()
+                .filter(GovernanceDeployment.read(root).sourceModules()::contains)
                 .map(module -> () -> assertAllAtfDependenciesAreTestScoped(root, module)));
     }
 

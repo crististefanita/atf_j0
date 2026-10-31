@@ -44,7 +44,8 @@ class ComponentExecutionDiagnosticReportTest {
                     assertTrue(PHASES.scenarios(page, true).first().isVisible());
                 } else {
                     DIAGNOSTICS.nativeFailures(page).filter(new Locator.FilterOptions().setHasText("runtime error")).click();
-                    assertEquals("component", DIAGNOSTICS.failureIndex(page).getAttribute("data-atf-evidence-owner"));
+                    assertEquals("execution", DIAGNOSTICS.failureIndex(page).getAttribute("data-atf-evidence-owner"),
+                            "A phase exception is execution evidence, independent of its passing comparisons");
                     assertFalse(DIAGNOSTICS.labels(page).allTextContents().contains("REQUEST"));
                     assertFalse(DIAGNOSTICS.labels(page).allTextContents().contains("DURATION"));
                     assertFalse(DIAGNOSTICS.failureIndex(page).innerText().contains("previous passing check"));

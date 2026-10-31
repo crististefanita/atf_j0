@@ -247,7 +247,7 @@ Mapping-ul adnotării este responsabilitatea adaptorului consumer:
 - `ShopE2eContextEvidenceProfileTest` verifică profilul explicit și agregarea fazelor;
   `ReportEvidenceProfileIntegrationTest` verifică izolarea generică a scenariilor.
 - Reducerea suitei live are criterii distincte în
-  [feedback-ul consumerilor](feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-e2e-profiles-01--variantele-de-evidence-și-acoperirea-business).
+  [acceptanța business a consumerilor](ATF_Testing_Guide.md#acceptanța-business-individual-și-prin-suită).
 
 ## Opt-in pentru calea raportului
 

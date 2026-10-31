@@ -117,10 +117,16 @@ public final class ReportAuditSnapshot {
     public enum Cardinality { ZERO, ONE, MANY }
 
     public record Failures(int failureCount, int primaryCauseCount,
-                           int openLinkCount, boolean emptyState) {
+                           int openLinkCount, boolean emptyState, int failedScenarioCount) {
+        /** Compatibility input for projections with one summary row per failed scenario. */
+        public Failures(int failureCount, int primaryCauseCount, int openLinkCount, boolean emptyState) {
+            this(failureCount, primaryCauseCount, openLinkCount, emptyState, failureCount);
+        }
         public Failures {
-            if (failureCount < 0 || primaryCauseCount < 0 || openLinkCount < 0) {
-                throw new IllegalArgumentException("Failure counts must be non-negative");
+            if (failureCount < 0 || primaryCauseCount < 0 || openLinkCount < 0
+                    || failedScenarioCount < 0 || failedScenarioCount > failureCount
+                    || (failureCount > 0 && failedScenarioCount == 0)) {
+                throw new IllegalArgumentException("Failure counts must be non-negative; positive rows require a valid failed-scenario count");
             }
         }
     }

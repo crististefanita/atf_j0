@@ -32,7 +32,8 @@ public final class VerdictReportLocators {
     }
     public Locator comparisonTable(Page page, boolean fallback) {
         Locator scope = fallback ? page.locator("#tests") : common.visibleTestDetail(page);
-        return scope.locator(fallback ? "table[class~='assertions']:visible" : "table[class~='helm-validation-table']:visible")
+        return scope.locator(fallback ? "table[class~='assertions']:visible"
+                        : "table[class~='helm-validation-table']:visible:not(.atf-ui-failure-evidence table)")
                 .filter(new Locator.FilterOptions().setHasText("Independent comparison"));
     }
     public Locator rows(Locator table) { return table.locator(":scope > tbody > tr"); }

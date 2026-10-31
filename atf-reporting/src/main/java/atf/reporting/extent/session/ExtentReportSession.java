@@ -83,21 +83,31 @@ public final class ExtentReportSession implements AtfReportPorts.Session, AutoCl
         Objects.requireNonNull(redactor, "redactor");
         this.environmentRedactor = redactor;
         this.console = Objects.requireNonNull(console, "console");
-        this.publication = ExtentReportSessionPublication.open(this.reportPath);
-        var spark = new ExtentReportTimestampReporter(publication.stagedReport().toString());
-        spark.config().setTheme(Theme.DARK);
-        spark.config().setDocumentTitle(AtfReportLabels.REPORT_TITLE);
-        spark.config().setReportName(AtfReportLabels.REPORT_TITLE);
-        spark.config().setOfflineMode(true);
-        spark.config().setCss(AtfReportTheme.sparkCss());
-        reports = new ExtentReports();
-        reports.attachReporter(spark);
+        Objects.requireNonNull(detailsMode, "detailsMode");
+        Objects.requireNonNull(startProbe, "startProbe");
         var environment = new java.util.LinkedHashMap<>(ReportEnvironment.with(systemInfo, redactor));
         environment.putAll(ReportEnvironment.reportingSettings(settings).systemDisplayValues());
-        environment.forEach(reports::setSystemInfo);
-        tree = new ExtentReportTree(reports, settings, redactor, this::ensureOpen, this.console,
-                Objects.requireNonNull(detailsMode, "detailsMode"),
-                Objects.requireNonNull(startProbe, "startProbe"));
+        this.publication = ExtentReportSessionPublication.open(this.reportPath);
+        try {
+            var spark = new ExtentReportTimestampReporter(publication.stagedReport().toString());
+            spark.config().setTheme(Theme.DARK);
+            spark.config().setDocumentTitle(AtfReportLabels.REPORT_TITLE);
+            spark.config().setReportName(AtfReportLabels.REPORT_TITLE);
+            spark.config().setOfflineMode(true);
+            spark.config().setCss(AtfReportTheme.sparkCss());
+            reports = new ExtentReports();
+            reports.attachReporter(spark);
+            environment.forEach(reports::setSystemInfo);
+            tree = new ExtentReportTree(reports, settings, redactor, this::ensureOpen, this.console,
+                    detailsMode, startProbe);
+        } catch (RuntimeException | Error failure) {
+            try {
+                publication.close();
+            } catch (RuntimeException | Error cleanup) {
+                if (cleanup != failure) failure.addSuppressed(cleanup);
+            }
+            throw failure;
+        }
     }
 
     /** Opens a session with allowlisted, typed Overview/System metadata. */

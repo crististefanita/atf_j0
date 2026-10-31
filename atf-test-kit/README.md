@@ -84,7 +84,7 @@ Fiecare clasă executabilă declară exact un nivel:
 | `atf.testkit.setup.api` | `ApiScenarioSetup`, `ApiTestRef` | declarații; catalogul și executarea rămân la consumator |
 | `atf.testkit.documentation` | `DocumentationTarget` repeatable | selecție de documente; validatorii rămân în ATF Tests |
 | `atf.testkit.evidence` | `AtfUiEvidence`, `AtfUiEvidencePlan`, `AtfUiEvidenceResolver` și enum-urile axelor | rezolvă independent flow-ul, capturile și detaliile acțiunilor; adaptorii consumer le mapează în profilul Reporting |
-| `atf.testkit.lifecycle` | `TestRunInitialization`, `CloseOnceResource`, `ArmedCleanup`, `FailureAwareCleanup`, `FailureEvidenceCleanup`, `AtfE2eActivationPolicy` | achiziție/rollback, cleanup și activare E2E neutre; fără API UI/Reporting |
+| `atf.testkit.lifecycle` | `TestRunInitialization`, `CloseOnceResource`, `ArmedCleanup`, `FailureAwareCleanup`, `FailureEvidenceCleanup`, `AtfE2eActivationPolicy`, `ScopedAcceptanceRun` | achiziție/rollback, cleanup, activare E2E și lansare scoped; fără API UI/Reporting |
 | `atf.testkit.scope` | `TestRunScope`, `ScopedTestValue<T>`, `ScopedTestResource<T>` | ownership explicit în Store-ul JUnit, fără cache static sau resurse UI |
 | `atf.testkit.assertions` | fațadă/recorder, display injectat și protocol componentă | comparații JUnit cu dovadă neutră pe faze și invocări; fără renderer sau reguli business |
 | `atf.testkit.timing` | `InvocationTimer` | intervale monotone per owner, snapshot imutabil și acumulare fără renderer sau JUnit |
@@ -101,11 +101,25 @@ Fiecare clasă executabilă declară exact un nivel:
 | Cleanup | `FailureAwareCleanup` încearcă toate etapele, păstrează prima eroare și atașează restul ca `suppressed`; resursele se închid invers. |
 | Failure evidence | `FailureEvidenceCleanup` capturează înaintea cleanup-ului care poate schimba pagina; consumerul deține callback-urile. Ambele primitive sunt probate în `FailureAwareCleanupTest`. |
 | Activare | `AtfE2eActivationPolicy`: override JVM → opt-in configurat → fallback IDE → dezactivare; extensiile citesc semnalele, iar `AtfE2eActivationPolicyTest` verifică precedența și respingerea valorilor invalide. |
+| Acceptanță scoped | `ScopedAcceptanceRun` aplică override-ul numai callback-ului sincron, restaurează valoarea anterioară inclusiv la `Error`, apoi colectează fișierele selectate de caller; `ScopedAcceptanceRunTest` probează cauza identică, filtrul și eroarea colectării. |
 | Integrare | Guvernanța whole-ATF verifică limitele Shop/AutoEx; kit-ul nu citește YAML și nu pornește browserul. |
 
 - API, precedență și probe: [adnotările de infrastructură](../docs/ATF_Test_Infrastructure_Annotations.md).
 - Verificarea manuală IntelliJ pentru output project-relative:
   [ghidul suitei Extent](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/README.md#rulare-directă-din-intellij).
+
+### Lansarea scoped a acceptanței
+
+[ScopedAcceptanceRun](src/main/java/atf/testkit/lifecycle/ScopedAcceptanceRun.java)
+este partea neutră folosită de CLI-urile Shop și AutoEx: override temporar,
+callback sincron și colecție imutabilă de artifacte. Serializează apelurile
+cooperante; nu oferă izolare față de scriitori externi ai proprietății JVM.
+
+Consumerul furnizează launcherul, configurația, filtrul fișierelor și
+oracolele business. Kit nu importă launcherul JUnit, Reporting ori Playwright,
+nu creează directorul și nu interpretează HTML-ul. Testul
+[ScopedAcceptanceRunTest](src/test/java/atf/testkit/lifecycle/ScopedAcceptanceRunTest.java)
+rămâne unitar; contractul Extent aparține acceptanței consumerului.
 
 ### Declarația neutră pentru recuperare BE
 
@@ -365,8 +379,8 @@ browserului sau raportului în Kit. Primitivele din `lifecycle` există deja.
 
 Deciziile despre primitivele existente și ownership sunt în
 [atlas](../docs/ATF_Context_Atlas.md#reutilizare-fără-mutarea-politicii-aplicației);
-[feedback-ul consumerilor](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md)
-păstrează probele business rămase.
+[acceptanța business a consumerilor](../docs/ATF_Testing_Guide.md#acceptanța-business-individual-și-prin-suită)
+descrie probele business și limitele interpretării lor.
 
 ## Dependențe
 

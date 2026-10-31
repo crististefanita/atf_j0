@@ -48,6 +48,7 @@ public final class ReportPhaseAuditLocators {
         return page.locator(fallback ? "[id='fails']" : "[id='atf-fails-view']");
     }
     public Locator failureIndex(Page page) { return page.locator("[id='atf-failure-detail'] [class~='atf-failure-index']"); }
+    public Locator failureEntries(Page page) { return page.locator("[id='atf-failure-list'] > [class~='test-item']"); }
     public Locator openFailureInTests(Page page) { return page.locator("[id='atf-failure-detail'] [class~='atf-failure-open']"); }
     public Locator body(Page page) { return page.locator("body"); }
 }

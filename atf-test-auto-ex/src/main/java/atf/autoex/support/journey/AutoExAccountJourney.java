@@ -4,7 +4,6 @@ import atf.reporting.contract.AtfAssertion;
 import atf.autoex.locator.AutoExRoutes;
 import atf.autoex.page.AccountPage;
 import atf.autoex.page.HomePage;
-import atf.autoex.runtime.AutoExE2eRun;
 import atf.autoex.support.account.AutoExTestAccount;
 import atf.autoex.support.validation.AutoExStoreAssertions;
 
@@ -18,7 +17,7 @@ import static atf.autoex.support.trace.AutoExCustomerTraceStep.CUSTOMER_SIGNED_I
 public final class AutoExAccountJourney {
     private AutoExAccountJourney() { }
 
-    public static void registersAndDeletesOwnAccount(AutoExE2eRun run) {
+    public static void registersAndDeletesOwnAccount(AutoExAccountJourneyPort run) {
         String heading = new HomePage(run).open();
         run.checkpoint(STORE_OPEN, List.of(AutoExStoreAssertions.storeAvailability(heading)));
         var customer = AutoExTestAccount.create(run.configuration().registration());

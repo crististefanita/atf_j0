@@ -289,10 +289,14 @@ ul proiectului și nu creează o cheie booleană artificială de tip
 `ui.enabled`.
 
 Pentru screenshot-uri mai încăpătoare, configurația folosește explicit
-`ui.zoomPercent: 70`. Aceasta este preferința pentru auditul Extent: păstrăm
-viewport-ul stabil și reducem doar zoom-ul documentului Playwright, astfel
-încât într-o singură imagine să intre mai multe rânduri de evidence. Cheia
-este configurabilă per YAML, acceptă `25..200`, iar lipsa ei înseamnă `100`.
+`ui.zoomPercent: 70`. `UiViewportScale` păstrează ieșirea cerută și derivă
+viewport-ul CSS și DPR native; nu injectează zoom CSS în document ori iframe.
+În imagine intră mai multe rânduri prin geometria contextului, iar screenshot-ul
+și metadata configurată rămân dovezi distincte.
+
+- Cheia este configurabilă per YAML, acceptă `25..200`, iar lipsa ei înseamnă `100`.
+- [Contractul și proba nativă](../../../../../../../../atf-ui/README.md#geometria-nativă-a-contextului)
+  dețin relația dintre ieșire, layout CSS, DPR și pointer.
 
 Ownership-ul codului este la fel de strict ca ownership-ul YAML-ului:
 
@@ -506,8 +510,9 @@ artifact generat nu se păstrează în README-uri.
   poate fi tipizat în constante/enumerări, cu un singur owner.
 - ✅ Promovarea folosește un artifact fresh și un manifest de asset-uri
   reconciliat; un raport vechi poate servi doar la investigație locală.
-- ✅ Geometria se măsoară la `ui.viewport.width/height` din configurația run-ului;
-  `ui.zoomPercent` schimbă zoom-ul documentului, nu viewport-ul CSS.
+- ✅ Geometria se măsoară în browserul real: viewport CSS, DPR și containment.
+  `ui.viewport.width/height` descriu ieșirea cerută, iar `ui.zoomPercent`
+  determină scala contextului nativ; snapshot-ul System nu substituie măsurătoarea.
 
 ### Contractul auditului secundar din Overview
 

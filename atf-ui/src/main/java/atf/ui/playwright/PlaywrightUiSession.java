@@ -17,14 +17,16 @@ import java.time.Duration;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.ArrayDeque;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.function.Supplier;
 
 /** Scoped Playwright adapter. One instance owns exactly one browser context. */
 public final class PlaywrightUiSession implements AutoCloseable {
     private static final String EXECUTABLE_PROPERTY = "atf.ui.playwright.executablePath";
     private static final String EXECUTABLE_ENVIRONMENT = "ATF_UI_PLAYWRIGHT_EXECUTABLE_PATH";
-    private final Playwright playwright;
-    private final Browser browser;
-    private final BrowserContext context;
+    private final OwnedResources resources;
     private final Page page;
     private final UiActionTrace actionTrace;
     private final Duration actionTimeout;
@@ -32,13 +34,10 @@ public final class PlaywrightUiSession implements AutoCloseable {
     private final UiNetworkInspector networkInspector;
     private boolean closed;
 
-    private PlaywrightUiSession(Playwright playwright, Browser browser,
-                                BrowserContext context, Page page, UiActionTrace actionTrace,
+    private PlaywrightUiSession(OwnedResources resources, Page page, UiActionTrace actionTrace,
                                 Duration actionTimeout, UiRetryPolicy retryPolicy,
                                 UiNetworkInspector networkInspector) {
-        this.playwright = playwright;
-        this.browser = browser;
-        this.context = context;
+        this.resources = resources;
         this.page = page;
         this.actionTrace = Objects.requireNonNull(actionTrace, "actionTrace");
         this.actionTimeout = Objects.requireNonNull(actionTimeout, "actionTimeout");
@@ -53,11 +52,19 @@ public final class PlaywrightUiSession implements AutoCloseable {
     /** Opens a session with an injected diagnostic sink; stdout remains console-owned. */
     public static PlaywrightUiSession open(UiBrowserConfiguration configuration,
                                            AtfConsoleSink console) {
+        return open(configuration, console, Playwright::create);
+    }
+
+    /** Package-local acquisition seam; production always creates the native driver. */
+    static PlaywrightUiSession open(UiBrowserConfiguration configuration, AtfConsoleSink console,
+                                    Supplier<Playwright> driverFactory) {
         Objects.requireNonNull(configuration, "configuration");
         UiActionTrace trace = UiActionTrace.console(Objects.requireNonNull(console, "console"));
         UiViewportScale geometry = new UiViewportScale(configuration);
-        Playwright playwright = Playwright.create();
+        var resources = new OwnedResources();
         try {
+            Playwright playwright = Objects.requireNonNull(driverFactory.get(), "playwright");
+            resources.add(playwright::close);
             BrowserType type = switch (configuration.browser()) {
                 case "chromium" -> playwright.chromium();
                 case "firefox" -> playwright.firefox();
@@ -68,20 +75,23 @@ public final class PlaywrightUiSession implements AutoCloseable {
                     .setHeadless(configuration.headless());
             configuredExecutablePath().ifPresent(launchOptions::setExecutablePath);
             Browser browser = type.launch(launchOptions);
+            resources.add(browser::close);
             BrowserContext context = browser.newContext(new Browser.NewContextOptions()
                     .setViewportSize(new ViewportSize(geometry.layoutWidth(), geometry.layoutHeight()))
                     .setDeviceScaleFactor(geometry.deviceScaleFactor()));
+            resources.add(context::close);
             context.setDefaultTimeout(configuration.timeout().toMillis());
             context.setDefaultNavigationTimeout(configuration.navigationTimeout().toMillis());
             Page page = context.newPage();
             UiNetworkInspector networkInspector =
                     new UiNetworkInspector(configuration.networkInspection());
+            resources.add(networkInspector::close);
             networkInspector.attach(page);
-            return new PlaywrightUiSession(playwright, browser, context, page, trace,
+            return new PlaywrightUiSession(resources, page, trace,
                     configuration.timeout(), configuration.retryPolicy(), networkInspector);
-        } catch (RuntimeException error) {
-            playwright.close();
-            throw error;
+        } catch (RuntimeException | Error primary) {
+            resources.release(primary);
+            throw primary;
         }
     }
 
@@ -125,13 +135,34 @@ public final class PlaywrightUiSession implements AutoCloseable {
     public void close() {
         if (closed) return;
         closed = true;
-        try { networkInspector.close(); }
-        finally {
-            try { context.close(); }
-        finally {
-            try { browser.close(); }
-            finally { playwright.close(); }
-        }
+        resources.release(null);
+    }
+
+    /** Register immediately after acquisition; context owns its pages. Release continues after every distinct failure. */
+    private static final class OwnedResources {
+        private final ArrayDeque<Runnable> closers = new ArrayDeque<>();
+        private boolean released;
+
+        void add(Runnable close) { closers.push(close); }
+
+        void release(Throwable primary) {
+            if (released) return;
+            released = true;
+            var seen = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
+            if (primary != null) seen.add(primary);
+            Throwable failure = primary;
+            while (!closers.isEmpty()) {
+                try { closers.pop().run(); }
+                catch (RuntimeException | Error secondary) {
+                    if (!seen.add(secondary)) continue;
+                    if (failure == null) failure = secondary;
+                    else failure.addSuppressed(secondary);
+                }
+            }
+            if (primary == null) {
+                if (failure instanceof RuntimeException runtime) throw runtime;
+                if (failure instanceof Error error) throw error;
+            }
         }
     }
 }
