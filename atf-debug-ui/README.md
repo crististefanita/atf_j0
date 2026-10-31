@@ -178,3 +178,20 @@ java -Xms16m -Xmx128m -XX:MaxMetaspaceSize=64m -cp $launcherClasspath atf.debugu
 În IntelliJ, o configurație `Application` pentru `AtfDebugUiLauncher` include
 automat classpath-ul runtime al modulului; setează aceleași limite în
 `VM options` și `--html <report-path> --port 0` în `Program arguments`.
+
+## Identitatea path-ului URI
+
+| Intrare | Rezultat |
+|---|---|
+| plus literal sau `%2B` | același fișier cu plus, distinct de fișierul cu spațiu |
+| `%20` | spațiu în path; nu rezultă din transformarea unui plus literal |
+| `%252B` | un singur nivel de decodare; păstrează `%2B` în numele fișierului |
+| target malformat, authority, schemă ori fragment | refuz înaintea accesului la fișier |
+| traversal după decodare | containment lexical și realpath; nu iese din root |
+
+GET livrează conținutul fișierului cerut. HEAD păstrează Content-Length și
+Content-Type fără body; query-ul nu schimbă identitatea path-ului. Serverul
+rămâne loopback și read-only, cu închiderea bounded a conexiunilor deținute.
+
+[DebugUiServerTest](src/test/java/atf/debugui/DebugUiServerTest.java) folosește
+fișiere distincte și corpuri exacte, cu fixture-uri izolate în TMP.

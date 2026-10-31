@@ -1,12 +1,14 @@
 package atf.shop.config;
 
+import java.util.Locale;
+
 /** Selects the test pyramid profile without a boolean switch matrix. */
 public enum ShopValidationProfile {
     UI_ONLY,
     UI_API;
 
     public static ShopValidationProfile from(String value) {
-        String normalized = value == null ? "" : value.trim().toLowerCase();
+        String normalized = value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
         return switch (normalized) {
             case "ui-only", "ui_only", "ui" -> UI_ONLY;
             case "ui-api", "ui_api", "" -> UI_API;

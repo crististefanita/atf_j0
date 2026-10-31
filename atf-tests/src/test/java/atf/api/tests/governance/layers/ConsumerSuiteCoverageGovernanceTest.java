@@ -32,6 +32,7 @@ public class ConsumerSuiteCoverageGovernanceTest {
         Path root = AtfGovernanceTestSupport.locateProjectRoot();
         var annotations = AtfTestLayerArchitectureTest.annotationSources(root);
         for (var module : PRIMARY.entrySet()) {
+            if (!AtfGovernanceTestSupport.consumerDeclared(root, module.getKey())) continue;
             var tests = new ArrayList<TestSource>();
             var suites = new ArrayList<Selection>();
             for (Path file : AtfTestLayerArchitectureTest.testSources(root.resolve(module.getKey()))) {
@@ -156,6 +157,7 @@ public class ConsumerSuiteCoverageGovernanceTest {
         for (String relative : List.of(
                 "atf-test-auto-ex/src/test/java/atf/autoex/tests/suites/AutoExComponentSuite.java",
                 "atf-test-practice-shop/src/test/atf/shop/tests/suites/ShopComponentSuite.java")) {
+            if (!AtfGovernanceTestSupport.consumerDeclared(root, relative.substring(0, relative.indexOf('/')))) continue;
             String configured = AtfJavaSourceReferences.annotationArguments(
                     Files.readString(root.resolve(relative)), "ConfigurationParameter").orElseThrow();
             assertTrue(configured.contains("TestRunScope.CONFIGURATION_PARAMETER") && configured.contains("\"suite\""),

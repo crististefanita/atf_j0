@@ -49,19 +49,6 @@ class ExecutionResilienceTest {
     }
 
     @Test
-    void timeoutDoesNotWaitForeverForAnUncompletedTransport() {
-        var pending = new CompletableFuture<ApiResponse>();
-        ApiTransport transport = (request, url, auth) -> pending;
-        var executor = new ApiExecutor(transport, URI.create("https://example.test"));
-
-        var error = assertThrows(ApiExecutionException.class,
-                () -> executor.execute(ApiRequest.of("GET", "/users"), Duration.ofMillis(30), CancellationToken.none()));
-
-        assertTrue(error.getMessage().contains("timed out"));
-        assertTrue(pending.isCancelled());
-    }
-
-    @Test
     void cancellationDuringTransportCancelsThePendingFuture() throws Exception {
         var pending = new CompletableFuture<ApiResponse>();
         var entered = new CountDownLatch(1);

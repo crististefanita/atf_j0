@@ -2,6 +2,8 @@ package atf.api.tests.governance.documentation.factual;
 
 import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import atf.api.tests.governance.AtfGovernanceTestSupport;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -15,15 +17,18 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @AtfComponentTest
 public class DocumentedUiGeometryContractTest {
+    @TempDir Path fixtures;
     @Test void selectedClaimsMatchLiveYamlAndTheExecutableUiGeometry() throws Exception {
         Path root = locateProjectRoot();
-        for (String document : DocumentedUiGeometryContracts.DOCUMENTS)
+        for (String document : DocumentedUiGeometryContracts.DOCUMENTS) {
+            if (!document.equals(DocumentedUiGeometryContracts.UI) && !AtfGovernanceTestSupport.consumerDeclared(root, document.substring(0, document.indexOf('/')))) continue;
             assertEquals(List.of(), inspect(root, document, read(root, document)), document);
+        }
     }
 
     @ParameterizedTest @ValueSource(strings = {"atf-test-auto-ex/README.md", "atf-test-practice-shop/README.md"})
     void everyDocumentOnlyNumericMutationIsRefusedWithoutChangingTheYaml(String document) throws Exception {
-        Path root = locateProjectRoot();
+        Path root = authority(document);
         String yaml = document.substring(0, document.indexOf('/')) + "/src/test/resources/"
                 + (document.contains("auto-ex") ? "atf-auto-ex.yaml" : "atf-practice-shop.yaml");
         byte[] originalYaml = Files.readAllBytes(root.resolve(yaml));
@@ -65,7 +70,7 @@ public class DocumentedUiGeometryContractTest {
 
     @ParameterizedTest @ValueSource(strings = {"```", "~~~~"})
     void missingDuplicateAndFencedClaimsCannotMakeTheGuardSilentlyPass(String fence) throws Exception {
-        Path root = locateProjectRoot(); String document = "atf-test-auto-ex/README.md";
+        String document = "atf-test-auto-ex/README.md"; Path root = authority(document);
         String source = read(root, document);
         String row = source.lines().filter(line -> line.startsWith("| YAML livrat |")).findFirst().orElseThrow();
         assertTrue(inspect(root, document, source.replace(row, "")).getFirst().contains("missing or malformed declaration"));
@@ -73,6 +78,17 @@ public class DocumentedUiGeometryContractTest {
         String onlyExample = source.replace(row, fence + "text\n" + row + "\n" + fence);
         assertTrue(inspect(root, document, onlyExample).getFirst().contains("missing or malformed declaration"));
         assertEquals(List.of(), inspect(root, document, source + "\n" + fence + "text\n" + row + "\n" + fence));
+    }
+
+    private Path authority(String document) throws Exception {
+        Path live = locateProjectRoot(); String module = document.substring(0, document.indexOf('/'));
+        if (AtfGovernanceTestSupport.consumerDeclared(live, module)) return live;
+        Path target = fixtures.resolve(document); Files.createDirectories(target.getParent());
+        Files.writeString(target, "| YAML livrat | `1000 × 800` | `100` | `1000 × 800` | `1` |\n");
+        Path yaml = fixtures.resolve(module + "/src/test/resources/" + (module.contains("auto-ex") ? "atf-auto-ex.yaml" : "atf-practice-shop.yaml"));
+        Files.createDirectories(yaml.getParent());
+        Files.writeString(yaml, module.contains("auto-ex") ? "automationExercise:\n  browser:\n    viewport: {width: 1000, height: 800}\n    zoomPercent: 100\n" : "practiceShop:\n  viewport: {width: 1000, height: 800}\n  zoomPercent: 100\n");
+        return fixtures;
     }
 
     private static String read(Path root, String document) throws Exception { return Files.readString(root.resolve(document)); }

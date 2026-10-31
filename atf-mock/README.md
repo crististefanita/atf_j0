@@ -353,3 +353,16 @@ Comanda selectează proba numită și construiește dependențele; nu declară
 trecerea întregului modul. Proba nu confirmă disponibilitatea unui serviciu real.
 
 </details>
+
+## MIME și validitatea payload-ului
+
+Matching-ul folosește clasificarea media type din Core, separată de validitatea
+body-ului. `text/plain; profile=json` nu satisface o rută JSON; aceeași cerere
+cu JSON valid poate satisface numai modul explicit `WRONG_CONTENT_TYPE`.
+
+`application/json` și sufixele `+json` păstrează parametrizarea și casing-ul
+acceptate. Un payload invalid este refuzat de ambele moduri; configurația
+catalogului nu inventează un body valid.
+
+[MockMediaTypeContractTest](src/test/java/atf/mock/MockMediaTypeContractTest.java)
+verifică deciziile opuse și axa independentă a payload-ului invalid.

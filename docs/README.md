@@ -14,8 +14,22 @@ particular.
 
 ## Pe scurt
 
+| Pentru | Citește întâi |
+|---|---|
+| orientare între proiecte | [workspace-uri](ATF_Workspace_Synchronization.md), apoi [atlasul de context](ATF_Context_Atlas.md) |
+| contract și owner | [arhitectură](ATF_Architecture.md), POM și README-ul modulului |
+| problemă încă deschisă | [registrul feedback-urilor](feedback/README.md); contractele livrate rămân la owner |
+| Kafka/Podman în J2 | [atlasul WIP](../../atf_j2/docs/ATF_Context_Atlas.md); nu este o extensie web a J1 |
+
+
+
+J0 deține implementarea și regresiile Reporting; J1 deține scenariile AutoEx/Shop.
+J2 a început bootstrap-ul pentru cozi și mesaje;
+[harta workspace-urilor](ATF_Workspace_Synchronization.md) separă infrastructura copiată de contractele și acceptanța mesageriei.
+
 | Nivel | Documente | Întrebarea la care răspund |
 |---|---|---|
+| workspace și livrare | [ATF_Workspace_Synchronization.md](ATF_Workspace_Synchronization.md) | unde se repară Reporting și cum se validează separat fiecare consumer? |
 | context progresiv | [ATF_Context_Atlas.md](ATF_Context_Atlas.md) | ce contract, intrare și probă citesc înainte de a extinde contextul? |
 | bibliotecă Reporting | [context portabil](../atf-reporting/docs/README.md) și [atlasul codului](../atf-reporting/src/main/java/atf/reporting/README.md) | ce intră în JAR, ce rămâne la consumer și ce probe disting adopția de release? |
 | hartă | [ATF_Architecture.md](ATF_Architecture.md), README-ul root | cine deține ce și în ce direcție curg dependențele? |
@@ -231,3 +245,9 @@ sunt interzise.
 
 Validitatea linkurilor nu certifică semantica unui contract. Comanda gate-ului
 și limitele lui sunt la [ATF Tests](../atf-tests/README.md#verificare-rapidă).
+
+## Core ca bibliotecă — owner și deployment
+
+J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module.
+[Contractul Core C1](ATF_Core_Consumer.md) separă sursa, publicarea și acceptanțele J1/J2.
+Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.

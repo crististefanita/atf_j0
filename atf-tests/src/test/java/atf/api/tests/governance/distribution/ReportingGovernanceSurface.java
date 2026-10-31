@@ -2,6 +2,7 @@ package atf.api.tests.governance.distribution;
 
 import atf.reporting.configuration.ReportingSettings;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -17,10 +18,11 @@ public final class ReportingGovernanceSurface {
     private final GovernanceDeployment deployment;
     private final Path jar;
     private final Path pom;
+    private final JsonNode producerInputs;
 
     private ReportingGovernanceSurface(GovernanceDeployment deployment) throws Exception {
         this.deployment = deployment;
-        if (deployment.reportingSource()) { jar = null; pom = deployment.root().resolve("atf-reporting/pom.xml"); }
+        if (deployment.reportingSource()) { jar = null; pom = deployment.root().resolve("atf-reporting/pom.xml"); producerInputs = null; }
         else {
             String version = deployment.reportingVersion();
             if (!version.matches("[A-Za-z0-9][A-Za-z0-9._-]*")) throw new IllegalStateException("GOV-BINARY-VERSION: unsafe coordinate");
@@ -31,8 +33,20 @@ public final class ReportingGovernanceSurface {
             require(provenance.path("coordinate").asText().equals("atf.api:atf-reporting:" + version), "GOV-BINARY-COORDINATE");
             require(hash(jar).equalsIgnoreCase(provenance.path("binarySha256").asText()), "GOV-BINARY-HASH");
             require(hash(pom).equalsIgnoreCase(provenance.path("publishedPomSha256").asText()), "GOV-BINARY-POM-HASH");
-            require(hash(deployment.root().resolve("reporting-source-manifest.json"))
-                    .equalsIgnoreCase(provenance.path("producerManifestSha256").asText()), "GOV-BINARY-MANIFEST-HASH");
+            producerInputs = provenance.path("producerInputs");
+            require(hashJson(producerInputs).equalsIgnoreCase(provenance.path("producerInputsSha256").asText()),
+                    "GOV-BINARY-PRODUCER-INPUTS-HASH");
+            require(producerInputs.path("files").asInt() > 0
+                    && producerInputs.path("sha256").asText().matches("[A-Fa-f0-9]{64}"), "GOV-BINARY-PRODUCER-INPUTS");
+            var nativeTests = producerInputs.path("nativeTests");
+            require(nativeTests.isArray() && !nativeTests.isEmpty(), "GOV-BINARY-NATIVE-TESTS");
+            var nativePaths = new java.util.HashSet<String>();
+            for (var entry : nativeTests) {
+                String name = entry.path("path").asText();
+                require(name.startsWith("src/test/java/") && name.endsWith(".java") && !name.contains("..")
+                        && name.indexOf('\\') < 0 && nativePaths.add(name)
+                        && entry.path("sha256").asText().matches("[A-Fa-f0-9]{64}"), "GOV-BINARY-NATIVE-TESTS");
+            }
             var project = GovernanceDeployment.xml(Files.readString(pom));
             require(GovernanceDeployment.text(project, "artifactId").equals("atf-reporting")
                     && GovernanceDeployment.text(project, "groupId").equals("atf.api")
@@ -65,9 +79,8 @@ public final class ReportingGovernanceSurface {
     }
     public Set<String> nativeTestManifest() throws Exception {
         var paths = new java.util.HashSet<String>();
-        for (var row : new ObjectMapper().readTree(deployment.root().resolve("reporting-source-manifest.json").toFile())) {
-            String name = row.path("Path").asText();
-            if (name.startsWith("src/test/") && name.endsWith(".java")) paths.add(Path.of(name).getFileName().toString());
+        for (var row : producerInputs.path("nativeTests")) {
+            paths.add(Path.of(row.path("path").asText()).getFileName().toString());
         }
         return Set.copyOf(paths);
     }
@@ -89,6 +102,10 @@ public final class ReportingGovernanceSurface {
     }
     public static String hash(Path path) throws Exception {
         return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(path)));
+    }
+    static String hashJson(JsonNode node) throws Exception {
+        return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                .digest(node.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8)));
     }
     private static void require(boolean condition, String reason) { if (!condition) throw new IllegalStateException(reason); }
 }

@@ -1,6 +1,7 @@
 package atf.api.tests.governance.distribution;
 
 import atf.core.config.module.AtfModuleIds;
+import atf.core.files.AtfJavaSourceReferences;
 import org.w3c.dom.Element;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -17,13 +18,37 @@ public record GovernanceDeployment(Path root, List<String> sourceModules, boolea
         Element pom = xml(Files.readString(root.resolve("pom.xml")));
         List<String> actual = children(child(pom, "modules"), "module").stream().map(Element::getTextContent).map(String::strip).toList();
         boolean source = actual.contains(AtfModuleIds.REPORTING);
+        String coreVersion = text(child(pom, "properties"), "atf.core.version");
+        boolean binaryCore = !coreVersion.isBlank();
+        if (binaryCore && (source || !coreVersion.matches("[A-Za-z0-9][A-Za-z0-9._-]*")))
+            throw new IllegalStateException("GOV-CORE-VERSION: invalid Core deployment");
+        if (binaryCore && Files.exists(root.resolve(AtfModuleIds.CORE)))
+            throw new IllegalStateException("GOV-CORE-SHADOW: source in binary deployment");
+        String profile = text(child(pom, "properties"), "atf.consumer.profile");
+        if (!profile.isBlank() && (source || !List.of("journeys", "foundation", "eventuate").contains(profile)))
+            throw new IllegalStateException("GOV-CONSUMER-PROFILE: " + profile);
+        boolean foundation = List.of("foundation", "eventuate").contains(profile);
         List<String> binaryGate = AtfModuleIds.REACTOR_MODULES.stream()
-                .filter(module -> source || !module.equals(AtfModuleIds.REPORTING)).toList();
+                .filter(module -> source || !module.equals(AtfModuleIds.REPORTING))
+                .filter(module -> !binaryCore || !module.equals(AtfModuleIds.CORE))
+                .filter(module -> !foundation || !consumerModule(module))
+                .filter(module -> !profile.equals("eventuate") || !List.of(AtfModuleIds.UI, AtfModuleIds.DEBUG_UI).contains(module)).toList();
+        if (profile.equals("eventuate")) {
+            var expanded = new ArrayList<>(binaryGate);
+            int index = expanded.indexOf(AtfModuleIds.TESTS);
+            expanded.addAll(index, List.of("atf-setup", "atf-test-eventuate"));
+            binaryGate = List.copyOf(expanded);
+        }
         List<String> binaryConsumer = binaryGate.stream().filter(module -> !module.equals(AtfModuleIds.REPORTING_TESTS)).toList();
         List<String> expected = source || actual.equals(binaryGate) ? binaryGate : binaryConsumer;
         if (!actual.equals(expected)) throw new IllegalStateException("GOV-REACTOR: expected=" + expected + "; observed=" + actual);
         for (String module : expected) if (!Files.isRegularFile(root.resolve(module).resolve("pom.xml")))
             throw new IllegalStateException("GOV-MODULE-POM: " + module);
+        if (foundation) for (String module : List.of(AtfModuleIds.PRACTICE_SHOP, AtfModuleIds.AUTOMATION_EXERCISE))
+            if (Files.exists(root.resolve(module))) throw new IllegalStateException("GOV-CONSUMER-SHADOW: " + module);
+        if (profile.equals("eventuate")) for (String module : List.of(AtfModuleIds.UI, AtfModuleIds.DEBUG_UI))
+            if (Files.exists(root.resolve(module))) throw new IllegalStateException("GOV-UI-SHADOW: " + module);
+        if (foundation) assertNoConsumerSource(root, expected);
         var deployment = new GovernanceDeployment(root, actual, source);
         if (!source) {
             if (Files.exists(root.resolve(AtfModuleIds.REPORTING))) throw new IllegalStateException("GOV-SHADOW: Reporting source in binary reactor");
@@ -35,12 +60,42 @@ public record GovernanceDeployment(Path root, List<String> sourceModules, boolea
         return deployment;
     }
 
+    public boolean coreSource() { return sourceModules.contains(AtfModuleIds.CORE); }
+
+    public String coreVersion() throws Exception {
+        return text(child(xml(Files.readString(root.resolve("pom.xml"))), "properties"), "atf.core.version");
+    }
+
     public List<String> documentationTargets(String configured) {
+        if (!coreSource() && configured.equals("atf-core/README.md")) return List.of("docs/ATF_Core_Consumer.md");
+        String module = configured.contains("/") ? configured.substring(0, configured.indexOf('/')) : "";
+        if (List.of(AtfModuleIds.UI, AtfModuleIds.DEBUG_UI).contains(module) && !sourceModules.contains(module) && configured.equals(module + "/README.md"))
+            return List.of("docs/ATF_J2_Verification.md", "docs/ATF_Eventuate_Integration.md");
+        if (consumerModule(module) && !sourceModules.contains(module) && configured.equals(module + "/README.md"))
+            return List.of("docs/ATF_Reporting_Consumer.md", "docs/ATF_Workspace_Synchronization.md");
         if (!sourceModules.contains(AtfModuleIds.REPORTING_TESTS)
                 && List.of("atf-reporting-tests/README.md", "atf-reporting-tests/src/test/java/atf/ui/tests/extent/README.md").contains(configured))
             return List.of("docs/ATF_Reporting_Library_Atlas.md", "docs/ATF_Testing_Guide.md");
         return !reportingSource && configured.equals("atf-reporting/README.md")
-                ? List.of("docs/ATF_Reporting_Library_Atlas.md", "docs/ATF_J1_Consumer.md", "lib/README.md") : List.of(configured);
+                ? List.of("docs/ATF_Reporting_Library_Atlas.md", "docs/ATF_Reporting_Consumer.md") : List.of(configured);
+    }
+
+    private static boolean consumerModule(String module) {
+        return List.of(AtfModuleIds.PRACTICE_SHOP, AtfModuleIds.AUTOMATION_EXERCISE).contains(module);
+    }
+
+    private static void assertNoConsumerSource(Path root, List<String> modules) throws Exception {
+        for (String module : modules) {
+            Path source = root.resolve(module).resolve("src");
+            if (!Files.isDirectory(source)) continue;
+            try (var files = Files.walk(source)) {
+                for (Path file : files.filter(Files::isRegularFile).filter(p -> p.toString().endsWith(".java")).toList()) {
+                    String code = Files.readString(file);
+                    if (AtfJavaSourceReferences.containsNamespace(code, "atf.shop") || AtfJavaSourceReferences.containsNamespace(code, "atf.autoex"))
+                        throw new IllegalStateException("GOV-CONSUMER-NAMESPACE: " + module);
+                }
+            }
+        }
     }
 
     public String reportingVersion() throws Exception {

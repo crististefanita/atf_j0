@@ -229,6 +229,16 @@ Aceste contracte sunt utilizabile independent de un evaluator general nou.
 
 </details>
 
+### Vocabular HTTP independent de locale
+
+Comparația case-insensitive Content-Type și identitatea regulii pentru un
+header folosesc `Locale.ROOT`. DSL-ul `contentTypeContains` rămâne o verificare
+de conținut declarată de caller; nu devine clasificator MIME ori parser de body.
+
+[ResponseContractRuleSetTest](src/test/java/atf/validation/contract/ResponseContractRuleSetTest.java)
+verifică aceeași decizie nominală, refuzul unui tip diferit și identitatea regulii
+în `tr-TR`; testul izolează și restaurează starea JVM.
+
 ## Reguli de separare
 
 1. Nu se adaugă importuri Extent, HTML, CSS sau JUnit în `src/main` al acestui

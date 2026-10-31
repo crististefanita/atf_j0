@@ -3454,3 +3454,178 @@ testChanges:
 ```
 
 </details>
+
+
+## Control tehnic verificat — J0-REFERENCE-GOVERNANCE-76
+
+<details>
+<summary><strong>Control YAML — referința J0 păstrează distribuția minimă</strong></summary>
+
+```yaml
+testChanges:
+  - id: J0-REFERENCE-GOVERNANCE-76
+    status: VERIFIED
+    base: 9dd12b4bc195691bd99e2bb01e4bbfaf93aff7d6
+    expires: 2026-11-20
+    reason: Cerința explicită mută referința din demo2 în atf_j0. Copia J0 omitea incrementul lean deja verificat în J1; sincronizarea celor cinci clase și a README-ului păstrează hash-urile JAR/POM, catalogul native în proveniența unică, POM embedded, CodeSource, jdeps și toate probele negative. Include cele două cazuri noi pentru perechea minimă și catalogul lipsă după rehash; fără ștergeri, selecții reduse sau oracole relaxate.
+    proof: mvn -B -pl atf-tests -am "-Dtest=WholeAtfGovernanceSuiteTest" "-Datf.governance.testChanges.baseRef=9dd12b4bc195691bd99e2bb01e4bbfaf93aff7d6" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/BinaryReportingFixture.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/ReportingGovernanceSurface.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/ReportingGovernanceSurfaceTest.java
+```
+
+</details>
+
+
+## Control tehnic verificat — J0-CORE-CONSUMERS-SYNC-78
+
+<details>
+<summary><strong>Control YAML — Core reconciliat și profil foundation explicit</strong></summary>
+
+```yaml
+testChanges:
+  - id: J0-CORE-CONSUMERS-SYNC-78
+    status: VERIFIED
+    base: 9dd12b4bc195691bd99e2bb01e4bbfaf93aff7d6
+    expires: 2026-11-20
+    reason: Cerința explicită reconciliază Core și păstrează J2 fără Shop/AutoEx, pe Git-ul său existent. Profilul foundation este declarat în POM, cu 8 module și 9 numai pentru harness-ul TMP; profilul implicit journeys rămâne cu 10/11, iar producătorul cu 12. Sunt refuzate profilul necunoscut, override-ul sursei, un modul comun lipsă, directoarele și namespace-urile shadow. Guard-urile păstrează integral probele modulelor declarate; excluderile explicite sunt validate, iar mutanții de suite, scope și geometrie rămân activi prin fixture-uri independente în TMP. Masca literală și comparația FAIL înainte de preview au regresii la owner. Nu elimină teste și nu relaxează selecții, praguri, timeout-uri sau oracole.
+    proof: mvn -B -pl atf-core,atf-tests,atf-test-auto-ex,atf-test-practice-shop,atf-reporting-tests -am "-Dtest=RedactionStrategiesTest,CoreContractTest,WholeAtfGovernanceSuiteTest,AutoExInvoiceComponentTest,ShopConfigurationTest,ShopApiBodyRedactionReportTest,CoreRedactionPublicationComponentTest" "-Datf.governance.testChanges.baseRef=9dd12b4bc195691bd99e2bb01e4bbfaf93aff7d6" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/AtfPackageCohesionGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/console/ConsoleDefaultsGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/layers/ConsumerSuiteCoverageGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/factual/DocumentedBuildContracts.java
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/factual/DocumentedBuildContractTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/factual/DocumentedUiGeometryContractTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/GovernanceDeploymentTest.java
+      - atf-core/src/test/java/atf/core/security/RedactionStrategiesTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/security/CoreRedactionPublicationComponentTest.java
+```
+
+</details>
+
+
+<details>
+<summary><strong>Control tehnic — CORE-BOUNDARY-HARDENING-79</strong></summary>
+
+```yaml
+testChanges:
+  - id: CORE-BOUNDARY-HARDENING-79
+    status: VERIFIED
+    base: 9dd12b4bc195691bd99e2bb01e4bbfaf93aff7d6
+    expires: 2026-11-30
+    reason: Cerința explicită reconciliază măștile literale și diagnosticul quoted, MIME-ul, headerele efective și vocabularul HTTP independent de locale. Păstrează cazurile existente; negativele independente refuză sursa anterioară, comparația precede redacția și nicio cerere nu este repetată.
+    proof: mvn -B -pl atf-core,atf-mock,atf-validation,atf-debug-ui,atf-tests -am "-Dtest=WholeAtfGovernanceSuiteTest,RedactionStrategiesTest,QuotedAuthorizationRedactionTest,MediaTypesTest,HttpClientRequestHeadersTest,AuthProfilesTest,ResponseContractRuleSetTest,MockMediaTypeContractTest,DebugUiServerTest" "-Datf.governance.testChanges.baseRef=9dd12b4bc195691bd99e2bb01e4bbfaf93aff7d6" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-core/src/test/java/atf/core/http/auth/AuthProfilesTest.java
+      - atf-core/src/test/java/atf/core/http/request/MediaTypesTest.java
+      - atf-core/src/test/java/atf/core/http/transport/HttpClientRequestHeadersTest.java
+      - atf-core/src/test/java/atf/core/security/QuotedAuthorizationRedactionTest.java
+      - atf-mock/src/test/java/atf/mock/MockMediaTypeContractTest.java
+      - atf-validation/src/test/java/atf/validation/contract/ResponseContractRuleSetTest.java
+```
+
+</details>
+
+
+<details>
+<summary><strong>Control tehnic — DEBUG-URI-IMPLEMENTATION-81</strong></summary>
+
+```yaml
+testChanges:
+  - id: DEBUG-URI-IMPLEMENTATION-81
+    status: VERIFIED
+    base: 9dd12b4bc195691bd99e2bb01e4bbfaf93aff7d6
+    expires: 2026-11-30
+    reason: Păstrează traversarea refuzată și adaugă identități distincte plus/spațiu/procent, GET și HEAD, target malformat și decodare unică. Fixture-ul nu mai scrie un outside.txt comun în TMP; timeout-ul bounded aparține numai socketului probei.
+    proof: mvn -B -pl atf-core,atf-mock,atf-validation,atf-debug-ui,atf-tests -am "-Dtest=WholeAtfGovernanceSuiteTest,RedactionStrategiesTest,QuotedAuthorizationRedactionTest,MediaTypesTest,HttpClientRequestHeadersTest,AuthProfilesTest,ResponseContractRuleSetTest,MockMediaTypeContractTest,DebugUiServerTest" "-Datf.governance.testChanges.baseRef=9dd12b4bc195691bd99e2bb01e4bbfaf93aff7d6" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-debug-ui/src/test/java/atf/debugui/DebugUiServerTest.java
+```
+
+</details>
+
+
+<details>
+<summary><strong>Control tehnic — GOV-SOURCE-INVENTORY-80</strong></summary>
+
+```yaml
+testChanges:
+  - id: GOV-SOURCE-INVENTORY-80
+    status: VERIFIED
+    base: 9dd12b4bc195691bd99e2bb01e4bbfaf93aff7d6
+    expires: 2026-11-30
+    reason: Separă descoperirea POM de sursa Java declarată și reconciliază explicit oracolul care ascundea package-uri legale. Proba compilează patru surse, cere setul exact și patru încălcări detectate; output-ul modulului rămâne exclus, fără relaxarea pragurilor sau selecțiilor.
+    proof: mvn -B -pl atf-core,atf-mock,atf-validation,atf-debug-ui,atf-tests -am "-Dtest=WholeAtfGovernanceSuiteTest,RedactionStrategiesTest,QuotedAuthorizationRedactionTest,MediaTypesTest,HttpClientRequestHeadersTest,AuthProfilesTest,ResponseContractRuleSetTest,MockMediaTypeContractTest,DebugUiServerTest" "-Datf.governance.testChanges.baseRef=9dd12b4bc195691bd99e2bb01e4bbfaf93aff7d6" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/AtfSourceReadabilityGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/layers/AtfJavaSourceInventory.java
+```
+
+</details>
+
+
+<details>
+<summary><strong>Control tehnic — AUTOEX-AUDIT-CREDENTIALS-85</strong></summary>
+
+```yaml
+testChanges:
+  - id: AUTOEX-AUDIT-CREDENTIALS-85
+    status: VERIFIED
+    base: 9dd12b4bc195691bd99e2bb01e4bbfaf93aff7d6
+    expires: 2026-11-30
+    reason: Auditul raportului a identificat parole sintetice publicate de comparațiile formularului. Oracolul păstrează egalitatea integrală a map-ului original, cu layout/câmpuri nesensibile separat de rezultatul boolean complet. Nu relaxează transportul ori valoarea așteptată; negativele refuză mismatch, absență, gol neașteptat și casing incorect, cu mesaje fără credentiale.
+    proof: mvn -B -pl atf-test-auto-ex -am "-Dtest=AutoExApiContractComponentTest,AutoExApiContractReportPublisherComponentTest,AutoExInvoiceComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/api/AutoExApiContractComponentTest.java
+```
+
+</details>
+
+
+<details>
+<summary><strong>Control tehnic — CORE-LIB-C1-J0</strong></summary>
+
+```yaml
+testChanges:
+  - id: CORE-LIB-C1-J0
+    status: VERIFIED
+    base: 9dd12b4bc195691bd99e2bb01e4bbfaf93aff7d6
+    expires: 2026-11-30
+    reason: Publică Core parentless C1 cu sursa și nativele păstrate în J0; consumatorii verifică binarul real și păstrează probele negative, cataloagele și controalele de ownership.
+    proof: mvn -B -pl atf-tests -am "-Dtest=WholeAtfGovernanceSuiteTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-core/pom.xml
+      - atf-tests/src/test/java/atf/api/tests/governance/ArchitectureModuleBoundaryTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/ArchitectureOwnershipBoundaryTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/AtfGovernanceTestSupport.java
+      - atf-tests/src/test/java/atf/api/tests/governance/ConstantsOwnershipGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/GovernanceDeployment.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/README.md
+      - atf-tests/src/test/java/atf/api/tests/governance/WholeAtfGovernanceSuiteTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/core/BinaryCoreFixture.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/core/CoreGovernanceSurface.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/core/CoreGovernanceSurfaceTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control tehnic — CORE-DEADLINE-OWNERSHIP-C1</strong></summary>
+
+```yaml
+testChanges:
+  - id: CORE-DEADLINE-OWNERSHIP-C1
+    status: VERIFIED
+    base: 9dd12b4bc195691bd99e2bb01e4bbfaf93aff7d6
+    expires: 2026-11-30
+    reason: Înlocuiește presupunerea de dispatch într-un buget wall-clock cu două probe deterministe pe seam-ul existent; păstrează anularea future-ului deținut și refuzul anulării celui nepreluat, plus snapshot, deadline și zero răspuns inventat.
+    proof: mvn -B -pl atf-core -am "-Dtest=ExecutionResilienceTest,ApiTerminalExecutionEvidenceTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-core/src/test/java/atf/core/ExecutionResilienceTest.java
+      - atf-core/src/test/java/atf/core/http/execution/ApiTerminalExecutionEvidenceTest.java
+```
+
+</details>

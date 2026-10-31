@@ -67,6 +67,7 @@ preview 18/240, disclosure-ul propriu și tastatura în ambele renderere.
 
 | Regresie păstrată | Oracol independent |
 |---|---|
+| Core → Kit → Reporting | `CoreRedactionPublicationComponentTest`: măști literale `$0` și backslash, comparație originală FAIL cu preview-uri identice, limita 240 și canary absent din Extent/fallback; rendererul nu schimbă verdictul cerut de comparație |
 | context UI per fază | `PhaseUnifiedFlowContextComponentTest`: aceeași proiecție Extent/fallback, UI și mock API 200/500; metadatele flow-ului nu devin răspuns HTTP, iar exchange-ul real își păstrează statusul și expected-ul 200 |
 | expandarea aserțiunilor per fază | `PhaseUnifiedFlowComponentTest`: disclosure propriu, Enter/Space, reload, rânduri ACTION/OBSERVE, captura originală și preview 18/240 |
 | titluri fallback lungi | `FallbackLongTitleComponentTest`: fragmentele de text rămân în sidebar și heading la 1280/760/392 px; sibling, anchor, tastatură și reload păstrează identitatea, iar reintroducerea `nowrap` este refuzată |
@@ -1001,7 +1002,7 @@ atf-test-practice-shop/src/test/atf/shop/tests/
 - Înlocuiți verificările locale de markup cu rezultate typed/snapshot numai
   dacă rămâne probată invocarea efectivă a adaptorului și politica sa de date.
 - Reducerea suplimentară a rulărilor live pentru profile de evidence are
-  [criterii separate](../docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#consumer-e2e-profiles-01--variantele-de-evidence-și-acoperirea-business);
+  [criterii separate](../docs/ATF_Testing_Guide.md#acceptanța-business-individual-și-prin-suită);
   aceste probe neutre nu justifică singure schimbarea selecției E2E.
 
 </details>

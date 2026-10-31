@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.StreamSupport;
 
 /**
@@ -37,12 +38,12 @@ final class ResponseContractRuleSet {
         return rule("content-type:" + expected, "Content-Type", (response, table) -> {
             var actual = response.header(HttpHeader.CONTENT_TYPE.value());
             table.add(HttpHeader.CONTENT_TYPE.value(), expected, actual == null ? "<missing>" : actual,
-                    actual != null && actual.toLowerCase().contains(expected.toLowerCase()));
+                    actual != null && actual.toLowerCase(Locale.ROOT).contains(expected.toLowerCase(Locale.ROOT)));
         });
     }
 
     ResponseContractRuleDefinition headerPresent(String name) {
-        return rule("header:" + name.toLowerCase(), "Header " + name, (response, table) -> {
+        return rule("header:" + name.toLowerCase(Locale.ROOT), "Header " + name, (response, table) -> {
             var actual = response.header(name);
             table.add("Header " + name, "present", actual == null ? "<missing>" : actual, actual != null);
         });

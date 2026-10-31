@@ -2,6 +2,8 @@ package atf.api.tests.governance;
 
 import atf.core.config.module.AtfModuleIds;
 import atf.api.tests.governance.distribution.ReportingGovernanceSurface;
+import atf.api.tests.governance.distribution.core.CoreGovernanceSurface;
+import atf.api.tests.governance.distribution.GovernanceDeployment;
 import atf.core.files.AtfFileTree;
 import atf.core.files.AtfJavaSourceInventory;
 import atf.core.files.AtfJavaSourceReferences;
@@ -41,11 +43,22 @@ public final class AtfGovernanceTestSupport {
     private AtfGovernanceTestSupport() {
     }
 
+    /** An omitted application is valid only in the explicitly declared foundation perimeter. */
+    public static boolean consumerDeclared(Path root, String module) {
+        if (!List.of(AtfModuleIds.PRACTICE_SHOP, AtfModuleIds.AUTOMATION_EXERCISE).contains(module))
+            throw new IllegalArgumentException("Not an application consumer: " + module);
+        try {
+            boolean declared = GovernanceDeployment.read(root).sourceModules().contains(module);
+            if (!declared) assertFalse(Files.exists(root.resolve(module)), "An excluded consumer cannot retain shadow source");
+            return declared;
+        } catch (Exception invalid) { throw new AssertionError("Invalid declared consumer perimeter", invalid); }
+    }
+
     public static Path locateProjectRoot() {
         Path current = Path.of(System.getProperty("user.dir", "."))
                 .toAbsolutePath().normalize();
         while (current != null) {
-            if (Files.isDirectory(current.resolve(AtfModuleIds.CORE))
+            if (Files.isDirectory(current.resolve(AtfModuleIds.TESTS))
                     && Files.isDirectory(current.resolve(AtfModuleIds.VALIDATION))
                     && Files.isRegularFile(current.resolve("pom.xml"))) {
                 return current;
@@ -212,6 +225,7 @@ public final class AtfGovernanceTestSupport {
 
     private static String modulePom(Path root, String module) throws Exception {
         return module.equals(AtfModuleIds.REPORTING) ? ReportingGovernanceSurface.read(root).pom()
+                : module.equals(AtfModuleIds.CORE) ? CoreGovernanceSurface.read(root).pom()
                 : Files.readString(root.resolve(module).resolve("pom.xml"));
     }
 

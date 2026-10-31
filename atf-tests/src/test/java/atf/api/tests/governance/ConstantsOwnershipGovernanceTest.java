@@ -3,6 +3,7 @@ package atf.api.tests.governance;
 import atf.api.tests.governance.distribution.ReportingHarnessOwnership;
 
 import atf.api.tests.governance.distribution.ReportingGovernanceSurface;
+import atf.api.tests.governance.distribution.core.CoreGovernanceSurface;
 import atf.testkit.AtfComponentTest;
 
 import org.junit.jupiter.api.Test;
@@ -57,10 +58,10 @@ public class ConstantsOwnershipGovernanceTest {
     @Test
     void coreKeepsPathMechanicsGenericAndLeavesConcreteCatalogsAtTheirBoundaries() throws Exception {
         Path root = locateProjectRoot();
-        assertTrue(Files.isRegularFile(root.resolve(
+        assertTrue(CoreGovernanceSurface.read(root).owns(root.resolve(
                         "atf-core/src/main/java/atf/core/routing/ApiPathTemplate.java")),
                 "core must expose the generic path-template mechanism");
-        assertTrue(!Files.exists(root.resolve(
+        assertTrue(!CoreGovernanceSurface.read(root).owns(root.resolve(
                         "atf-core/src/main/java/atf/core/routing/ApiPaths.java")),
                 "core must not own a concrete product route catalog");
         ReportingHarnessOwnership.read(root).requireFile(root.resolve(
@@ -80,9 +81,11 @@ public class ConstantsOwnershipGovernanceTest {
                 "atf-ui/src/main/java/atf/ui/dom/HtmlElement.java",
                 "atf-ui/src/main/java/atf/ui/dom/HtmlAttribute.java",
                 "atf-ui/src/main/java/atf/ui/dom/CssPseudoClass.java");
-        assertTrue(requiredOwners.stream().map(root::resolve).allMatch(Files::isRegularFile),
-                () -> "Reusable vocabulary owner is missing: " + requiredOwners);
+        for (String owner : requiredOwners) assertTrue(owner.startsWith("atf-core/")
+                ? CoreGovernanceSurface.read(root).owns(root.resolve(owner)) : Files.isRegularFile(root.resolve(owner)),
+                "Reusable vocabulary owner is missing: " + owner);
 
+        if (!AtfGovernanceTestSupport.consumerDeclared(root, "atf-test-practice-shop")) return;
         Path shopLocators = root.resolve(
                 "atf-test-practice-shop/src/main/atf/shop/locators/ShopLocators.java");
         String locatorSource = Files.readString(shopLocators);

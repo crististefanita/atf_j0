@@ -1601,3 +1601,14 @@ Comanda selectează proba numită și construiește dependențele; nu declară
 trecerea întregului modul. Captura recepționată după marcaj nu dovedește singură începutul cererii curente.
 
 </details>
+
+## Configurare și proiecție independente de locale
+
+Profilele UI/UI_API, aliasurile checkpoint-urilor, identitatea metodei HTTP și
+vocabularul precondiției din Overview/System folosesc `Locale.ROOT`. Locale-ul
+JVM nu schimbă selecția evidence-ului sau profilul obținut prin încărcarea YAML.
+
+[ShopLocaleConfigurationComponentTest](src/test/atf/shop/tests/component/configuration/ShopLocaleConfigurationComponentTest.java)
+verifică aliasurile, YAML-ul fără override și proiecția precondiției în `tr-TR`,
+`en-US` și `lt-LT`. Testul restaurează toate categoriile locale și păstrează
+asserțiunile în pasul standard colapsabil `Component assertions`.

@@ -66,6 +66,14 @@ consumerilor înaintea oricărei mutări de teste.
 
 ## Guvernanța deployment-ului sursă sau binar
 
+| Deployment | Module live | Cu harness Reporting în TMP |
+|---|---:|---:|
+| sursă canonică | 12 | inclus |
+| binar journeys, implicit | 10 | 11 |
+| binar foundation, explicit | 8 | 9 |
+
+Un modul declarat lipsă este eroare; profilele nu sunt deduse din directoare.
+
 `WholeAtfGovernanceSuiteTest` păstrează aceeași selecție explicită în J1 și în
 producător. [Pachetul deployment](src/test/java/atf/api/tests/governance/distribution/README.md)
 selectează dovada după declarația Maven, fără a deduce excepții din fișiere lipsă.
@@ -73,14 +81,14 @@ selectează dovada după declarația Maven, fără a deduce excepții din fișie
 | Regulă | Reporting sursă | Reporting binar |
 |---|---|---|
 | reactor | catalogul canonic de 12 module, cu POM-uri existente | 10 module, versiune explicită și JAR/POM direct în `lib`; gate-ul extern poate adăuga explicit Reporting Tests în TMP, cu 11 module. Sursa shadow și harness-ul nedeclarat sunt refuzate. |
-| documentație | README Reporting | atlas JAR, ghid J1 și README lib; aceleași controale de structură/link/proză |
+| documentație | README Reporting | atlas JAR și ghidul consumerului; aceleași controale de structură/link/proză |
 | ownership | fișierul Java exact și interdicțiile de package | clasa exactă din JAR și absența duplicatelor interzise |
 | independență | importuri sursă și POM standalone | POM fără parent/dependențe ATF și referințe de bytecode prin JDK `jdeps` |
-| identitate | modul sursă local | versiune, JAR/POM/manifest, POM embedded și hash-ul CodeSource-ului |
-| test layer | sursele native și adnotările lor | manifest native legat de proveniență; fără a-l prezenta drept execuție locală a sursei |
+| identitate | modul sursă local | versiune, JAR/POM, proveniență unică, POM embedded și hash-ul CodeSource-ului |
+| test layer | sursele native și adnotările lor | catalog native inclus în proveniență; fără a-l prezenta drept execuție locală a sursei |
 
 Modul șters, coordonată absentă/greșită, artifact alterat și dependență ascunsă
-au controale negative. Mutantul factual funcționează pentru 10/11/12 module;
+au controale negative. Mutantul factual funcționează pentru 8/9/10/11/12 module;
 asta nu autorizează un reactor cu module eliminate din catalog.
 
 Controlul Git folosește baza reală de review a fiecărui proiect. Sincronizarea
@@ -229,13 +237,28 @@ flowchart LR
 
 </details>
 
-- Inventarul exclude segmentele numite `target`, `artifacts`, `.tmp` și `.git`, inclusiv sub rădăcinile Java; aceasta este o limită de acoperire, nu dovada că fiecare clasă compilată a fost inspectată.
+- Descoperirea POM-urilor oprește traversarea output-urilor `target`, `artifacts`, `.tmp` și `.git`. Rădăcinile Java declarate sunt apoi parcurse integral; numele legal al unui package nu exclude sursa compilabilă.
 - O rădăcină goală, ieșită din modul, nesigură sau cu expresie Maven nerezolvată produce diagnostic.
 - Inventarul citește căile literale din POM; nu înlocuiește effective POM,
   moștenirea ori activarea profilelor Maven. Comentariile XML nu declară rădăcini.
 - Guard-ul expresiilor rămâne limitat la reporting tests și păstrează cele
   trei adaptoare revizuite. Detectează namespace-urile ATF actuale și legacy,
   constructori și apeluri pe mai multe linii, fără exemplele din comentarii/literale.
+
+### Două inventare cu responsabilități distincte
+
+| Intrare | Ce inspectează | Limita probei |
+|---|---|---|
+| `atf.api.tests.governance.layers.AtfJavaSourceInventory` | rădăcinile Maven main/test pentru guard-urile de nivel și lizibilitate | selecția literală și excluderile descrise mai sus |
+| `atf.core.files.AtfJavaSourceInventory` | declarațiile de package dintr-o rădăcină deja aleasă, pentru coeziune | nu rezolvă POM-uri și nu demonstrează acoperirea inventarului Maven |
+
+Un test verde al grupării Core nu închide lacuna de selecție a guard-urilor
+Maven. [Criteriul de acoperire](README.md#inventarul-comun-al-surselor-java)
+cere compararea surselor compilabile cu cele efectiv inspectate.
+
+[Proba inventarului](src/test/java/atf/api/tests/governance/AtfSourceReadabilityGovernanceTest.java)
+compilează independent surse în package-uri `target`/`artifacts` și cere detectarea
+încălcării din fiecare fișier; output-ul modulului rămâne în afara selecției.
 
 ## Guvernanța schimbării testelor
 

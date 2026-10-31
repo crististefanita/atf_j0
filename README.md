@@ -1,8 +1,21 @@
 # ATF — platformă modulară pentru testare și rezultate verificabile
 
+Referința surselor Core/Reporting și a regresiilor este `atf_j0`; distribuția către J1 și J2 urmează [protocolul de sincronizare](docs/ATF_Workspace_Synchronization.md).
+
+Scenariile AutoEx/Shop au owner în J1; copiile din acest reactor verifică
+consumul Reporting sursă. J2 pregătește separat testarea cozilor și mesajelor.
+
 `API determinist → validare semantică → raport Extent → audit UI`
 
 ## ATF Java — prezentare executivă
+
+| Workspace | Rol și punct de intrare |
+|---|---|
+| J0 | 12 module, sursa Reporting și regresiile native/mock/browser; [atlasul sursei](../atf_j0/docs/ATF_Context_Atlas.md) |
+| J1 | 9 module sursă, scenarii AutoEx/Shop și Core/Reporting JAR; [atlasul consumerului](../atf_j1/docs/ATF_Context_Atlas.md) |
+| J2 · WIP | 7 module sursă, Core/Reporting JAR, un modul de test Kafka/mesagerie și Setup PowerShell în Podman; [atlasul WIP](../atf_j2/docs/ATF_Context_Atlas.md) |
+
+Rolul proiectului și rezultatul verificat sunt distincte: un build sau un MOCK verde nu certifică serviciul extern, brokerul ori întregul ATF.
 
 ATF Java este platforma care leagă execuția deterministă a testelor API de
 validarea semantică, publicarea artefactului Extent și auditul UI al rezultatului.
@@ -427,4 +440,8 @@ Root README-ul descrie sistemul de sus în jos. Nu păstrează lifecycle-ul inte
 schema completă YAML, class contracts, CSS sau jurnalul unui run; acestea aparțin
 ownerului și sunt protejate de testele lui.
 
+## Core ca bibliotecă — owner și deployment
 
+J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module.
+[Contractul Core C1](docs/ATF_Core_Consumer.md) separă sursa, publicarea și acceptanțele J1/J2.
+Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.

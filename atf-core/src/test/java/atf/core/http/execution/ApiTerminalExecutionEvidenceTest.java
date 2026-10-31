@@ -37,6 +37,41 @@ class ApiTerminalExecutionEvidenceTest {
     private static ApiResponse busy(String url) { return new ApiResponse(503, "busy", Map.of(), Duration.ofMillis(3), url); }
     private static ApiExecutionSnapshot snapshot(Throwable error) { return ApiExecutionFailure.find(error).orElseThrow(); }
 
+    @Test void aDispatchedPendingFutureIsCancelledExactlyAtItsDeadline() {
+        var clock = new Clock(); var calls = new AtomicInteger(); var waits = new AtomicInteger();
+        var pending = new CompletableFuture<ApiResponse>() {
+            @Override public ApiResponse get(long timeout, TimeUnit unit) throws TimeoutException {
+                waits.incrementAndGet(); clock.advance(unit.toNanos(timeout));
+                throw new TimeoutException("controlled pending transport");
+            }
+        };
+        ApiTransport transport = (request, url, auth) -> { calls.incrementAndGet(); return pending; };
+        var executor = new ApiExecutor(transport, ORIGIN, RetryPolicy.none(), clock);
+        var failure = assertThrows(ApiExecutionException.class,
+                () -> executor.execute(REQUEST, Duration.ofMillis(30), CancellationToken.none()));
+        assertInstanceOf(TimeoutException.class, failure.getCause()); assertTrue(failure.getMessage().contains("timed out"));
+        assertEquals(1, calls.get()); assertEquals(1, waits.get()); assertTrue(pending.isCancelled());
+        var evidence = snapshot(failure);
+        assertEquals(1, evidence.attempts()); assertEquals(ApiAttemptOutcome.TIMED_OUT, evidence.termination());
+        assertEquals(Duration.ofMillis(30), evidence.totalDuration()); assertTrue(evidence.response().isEmpty());
+        assertEquals(List.of(ApiAttemptOutcome.TIMED_OUT), evidence.attemptHistory().stream().map(ApiAttemptRecord::outcome).toList());
+        assertTrue(evidence.attemptHistory().getFirst().httpStatus().isEmpty());
+    }
+
+    @Test void expiryBeforeDispatchDoesNotCancelAFutureTheExecutorNeverAcquired() {
+        var clock = new Clock(); var calls = new AtomicInteger(); var pending = new CompletableFuture<ApiResponse>();
+        ApiTransport transport = (request, url, auth) -> { calls.incrementAndGet(); return pending; };
+        // Preparation consumes the budget at a public cancellation checkpoint without requesting cancellation.
+        CancellationToken preparation = () -> { clock.advance(Duration.ofMillis(31).toNanos()); return false; };
+        var executor = new ApiExecutor(transport, ORIGIN, RetryPolicy.none(), clock);
+        var failure = assertThrows(ApiExecutionException.class, () -> executor.execute(REQUEST, Duration.ofMillis(30), preparation));
+        assertInstanceOf(TimeoutException.class, failure.getCause()); assertEquals(0, calls.get()); assertFalse(pending.isCancelled());
+        var evidence = snapshot(failure);
+        assertEquals(0, evidence.attempts()); assertEquals(ApiAttemptOutcome.TIMED_OUT, evidence.termination());
+        assertEquals(Duration.ofMillis(31), evidence.totalDuration()); assertTrue(evidence.attemptHistory().isEmpty());
+        assertTrue(evidence.response().isEmpty());
+    }
+
     @Test void aTerminalTransportFailureRetainsTheEarlier503ThroughThePublicContract() {
         var clock = new Clock(); var calls = new AtomicInteger();
         var original = new IOException("controlled terminal transport failure");

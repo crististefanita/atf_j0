@@ -2216,3 +2216,13 @@ Comanda selectează proba numită și construiește dependențele; nu declară
 trecerea întregului modul. Proba locală nu demonstrează randarea în browser; aceasta aparține Reporting Tests.
 
 </details>
+
+## Limite de acceptanță încă deschise
+
+| Suprafață | Limită și owner |
+|---|---|
+| inspector generic | [profilul assertion-only/HTTP și renderer](../docs/feedback/ATF_Reporting_Feedback.md#report-artifact-profile-62--aplicabilitate-explicită-a-inspectorului) trebuie declarat; rezultatul J6 nu certifică orice structură de raport |
+| timing capturat/publicare | [sursele temporale](../docs/feedback/ATF_Reporting_Feedback.md#report-recorded-timing-83--execuție-capturată-și-cost-de-publicare) cer regresie neutră; un verdict corect nu certifică atribuirea duratei |
+| API și distribuție | [criteriile de release](../docs/feedback/ATF_Reporting_Feedback.md) rămân distincte de compilarea ori consumarea candidatului JAR |
+
+Contractele livrate sunt descrise în secțiunile ownerilor. Lacunele rămân în feedback, cu [regresii permanente](../atf-reporting-tests/README.md#regresia-permanentă-a-fiecărui-defect-reporting) înaintea corecției și a unui nou JAR.

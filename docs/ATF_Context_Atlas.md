@@ -1,6 +1,12 @@
 # Atlas de context ATF — intrări, ownership și probe
 
+[Referința J0 și sincronizarea J1/J2](ATF_Workspace_Synchronization.md) fixează ownership-ul, starea țintelor și dovada fiecărei livrări.
+
 ## Pe scurt
+
+J0 deține implementarea și regresiile Reporting; J1 deține scenariile AutoEx/Shop.
+J2 este WIP pentru framework și teste Kafka/mesagerie, cu Setup PowerShell în Podman;
+[harta workspace-urilor](ATF_Workspace_Synchronization.md) separă infrastructura copiată de contractele și acceptanța mesageriei.
 
 Atlasul reduce contextul inițial pentru un cititor sau un AI: alegi boundary-ul,
 identifici contractul și proba, apoi deschizi numai sursa relevantă și callerul
@@ -38,6 +44,16 @@ său. Codul, POM-ul și testele live rămân autoritatea pentru ceea ce există.
 
 </details>
 
+## Boundary-uri de fidelitate
+
+| Schimbare | Contract și probă |
+|---|---|
+| mască literală și Authorization quoted/trunchiat | [Core security](../atf-core/src/main/java/atf/core/security/README.md); comparație originală → redacție → preview → Extent/fallback |
+| MIME și headere efective | [Core HTTP](../atf-core/README.md#media-type-headere-și-vocabular-de-protocol); tip/subtip, precedență și o singură expediere |
+| URI al artifactului | [Debug UI](../atf-debug-ui/README.md#identitatea-path-ului-uri); plus, spațiu și o singură decodare |
+| sursă compilabilă versus output | [ATF Tests](../atf-tests/README.md#inventarul-comun-al-surselor-java); descoperire POM separată de parcurgerea rădăcinii Java |
+| credentiale în formularul API AutoEx | [auditul fixture-ului](../atf-test-auto-ex/README.md#credentiale-în-aserțiunile-componente-api); egalitatea map-ului original, proiecție publică și diagnostic fără parola brută |
+
 ## Traseul de context
 
 ```mermaid
@@ -65,6 +81,15 @@ pornește investigația; nu înlocuiește verificarea sursei afectate.
 </details>
 
 ## Context minim pentru o schimbare
+
+| Decizie inițială | Sursa de adevăr | Limita ei |
+|---|---|---|
+| ce reactor folosesc? | [workspace-uri](ATF_Workspace_Synchronization.md), apoi POM-ul țintei | J0 sursă 12, J1 JAR 10, J2 WIP 8; profilurile nu se deduc din foldere absente |
+| schimbare Reporting? | [atlasul sursei J0](../../atf_j0/atf-reporting/src/main/java/atf/reporting/README.md) și [regresiile permanente](../../atf_j0/atf-reporting-tests/README.md) | documentația sursei nu certifică automat binarul J6 consumat |
+| schimbare de aplicație? | [Shop](../../atf_j1/atf-test-practice-shop/README.md) sau [AutoEx](../../atf_j1/atf-test-auto-ex/README.md) | expected, captură și selecție business rămân în consumer |
+| schimbare Kafka/Podman? | [atlasul J2](../../atf_j2/docs/ATF_Context_Atlas.md), apoi Setup și configurația | trei componente MOCK și scripturi existente; clientul Java/brokerul real sunt WIP |
+
+
 
 1. Citește harta pachetului și secțiunea relevantă din README-ul modulului.
    Înaintea refactorizării, reconciliază feedback-ul ownerului cu sursa live și
@@ -267,3 +292,9 @@ decide ce se mută sau se elimină după dovadă.
   Un README copiat pentru merge nu devine accidental document al proiectului.
 - Reia hash-urile live înaintea promovării. Contextul citit anterior nu autorizează
   suprascrierea schimbărilor paralele și nu certifică automat noua combinație.
+
+## Core ca bibliotecă — owner și deployment
+
+J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module.
+[Contractul Core C1](ATF_Core_Consumer.md) separă sursa, publicarea și acceptanțele J1/J2.
+Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.

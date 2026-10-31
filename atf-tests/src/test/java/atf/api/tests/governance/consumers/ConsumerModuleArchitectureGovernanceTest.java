@@ -24,6 +24,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
 
     @Test
     void autoExBusinessPortsRemainIndependentOfBrowserConfigurationRunnerAndPublisher() throws Exception {
+        if (!consumer("atf-test-auto-ex")) return;
         Path business = module("atf-test-auto-ex").resolve("src/main/java/atf/autoex/business");
         assertTrue(Files.isDirectory(business), "the cart pilot must have a real business owner");
         assertTrue(businessViolations(business).isEmpty(), () -> "Business dependencies escaped: " + business);
@@ -61,6 +62,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
 
     @Test
     void shopKeepsJUnitHarnessTestScopedAndRuntimeFactoriesInMain() throws IOException {
+        if (!consumer("atf-test-practice-shop")) return;
         Path module = module("atf-test-practice-shop");
         Path testRoot = module.resolve("src/test/atf/shop/tests");
         Path context = testRoot.resolve("support/lifecycle/ShopE2eContext.java");
@@ -94,6 +96,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
 
     @Test
     void shopRuntimeAcquisitionAndMetadataUseExplicitInputsOutsideJUnit() throws IOException {
+        if (!consumer("atf-test-practice-shop")) return;
         Path module = module("atf-test-practice-shop");
         for (String name : List.of("runtime/ShopBrowserRuntime.java", "runtime/ShopRunReportFactory.java",
                 "reporting/environment/ShopReportSystemMetadata.java")) {
@@ -117,6 +120,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
 
     @Test
     void shopUiSourcesRespectTheLocatorAndSelectorBoundary() throws IOException {
+        if (!consumer("atf-test-practice-shop")) return;
         Path module = module("atf-test-practice-shop");
         Path sourceRoot = module.resolve("src/main/atf/shop");
         Path testRoot = module.resolve("src/test/atf/shop/tests");
@@ -145,6 +149,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
 
     @Test
     void shopLocalSelectionAndApiAuditKeepExplicitBoundaries() throws IOException {
+        if (!consumer("atf-test-practice-shop")) return;
         Path tests = module("atf-test-practice-shop")
                 .resolve("src/test/atf/shop/tests");
         String componentSuite = Files.readString(tests.resolve("suites/ShopComponentSuite.java"));
@@ -190,6 +195,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
 
     @Test
     void shopE2eTestsUseObservedAssertionsAndPerMethodHarnesses() throws IOException {
+        if (!consumer("atf-test-practice-shop")) return;
         Path e2e = module("atf-test-practice-shop")
                 .resolve("src/test/atf/shop/tests/e2e");
         for (String name : List.of("ShopPurchaseE2eTest", "ShopUiOnlyPurchaseE2eTest",
@@ -220,6 +226,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
 
     @Test
     void autoExKeepsRuntimeInMainAndJUnitAtTheExecutionBoundary() throws IOException {
+        if (!consumer("atf-test-auto-ex")) return;
         Path module = module("atf-test-auto-ex");
         Path main = module.resolve("src/main/java/atf/autoex");
         Path test = module.resolve("src/test/java/atf/autoex/tests");
@@ -314,6 +321,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
 
     @Test
     void autoExSuitesKeepComponentPurchaseAndLiveApiExecutionSeparate() throws IOException {
+        if (!consumer("atf-test-auto-ex")) return;
         Path tests = module("atf-test-auto-ex").resolve("src/test/java/atf/autoex/tests");
         String component = Files.readString(tests.resolve("suites/AutoExComponentSuite.java"));
         assertTrue(component.contains("@SelectPackages(\"atf.autoex.tests.component\")"));
@@ -338,6 +346,10 @@ public class ConsumerModuleArchitectureGovernanceTest {
         assertTrue(liveContract.contains("atf.autoex.api.live.enabled"));
     }
 
+    private static boolean consumer(String name) {
+        return AtfGovernanceTestSupport.consumerDeclared(AtfGovernanceTestSupport.locateProjectRoot(), name);
+    }
+
     private static Path module(String name) {
         return AtfGovernanceTestSupport.locateProjectRoot().resolve(name);
     }
@@ -348,6 +360,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
         assertTrue(Files.isRegularFile(kit.resolve(
                 "src/main/java/atf/testkit/lifecycle/TestRunInitialization.java")),
                 "generic acquisition and rollback belong to Test Kit");
+        if (consumer("atf-test-auto-ex")) {
         Path autoEx = module("atf-test-auto-ex");
         assertFalse(Files.exists(autoEx.resolve(
                 "src/test/java/atf/autoex/support/lifecycle/AutoExE2eInitialization.java")),
@@ -359,6 +372,8 @@ public class ConsumerModuleArchitectureGovernanceTest {
                 "src/test/java/atf/autoex/tests/extension/AutoExRunFactory.java"))
                 .contains("TestRunInitialization.create("),
                 "AutoEx must wire its browser/report callbacks into shared initialization");
+
+        }
 
         for (Path source : javaFiles(kit.resolve("src/main/java"), kit.resolve("src/test/java"),
                 module("atf-reporting-tests").resolve("src/test/java"))) {
@@ -388,6 +403,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
             assertTrue(Files.isRegularFile(kit.resolve("src/main/java/atf/testkit/" + primitive + ".java")));
             assertTrue(Files.isRegularFile(kit.resolve("src/test/java/atf/testkit/" + primitive + "Test.java")));
         }
+        if (consumer("atf-test-auto-ex")) {
         Path autoEx = module("atf-test-auto-ex").resolve("src/test/java");
         for (String duplicate : List.of("atf/autoex/support/AutoExApiTrafficWindow.java",
                 "atf/autoex/support/AutoExScreenAuditObservations.java",
@@ -399,11 +415,14 @@ public class ConsumerModuleArchitectureGovernanceTest {
         String run = Files.readString(module("atf-test-auto-ex").resolve(
                 "src/main/java/atf/autoex/runtime/AutoExE2eRun.java"));
         assertTrue(run.contains(".observationsSince(") && run.contains("UiScreenAudit.record("));
+        }
+        if (consumer("atf-test-practice-shop")) {
         Path shop = module("atf-test-practice-shop").resolve("src/test/atf/shop/tests");
         String support = Files.readString(shop.resolve("support/ShopE2eTestSupport.java"));
         assertTrue(support.contains("new CloseOnceResource<>("));
         assertFalse(support.contains("class E2eResource"), "close-once must not be duplicated in Shop");
         assertTrue(support.contains("ShopPurchaseConfirmation.assertions(result)"));
+        }
         assertTrue(Files.isRegularFile(module("atf-ui").resolve(
                 "src/main/java/atf/ui/audit/UiScreenAudit.java")));
         ReportingHarnessOwnership.read(AtfGovernanceTestSupport.locateProjectRoot()).requireFile(module("atf-reporting-tests").resolve(
@@ -425,6 +444,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
         var annotations = atf.api.tests.governance.layers.AtfTestLayerArchitectureTest
                 .annotationSources(AtfGovernanceTestSupport.locateProjectRoot());
         for (String name : List.of("atf-test-auto-ex", "atf-test-practice-shop")) {
+            if (!consumer(name)) continue;
             var sources = new java.util.HashMap<String, String>();
             for (Path path : javaFiles(module(name).resolve("src/test"))) {
                 String source = Files.readString(path);

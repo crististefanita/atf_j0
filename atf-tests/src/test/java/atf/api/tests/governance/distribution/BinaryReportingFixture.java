@@ -12,7 +12,7 @@ import java.util.jar.JarOutputStream;
 
 /** A private packaged fixture: mutations affect no live JAR, cache or producer source. */
 final class BinaryReportingFixture {
-    final Path root, jar, pom, manifest;
+    final Path root, jar, pom;
     private String extraDependency = "";
     private boolean hiddenReference;
 
@@ -21,8 +21,6 @@ final class BinaryReportingFixture {
         DeploymentFixture.prepare(root, false);
         Path lib = root.resolve("lib"); Files.createDirectories(lib);
         jar = lib.resolve("atf-reporting-fixture.jar"); pom = lib.resolve("atf-reporting-fixture.pom");
-        manifest = root.resolve("reporting-source-manifest.json");
-        Files.writeString(manifest, "[{\"Path\":\"src/test/java/fixture/NativeTest.java\",\"Hash\":\"fixture\"}]");
         publish();
     }
     void withAtfDependency() throws Exception {
@@ -48,7 +46,11 @@ final class BinaryReportingFixture {
         metadata.put("coordinate", "atf.api:atf-reporting:fixture");
         metadata.put("binarySha256", ReportingGovernanceSurface.hash(jar));
         metadata.put("publishedPomSha256", ReportingGovernanceSurface.hash(pom));
-        metadata.put("producerManifestSha256", ReportingGovernanceSurface.hash(manifest));
+        var inputs = metadata.putObject("producerInputs");
+        inputs.put("files", 1); inputs.put("sha256", "a".repeat(64));
+        inputs.putArray("nativeTests").addObject().put("path", "src/test/java/fixture/NativeTest.java")
+                .put("sha256", "b".repeat(64));
+        metadata.put("producerInputsSha256", ReportingGovernanceSurface.hashJson(inputs));
         new ObjectMapper().writeValue(root.resolve("library-provenance.json").toFile(), metadata);
     }
     private static final class HiddenReference { ApiRequest request; }

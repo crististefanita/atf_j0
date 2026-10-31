@@ -43,6 +43,8 @@ sunt la ownerii lor, iar registrul păstrează numai criteriile încă deschise.
 
 | ID | Scor /100 | Criteriul care blochează închiderea |
 |---|---:|---|
+| [REPORT-ARTIFACT-PROFILE-62](#report-artifact-profile-62--aplicabilitate-explicită-a-inspectorului) | 89 = 35 + 27 + 19 + 8 | profil explicit pentru assertion-only/HTTP și renderer; dovadă J6 în J2 |
+| [REPORT-RECORDED-TIMING-83](#report-recorded-timing-83--execuție-capturată-și-cost-de-publicare) | 88 = 35 + 26 + 19 + 8 | faza capturată și copilul măsurat la publicare pot expune durate incompatibile |
 | `REPORT-PUBLIC-API-43` | 81 = 31 + 24 + 17 + 9 | API-ul susținut, compatibilitatea și capabilitățile adaptoarelor nu sunt delimitate suficient |
 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) | 80 = 31 + 24 + 18 + 7 | criteriu separat al consumerului: oracol per scenariu și containment fallback |
 | `UI-RECOVERY-AUDIT-01` | 78 = 33 + 22 + 16 + 7 | proiecția typed a încercărilor, bugetelor și corelării rămâne la Reporting |
@@ -114,6 +116,35 @@ Namespace-ul întreg nu poate deveni automat o promisiune de compatibilitate.
       Consumerul extern și comparația binară a incrementului există; ele nu
       declară automat suport pentru fiecare clasă Java publică.
 
+### Consumer J3 — evidence public fără transport
+
+**Dovadă nouă:** consumerul speech J3 folosește J6 fizic, SHA-256
+`caebfbe51da5f00241f0c092281cb19fd3fc887ebe0e0a0a57cdca71f3d591c1c`.
+Auditul TAB din 2026-10-31 confirmă că `Phase.detail` nu afișează reference,
+transcript sau intervalele ASR. Contractul îl declară context intern; nu este
+un defect de comparație ori o autorizație de a transforma acest canal în log public.
+
+J3 publică acum comparația reală prin assertion-step, cu verdictul calculat
+o singură dată; observațiile complete sunt păstrate în JSON extern.
+Rămâne lipsa unui canal public neutru pentru observații fără transport.
+
+- [ ] Declarați o capabilitate explicită pentru evidence non-transport:
+      câmpuri, corp structurat și referință de artifact, fără inventarea unui
+      request HTTP sau a unui assertion tautologic pentru o valoare afișată.
+- [ ] Păstrați separat contextul intern al fazei și diagnosticele FAIL/ABORT;
+      un câmp informativ nu devine cauză de execuție sau assertion PASS.
+- [ ] Probați câmpuri distincte în două invocări parametrizate, text lung,
+      redactare, extindere cu tastatura și rândul final în Extent/fallback,
+      din aceeași pereche JAR/POM livrată și cu oracol independent de HTML.
+- [ ] Păstrați preview 240 și valorile complete ca artifact; documentați
+      explicit diferența dintre comparație, observație și verdict.
+- [ ] La implementare, protejați în J0 regresiile Reporting și consumatorii
+      UI/API existenți; validați J1/J2/J3 separat când li se livrează versiunea.
+
+**Închidere:** consumerul poate publica observații auditable fără workaround
+de transport și fără date cerute, dar absente din artifactul vizibil.
+Această cerință de API nu cere modificarea binarului J6 în incrementul J3.
+
 ## REPORT-RELEASE-CONTRACT-45 — ce conține și ce promite pachetul
 
 **Prioritate: 73/100** = impact 25 + lacună 22 + lucrabil 17 + documentare 9.
@@ -144,6 +175,7 @@ automat de release, împreună cu metadatele și dependențele efectiv susținut
 - [ ] Verificați conținutul JAR/POM, inventarul assets, lipsa testelor/dependențelor
       ATF din runtime și rezolvarea externă. Decideți sursele/JavaDoc și metadatele
       de distribuție înainte de publicare; fără alegere implicită a licenței proiectului.
+- [ ] Folosiți J0 ca owner al candidatului și validați separat J1/J2 după inițializarea fiecărei ținte; aceeași pereche JAR/POM și hash, fără moștenirea rezultatelor altui consumer sau rescrierea provenienței istorice.
 - [ ] Documentați instalarea/consumul real și diagnosticul unei incompatibilități
       de runtime ori vendor; `mvn package` verde rămâne doar o parte a acceptanței.
 
@@ -303,3 +335,98 @@ Refactorizările păstrează contractele ownerilor de mai sus și urmează
 [ghidul de probă](../ATF_Testing_Guide.md#proba-fiecărui-owner-de-resurse).
 Reevaluarea folosește [rubrica comună de cod](../README_Atf_CodeBestPractices.md#rubrica-reevaluării-modulelor),
 cu randare inspectată și regresiile ownerului trecute în TMP.
+
+## REPORT-ARTIFACT-PROFILE-62 — aplicabilitate explicită a inspectorului
+
+**Prioritate: 89/100** = impact 35 + lacună 27 + lucrabil 19 + documentare 8.
+**Owner:** Reporting; regresia neutră aparține Reporting Tests.
+
+Reproducerea J2 pe J6 separă un raport valid fără HTTP de cerințele neaplicabile ale inspectorului generic.
+
+| Axă | Observație și limită |
+|---|---|
+| assertion-only Extent | trei faze, 12 comparații, fără exchange; inspectorul refuză request/response evidence split |
+| negativ de mesagerie | duplicate-effect păstrează refuzul inspectorului, pe lângă assertion-ul FAIL legitim |
+| fallback | inspectorul cere markeri specifici Extent; rezultatul singur nu demonstrează defect de randare |
+| consumer | receipt-ul păstrează rezultatul original; oracolul separat refuză removed-table/inverted-result |
+
+[ReportArtifactInspector](../../atf-reporting/src/main/java/atf/reporting/artifact/ReportArtifactInspector.java) nu primește profil sau inventar așteptat. Nu compensați prin request-uri fictive ori prin deducerea permisivă a profilului din dovada lipsă.
+
+- [ ] Declarați rendererul și dovezile așteptate, inclusiv assertion-only, cu compatibilitate explicită pentru callerii existenți.
+- [ ] Un request obligatoriu eliminat trebuie să rămână FAIL; separați publicarea de aplicabilitatea contractului HTTP.
+- [ ] Păstrați nominalele și mutanții per scenariu, Extent/fallback, cu taburi, expandări până la ultima comparație și navigare Fails.
+
+**Închidere:** populația semantică cerută este acceptată în fiecare renderer, iar fiecare dovadă obligatorie eliminată este refuzată. API-ul primește intenția callerului; default-urile nu se relaxează din absența dovezii.
+
+<details>
+<summary><strong>Dovada binară și limita acceptanței existente</strong></summary>
+
+JAR: `1.0.0-j6`, SHA-256 `CAEBFBE51DA5F00241F0C092281CBB19FD3FC887EBE0A0A57CDCA71F3D591C1C`.
+Matricea consumerului este în [ghidul J2](../../../atf_j2/docs/ATF_Eventuate_Testing.md#acceptanța-raportului).
+Bootstrap-ul auditabil al consumerului nu închide inspectorul generic sau regresia permanentă a producătorului.
+
+</details>
+
+## REPORT-RECORDED-TIMING-83 — execuție capturată și cost de publicare
+
+**Prioritate: 88/100** = impact 35 + lacună 26 + lucrabil 19 + documentare 8.
+**Owner:** Reporting pentru contractul temporal; adaptorul J2 pentru datele furnizate.
+
+Raportul Extent API individual a expus durate de execuție capturate lângă durate măsurate la publicare. Verdicturile și comparațiile corecte nu demonstrează coerența acestor surse de timp.
+
+| Fază observată | Copil afișat | Limită de interpretare |
+|---|---|---|
+| SETUP: 21 ms | Component assertions: 94 ms | durata pasului nu poate fi atribuită implicit execuției capturate |
+| TEST BODY: 68 ms | request: 514 ms | timpul transportului, al observației și al publicării trebuie delimitate |
+
+- [ComponentReportRun](../../../atf_j2/atf-test-eventuate/src/main/java/atf/eventuate/reporting/ComponentReportRun.java) aplică timpul capturat fazei și apoi publică dovezile.
+- [AssertionAuditReport](../../atf-reporting/src/main/java/atf/reporting/audit/AssertionAuditReport.java) deschide pasul la publicare; codul sugerează amestecul măsurătorilor, fără a demonstra un defect exclusiv al rendererului.
+- Închidere: regresie permanentă mock/contract în Reporting Tests, latență de publicare controlată și oracol independent, Extent/fallback și individual/suită.
+- Păstrați distinct durata transportului; refuzați atribuirea artificială a costului de publicare, fără clamp, mutarea assertions sau sleep-uri probabilistice.
+
+<details>
+<summary><strong>Artifactul observat</strong></summary>
+
+API individual J2: `eventuate-extent-2026-10-31T10-07-15.582149200Z-7abc17e2.html`.
+SHA-256: `24831EA551633629354AA0EF511A307F283A0808DC83954BC189F19F7E3191E6`.
+Aceasta este dovadă existentă, nu o execuție nouă ori un contract temporal deja închis.
+
+</details>
+
+
+<details>
+<summary><strong>Revalidare la distribuția Core C1 — Reporting J6 rămâne distinct</strong></summary>
+
+La 2026-10-31, suita Eventuate cu Core C1 și același Reporting J6 expune
+TEST BODY de 109 ms și request-ul copil de 185 ms. Tabelul assertion-urilor
+este lizibil până la ultima comparație, cu click/Enter/Space; aceasta nu închide
+coerența duratelor, care rămâne criteriul de mai sus.
+
+| Dovadă | Valoare și limită |
+|---|---|
+| artifact | `eventuate-extent-2026-10-31T12-14-59.148865600Z-aafacc10.html` |
+| SHA-256 HTML | `C0E43FD46B4027C4B25EB85F1DB760529615C2DC26374A2D58E0BF615243A420` |
+| caz | `EventuateApiContractComponentTest` → `API contract · approved order` → TEST BODY |
+| sursă versus JAR Core | 127 clase de producție identice byte cu byte; împachetarea nu corectează contractul temporal Reporting |
+| regresie necesară | fixture neutru în `atf-reporting-tests`, cu execuție capturată și publicare controlată, Extent/fallback și JAR fizic |
+
+Dovada este observată pe binarul J6 existent. Cele 32 de regresii Reporting
+focalizate ale incrementului Core sunt verzi; selecția nu substituie proba
+permanentă cerută de acest criteriu.
+
+</details>
+
+## REPORT-MQ-02 — propunere condiționată de contractul brokerului real
+
+**Prioritate: 82/100. Owner:** Reporting; J2 furnizează contractul și witness-ul real.
+
+După probele pe broker real, evaluați o dovadă publică pentru mesaj/livrare,
+poziție și tentative, distinctă de HTTP. Păstrați rendererul independent
+de Kafka/RabbitMQ și verdictul business la caller.
+
+- Assertions neutre sunt contractul implementat în J2 acum; un tabel MQ nativ nu blochează cele trei componente și nu este declarat livrat.
+- Propunerea a fost mutată din copia J2, pentru un singur owner al bibliotecii.
+
+Închidere după acceptarea designului: Extent/fallback conservă identități,
+timing, FAIL și dovezi incomplete; fixture-ul neutru și navigarea au regresii
+în Reporting Tests, fără expected-uri sau cod Eventuate în renderer.

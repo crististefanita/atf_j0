@@ -1,5 +1,7 @@
 # Build și execuție sigură pentru ATF
 
+Pentru sursele Core și Reporting din `atf_j0` și țintele J1/J2, aplică [protocolul workspace-ului](ATF_Workspace_Synchronization.md) înaintea sync-ului selectiv.
+
 ## Pe scurt
 
 - live-ul este contextul de lucru și sursa de sincronizare;

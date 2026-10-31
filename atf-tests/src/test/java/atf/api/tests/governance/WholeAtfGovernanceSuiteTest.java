@@ -28,6 +28,7 @@ import org.junit.platform.suite.api.Suite;
 @AtfIntegrationTest
 @Suite
 @SelectClasses({
+        atf.api.tests.governance.distribution.core.CoreGovernanceSurfaceTest.class,
         GovernanceDeploymentTest.class,
         ReportingGovernanceSurfaceTest.class,
         ReportingHarnessOwnershipTest.class,

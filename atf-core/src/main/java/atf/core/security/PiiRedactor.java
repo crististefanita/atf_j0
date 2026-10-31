@@ -20,7 +20,7 @@ final class PiiRedactor implements Redactor {
         if (value == null || !context.enabled() || !context.settings().piiEnabled()) {
             return value;
         }
-        return PHONE.matcher(EMAIL.matcher(value).replaceAll(context.replacement()))
-                .replaceAll(context.replacement());
+        String mask = context.quotedReplacement();
+        return PHONE.matcher(EMAIL.matcher(value).replaceAll(mask)).replaceAll(mask);
     }
 }

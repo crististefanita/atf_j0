@@ -1578,6 +1578,18 @@ cauzal al interacțiunilor browserului.
 
 </details>
 
+### Credentiale în aserțiunile componente API
+
+Oracolul formularului compară integral map-urile originale, inclusiv valoarea,
+prezența și casing-ul cheii `password`. Raportul primește proiecția câmpurilor
+nesensibile și rezultatul boolean al egalității complete; nu primește parola
+fixture-ului, nici când comparația eșuează.
+
+[AutoExApiContractComponentTest](src/test/java/atf/autoex/tests/component/api/AutoExApiContractComponentTest.java)
+păstrează round-trip-ul pentru caractere rezervate și Unicode. Negativele
+refuză mismatch-ul, câmpul lipsă, câmpul gol neașteptat și cheia cu casing greșit;
+diagnosticul JUnit și pasul standard colapsabil rămân fără credentiale brute.
+
 ## Politica BE a catalogului
 
 `automationExercise.browser.recovery` este OFF implicit, cu allowlist gol și captură pasivă OFF.

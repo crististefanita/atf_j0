@@ -43,6 +43,7 @@ public class AtfPackageCohesionGovernanceTest {
 
     @Test
     void automationExerciseProductionPackagesAreInTheGovernedInventory() throws Exception {
+        if (!AtfGovernanceTestSupport.consumerDeclared(locateProjectRoot(), "atf-test-auto-ex")) return;
         assertTrue(AtfModuleIds.SOURCE_GOVERNED_MODULES.contains(AtfModuleIds.AUTOMATION_EXERCISE),
                 "AutoEx has production sources and must participate in whole-ATF package governance");
         assertFalse(AtfModuleIds.TEST_ONLY_COMPOSITION_MODULES.contains(AtfModuleIds.AUTOMATION_EXERCISE),

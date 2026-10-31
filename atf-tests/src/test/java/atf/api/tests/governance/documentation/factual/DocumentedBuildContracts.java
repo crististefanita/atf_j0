@@ -33,7 +33,9 @@ final class DocumentedBuildContracts {
 
     private static void inspectConsumer(Path root, String document, String label, String module, List<String> failures) throws Exception {
         String source = module + "/pom.xml";
-        String actual = dependencyScope(pom(root.resolve(source)), AtfModuleIds.TEST_KIT);
+        boolean present = children(child(pom(root.resolve("pom.xml")), "modules"), "module").stream()
+                .anyMatch(entry -> entry.getTextContent().strip().equals(module));
+        String actual = present ? dependencyScope(pom(root.resolve(source)), AtfModuleIds.TEST_KIT) : "absent";
         List<String> rows = document.lines()
                 .dropWhile(value -> !value.equals("| Consumer | `compile` | `test` |"))
                 .skip(1).takeWhile(value -> value.startsWith("|"))
@@ -45,7 +47,8 @@ final class DocumentedBuildContracts {
             String[] cells = row.split("\\|", -1);
             if (cells.length == 5) {
                 boolean compile = tokens(cells[2]).contains("Test Kit"), test = tokens(cells[3]).contains("Test Kit");
-                declared = compile == test ? "missing or ambiguous scope" : compile ? "compile" : "test";
+                declared = cells[2].strip().equals("absent") && cells[3].strip().equals("absent") ? "absent"
+                        : compile == test ? "missing or ambiguous scope" : compile ? "compile" : "test";
             }
         } else if (rows.size() > 1) declared = "duplicate declaration";
         if (!actual.equals(declared)) failures.add(diagnostic(line, label + " Test Kit scope", declared, actual, source));

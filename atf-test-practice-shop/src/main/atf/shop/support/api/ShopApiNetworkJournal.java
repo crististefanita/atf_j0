@@ -37,6 +37,7 @@ import java.net.URI;
 import java.security.MessageDigest;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.EnumMap;
@@ -562,7 +563,7 @@ public final class ShopApiNetworkJournal {
         public String eventId() { return sequence > 0 ? "E" + sequence : ""; }
 
         public String correlationKey() {
-            return (method == null ? "" : method.toUpperCase()) + " "
+            return (method == null ? "" : method.toUpperCase(Locale.ROOT)) + " "
                     + ShopApiExchangeSelector.normalize(path);
         }
 

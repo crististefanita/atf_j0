@@ -7,7 +7,7 @@ oracol, fixture, classpath, navigare și acceptanța browserului.
 [Implementarea bibliotecii](ATF_Reporting_Feedback.md) păstrează lifecycle-ul,
 API-ul public, publicarea și release-ul; un test reparat nu închide implicit acel criteriu.
 
-**Prioritate: 80/100** = impact 31 + lacună 24 + lucrabil 18 + documentare 7.
+**Prioritate: 89/100** = impact 35 + lacună 27 + lucrabil 19 + documentare 8.
 Un candidat de bibliotecă cere și probele canonice afectate, cu ieșirea integrală
 păstrată în staging. O selecție focalizată verde nu certifică inventarul rezidual.
 
@@ -47,7 +47,7 @@ scenariului, fazei, ownerului, ordinalului și capturii originale.
       FAIL fără publicarea integrală a valorilor ori expunerea unui secret.
 
 **Închidere:** fiecare degradare focalizată are refuz observabil și diagnostic
-cu identitatea dovezii. [Proba business a consumerilor](ATF_Consumer_Business_Test_Focus_Feedback.md)
+cu identitatea dovezii. [Proba business a consumerilor](../ATF_Testing_Guide.md#acceptanța-business-individual-și-prin-suită)
 rămâne la aplicație; fixture-ul neutru nu aduce Shop/AutoEx în Reporting Tests.
 
 ## Dovada cerută pentru handoff
@@ -64,3 +64,39 @@ rămâne la aplicație; fixture-ul neutru nu aduce Shop/AutoEx în Reporting Tes
 Contractele și selecțiile sunt la [README-ul modulului](../../atf-reporting-tests/README.md).
 Build-ul și auditul respectă [procesul izolat](../ATF_Build_And_Execution_Safety.md);
 documentele normative nu păstrează artifacte sau rezultate datate.
+
+## REPORT-TEST-ARTIFACT-PROFILE-62 — matrice neutră fără HTTP fictiv
+
+**Prioritate: 89/100** = impact 35 + lacună 27 + lucrabil 19 + documentare 8.
+**Owner:** Reporting Tests. Criteriul API rămâne la
+[Reporting](ATF_Reporting_Feedback.md#report-artifact-profile-62--aplicabilitate-explicită-a-inspectorului).
+
+Consumerul J2 a reprodus pe J6 refuzul unui raport Extent exclusiv cu
+assertions și aplicarea contractelor Extent pe fallback. Transferați cazul
+într-un fixture neutru al producătorului, fără cod ori expected-uri Eventuate.
+
+- [ ] Publicați assertion-only și HTTP, individual și agregat, în ambele renderere;
+      fixați identitatea scenariului, fazelor și comparațiilor așteptate.
+- [ ] Refuzați eliminarea unui request obligatoriu, a unui tabel ori a ultimei
+      comparații și inversarea unui verdict. Un script sau un sibling PASS
+      nu poate satisface inventarul scenariului degradat.
+- [ ] Probați un mismatch după caracterul 240 și o comparație numerică FAIL;
+      verificați un singur diagnostic al cauzei și deep-link-ul la rândul original.
+- [ ] Rulați aceeași matrice pe sursă și pe JAR-ul fizic; validați browserul,
+      inclusiv Enter/Space, wrapping și lățimea disponibilă, înaintea închiderii.
+
+**Închidere:** profilul nominal este verde, fiecare mutant este refuzat de
+oracolul potrivit, iar raportul și hash-ul binarului sunt legate de execuția
+curentă. Cele 12 artifacte J2 nu substituie regresia permanentă a producătorului.
+
+
+## Timing capturat versus publicare — regresie de păstrat
+
+[REPORT-RECORDED-TIMING-83](ATF_Reporting_Feedback.md#report-recorded-timing-83--execuție-capturată-și-cost-de-publicare) are dovadă observată în consumerul J2, fără regresie permanentă închisă încă. Fixture-ul neutru trebuie să întârzie controlat publicarea după capturarea fazei și să verifice exact relațiile de timp în Extent/fallback, din sursă și JAR.
+
+Oracolul trebuie să refuze implementarea care atribuie costul de publicare execuției, fără sleep-uri probabilistice sau expected-uri derivate din același formatter. Păstrați assertions, verdicturile, expandările și preview-ul 240.
+
+| Revalidare Core C1 | Limită de acceptanță |
+|---|---|
+| J2 agregat: TEST BODY 109 ms, request copil 185 ms | [Dovada la owner](ATF_Reporting_Feedback.md#report-recorded-timing-83--execuție-capturată-și-cost-de-publicare) fixează artifactul și hash-ul |
+| native Core și expandări corecte | nu închid regresia temporală Reporting; fixture-ul neutru rămâne necesar |

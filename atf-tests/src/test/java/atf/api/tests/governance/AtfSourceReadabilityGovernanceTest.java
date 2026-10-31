@@ -59,7 +59,8 @@ public class AtfSourceReadabilityGovernanceTest {
                 """);
         var expected = new HashSet<Path>();
         for (String relative : List.of("shop/src/main/A.java", "shop/src/test/B.java",
-                "standard/src/main/java/C.java", "standard/src/test/java/D.java", "overlap/src/test/E.java")) {
+                "standard/src/main/java/C.java", "standard/src/test/java/D.java", "overlap/src/test/E.java",
+                "shop/src/main/target/Generated.java")) {
             expected.add(source(root, relative, "import java.util.List;\nimport java . util . List;\nclass Example {}"));
         }
         Path valid = source(root, "shop/src/main/Valid.java", """
@@ -67,7 +68,6 @@ public class AtfSourceReadabilityGovernanceTest {
                 class Valid { String example = "import java.util.List; import java.util.List;"; }
                 """);
         source(root, "shop/target/src/main/java/Generated.java", "import a.B;\nimport a.B;");
-        source(root, "shop/src/main/target/Generated.java", "import a.B;\nimport a.B;");
         source(root, "shop/unrelated/Outside.java", "import a.B;\nimport a.B;");
         assertEquals(expected.size(), duplicateImports(root).size());
         expected.add(valid);
@@ -113,12 +113,35 @@ public class AtfSourceReadabilityGovernanceTest {
             source(root, "atf-reporting-tests/src/test/java/" + adapter, "atf.reporting.Sample.run();");
         }
         source(root, "atf-reporting-tests/src/test/java/example/Bad.java", "new atf.reporting.Sample();");
-        source(root, "atf-reporting-tests/src/test/java/target/Generated.java", "atf.reporting.Sample.run();");
+        source(root, "atf-reporting-tests/target/generated-tests/Generated.java", "atf.reporting.Sample.run();");
         source(root, "other/pom.xml", "<project/>");
         source(root, "other/src/test/java/Business.java", "atf.reporting.Sample.run();");
         var violations = reportingViolations(root);
         assertEquals(1, violations.size());
         assertTrue(violations.getFirst().replace('\\', '/').equals("example/Bad.java:1"));
+    }
+
+    @Test
+    void legalOutputNamedPackagesRemainCompiledAndVisibleToTheGuard(@TempDir Path root) throws Exception {
+        source(root, "module/pom.xml", "<project/>");
+        var expected = new HashSet<Path>();
+        for (String relative : List.of("src/main/java/legal/Ordinary.java", "src/main/java/legal/target/Hidden.java",
+                "src/test/java/legal/OrdinaryTest.java", "src/test/java/legal/artifacts/HiddenTest.java")) {
+            String packageName = relative.contains("/target/") ? "legal.target"
+                    : relative.contains("/artifacts/") ? "legal.artifacts" : "legal";
+            String name = Path.of(relative).getFileName().toString().replace(".java", "");
+            expected.add(source(root, "module/" + relative, "package " + packageName
+                    + ";\nimport java.util.List;\nimport java . util . List;\npublic class " + name + " {}"));
+        }
+        Path output = Files.createDirectories(root.resolve("module/target/classes"));
+        var arguments = new ArrayList<String>(List.of("-d", output.toString()));
+        expected.stream().sorted().map(Path::toString).forEach(arguments::add);
+        assertEquals(0, javax.tools.ToolProvider.getSystemJavaCompiler().run(null, null, null, arguments.toArray(String[]::new)),
+                "Every expected source is independently compilable, including legal target/artifacts packages");
+        source(root, "module/target/generated/Outside.java", "import a.B;\nimport a.B;");
+        source(root, "module/artifacts/stale/pom.xml", "not XML and not a module");
+        assertEquals(expected, Set.copyOf(AtfJavaSourceInventory.allSources(root)));
+        assertEquals(4, duplicateImports(root).size(), "Each compiled source carries a violation detected by the real guard");
     }
 
     private static List<String> reportingViolations(Path project) throws Exception {

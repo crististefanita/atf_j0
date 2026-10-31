@@ -18,6 +18,6 @@ final class LocalPathRedactor implements Redactor {
         if (value == null || !context.enabled() || !context.settings().redactLocalPaths()) {
             return value;
         }
-        return USER_PATH.matcher(value).replaceAll("$1" + context.replacement());
+        return USER_PATH.matcher(value).replaceAll("$1" + context.quotedReplacement());
     }
 }

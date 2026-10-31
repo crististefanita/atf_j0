@@ -43,6 +43,7 @@ import static atf.testkit.assertions.AuditedAssertions.assertAll;
 import static atf.testkit.assertions.AuditedAssertions.assertEquals;
 import static atf.testkit.assertions.AuditedAssertions.assertFalse;
 import static atf.testkit.assertions.AuditedAssertions.assertTrue;
+import static atf.testkit.assertions.AuditedAssertions.assertThrows;
 
 /** Executes the consumer request catalog through the core executor and a deterministic offline transport. */
 @AutoExComponentTest
@@ -131,7 +132,7 @@ class AutoExApiContractComponentTest {
                 assertEquals(testCase.route().path(), request.path(), testCase.name() + " path");
                 assertEquals(testCase.expectedMethod().value(), request.method(), testCase.name() + " method");
                 assertEquals(testCase.expectedQuery(), request.query(), testCase.name() + " query parameters");
-                assertEquals(testCase.expectedFormFields(), decodeForm(request.bodyText()),
+                auditFormFields(testCase.expectedFormFields(), decodeForm(request.bodyText()),
                         testCase.name() + " form body fields");
                 assertEquals(testCase.expectedFormFields().isEmpty() ? null : APPLICATION_FORM_URLENCODED,
                         request.headers().get(HttpHeader.CONTENT_TYPE.value()), testCase.name() + " content type");
@@ -167,11 +168,9 @@ class AutoExApiContractComponentTest {
 
         assertAll(
                 () -> assertEquals(POST.value(), login.method()),
-                () -> assertEquals(EMAIL, loginFields.get("email")),
-                () -> assertEquals(PASSWORD, loginFields.get("password")),
+                () -> auditFormFields(Map.of("email", EMAIL, "password", PASSWORD), loginFields, "login form"),
                 () -> assertEquals(DELETE.value(), delete.method()),
-                () -> assertEquals(EMAIL, deleteFields.get("email")),
-                () -> assertEquals(PASSWORD, deleteFields.get("password")),
+                () -> auditFormFields(Map.of("email", EMAIL, "password", PASSWORD), deleteFields, "delete form"),
                 () -> assertEquals(APPLICATION_FORM_URLENCODED,
                         delete.headers().get(HttpHeader.CONTENT_TYPE.value())),
                 () -> assertEquals(Map.of("email", EMAIL), detail.query()),
@@ -199,7 +198,7 @@ class AutoExApiContractComponentTest {
                 () -> assertEquals(SetOfRequiredAccountFields.VALUE, updateFields.keySet()),
                 () -> assertEquals("top & tools", decodeForm(search.bodyText()).get("search_product")),
                 () -> assertTrue(search.bodyText().contains("top+%26+tools")),
-                () -> assertEquals(Map.of("email", specialEmail, "password", specialPassword),
+                () -> auditFormFields(Map.of("email", specialEmail, "password", specialPassword),
                         decodeForm(encodedLogin.bodyText()), "reserved and Unicode values must round-trip"),
                 () -> assertEquals(Map.of("email", EMAIL),
                         decodeForm(REQUESTS.verifyLogin(EMAIL, null).bodyText()),
@@ -209,6 +208,31 @@ class AutoExApiContractComponentTest {
                                 .filter(field -> !field.getKey().equals("address2"))
                                 .noneMatch(field -> field.getValue().isBlank()),
                         "the deterministic account fixture must satisfy every required field"));
+    }
+
+    @Test
+    void credentialMismatchesAndFieldPresenceFailWithoutPuttingValuesIntoDiagnostics() {
+        String expected = "AUTOEX_AUDIT_CREDENTIAL_CANARY expected & ü";
+        String actual = "AUTOEX_AUDIT_CREDENTIAL_CANARY actual \\";
+        AssertionError mismatch = assertThrows(AssertionError.class,
+                () -> auditFormFields(Map.of("password", expected), Map.of("password", actual), "credential mismatch"));
+        assertFalse(mismatch.getMessage().contains("AUTOEX_AUDIT_CREDENTIAL_CANARY"),
+                "failure diagnostics exclude the original credential values");
+        assertThrows(AssertionError.class, () -> auditFormFields(Map.of("password", expected), Map.of(), "missing credential"));
+        assertThrows(AssertionError.class, () -> auditFormFields(Map.of(), Map.of("password", ""), "unexpected empty credential"));
+        AssertionError casing = assertThrows(AssertionError.class,
+                () -> auditFormFields(Map.of("password", expected), Map.of("Password", actual), "incorrect field casing"));
+        assertFalse(casing.getMessage().contains("AUTOEX_AUDIT_CREDENTIAL_CANARY"));
+    }
+
+    private static void auditFormFields(Map<String, String> expected, Map<String, String> actual, String context) {
+        var expectedPublic = new LinkedHashMap<>(expected);
+        var actualPublic = new LinkedHashMap<>(actual);
+        expectedPublic.replaceAll((name, value) -> name.equalsIgnoreCase("password") ? "<credential>" : value);
+        actualPublic.replaceAll((name, value) -> name.equalsIgnoreCase("password") ? "<credential>" : value);
+        assertAll(context,
+                () -> assertEquals(expectedPublic, actualPublic, "non-sensitive form fields and exact key layout"),
+                () -> assertTrue(expected.equals(actual), "complete original form values match without disclosure"));
     }
 
     private static ContractCase contract(String name, ApiRequest request, HttpMethod method,

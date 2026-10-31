@@ -1,5 +1,7 @@
 package atf.shop.config.api;
 
+import java.util.Locale;
+
 /**
  * Stable API evidence seams in the Practice Shop journey.
  *
@@ -26,9 +28,9 @@ public enum ShopApiCheckpoint {
     }
 
     public static ShopApiCheckpoint from(String value) {
-        String normalized = value == null ? "" : value.trim().toLowerCase();
+        String normalized = value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
         for (ShopApiCheckpoint checkpoint : values()) {
-            if (checkpoint.key.equals(normalized) || checkpoint.name().toLowerCase().equals(normalized)) {
+            if (checkpoint.key.equals(normalized) || checkpoint.name().toLowerCase(Locale.ROOT).equals(normalized)) {
                 return checkpoint;
             }
         }

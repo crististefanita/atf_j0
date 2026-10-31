@@ -7,6 +7,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.FileVisitResult;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -35,29 +38,25 @@ public final class AtfJavaSourceInventory {
     private static List<Path> sources(Path project, String element, String defaultDirectory) throws Exception {
         Path root = project.toAbsolutePath().normalize();
         Set<Path> sourceRoots = new LinkedHashSet<>();
-        try (var files = Files.walk(root)) {
-            for (Path pom : files.filter(Files::isRegularFile)
-                    .filter(path -> path.getFileName().toString().equals("pom.xml") && !excluded(root, path))
-                    .sorted().toList()) {
-                Path module = pom.getParent();
-                String configured = configuredDirectory(pom, element, defaultDirectory);
-                Path source = module.resolve(configured).normalize();
-                if (!source.startsWith(module) || source.equals(module)
-                        || configured.contains("${")) {
-                    throw new IOException("Invalid " + element + " in " + pom + ": " + configured);
-                }
-                if (!Files.exists(source)) continue;
-                if (!Files.isDirectory(source) || !source.toRealPath().startsWith(module.toRealPath())) {
-                    throw new IOException("Unsafe " + element + " in " + pom + ": " + configured);
-                }
-                if (!excluded(root, source)) sourceRoots.add(source);
+        for (Path pom : pomFiles(root)) {
+            Path module = pom.getParent();
+            String configured = configuredDirectory(pom, element, defaultDirectory);
+            Path source = module.resolve(configured).normalize();
+            if (!source.startsWith(module) || source.equals(module)
+                    || configured.contains("${")) {
+                throw new IOException("Invalid " + element + " in " + pom + ": " + configured);
             }
+            if (!Files.exists(source)) continue;
+            if (!Files.isDirectory(source) || !source.toRealPath().startsWith(module.toRealPath())) {
+                throw new IOException("Unsafe " + element + " in " + pom + ": " + configured);
+            }
+            sourceRoots.add(source);
         }
         List<Path> result = new ArrayList<>();
         for (Path source : sourceRoots) {
             try (var files = Files.walk(source)) {
                 result.addAll(files.filter(Files::isRegularFile)
-                        .filter(path -> path.toString().endsWith(".java") && !excluded(root, path))
+                        .filter(path -> path.toString().endsWith(".java"))
                         .toList());
             }
         }
@@ -87,10 +86,19 @@ public final class AtfJavaSourceInventory {
         return null;
     }
 
-    private static boolean excluded(Path root, Path path) {
-        for (Path segment : root.relativize(path)) {
-            if (EXCLUDED.contains(segment.toString())) return true;
-        }
-        return false;
+    private static List<Path> pomFiles(Path root) throws IOException {
+        var result = new ArrayList<Path>();
+        Files.walkFileTree(root, new SimpleFileVisitor<>() {
+            @Override public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attributes) {
+                return !directory.equals(root) && EXCLUDED.contains(directory.getFileName().toString())
+                        ? FileVisitResult.SKIP_SUBTREE : FileVisitResult.CONTINUE;
+            }
+
+            @Override public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) {
+                if (attributes.isRegularFile() && file.getFileName().toString().equals("pom.xml")) result.add(file);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+        return result.stream().sorted().toList();
     }
 }

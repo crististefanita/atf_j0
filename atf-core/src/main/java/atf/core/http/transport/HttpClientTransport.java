@@ -28,7 +28,7 @@ public final class HttpClientTransport implements ApiTransport {
                 .timeout(timeout)
                 .method(request.method(), request.body());
         HttpHeaderProfiles.JSON_REQUEST.forEach(builder::header);
-        request.headers().forEach(builder::header);
+        request.headers().forEach(builder::setHeader);
         authenticator.apply(builder, authProfile);
         long started = System.nanoTime();
         return client.sendAsync(builder.build(), HttpResponse.BodyHandlers.ofString())

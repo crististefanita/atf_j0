@@ -893,3 +893,9 @@ Clasele executabile ale fiecărui consumer sunt repartizate exact o dată între
 local, UI E2E și API live. Opt-in-urile externe rămân independente; mutarea unui
 helper nu autorizează un apel remote și nu transformă un fixture în dovadă live.
 
+
+## Core ca bibliotecă — owner și deployment
+
+J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module.
+[Contractul Core C1](ATF_Core_Consumer.md) separă sursa, publicarea și acceptanțele J1/J2.
+Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.

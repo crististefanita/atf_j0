@@ -25,7 +25,9 @@ construiesc în `semantic` și în documentul fallback.
 - Statusul transmis de caller se reconciliază cu dovezile conform contractului
   de raportare; un renderer nu reevaluează comparația folosind textul afișat.
 - Absența response-ului nu se transformă în status HTTP 200 sau într-un body
-  inventat. Canalul API gol este diferit de un snapshot terminal.
+  inventat. Canalul API gol este diferit de un snapshot terminal. Fără response,
+  callerul furnizează un status diferit de INFO sau aserțiuni evaluate;
+  metadata de transport nu decide singură succesul.
 - Overview numără PASS + WARNING în totalul pass-like, conform contractului;
   WARNING rămâne distinct în scenariu și nu intră în Fails. Collectorul comun
   păstrează aceeași populație pentru totaluri, categorii și failure-uri.
@@ -56,10 +58,5 @@ construiesc în `semantic` și în documentul fallback.
 Probele sunt legate din [modul](../../../../../../README.md#verificare-rapidă)
 și [Reporting Tests](../../../../../../../atf-reporting-tests/README.md).
 
-- [ReportingStandaloneVerdictComponentTest](../../../../../test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java) păstrează distincția dintre canal
-  API gol, response absent și verdict furnizat de caller.
-- Fără response, un status diferit de INFO sau aserțiuni evaluate este obligatoriu;
-  metadata de transport nu decide singură succesul.
-- [Contractul terminal](../../../../../../README.md#execuție-api-terminată-fără-răspuns)
-  leagă această regulă de publicarea Extent/fallback și diagnosticul inspectabil.
-
+Contractul inputului terminal și proba Extent/fallback sunt la
+[ownerul execuției fără răspuns](../../../../../../README.md#execuție-api-terminată-fără-răspuns).

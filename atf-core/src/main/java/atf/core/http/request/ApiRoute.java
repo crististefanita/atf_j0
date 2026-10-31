@@ -36,7 +36,7 @@ public record ApiRoute(
         authProfile = AuthProfiles.normalize(authProfile);
         authType = authType == null ? AuthType.NONE : authType;
         authRequirement = authRequirement == null ? AuthRequirement.NONE : authRequirement;
-        authPolicy = authPolicy == null || authPolicy.isBlank() ? authRequirement.name().toLowerCase() : authPolicy;
+        authPolicy = authPolicy == null || authPolicy.isBlank() ? authRequirement.name().toLowerCase(Locale.ROOT) : authPolicy;
         tags = tags == null ? java.util.Set.of() : java.util.Set.copyOf(tags);
     }
 

@@ -5,6 +5,7 @@ import java.net.http.HttpRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Locale;
 
 public final class ConfiguredApiAuthenticator implements ApiAuthenticator {
     private final Map<String, AuthProfile> profiles;
@@ -18,20 +19,20 @@ public final class ConfiguredApiAuthenticator implements ApiAuthenticator {
         var profile = profile(profileName);
         switch (profile.type()) {
             case NONE -> { }
-            case BEARER -> request.header(HttpHeader.AUTHORIZATION.value(), "Bearer " + required(profile.token(), profile.name()));
-            case API_KEY -> request.header(required(profile.headerName(), profile.name()), required(profile.token(), profile.name()));
+            case BEARER -> request.setHeader(HttpHeader.AUTHORIZATION.value(), "Bearer " + required(profile.token(), profile.name()));
+            case API_KEY -> request.setHeader(required(profile.headerName(), profile.name()), required(profile.token(), profile.name()));
             case BASIC -> {
                 String raw = required(profile.username(), profile.name()) + ":" + required(profile.password(), profile.name());
                 String encoded = Base64.getEncoder().encodeToString(raw.getBytes(StandardCharsets.UTF_8));
-                request.header(HttpHeader.AUTHORIZATION.value(), "Basic " + encoded);
+                request.setHeader(HttpHeader.AUTHORIZATION.value(), "Basic " + encoded);
             }
-            case CUSTOM -> profile.customHeaders().forEach(request::header);
+            case CUSTOM -> profile.customHeaders().forEach(request::setHeader);
         }
     }
 
     @Override
     public String describeMode(String profileName) {
-        return profile(profileName).type().name().toLowerCase();
+        return profile(profileName).type().name().toLowerCase(Locale.ROOT);
     }
 
     @Override

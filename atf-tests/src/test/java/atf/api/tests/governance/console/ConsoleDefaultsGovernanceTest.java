@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static atf.api.tests.governance.AtfGovernanceTestSupport.locateProjectRoot;
+import static atf.api.tests.governance.AtfGovernanceTestSupport.consumerDeclared;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -53,6 +54,7 @@ public class ConsoleDefaultsGovernanceTest {
         require(root, "atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/api/ApiReportAuditSetup.java",
                 "AtfConsoleReporter.configuredStdout()");
         });
+        if (!consumerDeclared(root, "atf-test-practice-shop")) return;
         require(root, "atf-test-practice-shop/src/test/atf/shop/tests/support/lifecycle/ShopE2eContext.java",
                 "AtfConsoleReporter.configuredStdout()");
         require(root, "atf-test-practice-shop/src/main/atf/shop/api/ShopApiClient.java",

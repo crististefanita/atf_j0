@@ -447,8 +447,7 @@ păstrează încercările observate și cauza, fără a retrimite operația.
   `Content-Type: application/json`;
 - **verdict observabil** — invariantă aparține construcției transportului și este
   verificată din nou de publisher/auditor în evidence;
-- **redaction** — `RedactionContext` immutable protejează evidence-ul trimis către
-  reporting fără să modifice request-ul, response-ul sau assertion-ul original.
+- **redaction** — `RedactionContext` immutable păstrează masca literală și encodează numai valoarea ei la boundary-ul regex; strategiile păstrează grupurile structurale. JSON-ul și câmpurile nominale folosesc masca brută, fără să modifice request-ul, response-ul sau assertion-ul original. [Harta security](src/main/java/atf/core/security/README.md#masca-și-protocolul-replacement) delimitează comparația, redactarea și preview-ul.
 
 ## Teste
 
@@ -490,3 +489,37 @@ Comanda selectează proba numită și construiește dependențele; nu declară
 trecerea întregului modul. Nu calculează verdictul business și nu publică HTML.
 
 </details>
+
+## Media type, headere și vocabular de protocol
+
+| Boundary | Contract verificat |
+|---|---|
+| `MediaTypes.isJson` | clasifică numai tipul/subtipul concret, fără parametri; acceptă JSON și sufixul `+json`, independent de casing |
+| tip și payload | un MIME corect nu repară JSON invalid; `json` numai într-un parametru sau într-un subtip asemănător nu este suficient |
+| headere efective | default-uri → headere request → profilul de autentificare selectat; înlocuirea este case-insensitive, fără valori reziduale pentru același header |
+| profil `NONE` | păstrează headerul furnizat de caller; un profil selectat deține numai headerele pe care le declară |
+| transport | construiește și expediază o singură cerere; nu compensează headerele prin replay |
+| vocabular | numele auth/policy se normalizează cu `Locale.ROOT`, separat de textul business |
+
+[MediaTypesTest](src/test/java/atf/core/http/request/MediaTypesTest.java),
+[headerele request-ului real construit](src/test/java/atf/core/http/transport/HttpClientRequestHeadersTest.java)
+și [profilele auth](src/test/java/atf/core/http/auth/AuthProfilesTest.java) păstrează
+nominalele și negativele. Proba loopback verifică separat ambele transporturi,
+valorile complete, body-ul și o singură expediere, fără serviciu extern.
+
+## Distribuție Core C1
+
+J0 păstrează sursa și toate testele native. POM-ul Core este parentless, cu
+Java 21 și dependențe runtime Jackson explicite; Test Kit și JUnit sunt doar
+pentru teste și nu intră în tranzitivele de producție.
+
+J1/J2 consumă aceeași pereche Core C1 JAR/POM direct în lib, alături de Reporting
+J6. [Contractul de publicare și consum](../docs/ATF_Core_Consumer.md) descrie
+bootstrap-ul Maven/IntelliJ, proveniența și acceptanța fără surse Core.
+
+### Timeout și ownership în probele native
+
+Contractul distinge expirarea înainte de dispatch de timeout-ul unui future
+preluat: numai al doilea poate fi anulat de executor. Probele folosesc clock-ul
+injectabil existent și verifică numărul de dispatch-uri, durata, outcome-ul și
+absența unui răspuns inventat, fără presupuneri de scheduling într-un buget real de 30 ms.

@@ -39,7 +39,8 @@ public class DocumentedBuildContractTest {
         String changed = source.replace(row, "| " + consumer + " | " + cells[2].strip() + ", Test Kit | — |");
         var failures = DocumentedBuildContracts.inspect(root, changed);
         assertEquals(1, failures.size());
-        assertTrue(failures.getFirst().contains(consumer + " Test Kit scope: declared=compile; observed=test; source="));
+        String observed = Files.isRegularFile(root.resolve(consumer.equals("Shop") ? "atf-test-practice-shop/pom.xml" : "atf-test-auto-ex/pom.xml")) ? "test" : "absent";
+        assertTrue(failures.getFirst().contains(consumer + " Test Kit scope: declared=compile; observed=" + observed + "; source="));
         assertEquals(List.of(), DocumentedBuildContracts.inspect(root, source));
     }
     @Test void missingAndDuplicatedClaimsCannotSilentlySkipTheContract() throws Exception {
@@ -49,9 +50,9 @@ public class DocumentedBuildContractTest {
         assertFalse(DocumentedBuildContracts.inspect(root, source.replace(row, row + "\n" + row)).isEmpty());
         assertFalse(DocumentedBuildContracts.inspect(root, source.replace("Reactorul păstrează exact cele", "Reactorul are")).isEmpty());
     }
-    @ParameterizedTest @ValueSource(ints={10, 11, 12})
+    @ParameterizedTest @ValueSource(ints={8, 9, 10, 11, 12})
     void moduleCountMutantIsIndependentOfTheDeploymentSize(int count, @TempDir Path root) throws Exception {
-        String modules = java.util.stream.IntStream.range(0, count).mapToObj(n -> "<module>module-" + n + "</module>").collect(java.util.stream.Collectors.joining());
+        String modules = java.util.stream.IntStream.range(0, count).mapToObj(n -> "<module>" + (n == 0 ? "atf-test-practice-shop" : n == 1 ? "atf-test-auto-ex" : "module-" + n) + "</module>").collect(java.util.stream.Collectors.joining());
         Files.writeString(root.resolve("pom.xml"), "<project><modules>" + modules + "</modules></project>");
         for (String module : List.of("atf-test-practice-shop", "atf-test-auto-ex")) {
             Files.createDirectory(root.resolve(module));

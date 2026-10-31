@@ -107,26 +107,25 @@ public final class DebugUiServer implements AutoCloseable {
             String requestLine = reader.readLine();
             if (requestLine == null || requestLine.isBlank()) return;
             String[] parts = requestLine.split(" ", 3);
+            String method = parts[0];
             if (parts.length < 2) {
-                respond(output, 400, "Bad Request", "text/plain; charset=utf-8", "Bad Request");
+                respond(output, method, 400, "Bad Request", "text/plain; charset=utf-8", "Bad Request");
                 return;
             }
-            String method = parts[0];
             String rawTarget = parts[1];
             String header;
             while ((header = reader.readLine()) != null && !header.isEmpty()) { }
             if (!method.equals("GET") && !method.equals("HEAD")) {
-                respond(output, 405, "Method Not Allowed", "text/plain; charset=utf-8", "Method Not Allowed");
+                respond(output, method, 405, "Method Not Allowed", "text/plain; charset=utf-8", "Method Not Allowed");
                 return;
             }
-            String rawPath = java.net.URI.create(rawTarget).getRawPath();
-            Path file = resolve(rootDirectory, rawPath);
+            Path file = resolve(rootDirectory, rawTarget);
             if (file == null) {
-                respond(output, 403, "Forbidden", "text/plain; charset=utf-8", "Forbidden");
+                respond(output, method, 403, "Forbidden", "text/plain; charset=utf-8", "Forbidden");
                 return;
             }
             if (!Files.isRegularFile(file)) {
-                respond(output, 404, "Not Found", "text/plain; charset=utf-8", "Not Found");
+                respond(output, method, 404, "Not Found", "text/plain; charset=utf-8", "Not Found");
                 return;
             }
             long length = Files.size(file);
@@ -146,20 +145,22 @@ public final class DebugUiServer implements AutoCloseable {
         try { socket.close(); } catch (IOException ignored) { }
     }
 
-    private static void respond(OutputStream output, int status, String reason,
+    private static void respond(OutputStream output, String method, int status, String reason,
                                 String contentType, String body) throws IOException {
         byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
         output.write(("HTTP/1.1 " + status + " " + reason + "\r\nContent-Type: " + contentType
                 + "\r\nContent-Length: " + bytes.length + "\r\nConnection: close\r\n\r\n")
                 .getBytes(StandardCharsets.ISO_8859_1));
-        output.write(bytes);
+        if (!method.equals("HEAD")) output.write(bytes);
         output.flush();
     }
 
-    private static Path resolve(Path root, String rawPath) {
+    private static Path resolve(Path root, String rawTarget) {
         try {
-            String decoded = java.net.URLDecoder.decode(rawPath == null ? "/" : rawPath, StandardCharsets.UTF_8);
-            if (decoded.equals("/") || decoded.isBlank()) return null;
+            var target = java.net.URI.create(rawTarget == null ? "/" : rawTarget);
+            if (target.isAbsolute() || target.getRawAuthority() != null || target.getRawFragment() != null) return null;
+            String decoded = target.getPath();
+            if (decoded == null || !decoded.startsWith("/") || decoded.equals("/")) return null;
             Path candidate = root.resolve(decoded.substring(1)).normalize();
             if (!candidate.startsWith(root)) return null;
             Path real = candidate.toRealPath();

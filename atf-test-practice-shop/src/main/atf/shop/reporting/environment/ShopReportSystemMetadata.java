@@ -122,7 +122,7 @@ public final class ShopReportSystemMetadata {
 
     private static String precondition(ShopConfiguration configuration) {
         return "API request precondition: "
-                + configuration.api().precondition().name().toLowerCase();
+                + configuration.api().precondition().name().toLowerCase(Locale.ROOT);
     }
 
     private static String journeyPrecondition(ShopConfiguration configuration) {
