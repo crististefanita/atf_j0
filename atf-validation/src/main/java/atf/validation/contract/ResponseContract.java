@@ -35,6 +35,11 @@ public final class ResponseContract {
         return add(ruleSet.contentTypeContains(expected));
     }
 
+    /** Requires a concrete JSON type/subtype as classified by Core; parameters do not determine the type. */
+    public ResponseContract contentTypeJson() {
+        return add(ruleSet.contentTypeJson());
+    }
+
     public ResponseContract headerPresent(String name) {
         requireText(name, "name");
         return add(ruleSet.headerPresent(name));

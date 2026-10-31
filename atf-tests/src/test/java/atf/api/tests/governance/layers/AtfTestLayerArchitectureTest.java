@@ -47,6 +47,7 @@ public class AtfTestLayerArchitectureTest {
             "ReportingStandaloneEvidenceLayoutTest.java",
             "ReportingStandaloneEnvironmentSnapshotTest.java",
             "ReportingStandaloneVerdictComponentTest.java",
+            "ReportingStandaloneValidationDisclosureTest.java",
             "ReportingStandaloneObservationTest.java",
             "StandaloneBoundaryRules.java", "StandaloneBoundaryRulesTest.java",
             "ReportingModuleSource.java", "ReportingSourceArchitectureTest.java");

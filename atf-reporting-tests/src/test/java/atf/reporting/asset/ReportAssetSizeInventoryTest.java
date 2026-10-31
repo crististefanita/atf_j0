@@ -14,7 +14,10 @@ class ReportAssetSizeInventoryTest {
     // part of the published runtime; keep measured headroom without masking
     // unrelated growth.
     private static final long NATIVE_JAVASCRIPT_BASELINE_BYTES = 130_000L;
-    private static final long PUBLICATION_JAVASCRIPT_BASELINE_BYTES = 107_000L;
+    // J8: fallback ARIA synchronization adds exactly 394 published bytes over J7.
+    // Bound that owner separately so unrelated headroom cannot hide further growth.
+    private static final long PUBLICATION_JAVASCRIPT_BASELINE_BYTES = 107_500L;
+    private static final long FALLBACK_NAVIGATION_PUBLICATION_BYTES = 2_848L;
     private static final long NATIVE_TOTAL_BASELINE_BYTES = 265_000L;
     private static final long PUBLICATION_TOTAL_BASELINE_BYTES = 223_000L;
     private static final long NATIVE_CSS_BASELINE_BYTES = 140_000L;
@@ -33,7 +36,8 @@ class ReportAssetSizeInventoryTest {
                     // evidence headers are an intentional publication cost.
                     ReportAsset.Format.CSS, PUBLICATION_CSS_BASELINE_BYTES,
                     ReportAsset.Format.JAVASCRIPT, PUBLICATION_JAVASCRIPT_BASELINE_BYTES),
-            java.util.Map.of(), java.util.Map.of());
+            java.util.Map.of(), java.util.Map.of(
+                    ReportAsset.FALLBACK_NAVIGATION_JS.owner(), FALLBACK_NAVIGATION_PUBLICATION_BYTES));
 
     @Test
     void measuresNativeAndPublicationCopiesWithoutLosingTheFormatBoundary() {
@@ -63,5 +67,22 @@ class ReportAssetSizeInventoryTest {
         assertTrue(CONSUMER_BASELINE.accepts(inventory),
                 () -> "Reporting asset baseline violations: "
                         + CONSUMER_BASELINE.violations(inventory));
+    }
+
+    @Test
+    void rejectsOneExtraFallbackByteEvenWhenTheFormatBudgetHasHeadroom() {
+        var inventory = ReportAssetSizeInventory.capture(new ReportAssetLoader(), ReportAssetManifest.production());
+        var entries = inventory.entries().stream().map(entry ->
+                entry.asset() == ReportAsset.FALLBACK_NAVIGATION_JS
+                        ? new ReportAssetSizeInventory.Entry(entry.asset(), entry.nativeBytes() + 1,
+                                (int) FALLBACK_NAVIGATION_PUBLICATION_BYTES + 1,
+                                entry.nativeSourceFormatted(), entry.publicationCompacted())
+                        : entry).toList();
+        var changed = new ReportAssetSizeInventory(entries);
+        assertTrue(changed.bytesByFormat(true).get(ReportAsset.Format.JAVASCRIPT)
+                < PUBLICATION_JAVASCRIPT_BASELINE_BYTES);
+        assertFalse(CONSUMER_BASELINE.accepts(changed));
+        assertTrue(CONSUMER_BASELINE.violations(changed).stream()
+                .anyMatch(message -> message.startsWith("publication owner[fallback-navigation] exceeds")));
     }
 }

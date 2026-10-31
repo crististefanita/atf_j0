@@ -9,6 +9,7 @@ import atf.core.http.response.*;
 import atf.core.reporting.console.AtfConsoleEvent;
 import atf.testkit.AtfUnitTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import java.net.URI;
@@ -79,14 +80,30 @@ class ApiDiagnosticIsolationTest {
         assertEquals(List.of(diagnostic), Arrays.asList(failure.getSuppressed()));
     }
 
-    @Test void failingDiagnosticsDoNotExtendTheDeadlineOrLeaveTheTimedOutFutureRunning() {
-        var pending = new CompletableFuture<ApiResponse>(); var diagnostic = new IllegalStateException("controlled diagnostic failure");
-        var executor = new ApiExecutor((request, url, auth) -> pending, URI.create("https://fixture.test"), event -> { throw diagnostic; });
-        var failure = assertThrows(ApiExecutionException.class,
-                () -> executor.execute(ApiRequest.of("GET", "/one"), Duration.ofMillis(10), CancellationToken.none()));
+    @RepeatedTest(20)
+    void failingDiagnosticsPreserveTheObservedDeadlineBoundary() {
+        var pending = new CompletableFuture<ApiResponse>();
+        var calls = new AtomicInteger();
+        var diagnostic = new IllegalStateException("controlled diagnostic failure");
+        var budget = Duration.ofMillis(10);
+        var executor = new ApiExecutor((request, url, auth) -> {
+            calls.incrementAndGet(); return pending;
+        }, URI.create("https://fixture.test"), event -> { throw diagnostic; });
+        var failure = assertTimeoutPreemptively(Duration.ofSeconds(5), () -> assertThrows(ApiExecutionException.class,
+                () -> executor.execute(ApiRequest.of("GET", "/one"), budget, CancellationToken.none())));
         var snapshot = ApiExecutionFailure.find(failure).orElseThrow();
-        assertInstanceOf(TimeoutException.class, failure.getCause()); assertTrue(pending.isCancelled());
-        assertEquals(1, snapshot.attempts()); assertEquals(ApiAttemptOutcome.TIMED_OUT, snapshot.termination());
+        int dispatches = calls.get();
+        assertTrue(dispatches == 0 || dispatches == 1, "One execution cannot dispatch twice");
+        assertInstanceOf(TimeoutException.class, failure.getCause());
+        // Host scheduling may exhaust the budget before the executor acquires any future.
+        assertEquals(dispatches == 1, pending.isCancelled(), "Cancel exactly the acquired pending future");
+        assertEquals(dispatches == 1, pending.isDone(), "Unacquired work remains owned by its caller");
+        assertEquals(dispatches, snapshot.attempts());
+        assertEquals(dispatches, snapshot.attemptHistory().size());
+        assertTrue(snapshot.attemptHistory().stream().allMatch(attempt -> attempt.outcome() == ApiAttemptOutcome.TIMED_OUT));
+        assertTrue(snapshot.response().isEmpty());
+        assertEquals(ApiAttemptOutcome.TIMED_OUT, snapshot.termination());
+        assertTrue(snapshot.totalDuration().compareTo(budget) >= 0, "The deadline must actually have expired");
         assertEquals(List.of(diagnostic), Arrays.asList(failure.getSuppressed()));
     }
 }

@@ -101,33 +101,7 @@ Oracolul trebuie să refuze implementarea care atribuie costul de publicare exec
 | J2 agregat: TEST BODY 109 ms, request copil 185 ms | [Dovada la owner](ATF_Reporting_Feedback.md#report-recorded-timing-83--execuție-capturată-și-cost-de-publicare) fixează artifactul și hash-ul |
 | native Core și expandări corecte | nu închid regresia temporală Reporting; fixture-ul neutru rămâne necesar |
 
-## REPORT-TEST-FALLBACK-VALIDATION-DISCLOSURE-99 — regresie neutră API
 
-**Prioritate: 76/100.** [Criteriul bibliotecii](ATF_Reporting_Feedback.md#report-fallback-validation-disclosure-99--validarea-api-colapsabilă)
-are reproducere J7 în J2: tabelul API este vizibil direct în Tests, fără
-control de colapsare. Valorile și verdicturile sunt corecte; probele de
-artifact existente nu detectează această limită de interacțiune.
-
-Regresia trebuie extrasă din proba consumerului în componente neutre dedicate,
-fără copierea harness-ului Eventuate sau dependență de ContractValidators.
-Clasificarea MIME are [regresie la ownerul Validation](ATF_Validation_Feedback.md#validation-media-92--tipul-json-nu-poate-fi-imitat-de-un-parametru).
-
-| Livrabil propus în Reporting Tests | Contract executabil |
-|---|---|
-| ApiValidationDisclosureComponentTest, cu AtfComponentTest | port public, stare inițială, tastatură și navigare la comparația exactă |
-| ApiValidationDisclosureFixtures | date sintetice și verdicturi typed independente; rând media type nereușit și vecini PASS |
-| integrare în AtfReportingComponentSuite | selecție individuală și prin suită; control Git exact, fără reguli relaxate |
-| oracol de artifact și browser | inventar per scenariu; fără validare satisfăcută de script, sibling sau copia DOM ascunsă |
-
-- [ ] Publicați un API sintetic cu trei comparații și vecini PASS, individual și agregat; includeți header text/plain cu profile="application/json" ca ACTUAL al unui rând FAIL explicit, fără reevaluare MIME în Reporting.
-- [ ] Verificați starea inițială închisă, click, Enter/Space, ultima comparație și revenirea din Fails la tabelul original; separat PASS, FAIL și WARNING.
-- [ ] Mutațiile elimină disclosure-ul, îl lasă deschis implicit ori mută ultima comparație la un sibling; fiecare variantă trebuie refuzată de oracolul scenariului.
-- [ ] Inversați doar verdicturile rândurilor HTTP status și Content-Type JSON, păstrând numărul de FAIL/WARNING. Componenta verifică verdictul fiecărui rând după identitate, nu numai totalurile sau statusul scenariului.
-- [ ] Repetați pe JAR-ul fizic și pe sursă, în ambele renderere; păstrați patru coloane, wrapping și preview 240, fără markup injectat de consumer.
-
-**Închidere:** proba reproduce limita veche și refuză mutanții independent de
-căutarea textului în scripturi sau de alt scenariu. Acceptanța J2 rămâne o
-probă de consumer, fără preluarea ownership-ului implementării Reporting.
 ## REPORT-TEST-FALLBACK-RESULT-WIDTH-101 — geometria celulei RESULT
 
 **Prioritate: 64/100.** [Defectul bibliotecii](ATF_Reporting_Feedback.md#report-fallback-result-width-101--badge-ul-statusului-depășește-coloana)

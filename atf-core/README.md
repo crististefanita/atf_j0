@@ -523,3 +523,23 @@ Contractul distinge expirarea înainte de dispatch de timeout-ul unui future
 preluat: numai al doilea poate fi anulat de executor. Probele folosesc clock-ul
 injectabil existent și verifică numărul de dispatch-uri, durata, outcome-ul și
 absența unui răspuns inventat, fără presupuneri de scheduling într-un buget real de 30 ms.
+
+## Probele deadline-ului și ownership-ul future-ului
+
+Un deadline poate expira înainte ca transportul să fie apelat. Probele native
+verifică separat cele două stări, fără să mărească bugetul de execuție.
+
+| Boundary | Criteriu executabil |
+|---|---|
+| înainte de dispatch | clock controlat 11 ms pentru buget 10 ms; zero apeluri, zero attempts/history, fără răspuns și future-ul callerului rămâne incomplet |
+| după dispatch | clock controlat consumă exact 10 ms prin get; un apel/attempt, o singură anulare, TIMED_OUT și fără răspuns inventat |
+| diagnostice pe clock real | 20 repetări la 10 ms; calls observate decid ownership-ul, iar anularea, istoricul și snapshot-ul trebuie să corespundă acelei stări |
+| cauză | TimeoutException și diagnosticul original suppressed rămân vizibile; expirarea trebuie confirmată de durata snapshot-ului |
+| protecția probei | failsafe JUnit 5 s previne o probă blocată; nu schimbă deadline-ul produsului de 10 ms |
+
+[ApiTerminalExecutionEvidenceTest](src/test/java/atf/core/http/execution/ApiTerminalExecutionEvidenceTest.java)
+forțează ambele stări; [ApiDiagnosticIsolationTest](src/test/java/atf/core/http/diagnostics/ApiDiagnosticIsolationTest.java)
+verifică integrarea diagnosticului. Probele externe refuză mutații fără
+cancel, fără verificare înainte de dispatch și fără atașarea diagnosticului.
+Implementarea Core și API-ul său rămân neschimbate; acest increment nu cere
+un binar Core nou.

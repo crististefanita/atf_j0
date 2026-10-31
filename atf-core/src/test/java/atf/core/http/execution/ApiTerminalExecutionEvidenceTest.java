@@ -38,8 +38,9 @@ class ApiTerminalExecutionEvidenceTest {
     private static ApiExecutionSnapshot snapshot(Throwable error) { return ApiExecutionFailure.find(error).orElseThrow(); }
 
     @Test void aDispatchedPendingFutureIsCancelledExactlyAtItsDeadline() {
-        var clock = new Clock(); var calls = new AtomicInteger(); var waits = new AtomicInteger();
+        var clock = new Clock(); var calls = new AtomicInteger(); var waits = new AtomicInteger(); var cancellations = new AtomicInteger();
         var pending = new CompletableFuture<ApiResponse>() {
+            @Override public boolean cancel(boolean interrupt) { cancellations.incrementAndGet(); return super.cancel(interrupt); }
             @Override public ApiResponse get(long timeout, TimeUnit unit) throws TimeoutException {
                 waits.incrementAndGet(); clock.advance(unit.toNanos(timeout));
                 throw new TimeoutException("controlled pending transport");
@@ -48,12 +49,13 @@ class ApiTerminalExecutionEvidenceTest {
         ApiTransport transport = (request, url, auth) -> { calls.incrementAndGet(); return pending; };
         var executor = new ApiExecutor(transport, ORIGIN, RetryPolicy.none(), clock);
         var failure = assertThrows(ApiExecutionException.class,
-                () -> executor.execute(REQUEST, Duration.ofMillis(30), CancellationToken.none()));
+                () -> executor.execute(REQUEST, Duration.ofMillis(10), CancellationToken.none()));
         assertInstanceOf(TimeoutException.class, failure.getCause()); assertTrue(failure.getMessage().contains("timed out"));
         assertEquals(1, calls.get()); assertEquals(1, waits.get()); assertTrue(pending.isCancelled());
+        assertEquals(1, cancellations.get(), "The acquired future is cancelled exactly once");
         var evidence = snapshot(failure);
         assertEquals(1, evidence.attempts()); assertEquals(ApiAttemptOutcome.TIMED_OUT, evidence.termination());
-        assertEquals(Duration.ofMillis(30), evidence.totalDuration()); assertTrue(evidence.response().isEmpty());
+        assertEquals(Duration.ofMillis(10), evidence.totalDuration()); assertTrue(evidence.response().isEmpty());
         assertEquals(List.of(ApiAttemptOutcome.TIMED_OUT), evidence.attemptHistory().stream().map(ApiAttemptRecord::outcome).toList());
         assertTrue(evidence.attemptHistory().getFirst().httpStatus().isEmpty());
     }
@@ -62,13 +64,14 @@ class ApiTerminalExecutionEvidenceTest {
         var clock = new Clock(); var calls = new AtomicInteger(); var pending = new CompletableFuture<ApiResponse>();
         ApiTransport transport = (request, url, auth) -> { calls.incrementAndGet(); return pending; };
         // Preparation consumes the budget at a public cancellation checkpoint without requesting cancellation.
-        CancellationToken preparation = () -> { clock.advance(Duration.ofMillis(31).toNanos()); return false; };
+        CancellationToken preparation = () -> { clock.advance(Duration.ofMillis(11).toNanos()); return false; };
         var executor = new ApiExecutor(transport, ORIGIN, RetryPolicy.none(), clock);
-        var failure = assertThrows(ApiExecutionException.class, () -> executor.execute(REQUEST, Duration.ofMillis(30), preparation));
+        var failure = assertThrows(ApiExecutionException.class, () -> executor.execute(REQUEST, Duration.ofMillis(10), preparation));
         assertInstanceOf(TimeoutException.class, failure.getCause()); assertEquals(0, calls.get()); assertFalse(pending.isCancelled());
+        assertFalse(pending.isDone(), "The executor cannot complete work it never acquired");
         var evidence = snapshot(failure);
         assertEquals(0, evidence.attempts()); assertEquals(ApiAttemptOutcome.TIMED_OUT, evidence.termination());
-        assertEquals(Duration.ofMillis(31), evidence.totalDuration()); assertTrue(evidence.attemptHistory().isEmpty());
+        assertEquals(Duration.ofMillis(11), evidence.totalDuration()); assertTrue(evidence.attemptHistory().isEmpty());
         assertTrue(evidence.response().isEmpty());
     }
 

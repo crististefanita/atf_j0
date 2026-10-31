@@ -216,9 +216,11 @@ public final class HtmlReportEvidenceView {
                 .append(ReportEvidenceMarkup.statusBadge(validation.status()))
                 .append(closeTag(DIV));
         renderUiEvidence(html, validation);
-        boolean discloseAssertions = compactUi && !validation.assertions().isEmpty();
+        boolean discloseAssertions = !validation.assertions().isEmpty();
         if (discloseAssertions) html.append(ReportEvidenceMarkup.disclosureStart(
-                AtfReportHtmlVocabulary.CssClass.ATF_UI_ASSERTIONS.value(), AtfReportLabels.assertions(validation.assertions().size())));
+                (compactUi ? AtfReportHtmlVocabulary.CssClass.ATF_UI_ASSERTIONS
+                        : AtfReportHtmlVocabulary.CssClass.ASSERTION_EVIDENCE).value(),
+                AtfReportLabels.assertions(validation.assertions().size())));
         renderAssertions(html, validation.assertions());
         if (discloseAssertions) html.append(ReportEvidenceMarkup.disclosureEnd());
         validation.children().forEach(child -> {

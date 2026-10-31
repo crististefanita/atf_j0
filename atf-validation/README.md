@@ -383,3 +383,30 @@ Regresii permanente: [prezență și containere](src/test/java/atf/validation/Js
 și [subsetul schemei](src/test/java/atf/validation/JsonSchemaContractTest.java).
 Acceptanța API sintetică în Extent/fallback verifică separat verdictul,
 rândurile și preview-ul; nu demonstrează transport real sau acuratețe speech.
+
+### Content-Type — clasificare semantică JSON
+
+`contentTypeJson()` delegă tipul/subtipul concret către `MediaTypes.isJson` din
+Core. Parametrii nu pot transforma un tip text/plain în JSON; ACTUAL
+păstrează headerul observat, redactat și limitat după evaluare.
+
+| Header observat | Verdictul regulii |
+|---|---|
+| application/json, inclusiv cu charset | PASS; tipul și subtipul sunt case-insensitive |
+| application/problem+json sau application/vnd.atf+json | PASS; sufix JSON concret |
+| text/json sau text/vnd.atf+json | PASS conform vocabularului Core, fără restricție implicită la application |
+| text/plain cu profile="application/json" | FAIL; parametrul nu este tipul/subtipul |
+| application/jsonp, tip absent, wildcard ori listă de tipuri | FAIL; cerința este un tip JSON concret |
+
+- `userItem`, `userCollection`, `postItem`, `postCollection` și
+  `relationshipCollection` folosesc regula semantică, cu statusurile și
+  cerințele de payload păstrate.
+- `contentTypeContains` rămâne operație literală de compatibilitate.
+  Rândul semantic are identitatea Content-Type JSON, distinctă de cel literal,
+  astfel încât ambele reguli pot fi compuse în același contract.
+- Clasificarea nu validează sintaxa integrală a parametrilor sau body-ul.
+  Regulile JSON verifică separat documentul și câmpurile cerute.
+
+[JsonMediaTypeContractTest](src/test/java/atf/validation/media/JsonMediaTypeContractTest.java)
+protejează cele cinci contracte, strict/warning, nominale și parametri
+înșelători; acceptanța portului neutru și a artifactului rămâne la consumer.

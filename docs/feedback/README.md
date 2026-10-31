@@ -15,9 +15,7 @@ Scorurile sunt priorități, nu note de calitate sau procente de acoperire. Form
 | 1 | [Core JSON](ATF_Core_Feedback.md) | 92 | document complet și native pe sursă/binar; C1 acceptă trailing content |
 | 2 | [Reporting](ATF_Reporting_Feedback.md) | 89 | aplicabilitatea inspectorului; timing capturat/publicare 88; API/release păstrează criterii separate |
 | 3 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md) | 89 | regresii permanente assertion-only/HTTP, Extent/fallback și oracol per scenariu |
-| 4 | [Validation](ATF_Validation_Feedback.md#validation-media-92--tipul-json-nu-poate-fi-imitat-de-un-parametru) | 86 | clasificarea MIME semantică; JSON strict reconciliat și verificat |
-| 5 | [Mock](ATF_Mock_Feedback.md) | 86 | precizie numerică; guard-ul fixture-ului complet are reconciliere separată 85 |
-| 6 | [Determinism Core](ATF_Core_Test_Feedback.md) | 78 | separarea deadline-ului înainte/după dispatch; probă observată intermitent |
+| 4 | [Mock](ATF_Mock_Feedback.md) | 86 | precizie numerică; guard-ul fixture-ului complet are reconciliere separată 85 |
 
 Masca literală, corelarea comenzii, factura și lifecycle-urile deja livrate nu sunt relistate ca defecte. Rămân deschise numai negativele distincte descrise în feedback.
 

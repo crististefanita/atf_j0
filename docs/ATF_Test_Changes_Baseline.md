@@ -3671,3 +3671,86 @@ testChanges:
 ```
 
 </details>
+
+<details>
+<summary><strong>Control verificat — MIME-CORE-J0</strong></summary>
+
+```yaml
+testChanges:
+  - id: MIME-CORE-J0
+    status: VERIFIED
+    base: 79f1575e2e87319ce8935f9486d5392859009c5f
+    expires: 2026-11-30
+    reason: Adoptă clasificarea MIME prin Core la owner și consumeri; păstrează contains literal. Probele Core disting înainte/după dispatch la 10 ms, cu clock controlat, snapshot, anulare și cauza diagnosticului originale; fără schimbarea implementării Core, a Reporting, a modulelor ori a preview-ului 240.
+    proof: 'mvn -B -ntp -pl atf-core,atf-validation -am "-Dtest=ApiDiagnosticIsolationTest,ApiTerminalExecutionEvidenceTest,JsonMediaTypeContractTest" "-Dsurefire.failIfNoSpecifiedTests=false" test'
+    paths:
+      - atf-validation/src/test/java/atf/validation/media/JsonMediaTypeContractTest.java
+      - atf-core/src/test/java/atf/core/http/diagnostics/ApiDiagnosticIsolationTest.java
+      - atf-core/src/test/java/atf/core/http/execution/ApiTerminalExecutionEvidenceTest.java
+```
+
+</details>
+
+
+<details>
+<summary><strong>Control verificat — MIME-LIVE-J0</strong></summary>
+
+```yaml
+testChanges:
+  - id: MIME-LIVE-J0
+    status: VERIFIED
+    base: 28c98a4bd0b1ef852e9aed2a91bc6f2bad61ca6a
+    expires: 2026-11-30
+    reason: Revalidează aceleași schimbări MIME și probe Core după commit-ul live concurent; sursele verificate sunt neschimbate. Păstrează controalele istorice la bazele originale, fără Reporting source sau teste generice noi.
+    proof: 'mvn -B -ntp -pl atf-core,atf-validation,atf-tests -am "-Dtest=ApiDiagnosticIsolationTest,ApiTerminalExecutionEvidenceTest,JsonMediaTypeContractTest,TestChangeGovernanceTest,Documentation*Test" "-Dsurefire.failIfNoSpecifiedTests=false" test'
+    paths:
+      - atf-validation/src/test/java/atf/validation/media/JsonMediaTypeContractTest.java
+      - atf-core/src/test/java/atf/core/http/diagnostics/ApiDiagnosticIsolationTest.java
+      - atf-core/src/test/java/atf/core/http/execution/ApiTerminalExecutionEvidenceTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control VERIFIED — disclosure API fallback</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-FALLBACK-VALIDATION-DISCLOSURE-99
+    status: VERIFIED
+    base: 79f1575e2e87319ce8935f9486d5392859009c5f
+    expires: 2026-11-30
+    reason: Reproduce API fallback J7 fără disclosure și păstrează regresii mock neutre; PASS/FAIL/WARNING, individual/agregat, Fails, keyboard, preview 240 și mutanți per owner și reasocierea verdictului media refuzată per rând. Extent păstrează controlul său pe validation; fără cod Eventuate în renderer. Baseline-ul JS admite doar costul ARIA măsurat de 394 bytes, iar ownerul fallback are limită explicită și mutant de un byte refuzat.
+    proof: mvn -B -pl atf-reporting-tests,atf-tests -am "-Dtest=ApiValidationDisclosureComponentTest,ReportingStandalone*Test,ReportAssetSizeInventoryTest,TestChangeGovernanceTest,AtfTestLayerArchitectureTest" "-Datf.governance.testChanges.baseRef=79f1575e2e87319ce8935f9486d5392859009c5f" "-Dsurefire.failIfNoSpecifiedTests=false" "-Datf.test.heap.max=384m" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/validation/ApiValidationDisclosureComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/disclosure/ApiValidationDisclosureFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/disclosure/ApiValidationDisclosureLocators.java
+      - atf-reporting-tests/src/test/java/atf/reporting/asset/ReportAssetSizeInventoryTest.java
+      - atf-reporting/src/test/java/atf/reporting/standalone/validation/ReportingStandaloneValidationDisclosureTest.java
+```
+
+</details>
+
+
+<details>
+<summary><strong>Control verificat — Reporting J8 după reconcilierea live</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-J8-LIVE-ATF-J0
+    status: VERIFIED
+    base: 28c98a4bd0b1ef852e9aed2a91bc6f2bad61ca6a
+    expires: 2026-11-30
+    reason: Revalidează schimbările J8 după commit-ul concurent al consumerului, păstrând controalele istorice la bazele originale. Catalogul finit include Observation și ValidationDisclosure, fără wildcard; fixture-ul J2 pregătește payload-ul înaintea deadline-ului neschimbat de 250 ms. Assertions, preview 240, modulele și pragurile de guvernanță sunt păstrate.
+    proof: mvn -B -pl atf-tests -am "-Dtest=TestChangeGovernanceTest,AtfTestLayerArchitectureTest,Documentation*Test" "-Datf.governance.testChanges.baseRef=28c98a4bd0b1ef852e9aed2a91bc6f2bad61ca6a" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/validation/ApiValidationDisclosureComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/disclosure/ApiValidationDisclosureFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/disclosure/ApiValidationDisclosureLocators.java
+      - atf-reporting-tests/src/test/java/atf/reporting/asset/ReportAssetSizeInventoryTest.java
+      - atf-reporting/src/test/java/atf/reporting/standalone/validation/ReportingStandaloneValidationDisclosureTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/layers/AtfTestLayerArchitectureTest.java
+```
+
+</details>

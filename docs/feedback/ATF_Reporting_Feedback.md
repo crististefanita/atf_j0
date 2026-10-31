@@ -48,7 +48,6 @@ sunt la ownerii lor, iar registrul păstrează numai criteriile încă deschise.
 | `REPORT-PUBLIC-API-43` | 81 = 31 + 24 + 17 + 9 | API-ul susținut, compatibilitatea și capabilitățile adaptoarelor nu sunt delimitate suficient |
 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) | 80 = 31 + 24 + 18 + 7 | criteriu separat al consumerului: oracol per scenariu și containment fallback |
 | `UI-RECOVERY-AUDIT-01` | 78 = 33 + 22 + 16 + 7 | proiecția typed a încercărilor, bugetelor și corelării rămâne la Reporting |
-| [REPORT-FALLBACK-VALIDATION-DISCLOSURE-99](#report-fallback-validation-disclosure-99--validarea-api-colapsabilă) | 76 = 28 + 24 + 17 + 7 | validarea API fallback nu oferă control de colapsare pentru tabelul agregat |
 | `REPORT-RELEASE-CONTRACT-45` | 73 = 25 + 22 + 17 + 9 | lipsesc criteriile declarate ale pachetului și versiunii distribuite |
 | `REPORT-PORTABLE-DOCS-46` | 72 = 24 + 22 + 17 + 9 | contractele și linkurile README depind încă de documente din afara modulului |
 | [REPORT-FALLBACK-RESULT-WIDTH-101](#report-fallback-result-width-101--badge-ul-statusului-depășește-coloana) | 64 = 24 + 19 + 15 + 6 | badge-ul Warning depășește RESULT și produce overflow evitabil |
@@ -404,35 +403,7 @@ de Kafka/RabbitMQ și verdictul business la caller.
 timing, FAIL și dovezi incomplete; fixture-ul neutru și navigarea au regresii
 în Reporting Tests, fără expected-uri sau cod Eventuate în renderer.
 
-## REPORT-FALLBACK-VALIDATION-DISCLOSURE-99 — validarea API colapsabilă
 
-**Prioritate: 76/100** = impact 28 + lacună 24 + lucrabil 17 + documentare 7.
-**Owner:** Reporting; regresia neutră rămâne în Reporting Tests.
-
-Pe J7 consumat în J2, validarea API fallback afișează direct tabelul agregat,
-fără disclosure pentru Response contract. Cele patru coloane, cele trei
-valori JSON și verdicturile FAIL sunt corecte; limita privește navigarea și
-colapsarea, nu evaluarea Validation.
-
-- HtmlReportEvidenceView.renderValidation activează disclosure-ul assertions numai pentru compactUi; traseul API îl ocolește.
-- Clasificarea media type și falsele PASS din ContractValidators aparțin [Validation](ATF_Validation_Feedback.md#validation-media-92--tipul-json-nu-poate-fi-imitat-de-un-parametru); rendererul păstrează verdictul typed, fără a-l recalcula.
-- Reutilizați shell-ul semantic și mecanica de disclosure a bibliotecii, cu starea inițială colapsată și control Enter/Space; fără wrapper sau JavaScript în consumer.
-- Păstrați un singur tabel, rândurile originale, ultima comparație, preview-ul 240 și legătura Fails către ownerul exact; nominalele și vecinii rămân izolați.
-
-**Închidere:** API individual și agregat, PASS/FAIL/WARNING, sunt inspectabile
-și colapsabile în fallback; Extent și assertion-only păstrează contractele lor.
-Fixture-ul neutru și mutanții trebuie verificați pe sursă și JAR, în browser.
-
-<details>
-<summary><strong>Dovadă consumer J2 — limită observată pe J7</strong></summary>
-
-- Increment TMP: atf-j2-scalar-517c733433; scalar-matrix/fallback-scalar-containers.html.
-- SHA-256 JAR: 569d2babe6b9ec091cb1df6e1207110c611327ea15f1521955e847c837d9eb2a.
-- SHA-256 HTML: c4154d589759c3562a296d770fdc296473bf59bcf3ae3e784d38f0ea7952d2df.
-- Browser: Overview implicit, Tests cu tabel deja vizibil, fără buton de colapsare; Fails păstrează trei comparații, inclusiv ultima.
-- DOM public: tabelul ASSERTION/EXPECTED/ACTUAL/RESULT nu are ancestor details. Proba consumerului verifică valori/verdicturi, fără a certifica disclosure-ul absent.
-
-</details>
 ## REPORT-FALLBACK-RESULT-WIDTH-101 — badge-ul statusului depășește coloana
 
 **Prioritate: 64/100** = impact 24 + lacună 19 + lucrabil 15 + documentare 6.
@@ -462,3 +433,8 @@ restrânge RESULT sub dimensiunea badge-ului trebuie refuzată separat de verdic
 - Receipt-ul de valori/verdicturi trece; el nu certifică geometria, care cere regresia de componentă dedicată.
 
 </details>
+
+Revalidarea J8 păstrează criteriul 101 deschis: pe raportul media-warning J2,
+TAB MCP măsoară la viewport 1280 px RESULT 56,99 px și badge Warning 61,79 px
+(clientWidth 56, scrollWidth 65). Colapsarea și verdicturile sunt corecte;
+regresia geometrică neutră cerută rămâne distinctă de testele de disclosure.

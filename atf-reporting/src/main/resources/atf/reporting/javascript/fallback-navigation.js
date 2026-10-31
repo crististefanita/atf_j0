@@ -1,4 +1,12 @@
 history.scrollRestoration = 'manual';
+function synchronizeFallbackDisclosureAria(details) {
+  const summary = details.querySelector(':scope > summary');
+  if (summary) summary.setAttribute('aria-expanded', String(details.open));
+}
+document.querySelectorAll('details').forEach(synchronizeFallbackDisclosureAria);
+document.addEventListener('toggle', event => {
+  if (event.target.tagName === 'DETAILS') synchronizeFallbackDisclosureAria(event.target);
+}, true);
 const tabs = [...document.querySelectorAll('.tab')];
 const panels = [...document.querySelectorAll('.tab-panel')];
 function activate(id) {

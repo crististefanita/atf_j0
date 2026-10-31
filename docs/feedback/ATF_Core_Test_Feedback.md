@@ -1,29 +1,19 @@
-# ATF Core — determinismul probelor de deadline
+# ATF Core — probe deadline revizuite
 
 ## Pe scurt
 
-Acest criteriu privește o probă nativă Core observată în J3, fără schimbare
-de implementare Core. Contractele Validation/Speech au acceptanțe separate.
+Probele disting ownership-ul înainte și după dispatch, cu snapshot și cauză verificate.
 
 ## CORE-DEADLINE-PROBE-01 — distinge expirarea înainte și după dispatch
 
-**Prioritate:** 78/100 = impact 29 + lacună 24 + lucrabil 18 + documentare 7.
-**Owner:** testele native Core în J0; J3 verifică sursa sa reconciliată.
+**Stare: închis prin probe de ownership.** Clock-ul controlat forțează separat
+zero dispatch și un dispatch la bugetul de 10 ms. Proba cu diagnostice păstrează
+același buget, verifică starea observată în 20 de repetări și conservă cauza.
 
-În prima rulare J3, `ApiDiagnosticIsolationTest` a eșuat la
-`pending.isCancelled()` cu un deadline de 10 ms; întregul Core a trecut la
-reverificare, fără modificări. Nu este demonstrată cauza unică. Testul cere
-implicit dispatch înainte de expirare, deși deadline-ul poate expira anterior.
+- Cancel omis: assertion-ul probei post-dispatch refuză mutația.
+- Guard înainte de dispatch omis: proba cu clock forțat refuză mutația.
+- Diagnostic suppressed omis: proba păstrării cauzei refuză mutația.
 
-- [ ] Reproduceți sub încărcare și separați două stări controlate: fără
-  dispatch la deadline expirat și anularea viitorului efectiv trimis.
-- [ ] Folosiți sincronizare/clock injectabil la boundary dacă se justifică;
-  nu creșteți timeout-ul ca singură corecție și nu eliminați anularea.
-- [ ] Păstrați cauza TimeoutException, istoricul attempts, diagnosticul
-  suppressed și probe negative care arată defectul vizat.
-
-**Închidere:** cazurile sunt deterministe, eșuează la încălcarea contractului
-lor și trec repetat sub încărcare; o rerulare verde singură nu închide criteriul.
-
-[Sursa probei](../../atf-core/src/test/java/atf/core/http/diagnostics/ApiDiagnosticIsolationTest.java) ·
-[Feedback activ](README.md).
+[Contract și probe permanente](../../atf-core/README.md#probele-deadline-ului-și-ownership-ul-future-ului)
+deține distincția dintre deadline și failsafe-ul JUnit. Nu s-a modificat
+implementarea Core, iar consumerii binari păstrează perechea existentă.

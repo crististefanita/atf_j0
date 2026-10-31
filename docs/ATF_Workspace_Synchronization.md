@@ -9,8 +9,9 @@ primește și verifică livrarea potrivită propriului deployment.
 | Workspace | Rol | Suprafață existentă |
 |---|---|---|
 | `atf_j0` | sursă Core/Reporting, teste native și `atf-reporting-tests`; referință pentru contractele comune | 12 module sursă; Core și guvernanța comune reconciliate |
-| `atf_j1` | testarea AutoEx și Shop; consumer Core și Reporting prin JAR | 9 module journeys; J7 în lib și acceptanță proprie |
+| `atf_j1` | testarea AutoEx și Shop; consumer Core și Reporting prin JAR | 9 module journeys; J8 în lib și acceptanță proprie |
 | `atf_j2` | WIP: framework și teste Kafka/mesagerie, fără module browser ori Shop/AutoEx | 7 module sursă; Core și Reporting JAR; componente Eventuate MOCK; Kafka remote și clientul Java de infrastructură validate în incrementul J2; clientul/observerul framework-ului rămâne WIP |
+| `atf_j3` | consumer speech, opt module sursă; Core sursă locală, Reporting JAR | J8 în lib și acceptanță proprie, fără module web ori mesagerie |
 | `demo2` | origine istorică a livrării J6 existente | nu mai este destinație activă de mentenanță sau sync |
 
 J1 poate avea schimbări comune în lucru. Referința J0 nu autorizează
@@ -24,6 +25,7 @@ flowchart LR
     Source["J0<br/>Core + Reporting"] -->|verifică| Candidate["Candidat unic<br/>JAR + POM + dovadă"]
     Candidate -->|livrează| J1["J1<br/>consumer existent"]
     Candidate -->|livrează| J2["J2<br/>consumer inițializat"]
+    Candidate -->|livrează| J3["J3<br/>consumer speech"]
 ```
 
 <details>
@@ -34,6 +36,7 @@ flowchart LR
   JAR/POM este oferită destinațiilor, fără rebuild separat sub aceeași versiune.
 - Fiecare muchie de livrare cere propria acceptanță. J2 are un Git separat,
   păstrat la baza sa existentă; profilul Eventuate exclude explicit Shop/AutoEx, UI și Debug UI, iar configurațiile lui evoluează separat.
+- J3 primește perechea Reporting din același candidat și o verifică separat; Core rămâne sursă în reactorul său.
 - Muchiile sunt livrări și probe, nu dependențe Maven ori module suplimentare.
 
 </details>

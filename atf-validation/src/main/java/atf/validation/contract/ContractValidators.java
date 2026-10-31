@@ -1,5 +1,4 @@
 package atf.validation.contract;
-import atf.core.http.request.MediaTypes;
 
 /** Canonical API contracts kept independent from report rendering. */
 public final class ContractValidators {
@@ -8,7 +7,7 @@ public final class ContractValidators {
     public static ResponseContract userItem() {
         return new ResponseContract()
                 .status(200)
-                .contentTypeContains(MediaTypes.APPLICATION_JSON)
+                .contentTypeJson()
                 .jsonPathExists("$.id")
                 .jsonPathExists("$.name");
     }
@@ -16,7 +15,7 @@ public final class ContractValidators {
     public static ResponseContract userCollection() {
         return new ResponseContract()
                 .status(200)
-                .contentTypeContains(MediaTypes.APPLICATION_JSON)
+                .contentTypeJson()
                 .jsonPathExists("$[0].id")
                 .jsonPathExists("$[0].name")
                 .jsonPathExists("$[0].email");
@@ -25,7 +24,7 @@ public final class ContractValidators {
     public static ResponseContract postItem() {
         return new ResponseContract()
                 .status(200)
-                .contentTypeContains(MediaTypes.APPLICATION_JSON)
+                .contentTypeJson()
                 .jsonPathExists("$.id")
                 // The live API contract is snake_case; keep this aligned with
                 // the .NET validator and the payload returned by GoREST.
@@ -35,7 +34,7 @@ public final class ContractValidators {
     public static ResponseContract postCollection() {
         return new ResponseContract()
                 .status(200)
-                .contentTypeContains(MediaTypes.APPLICATION_JSON)
+                .contentTypeJson()
                 .jsonPathExists("$[0].id")
                 .jsonPathExists("$[0].user_id")
                 .jsonPathExists("$[0].title")
@@ -45,7 +44,7 @@ public final class ContractValidators {
     public static ResponseContract relationshipCollection(String userId) {
         return new ResponseContract()
                 .status(200)
-                .contentTypeContains(MediaTypes.APPLICATION_JSON)
+                .contentTypeJson()
                 .jsonPathExists("$[0].id")
                 .jsonPathExists("$[0].title")
                 .everyArrayItemEquals("$", "user_id", userId);

@@ -1,6 +1,7 @@
 package atf.validation.contract;
 
 import atf.core.http.request.HttpHeader;
+import atf.core.http.request.MediaTypes;
 import atf.core.http.response.ApiResponse;
 import atf.validation.evaluation.ValidationTable;
 import java.nio.file.Files;
@@ -32,6 +33,13 @@ final class ResponseContractRuleSet {
             var actual = response.header(HttpHeader.CONTENT_TYPE.value());
             table.add(HttpHeader.CONTENT_TYPE.value(), expected, actual == null ? "<missing>" : actual,
                     actual != null && actual.toLowerCase(Locale.ROOT).contains(expected.toLowerCase(Locale.ROOT)));
+        });
+    }
+    ResponseContractRuleDefinition contentTypeJson() {
+        return rule("content-type-json", "Content-Type JSON", (response, table) -> {
+            var actual = response.header(HttpHeader.CONTENT_TYPE.value());
+            table.add("Content-Type JSON", "JSON media type", actual == null ? "<missing>" : actual,
+                    MediaTypes.isJson(actual));
         });
     }
     ResponseContractRuleDefinition headerPresent(String name) {

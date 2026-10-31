@@ -498,7 +498,7 @@ TestCase
 
 | Regula | Contract |
 |---|---|
-| ownership API direct | response contract validation este copilul request-ului care deține schimbul; tabelul de assertions aparține validation-ului |
+| ownership API direct | response contract validation este copilul request-ului care deține schimbul; tabelul de assertions aparține validation-ului  Extent colapsează nodul validation; fallback învelește tabelul nevid în disclosure-ul standard `Assertions · n`, închis inițial. Click, Enter/Space și backlink-ul Fails păstrează ownerul, rândurile și PASS/FAIL/WARNING; validarea goală nu inventează tabel sau disclosure. |
 | setup evidence | tabelul `CHECK / EXPECTED / ACTUAL / RESULT` rezumă precondiția; exchange-urile reale rămân `API validation` distinctă sub același checkpoint `SETUP` |
 | format body | request/response păstrează formatul capturat (JSON, form sau text); un contract JSON este cerut de validatorul consumerului, nu dedus din metoda HTTP |
 | body absent | request/response details rămân prezente; `ABSENT` și `NOT_CAPTURED` au explicații distincte, fără payload inventat; numai JSON literal `null` capturat devine document JSON |

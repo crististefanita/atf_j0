@@ -14,6 +14,8 @@ particular.
 
 ## Pe scurt
 
+[Reporting J8 — validare API colapsabilă](ATF_Reporting_J8_Verification.md) păstrează dovada livrării și limitele ei.
+
 | Pentru | Citește întâi |
 |---|---|
 | orientare între proiecte | [workspace-uri](ATF_Workspace_Synchronization.md), apoi [atlasul de context](ATF_Context_Atlas.md) |

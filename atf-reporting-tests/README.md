@@ -1182,3 +1182,24 @@ verifică două invocări distincte, glyph local, Enter/Space, End și ultimul r
 în Extent/fallback; fallback păstrează markerul nativ al browserului.
 Fixture-ul distribuției publică aceeași observație pe JAR-ul fizic, cu zero
 pachete Core/Kit/JUnit/Playwright în runtime-ul consumerului extern.
+
+
+## Validarea API colapsabilă în fiecare renderer
+
+Fixture-ul neutru `ApiValidationDisclosureFixture` publică snapshot-uri mock prin
+porturile publice, fără Eventuate sau servicii externe. Testul
+`ApiValidationDisclosureComponentTest` este descoperit de suita de componentă.
+
+| Probă | Contract |
+|---|---|
+| 12 nominale | Extent/fallback × individual/agregat × PASS/FAIL/WARNING; tabel unic la owner, patru coloane și trei comparații exacte |
+| 4 cazuri media | HTTP status PASS, media FAIL/WARNING și null PASS; schimbul verdicturilor între rânduri este refuzat fără schimbarea totalului negativ |
+| navigare | închis la sosire; click, Enter/Space, ultimul rând, backlink Fails, reload și panou de 392 px |
+| valori | object/array/null, redactare înainte de preview 240 și mismatch după limită care rămâne FAIL |
+| 6 mutanți | control eliminat, deschis implicit ori ultimul rând mutat la un sibling; fiecare este refuzat |
+| assets | creșterea ARIA este măsurată separat; limita ownerului fallback refuză un byte peste baseline chiar când formatul are headroom |
+| standalone | `ReportingStandaloneValidationDisclosureTest`: shell nevid și validare goală; fără browser sau alte module ATF |
+
+Extent deține colapsarea prin cardul validation; fallback prin `details`
+nativ. Diagnosticul duplicat și DOM-ul Extent ascuns nu pot substitui tabelul
+original. Aceeași matrice se execută și pe JAR-ul fizic, fără surse Reporting.
