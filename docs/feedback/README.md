@@ -16,6 +16,7 @@ Scorurile sunt priorități, nu note de calitate sau procente de acoperire. Form
 | 2 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md) | 89 | matricea assertion-only/HTTP și oracolele independente |
 | 3 | [Pași SQL și probe dedicate](ATF_Reporting_Feedback.md#report-sql-steps-116--query-uri-și-rezultate-auditabile) | 88 | query/bind-uri și rezultate configurabile, buget HTML cumulat și Extent/fallback; cerere J2, fără implementare livrată |
 | 4 | [Documentație](ATF_Documentation_Feedback.md) | 81 | mutanți semantici pentru atlas, cu istoricul legitim păstrat |
+| 5 | [Android UI report handoff](ATF_Android_UI_Reporting_Feedback.md) | 88 | fixture consumer/JAR pentru acțiuni, assertions, Base64 și observație vizuală; J4 trebuie să consume contractul compus |
 
 Masca literală, MIME, probele deadline-ului, corelarea comenzii, factura și lifecycle-urile deja livrate nu sunt relistate ca defecte. Rămân deschise numai negativele distincte descrise în feedback.
 
