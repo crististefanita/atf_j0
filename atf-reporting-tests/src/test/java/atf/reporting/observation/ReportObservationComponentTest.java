@@ -1,6 +1,8 @@
-package atf.reporting.audit;
+package atf.reporting.observation;
 
 import atf.reporting.contract.*;
+import atf.reporting.audit.AssertionAuditReport;
+import atf.reporting.configuration.ReportingSettings;
 import atf.reporting.extent.session.ExtentReportSession;
 import atf.reporting.html.HtmlReportSession;
 import atf.reporting.model.*;
@@ -22,7 +24,7 @@ class ReportObservationComponentTest {
         Path output=directory.resolve(extent?"extent.html":"fallback.html");
         String reference="complete reference "+"word ".repeat(80)+"FINAL-TRANSCRIPT-ROW";
         String uri=directory.resolve("artifact-"+"deep-".repeat(30)).resolve("evidence.json").toUri().toASCIIString();
-        var settings=new atf.reporting.configuration.ReportingSettings(240,12000);
+        var settings=new ReportingSettings(240,12000);
         try (AtfReportPorts.Session session=extent?new ExtentReportSession(output,settings):new HtmlReportSession(output,settings);
              var scenario=session.startScenario("ObservationContract","native evidence",List.of("component"));
              var phase=scenario.startPhase("TEST BODY")) {

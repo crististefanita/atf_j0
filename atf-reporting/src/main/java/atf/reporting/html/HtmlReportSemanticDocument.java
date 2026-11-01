@@ -12,7 +12,7 @@ import atf.reporting.model.ReportField;
 import atf.reporting.model.ReportJsonBody;
 import atf.reporting.model.ReportExecutionModel;
 import atf.reporting.model.ReportScreenshot;
-import atf.reporting.model.ReportTagNormalizer;
+import atf.reporting.semantic.tags.ReportTags;
 import atf.reporting.ui.network.ReportNetworkInspector;
 
 
@@ -77,7 +77,7 @@ public final class HtmlReportSemanticDocument {
             this.testClass = testClass == null ? "" : testClass;
             this.packageName = packageName == null ? "" : packageName;
             this.scenario = scenario == null ? "" : scenario;
-            this.tags = ReportTagNormalizer.normalize(tags);
+            this.tags = ReportTags.normalize(tags);
         }
 
         public String id() {

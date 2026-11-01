@@ -2,6 +2,9 @@
 
 ## Pe scurt
 
+Dovadă istorică C2/J9. Contractul curent de disclosure și guvernanță este
+consolidat în [J10](ATF_Reporting_J10_Verification.md).
+
 J0 păstrează sursele și nativele; J1/J2/J3 consumă aceiași bytes C2/J9.
 Perechile JAR/POM sunt direct în lib, câte o versiune per bibliotecă; J3 are
 șapte module și nu mai păstrează Core sursă.

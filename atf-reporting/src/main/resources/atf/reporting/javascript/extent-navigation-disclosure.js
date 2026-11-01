@@ -83,7 +83,8 @@ function collapseDirectScenarioCards() {
 }
 function collapseScenarioCards(force, root, open) {
   var bulk = typeof open === 'boolean', next = !!open;
-  q(atfScenarioCards, root).forEach(
+  var scenarios = root && root.matches && root.matches(atfScenarioCards) ? [root] : q(atfScenarioCards, root);
+  scenarios.forEach(
     function (scenario) {
       if (bulk) setDisclosureState(scenario, scenario.querySelector(':scope>.accordion'), next, 'data-atf-scenario-open');
       scenario.querySelectorAll(':scope .card[data-atf-node-role]').forEach(function (card) {
@@ -120,7 +121,7 @@ function toggleScenario(card, panel, e) {
     bindPhaseCollapse();
     bindNodeCollapse();
   }
-  collapseScenarioCards(true);
+  collapseScenarioCards(true, card);
   atfPerformanceRecordDisclosureToggle(startedAt);
 }
 function initializeScenarioCard(card, panel) {

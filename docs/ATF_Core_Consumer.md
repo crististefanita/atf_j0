@@ -4,13 +4,13 @@
 
 J0 păstrează implementarea și toate testele native Core. J1, J2 și J3 consumă
 aceeași bibliotecă `atf.api:atf-core:1.0.0-c2`, fără modul sursă ori teste
-native copiate în live. Reporting J9 are publicare și acceptanță separate.
+native copiate în live. Reporting J10 are publicare și acceptanță separate.
 
 | Contract | C2 |
 |---|---|
 | runtime | Java 21; Jackson Databind și YAML 2.17.2 |
 | independență | POM fără parent de reactor; zero dependențe ATF/JUnit/Extent de producție |
-| layout consumer | `lib/atf-core-1.0.0-c2.jar` și `.pom`, lângă perechea Reporting J9; exact patru fișiere |
+| layout consumer | `lib/atf-core-1.0.0-c2.jar` și `.pom`, lângă perechea Reporting J10; exact patru fișiere |
 | proveniență | `coreLibrary` în `library-provenance.json`; hash JAR/POM, intrări și catalog native; istoricul J9 rămâne distinct |
 | sursă și teste | ownerul sursei J0; niciun Core shadow în consumer |
 
@@ -75,7 +75,7 @@ flowchart LR
 
 ## Limita acceptanței Reporting
 
-Distribuția curentă folosește Core C2 și Reporting J9. Timing-ul capturat/publicare, REPORT-RECORDED-TIMING-83,
+Distribuția curentă folosește Core C2 și Reporting J10. Timing-ul capturat/publicare, REPORT-RECORDED-TIMING-83,
 rămâne deschis la ownerul J0; verdicturile corecte, tabelele lizibile și
 expandările verificate nu certifică relația temporală dintre fază și copil.
 

@@ -4,7 +4,7 @@ import atf.reporting.contract.evidence.ReportEvidenceOwner;
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.contract.ReportStatusAggregator;
-import atf.reporting.model.ReportTagNormalizer;
+import atf.reporting.semantic.tags.ReportTags;
 import atf.reporting.ui.model.AtfUiActionRecord;
 
 import java.util.ArrayList;
@@ -72,7 +72,7 @@ final class AtfReportSemanticState {
         private ScenarioState(String id, String name, Collection<String> tags) {
             this.id = id;
             this.name = name == null ? "" : name;
-            this.tags = ReportTagNormalizer.normalize(tags);
+            this.tags = ReportTags.normalize(tags);
         }
 
         String id() { return id; }

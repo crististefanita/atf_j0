@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.ArrayList;
+import atf.reporting.model.ReportTagNormalizer;
 
 import static atf.api.tests.governance.AtfGovernanceTestSupport.*;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -20,6 +22,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** Guards package size and keeps cohesion exceptions explicit. */
 @AtfComponentTest
 public class AtfPackageCohesionGovernanceTest {
+    /** Eight model contracts and one frozen legacy binary bridge; never a package-size waiver. */
+    private static final Set<String> REPORTING_MODEL_WITH_LEGACY_BRIDGE = Set.of(
+            "ReportCheck.java", "ReportExecutionEvidence.java", "ReportExecutionModel.java", "ReportField.java",
+            "ReportJsonBody.java", "ReportJsonBodyFormatter.java", "ReportObservation.java", "ReportScreenshot.java",
+            "ReportTagNormalizer.java");
+
     @Test
     void productionPackageCohesionUsesAnExplicitReviewedExceptionList() throws Exception {
         Path root = locateProjectRoot();
@@ -30,6 +38,8 @@ public class AtfPackageCohesionGovernanceTest {
             if (count > PACKAGE_COHESION_LIMIT) overLimit.put(packageName, count);
         });
         Map<String, Integer> unreviewed = withoutReviewedEntries(overLimit, REVIEWED_COHESION_EXCEPTIONS);
+        if (reviewedModelBridge(inventory.getOrDefault("atf.reporting.model", List.of())))
+            unreviewed.remove("atf.reporting.model");
 
         assertTrue(!counts.isEmpty(), "Production package inventory must not be empty");
         assertTrue(unreviewed.isEmpty(),
@@ -39,6 +49,24 @@ public class AtfPackageCohesionGovernanceTest {
                         .filter(counts::containsKey)
                         .allMatch(overLimit::containsKey),
                 () -> "Reviewed package allow-list is stale: " + overLimit);
+    }
+
+    @Test
+    void theLegacyModelBridgeCannotHideGrowthOrAReplacedModelContract() {
+        var inventory = new ArrayList<>(REPORTING_MODEL_WITH_LEGACY_BRIDGE);
+        assertEquals(PACKAGE_COHESION_LIMIT + 1, inventory.size());
+        assertTrue(reviewedModelBridge(inventory));
+        inventory.add("UnreviewedModel.java");
+        assertFalse(reviewedModelBridge(inventory), "a tenth class requires structural review");
+        inventory.remove("ReportField.java");
+        assertFalse(reviewedModelBridge(inventory), "the same physical count cannot hide a different contract");
+        var marker = ReportTagNormalizer.class.getAnnotation(Deprecated.class);
+        assertTrue(marker != null && !marker.forRemoval(), "the sole extra type is an explicit retained binary bridge");
+    }
+
+    private static boolean reviewedModelBridge(List<String> inventory) {
+        return inventory.size() == PACKAGE_COHESION_LIMIT + 1
+                && Set.copyOf(inventory).equals(REPORTING_MODEL_WITH_LEGACY_BRIDGE);
     }
 
     @Test

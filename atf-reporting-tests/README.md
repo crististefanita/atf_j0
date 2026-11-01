@@ -1217,3 +1217,15 @@ publice în Extent/fallback, individual și agregat, cu vecini PASS.
 
 Regresia pe JAR rulează într-un harness TMP fără implementare Reporting.
 Consumerii live păstrează numai JAR/POM și probele propriei aplicații.
+
+## Regresii disclosure și ABI J10
+
+| Probă | Dovadă |
+|---|---|
+| SiblingDisclosureStateComponentTest | Extent/fallback, individual/agregat, mouse/Enter/Space; vecinii păstrează starea și ultimul rând |
+| control de vizibilitate | oracolul refuză corpul ascuns chiar când toate valorile și atributele expanded rămân în DOM |
+| ReportingTagBinaryCompatibilityTest | client compilat față de ABI vechi, fără stub în classloaderul runtime |
+| observation | cele două componente sunt în atf.reporting.observation; assertions și fixture-urile rămân aceleași |
+
+J9 fizic reproduce cele trei eșecuri ale vecinilor; candidatul J10 verifică
+separat implementarea sursă și JAR-ul. Probele generice rămân permanent în J0.

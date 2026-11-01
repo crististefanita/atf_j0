@@ -7,7 +7,7 @@ oracol, fixture, classpath, navigare și acceptanța browserului.
 [Implementarea bibliotecii](ATF_Reporting_Feedback.md) păstrează lifecycle-ul,
 API-ul public, publicarea și release-ul; un test reparat nu închide implicit acel criteriu.
 
-**Prioritate: 90/100** = impact 36 + lacună 27 + lucrabil 19 + documentare 8.
+**Prioritate: 89/100** = impact 35 + lacună 27 + lucrabil 19 + documentare 8.
 Un candidat de bibliotecă cere și probele canonice afectate, cu ieșirea integrală
 păstrată în staging. O selecție focalizată verde nu certifică inventarul rezidual.
 
@@ -118,34 +118,65 @@ producând overflow mic, deși patru coloane pot fi afișate în panoul normal.
 verifică sursa și JAR-ul real. Proba de valori din consumer rămâne acolo;
 fixture-ul și oracolul generic de geometrie sunt deținute permanent în J0.
 
-## REPORT-J7-GOVERNANCE-100 — coeziune și lizibilitate probate pe source
+## REPORT-TEST-SQL-STEPS-116 — probe dedicate SQL
 
-**Prioritate:** 87/100 = impact 34 + lacună 26 + lucrabil 19 + documentare 8.
-**Owner:** modelul și regresiile generice Reporting la J0.
+**Prioritate: 88/100** = impact 35 + lacună 26 + lucrabil 18 + documentare 9.
+**Owner:** atf-reporting-tests pentru componentele neutre și oracolele de
+randare; nativele modelelor/configurației aparțin atf-reporting. Aceste probe
+sunt cerute pentru [contractul SQL nou](ATF_Reporting_Feedback.md#report-sql-steps-116--query-uri-și-rezultate-auditabile), nu implementate în acest increment documentar.
 
-Guvernanța completă a reprodus patru eșecuri existente în snapshot-ul inițial:
-modelul Reporting are nouă clase, pachetul de audit are zece teste și două
-probe observation folosesc apeluri ATF complet calificate. Inventarul finit
-J7, separat, este reconciliat cu testul Observation deja livrat.
+Fixture-urile primesc fapte SQL capturate, fără Eventuate, H2 sau conexiune
+reală în harness. Execuția JDBC independentă și selecțiile individual/suită
+rămân acceptanța J2; un fixture neutru nu dovedește tranzacțiile aplicației.
 
-| Suprafață | Criteriu de rezolvare |
+| Familie componentă propusă | Oracol independent obligatoriu |
 |---|---|
-| `atf.reporting.model` | revedeți coeziunea celor nouă tipuri și compatibilitatea API înaintea separării; nu măriți implicit pragul opt și nu mutați tipuri publice fără plan de livrare |
-| `atf.reporting.audit` | separați observațiile/regresiile după responsabilitate, în source-set-ul de test J0; păstrați probele și numărul de module |
-| observation tests | importați normal API-urile ATF în locul apelurilor complet calificate; nu alterați expected-ul ori verdictul |
-| acceptanță | cele trei guard-uri vizate, nativele/regresiile Reporting și gate-ul JAR fizic trec; o schimbare de producție cere versiune și acceptanțe distincte la consumeri |
+| disclosure și identitate | query plus bind-uri exacte în faza corectă, inclusiv două titluri identice, vecin PASS și SQL error controlat |
+| bugete și redacție | query 4.096, bind-uri 2.048, rezultate 16.384 și payload SQL cumulat 1.048.576; fiecare configurabil separat, fără leak în canale ascunse |
+| tabel rezultate | zero/unul/multe rânduri, duplicate de rând și de etichetă coloană, ordine fixă, NULL/gol, întregi mari și zecimale exacte |
+| lifecycle și ownership | cauză inițială, cleanup secundar, cancel și captură parțială, publicare refuzată/repetată și niciun callback JDBC ori assertion reevaluat |
 
-**Închidere:** cele patru eșecuri dispar prin structură/importuri revizuite,
-cu probe comportamentale păstrate. Contractele Validation/profiluri/media/WER
-au trecut separat; nu declarăm guvernanța completă J0 verde în acest increment.
+Separați familiile în pachete coezive în limita existentă de opt clase;
+nu creați un modul nou. AtfComponentTest și selecțiile explicite rămân vizibile;
+un test contractual închis nu dispare din suita de regresie.
 
-[Model](../../atf-reporting/src/main/java/atf/reporting/model/ReportObservation.java) ·
-[probe](../../atf-reporting-tests/src/test/java/atf/reporting/audit/ReportObservationComponentTest.java) ·
-[guard](../../atf-tests/src/test/java/atf/api/tests/governance/AtfPackageCohesionGovernanceTest.java).
+<details>
+<summary><strong>Matricea de regresie și probele negative</strong></summary>
 
+- Pentru fiecare buget verificați limita minus unu, limita exactă și limita
+  plus unu, valoare mică validă și configurații invalide/overflow. Schimbarea
+  limitei rezultatelor nu trebuie să modifice limita query-ului sau preview-ul 240.
+- Numărați separat code points vizibile și payload-ul efectiv serializat.
+  Includeți diacritice, emoji compuse, markup care amplifică escaping-ul,
+  parametri sensibili și multe execuții care epuizează bugetul cumulat.
+- Oracolul scanează DOM, JSON, script, atribute și indexul de căutare pentru
+  full payload/secret interzis; markerul de omisiune este inclus în buget și
+  documentul final rămâne valid. Verificați și publicarea concurentă.
+- Includeți eroare SQL așteptată într-un test PASS și eroare neinterceptată
+  într-un FAIL, SQLState/vendor code și cauza originală; nu deduceți verdictul
+  numai din existența unui error field sau din culoarea tabelului.
+- Un mismatch după toate limitele de preview rămâne FAIL. SQL-only legitim,
+  assertion-only și combinația UI/API/SQL se verifică fără request-uri fictive;
+  includeți setup eșuat înaintea body-ului și cleanup eșuat după body.
+- Mutați numai query-ul, bind-urile, rândul ori verdictul la un sibling omonim;
+  eliminați o coloană duplicată, rotunjiți un număr, ascundeți full payload-ul
+  peste plafon ori scurgeți un secret. Fiecare mutant trebuie refuzat independent.
+- În Extent și fallback inspectați toate disclosure-urile, lățimea disponibilă,
+  ultima coloană/rând, scroll interior, Enter/Space, panou îngust, reload și
+  linkurile Tests/Fails/Overview către aceeași execuție și cauză.
 
-## REPORT-TEST-SIBLING-DISCLOSURE-114 — regresie necesară
+</details>
 
-[Defectul reprodus în TAB](ATF_Reporting_Feedback.md#report-sibling-disclosure-114--păstrează-expandarea-vecinilor)
-cere un fixture neutru și o regresie în atf-reporting-tests înaintea corecției.
-Proba numerică nouă nu certifică păstrarea expandării după închiderea vecinilor.
+**Închidere:** componente permanente și controale negative, matrice pe sursă
+izolată și JAR fizic fără sursa producătorului, plus audit browser pentru
+ambele renderere. Receipt-ul leagă scenariul, faza, ID-ul execuției și limitele
+efective; un marker găsit ori un screenshot singur nu închide criteriul.
+
+J2 adoptă apoi noul candidat și extinde matricea proprie de 18 rapoarte SQL cu
+query/bind-uri/schema efectiv capturate. Acceptanța anterioară J9 rămâne istorică.
+
+### Intrări concrete pentru componentele J0 — 2026-11-01
+
+- [Matricea J2](../../../atf_j2/docs/ATF_SQL_Live_Verification.md) furnizează acum query/binds/schema/rows typed și erori controlate, în 12 Extent/fallback. Adăugați fixture-uri neutre permanente pentru fiecare familie de mai sus, fără copierea H2 sau a suitei JDBC în Reporting Tests.
+- Păstrați negativele query absent, ID diferit de metadata, DECIMAL rotunjit și rând/coloană duplicată pierdută. Adăugați cross-owner cu titluri identice și SQL-only fără HTTP; inspectorul generic J10 refuză încă cele 12 artifacte legitime.
+- Verificați separat captura parțială JDBC, tăierea HTML configurată și testul PASS care verifică o eroare SQL așteptată. Un error field nu impune FAIL asupra comparațiilor care au trecut; eroarea neconsumată păstrează FAIL și cauza originală.

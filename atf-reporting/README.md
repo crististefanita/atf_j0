@@ -2263,3 +2263,29 @@ flowchart LR
 - Callerul păstrează evaluarea, raw-ul și politica de retenție.
 
 </details>
+
+## Starea locală a expandărilor
+
+| Acțiune | Contract |
+|---|---|
+| click / Enter / Space pe scenariu Extent | schimbă numai scenariul acționat; fazele sale se resetează conform contractului local |
+| scenariu vecin deschis | fazele, request-urile, validările și dovezile lui păstrează starea și vizibilitatea |
+| Expand all / Collapse all | acțiune explicită asupra arborelui ownerului activ; disclosure-urile dovezilor rămân controale locale |
+| fallback | fiecare disclosure nativ rămâne independent, inclusiv mouse și keyboard |
+| assertion | valoare și verdict originale, preview implicit 240; DOM ascuns nu certifică dovada vizibilă |
+
+## Taguri și compatibilitate binară
+
+Normalizarea are owner semantic în ReportTags: elimină null/blank, aplică trim
+și Locale.ROOT, păstrează ordinea primei apariții și returnează o listă imuabilă.
+
+| Suprafață | Regula de mentenanță |
+|---|---|
+| atf.reporting.semantic.tags.ReportTags | implementarea unică; rendererele și snapshot-urile folosesc acest owner |
+| atf.reporting.model.ReportTagNormalizer | fațadă deprecated fără angajament de eliminare; păstrează exact semnătura publică veche |
+| model | opt contracte active plus unica punte binară, nouă fișiere fizice inventariate explicit |
+| guvernanță | pragul general opt rămâne; o a zecea clasă ori substituirea unui contract este refuzată, chiar cu același număr fizic |
+| ABI | client compilat separat împotriva semnăturii vechi, apoi executat cu implementarea reală; stub-ul nu intră în classloader |
+
+Normalizarea nu deține reguli business sau starea rendererului. Puntea nu este
+un allow-list pentru creșterea pachetului și nu adaugă un modul.

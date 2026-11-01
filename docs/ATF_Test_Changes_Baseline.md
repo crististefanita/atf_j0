@@ -3850,3 +3850,35 @@ testChanges:
 ```
 
 </details>
+
+<details>
+<summary><strong>Reporting J10 — disclosure local și guvernanță</strong></summary>
+
+Regresia refuză J9 și verifică sursa/JAR-ul J10. Contractele stabile sunt la
+[Reporting](../atf-reporting/README.md#taguri-și-compatibilitate-binară) și la
+[harness](../atf-reporting-tests/README.md#regresii-disclosure-și-abi-j10).
+
+```yaml
+testChanges:
+  - id: REPORT-SIBLING-GOVERNANCE-J10
+    status: VERIFIED
+    base: ac9b5f608378ed1b0f73ab45080dab22c24f003e
+    expires: 2026-11-30
+    allowDelete: true
+    reason: Reproduce resetarea vecinilor pe J9, mută semantic probele observation fără alterarea assertions, guvernează separat fațada binară deprecated prin inventar exact și negative pentru orice clasă suplimentară. Nu mărește pragul opt și nu elimină API public.
+    proof: mvn -B -pl atf-reporting-tests,atf-tests -am "-Dtest=SiblingDisclosureStateComponentTest,ReportingStandaloneTagCompatibilityTest,AtfPackageCohesionGovernanceTest,AtfSourceReadabilityGovernanceTest,TestChangeGovernanceTest,AtfTestLayerArchitectureTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/distribution/tags/ReportingTagBinaryCompatibilityTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/runtime/section/ExtentReportRuntimeNavigationComponentTest.java
+      - atf-reporting/src/test/java/atf/reporting/standalone/tags/ReportingStandaloneTagCompatibilityTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/disclosure/SiblingDisclosureStateComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/disclosure/SiblingDisclosureLocators.java
+      - atf-reporting-tests/src/test/java/atf/reporting/audit/ReportObservationComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/observation/ReportObservationComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/audit/ReportObservationBrowserComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/observation/ReportObservationBrowserComponentTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/AtfPackageCohesionGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/layers/AtfTestLayerArchitectureTest.java
+```
+
+</details>

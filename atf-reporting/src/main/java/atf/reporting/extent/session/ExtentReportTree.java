@@ -15,7 +15,7 @@ import atf.reporting.model.diagnostic.ReportPhaseDiagnostic;
 import atf.reporting.ui.network.ReportNetworkInspector;
 import atf.reporting.model.ReportJsonBody;
 import atf.reporting.model.ReportScreenshot;
-import atf.reporting.model.ReportTagNormalizer;
+import atf.reporting.semantic.tags.ReportTags;
 import atf.reporting.semantic.AtfReportSemanticRecorder;
 import atf.reporting.semantic.AtfReportSemanticSnapshot;
 
@@ -90,7 +90,7 @@ public final class ExtentReportTree {
         ensureOpen();
         // Normalize caller-owned input before creating either Extent or semantic nodes.
         // A faulty Collection implementation must not leave a half-started scenario.
-        List<String> normalizedTags = ReportTagNormalizer.normalize(tags);
+        List<String> normalizedTags = ReportTags.normalize(tags);
         String className = testClass == null || testClass.isBlank() ? "API tests" : testClass;
         String packageName = testPackage == null ? "" : testPackage.trim();
         boolean newRoot = !classRoots.containsKey(className);

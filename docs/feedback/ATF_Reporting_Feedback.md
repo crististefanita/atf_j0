@@ -45,7 +45,8 @@ sunt la ownerii lor, iar registrul păstrează numai criteriile încă deschise.
 |---|---:|---|
 | [REPORT-ARTIFACT-PROFILE-62](#report-artifact-profile-62--aplicabilitate-explicită-a-inspectorului) | 89 = 35 + 27 + 19 + 8 | profil explicit pentru assertion-only/HTTP și renderer; dovezi J6/J8 în J2 |
 | [REPORT-RECORDED-TIMING-83](#report-recorded-timing-83--execuție-capturată-și-cost-de-publicare) | 88 = 35 + 26 + 19 + 8 | faza capturată și copilul măsurat la publicare pot expune durate incompatibile |
-| [REPORT-SIBLING-DISCLOSURE-114](#report-sibling-disclosure-114--păstrează-expandarea-vecinilor) | 82 | închiderea vecinului păstrează fazele/request-urile/validările subiectului expandate |
+| [REPORT-SQL-STEPS-116](#report-sql-steps-116--query-uri-și-rezultate-auditabile) | 88 = 35 + 26 + 18 + 9 | pași SQL neutri, query/bind-uri și rezultate cu bugete independente; adoptare J2 după release |
+| [REPORT-SYSTEM-METADATA-117](#report-system-metadata-117--paritate-semantică-extentfallback) | 83 = 31 + 24 + 20 + 8 | J3 pe J10 fizic: șase câmpuri System în Extent versus unul în fallback, pe aceeași selecție |
 | `REPORT-FALLBACK-INDEX-66` | 81 = 30 + 24 + 20 + 7 | contrastul slab este reconfirmat de consumerul Speech pe J8; owner generic, fără override local |
 | `REPORT-PUBLIC-API-43` | 81 = 31 + 24 + 17 + 9 | API-ul susținut, compatibilitatea și capabilitățile adaptoarelor nu sunt delimitate suficient |
 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) | 80 = 31 + 24 + 18 + 7 | criteriu separat al consumerului: oracol per scenariu și containment fallback |
@@ -345,6 +346,11 @@ Bootstrap-ul auditabil al consumerului nu închide inspectorul generic sau regre
 
 </details>
 
+### Reconfirmare consumer SQL pe J10 — 2026-11-01
+
+- Toate cele 12 artifacte SQL legitime fără HTTP sunt refuzate de inspectorul generic: șase Extent la request response evidence split, șase fallback și la cerințe de shell Extent. Receipt-ul păstrează rezultatele originale; oracolul independent SQL și mutanții trec.
+- Adăugați profil explicit SQL-only/assertion-only și renderer la owner, cu negative care elimină query/ID/rând ori mută dovada la sibling. Nu cereți HTTP fictiv și nu transformați acceptanța independentă J2 în PASS universal al inspectorului.
+
 ## REPORT-RECORDED-TIMING-83 — execuție capturată și cost de publicare
 
 **Prioritate: 88/100** = impact 35 + lacună 26 + lucrabil 19 + documentare 8.
@@ -430,17 +436,129 @@ TAB MCP măsoară la viewport 1280 px RESULT 56,99 px și badge Warning 61,79 px
 regresia geometrică neutră cerută rămâne distinctă de testele de disclosure.
 
 
-## REPORT-SIBLING-DISCLOSURE-114 — păstrează expandarea vecinilor
+## REPORT-SQL-STEPS-116 — query-uri și rezultate auditabile
 
-**Prioritate: 82/100.** În Extent J9 agregat, Expand all deschide trei
-scenarii, fazele, request-urile și assertions. Închiderea antetului primului
-scenariu colapsează TEST BODY în celelalte două, deși rămân scenarii deschise.
+**Prioritate: 88/100** = impact 35 + lacună 26 + lucrabil 18 + documentare 9.
+**Owner:** Reporting pentru contractul neutru și ambele renderere; Reporting
+Tests pentru [probele dedicate](ATF_Reporting_Tests_Feedback.md#report-test-sql-steps-116--probe-dedicate-sql).
+Acesta este un increment cerut, fără implementare sau versiune JAR livrată.
 
-- Reproducere TAB: publication/extent-true.html din incrementul C2/J9; owner JsonFidelityMock, trei scenarii, fără serviciu extern.
-- Păstrați starea fazei, request-ului, validării și disclosure-urilor subiectului când se închide un vecin; acțiunea locală nu resetează arborele întreg.
-- Adăugați regresie publică neutră în Reporting Tests, cu vecini PASS și subiect FAIL; mouse/Enter/Space, individual/agregat și sursă/JAR.
-- Oracolul verifică ownerul activ și starea efectiv vizibilă după acțiune; datele prezente în DOM ascuns nu satisfac criteriul.
+J2 are acum opt module sursă, prin adăugarea explicit cerută a bibliotecii atf-sql JDK-only: template, binds typed, metadata ordonată și celule capturate din aceeași execuție. Proiecția veche SqlEffectsSnapshot rămâne separată; noul adaptor publică deocamdată observations JSON, fără tabel SQL semantic.
 
-**Închidere:** mutantul care resetează vecinii este refuzat, apoi noua versiune
-este publicată și reacceptată separat. Nu este corectat în J9, al cărui
-JavaScript este byte-identic cu J8; fidelitatea JSON are acceptanță distinctă.
+AtfReportPorts.Phase nu are un pas SQL semantic. Query-ul typed deja existent
+în Reporting descrie parametrii URI HTTP, nu interogări SQL.
+
+| Responsabilitate | Contract cerut |
+|---|---|
+| consumer JDBC | capturează o singură execuție, query template, bind-uri ordonate și tipizate, schema și rândurile înainte de închiderea resurselor |
+| Reporting | primește fapte imuabile și publică pas SQL colapsabil, la același nivel semantic cu UI/API, fără a executa interogări |
+| assertions | comparația integrală și verdictul rămân la evaluator; aceeași zonă standard cu patru coloane și preview implicit 240 |
+| distribuție | API cu capabilitate explicită și compatibilitate documentată; JAR/POM și acceptanță J2 după release-ul J0 |
+
+Nu introduceți driver H2/JDBC ori dependențe Eventuate în Reporting. Nu păstrați
+Connection, Statement sau ResultSet și nu reluați query-ul, COUNT sau comparația
+pentru completarea raportului. Expected-urile și politica de business rămân la consumer.
+
+<details>
+<summary><strong>Contractul faptelor și al randării SQL</strong></summary>
+
+- Un ID de execuție leagă faza, query-ul, parametrii, rezultatele, timing-ul și
+  cauza; titlurile identice cu bind-uri diferite nu permit asocierea după text.
+- Query template și bind-urile sunt separate; nu construiți SQL executabil prin
+  interpolare. Bind-urile păstrează poziția/numele, tipul, NULL și politica de
+  sensibilitate; conexiunea este un alias opac, fără URL cu credențiale.
+- Schema este o listă ordonată cu ordinal, etichetă și tip. Etichetele duplicate
+  nu devin chei Map care pierd coloane; rândurile păstrează ordinea și multiplicitatea.
+- NULL, textul null, șirul gol, binarul și numerele exacte sunt distincte.
+  BigDecimal și întregii mari nu trec prin Double; redacția și pretty-print-ul
+  respectă [contractul numeric livrat](../../atf-reporting/src/main/java/atf/reporting/security/README.md).
+- Separați execuția eșuată/anulată, rezultatul complet gol, captura parțială și
+  trunchierea de afișare. Numărul total necunoscut rămâne necunoscut, fără COUNT
+  suplimentar; un rezultat tăiat nu este prezentat ca zero rânduri complete.
+- Un SQL error așteptat poate aparține unui test PASS; observația nu inventează
+  verdictul. Eșecul neinterceptat rămâne FAIL; cleanup-ul și publicarea nu
+  înlocuiesc cauza originală și nu provoacă replay.
+- Timing-ul explicit separă execuția/captura de publicare, păstrând necunoscut
+  versus zero. Nu închideți REPORT-RECORDED-TIMING-83 printr-o durată calculată din HTML.
+- Query, bind-uri, Results și Assertions au disclosure-uri accesibile și owner
+  precis. Extent și fallback păstrează coloane dinamice pe lățimea disponibilă,
+  scroll până la ultima coloană/rând, Enter/Space și Fails către pasul original.
+- Un profil SQL-only legitim nu primește HTTP fictiv pentru inspector;
+  REPORT-ARTIFACT-PROFILE-62 rămâne un criteriu distinct de închidere.
+
+</details>
+
+### Bugete configurabile pentru payload-ul SQL
+
+Valorile următoare sunt defaults propuse pentru noul contract, nu proprietăți
+deja disponibile în J9. Query-ul și rezultatele au configurări independente;
+limita 240 a preview-ului assertion-urilor rămâne neschimbată.
+
+| Buget | Default propus | Unitatea și aplicarea |
+|---|---:|---|
+| query | 4.096 | caractere vizibile pentru template-ul unei execuții |
+| bind-uri | 2.048 | caractere vizibile cumulate pentru parametrii unei execuții |
+| rezultate | 16.384 | caractere vizibile cumulate pentru schema și toate celulele unei execuții; nu per celulă |
+| payload SQL variabil per raport | 1.048.576 | unități UTF-16 serializate pentru query/bind-uri/schema/celule/omisiuni, inclusiv copii DOM/JSON și escaping; assets și metadatele standard de identitate/verdict sunt excluse |
+
+- Numărați preview-ul în code points Unicode după redacție și formatare;
+  tăierea păstrează grapheme/surrogate valide și nu depășește limita aleasă.
+  Bugetul serializat distinct previne amplificarea prin escaping ori copii DOM.
+- Validați configurația înainte de publicare: întregi pozitivi, fără overflow,
+  lipsă de valoare sau dezactivare implicită a plafonului; capturați politica
+  imuabil la crearea sesiunii. Numele finale și intervalele acceptate sunt ale API-ului J0.
+- Numerele maxime includ markerul și indicatoarele de omisiune din zona
+  plafonată. Rezervați structură HTML validă, ID și diagnostic minimal bounded;
+  nu tăiați HTML/JSON serializat în mijlocul tagului sau al valorii.
+- O epuizare indică explicit afișat/original când originalul este cunoscut,
+  câte rânduri/coloane sunt omise și motivul. Trunchierea capturii și cea de
+  prezentare rămân distincte; verdictul integral nu se reevaluează pe preview.
+- Plafonul cumulat are contabilizare deterministă per sesiune și rezervare
+  înaintea serializării, inclusiv la publicare concurentă. După epuizare nu
+  repetați un marker voluminos pentru fiecare pas; rezervați un sumar bounded
+  pentru omisiuni și păstrați identitatea/verdictul în metadatele standard.
+- Interziceți payload-ul integral ascuns în script, atribute, DOM, base64 ori
+  indexul de căutare. Un link la un artifact extern complet cere politică
+  explicită, hash și redacție proprie; nu se include automat versiunea integrală în HTML.
+- Redactați înainte de măsurare, în toate canalele. Template-ul și bind-urile
+  primesc sensibilitate explicită de la sursă; un regex nu certifică ștergerea
+  tuturor literalelor secrete din orice dialect SQL.
+
+**Închidere:** model și capabilitate publică, limite validate, randări Extent și
+fallback și componentele neutre de mai sus trec pe sursă și JAR fizic. Publicați
+compatibilitatea și proveniența candidatului; apoi J2 capturează query/bind-uri
+și adoptă separat contractul cu witness-ul real H2. Până atunci, observations
+generice rămân comportamentul livrat; această cerere nu certifică SQL LIVE.
+
+### Handoff producer J2 — 2026-11-01
+
+- [Contractul SQL J2](../../../atf_j2/atf-sql/README.md) oferă acum faptele typed și un ID per execuție. Reporting primește o proiecție neutră, fără dependență către JDBC, H2 sau modulul SQL consumer.
+- Matricea J2 are 12 HTML-uri/36 invocări și patru FAIL-uri JDBC controlate, cu oracol pe query, binds, duplicate labels/rows, NULL/gol, DECIMAL exact și ownership. Mutanții ID/query lipsă și număr rotunjit sunt refuzați; aceasta nu substituie componentele permanente J0 ale noului API SQL.
+- Captura JDBC implicită are 4.194.304 unități conservative; nu este plafon HTML. Păstrați cerința distinctă pentru query 4.096, binds 2.048, rezultate 16.384 și total SQL 1.048.576, toate configurabile, fără payload complet ascuns. Preview-ul assertions rămâne 240.
+- [Dovada J2](../../../atf_j2/docs/ATF_SQL_Live_Verification.md) separă H2, Kafka/MySQL reale și aplicația Eventuate NOT RUN. Nu certificați saga sau dialecte SQL prin fixture-ul neutru al rendererului.
+
+## REPORT-SYSTEM-METADATA-117 — paritate semantică Extent/fallback
+
+**Prioritate: 83/100** = impact 31 + lacună 24 + lucrabil 20 + documentare 8.
+**Owner:** defaults/configurație și bootstrap neutru în Reporting; regresii
+permanente în Reporting Tests. J3 consumă noua pereche binară după livrare.
+
+Consumerul Speech a reprodus pe Core C2 / Reporting J10 fizice aceeași
+selecție de două scenarii replay, fără inferență nouă: Extent arată Environment,
+Runtime, OS, Client, Reporting și Assertion preview, iar fallback numai
+Assertion preview. Ambele arată corect 240. Verdicturile FAIL originale și
+corpurile integrale rămân corecte; asimetria este de context al execuției.
+Proba independentă a consumerului confirmă și observația anterioară din
+[matricea device J3](../../../atf_j3/docs/feedback/ATF_Speech_Reporting_Feedback.md#speech-report-metadata-05--common-system-metadata-across-renderers).
+
+- [ ] Declarați setul comun de facts obligatorii versus câmpuri opționale la
+  bootstrap/factory, cu overrides explicite păstrate și fără date fabricate.
+- [ ] Proiectați aceleași semnificații în ambele renderere; rendererul efectiv
+  rămâne distinct. Fallback nu moștenește eticheta Extent.
+- [ ] Adăugați proba permanentă pentru ambele renderere: defaults, overrides,
+  valori necunoscute și overview, apoi gate-ul JAR și reacceptanța consumerului.
+  Un override CSS/metadata în Speech nu închide defectul comun.
+
+**Închidere:** aceeași selecție și configurație păstrează facts comune auditabile
+în Extent/fallback, cu rendererul efectiv corect și preview 240. J10 a reparat
+independența disclosure-urilor; acel criteriu separat nu închide metadata.

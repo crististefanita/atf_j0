@@ -481,3 +481,13 @@ Comanda selectează proba numită și construiește dependențele; nu declară
 trecerea întregului modul. Gate-ul nu dovedește un journey business ori randarea artifactului.
 
 </details>
+
+### Puntea binară din modelul Reporting
+
+Pragul general de coeziune rămâne opt. Inventarul exact pentru model admite
+opt contracte active și unica fațadă deprecated ReportTagNormalizer, a cărei
+implementare este în ownerul semantic ReportTags.
+
+- O a zecea clasă este refuzată.
+- Înlocuirea unui contract cu alt tip, la același număr fizic, este refuzată.
+- API-ul vechi rămâne executabil; puntea nu primește o politică nouă de taguri.

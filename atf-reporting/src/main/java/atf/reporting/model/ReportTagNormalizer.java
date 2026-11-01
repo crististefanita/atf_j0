@@ -1,25 +1,18 @@
 package atf.reporting.model;
 
+import atf.reporting.semantic.tags.ReportTags;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
 
-/** Canonicalizes report tags for display, filtering and semantic snapshots. */
+/**
+ * Binary-compatible entry point for callers compiled before the semantic tag owner.
+ * @deprecated Use {@link ReportTags}; this bounded bridge preserves the supported signature.
+ */
+@Deprecated(since = "1.0.0-j10", forRemoval = false)
 public final class ReportTagNormalizer {
-    private ReportTagNormalizer() {
-    }
+    private ReportTagNormalizer() { }
 
     public static List<String> normalize(Collection<String> tags) {
-        if (tags == null || tags.isEmpty()) {
-            return List.of();
-        }
-        return tags.stream()
-                .filter(Objects::nonNull)
-                .map(String::trim)
-                .filter(tag -> !tag.isEmpty())
-                .map(tag -> tag.toLowerCase(Locale.ROOT))
-                .distinct()
-                .toList();
+        return ReportTags.normalize(tags);
     }
 }

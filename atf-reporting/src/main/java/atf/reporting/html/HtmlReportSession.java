@@ -1,4 +1,6 @@
 package atf.reporting.html;
+
+import atf.reporting.semantic.tags.ReportTags;
 import atf.reporting.console.AtfConsoleSink;
 import atf.reporting.console.AtfConsoleEvent;
 import atf.reporting.contract.AtfReportPorts;
@@ -96,7 +98,7 @@ public final class HtmlReportSession implements AtfReportPorts.Session {
     public AtfReportPorts.Scenario startScenario(String testClass, String testPackage,
                                                  String scenario, Collection<String> tags) {
         ensureOpen();
-        var stableTags = atf.reporting.model.ReportTagNormalizer.normalize(tags);
+        var stableTags = ReportTags.normalize(tags);
         var handle = semantic.startScenario(testClass, testPackage, scenario, stableTags);
         var model = document.startScenario(testClass, testPackage, scenario, stableTags);
         String name = (testClass == null ? "API tests" : testClass) + " :: "

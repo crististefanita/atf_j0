@@ -13,8 +13,8 @@ Scorurile sunt priorități, nu note de calitate sau procente de acoperire. Form
 | Ordine | Owner și criteriu | Prioritate /100 | Restanță concretă |
 |---:|---|---:|---|
 | 1 | [Reporting](ATF_Reporting_Feedback.md) | 89 | profilul inspectorului; timing capturat/publicare 88 rămâne distinct |
-| 2 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md) | 89 | matricea assertion-only/HTTP și guvernanța preexistentă 87 |
-| 3 | [Expandarea vecinilor](ATF_Reporting_Feedback.md#report-sibling-disclosure-114--păstrează-expandarea-vecinilor) | 82 | închiderea unui scenariu resetează fazele altor scenarii în Extent |
+| 2 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md) | 89 | matricea assertion-only/HTTP și oracolele independente |
+| 3 | [Pași SQL și probe dedicate](ATF_Reporting_Feedback.md#report-sql-steps-116--query-uri-și-rezultate-auditabile) | 88 | query/bind-uri și rezultate configurabile, buget HTML cumulat și Extent/fallback; cerere J2, fără implementare livrată |
 | 4 | [Documentație](ATF_Documentation_Feedback.md) | 81 | mutanți semantici pentru atlas, cu istoricul legitim păstrat |
 
 Masca literală, MIME, probele deadline-ului, corelarea comenzii, factura și lifecycle-urile deja livrate nu sunt relistate ca defecte. Rămân deschise numai negativele distincte descrise în feedback.
@@ -27,6 +27,8 @@ distribuției și probele deterministe de timeout sunt în documentația ownerul
 și în baseline; nu rămân defecte active în feedback.
 
 [Atlasul](../ATF_Context_Atlas.md), [arhitectura](../ATF_Architecture.md) și [ghidul de testare](../ATF_Testing_Guide.md) dețin contractele stabile și probele de pornire. Controalele tehnice sunt în [baseline](../ATF_Test_Changes_Baseline.md#controale-tehnice-verificate), cu bazele reale ale proiectului.
+
+[Disclosure-ul local și guvernanța Reporting J10](../ATF_Reporting_J10_Verification.md) sunt contracte verificate; criteriile 114 și 100 sunt eliminate din backlog.
 
 ## Design AI — evaluare separată
 
