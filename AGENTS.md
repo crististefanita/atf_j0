@@ -7,7 +7,7 @@
   `docs/ATF_Build_And_Execution_Safety.md` before changing or delivering code.
 - Keep Reporting implementation/native tests in `atf_j0/atf-reporting` and
   permanent mock, contract and browser regressions in `atf_j0/atf-reporting-tests`.
-- After relevant J0 changes, assess both `atf_j1` and `atf_j2`. Deliver and
+- After relevant J0 changes, assess `atf_j1`, `atf_j2` and `atf_j3`. Deliver and
   validate each initialized consumer separately. Inspect J2's current bootstrap
   and messaging scope; do not infer its acceptance from J1's results.
 - J2 keeps its existing Git and messaging scope. Its explicit Eventuate profile includes Setup and excludes Shop, AutoEx, UI and Debug UI; do not restore those modules or Playwright in J2.
@@ -24,3 +24,5 @@
 - Keep owner documentation and feedback current with the actual code and
   tests. Preserve historical build provenance; a directory rename alone does
   not require a new Reporting version or imply a fresh test execution.
+
+- J3 is the seven-module speech consumer. Deliver the same latest Core/Reporting flat JAR/POM pairs, preserve its local streaming work, and validate it separately.

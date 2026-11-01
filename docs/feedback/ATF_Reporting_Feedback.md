@@ -43,8 +43,10 @@ sunt la ownerii lor, iar registrul păstrează numai criteriile încă deschise.
 
 | ID | Scor /100 | Criteriul care blochează închiderea |
 |---|---:|---|
-| [REPORT-ARTIFACT-PROFILE-62](#report-artifact-profile-62--aplicabilitate-explicită-a-inspectorului) | 89 = 35 + 27 + 19 + 8 | profil explicit pentru assertion-only/HTTP și renderer; dovadă J6 în J2 |
+| [REPORT-ARTIFACT-PROFILE-62](#report-artifact-profile-62--aplicabilitate-explicită-a-inspectorului) | 89 = 35 + 27 + 19 + 8 | profil explicit pentru assertion-only/HTTP și renderer; dovezi J6/J8 în J2 |
 | [REPORT-RECORDED-TIMING-83](#report-recorded-timing-83--execuție-capturată-și-cost-de-publicare) | 88 = 35 + 26 + 19 + 8 | faza capturată și copilul măsurat la publicare pot expune durate incompatibile |
+| [REPORT-SIBLING-DISCLOSURE-114](#report-sibling-disclosure-114--păstrează-expandarea-vecinilor) | 82 | închiderea vecinului păstrează fazele/request-urile/validările subiectului expandate |
+| `REPORT-FALLBACK-INDEX-66` | 81 = 30 + 24 + 20 + 7 | contrastul slab este reconfirmat de consumerul Speech pe J8; owner generic, fără override local |
 | `REPORT-PUBLIC-API-43` | 81 = 31 + 24 + 17 + 9 | API-ul susținut, compatibilitatea și capabilitățile adaptoarelor nu sunt delimitate suficient |
 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) | 80 = 31 + 24 + 18 + 7 | criteriu separat al consumerului: oracol per scenariu și containment fallback |
 | `UI-RECOVERY-AUDIT-01` | 78 = 33 + 22 + 16 + 7 | proiecția typed a încercărilor, bugetelor și corelării rămâne la Reporting |
@@ -52,7 +54,6 @@ sunt la ownerii lor, iar registrul păstrează numai criteriile încă deschise.
 | `REPORT-PORTABLE-DOCS-46` | 72 = 24 + 22 + 17 + 9 | contractele și linkurile README depind încă de documente din afara modulului |
 | [REPORT-FALLBACK-RESULT-WIDTH-101](#report-fallback-result-width-101--badge-ul-statusului-depășește-coloana) | 64 = 24 + 19 + 15 + 6 | badge-ul Warning depășește RESULT și produce overflow evitabil |
 | `REPORT-FLOW-PROJECTION-36` | 62 = 24 + 17 + 16 + 5 | calculul proiecției și protocolul publicării rămân amestecate |
-| `REPORT-FALLBACK-INDEX-66` | 44 = 16 + 10 + 15 + 3 | indexul fallback reutilizează stilul badge-ului pe întregul link |
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
@@ -264,7 +265,7 @@ sau repetarea deciziei la renderer.
 
 ## REPORT-FALLBACK-INDEX-66 — status separat de lizibilitatea indexului
 
-**Prioritate: 44/100** = impact 16 + lacună 10 + lucrabil 15 + documentare 3.
+**Prioritate: 81/100** = impact 30 + lacună 24 + lucrabil 20 + documentare 7.
 **Owner:** `HtmlReportTestsView.scenarioLink(...)` și tema fallback;
 regresia de browser rămâne în Reporting Tests.
 
@@ -272,7 +273,7 @@ regresia de browser rămâne în Reporting Tests.
   `.status` colorează tot indexul ca badge și impune fontul compact al
   verdictului; numele clasei folosește în continuare culoarea muted.
 - Auditul browser al titlului lung confirmă fundalul verde pe întregul link
-  PASS. Containment-ul este un contract separat și nu certifică lizibilitatea.
+  PASS. Containment-ul este un contract separat și nu certifică lizibilitatea. Reproducerea [Speech J8](../../../atf_j3/docs/feedback/ATF_Speech_Reporting_Feedback.md#speech-report-style-04--contrastul-navigării-fallback) păstrează același owner și ridică prioritatea; nu este un defect ASR.
 
 - [ ] Păstrați identitatea anchor-ului și verdictul, cu textul indexului în
       tokenurile neutre și statusul într-un indicator separat, accesibil.
@@ -337,6 +338,11 @@ JAR: `1.0.0-j6`, SHA-256 `CAEBFBE51DA5F00241F0C092281CBB19FD3FC887EBE0A0A57CDCA7
 Matricea consumerului este în [ghidul J2](../../../atf_j2/docs/ATF_Eventuate_Testing.md#acceptanța-raportului).
 Bootstrap-ul auditabil al consumerului nu închide inspectorul generic sau regresia permanentă a producătorului.
 
+- Revalidare J2 pe J8 fizic, SHA-256 F8176C6D35B39998D8289A53026F526D87DC3082049064DEE4C57BEF94463C90: șapte Extent și șapte fallback assertion-only sunt neconforme; oracolul per rând și mutanții consumerului trec.
+- Pentru Extent expected-rejected, request response evidence split este singurul check fals; cazul are legitim zero dispatch și niciun răspuns disponibil. Nu adăugați un exchange fictiv ca remediu.
+- Increment TMP atf-j2-review-0639018884: j8-mock-matrix/acceptance.json și browser-audit.json. Patru artifacte inspectate păstrează coloanele, ultima comparație, tastatura și backlink-ul; nu certifică profilul generic sau sursa Reporting mai nouă decât J8.
+- Închiderea cere o componentă neutră dedicată în Reporting Tests: profil assertion-only valid și HTTP obligatoriu eliminat, în ambele renderere. Rulați aceeași probă pe JAR-ul candidat; harness-ul și implementarea rămân în J0.
+
 </details>
 
 ## REPORT-RECORDED-TIMING-83 — execuție capturată și cost de publicare
@@ -388,22 +394,6 @@ permanentă cerută de acest criteriu.
 
 </details>
 
-## REPORT-MQ-02 — propunere condiționată de contractul brokerului real
-
-**Prioritate: 82/100. Owner:** Reporting; J2 furnizează contractul și witness-ul real.
-
-După probele pe broker real, evaluați o dovadă publică pentru mesaj/livrare,
-poziție și tentative, distinctă de HTTP. Păstrați rendererul independent
-de Kafka/RabbitMQ și verdictul business la caller.
-
-- Assertions neutre sunt contractul implementat în J2 acum; un tabel MQ nativ nu blochează cele trei componente și nu este declarat livrat.
-- Propunerea a fost mutată din copia J2, pentru un singur owner al bibliotecii.
-
-Închidere după acceptarea designului: Extent/fallback conservă identități,
-timing, FAIL și dovezi incomplete; fixture-ul neutru și navigarea au regresii
-în Reporting Tests, fără expected-uri sau cod Eventuate în renderer.
-
-
 ## REPORT-FALLBACK-RESULT-WIDTH-101 — badge-ul statusului depășește coloana
 
 **Prioritate: 64/100** = impact 24 + lacună 19 + lucrabil 15 + documentare 6.
@@ -438,3 +428,19 @@ Revalidarea J8 păstrează criteriul 101 deschis: pe raportul media-warning J2,
 TAB MCP măsoară la viewport 1280 px RESULT 56,99 px și badge Warning 61,79 px
 (clientWidth 56, scrollWidth 65). Colapsarea și verdicturile sunt corecte;
 regresia geometrică neutră cerută rămâne distinctă de testele de disclosure.
+
+
+## REPORT-SIBLING-DISCLOSURE-114 — păstrează expandarea vecinilor
+
+**Prioritate: 82/100.** În Extent J9 agregat, Expand all deschide trei
+scenarii, fazele, request-urile și assertions. Închiderea antetului primului
+scenariu colapsează TEST BODY în celelalte două, deși rămân scenarii deschise.
+
+- Reproducere TAB: publication/extent-true.html din incrementul C2/J9; owner JsonFidelityMock, trei scenarii, fără serviciu extern.
+- Păstrați starea fazei, request-ului, validării și disclosure-urilor subiectului când se închide un vecin; acțiunea locală nu resetează arborele întreg.
+- Adăugați regresie publică neutră în Reporting Tests, cu vecini PASS și subiect FAIL; mouse/Enter/Space, individual/agregat și sursă/JAR.
+- Oracolul verifică ownerul activ și starea efectiv vizibilă după acțiune; datele prezente în DOM ascuns nu satisfac criteriul.
+
+**Închidere:** mutantul care resetează vecinii este refuzat, apoi noua versiune
+este publicată și reacceptată separat. Nu este corectat în J9, al cărui
+JavaScript este byte-identic cu J8; fidelitatea JSON are acceptanță distinctă.

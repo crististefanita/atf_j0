@@ -1425,6 +1425,10 @@ capturat și nu înlocuiește `ReportBodyAvailability`.
 | API FAIL | `REQUEST`, validarea, cauza și checkpoint-ul Gherkin proprietar; UI PASS rămâne independent |
 | corelare API FAIL, exchange-uri PASS | `API correlation`, nu request-ul-soră PASS sau durata lui |
 
+<a id="fidelitatea-json"></a>
+
+J9 păstrează tokenurile numerice publice și toate aparițiile câmpurilor duplicate în redacție și pretty-print. Fiecare valoare sensibilă este mascată integral. Proiecția precedă truncarea configurată; nu rescrie raw body-ul sau verdictul callerului.
+
 Formatarea comună nu modifică request-ul executat:
 
 - redaction-ul se aplică primul; numai `Format.JSON` folosește pretty-print-ul

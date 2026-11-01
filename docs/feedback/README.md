@@ -12,17 +12,17 @@ Scorurile sunt priorități, nu note de calitate sau procente de acoperire. Form
 
 | Ordine | Owner și criteriu | Prioritate /100 | Restanță concretă |
 |---:|---|---:|---|
-| 1 | [Core JSON](ATF_Core_Feedback.md) | 92 | document complet și native pe sursă/binar; C1 acceptă trailing content |
-| 2 | [Reporting](ATF_Reporting_Feedback.md) | 89 | aplicabilitatea inspectorului; timing capturat/publicare 88; API/release păstrează criterii separate |
-| 3 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md) | 89 | regresii permanente assertion-only/HTTP, Extent/fallback și oracol per scenariu |
-| 4 | [Mock](ATF_Mock_Feedback.md) | 86 | precizie numerică; guard-ul fixture-ului complet are reconciliere separată 85 |
+| 1 | [Reporting](ATF_Reporting_Feedback.md) | 89 | profilul inspectorului; timing capturat/publicare 88 rămâne distinct |
+| 2 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md) | 89 | matricea assertion-only/HTTP și guvernanța preexistentă 87 |
+| 3 | [Expandarea vecinilor](ATF_Reporting_Feedback.md#report-sibling-disclosure-114--păstrează-expandarea-vecinilor) | 82 | închiderea unui scenariu resetează fazele altor scenarii în Extent |
+| 4 | [Documentație](ATF_Documentation_Feedback.md) | 81 | mutanți semantici pentru atlas, cu istoricul legitim păstrat |
 
-Masca literală, corelarea comenzii, factura și lifecycle-urile deja livrate nu sunt relistate ca defecte. Rămân deschise numai negativele distincte descrise în feedback.
+Masca literală, MIME, probele deadline-ului, corelarea comenzii, factura și lifecycle-urile deja livrate nu sunt relistate ca defecte. Rămân deschise numai negativele distincte descrise în feedback.
 
 ## Contracte și controale verificate
 
-[Contractul Core C1](../ATF_Core_Consumer.md) fixează sursa și nativele în J0,
-consumul prin JAR în J1/J2 și acceptanțele distincte. Criteriile rezolvate ale
+[Contractul Core C2](../ATF_Core_Consumer.md) fixează sursa și nativele în J0,
+consumul prin JAR în J1/J2/J3 și acceptanțele distincte. Criteriile rezolvate ale
 distribuției și probele deterministe de timeout sunt în documentația ownerului
 și în baseline; nu rămân defecte active în feedback.
 

@@ -410,3 +410,9 @@ păstrează headerul observat, redactat și limitat după evaluare.
 [JsonMediaTypeContractTest](src/test/java/atf/validation/media/JsonMediaTypeContractTest.java)
 protejează cele cinci contracte, strict/warning, nominale și parametri
 înșelători; acceptanța portului neutru și a artifactului rămâne la consumer.
+
+### Parser comun și proprietatea datelor
+
+Documentele complete folosesc JsonDocuments din Core C2: fără duplicate ori
+trailing content, cu decimale exacte. Validation păstrează diagnosticele și
+politica proprie pentru null; nu deține un mapper strict paralel.

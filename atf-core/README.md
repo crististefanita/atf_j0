@@ -507,14 +507,14 @@ trecerea întregului modul. Nu calculează verdictul business și nu publică HT
 nominalele și negativele. Proba loopback verifică separat ambele transporturi,
 valorile complete, body-ul și o singură expediere, fără serviciu extern.
 
-## Distribuție Core C1
+## Distribuție Core C2
 
 J0 păstrează sursa și toate testele native. POM-ul Core este parentless, cu
 Java 21 și dependențe runtime Jackson explicite; Test Kit și JUnit sunt doar
 pentru teste și nu intră în tranzitivele de producție.
 
-J1/J2 consumă aceeași pereche Core C1 JAR/POM direct în lib, alături de Reporting
-J6. [Contractul de publicare și consum](../docs/ATF_Core_Consumer.md) descrie
+J1/J2/J3 consumă aceeași pereche Core C2 JAR/POM direct în lib, alături de Reporting
+J9. [Contractul de publicare și consum](../docs/ATF_Core_Consumer.md) descrie
 bootstrap-ul Maven/IntelliJ, proveniența și acceptanța fără surse Core.
 
 ### Timeout și ownership în probele native
@@ -543,3 +543,23 @@ verifică integrarea diagnosticului. Probele externe refuză mutații fără
 cancel, fără verificare înainte de dispatch și fără atașarea diagnosticului.
 Implementarea Core și API-ul său rămân neschimbate; acest increment nu cere
 un binar Core nou.
+
+
+## Document JSON complet și evidence fidel
+
+| Boundary | Contract |
+|---|---|
+| JsonDocuments | un document complet, fără trailing content sau chei duplicate, inclusiv nested; reader imuabil, arbore nou per apel |
+| sintaxă și write | scalarii și literalul null sunt JSON; fabrica POST/PUT JSON refuză null înainte ca request-ul să poată fi expediat |
+| request explicit | căile form/text rămân disponibile; executorul nu deduce JSON doar din metoda HTTP |
+| egalitate Mock | decimale BigDecimal fără narrowing; număr/string și integer/decimal păstrează distincțiile existente; raw body rămâne intact |
+| redactare Core | tokenuri numerice și câmpuri publice duplicate păstrate; fiecare valoare sensibilă este mascată integral |
+| display Reporting | proiecție streaming autonomă, fără dependență Core; numerele și duplicatele se păstrează înaintea truncării configurate |
+| assertions | expected/actual se redactează separat; verdictul callerului rămâne independent de preview-ul implicit 240 |
+
+- Parserul strict refuză documentul ambiguu pentru decizii; proiecția evidence păstrează toate aparițiile câmpurilor.
+- Mock acceptă literalul null ca sintaxă, separat de interdicția fabricii write.
+- JSON invalid de diagnostic nu devine payload valid.
+
+Nativele Core și regresiile generice Reporting rămân numai în J0. Harness-urile
+temporare verifică JAR-urile fizice, fără surse de implementare shadow.

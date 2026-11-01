@@ -13,6 +13,7 @@ import atf.testkit.timing.InvocationTimer;
 public final class ComponentAssertionAudit {
     public enum Phase { SETUP, TEST_BODY, TEARDOWN }
     public enum Outcome { PASS, FAIL, ABORTED }
+    public enum AssertionRequirement { ANY_PHASE, TEST_BODY }
     public record PhaseResult(Phase phase, List<RecordedAssertions.Check> checks,
                               Outcome outcome, String diagnostic, Optional<InvocationTimer.Snapshot> timing) {
         public PhaseResult(Phase phase, List<RecordedAssertions.Check> checks, Outcome outcome, String diagnostic) {
@@ -28,6 +29,7 @@ public final class ComponentAssertionAudit {
 
     private final AssertionValueDisplay display;
     private final LongSupplier ticks;
+    private final AssertionRequirement requirement;
     private final EnumMap<Phase, InvocationTimer> timers = new EnumMap<>(Phase.class);
     private final EnumMap<Phase, RecordedAssertions> recorders = new EnumMap<>(Phase.class);
     private final EnumMap<Phase, Throwable> failures = new EnumMap<>(Phase.class);
@@ -38,8 +40,13 @@ public final class ComponentAssertionAudit {
     }
 
     public ComponentAssertionAudit(AssertionValueDisplay display, LongSupplier ticks) {
+        this(display, ticks, AssertionRequirement.ANY_PHASE);
+    }
+
+    public ComponentAssertionAudit(AssertionValueDisplay display, LongSupplier ticks, AssertionRequirement requirement) {
         this.display = Objects.requireNonNull(display, "display");
         this.ticks = Objects.requireNonNull(ticks, "ticks");
+        this.requirement = Objects.requireNonNull(requirement, "requirement");
         for (Phase phase : Phase.values()) recorders.put(phase, new RecordedAssertions(display));
     }
 
@@ -67,9 +74,12 @@ public final class ComponentAssertionAudit {
             failure = unconsumed;
             propagate = true;
         }
-        boolean empty = recorders.values().stream().allMatch(recorder -> recorder.checks().isEmpty());
+        boolean empty = requirement == AssertionRequirement.TEST_BODY ? recorder(Phase.TEST_BODY).checks().isEmpty()
+                : recorders.values().stream().allMatch(recorder -> recorder.checks().isEmpty());
         if (failure == null && empty) {
-            failure = new AssertionError("Component test passed without an evaluated audited assertion");
+            failure = missingAssertion();
+            if (requirement == AssertionRequirement.TEST_BODY) recorder(Phase.TEST_BODY).record(
+                    "Audited assertion coverage / TEST BODY", "at least 1 evaluated assertion", 0, false, failure);
             failures.put(Phase.TEST_BODY, failure);
             started.add(Phase.TEST_BODY);
             propagate = true;
@@ -92,6 +102,12 @@ public final class ComponentAssertionAudit {
                     timers.containsKey(phase) ? timers.get(phase).snapshot() : Optional.empty()));
         }
         return new Result(List.copyOf(phases), outcome(failure), failure, propagate);
+    }
+
+    private AssertionError missingAssertion() {
+        return new AssertionError(requirement == AssertionRequirement.TEST_BODY
+                ? "TEST BODY passed without an evaluated audited assertion"
+                : "Component test passed without an evaluated audited assertion");
     }
 
     private Throwable unconsumedFailure() {

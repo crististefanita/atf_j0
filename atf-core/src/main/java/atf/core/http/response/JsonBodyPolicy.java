@@ -1,7 +1,7 @@
 package atf.core.http.response;
 import atf.core.http.request.HttpMethod;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import atf.core.json.JsonDocuments;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,6 @@ import java.util.Locale;
  */
 public final class JsonBodyPolicy {
     public static final String NULL_DOCUMENT = "null";
-    private static final ObjectMapper JSON = new ObjectMapper();
 
     private JsonBodyPolicy() {
     }
@@ -32,8 +31,9 @@ public final class JsonBodyPolicy {
     public static boolean validDocument(String body) {
         if (body == null || body.isBlank()) return false;
         try {
-            return JSON.readTree(body) != null;
-        } catch (Exception error) {
+            JsonDocuments.read(body);
+            return true;
+        } catch (java.io.IOException | IllegalArgumentException error) {
             return false;
         }
     }

@@ -3754,3 +3754,99 @@ testChanges:
 ```
 
 </details>
+
+
+<details>
+<summary><strong>Control verificat — KIT-BODY-J0</strong></summary>
+
+```yaml
+testChanges:
+  - id: KIT-BODY-J0
+    status: VERIFIED
+    base: 3237d2b363a98e08949ab0426551e010e014a3a4
+    expires: 2026-11-30
+    reason: Adaugă politica neutră opt-in TEST BODY, cu comparație structurală actual=0 la lipsa auditului; păstrează implicit ANY_PHASE, verdicturile FAIL/SKIP, cauza originală și preview 240. Nativele permanente sunt la owner Kit, fără Reporting ori ASR.
+    proof: 'mvn -B -ntp -pl atf-test-kit test'
+    paths:
+      - atf-test-kit/src/test/java/atf/testkit/assertions/TestBodyAssertionRequirementTest.java
+      - atf-test-kit/src/test/java/atf/testkit/assertions/TestBodyAssertionRequirementComponentTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control VERIFIED — regresii Core JSON și C2</strong></summary>
+
+```yaml
+testChanges:
+  - id: CORE-JSON-C2-REGRESSION
+    status: VERIFIED
+    base: 3237d2b363a98e08949ab0426551e010e014a3a4
+    expires: 2026-11-30
+    reason: Reproduce documentele incomplete și pierderea numerică/duplicatelor pe Core C1, înaintea corecției C2. Păstrează politica null separată, POST/PUT JSON înainte de submission și request-urile form/text explicite; nativele se verifică pe sursă și JAR, fără praguri relaxate.
+    proof: mvn -B -pl atf-core -am "-Dtest=JsonCompleteDocumentTest,JsonRedactionFidelityTest,JsonWriteBoundaryTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-core/src/test/java/atf/core/json/JsonCompleteDocumentTest.java
+      - atf-core/src/test/java/atf/core/security/json/JsonRedactionFidelityTest.java
+      - atf-core/src/test/java/atf/core/http/request/json/JsonWriteBoundaryTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control VERIFIED — MOCK-JSON-C2-CONTRACT</strong></summary>
+
+```yaml
+testChanges:
+  - id: MOCK-JSON-C2-CONTRACT
+    status: VERIFIED
+    base: 3237d2b363a98e08949ab0426551e010e014a3a4
+    expires: 2026-11-30
+    reason: Reconcilează probele stricte J2 la ownerul comun și adaugă expected independent pentru precizie numerică și scalarul YAML. Păstrează null sintactic, egalitatea tipurilor și wire body; fără praguri relaxate.
+    proof: mvn -B -pl atf-mock -am "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-mock/src/test/java/atf/mock/json/MockJsonFixtureComponentTest.java
+      - atf-mock/src/test/java/atf/mock/json/MockJsonCatalogComponentTest.java
+      - atf-mock/src/test/java/atf/mock/json/MockNumericContractComponentTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control VERIFIED — REPORT-JSON-J9-CONTRACT</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-JSON-J9-CONTRACT
+    status: VERIFIED
+    base: 3237d2b363a98e08949ab0426551e010e014a3a4
+    expires: 2026-11-30
+    reason: Probe native și browser pentru tokenuri numerice și duplicate, Extent și fallback individual/agregat, verdicturi independente de preview 240 și operare mouse/Enter/Space. Oracolul refuză mutanți de rotunjire sau pierdere de câmp; niciun expected nu provine din formatter.
+    proof: mvn -B -pl atf-reporting-tests,atf-tests -am "-Dtest=ReportingStandaloneJsonFidelityTest,JsonEvidenceFidelityComponentTest,ApiValidationDisclosureComponentTest,AtfTestLayerArchitectureTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting/src/test/java/atf/reporting/standalone/json/ReportingStandaloneJsonFidelityTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/json/JsonEvidenceFidelityComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/json/JsonEvidenceFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/json/JsonEvidenceLocators.java
+      - atf-tests/src/test/java/atf/api/tests/governance/layers/AtfTestLayerArchitectureTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control VERIFIED — Kit assertion requirement</strong></summary>
+
+```yaml
+testChanges:
+  - id: KIT-REQUIREMENT-COHESION-ATF-J0
+    status: VERIFIED
+    base: 3237d2b363a98e08949ab0426551e010e014a3a4
+    expires: 2026-11-30
+    reason: Separă semantic regresiile assertion requirement prin API-ul public Kit, păstrând integral cele zece cazuri și fixture-urile negative controlate prin Launcher. Pragul opt nu este relaxat; numele claselor și selecțiile finite rămân stabile.
+    proof: mvn -B -pl atf-test-kit -am test
+    paths:
+      - atf-test-kit/src/test/java/atf/testkit/assertions/requirements/TestBodyAssertionRequirementTest.java
+      - atf-test-kit/src/test/java/atf/testkit/assertions/requirements/TestBodyAssertionRequirementComponentTest.java
+```
+
+</details>

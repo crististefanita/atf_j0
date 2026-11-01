@@ -6,7 +6,6 @@ import atf.core.http.request.HttpHeader;
 import atf.core.http.request.MediaTypes;
 import atf.core.http.response.ApiResponse;
 import atf.core.http.response.JsonBodyPolicy;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.Duration;
 import java.util.LinkedHashMap;
@@ -80,7 +79,7 @@ public record MockRoute(String method, String path, int status, String body,
         }
         body = body == null ? "" : body;
         if (JsonBodyPolicy.appliesTo(method)) {
-            requireJsonResponseBody(body, method, path);
+            MockJsonDocument.require(body, "mock " + method + " " + path + " response body");
         }
         headers = headers == null ? Map.of() : Map.copyOf(new LinkedHashMap<>(headers));
         duration = duration == null ? Duration.ofMillis(12) : duration;
@@ -92,11 +91,7 @@ public record MockRoute(String method, String path, int status, String body,
         query = queryParameters.asMap();
         requiredHeaders = requiredHeaders == null ? Map.of() : Map.copyOf(new LinkedHashMap<>(requiredHeaders));
         requestBodyMode = MockRequestBodyMode.normalize(requestBodyMode);
-        expectedRequestBody = expectedRequestBody == null || expectedRequestBody.isBlank()
-                ? null : expectedRequestBody;
-        if (expectedRequestBody != null && !JsonSupport.valid(expectedRequestBody)) {
-            throw new IllegalArgumentException("mock expected request body must be valid JSON");
-        }
+        if (expectedRequestBody != null) MockJsonDocument.require(expectedRequestBody, "mock expected request body");
     }
 
     public String key() {
@@ -143,53 +138,17 @@ public record MockRoute(String method, String path, int status, String body,
         return value.trim().toUpperCase(java.util.Locale.ROOT);
     }
 
-    private static final ObjectMapper JSON = new ObjectMapper();
-
-    /** POST and PUT mocks model real JSON write contracts, not empty requests. */
-    private boolean requiresJsonRequestBody() {
-        return isJsonWriteMethod(method);
-    }
-
     private boolean requestBodyMatches(ApiRequest request) {
-        if (!requiresJsonRequestBody()) return true;
-        boolean validJson = !request.bodyText().isBlank()
-                && JsonBodyPolicy.validDocument(request.bodyText());
+        if (!JsonBodyPolicy.appliesTo(method)) return true;
+        var actual = MockJsonDocument.read(request.bodyText());
         boolean jsonContentType = hasJsonContentType(request);
         boolean matchesMode = switch (MockRequestBodyMode.from(requestBodyMode)) {
-            case WRONG_CONTENT_TYPE -> validJson && !jsonContentType;
-            case JSON -> validJson && jsonContentType;
+            case WRONG_CONTENT_TYPE -> actual.isPresent() && !jsonContentType;
+            case JSON -> actual.isPresent() && jsonContentType;
         };
         if (!matchesMode) return false;
-        return expectedRequestBody == null || JsonSupport.sameJson(expectedRequestBody, request.bodyText());
-    }
-
-    private static boolean isJsonWriteMethod(String method) {
-        return JsonBodyPolicy.appliesTo(method);
-    }
-
-    private static void requireJsonResponseBody(String body, String method, String path) {
-        if (body.isBlank()) {
-            throw new IllegalArgumentException("mock " + method + " " + path
-                    + " must return a JSON body");
-        }
-        try {
-            if (JSON.readTree(body) == null) throw new IllegalArgumentException("empty JSON");
-        } catch (Exception invalidJson) {
-            throw new IllegalArgumentException("mock " + method + " " + path
-                    + " must return valid JSON", invalidJson);
-        }
-    }
-
-    private static final class JsonSupport {
-        private static boolean valid(String value) {
-            try { return JSON.readTree(value) != null; }
-            catch (Exception error) { return false; }
-        }
-
-        private static boolean sameJson(String expected, String actual) {
-            try { return JSON.readTree(expected).equals(JSON.readTree(actual)); }
-            catch (Exception error) { return false; }
-        }
+        return expectedRequestBody == null || MockJsonDocument.read(expectedRequestBody)
+                .filter(actual.orElseThrow()::sameValue).isPresent();
     }
 
     private static boolean hasJsonContentType(ApiRequest request) {

@@ -17,6 +17,9 @@ public final class ComponentAuditExtension implements BeforeEachCallback, AfterE
         ParameterResolver, InvocationInterceptor, LifecycleMethodExecutionExceptionHandler {
     public interface Publication extends AutoCloseable {
         AssertionValueDisplay display();
+        default ComponentAssertionAudit.AssertionRequirement assertionRequirement() {
+            return ComponentAssertionAudit.AssertionRequirement.ANY_PHASE;
+        }
         void publish(ComponentAssertionAudit.Result result) throws Exception;
         @Override void close() throws Exception;
     }
@@ -62,7 +65,7 @@ public final class ComponentAuditExtension implements BeforeEachCallback, AfterE
 
     private void containerFailure(ExtensionContext context, ComponentAssertionAudit.Phase phase, Throwable failure) throws Throwable {
         try (Publication publication = factory.open(context)) {
-            var audit = new ComponentAssertionAudit(publication.display(), ticks);
+            var audit = new ComponentAssertionAudit(publication.display(), ticks, publication.assertionRequirement());
             audit.start(phase);
             classTimer(context, phase).snapshot().ifPresent(value -> audit.timing(phase, value));
             audit.failed(phase, failure);
@@ -79,7 +82,7 @@ public final class ComponentAuditExtension implements BeforeEachCallback, AfterE
     @Override public void beforeEach(ExtensionContext context) throws Exception {
         Publication publication = factory.open(context);
         try {
-            var audit = new ComponentAssertionAudit(publication.display(), ticks);
+            var audit = new ComponentAssertionAudit(publication.display(), ticks, publication.assertionRequirement());
             context.getStore(namespace).put(State.class, new State(audit, publication));
         } catch (RuntimeException | Error failure) {
             FailureAwareCleanup.closeAfterFailure(failure, publication);

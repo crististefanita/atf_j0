@@ -1203,3 +1203,17 @@ porturile publice, fără Eventuate sau servicii externe. Testul
 Extent deține colapsarea prin cardul validation; fallback prin `details`
 nativ. Diagnosticul duplicat și DOM-ul Extent ascuns nu pot substitui tabelul
 original. Aceeași matrice se execută și pe JAR-ul fizic, fără surse Reporting.
+
+## Regresii JSON pe sursă și JAR
+
+Nativele ReportingStandaloneJsonFidelityTest verifică separat redacția și
+formatterul. JsonEvidenceFidelityComponentTest publică mock-uri prin porturile
+publice în Extent/fallback, individual și agregat, cu vecini PASS.
+
+- Oracolul citește tokenurile corpului de la ownerul activ și refuză rotunjirea ori eliminarea unei apariții duplicate.
+- Comparațiile păstrează FAIL-ul JSON scurt, FAIL-ul după preview 240 și rândul final null PASS.
+- Mouse, Enter și Space verifică disclosure-ul colapsat și accesul la ultimul rând.
+- Fixture-ul declară body preview 240; default-ul standalone pentru body rămâne 100, iar assertions păstrează implicit 240.
+
+Regresia pe JAR rulează într-un harness TMP fără implementare Reporting.
+Consumerii live păstrează numai JAR/POM și probele propriei aplicații.

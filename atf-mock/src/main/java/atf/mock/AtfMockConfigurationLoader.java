@@ -5,6 +5,8 @@ import atf.core.http.request.HttpHeader;
 import atf.core.http.request.MediaTypes;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.cfg.JsonNodeFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.IOException;
@@ -23,7 +25,9 @@ public final class AtfMockConfigurationLoader {
     public static final String CONFIG_ENVIRONMENT_VARIABLE = "ATF_MOCK_CONFIG";
     public static final List<String> DEFAULT_CONFIG_NAMES = List.of("atf-mock.yaml", "atf-mock.yml");
 
-    private static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory());
+    private static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory())
+            .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
+            .configure(JsonNodeFeature.STRIP_TRAILING_BIGDECIMAL_ZEROES, false);
 
     private AtfMockConfigurationLoader() {
     }
@@ -127,7 +131,7 @@ public final class AtfMockConfigurationLoader {
         requiredHeadersNode.fields().forEachRemaining(entry ->
                 requiredHeaders.put(entry.getKey(), entry.getValue().asText()));
         String requestBodyMode = text(node, "request-body-mode", MockRequestBodyMode.JSON.value(), location);
-        String expectedRequestBody = optionalText(node, "request-body");
+        String expectedRequestBody = optionalText(node, "request-body", location);
         return new MockRoute(method, path, status, body, headers, duration, authProfile, query,
                 parsedQuery,
                 requiredHeaders, requestBodyMode, expectedRequestBody);
@@ -145,9 +149,11 @@ public final class AtfMockConfigurationLoader {
         return text;
     }
 
-    private static String optionalText(JsonNode node, String name) {
+    private static String optionalText(JsonNode node, String name, String location) {
         JsonNode value = node.path(name);
-        return value.isMissingNode() || value.isNull() ? null : value.asText();
+        if (value.isMissingNode() || value.isNull()) return null;
+        if (!value.isValueNode()) throw new IllegalStateException(location + "." + name + " must be scalar JSON text");
+        return value.asText();
     }
 
     private static int integer(JsonNode node, String name, int defaultValue, String location) {

@@ -7,7 +7,7 @@ oracol, fixture, classpath, navigare și acceptanța browserului.
 [Implementarea bibliotecii](ATF_Reporting_Feedback.md) păstrează lifecycle-ul,
 API-ul public, publicarea și release-ul; un test reparat nu închide implicit acel criteriu.
 
-**Prioritate: 89/100** = impact 35 + lacună 27 + lucrabil 19 + documentare 8.
+**Prioritate: 90/100** = impact 36 + lacună 27 + lucrabil 19 + documentare 8.
 Un candidat de bibliotecă cere și probele canonice afectate, cu ieșirea integrală
 păstrată în staging. O selecție focalizată verde nu certifică inventarul rezidual.
 
@@ -142,3 +142,10 @@ au trecut separat; nu declarăm guvernanța completă J0 verde în acest increme
 [Model](../../atf-reporting/src/main/java/atf/reporting/model/ReportObservation.java) ·
 [probe](../../atf-reporting-tests/src/test/java/atf/reporting/audit/ReportObservationComponentTest.java) ·
 [guard](../../atf-tests/src/test/java/atf/api/tests/governance/AtfPackageCohesionGovernanceTest.java).
+
+
+## REPORT-TEST-SIBLING-DISCLOSURE-114 — regresie necesară
+
+[Defectul reprodus în TAB](ATF_Reporting_Feedback.md#report-sibling-disclosure-114--păstrează-expandarea-vecinilor)
+cere un fixture neutru și o regresie în atf-reporting-tests înaintea corecției.
+Proba numerică nouă nu certifică păstrarea expandării după închiderea vecinilor.

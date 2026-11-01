@@ -955,3 +955,18 @@ sau randarea HTML.
 
 </details>
 
+
+## Mesagerie — decizie condiționată de contractul real
+
+Reporting păstrează un model neutru și nu depinde de Kafka/RabbitMQ.
+Observațiile typed și assertions existente rămân punctele de compoziție curente.
+
+| Situație | Decizie de scope |
+|---|---|
+| componentele MOCK existente J2 | publică verdicturi independente prin porturile curente; nu cer un tabel MQ nou |
+| contract de mesaj/livrare demonstrat LIVE | evaluați numai atunci dovezile pentru identitate, poziție și tentative, distincte de HTTP |
+| acceptarea unei proiecții noi | fixture neutru în Reporting Tests, Extent/fallback, timing, FAIL, evidence incompletă și navigare; expected-urile și codul Eventuate rămân la consumer |
+
+Această decizie păstrează propunerea REPORT-MQ-02 în proiect, fără să o numere
+ca defect curent sau funcționalitate livrată. Ownerul [mesageriei J2](../../atf_j2/docs/ATF_J2_Scope.md)
+furnizează witness-ul real înaintea unei extinderi a bibliotecii.

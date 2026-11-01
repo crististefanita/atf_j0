@@ -1,11 +1,12 @@
 package atf.reporting.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
+import java.io.IOException;
+import java.io.StringWriter;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 
@@ -21,7 +22,6 @@ public final class ReportJsonBodyFormatter {
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final ObjectReader STRICT_READER = JSON.reader()
             .with(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
-    private static final ObjectWriter PRETTY_WRITER = JSON.writer(prettyPrinter());
 
     private ReportJsonBodyFormatter() {
     }
@@ -51,11 +51,24 @@ public final class ReportJsonBodyFormatter {
         if (body == null || body.isBlank()) {
             return body == null ? "" : body;
         }
-        try {
-            JsonNode document = STRICT_READER.readTree(body);
-            return document == null ? body : PRETTY_WRITER.writeValueAsString(document);
-        } catch (JsonProcessingException | RuntimeException ignored) {
+        var formatted = new StringWriter();
+        try (var input = JSON.getFactory().createParser(body);
+             var output = JSON.getFactory().createGenerator(formatted)) {
+            output.setPrettyPrinter(prettyPrinter());
+            int depth = 0;
+            boolean complete = false;
+            for (JsonToken token; (token = input.nextToken()) != null;) {
+                if (complete) return body;
+                if (token.isStructStart()) depth++;
+                if (token.isStructEnd()) depth--;
+                if (token.isNumeric()) output.writeNumber(input.getText());
+                else output.copyCurrentEvent(input);
+                complete = depth == 0;
+            }
+            if (!complete) return body;
+        } catch (IOException | RuntimeException ignored) {
             return body;
         }
+        return formatted.toString();
     }
 }
