@@ -269,7 +269,8 @@ public final class AtfReportHtmlVocabulary {
         SCREENSHOT("data-atf-screenshot"),
         SCREENSHOT_REF("data-atf-screenshot-ref"),
         TAB("data-atf-tab"),
-        FALLBACK_TAB("data-tab");
+        FALLBACK_TAB("data-tab"),
+        TRANSPORT_DURATION("data-atf-transport-duration-ms");
 
         private final String value;
 

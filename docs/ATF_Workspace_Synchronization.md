@@ -9,9 +9,10 @@ primește și verifică livrarea potrivită propriului deployment.
 | Workspace | Rol | Suprafață existentă |
 |---|---|---|
 | `atf_j0` | sursă Core/Reporting, teste native și `atf-reporting-tests`; referință pentru contractele comune | 12 module sursă; Core și guvernanța comune reconciliate |
-| `atf_j1` | testarea AutoEx și Shop; consumer Core și Reporting prin JAR | 9 module journeys; C2/J10 în lib și acceptanță proprie |
-| `atf_j2` | WIP: framework și teste Kafka/mesagerie, fără module browser ori Shop/AutoEx | 7 module sursă; Core și Reporting JAR; componente Eventuate MOCK; Kafka remote și clientul Java de infrastructură validate în incrementul J2; clientul/observerul framework-ului rămâne WIP |
-| `atf_j3` | consumer speech, șapte module sursă; Core și Reporting prin JAR | C2/J10 în lib și acceptanță proprie, fără module web ori mesagerie |
+| `atf_j1` | testarea AutoEx și Shop; consumer Core și Reporting prin JAR | 9 module journeys; C2/J12 în lib și acceptanță proprie |
+| `atf_j2` | WIP: framework și teste Kafka/mesagerie, fără module browser ori Shop/AutoEx | 8 module sursă, inclusiv SQL; Core și Reporting JAR; componente Eventuate MOCK; Kafka remote și clientul Java de infrastructură validate în incrementul J2; clientul/observerul framework-ului rămâne WIP |
+| `atf_j4` | consumer Android/ADB, șapte module; Core și Reporting JAR | adopție J12 separată, cu PNG sintetic; E2E device rămâne la J4 |
+| `atf_j3` | consumer speech, șapte module sursă; Core și Reporting prin JAR | C2/J12 în lib și acceptanță proprie, fără module web ori mesagerie |
 | `demo2` | origine istorică a livrării J6 existente | nu mai este destinație activă de mentenanță sau sync |
 
 J1 poate avea schimbări comune în lucru. Referința J0 nu autorizează
@@ -26,6 +27,7 @@ flowchart LR
     Candidate -->|livrează| J1["J1<br/>consumer existent"]
     Candidate -->|livrează| J2["J2<br/>consumer inițializat"]
     Candidate -->|livrează| J3["J3<br/>consumer speech"]
+    Candidate -->|livrează| J4["J4<br/>consumer Android"]
 ```
 
 <details>
@@ -37,6 +39,7 @@ flowchart LR
 - Fiecare muchie de livrare cere propria acceptanță. J2 are un Git separat,
   păstrat la baza sa existentă; profilul Eventuate exclude explicit Shop/AutoEx, UI și Debug UI, iar configurațiile lui evoluează separat.
 - J3 primește aceleași perechi Core/Reporting, cu acceptanță proprie; nu păstrează surse Core ori harness Reporting.
+- J4 păstrează adaptoarele Android, configurațiile și acceptanța fizică; primește aceeași pereche Reporting, fără sursa sau harness-ul J0.
 - Muchiile sunt livrări și probe, nu dependențe Maven ori module suplimentare.
 
 </details>
@@ -117,7 +120,7 @@ Acceptanța J2 Eventuate și limita hostului sunt în [dovada consumerului](../.
 
 ## J2 fără module browser — perimetru distinct
 
-J2 declară șapte module sursă: patru platformă, Setup, Eventuate și guvernanță; Core este bibliotecă externă.
+J2 declară opt module sursă: platforma, SQL, Setup, Eventuate și guvernanța; Core și Reporting sunt biblioteci externe.
 [Scope-ul J2](../../atf_j2/docs/ATF_J2_Scope.md) delimitează contractul fără
 UI/Debug sau Playwright; retragerea este implementată în checkout-ul J2.
 

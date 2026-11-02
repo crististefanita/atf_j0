@@ -20,6 +20,14 @@ public final class ReportPhaseTimingMarkup {
     public static String badge(long millis, String explanation) {
         return badge(millis, explanation, "aggregated");
     }
+    /** A supplied transport measurement is never the renderer scope clock. */
+    public static String transportBadge(long millis) {
+        return origin("Transport") + badge(millis, "Captured transport; phase totals use the independent execution interval", "transport");
+    }
+    public static String publicationLabel() { return origin("Publication"); }
+    private static String origin(String label) {
+        return element(Tag.SPAN, label, classAttribute("atf-duration-origin"));
+    }
     private static String badge(long millis, String explanation, String source) {
         return element(Tag.SPAN, AtfDurationFormatter.formatMillis(millis), classAttribute(CssClass.BADGE),
                 attribute(Attribute.DURATION, Long.toString(millis)), attribute(Attribute.TITLE, explanation),

@@ -84,8 +84,8 @@ pornește investigația; nu înlocuiește verificarea sursei afectate.
 
 | Decizie inițială | Sursa de adevăr | Limita ei |
 |---|---|---|
-| ce reactor folosesc? | [workspace-uri](ATF_Workspace_Synchronization.md), apoi POM-ul țintei | J0 sursă 12, J1 JAR 9, J2 WIP 7, J3 speech 8; profilurile nu se deduc din foldere absente |
-| schimbare Reporting? | [atlasul sursei J0](../../atf_j0/atf-reporting/src/main/java/atf/reporting/README.md) și [regresiile permanente](../../atf_j0/atf-reporting-tests/README.md) | Reporting J10 are acceptanțe distincte în J1/J2/J3; documentația sursei nu certifică automat JAR-ul consumat |
+| ce reactor folosesc? | [workspace-uri](ATF_Workspace_Synchronization.md), apoi POM-ul țintei | J0 sursă 12, J1 JAR 9, J2 WIP 8, J3 speech 7, J4 Android 7; profilurile nu se deduc din foldere absente |
+| schimbare Reporting? | [atlasul sursei J0](../../atf_j0/atf-reporting/src/main/java/atf/reporting/README.md) și [regresiile permanente](../../atf_j0/atf-reporting-tests/README.md) | Reporting J12 are acceptanțe distincte în J1/J2/J3/J4; documentația sursei nu certifică automat JAR-ul consumat |
 | schimbare de aplicație? | [Shop](../../atf_j1/atf-test-practice-shop/README.md) sau [AutoEx](../../atf_j1/atf-test-auto-ex/README.md) | expected, captură și selecție business rămân în consumer |
 | schimbare Kafka/Podman? | [atlasul J2](../../atf_j2/docs/ATF_Context_Atlas.md), apoi Setup și configurația | trei componente MOCK și scripturi existente; clientul Java/brokerul real sunt WIP |
 
@@ -298,3 +298,14 @@ decide ce se mută sau se elimină după dovadă.
 J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module.
 [Contractul Core C2](ATF_Core_Consumer.md) separă sursa, publicarea și acceptanțele J1/J2/J3.
 Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
+
+## Inspectorul și sursele de timp Reporting
+
+| Context de pornire | Invariantă și probă |
+|---|---|
+| [Profilul artifactului](../atf-reporting/README.md#inspecția-artifactului-cu-intenție-explicită) | intenție furnizată de caller; Extent/fallback, inventar la ownerul original și refuzul rezultatului incomplet |
+| [Durate sub faza capturată](../atf-reporting/README.md#originea-duratelor-sub-o-fază-capturată) | Execution, Transport și Publication distincte, fără dublare ori zero inventat |
+| [Probe permanente](../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions) | nominale, mutanți, browser și JAR fizic; niciun cod business în biblioteca autonomă |
+
+Consumerii care păstrează apelul legacy al inspectorului primesc în continuare contractul strict Extent/HTTP.
+Adopția overload-ului explicit și acceptanța aplicației sunt decizii ale consumerului, separate de distribuția binarului.

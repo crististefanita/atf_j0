@@ -36,6 +36,7 @@ Biblioteca se compilează pentru **Java 21**. Artefactul Maven este un JAR thin:
 - compiler, Surefire și pluginul JAR au versiuni explicite; timestamp-ul
   artifactului este normalizat pentru build-uri reproductibile;
 - FreeMarker este dependență directă a adaptorului Spark, cu versiune fixată;
+- Jsoup 1.23.2 parsează local artifactul pentru inspecție; nu execută JavaScript și nu accesează rețeaua;
 - `atf-reporting-tests` rămâne modul intern de verificare, fără a intra în
   dependențele runtime ale aplicației.
 
@@ -139,7 +140,7 @@ flowchart LR
 - `consumer` este în mod canonic `atf-reporting-tests`, dar poate fi înlocuit de
   orice aplicație care folosește API-ul public;
 - `atf-reporting-tests` este singurul consumator canonic pentru compoziția ATF;
-- Jackson și ExtentReports sunt dependențe externe declarate în POM-ul standalone;
+- Jackson, ExtentReports, FreeMarker și Jsoup sunt dependențe externe declarate în POM-ul standalone;
 - mock-ul, browserul, JUnit orchestration și fixture-urile nu intră în producția librăriei.
 </details>
 
@@ -2289,3 +2290,56 @@ Normalizarea are owner semantic în ReportTags: elimină null/blank, aplică tri
 
 Normalizarea nu deține reguli business sau starea rendererului. Puntea nu este
 un allow-list pentru creșterea pachetului și nu adaugă un modul.
+
+## Context System și index fallback
+
+Ambele renderere publică Environment, Runtime, OS, Client, Reporting și Assertion preview.
+Facts de host sunt capturate la deschiderea sesiunii; lipsa valorii nu inventează
+un client, endpoint sau transport. Clientul implicit este Configured per execution.
+
+| Suprafață | Contract |
+|---|---|
+| HtmlReportSession.updateEnvironment | merge typed prin allowlist și redacție; update null/după close este refuzat înaintea mutației |
+| overrides | Environment, Client și câmpurile opționale explicite sunt păstrate; snapshot-ul callerului rămâne imuabil |
+| facts calculate | fallback publică propria identitate; preview-ul efectiv este al ReportingSettings, implicit 240 |
+| index fallback | titlu și clasă integrale în culori neutre; Pass/Fail/Skip în badge separat, cu același href și ID original |
+| acces | wrapping fără ascundere/trunchiere, focus vizibil și Enter către scenariul original |
+
+Probele permanente verifică datele din tabelul System vizibil, contrastul
+textului de minimum 4,5:1 și lipsa overflow-ului la 1280 și 392 px. Mutanții
+elimină numai un fact sau reintroduc badge-ul pe linkul întreg; sunt refuzați.
+
+## Inspecția artifactului cu intenție explicită
+
+Callerul declară un [ReportArtifactProfile](src/main/java/atf/reporting/artifact/ReportArtifactProfile.java) cu renderer, scenarii, faze și dovezi obligatorii.
+`ReportArtifactInspector.inspect(path, profile)` și overload-ul `inspectFresh` păstrează profilul în `ProfileInspection`.
+Varianta fără profil păstrează contractul strict Extent/HTTP; un raport legitim fără HTTP folosește overload-ul explicit.
+
+| Responsabilitate | Contract |
+|---|---|
+| intenția callerului | identitatea clasei/scenariului, faze, statusuri, observation fields/bodies, assertion rows ori exchange și canale HTTP obligatorii |
+| inspectorul | DOM-ul publicat al ownerului original; inventar exact și verdict efectiv, fără satisfacere prin template, script ori sibling |
+| rezultatul public | inventar complet, diagnostice unice și consistente; un rezultat gol, parțial sau contradictoriu este neconform |
+| comparația business | expected/actual și evaluarea integrală aparțin callerului; profilul nu recalculează valori business din preview |
+| browserul | vizibilitatea, tastatura, geometria și deep-link-ul rămân probe distincte de inspecția statică |
+
+- Assertion-only și observation-only nu primesc HTTP fictiv.
+- Eliminarea unui request declarat obligatoriu rămâne neconformă.
+- Statusurile INFO/PASS/WARNING/SKIP/FAIL se conservă; o comparație advisory nu devine PASS.
+- Record-ul legacy de inspecție își păstrează constructorul și accessorii; reconstruirea rezultatului cu profil se face prin `ProfileInspection`.
+
+### Originea duratelor sub o fază capturată
+
+| Nivel | Valoare și etichetă |
+|---|---|
+| faza cu timing explicit | execuția furnizată, etichetată Execution; copiii nu sunt însumați peste ea |
+| request cu execuții typed | totalul de transport furnizat, etichetat Transport, inclusiv zero real |
+| scope Extent creat la publicare | ceasul publicării, etichetat Publication; nu reprezintă transport sau execuție business |
+| assertion-step fallback sub faza capturată | etichetă Publication fără valoare numerică inventată |
+| timing absent | comportamentul legacy se păstrează; necunoscut nu devine zero |
+
+Validarea fallback fără ceas propriu nu primește o durată numerică fabricată.
+
+Assertions folosesc disclosure-ul comun cu indicator vizibil plus/minus, stare ARIA și acces mouse/Enter/Space.
+Tabelul rămâne colapsat implicit, cu aceleași patru coloane și preview implicit 240.
+Regresiile permanente sunt în [Reporting Tests](../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions).

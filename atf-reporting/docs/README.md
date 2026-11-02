@@ -29,7 +29,7 @@ flowchart LR
 |---|---|
 | Consumer | execută operația, deține expected-ul și decide verdictul; poate fi orice aplicație Java |
 | Porturi typed | contracte de raportare, fără obiecte Core, Playwright, Kit ori JUnit obligatorii |
-| Reporting JAR | modele, proiecții și renderere; folosește Jackson YAML și ExtentReports prin Maven |
+| Reporting JAR | modele, proiecții și renderere; folosește Jackson YAML, ExtentReports, FreeMarker și Jsoup prin Maven |
 | HTML | artifact cu resursele necesare vizualizării; autonomia HTML nu îl transformă pe JAR într-un fat JAR |
 
 Muchiile reprezintă fluxul dovezii, nu dependențe Maven între module ATF.
@@ -54,6 +54,7 @@ adaptoarelor trebuie încheiată înaintea distribuirii unei versiuni susținute
 | lifecycle și checkpoint UI | [UiExtentReportSession](../src/main/java/atf/reporting/ui/UiExtentReportSession.java) | acțiuni și capturi deja observate, fără obiect Playwright |
 | exchange API | [ReportExecutionEvidence](../src/main/java/atf/reporting/model/ReportExecutionEvidence.java), [ReportRequest](../src/main/java/atf/reporting/api/ReportRequest.java) | request, response disponibil sau absent, attempts, provenance și termination |
 | adaptor legacy existent | [ReportModelAdapters](../src/main/java/atf/reporting/api/ReportModelAdapters.java) | accessori externi verificabili; preferați DTO-urile typed pentru adopții noi |
+| inspecție artifact | [ReportArtifactInspector](../src/main/java/atf/reporting/artifact/ReportArtifactInspector.java), [ReportArtifactProfile](../src/main/java/atf/reporting/artifact/ReportArtifactProfile.java) | renderer și inventarul obligatoriu explicit; varianta legacy păstrează Extent/HTTP |
 | verificare semantică | [AtfReportSemanticSnapshot](../src/main/java/atf/reporting/semantic/AtfReportSemanticSnapshot.java) | comparație a populației și statusurilor, separat de inspecția DOM |
 
 Pentru configurație se citesc [ReportingSettings](../src/main/java/atf/reporting/configuration/ReportingSettings.java)

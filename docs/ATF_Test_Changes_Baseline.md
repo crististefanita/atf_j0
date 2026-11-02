@@ -3882,3 +3882,49 @@ testChanges:
 ```
 
 </details>
+
+<details>
+<summary><strong>Reporting J11 — System și index fallback</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-FALLBACK-PRESENTATION-J11
+    status: VERIFIED
+    base: 6455454ce4a1dd5063e68f38fb832bcab813068d
+    expires: 2026-11-30
+    reason: Probe permanente neutre pentru paritatea System și indexul fallback, cu oracole DOM vizibile, contrast, tastatură și mutanți refuzați; fără Android, ASR ori HTTP fictiv.
+    proof: mvn -B -pl atf-reporting-tests -am "-Dtest=ReportSystemMetadataComponentTest,FallbackIndexPresentationComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/presentation/PresentationReportFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/presentation/ReportSystemMetadataComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/presentation/FallbackIndexPresentationComponentTest.java
+      - atf-reporting/src/test/java/atf/reporting/standalone/ReportingStandaloneEnvironmentSnapshotTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Reporting J12 — inspector, timing și assertions</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-INSPECTION-TIMING-J12
+    status: VERIFIED
+    base: 6455454ce4a1dd5063e68f38fb832bcab813068d
+    expires: 2026-11-30
+    reason: Regresii permanente pentru profil explicit, refuzul rezultatelor de inspecție incomplete, timing capturat separat și indicator vizibil; fără relaxarea nominalelor sau a limitei 240.
+    proof: mvn -B -pl atf-reporting-tests -am "-Dtest=ReportArtifactProfileComponentTest,RecordedPublicationTimingComponentTest,AssertionIndicatorComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/runtime/core/ExtentReportRuntimeScriptTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/layers/AtfTestLayerArchitectureTest.java
+      - atf-reporting/pom.xml
+      - atf-reporting/src/test/java/atf/reporting/standalone/artifact/ReportingStandaloneInspectionResultTest.java
+      - atf-reporting/src/test/java/atf/reporting/standalone/timing/ReportingStandaloneTransportTimingTest.java
+      - atf-reporting/src/test/java/atf/reporting/standalone/artifact/ReportingStandaloneArtifactProfileTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/profile/ReportArtifactProfileComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/ArtifactProfileFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/timing/RecordedPublicationTimingComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/presentation/AssertionIndicatorComponentTest.java
+```
+
+</details>

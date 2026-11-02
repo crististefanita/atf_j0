@@ -24,13 +24,24 @@ public final class ReportArtifactInspector {
     private ReportArtifactInspector() { }
 
     public static ReportArtifactInspection inspect(Path reportPath) {
+        return inspectPublished(reportPath, ReportArtifactContractChecks::evaluateDetailed);
+    }
+
+    /** Inspects caller-declared intent; missing evidence never selects a permissive profile. */
+    public static ProfileInspection inspect(Path reportPath, ReportArtifactProfile profile) {
+        Objects.requireNonNull(profile, "profile");
+        return new ProfileInspection(profile, inspectPublished(reportPath, html -> ReportProfileContractChecks.evaluate(html, profile)));
+    }
+
+    private static ReportArtifactInspection inspectPublished(Path reportPath,
+            java.util.function.Function<String, atf.reporting.artifact.contract.ReportArtifactContractEvaluation> evaluator) {
         Objects.requireNonNull(reportPath, "reportPath");
         try {
             if (!Files.isRegularFile(reportPath)) {
                 return ReportArtifactInspection.missing(reportPath);
             }
             String html = Files.readString(reportPath, StandardCharsets.UTF_8);
-            var evaluation = ReportArtifactContractChecks.evaluateDetailed(html);
+            var evaluation = evaluator.apply(html);
             return new ReportArtifactInspection(
                     reportPath,
                     evaluation.checks(),
@@ -49,8 +60,17 @@ public final class ReportArtifactInspector {
      * accepted when generation fails before publication.
      */
     public static ReportArtifactInspection inspectFresh(Path reportPath, Instant startedAt) {
+        return fresh(reportPath, startedAt, inspect(reportPath));
+    }
+
+    /** Uses the same timestamp contract with an explicit evidence profile. */
+    public static ProfileInspection inspectFresh(Path reportPath, Instant startedAt, ReportArtifactProfile profile) {
+        var inspected = inspect(reportPath, profile);
+        return new ProfileInspection(profile, fresh(reportPath, startedAt, inspected.artifact()));
+    }
+
+    private static ReportArtifactInspection fresh(Path reportPath, Instant startedAt, ReportArtifactInspection inspection) {
         Objects.requireNonNull(startedAt, "startedAt");
-        var inspection = inspect(reportPath);
         if (!inspection.readError().isEmpty() || !Files.isRegularFile(reportPath)) {
             return inspection.withCheck("fresh artifact", false);
         }
@@ -63,12 +83,34 @@ public final class ReportArtifactInspector {
         }
     }
 
+    /** Keeps the caller's complete intent attached to the result, including when the result is reconstructed. */
+    public record ProfileInspection(ReportArtifactProfile profile, ReportArtifactInspection artifact) {
+        public ProfileInspection { Objects.requireNonNull(profile, "profile"); Objects.requireNonNull(artifact, "artifact"); }
+        public Path reportPath() { return artifact.reportPath(); }
+        public Map<String, Boolean> checks() { return artifact.checks(); }
+        public List<ReportArtifactDiagnostic> diagnostics() { return artifact.diagnostics(); }
+        public String readError() { return artifact.readError(); }
+        public boolean satisfies(String name) { return artifact.satisfies(name); }
+        public boolean isCompliant() { return violations().isEmpty(); }
+        public List<String> violations() {
+            var result = new java.util.TreeSet<>(artifact.violations());
+            var required = ReportProfileContractChecks.evaluate("", profile).checks().keySet();
+            var allowed = new java.util.HashSet<>(required); allowed.add("fresh artifact");
+            if (!checks().keySet().containsAll(required) || !allowed.containsAll(checks().keySet())) result.add("declared profile check inventory");
+            return List.copyOf(result);
+        }
+    }
+
     public record ReportArtifactInspection(
             Path reportPath,
             Map<String, Boolean> checks,
             List<ReportArtifactDiagnostic> diagnostics,
             String readError) {
         public ReportArtifactInspection {
+            Objects.requireNonNull(reportPath, "reportPath");
+            checks.forEach((name, value) -> {
+                if (name == null || name.isBlank()) throw new IllegalArgumentException("Inspection check name is required");
+            });
             checks = Collections.unmodifiableMap(new LinkedHashMap<>(checks));
             diagnostics = List.copyOf(diagnostics);
             readError = readError == null ? "" : readError;
@@ -81,11 +123,11 @@ public final class ReportArtifactInspector {
         }
 
         public boolean isCompliant() {
-            return readError.isEmpty() && checks.values().stream().allMatch(Boolean::booleanValue);
+            return violations().isEmpty();
         }
 
         public boolean satisfies(String name) {
-            return checks.getOrDefault(name, false);
+            return Boolean.TRUE.equals(checks.get(name));
         }
 
         private ReportArtifactInspection withCheck(String name, boolean value) {
@@ -107,8 +149,7 @@ public final class ReportArtifactInspector {
         }
 
         public java.util.List<String> violations() {
-            return checks.entrySet().stream().filter(entry -> !entry.getValue())
-                    .map(Map.Entry::getKey).sorted().toList();
+            return ReportInspectionResultContracts.violations(checks, diagnostics, readError);
         }
     }
 }

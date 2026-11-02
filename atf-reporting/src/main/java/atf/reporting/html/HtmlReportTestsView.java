@@ -78,11 +78,10 @@ public final class HtmlReportTestsView {
                 escape(scenario.testClass()));
         var duration = ReportPhaseDurations.scenario(scenario);
         if (duration.isPresent()) label += ReportPhaseTimingMarkup.badge(duration.getAsLong(), "Sum of measured phase execution");
+        label += status(scenario.status());
         return AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.A, label,
                 AtfReportHtmlVocabulary.classAttribute(
-                        AtfReportHtmlVocabulary.CssClass.TEST_LINK.value(),
-                        AtfReportHtmlVocabulary.CssClass.STATUS.value(),
-                        AtfReportHtmlVocabulary.statusClass(scenario.status())),
+                        AtfReportHtmlVocabulary.CssClass.TEST_LINK.value()),
                 AtfReportHtmlVocabulary.attribute(
                         AtfReportHtmlVocabulary.Attribute.HREF,
                         "#" + scenario.id()));
@@ -124,7 +123,7 @@ public final class HtmlReportTestsView {
                 .append(status(phase.status()))
                 .append(phase.timing().map(value -> ReportPhaseTimingMarkup.phase(value, phase.publicationMillis())).orElse(""))
                 .append(AtfReportHtmlVocabulary.closeTag(AtfReportHtmlVocabulary.Tag.H3));
-        phase.children().forEach(child -> renderNode(html, child));
+        phase.children().forEach(child -> renderNode(html, child, phase.timing().isPresent()));
         html.append(AtfReportHtmlVocabulary.closeTag(AtfReportHtmlVocabulary.Tag.SECTION));
     }
 
@@ -132,23 +131,16 @@ public final class HtmlReportTestsView {
         return ReportEvidenceMarkup.statusBadge(status);
     }
 
-    private void renderNode(StringBuilder html, ReportExecutionModel.Node node) {
+    private void renderNode(StringBuilder html, ReportExecutionModel.Node node, boolean capturedPhase) {
         if (node instanceof ReportExecutionModel.Request request) {
-            renderRequest(html, request);
+            renderRequest(html, request, capturedPhase);
         } else if (node instanceof ReportExecutionModel.Validation validation) {
             evidence.renderValidation(html, validation);
         } else if (node instanceof ReportExecutionModel.AssertionStep step) {
-            html.append(AtfReportHtmlVocabulary.openTag(AtfReportHtmlVocabulary.Tag.DETAILS,
-                            AtfReportHtmlVocabulary.classAttribute(
-                                    AtfReportHtmlVocabulary.CssClass.STEP_DETAIL.value(),
-                                    AtfReportHtmlVocabulary.CssClass.ASSERTION_EVIDENCE.value()),
-                            AtfReportHtmlVocabulary.attribute(
-                                    AtfReportHtmlVocabulary.Attribute.NODE_ROLE, "assertion-step")))
-                    .append(AtfReportHtmlVocabulary.openTag(AtfReportHtmlVocabulary.Tag.SUMMARY))
-                    .append(escape(step.title())).append(status(step.status()))
-                    .append(AtfReportHtmlVocabulary.closeTag(AtfReportHtmlVocabulary.Tag.SUMMARY));
+            html.append(ReportEvidenceMarkup.assertionStepStart(step.title(), step.status()));
+            if (capturedPhase) html.append(ReportPhaseTimingMarkup.publicationLabel());
             evidence.renderAssertions(html, step.assertions());
-            html.append(AtfReportHtmlVocabulary.closeTag(AtfReportHtmlVocabulary.Tag.DETAILS));
+            html.append(ReportEvidenceMarkup.disclosureEnd());
         } else if (node instanceof ReportExecutionModel.ObservationStep observation) {
             html.append(atf.reporting.evidence.markup.ReportObservationMarkup.render(observation.value(), settings, redactor));
         } else {
@@ -156,7 +148,7 @@ public final class HtmlReportTestsView {
         }
     }
 
-    private void renderRequest(StringBuilder html, ReportExecutionModel.Request request) {
+    private void renderRequest(StringBuilder html, ReportExecutionModel.Request request, boolean capturedPhase) {
         html.append(AtfReportHtmlVocabulary.openTag(AtfReportHtmlVocabulary.Tag.DIV,
                         AtfReportHtmlVocabulary.classAttribute(
                                 AtfReportHtmlVocabulary.CssClass.REQUEST),
@@ -169,6 +161,7 @@ public final class HtmlReportTestsView {
                         escape(ExtentReportNodeSupport.renderRequestTitle(
                                 request.title(), request.method(), request.path()))))
                 .append(status(request.status()))
+                .append(capturedTransport(request, capturedPhase))
                 .append(AtfReportHtmlVocabulary.closeTag(AtfReportHtmlVocabulary.Tag.DIV));
         evidence.renderRequestContext(html, request);
         evidence.renderNetworkAggregateSubstep(html, request.networkAggregate());
@@ -178,9 +171,19 @@ public final class HtmlReportTestsView {
                     && child instanceof ReportExecutionModel.Validation validation) {
                 evidence.renderCompactUiValidation(html, validation);
             } else {
-                renderNode(html, child);
+                renderNode(html, child, capturedPhase);
             }
         });
         html.append(AtfReportHtmlVocabulary.closeTag(AtfReportHtmlVocabulary.Tag.DIV));
     }
+    private static String capturedTransport(ReportExecutionModel.Request request, boolean capturedPhase) {
+        if (!capturedPhase) return "";
+        var measured = request.executions().stream().map(atf.reporting.model.ReportExecutionEvidence::totalDuration)
+                .filter(Objects::nonNull).toList();
+        if (measured.isEmpty()) return "";
+        long millis = atf.reporting.duration.AtfDurationFormatter.elapsedMillis(
+                measured.stream().reduce(java.time.Duration.ZERO, java.time.Duration::plus));
+        return ReportPhaseTimingMarkup.transportBadge(millis);
+    }
+
 }

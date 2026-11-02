@@ -37,6 +37,9 @@ public final class ReportEvidenceMarkup {
         var request = execution.request();
         var response = execution.response();
         var attributes = new java.util.ArrayList<String>();
+        if (execution.totalDuration() != null) attributes.add(attribute(
+                AtfReportHtmlVocabulary.Attribute.TRANSPORT_DURATION,
+                Long.toString(atf.reporting.duration.AtfDurationFormatter.elapsedMillis(execution.totalDuration()))));
         if (request != null) {
             attributes.add(attribute(AtfReportHtmlVocabulary.Attribute.REQUEST_METHOD, request.method()));
             attributes.add(attribute(AtfReportHtmlVocabulary.Attribute.REQUEST_PATH,
@@ -62,10 +65,21 @@ public final class ReportEvidenceMarkup {
     }
 
     public static String disclosureStart(ReportEvidenceDisclosure disclosure) {
+        return disclosureStart(disclosure, null);
+    }
+
+    /** The phase-owned assertion step uses the same disclosure header and body as all evidence. */
+    public static String assertionStepStart(String title, AtfReportStatus status) {
+        return disclosureStart(ReportEvidenceDisclosure.withEvidenceStatus(
+                AtfReportHtmlVocabulary.CssClass.ASSERTION_EVIDENCE.value(), title, "", "assertion-step", status), "assertion-step");
+    }
+
+    private static String disclosureStart(ReportEvidenceDisclosure disclosure, String nodeRole) {
         String rawTitle = disclosure.title();
         String safeTitle = AtfReportHtmlVocabulary.escapeHtml(rawTitle);
         var attributes = new java.util.ArrayList<String>();
         attributes.add(classAttribute(STEP_DETAIL.value(), disclosure.kind()));
+        if (nodeRole != null) attributes.add(attribute(AtfReportHtmlVocabulary.Attribute.NODE_ROLE, nodeRole));
         if (disclosure.evidenceType() != null) {
             attributes.add(attribute(EVIDENCE_TYPE, disclosure.evidenceType()));
         }
@@ -83,6 +97,7 @@ public final class ReportEvidenceMarkup {
                 attribute(AtfReportHtmlVocabulary.Attribute.ARIA_LABEL, rawTitle))
                 + safeTitle
                 + closeTag(SPAN)
+                + (nodeRole == null ? "" : statusBadge(disclosure.status()))
                 + closeTag(SUMMARY)
                 + openTag(AtfReportHtmlVocabulary.Tag.DIV,
                 classAttribute(AtfReportHtmlVocabulary.CssClass.BODY));

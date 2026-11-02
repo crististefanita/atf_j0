@@ -18,31 +18,25 @@ function rememberMeasuredDurations() {
         atfMeasuredDurationsByNodeId[id] = value;
       if (path && atfMeasuredDurationsByPath[path] === undefined)
         atfMeasuredDurationsByPath[path] = value;
-      if (node && node.getAttribute('data-atf-measured-duration-ms') === null)
-        node.setAttribute('data-atf-measured-duration-ms', String(value));
-      if (card.getAttribute('data-atf-measured-duration-ms') === null)
-        card.setAttribute('data-atf-measured-duration-ms', String(value));
-      if (badge.getAttribute('data-atf-measured-duration-ms') !== String(value))
-        badge.setAttribute('data-atf-measured-duration-ms', String(value));
+      [node, card].forEach(e => {
+        if (e && e.getAttribute("data-atf-measured-duration-ms") === null)
+          e.setAttribute("data-atf-measured-duration-ms", String(value));
+      });
+      durationAttr(badge, "data-atf-measured-duration-ms", value);
     }
   );
 }
 function measuredNodeDuration(card) {
-  var node = directNode(card),
-    nodeMarked = node && node.getAttribute('data-atf-measured-duration-ms');
-  if (nodeMarked !== null && nodeMarked !== '') return Number(nodeMarked);
-  var remembered = card && card.getAttribute('data-atf-measured-duration-ms');
-  if (remembered !== null && remembered !== '') return Number(remembered);
-  var id = nodeIdentity(card),
-    idValue = id ? atfMeasuredDurationsByNodeId[id] : undefined,
-    path = nodePathKey(card),
-    pathValue = path ? atfMeasuredDurationsByPath[path] : undefined;
-  if (idValue !== undefined) return Number(idValue);
-  if (pathValue !== undefined) return Number(pathValue);
+  var marked = [directNode(card), card]
+    .map(e => e && e.getAttribute("data-atf-measured-duration-ms")).find(v => v != null && v !== "");
+  if (marked !== undefined) return Number(marked);
+  var remembered = [atfMeasuredDurationsByNodeId[nodeIdentity(card)],
+    atfMeasuredDurationsByPath[nodePathKey(card)]].find(v => v !== undefined);
+  if (remembered !== undefined) return Number(remembered);
   var badge = durationBadge(card),
-    marked = badge && badge.getAttribute('data-atf-measured-duration-ms'),
+    badgeMarked = badge && badge.getAttribute('data-atf-measured-duration-ms'),
     value =
-      marked !== null ? Number(marked) : atfDurationValue(text(badge, ''));
+      badgeMarked !== null ? Number(badgeMarked) : atfDurationValue(text(badge, ''));
   if (card && value !== null)
     card.setAttribute('data-atf-measured-duration-ms', String(value));
   return value;

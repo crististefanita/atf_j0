@@ -970,3 +970,15 @@ Observațiile typed și assertions existente rămân punctele de compoziție cur
 Această decizie păstrează propunerea REPORT-MQ-02 în proiect, fără să o numere
 ca defect curent sau funcționalitate livrată. Ownerul [mesageriei J2](../../atf_j2/docs/ATF_J2_Scope.md)
 furnizează witness-ul real înaintea unei extinderi a bibliotecii.
+
+## Inspecție explicită și surse temporale
+
+[Contractul inspectorului](../atf-reporting/README.md#inspecția-artifactului-cu-intenție-explicită) cere intenția callerului pentru Extent/fallback și inventarul dovezilor.
+
+- Default-ul legacy rămâne Extent/HTTP.
+- Lipsa unei dovezi obligatorii nu selectează automat un profil permisiv.
+- Rezultatele goale, incomplete sau contradictorii sunt neconforme; verdictul business se evaluează înaintea preview-ului implicit 240.
+
+[Originea duratelor](../atf-reporting/README.md#originea-duratelor-sub-o-fază-capturată) distinge Execution, Transport și Publication.
+Copiii publicați ulterior nu schimbă execuția capturată a fazei; timpul necunoscut nu este completat cu zero.
+Indicatorul assertions și controalele mouse/Enter/Space aparțin disclosure-ului comun, păstrând tabelul colapsat implicit.

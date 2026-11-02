@@ -1,4 +1,4 @@
-/* Typed timing metadata is projected into its phase, never a public event row. */
+/* Timing metadata is not a public log row. */
 tr.event-row:has([data-atf-execution-duration-ms]) { display: none !important; }
 .step-detail > summary {
   box-sizing: border-box !important;
@@ -15,31 +15,10 @@ tr.event-row:has([data-atf-execution-duration-ms]) { display: none !important; }
   font-size: 12px !important;
   line-height: var(--atf-evidence-summary-line-height) !important;
 }
-.step-detail > summary::-webkit-details-marker {
-  display: none !important;
-}
 .step-detail .se-toggle {
   display: none !important;
 }
-.atf-disclosure-glyph {
-  display: inline-flex !important;
-  flex: 0 0 18px !important;
-  width: 18px !important;
-  height: 18px !important;
-  align-items: center !important;
-  justify-content: center !important;
-  color: var(--atf-accent) !important;
-  font-size: 17px !important;
-  font-weight: 500 !important;
-  line-height: 18px !important;
-}
-.atf-disclosure-glyph:before {
-  content: '＋' !important;
-}
-.step-detail[open] > summary > .atf-disclosure-glyph:before {
-  content: '−' !important;
-}
-/* Nested observations retain independent state and wrap prose between words. */
+/* Nested observations remain independent. */
 .atf-observation-evidence pre.json-code {
   white-space: pre-wrap !important;
   word-break: normal !important;

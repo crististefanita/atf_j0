@@ -1,0 +1,32 @@
+/* Shared disclosure indicator. */
+.step-detail > summary:has(> .atf-disclosure-glyph) {
+  display: flex;
+  align-items: center;
+  list-style: none;
+}
+.step-detail > summary::-webkit-details-marker { display: none !important; }
+.step-detail > summary:focus-visible { outline: 2px solid var(--atf-accent); outline-offset: -2px; }
+.atf-disclosure-glyph {
+  display: inline-flex !important;
+  flex: 0 0 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: var(--atf-accent) !important;
+  font-size: 17px !important;
+  font-weight: 500 !important;
+  line-height: 18px !important;
+}
+.atf-disclosure-glyph:before { content: '＋' !important; }
+.step-detail[open] > summary > .atf-disclosure-glyph:before { content: '−' !important; }
+.step-detail > summary > .status { margin-inline-start: 8px; }
+.atf-duration-origin { margin-inline-start: 6px; color: var(--atf-text); font-size: 0.85em; white-space: nowrap; }
+
+.test-view .badge:is([data-duration-source=publication], [data-duration-source=transport],
+    [data-duration-source=actions], [data-duration-source=execution]):after,
+.phase > h3 > .badge[data-duration-source=execution]:after {
+  content: " " attr(data-duration-source);
+  text-transform: capitalize;
+  margin-inline-start: 4px;
+}

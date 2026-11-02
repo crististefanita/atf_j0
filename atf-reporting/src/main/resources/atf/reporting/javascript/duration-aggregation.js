@@ -17,12 +17,10 @@ function durationAttr(node, name, value) {
 }
 function setNodeDuration(card, value, source) {
   if (value === null) return;
-  var badge = durationBadge(card), formatted = atfFormatDuration(value);
-  if (badge && text(badge, '') !== formatted) badge.textContent = formatted;
-  [card, badge].forEach(node => {
-    durationAttr(node, 'data-duration-ms', value);
-    durationAttr(node, 'data-duration-source', source);
-  });
+  var badge = durationBadge(card);
+  publishDuration(badge, value, source);
+  markDuration(card, value, source);
+  durationAttr(badge, "aria-label", source + " " + atfFormatDuration(value));
   if (source === 'measured') durationAttr(badge, 'data-atf-measured-duration-ms', value);
 }
 function aggregateChildDurations(card) {
@@ -53,10 +51,14 @@ function durationDecision(card, children) {
       return { value: value, source: 'execution' };
     }
   }
-  var parent = card.parentElement.closest('.card');
-  if (card.getAttribute('data-atf-node-role') === 'assertion-step' && parent && executionTiming(parent)) {
-    durationAttr(badge, 'title', 'Assertion publication; excluded from phase total');
-    return { value: measuredNodeDuration(card), source: 'publication' };
+  var phase = card.parentElement.closest('[data-atf-node-role=phase]');
+  if (phase && executionTiming(phase)) {
+    var transport = q("[data-atf-transport-duration-ms]", card)
+      .filter(e => e.closest(".card") === card).map(e => Number(e.getAttribute("data-atf-transport-duration-ms")))
+      .filter(v => Number.isFinite(v) && v >= 0), actions = directActionDuration(card),
+      source = actions !== null ? "actions" : transport.length ? "transport" : "publication";
+    durationAttr(badge, "title", source === "publication" ? "Publication; excluded from execution" : "Captured " + source + "; phase execution unchanged");
+    return { value: actions !== null ? actions : transport.length ? transport.reduce((sum, value) => sum + value, 0) : measuredNodeDuration(card), source: source };
   }
   var actions = directActionDuration(card), measured = measuredNodeDuration(card),
     ownAction = actions !== null ? actions : directTransportEvidence(card) && measured !== null ? measured : 0;

@@ -26,7 +26,7 @@ public final class ReportAssetComposer {
                 "CSS_VARIABLES", AtfReportThemeTokens.cssVariables(),
                 "FONT_STACK", AtfReportThemeTokens.FONT_STACK,
                 "SHADOW_SOFT", AtfReportColors.SHADOW_SOFT,
-                "WHITE_02", AtfReportColors.WHITE_02)) + tableViewportCss();
+                "WHITE_02", AtfReportColors.WHITE_02)) + disclosureIndicatorCss() + tableViewportCss();
     }
 
     public static String tableViewportCss() {
@@ -51,7 +51,11 @@ public final class ReportAssetComposer {
     }
 
     public static String evidenceDisclosureCss() {
-        return LOADER.loadForPublication(ReportAsset.EVIDENCE_DISCLOSURE_CSS);
+        return disclosureIndicatorCss() + LOADER.loadForPublication(ReportAsset.EVIDENCE_DISCLOSURE_CSS);
+    }
+
+    public static String disclosureIndicatorCss() {
+        return LOADER.loadForPublication(ReportAsset.DISCLOSURE_INDICATOR_CSS);
     }
 
     public static String evidenceStackCss() {

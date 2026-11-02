@@ -108,7 +108,8 @@ public enum ReportAsset {
     DURATION_SCHEDULING_JS("/atf/reporting/javascript/duration-scheduling.js", Format.JAVASCRIPT,
             "duration-scheduling"),
     DURATION_LIFECYCLE_JS("/atf/reporting/javascript/duration-lifecycle.js", Format.JAVASCRIPT,
-            "duration-lifecycle");
+            "duration-lifecycle"),
+    DISCLOSURE_INDICATOR_CSS("/atf/reporting/css/disclosure-indicator.css", Format.CSS, "disclosure-indicator");
 
     private final String resourcePath;
     private final Format format;

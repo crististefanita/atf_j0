@@ -1229,3 +1229,27 @@ Consumerii live păstrează numai JAR/POM și probele propriei aplicații.
 
 J9 fizic reproduce cele trei eșecuri ale vecinilor; candidatul J10 verifică
 separat implementarea sursă și JAR-ul. Probele generice rămân permanent în J0.
+
+## Probe System și index fallback J11
+
+ReportSystemMetadataComponentTest citește șase facts exacte la ownerul Overview,
+în Extent/fallback și individual/agregat. FallbackIndexPresentationComponentTest
+verifică vecini Pass/Fail/Skip, titluri/clase integrale, contrast, geometrie, Enter
+și un mutant care colorează linkul întreg. Nativele verifică overrides typed,
+unknown explicit, redacție, preview calculat și refuz fără mutație după close.
+
+Același fixture neutru rulează pe JAR-ul fizic. Nu folosește Android, ASR ori
+HTTP inventat; profilul inspectorului și timing-ul rămân criterii separate.
+
+## Probe inspector, timing și indicator assertions
+
+| Probă permanentă | Oracol și controale negative |
+|---|---|
+| `ReportArtifactProfileComponentTest` | Extent/fallback, individual/agregat, assertion/observation-only și HTTP obligatoriu; owner, rând final, status, script/theme, request, tabel mutat/eliminat și rezultat reconstruit incomplet |
+| `RecordedPublicationTimingComponentTest` | barieră de publicare după capturare, fără sleep-uri; execuție 11 ms, transport 7 ms și ceas de publicare distinct, fără însumare sau clamp |
+| `AssertionIndicatorComponentTest` | indicator închis/deschis/reînchis, mouse/Enter/Space și ultimul rând vizibil; mutantul ascunde numai glyph-ul și este refuzat |
+| native standalone | rezultat public gol/parțial/contradictoriu, profil imutabil și severitate, transport zero versus absent |
+
+Fixture-ul `support/inspection/ArtifactProfileFixture` furnizează independent numele și statusurile așteptate.
+Un mismatch numeric și unul după caracterul 240 păstrează FAIL chiar când preview-urile afișate coincid.
+Inspecția statică nu substituie navigarea la rândul original; proba source și proba JAR au classpath-uri și rezultate distincte.

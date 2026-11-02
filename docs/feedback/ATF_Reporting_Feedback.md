@@ -43,11 +43,7 @@ sunt la ownerii lor, iar registrul păstrează numai criteriile încă deschise.
 
 | ID | Scor /100 | Criteriul care blochează închiderea |
 |---|---:|---|
-| [REPORT-ARTIFACT-PROFILE-62](#report-artifact-profile-62--aplicabilitate-explicită-a-inspectorului) | 89 = 35 + 27 + 19 + 8 | profil explicit pentru assertion-only/HTTP și renderer; dovezi J6/J8 în J2 |
-| [REPORT-RECORDED-TIMING-83](#report-recorded-timing-83--execuție-capturată-și-cost-de-publicare) | 88 = 35 + 26 + 19 + 8 | faza capturată și copilul măsurat la publicare pot expune durate incompatibile |
 | [REPORT-SQL-STEPS-116](#report-sql-steps-116--query-uri-și-rezultate-auditabile) | 88 = 35 + 26 + 18 + 9 | pași SQL neutri, query/bind-uri și rezultate cu bugete independente; adoptare J2 după release |
-| [REPORT-SYSTEM-METADATA-117](#report-system-metadata-117--paritate-semantică-extentfallback) | 83 = 31 + 24 + 20 + 8 | J3 pe J10 fizic: șase câmpuri System în Extent versus unul în fallback, pe aceeași selecție |
-| `REPORT-FALLBACK-INDEX-66` | 81 = 30 + 24 + 20 + 7 | contrastul slab este reconfirmat de consumerul Speech pe J8; owner generic, fără override local |
 | `REPORT-PUBLIC-API-43` | 81 = 31 + 24 + 17 + 9 | API-ul susținut, compatibilitatea și capabilitățile adaptoarelor nu sunt delimitate suficient |
 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) | 80 = 31 + 24 + 18 + 7 | criteriu separat al consumerului: oracol per scenariu și containment fallback |
 | `UI-RECOVERY-AUDIT-01` | 78 = 33 + 22 + 16 + 7 | proiecția typed a încercărilor, bugetelor și corelării rămâne la Reporting |
@@ -124,7 +120,7 @@ Namespace-ul întreg nu poate deveni automat o promisiune de compatibilitate.
 **Prioritate: 73/100** = impact 25 + lacună 22 + lucrabil 17 + documentare 9.
 **Owner:** [POM Reporting](../../atf-reporting/pom.xml), manifestul de assets și procesul de release.
 
-JAR-ul inspectat conține clasele de producție și toate cele 54 resurse CSS/JS;
+JAR-ul inspectat conține clasele de producție și toate resursele CSS/JS din manifestul finit;
 loaderul le citește din classpath. Nu este demonstrată o lipsă de asset în
 artefactul curent și nu propunem mutarea lor în Java sau într-un modul nou.
 
@@ -264,23 +260,6 @@ sau repetarea deciziei la renderer.
       Extent neutre rămân în `atf-reporting-tests`; policy/resolver și adaptoarele
       au teste la owner, fără cuplarea testelor de business la HTML.
 
-## REPORT-FALLBACK-INDEX-66 — status separat de lizibilitatea indexului
-
-**Prioritate: 81/100** = impact 30 + lacună 24 + lucrabil 20 + documentare 7.
-**Owner:** `HtmlReportTestsView.scenarioLink(...)` și tema fallback;
-regresia de browser rămâne în Reporting Tests.
-
-- Linkul întreg primește clasele `test-link status status-pass/fail`. Tema
-  `.status` colorează tot indexul ca badge și impune fontul compact al
-  verdictului; numele clasei folosește în continuare culoarea muted.
-- Auditul browser al titlului lung confirmă fundalul verde pe întregul link
-  PASS. Containment-ul este un contract separat și nu certifică lizibilitatea. Reproducerea [Speech J8](../../../atf_j3/docs/feedback/ATF_Speech_Reporting_Feedback.md#speech-report-style-04--contrastul-navigării-fallback) păstrează același owner și ridică prioritatea; nu este un defect ASR.
-
-- [ ] Păstrați identitatea anchor-ului și verdictul, cu textul indexului în
-      tokenurile neutre și statusul într-un indicator separat, accesibil.
-- [ ] Adăugați mai întâi o regresie cu vecini PASS/FAIL/SKIP, titluri lungi,
-      nume de clasă integral și tastatură; verificați textul și contrastul
-      efectiv în sidebar, fără a micșora fonturile ori a ascunde informația.
 
 ## Contracte existente
 
@@ -312,93 +291,11 @@ cu randare inspectată și regresiile ownerului trecute în TMP.
 
 ## REPORT-ARTIFACT-PROFILE-62 — aplicabilitate explicită a inspectorului
 
-**Prioritate: 89/100** = impact 35 + lacună 27 + lucrabil 19 + documentare 8.
-**Owner:** Reporting; regresia neutră aparține Reporting Tests.
-
-Reproducerea J2 pe J6 separă un raport valid fără HTTP de cerințele neaplicabile ale inspectorului generic.
-
-| Axă | Observație și limită |
-|---|---|
-| assertion-only Extent | trei faze, 12 comparații, fără exchange; inspectorul refuză request/response evidence split |
-| negativ de mesagerie | duplicate-effect păstrează refuzul inspectorului, pe lângă assertion-ul FAIL legitim |
-| fallback | inspectorul cere markeri specifici Extent; rezultatul singur nu demonstrează defect de randare |
-| consumer | receipt-ul păstrează rezultatul original; oracolul separat refuză removed-table/inverted-result |
-
-[ReportArtifactInspector](../../atf-reporting/src/main/java/atf/reporting/artifact/ReportArtifactInspector.java) nu primește profil sau inventar așteptat. Nu compensați prin request-uri fictive ori prin deducerea permisivă a profilului din dovada lipsă.
-
-- [ ] Declarați rendererul și dovezile așteptate, inclusiv assertion-only, cu compatibilitate explicită pentru callerii existenți.
-- [ ] Un request obligatoriu eliminat trebuie să rămână FAIL; separați publicarea de aplicabilitatea contractului HTTP.
-- [ ] Păstrați nominalele și mutanții per scenariu, Extent/fallback, cu taburi, expandări până la ultima comparație și navigare Fails.
-
-**Închidere:** populația semantică cerută este acceptată în fiecare renderer, iar fiecare dovadă obligatorie eliminată este refuzată. API-ul primește intenția callerului; default-urile nu se relaxează din absența dovezii.
-
-<details>
-<summary><strong>Dovada binară și limita acceptanței existente</strong></summary>
-
-JAR: `1.0.0-j6`, SHA-256 `CAEBFBE51DA5F00241F0C092281CBB19FD3FC887EBE0A0A57CDCA71F3D591C1C`.
-Matricea consumerului este în [ghidul J2](../../../atf_j2/docs/ATF_Eventuate_Testing.md#acceptanța-raportului).
-Bootstrap-ul auditabil al consumerului nu închide inspectorul generic sau regresia permanentă a producătorului.
-
-- Revalidare J2 pe J8 fizic, SHA-256 F8176C6D35B39998D8289A53026F526D87DC3082049064DEE4C57BEF94463C90: șapte Extent și șapte fallback assertion-only sunt neconforme; oracolul per rând și mutanții consumerului trec.
-- Pentru Extent expected-rejected, request response evidence split este singurul check fals; cazul are legitim zero dispatch și niciun răspuns disponibil. Nu adăugați un exchange fictiv ca remediu.
-- Increment TMP atf-j2-review-0639018884: j8-mock-matrix/acceptance.json și browser-audit.json. Patru artifacte inspectate păstrează coloanele, ultima comparație, tastatura și backlink-ul; nu certifică profilul generic sau sursa Reporting mai nouă decât J8.
-- Închiderea cere o componentă neutră dedicată în Reporting Tests: profil assertion-only valid și HTTP obligatoriu eliminat, în ambele renderere. Rulați aceeași probă pe JAR-ul candidat; harness-ul și implementarea rămân în J0.
-
-</details>
-
-### Reconfirmare consumer SQL pe J10 — 2026-11-01
-
-- Toate cele 12 artifacte SQL legitime fără HTTP sunt refuzate de inspectorul generic: șase Extent la request response evidence split, șase fallback și la cerințe de shell Extent. Receipt-ul păstrează rezultatele originale; oracolul independent SQL și mutanții trec.
-- Adăugați profil explicit SQL-only/assertion-only și renderer la owner, cu negative care elimină query/ID/rând ori mută dovada la sibling. Nu cereți HTTP fictiv și nu transformați acceptanța independentă J2 în PASS universal al inspectorului.
+Contract consolidat în [README-ul Reporting](../../atf-reporting/README.md#inspecția-artifactului-cu-intenție-explicită), cu [probe J12](../ATF_Reporting_J12_Verification.md). Intenția callerului și rezultatul complet sunt explicite; overload-ul legacy rămâne Extent/HTTP. Regresia neutră și binară refuză inventarul degradat; adopția overload-ului în acceptorii aplicațiilor rămâne responsabilitatea consumerului.
 
 ## REPORT-RECORDED-TIMING-83 — execuție capturată și cost de publicare
 
-**Prioritate: 88/100** = impact 35 + lacună 26 + lucrabil 19 + documentare 8.
-**Owner:** Reporting pentru contractul temporal; adaptorul J2 pentru datele furnizate.
-
-Raportul Extent API individual a expus durate de execuție capturate lângă durate măsurate la publicare. Verdicturile și comparațiile corecte nu demonstrează coerența acestor surse de timp.
-
-| Fază observată | Copil afișat | Limită de interpretare |
-|---|---|---|
-| SETUP: 21 ms | Component assertions: 94 ms | durata pasului nu poate fi atribuită implicit execuției capturate |
-| TEST BODY: 68 ms | request: 514 ms | timpul transportului, al observației și al publicării trebuie delimitate |
-
-- [ComponentReportRun](../../../atf_j2/atf-test-eventuate/src/main/java/atf/eventuate/reporting/ComponentReportRun.java) aplică timpul capturat fazei și apoi publică dovezile.
-- [AssertionAuditReport](../../atf-reporting/src/main/java/atf/reporting/audit/AssertionAuditReport.java) deschide pasul la publicare; codul sugerează amestecul măsurătorilor, fără a demonstra un defect exclusiv al rendererului.
-- Închidere: regresie permanentă mock/contract în Reporting Tests, latență de publicare controlată și oracol independent, Extent/fallback și individual/suită.
-- Păstrați distinct durata transportului; refuzați atribuirea artificială a costului de publicare, fără clamp, mutarea assertions sau sleep-uri probabilistice.
-
-<details>
-<summary><strong>Artifactul observat</strong></summary>
-
-API individual J2: `eventuate-extent-2026-10-31T10-07-15.582149200Z-7abc17e2.html`.
-SHA-256: `24831EA551633629354AA0EF511A307F283A0808DC83954BC189F19F7E3191E6`.
-Aceasta este dovadă existentă, nu o execuție nouă ori un contract temporal deja închis.
-
-</details>
-
-
-<details>
-<summary><strong>Revalidare la distribuția Core C1 — Reporting J6 rămâne distinct</strong></summary>
-
-La 2026-10-31, suita Eventuate cu Core C1 și același Reporting J6 expune
-TEST BODY de 109 ms și request-ul copil de 185 ms. Tabelul assertion-urilor
-este lizibil până la ultima comparație, cu click/Enter/Space; aceasta nu închide
-coerența duratelor, care rămâne criteriul de mai sus.
-
-| Dovadă | Valoare și limită |
-|---|---|
-| artifact | `eventuate-extent-2026-10-31T12-14-59.148865600Z-aafacc10.html` |
-| SHA-256 HTML | `C0E43FD46B4027C4B25EB85F1DB760529615C2DC26374A2D58E0BF615243A420` |
-| caz | `EventuateApiContractComponentTest` → `API contract · approved order` → TEST BODY |
-| sursă versus JAR Core | 127 clase de producție identice byte cu byte; împachetarea nu corectează contractul temporal Reporting |
-| regresie necesară | fixture neutru în `atf-reporting-tests`, cu execuție capturată și publicare controlată, Extent/fallback și JAR fizic |
-
-Dovada este observată pe binarul J6 existent. Cele 32 de regresii Reporting
-focalizate ale incrementului Core sunt verzi; selecția nu substituie proba
-permanentă cerută de acest criteriu.
-
-</details>
+Contract consolidat la [originea duratelor](../../atf-reporting/README.md#originea-duratelor-sub-o-fază-capturată). [J12](../ATF_Reporting_J12_Verification.md) păstrează execuția capturată, transportul și publicarea distincte, cu barieră controlată și probe individual/agregat în ambele renderere.
 
 ## REPORT-FALLBACK-RESULT-WIDTH-101 — badge-ul statusului depășește coloana
 
@@ -445,8 +342,8 @@ Acesta este un increment cerut, fără implementare sau versiune JAR livrată.
 
 J2 are acum opt module sursă, prin adăugarea explicit cerută a bibliotecii atf-sql JDK-only: template, binds typed, metadata ordonată și celule capturate din aceeași execuție. Proiecția veche SqlEffectsSnapshot rămâne separată; noul adaptor publică deocamdată observations JSON, fără tabel SQL semantic.
 
-AtfReportPorts.Phase nu are un pas SQL semantic. Query-ul typed deja existent
-în Reporting descrie parametrii URI HTTP, nu interogări SQL.
+- AtfReportPorts.Phase nu are un pas SQL semantic.
+- Query-ul typed deja existent în Reporting descrie parametrii URI HTTP, nu interogări SQL.
 
 | Responsabilitate | Contract cerut |
 |---|---|
@@ -479,12 +376,12 @@ pentru completarea raportului. Expected-urile și politica de business rămân l
   verdictul. Eșecul neinterceptat rămâne FAIL; cleanup-ul și publicarea nu
   înlocuiesc cauza originală și nu provoacă replay.
 - Timing-ul explicit separă execuția/captura de publicare, păstrând necunoscut
-  versus zero. Nu închideți REPORT-RECORDED-TIMING-83 printr-o durată calculată din HTML.
+  versus zero. Nu închideți contractul execuției capturate printr-o durată calculată din HTML.
 - Query, bind-uri, Results și Assertions au disclosure-uri accesibile și owner
   precis. Extent și fallback păstrează coloane dinamice pe lățimea disponibilă,
   scroll până la ultima coloană/rând, Enter/Space și Fails către pasul original.
 - Un profil SQL-only legitim nu primește HTTP fictiv pentru inspector;
-  REPORT-ARTIFACT-PROFILE-62 rămâne un criteriu distinct de închidere.
+  profilul explicit J12 se declară la caller; apelul legacy rămâne strict.
 
 </details>
 
@@ -537,28 +434,39 @@ generice rămân comportamentul livrat; această cerere nu certifică SQL LIVE.
 - Captura JDBC implicită are 4.194.304 unități conservative; nu este plafon HTML. Păstrați cerința distinctă pentru query 4.096, binds 2.048, rezultate 16.384 și total SQL 1.048.576, toate configurabile, fără payload complet ascuns. Preview-ul assertions rămâne 240.
 - [Dovada J2](../../../atf_j2/docs/ATF_SQL_Live_Verification.md) separă H2, Kafka/MySQL reale și aplicația Eventuate NOT RUN. Nu certificați saga sau dialecte SQL prin fixture-ul neutru al rendererului.
 
-## REPORT-SYSTEM-METADATA-117 — paritate semantică Extent/fallback
+## Reconfirmarea J2 — criterii încă deschise
 
-**Prioritate: 83/100** = impact 31 + lacună 24 + lucrabil 20 + documentare 8.
-**Owner:** defaults/configurație și bootstrap neutru în Reporting; regresii
-permanente în Reporting Tests. J3 consumă noua pereche binară după livrare.
+The current J2 native SQL matrix again has 12 legitimate SQL-only artifacts:
+36 invocations, four intended SQL failures and passing independent oracles/
+mutants. These historical J10 artifacts were noncompliant under the legacy Extent/HTTP inspector. J12 adds an explicit profile; SQL-STEPS-116 remains open for neutral SQL steps/budgets and consumer adoption.
 
-Consumerul Speech a reprodus pe Core C2 / Reporting J10 fizice aceeași
-selecție de două scenarii replay, fără inferență nouă: Extent arată Environment,
-Runtime, OS, Client, Reporting și Assertion preview, iar fallback numai
-Assertion preview. Ambele arată corect 240. Verdicturile FAIL originale și
-corpurile integrale rămân corecte; asimetria este de context al execuției.
-Proba independentă a consumerului confirmă și observația anterioară din
-[matricea device J3](../../../atf_j3/docs/feedback/ATF_Speech_Reporting_Feedback.md#speech-report-metadata-05--common-system-metadata-across-renderers).
+- Proof roots in TMP: j2-quality-64e05d574c24 and j3-host-run-c79f1aaffbba.
+- These observations do not execute the J0 native/browser regression suite.
 
-- [ ] Declarați setul comun de facts obligatorii versus câmpuri opționale la
-  bootstrap/factory, cu overrides explicite păstrate și fără date fabricate.
-- [ ] Proiectați aceleași semnificații în ambele renderere; rendererul efectiv
-  rămâne distinct. Fallback nu moștenește eticheta Extent.
-- [ ] Adăugați proba permanentă pentru ambele renderere: defaults, overrides,
-  valori necunoscute și overview, apoi gate-ul JAR și reacceptanța consumerului.
-  Un override CSS/metadata în Speech nu închide defectul comun.
 
-**Închidere:** aceeași selecție și configurație păstrează facts comune auditabile
-în Extent/fallback, cu rendererul efectiv corect și preview 240. J10 a reparat
-independența disclosure-urilor; acel criteriu separat nu închide metadata.
+## Diagnostic bounded — criteriu separat de verdict
+
+- Two different long values can correctly yield FAIL while their 240-character
+  previews are identical. The new browser fixture preserves that FAIL, its exact
+  Fails backlink and the neighboring PASS comparison.
+- If richer diagnosis is required, capture a safe reference or bounded redacted
+  mismatch context before information is discarded. Keep 240; do not publish
+  entire hidden originals or derive a verdict from display text.
+- Kit's component Check already stores sanitized previews. Reporting cannot
+  reconstruct a missing suffix from those values. Keep neutral capture at the
+  test/evaluator boundary and rendering in Reporting; no second comparison.
+- Treat differences hidden by redaction separately. Avoid raw secret digests,
+  lengths or context as an accidental disclosure; an explicit withheld reason
+  can be the correct safe evidence.
+
+Evidence root: TMP j0-deep-audit-1057ca2f02ed, reporting-probe.log and
+source-reports. Two browser-audited source artifacts are controlled fixtures,
+not SQL, HTTP, ASR or device acceptance. No implementation changed.
+
+## REPORT-FALLBACK-ASSERTION-AFFORDANCE-124 — indicator vizual pentru assertions
+
+Contract livrat [J12](../ATF_Reporting_J12_Verification.md): disclosure comun, indicator vizibil închis/deschis/reînchis, mouse/Enter/Space și mutant care ascunde numai glyph-ul. Assertions, statusurile și preview-ul 240 rămân conservate.
+
+## Increment J12 — contracte și dovezi
+
+[Dovada J12](../ATF_Reporting_J12_Verification.md) deține hash-ul final, selecțiile executate, limitele și acceptanțele distincte J1–J4. Criteriile 62, 83 și 124 nu mai sunt ToDo-uri. PUBLIC-API-43 rămâne deschis pentru delimitarea API-ului susținut și capabilitățile adaptoarelor; invarianta rezultatului de inspecție este rezolvată.

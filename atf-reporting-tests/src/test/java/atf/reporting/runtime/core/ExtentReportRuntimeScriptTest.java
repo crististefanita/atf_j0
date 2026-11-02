@@ -189,7 +189,8 @@ class ExtentReportRuntimeScriptTest {
                         "the measurement map must be populated only from the immutable source tree"),
                 () -> assertTrue(script.contains("data-atf-measured-duration-ms"),
                         "the original measurement must also travel with cloned badges when Extent clones markup"),
-                () -> assertTrue(script.contains("node.getAttribute('data-atf-measured-duration-ms')"),
+                () -> assertTrue(script.contains("[directNode(card),card]")
+                                && script.contains(".find(v=>v!=null&&v!==\"\")"),
                         "cloned Extent nodes must prefer their own immutable measured duration"),
                 () -> assertTrue(script.contains("#test-view .test-list-item .test-contents .card > .card-header"),
                         "measurement capture must read each card's own direct header, never a descendant header"),
@@ -216,7 +217,9 @@ class ExtentReportRuntimeScriptTest {
                 () -> assertTrue(script.contains("if(value===null)return") && script.contains("source==='measured'"),
                         "unknown timing must not fabricate a badge and source measurements must remain available"),
                 () -> assertTrue(script.contains("function executionTiming(card)")
-                                && script.contains("source:'execution'") && script.contains("source:'publication'"),
+                                && script.contains("source:'execution'") && script.contains("\"publication\"")
+                                && script.contains("phase&&executionTiming(phase)")
+                                && script.contains("source:source"),
                         "caller execution and snapshot publication must retain separate sources; browser probes verify totals"),
                 () -> assertTrue(script.contains("atfFormatDuration(value)"),
                         "aggregated values must use the common display formatter"),

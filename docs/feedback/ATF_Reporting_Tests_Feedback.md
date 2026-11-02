@@ -67,40 +67,11 @@ documentele normative nu păstrează artifacte sau rezultate datate.
 
 ## REPORT-TEST-ARTIFACT-PROFILE-62 — matrice neutră fără HTTP fictiv
 
-**Prioritate: 89/100** = impact 35 + lacună 27 + lucrabil 19 + documentare 8.
-**Owner:** Reporting Tests. Criteriul API rămâne la
-[Reporting](ATF_Reporting_Feedback.md#report-artifact-profile-62--aplicabilitate-explicită-a-inspectorului).
-
-Consumerul J2 a reprodus pe J6 refuzul unui raport Extent exclusiv cu
-assertions și aplicarea contractelor Extent pe fallback. Transferați cazul
-într-un fixture neutru al producătorului, fără cod ori expected-uri Eventuate.
-
-- [ ] Publicați assertion-only și HTTP, individual și agregat, în ambele renderere;
-      fixați identitatea scenariului, fazelor și comparațiilor așteptate.
-- [ ] Refuzați eliminarea unui request obligatoriu, a unui tabel ori a ultimei
-      comparații și inversarea unui verdict. Un script sau un sibling PASS
-      nu poate satisface inventarul scenariului degradat.
-- [ ] Probați un mismatch după caracterul 240 și o comparație numerică FAIL;
-      verificați un singur diagnostic al cauzei și deep-link-ul la rândul original.
-- [ ] Rulați aceeași matrice pe sursă și pe JAR-ul fizic; validați browserul,
-      inclusiv Enter/Space, wrapping și lățimea disponibilă, înaintea închiderii.
-
-**Închidere:** profilul nominal este verde, fiecare mutant este refuzat de
-oracolul potrivit, iar raportul și hash-ul binarului sunt legate de execuția
-curentă. Cele 12 artifacte J2 nu substituie regresia permanentă a producătorului.
-
+Matricea permanentă este în [README-ul harness-ului](../../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions), cu [acceptanță J12](../ATF_Reporting_J12_Verification.md). Assertion/observation-only și HTTP obligatoriu, individual/agregat, Extent/fallback, mismatch numeric și după 240, inventar/verdict/owner degradat: criteriul de profil este consolidat. Auditul generic exact-row/reload rămâne în REPORT-TEST-AUDIT-60.
 
 ## Timing capturat versus publicare — regresie de păstrat
 
-[REPORT-RECORDED-TIMING-83](ATF_Reporting_Feedback.md#report-recorded-timing-83--execuție-capturată-și-cost-de-publicare) are dovadă observată în consumerul J2, fără regresie permanentă închisă încă. Fixture-ul neutru trebuie să întârzie controlat publicarea după capturarea fazei și să verifice exact relațiile de timp în Extent/fallback, din sursă și JAR.
-
-Oracolul trebuie să refuze implementarea care atribuie costul de publicare execuției, fără sleep-uri probabilistice sau expected-uri derivate din același formatter. Păstrați assertions, verdicturile, expandările și preview-ul 240.
-
-| Revalidare Core C1 | Limită de acceptanță |
-|---|---|
-| J2 agregat: TEST BODY 109 ms, request copil 185 ms | [Dovada la owner](ATF_Reporting_Feedback.md#report-recorded-timing-83--execuție-capturată-și-cost-de-publicare) fixează artifactul și hash-ul |
-| native Core și expandări corecte | nu închid regresia temporală Reporting; fixture-ul neutru rămâne necesar |
-
+[RecordedPublicationTimingComponentTest](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/timing/RecordedPublicationTimingComponentTest.java) deține regresia permanentă cu barieră, fără sleep-uri probabilistice. [J12](../ATF_Reporting_J12_Verification.md) verifică sursa și JAR-ul fizic; atribuirea duratei nu mai este un ToDo.
 
 ## REPORT-TEST-FALLBACK-RESULT-WIDTH-101 — geometria celulei RESULT
 
@@ -180,3 +151,27 @@ query/bind-uri/schema efectiv capturate. Acceptanța anterioară J9 rămâne ist
 - [Matricea J2](../../../atf_j2/docs/ATF_SQL_Live_Verification.md) furnizează acum query/binds/schema/rows typed și erori controlate, în 12 Extent/fallback. Adăugați fixture-uri neutre permanente pentru fiecare familie de mai sus, fără copierea H2 sau a suitei JDBC în Reporting Tests.
 - Păstrați negativele query absent, ID diferit de metadata, DECIMAL rotunjit și rând/coloană duplicată pierdută. Adăugați cross-owner cu titluri identice și SQL-only fără HTTP; inspectorul generic J10 refuză încă cele 12 artifacte legitime.
 - Verificați separat captura parțială JDBC, tăierea HTML configurată și testul PASS care verifică o eroare SQL așteptată. Un error field nu impune FAIL asupra comparațiilor care au trecut; eroarea neconsumată păstrează FAIL și cauza originală.
+
+## Producer audit handoff — 2026-11-01
+
+- Six existing selected classes pass 16 tests: artifact identity/inspector,
+  fallback session, semantic snapshots, observations and publication coordinator.
+  Reporting's 67 native tests pass separately. Neither selection is the full
+  513-source-file composition/browser suite.
+- Add public inspection-record counterexamples to API/profile acceptance:
+  empty checks, missing required checks and contradictory diagnostic outcomes.
+  Keep a normal missing-file control and a valid explicit assertion-only profile.
+- Keep Core console redaction and upstream-future cancellation regressions
+  native to Core. Reporting Tests may compare redaction projections through
+  independent vectors, without taking ownership of transport cancellation.
+- KIT-UNICODE-PREVIEW-127 needs its native regression in Kit, followed by a
+  composed assertion artifact here and reacceptance in J2/J3. Preserve Unicode,
+  the effective 240 budget, redaction order, original mismatch and neighbors.
+- Retain the existing SQL, timing, inspection-result and geometry criteria separately.
+  A new green semantic fixture or a manual browser sample does not close all
+  of those unexecuted permanent/JAR regressions.
+
+Core findings are at [the source owner](ATF_Core_Feedback.md); shared test
+mechanics and the Unicode boundary are at [Kit](ATF_Common_Test_Support_Feedback.md).
+
+[J11 System and index acceptance](../ATF_Reporting_J11_Verification.md) now covers the metadata criterion with permanent source/JAR regressions. The later producer audit counterexamples for public inspection records remain open.

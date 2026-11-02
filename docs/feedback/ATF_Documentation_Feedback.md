@@ -22,3 +22,34 @@ guvernanța curentă nu detectează această contradicție semantică.
 **Închidere:** documentele nominale și istorice trec, iar mutanții curenți
 sunt refuzați fără relaxarea perimetrului. [Criteriul local J2](../../../atf_j2/docs/feedback/ATF_Documentation_Feedback.md)
 are acceptanță proprie; nu închide implicit guvernanța comună.
+
+### Current concrete drift from the J2/J3 audit
+
+ATF_Workspace_Synchronization still describes J2 as seven modules and its
+framework observer as WIP. The current J2 reactor has eight modules including
+atf-sql; observer contracts and prior real infrastructure evidence exist,
+while full application HTTP/CDC/saga remains NOT RUN. Reconcile this row with
+the J2 owner and preserve the older verification documents as historical.
+
+- J2 also links a J10 delivery through a J8 verification page; J3's governance README retains a current J8 hash label.
+- These are actionable current-context contradictions, not a reason to replace every historical version string.
+- Bind only current declarations to the deployment facts and prove a wrong- version mutant.
+- Keep the approved README style/navigation during cleanup.
+
+## Producer README review — fidelity before expansion
+
+- Core documents structural JSON field selection precisely. The console leak
+  is a missing projection/policy boundary, not proof that every described
+  redactor invariant is false. Update that owner's contract when the fix lands.
+- Reporting README has 2,291 lines, but only 355 nonblank lines outside details;
+  Reporting Tests has 1,231 / 314. Progressive disclosure already works: do not
+  split approved documents merely to satisfy an arbitrary line count.
+- Core README has 390 nonblank visible lines. Improve its short task routes
+  around console/cancellation rather than duplicating the security atlas.
+- The 75-line production atlas and the module-local portable entry remain good
+  context. Public API support, portable normative contracts and release package
+  completeness are still separate criteria, already owned by 43/45/46.
+- Preserve HTML/fallback publication and threading differences: they are
+  explicitly documented, not an undocumented promise of universal atomicity.
+- Clarify stale current J2/module-version claims and J3's failed-reactor versus
+  isolated-pass wording. Keep dated receipts and test outcomes intact.

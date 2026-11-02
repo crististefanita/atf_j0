@@ -15,6 +15,8 @@ import atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary;
 import atf.reporting.ui.model.ReportDocumentModel;
 
 import atf.reporting.configuration.ReportingSettings;
+import atf.reporting.configuration.ReportEnvironment;
+import atf.reporting.configuration.ReportEnvironmentSnapshot;
 import atf.reporting.security.SensitiveDataRedactor;
 
 import java.io.IOException;
@@ -23,6 +25,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Map;
+import java.util.LinkedHashMap;
 
 import static atf.reporting.html.HtmlReportMarkupSupport.escape;
 
@@ -43,6 +47,8 @@ public final class HtmlReportSession implements AtfReportPorts.Session {
     private final HtmlReportOverviewView overviewView = new HtmlReportOverviewView();
     private final AtfConsoleSink console;
     private final HtmlReportScript navigationScript;
+    private final SensitiveDataRedactor environmentRedactor = new SensitiveDataRedactor();
+    private final Map<String, String> systemInfo = new LinkedHashMap<>(ReportEnvironment.defaults());
     private boolean closed;
 
     public HtmlReportSession(Path reportPath) {
@@ -76,6 +82,15 @@ public final class HtmlReportSession implements AtfReportPorts.Session {
     @Override
     public Path reportPath() {
         return reportPath;
+    }
+
+    /** Merges allowlisted operational facts; renderer identity and the effective preview remain publisher-owned. */
+    public void updateEnvironment(ReportEnvironmentSnapshot snapshot) {
+        ensureOpen();
+        var safe = new LinkedHashMap<String, String>();
+        Objects.requireNonNull(snapshot, "snapshot").systemDisplayValues().forEach((name, value) ->
+                safe.put(name, environmentRedactor.redactField(name, value)));
+        systemInfo.putAll(safe);
     }
 
     /** Returns the same renderer-neutral semantic population used by Extent. */
@@ -151,8 +166,10 @@ public final class HtmlReportSession implements AtfReportPorts.Session {
         html.append(testsView.render(snapshot));
         html.append(categoryView.render(snapshot));
         html.append(failsView.render(snapshot));
-        html.append(overviewView.render(snapshot,
-                atf.reporting.configuration.ReportEnvironment.reportingSettings(settings).systemDisplayValues()));
+        var environment = new LinkedHashMap<>(systemInfo);
+        environment.put("Reporting", "Fallback · embedded offline HTML");
+        environment.putAll(ReportEnvironment.reportingSettings(settings).systemDisplayValues());
+        html.append(overviewView.render(snapshot, environment));
         html.append(HtmlReportShell.close(navigationScript.source()));
         return html.toString();
     }
