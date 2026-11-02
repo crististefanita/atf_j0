@@ -474,3 +474,36 @@ Contract livrat [J12](../ATF_Reporting_J12_Verification.md): disclosure comun, i
 ## Contractul rândului UI
 
 Fidelitatea și redacția comună sunt în [contractul modulului](../../atf-reporting/README.md#fidelitatea-rândului-ui-și-politica-de-redactare), cu [regresii sursă/JAR J14](../ATF_Reporting_J14_Verification.md). Criteriul 135 este verificat și nu mai reprezintă un ToDo.
+
+[Contractul inline](../ATF_Inline_Audit_Contract.md) și [regresia J15](../ATF_Reporting_J15_Verification.md) închid fidelitatea PRE pentru TEXT. Criteriul 133 al assertions deja limitate și remedierea semanticii consumerilor rămân separate.
+
+## REPORT-SCREENSHOT-RETURN-137 — PNG reutilizat schimbă ownerul și pierde expandările
+
+**Prioritate P1; observat pe JAR-ul fizic J15.** Un click pe o captură deduplicată trebuie să deschidă aceiași bytes și să revină la aceeași execuție, fază și poziție de audit.
+
+| Dovadă | Rezultat observat |
+|---|---|
+| raport J4 real recompus | după viewer-ul PNG final, arborele se colapsează; scroll-ul rămâne mult sub conținut și panoul pare gol |
+| fixture neutru, două scenarii, aceeași imagine | ownerul activ 1 devine 0 la deschiderea referinței; 82 de noduri deschise devin zero |
+| după închiderea viewer-ului | panoul are circa 201 px, dar top-ul este circa −10.866 px; nu este pierdere de bytes PNG |
+| boundary | sursa și oracolele Android nu participă la fixture; implementarea și regresia au owner în J0 |
+
+Traseul suspect este [openReferencedScreenshot](../../atf-reporting/src/main/resources/atf/reporting/javascript/extent-evidence-disclosure.js): handlerul apelează original.click() pe ancora canonică. Aceasta poate declanșa și selecția ownerului sursă; remedierea trebuie să separe deschiderea imaginii de navigarea arborelui.
+
+- [ ] Deschideți PNG-ul rezolvat fără a selecta execuția ancorei canonice; păstrați referința și deduplicarea, fără alterarea capturii.
+- [ ] Păstrați test ID, scenario index, disclosure-urile și scroll-ul ownerului activ după open/close, Escape și revenirea din viewer.
+- [ ] Verificați owner diferit și același owner, caption-uri identice, referință canonică ascunsă și ultimul checkpoint după scroll lung.
+- [ ] Închideți numai cu regresii permanente sursă/JAR și audit Extent/fallback; contractele de test sunt în [Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-screenshot-return-137--contextul-viewer-ului-pentru-png-reutilizat).
+
+[Auditul J4](../../../atf_j4/docs/ATF_J4_Report_Audit.md) păstrează probele și separă problema rendererului de acceptorii consumerului. Fixture-ul temporar este J4RepeatedPngProbe, cu două scenarii și 40 de checkpoint-uri în al doilea; folosește numai API-urile Reporting și PNG sintetic 2×2.
+
+## REPORT-SCREENSHOT-VIEWPORT-138 — imagine integrală în spațiul disponibil
+
+**P1; cerință explicită de utilizare, nu pierdere demonstrată de bytes.** În viewer-ul J15, PNG-ul Android integral 1080×1920 este limitat la dialogul central; imaginea deschisă trebuie să folosească spațiul disponibil al browserului, cu întregul ecran vizibil.
+
+- [ ] Folosiți un overlay la dimensiunea viewport-ului, cu controale compacte și imagine fit/contain în ambele axe; fără crop, deformare ori scroll interior în vederea inițială.
+- [ ] Păstrați bytes originali; portrait într-un viewport landscape poate avea margini laterale. Zoom/original-size sunt moduri explicite, nu înlocuiesc vederea integrală inițială.
+- [ ] Verificați portrait/landscape, resize și panou îngust, Enter/Space/Escape, focus și revenirea la același owner/scroll/disclosures. Acoperiți atât PNG direct cât și deduplicat, fără regresia [137](#report-screenshot-return-137--png-reutilizat-schimbă-ownerul-și-pierde-expandările).
+- [ ] Păstrați aceeași acceptanță Extent/fallback, pe sursă și JAR fizic, cu fixture neutru; [Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-screenshot-viewport-138--fit-integral-fără-crop) deține regresiile permanente.
+
+Contractul țintă este în [auditul inline](../ATF_Inline_Audit_Contract.md#full-image-viewer-target). Captura întregului display și verificarea dimensiunilor sunt responsabilitatea [consumerului Android](../../../atf_j4/docs/ATF_Android_Report_Contract.md#full-display-android-screenshots); J0 nu capturează și nu interpretează ecranul dispozitivului.

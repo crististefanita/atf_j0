@@ -39,4 +39,21 @@ class ReportingStandaloneObservationTest {
         assertFalse(html.contains("x".repeat(240)));
         assertTrue(html.contains("tabindex=\"0\""));
     }
+    @Test void completeTextKeepsInitialLineBreaksAndTrailingWhitespace() {
+        for (String prefix : List.of("\n", "\r\n", "\r")) {
+            String text = prefix + "\t captured state\nFINAL\n\t ";
+            var value = new ReportObservation("Evidence", List.of(),
+                    List.of(new ReportObservation.Body("Complete context", text, ReportObservation.Format.TEXT)), List.of());
+            String html = ReportObservationMarkup.render(value, ReportingSettings.defaults(), new SensitiveDataRedactor());
+            assertEquals(text, org.jsoup.Jsoup.parse(html).selectFirst("pre").wholeText());
+        }
+    }
+    @Test void preformattedEvidenceCannotInterpretLiteralEntitiesOrMarkupAsStructure() {
+        String text = "\n&#13; <script>not executable</script> & \"quoted\"\r\n ";
+        var value = new ReportObservation("Evidence", List.of(),
+                List.of(new ReportObservation.Body("Complete context", text, ReportObservation.Format.TEXT)), List.of());
+        var doc = org.jsoup.Jsoup.parse(ReportObservationMarkup.render(value, ReportingSettings.defaults(), new SensitiveDataRedactor()));
+        assertEquals(text, doc.selectFirst("pre").wholeText());
+        assertTrue(doc.select("script").isEmpty());
+    }
 }

@@ -117,3 +117,19 @@ J4 păstrează temporar corpurile TEXT native cu body limit explicit pentru valo
 Adopția și proba aplicației rămân în [handoff-ul consumerului](../../../atf_j1/docs/feedback/ATF_Consumer_Reporting_Handoff_Feedback.md), fără assertions PASS artificiale.
 
 Coordonarea accesului ADB este la [ownerul consumerului J1/J4](../../../atf_j1/docs/feedback/ATF_Consumer_Reporting_Handoff_Feedback.md#coordonarea-probei-j4-pe-dispozitiv-partajat--2026-11-02-1533); probele generice Reporting nu folosesc dispozitivul.
+
+
+## 2026-11-02 — J4: captură fără comparație business, ruta THEN/OBSERVE (J13 înghețat)
+
+Reproducere concretă: `C:/work/whist_back/ai-training/20261102-143525/publication-attempt-01/`. Raport J13 nativ, EACH_CHECKPOINT, 352 checkpoint-uri și verificare SHA-256 a PNG-urilor decodate. Opt viewport-uri Instructions lipsesc; toate sunt THEN, assertions=[], un action-record de tip OBSERVE și PNG valid. Capturile cu verificări și toate cadrele partidei sunt păstrate. Nu presupun că J15 are aceeași problemă; această observație este despre perechea binară înghețată J13.
+
+J4 corectează compoziția: folosește API-ul public `uiValidationAsMedia` pentru captura observațională fără assertions, păstrând OBSERVE și fără comparații business inventate. Adaugă un contract consumer dedicat și păstrează controlul complet pe bytes PNG. Nu există patch HTML și nu se copiază cod Reporting.
+
+Cerință J0: explică/testează explicit diferența dintre `step(THEN, PNG, assertions=[], OBSERVE)` și ruta media. O captură cerută prin policy nu trebuie pierdută în tăcere. Verifică INDIVIDUAL/UNIFIED_FLOW și observații fără ACTION; dacă ruta THEN este deliberat outcome-only, documentează limita și oferă diagnostic, nu recomanda assertions fictive pentru afișarea imaginii. Numărătorile trebuie separate de deduplicare: lipsa a opt hash-uri distincte nu este o optimizare de stocare.
+
+J4 mai publică rezultatele materiale de componentă ca validări native expected/actual: 15.336 comparații de scor/serie/contor din 5.112 intrări și 425 stări din flow-ul complet independent. Inventarul JUnit rămâne metadata; nu este prezentat ca substitut al acestor comparații. Verdictul semantic Android rămâne J4.
+
+
+## J4 — verificare consumer J15, 2 noiembrie 2026
+
+Run `C:/work/whist_back/ai-training/20261102-round3/`: Core C3 / Reporting J15, fără modificări în bibliotecă. Publicarea nativă a trecut cu3.222comparații, replay independent complet și3PNG istorice exacte inlineBase64 prin `uiValidationAsMedia`, fără aserțiuni inventate. Experimentele respinse sunt WARNING și păstrează REGRESSION; succesul verificării HTML nu le transformă în PASS. Receipt:`corpus-report-verification.properties`; raport:`corpus-extent-report.html`. Această rulare confirmă ruta publică media pe J15; nu este dovadă de defect J15 pentru ruta THEN implicită discutată în observația J13 anterioară. Nu cerem un renderer separat sau copierea surselor Reporting în J4.

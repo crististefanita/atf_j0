@@ -4013,3 +4013,26 @@ testChanges:
 Probe sursă/JAR și auditul celor două renderere: [J14](ATF_Reporting_J14_Verification.md).
 
 </details>
+
+<details>
+<summary><strong>Control verificat — Reporting J15</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-SELF-CONTAINED-AUDIT-136
+    status: VERIFIED
+    base: e077ed643f2167b56e711a0acdf9ad6619833a0d
+    expires: 2026-11-30
+    reason: Caracterizează compoziția publică fără referințe la fișiere, cu probe neutre source/JAR și browser, fără reevaluare business, schimbare de verdict ori relaxarea preview-ului 240.
+    proof: mvn -B -pl atf-reporting-tests -am "-Dtest=SelfContainedAuditComponentTest,SelfContainedAuditBrowserComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting/src/test/java/atf/reporting/standalone/ReportingStandaloneObservationTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/composition/SelfContainedAuditFixture.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/composition/SelfContainedAuditOracle.java
+      - atf-reporting-tests/src/test/java/atf/reporting/observation/SelfContainedAuditComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/composition/SelfContainedAuditBrowserComponentTest.java
+```
+
+Probe și limite: [J15](ATF_Reporting_J15_Verification.md).
+
+</details>

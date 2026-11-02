@@ -30,7 +30,7 @@ public final class ReportObservationMarkup {
             String safe = redactor.redactField(body.label(), body.text());
             if (body.format() == ReportObservation.Format.JSON) safe = ReportJsonBodyFormatter.format(redactor.redactJson(safe));
             html.append(ReportEvidenceMarkup.disclosureStart(OBSERVATION_EVIDENCE.value(), preview(redactor.redactText(body.label()), settings)))
-                    .append(element(PRE, escapeHtml(ExtentReportNodeSupport.displayBody(safe, settings)),
+                    .append(element(PRE, ReportEvidenceMarkup.preformattedText(ExtentReportNodeSupport.displayBody(safe, settings)),
                             classAttribute(JSON_CODE, OBSERVATION_BODY), attribute(TABINDEX, "0")))
                     .append(ReportEvidenceMarkup.disclosureEnd());
         }
@@ -42,7 +42,7 @@ public final class ReportObservationMarkup {
             // A masked location must never survive in a hidden href or tooltip.
             if (safe.equals(raw)) html.append(element(A, escapeHtml("Open artifact reference"),
                     attribute(HREF, raw), attribute(REL, "noopener noreferrer")));
-            html.append(element(PRE, escapeHtml(ExtentReportNodeSupport.displayBody(safe, settings)),
+            html.append(element(PRE, ReportEvidenceMarkup.preformattedText(ExtentReportNodeSupport.displayBody(safe, settings)),
                     classAttribute(JSON_CODE, OBSERVATION_BODY), attribute(TABINDEX, "0")));
             if (!artifact.sha256().isEmpty()) html.append(element(P, escapeHtml("SHA-256: " + artifact.sha256())));
             html.append(ReportEvidenceMarkup.disclosureEnd());

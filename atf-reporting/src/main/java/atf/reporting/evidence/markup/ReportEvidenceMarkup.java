@@ -26,6 +26,13 @@ public final class ReportEvidenceMarkup {
     private ReportEvidenceMarkup() {
     }
 
+    /** Escaped PRE content after redaction/limiting; keeps literal CR and the LF consumed by HTML parsing. */
+    public static String preformattedText(String value) {
+        String raw = java.util.Objects.requireNonNullElse(value, "");
+        String escaped = AtfReportHtmlVocabulary.escapeHtml(raw).replace("\r", "&#13;");
+        return (raw.startsWith("\n") ? "\n" : "") + escaped;
+    }
+
     /** Machine-readable facts from the captured exchange, independent of display titles. */
     public static String executionAttributes(ReportExecutionEvidence execution,
                                              SensitiveDataRedactor redactor) {

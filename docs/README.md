@@ -36,6 +36,7 @@ J2 a început bootstrap-ul pentru cozi și mesaje;
 | bibliotecă Reporting | [context portabil](../atf-reporting/docs/README.md) și [atlasul codului](../atf-reporting/src/main/java/atf/reporting/README.md) | ce intră în JAR, ce rămâne la consumer și ce probe disting adopția de release? |
 | hartă | [ATF_Architecture.md](ATF_Architecture.md), README-ul root | cine deține ce și în ce direcție curg dependențele? |
 | contract | [ATF_Reporting_Contract.md](ATF_Reporting_Contract.md), [ATF_Reporting_Display_Contract.md](ATF_Reporting_Display_Contract.md), ghidurile de modul | ce comportament semantic și ce formă vizibilă sunt stabile? |
+| dovezi inline fără artifacte externe | [contractul de compoziție](ATF_Inline_Audit_Contract.md), [proba J15](ATF_Reporting_J15_Verification.md) | cum păstrăm faptele, comparațiile și PNG în ownerul corect? |
 | evidence transversal | [ATF_Evidence_Capture_Contract.md](ATF_Evidence_Capture_Contract.md) | cum se separă flow-ul, policy-ul, sursa și publisherul? |
 | practică | [README_Atf_BestPractices.md](README_Atf_BestPractices.md) | cum adăugăm cod fără drift? |
 | testare | [ATF_Testing_Guide.md](ATF_Testing_Guide.md) | ce layer, modul și proof aleg pentru un comportament? |

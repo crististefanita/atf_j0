@@ -982,3 +982,5 @@ furnizează witness-ul real înaintea unei extinderi a bibliotecii.
 [Originea duratelor](../atf-reporting/README.md#originea-duratelor-sub-o-fază-capturată) distinge Execution, Transport și Publication.
 Copiii publicați ulterior nu schimbă execuția capturată a fazei; timpul necunoscut nu este completat cu zero.
 Indicatorul assertions și controalele mouse/Enter/Space aparțin disclosure-ului comun, păstrând tabelul colapsat implicit.
+
+[Profilul inline auditabil](ATF_Inline_Audit_Contract.md) definește compoziția fără artifacte externe și păstrarea identității invocărilor.

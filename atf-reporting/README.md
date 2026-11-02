@@ -2391,3 +2391,17 @@ Valorile assertions au contract separat: textul deja redus de caller nu poate fi
 Un replacement custom este verificat exact, inclusiv când nu este idempotent.
 Apelantul rămâne responsabil pentru textul capturat înaintea modelului Reporting;
 biblioteca nu reconstruiește informația deja eliminată de un adapter.
+
+### Dovezi complete în același HTML
+
+[Contractul inline](../docs/ATF_Inline_Audit_Contract.md) separă datele capturate, comparațiile evaluate și randarea.
+
+| Compoziție | Regula publicării |
+|---|---|
+| fără fișiere externe | artifacts gol; contextul necesar deciziei se publică prin fields/bodies |
+| componentă | assertions standard și stare completă; PNG opțional |
+| UI | aceeași structură, plus PNG original la checkpoint |
+| text PRE | LF inițial, CR/LF și whitespace final conservate după redacție/limitare |
+
+Preview-ul 240 și bugetul corpului rămân distincte. Callerul nu înlocuiește
+comparațiile cu statusuri citite din XML și nu cere rendererului să deducă verdictul.

@@ -1291,3 +1291,16 @@ păstrează selecțiile, măsurătorile și limitele.
 Canarul sintetic este refuzat în întregul HTML, inclusiv atribute și canale ascunse.
 Regresiile păstrează profilurile existente și limita 240; acestea nu închid
 criteriul separat pentru valorile lungi ale assertions.
+
+## Dovezi inline fără artifacte externe
+
+[Contractul generic](../docs/ATF_Inline_Audit_Contract.md) are fixture neutru, cu date sintetice și oracol independent de renderer.
+
+| Probă | Acoperire |
+|---|---|
+| SelfContainedAuditComponentTest | opt combinații individual/combinat, componentă/UI și Extent/fallback; mutanți de owner, rând, verdict, timp, referință și PNG |
+| SelfContainedAuditBrowserComponentTest | textContent exact, Enter/Space, End, vecin colapsat și geometrie îngustă |
+| ReportingStandaloneObservationTest | PRE păstrează LF/CR și entități literale, fără markup executabil |
+
+Acestea nu execută Android și nu închid oracolul business J4. Capturile sunt
+PNG sintetice distincte pentru verificarea ownerului și a transportului.

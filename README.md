@@ -456,10 +456,12 @@ Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 
 [Verificarea Core C3](docs/ATF_Core_C3_Verification.md) leagă noua pereche JAR/POM de nativele sursă/JAR și de acceptanța fiecărui consumer. Acceptanța C3 a folosit Reporting J12; livrarea curentă Reporting este consemnată separat mai jos, cu preview 240 și oracole independente.
 
-[Reporting J14](docs/ATF_Reporting_J14_Verification.md) păstrează PNG-urile integrale la publicare și expected/observed ACTION/OBSERVE colapsabile, cu preview 240. Core C3 rămâne identic; acceptanțele sursă/JAR și ale fiecărui consumer sunt consemnate separat.
+[Reporting J15](docs/ATF_Reporting_J15_Verification.md) păstrează PNG-urile integrale la publicare și expected/observed ACTION/OBSERVE colapsabile, cu preview 240. Core C3 rămâne identic; acceptanțele sursă/JAR și ale fiecărui consumer sunt consemnate separat.
 
-| Contract J14 | Comportament păstrat |
+| Contract J15 | Comportament păstrat |
 |---|---|
 | rând UI comun | ACTION/OBSERVE folosesc aceeași redacție, inclusiv titlul capturii |
 | dovadă integrală | expected/observed conservă whitespace-ul capturat |
 | audit | preview 240 și verdict original, fără reevaluare |
+
+J15 păstrează și CR/LF literal, inclusiv prima linie din corpurile TEXT inline.

@@ -160,3 +160,39 @@ query/bind-uri/schema efectiv capturate. Acceptanța anterioară J9 rămâne ist
 - SQL-STEPS-116, oracolul exact-row/reload și geometria RESULT rămân criterii distincte; probele verzi de profil nu le închid implicit.
 
 [Acceptanța J12](../ATF_Reporting_J12_Verification.md) păstrează metadata, timing, indicatorul assertions și profilul explicit. [Core](ATF_Core_Feedback.md) deține schimbările de transport și politica redacției.
+
+[Compoziția inline J15 verificată](../ATF_Reporting_J15_Verification.md) are regresii permanente; controlul 136 este în baseline. Semantica Android rămâne la consumer.
+
+## REPORT-TEST-SCREENSHOT-RETURN-137 — contextul viewer-ului pentru PNG reutilizat
+
+**Owner: J0 Reporting Tests; P1.** [Defectul 137](ATF_Reporting_Feedback.md#report-screenshot-return-137--png-reutilizat-schimbă-ownerul-și-pierde-expandările) este reprodus pe J15; familia permanentă rămâne de implementat, fără Android ori date de business.
+
+| Matrice obligatorie | Oracol independent |
+|---|---|
+| aceeași captură, doi owneri | ownerul activ, scenario index și caption-ul local rămân cele ale clickului, chiar dacă PNG-ul canonic aparține altui test |
+| scroll lung și ultimul checkpoint | starea nodurilor, disclosure-urile și poziția de lectură se păstrează după închiderea imaginii; panoul rămâne vizibil |
+| același owner și titluri identice | selecția nu se reconstruiește și vecinii nu se resetează implicit |
+| click, tastatură și Escape | același contract pentru ancora directă și referința duplicată, în Extent/fallback |
+| negative | mutarea selecției, colapsarea unui vecin ori schimbarea PNG-ului sunt refuzate separat; un hash găsit global nu este suficient |
+
+- [ ] Reutilizați fixture neutru cu PNG sintetic, mai multe invocări și control explicit al ownerului activ; nu copiați scenariile J4 în harness.
+- [ ] Rulați aceeași familie pe sursă și JAR fizic; păstrați 240, verdicturile, ultimul rând și bytes PNG originali.
+- [ ] Verificați geometria și selecția după close, nu numai că viewer-ul a afișat o imagine validă.
+
+Numele unei clase noi nu constituie închidere; proba trebuie să refuze comportamentul J15 observat și să păstreze contextul după remediere.
+
+## REPORT-TEST-SCREENSHOT-VIEWPORT-138 — fit integral fără crop
+
+**Owner: J0 Reporting Tests; P1, deschis.** [Cerința viewer 138](ATF_Reporting_Feedback.md#report-screenshot-viewport-138--imagine-integrală-în-spațiul-disponibil) cere probe neutre permanente, fără ADB ori reguli Android.
+
+| Fixture / acțiune | Oracol independent |
+|---|---|
+| PNG portrait, landscape și pătrat | marcaje distincte la toate cele patru colțuri; decoded bytes și dimensiuni identice înainte/după viewer |
+| viewport larg, îngust și resize | dreptunghiul complet al imaginii este în viewport; raportul de aspect rămâne cel original, fără crop sau scroll interior în fit |
+| fit/original-size/zoom | mod explicit; fit reafișează toate colțurile, iar conținutul nu este resamplat ori înlocuit în artifact |
+| ancora directă și referința duplicată | ownerul, caption-ul, bytes, nodurile deschise, scroll-ul și focusul se păstrează; include ultimul checkpoint după scroll lung |
+| mouse, Enter, Space, Escape | controale vizibile și utilizabile; close revine la ancora corectă fără schimbare de scenariu |
+| negative | plafon fix de dialog, crop, stretch, colț omis, byte schimbat și resetarea vecinului sunt refuzate separat |
+
+- [ ] Rulați matricea pe Extent/fallback, sursă și JAR fizic; un simplu hash sau o imagine găsită global nu verifică geometria.
+- [ ] Păstrați preview 240 și familia [return-context 137](#report-test-screenshot-return-137--contextul-viewer-ului-pentru-png-reutilizat); nu introduceți un renderer ori o galerie privată în consumer.
