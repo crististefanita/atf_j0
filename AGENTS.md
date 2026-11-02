@@ -26,3 +26,5 @@
   not require a new Reporting version or imply a fresh test execution.
 
 - J3 is the seven-module speech consumer. Deliver the same latest Core/Reporting flat JAR/POM pairs, preserve its local streaming work, and validate it separately.
+
+- Keep active J0 feedback limited to Core/Reporting, including generic Reporting tests. J1 coordinates other shared-module criteria and consumer handoffs; preserve domain ownership and independent acceptance in J2/J3/J4. Compatibility routes may remain in J0 without duplicated TODOs.

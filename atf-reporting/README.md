@@ -2343,3 +2343,51 @@ Validarea fallback fără ceas propriu nu primește o durată numerică fabricat
 Assertions folosesc disclosure-ul comun cu indicator vizibil plus/minus, stare ARIA și acces mouse/Enter/Space.
 Tabelul rămâne colapsat implicit, cu aceleași patru coloane și preview implicit 240.
 Regresiile permanente sunt în [Reporting Tests](../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions).
+
+## Publicarea PNG la volum mare
+
+Payload-urile PNG mari rămân în spool-ul privat al sesiunii, până la publicarea atomică.
+
+| Etapă | Contract |
+|---|---|
+| captură internă | PNG complet pe disc; aceeași identitate pentru payload-uri identice |
+| transformare | assets/navigation operează pe structura HTML compactă, fără copiile UTF-16 ale PNG-urilor |
+| restaurare | buffere fixe scriu Base64 integral în fișierul atomic; HTML-ul final este autonom |
+| cleanup | spool închis și eliminat la succes/eșec; destinația se înlocuiește numai după restaurare completă |
+| limită | modelul Extent/Spark și textul încă folosesc heap proporțional cu dovezile; nu există un plafon universal |
+
+[Proba J13](../docs/ATF_Reporting_J13_Verification.md) separă durata publicării,
+alocările și memoria observată de timpul execuției capturate.
+
+## ACTION/OBSERVE — preview și valori complete
+
+INCLUDED_COLLAPSED păstrează expected/observed integral, redactat și cu escaping HTML, în aceeași celulă.
+
+| Suprafață | Politică |
+|---|---|
+| preview | implicit 240; summary compact într-un rând vizual, cu textul disponibil în DOM |
+| valoare completă | disclosure inițial închis, newline/Unicode/ordine/ultimul scalar conservate |
+| securitate și verdict | redacție înaintea ambelor proiecții; verdictul capturat nu se reevaluează |
+| tastatură | Enter/Space pentru fiecare disclosure; End/Home și scroll în viewport-ul focusabil existent |
+| SUMMARY_ONLY | păstrează omisiunea explicită a detaliilor ACTION |
+| body display limit | controlează corpurile, independent de aceste celule |
+| observații pe fază | UiPhase.observation(ReportObservation) deleagă portului neutru; supportsObservations() expune capabilitatea |
+| lifecycle | refuz după completare și publicare exclusă din timing-ul măsurat; zero request-uri sau assertions inventate |
+
+Valorile assertions au contract separat: textul deja redus de caller nu poate fi reconstruit.
+[Criteriul rămas](../docs/feedback/ATF_Android_UI_Reporting_Feedback.md) delimitează acea familie.
+
+## Fidelitatea rândului UI și politica de redactare
+
+| Boundary | Contract |
+|---|---|
+| AtfUiActionRecord | operation/target sunt metadate normalizate; expected/observed păstrează whitespace-ul capturat, inclusiv LF/CRLF/CR; null rămâne șir gol |
+| proiecție comună | UiEvidenceRowMarkup deține identitatea și celulele ACTION/OBSERVE; rendererul adaugă numai coloana TIME și structura specifică sursei |
+| fallback | transmite recordurile originale și aceeași instanță SensitiveDataRedactor, fără reconstrucție sau a doua politică implicită |
+| metadate publicate | operation, target și titlul PNG inline sunt redactate înainte de escaping HTML |
+| valori complete | preview 240 plus disclosure; CR este encodat ca referință numerică, iar LF inițial este protejat de regula parserului HTML pentru pre |
+| invariabile | ordinal, status, bytes PNG, screenshot policy și SUMMARY_ONLY se păstrează; comparațiile nu se reevaluează |
+
+Un replacement custom este verificat exact, inclusiv când nu este idempotent.
+Apelantul rămâne responsabil pentru textul capturat înaintea modelului Reporting;
+biblioteca nu reconstruiește informația deja eliminată de un adapter.

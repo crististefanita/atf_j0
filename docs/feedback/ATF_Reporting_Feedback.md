@@ -444,14 +444,14 @@ mutants. These historical J10 artifacts were noncompliant under the legacy Exten
 - These observations do not execute the J0 native/browser regression suite.
 
 
-## Diagnostic bounded — criteriu separat de verdict
+## Diagnostic bounded al assertions — criteriu separat de verdict
 
 - Two different long values can correctly yield FAIL while their 240-character
   previews are identical. The new browser fixture preserves that FAIL, its exact
   Fails backlink and the neighboring PASS comparison.
 - If richer diagnosis is required, capture a safe reference or bounded redacted
   mismatch context before information is discarded. Keep 240; do not publish
-  entire hidden originals or derive a verdict from display text.
+  entire hidden originals for already-bounded assertions or derive a verdict from display text.
 - Kit's component Check already stores sanitized previews. Reporting cannot
   reconstruct a missing suffix from those values. Keep neutral capture at the
   test/evaluator boundary and rendering in Reporting; no second comparison.
@@ -470,3 +470,7 @@ Contract livrat [J12](../ATF_Reporting_J12_Verification.md): disclosure comun, i
 ## Increment J12 — contracte și dovezi
 
 [Dovada J12](../ATF_Reporting_J12_Verification.md) deține hash-ul final, selecțiile executate, limitele și acceptanțele distincte J1–J4. Criteriile 62, 83 și 124 nu mai sunt ToDo-uri. PUBLIC-API-43 rămâne deschis pentru delimitarea API-ului susținut și capabilitățile adaptoarelor; invarianta rezultatului de inspecție este rezolvată.
+
+## Contractul rândului UI
+
+Fidelitatea și redacția comună sunt în [contractul modulului](../../atf-reporting/README.md#fidelitatea-rândului-ui-și-politica-de-redactare), cu [regresii sursă/JAR J14](../ATF_Reporting_J14_Verification.md). Criteriul 135 este verificat și nu mai reprezintă un ToDo.

@@ -64,3 +64,11 @@ Boundary-ul standalone este verificat în
 API-ul susținut și extragerea proiecției pure au
 [criterii distincte](../../../../../../../docs/feedback/ATF_Reporting_Feedback.md).
 
+
+## Observații neutre pe UiPhase
+
+[UiPhase](UiExtentReportSession.java) expune observation și supportsObservations prin lifecycle-ul existent.
+
+- [UiPhaseLifecycle](UiPhaseLifecycle.java) validează starea, deleagă portului fazei și separă publicarea de timing-ul măsurat.
+- [ReportObservation](../model/ReportObservation.java) păstrează fapte typed, fără request-uri ori assertions inventate.
+- Corpul observației folosește limita body configurată; expected/observed ACTION/OBSERVE au separat preview 240 plus celulă completă redactată.

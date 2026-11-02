@@ -31,9 +31,33 @@ public final class HttpClientTransport implements ApiTransport {
         request.headers().forEach(builder::setHeader);
         authenticator.apply(builder, authProfile);
         long started = System.nanoTime();
-        return client.sendAsync(builder.build(), HttpResponse.BodyHandlers.ofString())
-                .thenApply(response -> new ApiResponse(
-                        response.statusCode(), response.body(), ApiResponse.flatten(response.headers()),
-                        Duration.ofNanos(System.nanoTime() - started), url));
+        var upstream = client.sendAsync(builder.build(), HttpResponse.BodyHandlers.ofString());
+        var result = new ResponseFuture(upstream);
+        upstream.whenComplete((response, failure) -> {
+            if (failure != null) result.completeExceptionally(failure);
+            else {
+                try {
+                    result.complete(new ApiResponse(response.statusCode(), response.body(), ApiResponse.flatten(response.headers()),
+                            Duration.ofNanos(System.nanoTime() - started), url));
+                } catch (Throwable projectionFailure) { result.completeExceptionally(projectionFailure); }
+            }
+        });
+        return result;
+    }
+    /** Cancellation is best effort; it neither confirms server rollback nor authorizes replay. */
+    private static final class ResponseFuture extends CompletableFuture<ApiResponse> {
+        private final CompletableFuture<?> upstream;
+        private final java.util.concurrent.atomic.AtomicBoolean forwarded = new java.util.concurrent.atomic.AtomicBoolean();
+        private ResponseFuture(CompletableFuture<?> upstream) { this.upstream = upstream; }
+        @Override public boolean cancel(boolean mayInterruptIfRunning) {
+            boolean accepted = super.cancel(mayInterruptIfRunning);
+            if (accepted && forwarded.compareAndSet(false, true)) {
+                try { upstream.cancel(mayInterruptIfRunning); }
+                catch (RuntimeException cleanupFailure) {
+                    handle((value, terminal) -> { terminal.addSuppressed(cleanupFailure); return null; });
+                }
+            }
+            return accepted;
+        }
     }
 }

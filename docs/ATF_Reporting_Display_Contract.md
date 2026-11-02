@@ -224,3 +224,16 @@ redeschide singur un ToDo. Redeschiderea cere o abatere reproductibilă în codu
 - [README `atf-reporting`](../atf-reporting/README.md)
 - [README `atf-reporting-tests`](../atf-reporting-tests/README.md)
 - [Registrul feedback-ului activ](feedback/README.md)
+
+## Celule ACTION/OBSERVE complete
+
+| Proiecție | Contract conservat |
+|---|---|
+| preview | implicit 240, summary compact și redactat |
+| expected/observed lungi | text integral redactat și cu escaping HTML, în disclosure-ul celulei originale |
+| interacțiune | inițial închis; Enter/Space, viewport focusabil End/Home, vecini independenți și fără suprapunere |
+| configurație | body display limit separat; SUMMARY_ONLY continuă să omită detaliile ACTION |
+| verdict | rezultatul capturat rămâne integral, fără comparație pe preview |
+
+[Ownerul proiecției](../atf-reporting/README.md#actionobserve--preview-și-valori-complete)
+și [probele J13](ATF_Reporting_J13_Verification.md) delimitează valorile assertions separat.

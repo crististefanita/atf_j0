@@ -49,6 +49,7 @@ public class AtfTestLayerArchitectureTest {
             "ReportingStandaloneInspectionResultTest.java",
             "ReportingStandaloneArtifactProfileTest.java",
             "ReportingStandaloneTransportTimingTest.java",
+            "ReportingStandaloneInlinePayloadTest.java",
             "ReportingStandaloneVerdictComponentTest.java",
             "ReportingStandaloneValidationDisclosureTest.java",
             "ReportingStandaloneObservationTest.java",

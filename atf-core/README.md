@@ -507,14 +507,14 @@ trecerea întregului modul. Nu calculează verdictul business și nu publică HT
 nominalele și negativele. Proba loopback verifică separat ambele transporturi,
 valorile complete, body-ul și o singură expediere, fără serviciu extern.
 
-## Distribuție Core C2
+## Distribuție Core C3
 
 J0 păstrează sursa și toate testele native. POM-ul Core este parentless, cu
 Java 21 și dependențe runtime Jackson explicite; Test Kit și JUnit sunt doar
 pentru teste și nu intră în tranzitivele de producție.
 
-J1/J2/J3 consumă aceeași pereche Core C2 JAR/POM direct în lib, alături de Reporting
-J9. [Contractul de publicare și consum](../docs/ATF_Core_Consumer.md) descrie
+J1/J2/J3/J4 consumă aceeași pereche Core C3 JAR/POM direct în lib, alături de Reporting
+J12. [Contractul de publicare și consum](../docs/ATF_Core_Consumer.md) descrie
 bootstrap-ul Maven/IntelliJ, proveniența și acceptanța fără surse Core.
 
 ### Timeout și ownership în probele native
@@ -541,8 +541,8 @@ verifică separat cele două stări, fără să mărească bugetul de execuție.
 forțează ambele stări; [ApiDiagnosticIsolationTest](src/test/java/atf/core/http/diagnostics/ApiDiagnosticIsolationTest.java)
 verifică integrarea diagnosticului. Probele externe refuză mutații fără
 cancel, fără verificare înainte de dispatch și fără atașarea diagnosticului.
-Implementarea Core și API-ul său rămân neschimbate; acest increment nu cere
-un binar Core nou.
+
+Core C3 întărește separat propagarea anulării în adaptorul HTTP, fără schimbarea politicii de retry sau a verdictului.
 
 
 ## Document JSON complet și evidence fidel
@@ -563,3 +563,24 @@ un binar Core nou.
 
 Nativele Core și regresiile generice Reporting rămân numai în J0. Harness-urile
 temporare verifică JAR-urile fizice, fără surse de implementare shadow.
+
+## Proiecția console și anularea transportului
+
+| Boundary | Contract |
+|---|---|
+| lifecycle START/COMPLETE | numele complet method/path este redactat înaintea emisiei; transportul păstrează inputul original |
+| CODE JSON | câmpurile sensibile sunt mascate structural; string-urile publice decodate folosesc regulile text configurate |
+| fidelitate | numerele păstrează tokenul exact, câmpurile duplicate rămân distincte, iar vecinii nesensibili rămân vizibili |
+| cancel după dispatch | future-ul expus transmite o singură cerere best effort upstream, cu același interrupt flag |
+| competiție cu finalizarea | primul rezultat terminal câștigă; cancel după succes/eșec nu anulează retroactiv operația |
+| cleanup refuzat/eșuat | anularea callerului rămâne terminală; excepția cleanup este suppressed, fără pretenție de rollback server-side |
+
+[HttpClientCancellationTest](src/test/java/atf/core/http/transport/HttpClientCancellationTest.java)
+controlează succesul, eșecul, anularea și cursele fără rețea.
+[HttpClientReadCancellationTest](src/test/java/atf/core/http/transport/HttpClientReadCancellationTest.java)
+verifică separat un GET local blocat: un dispatch, CANCELLED și fără răspuns inventat.
+
+[Proiecția console](src/test/java/atf/core/http/ApiExecutorConsoleRedactionTest.java)
+verifică absența canary-ului în fiecare canal, păstrând request/response originale.
+[Politica string-urilor JSON](src/test/java/atf/core/security/json/JsonPublicStringRedactionTest.java)
+acoperă enabled/disabled și măști literale; redactarea nu este detecție universală de secrete.

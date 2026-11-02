@@ -1253,3 +1253,41 @@ HTTP inventat; profilul inspectorului și timing-ul rămân criterii separate.
 Fixture-ul `support/inspection/ArtifactProfileFixture` furnizează independent numele și statusurile așteptate.
 Un mismatch numeric și unul după caracterul 240 păstrează FAIL chiar când preview-urile afișate coincid.
 Inspecția statică nu substituie navigarea la rândul original; proba source și proba JAR au classpath-uri și rezultate distincte.
+
+## Proiecția Core C3 în raport
+
+[CoreConsoleProjectionComponentTest](src/test/java/atf/reporting/security/CoreConsoleProjectionComponentTest.java) compară politica string-urilor JSON publice la boundary-ul Core CODE și în artifactul Extent/fallback. Inputul original rămâne intact; canary-ul trebuie să lipsească din întregul HTML, iar tokenul numeric precis și vecinul public rămân vizibile.
+
+- Proba este selectată prin pachetul componentă existent și rulează identic pe sursă și JAR fizic.
+- [CoreRedactionPublicationComponentTest](src/test/java/atf/reporting/security/CoreRedactionPublicationComponentTest.java) păstrează FAIL-ul original când preview-urile mascate devin identice.
+- Anularea HTTP și nativele adaptorului aparțin Core; harness-ul Reporting nu preia ownership-ul transportului.
+
+## Regresii de volum și celule complete
+
+| Probă permanentă | Oracol independent | Refuz controlat |
+|---|---|---|
+| CapturedVolumePublicationComponentTest | model real: 321 checkpoint-uri, 6.634 comparații, 577 ACTION/OBSERVE, 321 PNG distincte; child JVM 1 GiB | checksum per PNG, owner original și ultima comparație eliminată |
+| UiFullValueComponentTest | Extent/fallback, două scenarii cu preview identic și suffix distinct, valori 239/240/241 | ultimul scalar eliminat; secret absent în întregul artifact |
+| UiFullValueBrowserComponentTest | Enter/Space, End, panou îngust, celule independente, geometrie fără suprapunere | summary-ul ori conținutul care iese peste vecin nu trece oracolul |
+| UiPhaseObservationComponentTest | profil authored pentru SETUP/TEST BODY/TEARDOWN, corp integral, zero request-uri și assertions | null și publicare după completare refuzate |
+| ReportingStandaloneInlinePayloadTest în bibliotecă | round-trip exact, Unicode, duplicate, marginea bufferului și fișier privat eliminat | writer failure și spool trunchiat păstrează IOException/EOF |
+
+- Proba de volum folosește PNG-uri sintetice valide, fără dispozitiv sau aplicație.
+- Hash-urile originale preced publicarea; favicon-urile nu intră în populația capturilor.
+- Sursa și JAR-ul fizic execută aceleași fixture-uri; probele existente la 384 MiB și bugetele assets rămân neschimbate.
+
+[Dovada J13](../docs/ATF_Reporting_J13_Verification.md)
+păstrează selecțiile, măsurătorile și limitele.
+
+## Fidelitate UI și redacție comună
+
+| Probă | Oracol |
+|---|---|
+| ReportingStandaloneContractTest | payload cu whitespace și CRLF păstrat byte cu byte în model; metadate normalizate și null compatibil |
+| UiRowProjectionComponentTest | Extent/fallback, ACTION/OBSERVE, ordinal/status, valoare completă, titlu PNG redactat și bytes PNG originali |
+| politica custom | HtmlReportEvidenceView și rendererul Extent consumă același replacement ne-idempotent, exact o dată la boundary-ul rândului |
+| UiRowProjectionBrowserComponentTest | LF/CRLF inițiale și whitespace final identice în textContent, Enter/Space, End și colapsare/redeschidere |
+
+Canarul sintetic este refuzat în întregul HTML, inclusiv atribute și canale ascunse.
+Regresiile păstrează profilurile existente și limita 240; acestea nu închid
+criteriul separat pentru valorile lungi ale assertions.

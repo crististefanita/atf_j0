@@ -4,7 +4,6 @@ import atf.reporting.evidence.policy.UiActionScreenshotPolicy;
 import atf.reporting.configuration.ReportingSettings;
 import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
 import atf.reporting.markup.ExtentReportAssets;
-import atf.reporting.markup.ExtentReportNodeSupport;
 import atf.reporting.markup.AtfReportLabels;
 import atf.reporting.markup.table.ReportTableViewport;
 import atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary;
@@ -15,18 +14,16 @@ import com.aventstack.extentreports.ExtentTest;
 
 import java.util.List;
 
-import static atf.reporting.evidence.ui.ExtentUiEvidenceMarkup.actionRowStart;
 import static atf.reporting.evidence.ui.ExtentUiEvidenceMarkup.actionSummary;
 import static atf.reporting.evidence.ui.ExtentUiEvidenceMarkup.close;
 import static atf.reporting.evidence.ui.ExtentUiEvidenceMarkup.escape;
 import static atf.reporting.evidence.ui.ExtentUiEvidenceMarkup.hasFailure;
 import static atf.reporting.evidence.ui.ExtentUiEvidenceMarkup.open;
 import static atf.reporting.evidence.ui.ExtentUiEvidenceMarkup.publish;
-import static atf.reporting.evidence.ui.ExtentUiEvidenceMarkup.resultSpan;
 import static atf.reporting.evidence.ui.ExtentUiEvidenceMarkup.statusKey;
 import static atf.reporting.evidence.ui.ExtentUiEvidenceMarkup.tableHeader;
 
-/** Renders only Playwright action-sequence evidence. */
+/** Renders captured UI actions independently of the consumer transport. */
 public final class ExtentUiActionRenderer {
     private final ReportingSettings settings;
     private final ReportUiActionDetailsMode detailsMode;
@@ -66,7 +63,7 @@ public final class ExtentUiActionRenderer {
                                     AtfReportHtmlVocabulary.CssClass.ATF_UI_ACTION_SCREENSHOT)))
                     .append(ExtentReportAssets.base64ScreenshotLink(
                             AtfReportHtmlVocabulary.CssClass.ATF_UI_ACTION_SCREENSHOT_LINK.value(),
-                            screenshot.title(), screenshot.base64Png()))
+                            redactor.redactText(screenshot.title()), screenshot.base64Png()))
                     .append(close(AtfReportHtmlVocabulary.Tag.DIV));
         }
         return html.append(close(AtfReportHtmlVocabulary.Tag.DETAILS)).toString();
@@ -118,25 +115,7 @@ public final class ExtentUiActionRenderer {
                         AtfReportLabels.TIME, AtfReportLabels.RESULT))
                 .append(open(AtfReportHtmlVocabulary.Tag.TBODY));
         for (AtfUiActionRecord action : actions) {
-            html.append(actionRowStart()).append(escape(action.operation()))
-                    .append(close(AtfReportHtmlVocabulary.Tag.SPAN))
-                    .append(open(AtfReportHtmlVocabulary.Tag.SPAN,
-                            AtfReportHtmlVocabulary.classAttribute(
-                                    AtfReportHtmlVocabulary.CssClass.ATF_UI_ACTION_NUMBER)))
-                    .append("#").append(action.sequence())
-                    .append(close(AtfReportHtmlVocabulary.Tag.SPAN))
-                    .append(close(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(open(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(escape(redactor.redactText(action.target())))
-                    .append(close(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(open(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(escape(ExtentReportNodeSupport.display(
-                            redactor.redactText(action.expected()), settings)))
-                    .append(close(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(open(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(escape(ExtentReportNodeSupport.display(
-                            redactor.redactText(action.observed()), settings)))
-                    .append(close(AtfReportHtmlVocabulary.Tag.TD))
+            html.append(UiEvidenceRowMarkup.start(action, settings, redactor))
                     .append(open(AtfReportHtmlVocabulary.Tag.TD))
                     .append(open(AtfReportHtmlVocabulary.Tag.SPAN,
                             AtfReportHtmlVocabulary.classAttribute(
@@ -144,9 +123,7 @@ public final class ExtentUiActionRenderer {
                     .append(escape(action.durationText()))
                     .append(close(AtfReportHtmlVocabulary.Tag.SPAN))
                     .append(close(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(open(AtfReportHtmlVocabulary.Tag.TD)).append(resultSpan(action))
-                    .append(close(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(close(AtfReportHtmlVocabulary.Tag.TR));
+                    .append(UiEvidenceRowMarkup.end(action));
         }
         return html;
     }

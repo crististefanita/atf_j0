@@ -3,7 +3,6 @@ package atf.reporting.evidence.ui;
 import atf.reporting.configuration.ReportingSettings;
 import atf.reporting.markup.AtfReportLabels;
 import atf.reporting.markup.table.ReportTableViewport;
-import atf.reporting.markup.ExtentReportNodeSupport;
 import atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary;
 import atf.reporting.ui.model.AtfUiActionRecord;
 import atf.reporting.security.SensitiveDataRedactor;
@@ -17,7 +16,6 @@ import static atf.reporting.evidence.ui.ExtentUiEvidenceMarkup.hasFailure;
 import static atf.reporting.evidence.ui.ExtentUiEvidenceMarkup.open;
 import static atf.reporting.evidence.ui.ExtentUiEvidenceMarkup.observationSummary;
 import static atf.reporting.evidence.ui.ExtentUiEvidenceMarkup.publish;
-import static atf.reporting.evidence.ui.ExtentUiEvidenceMarkup.resultSpan;
 import static atf.reporting.evidence.ui.ExtentUiEvidenceMarkup.statusKey;
 import static atf.reporting.evidence.ui.ExtentUiEvidenceMarkup.tableHeader;
 
@@ -66,25 +64,7 @@ public final class ExtentUiObservationRenderer {
                         AtfReportLabels.RESULT))
                 .append(open(AtfReportHtmlVocabulary.Tag.TBODY));
         for (AtfUiActionRecord observation : observations) {
-            html.append(ExtentUiEvidenceMarkup.actionRowStart()).append(escape(redactor.redactText(observation.operation())))
-                    .append(close(AtfReportHtmlVocabulary.Tag.SPAN))
-                    .append(open(AtfReportHtmlVocabulary.Tag.SPAN,
-                            AtfReportHtmlVocabulary.classAttribute(
-                                    AtfReportHtmlVocabulary.CssClass.ATF_UI_ACTION_NUMBER)))
-                    .append("#").append(observation.sequence())
-                    .append(close(AtfReportHtmlVocabulary.Tag.SPAN))
-                    .append(close(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(open(AtfReportHtmlVocabulary.Tag.TD)).append(escape(redactor.redactText(observation.target())))
-                    .append(close(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(open(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(escape(ExtentReportNodeSupport.display(redactor.redactText(observation.expected()), settings)))
-                    .append(close(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(open(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(escape(ExtentReportNodeSupport.display(redactor.redactText(observation.observed()), settings)))
-                    .append(close(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(open(AtfReportHtmlVocabulary.Tag.TD)).append(resultSpan(observation))
-                    .append(close(AtfReportHtmlVocabulary.Tag.TD))
-                    .append(close(AtfReportHtmlVocabulary.Tag.TR));
+            html.append(UiEvidenceRowMarkup.start(observation, settings, redactor)).append(UiEvidenceRowMarkup.end(observation));
         }
         return html.append(close(AtfReportHtmlVocabulary.Tag.TBODY))
                 .append(close(AtfReportHtmlVocabulary.Tag.TABLE))

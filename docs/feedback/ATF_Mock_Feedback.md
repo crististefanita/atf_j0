@@ -1,6 +1,9 @@
-# Mock — registrul criteriilor rămase
+# Mock — contract comun întreținut în J1
 
-Contractul comun este în [README Mock](../../atf-mock/README.md#json-strict-și-potrivire-numerică-exactă).
-Documentele stricte și precizia numerică sunt probate în J0/J1/J2/J3; nu rămân
-TODO-uri JSON aici. Transporturile scriptate Eventuate au backlog separat
-la consumerul J2, fără a extinde automat ownerul Mock.
+## Pe scurt
+
+[Contractul Mock J1](../../../atf_j1/atf-mock/README.md#json-strict-și-potrivire-numerică-exactă)
+deține documentele complete și comparația numerică exactă deja probate.
+Nu există cerințe Mock active în J0; eventualele lacune se înregistrează în [registrul J1](../../../atf_j1/docs/feedback/README.md).
+
+Transporturile scriptate Eventuate și oracolele lor rămân la consumerul J2.

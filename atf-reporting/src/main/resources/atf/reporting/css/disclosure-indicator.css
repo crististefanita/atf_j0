@@ -1,4 +1,3 @@
-/* Shared disclosure indicator. */
 .step-detail > summary:has(> .atf-disclosure-glyph) {
   display: flex;
   align-items: center;
@@ -29,4 +28,11 @@
   content: " " attr(data-duration-source);
   text-transform: capitalize;
   margin-inline-start: 4px;
+}
+
+.atf-ui-value .se-title {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

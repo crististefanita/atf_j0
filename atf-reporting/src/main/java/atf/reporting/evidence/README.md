@@ -57,3 +57,23 @@ Pentru o modificare de secret/buget se citesc și
 [ReportingSettings](../configuration/ReportingSettings.java); pentru geometrie,
 contextul continuă la [runtime și assets](../runtime/README.md).
 
+
+## Valorile complete ACTION/OBSERVE
+
+| Owner | Contract |
+|---|---|
+| [UiEvidenceValueMarkup](ui/UiEvidenceValueMarkup.java) | redactează o singură valoare; preview 240 și disclosure complet în aceeași celulă |
+| [ACTION](ui/ExtentUiActionRenderer.java) și [OBSERVE](ui/ExtentUiObservationRenderer.java) | folosesc aceeași proiecție în Extent și fallback, cu ordinal și status capturate |
+
+SUMMARY_ONLY rămâne explicit; body display limit și valorile assertions au contracte separate.
+
+## Un singur owner pentru rândul UI
+
+[UiEvidenceRowMarkup](ui/UiEvidenceRowMarkup.java) proiectează operation, ordinal,
+target și valorile capturate pentru ACTION și OBSERVE, cu aceeași politică de redactare.
+[UiEvidenceValueMarkup](ui/UiEvidenceValueMarkup.java) păstrează preview-ul 240 și
+textul integral, inclusiv începutul și finalul whitespace-ului în DOM.
+
+- ACTION păstrează coloana TIME; OBSERVE păstrează structura fără timp.
+- Fallback deleagă recordurile originale; titlul PNG folosește politica rendererului.
+- Verdictul și comparațiile rămân input capturat, independent de textul redactat.

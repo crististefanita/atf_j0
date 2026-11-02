@@ -149,29 +149,14 @@ query/bind-uri/schema efectiv capturate. Acceptanța anterioară J9 rămâne ist
 ### Intrări concrete pentru componentele J0 — 2026-11-01
 
 - [Matricea J2](../../../atf_j2/docs/ATF_SQL_Live_Verification.md) furnizează acum query/binds/schema/rows typed și erori controlate, în 12 Extent/fallback. Adăugați fixture-uri neutre permanente pentru fiecare familie de mai sus, fără copierea H2 sau a suitei JDBC în Reporting Tests.
-- Păstrați negativele query absent, ID diferit de metadata, DECIMAL rotunjit și rând/coloană duplicată pierdută. Adăugați cross-owner cu titluri identice și SQL-only fără HTTP; inspectorul generic J10 refuză încă cele 12 artifacte legitime.
+- Păstrați negativele query absent, ID diferit de metadata, DECIMAL rotunjit și rând/coloană duplicată pierdută. Adăugați cross-owner cu titluri identice și SQL-only fără HTTP; refuzul legacy J10 este istoric; J12 oferă profilul explicit, iar acceptoarele J2 îl adoptă separat.
 - Verificați separat captura parțială JDBC, tăierea HTML configurată și testul PASS care verifică o eroare SQL așteptată. Un error field nu impune FAIL asupra comparațiilor care au trecut; eroarea neconsumată păstrează FAIL și cauza originală.
 
-## Producer audit handoff — 2026-11-01
+## Limite active după consolidarea J12
 
-- Six existing selected classes pass 16 tests: artifact identity/inspector,
-  fallback session, semantic snapshots, observations and publication coordinator.
-  Reporting's 67 native tests pass separately. Neither selection is the full
-  513-source-file composition/browser suite.
-- Add public inspection-record counterexamples to API/profile acceptance:
-  empty checks, missing required checks and contradictory diagnostic outcomes.
-  Keep a normal missing-file control and a valid explicit assertion-only profile.
-- Keep Core console redaction and upstream-future cancellation regressions
-  native to Core. Reporting Tests may compare redaction projections through
-  independent vectors, without taking ownership of transport cancellation.
-- KIT-UNICODE-PREVIEW-127 needs its native regression in Kit, followed by a
-  composed assertion artifact here and reacceptance in J2/J3. Preserve Unicode,
-  the effective 240 budget, redaction order, original mismatch and neighbors.
-- Retain the existing SQL, timing, inspection-result and geometry criteria separately.
-  A new green semantic fixture or a manual browser sample does not close all
-  of those unexecuted permanent/JAR regressions.
+- J12 a închis invarianta recordurilor publice de inspecție prin negative permanente sursă/JAR; acestea nu mai sunt criterii deschise.
+- Regresiile Core console/cancellation sunt native Core. Proiecția public JSON-string este comparată separat în harness, fără dependență runtime Reporting → Core.
+- [Unicode și scope-uri Kit](../../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md) sunt cerințe J1; aici rămâne numai integrarea neutrelor cu tabelul Reporting.
+- SQL-STEPS-116, oracolul exact-row/reload și geometria RESULT rămân criterii distincte; probele verzi de profil nu le închid implicit.
 
-Core findings are at [the source owner](ATF_Core_Feedback.md); shared test
-mechanics and the Unicode boundary are at [Kit](ATF_Common_Test_Support_Feedback.md).
-
-[J11 System and index acceptance](../ATF_Reporting_J11_Verification.md) now covers the metadata criterion with permanent source/JAR regressions. The later producer audit counterexamples for public inspection records remain open.
+[Acceptanța J12](../ATF_Reporting_J12_Verification.md) păstrează metadata, timing, indicatorul assertions și profilul explicit. [Core](ATF_Core_Feedback.md) deține schimbările de transport și politica redacției.

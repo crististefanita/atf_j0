@@ -1,5 +1,6 @@
 package atf.reporting.extent.session;
 import atf.reporting.evidence.ExtentReportScreenshotDeduplicator;
+import atf.reporting.extent.publication.InlinePngPayloadStore;
 import atf.reporting.markup.ExtentReportAssets;
 import atf.reporting.markup.ExtentReportCategoryMarkup;
 import atf.reporting.markup.ExtentReportNavigationView;
@@ -62,18 +63,20 @@ public final class ExtentReportPublicationPipeline {
 
         Path assetDirectory = reportPath.toAbsolutePath().normalize().getParent()
                 .resolve(ExtentReportAssets.SPARK_DIRECTORY);
-        String html = Files.readString(reportPath, StandardCharsets.UTF_8);
-        html = ExtentReportAssets.inlineSparkAssets(html, assetDirectory);
-        html = injectAtfTheme(html);
-        html = injectNavigationAndFailureView(html);
-        html = ensureViewIdentifiersAndOverviewDefault(html);
-        html = ExtentReportCategoryMarkup.ensureView(html);
-        html = injectOverviewMetadata(html);
-        html = injectRuntimeBehaviour(html);
-        html = removeLegacyFailureTreeHook(html);
-        html = ExtentReportScreenshotDeduplicator.deduplicate(html);
-        writeAtomically(reportPath, html);
-        cleanup.remove(assetDirectory);
+        try (var payloads = InlinePngPayloadStore.capture(reportPath)) {
+            String html = payloads.compactHtml();
+            html = ExtentReportAssets.inlineSparkAssets(html, assetDirectory);
+            html = injectAtfTheme(html);
+            html = injectNavigationAndFailureView(html);
+            html = ensureViewIdentifiersAndOverviewDefault(html);
+            html = ExtentReportCategoryMarkup.ensureView(html);
+            html = injectOverviewMetadata(html);
+            html = injectRuntimeBehaviour(html);
+            html = removeLegacyFailureTreeHook(html);
+            html = ExtentReportScreenshotDeduplicator.deduplicate(html);
+            writeAtomically(reportPath, html, payloads);
+            cleanup.remove(assetDirectory);
+        }
     }
 
     @FunctionalInterface
@@ -143,11 +146,11 @@ public final class ExtentReportPublicationPipeline {
         return ExtentReportRuntimeBehaviour.inject(html);
     }
 
-    private static void writeAtomically(Path reportPath, String html) throws IOException {
+    private static void writeAtomically(Path reportPath, String html, InlinePngPayloadStore payloads) throws IOException {
         Path parent = reportPath.toAbsolutePath().normalize().getParent();
         Path temp = Files.createTempFile(parent, reportPath.getFileName().toString(), ".tmp");
         try {
-            Files.writeString(temp, html, StandardCharsets.UTF_8);
+            try (var writer = Files.newBufferedWriter(temp, StandardCharsets.UTF_8)) { payloads.writeRestored(html, writer); }
             try {
                 Files.move(temp, reportPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
             } catch (IOException ignored) {

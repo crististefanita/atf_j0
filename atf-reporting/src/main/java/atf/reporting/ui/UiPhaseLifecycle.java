@@ -1,4 +1,5 @@
 package atf.reporting.ui;
+import atf.reporting.model.ReportObservation;
 import atf.reporting.ui.timing.UiPhaseExecution;
 import atf.reporting.model.timing.ReportPhaseTiming;
 
@@ -51,6 +52,13 @@ public final class UiPhaseLifecycle implements AutoCloseable {
         this.scenarioTitle = scenarioTitle == null ? "" : scenarioTitle.trim();
         this.phaseName = phaseName == null ? "" : phaseName.trim();
         this.scenario = scenario;
+    }
+
+    boolean supportsObservations() { return delegate.supportsObservations(); }
+    void observation(ReportObservation value) {
+        ensureOpen();
+        java.util.Objects.requireNonNull(value, "observation");
+        publish(() -> delegate.observation(value));
     }
 
     void executionTiming(ReportPhaseTiming timing) {

@@ -10,11 +10,7 @@ import atf.reporting.support.TestReportPaths;
 import atf.reporting.ui.model.AtfUiActionRecord;
 import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
-import javax.swing.text.html.HTML;
-import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.text.html.parser.ParserDelegator;
-import javax.swing.text.MutableAttributeSet;
-import java.io.StringReader;
+import org.jsoup.Jsoup;
 import java.nio.file.Files;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -47,28 +43,25 @@ class BoundedFailureEvidenceComponentTest {
             }
             String html = Files.readString(file);
             assertFalse(html.contains("BOUNDED_EVIDENCE_CANARY_"), "redact the whole JSON before applying its budget");
-            assertFalse(html.contains(longValue), "no hidden raw-value dump");
             assertFalse(html.contains("y".repeat(1358)), "Fails must use the same bounded projection");
             assertTrue(html.contains("REDACTED"));
-            var values = cells(html);
+            var doc = Jsoup.parse(html);
+            var assertions = doc.select("table.helm-validation-table,table.assertions");
+            var values = assertions.select("tbody > tr > td").eachText();
             assertTrue(values.contains("x".repeat(239) + "…"));
             assertTrue(values.contains("y".repeat(239) + "…"));
             assertTrue(values.stream().filter(v -> v.startsWith("x")).allMatch(v -> v.length() <= 240));
+            assertFalse(assertions.outerHtml().contains(longValue), "Assertions keep the original bounded contract");
+            var observed = doc.select("table.atf-ui-action-table tbody > tr").get(1).child(3);
+            var complete = observed.selectFirst("details.atf-ui-value");
+            assertNotNull(complete, "Captured action value is an auditable, owned disclosure");
+            assertFalse(complete.hasAttr("open"));
+            assertEquals("x".repeat(239) + "…", complete.selectFirst("summary .se-title").text());
+            assertEquals(longValue, complete.selectFirst("pre").wholeText());
+            assertEquals(1, doc.select(".atf-ui-action-result-fail").size());
+            complete.selectFirst("pre").remove();
+            assertFalse(doc.outerHtml().contains(longValue), "Only the deliberate action disclosure owns the complete scalar");
             assertTrue(html.contains("BoundedFixture"));
         }
-    }
-
-    private static List<String> cells(String html) throws Exception {
-        var values = new ArrayList<String>(); var stack = new ArrayDeque<StringBuilder>();
-        new ParserDelegator().parse(new StringReader(html), new HTMLEditorKit.ParserCallback() {
-            @Override public void handleStartTag(HTML.Tag tag, MutableAttributeSet attrs, int position) {
-                if (tag == HTML.Tag.TD) stack.push(new StringBuilder());
-            }
-            @Override public void handleText(char[] text, int position) { if (!stack.isEmpty()) stack.peek().append(text); }
-            @Override public void handleEndTag(HTML.Tag tag, int position) {
-                if (tag == HTML.Tag.TD && !stack.isEmpty()) values.add(stack.pop().toString());
-            }
-        }, true);
-        return values;
     }
 }

@@ -56,3 +56,12 @@ Delimitarea API-ului susținut păstrează
 La o modificare de finalizare se citesc și [assets](../asset/ReportAssetLoader.java)
 și [runtime](../runtime/README.md), deoarece HTML-ul final include aceste două boundary-uri.
 
+
+## Memoria publicării
+
+| Owner | Responsabilitate |
+|---|---|
+| [ExtentReportPublicationPipeline](session/ExtentReportPublicationPipeline.java) | ordonează transformările, restaurarea și înlocuirea atomică |
+| [InlinePngPayloadStore](publication/InlinePngPayloadStore.java) | spool privat PNG, identitate stabilă în sesiune, buffere fixe și cleanup la succes/eșec |
+
+Modelul Extent/Spark și textul rămân în heap; reducerea copiilor PNG nu definește un plafon universal.

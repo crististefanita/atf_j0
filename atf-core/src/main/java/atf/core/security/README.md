@@ -15,7 +15,7 @@ HTML-ul și publicarea aparțin callerului.
 | credențiale în text | [SecretPatternRedactor](SecretPatternRedactor.java) | JSON textual, authorization, query și segmente de path |
 | date personale opționale | [PiiRedactor](PiiRedactor.java) | email și valori de forma telefonului |
 | căi de profil local | [LocalPathRedactor](LocalPathRedactor.java) | reprezentare diagnostică, nu rezolvarea fișierului |
-| JSON structural | [StructuredJsonRedactor](StructuredJsonRedactor.java) | câmpuri configurate; fallback textual la parse eșuat |
+| JSON structural | [StructuredJsonRedactor](StructuredJsonRedactor.java) | câmpuri configurate și reguli text pe string-uri decodate; fallback la parse eșuat |
 
 ## Fluxul reprezentării
 
@@ -38,13 +38,13 @@ flowchart LR
 | În schemă | Sens complet |
 |---|---|
 | Input | text original, păstrat intact |
-| JSON | parse și traversare structurală a câmpurilor sensibile |
+| JSON | traversare tokenuri; câmpuri sensibile și string-uri publice decodate |
 | Reguli text | strategii regex pentru credențiale, PII și căi locale; primesc masca codificată pentru replacement |
 | Mască | valoarea literală din RedactionSettings; JSON-ul structural o primește fără codificare regex |
 | Afișare | valoare livrată callerului; bounding-ul și rendererul sunt în afara pachetului |
 
-Un JSON valid maschează structural câmpurile selectate; textul liber și
-fallback-ul trec prin strategiile regex. Săgețile exprimă transformări de date.
+Un JSON valid maschează structural câmpurile selectate. String-urile publice decodate, textul liber și
+fallback-ul trec prin strategiile configurate pentru credențiale, PII și căi locale. Săgețile exprimă transformări de date.
 
 </details>
 
@@ -103,3 +103,9 @@ Callerul neutru Core → Kit → Extent/fallback verifică separat absența cana
 protejează prefixele, vecinii nesensibili, măștile speciale, JSON-ul structural și fallback-ul, cu PII și căi locale opt-in.
 Continuă cu [README-ul Core](../../../../../../README.md) și
 [atlasul ATF](../../../../../../../docs/ATF_Context_Atlas.md).
+
+## String-uri publice și canale console
+
+Sintaxa cunoscută Authorization, query/path credential și key=value este redactată și în valorile string ale JSON-ului valid. Câmpurile publice nu devin integral sensibile; numai segmentele recunoscute se transformă, iar politica disabled păstrează inputul exact.
+
+ApiExecutor aplică aceeași politică numelor lifecycle și corpurilor CODE. Comparația, payload-ul transportului, tokenurile numerice și aparițiile duplicate rămân independente de proiecția sigură.

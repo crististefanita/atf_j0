@@ -1,4 +1,5 @@
 package atf.reporting.ui;
+import atf.reporting.model.ReportObservation;
 import java.util.function.LongSupplier;
 import atf.reporting.ui.timing.UiPhaseExecution;
 import atf.reporting.model.timing.ReportPhaseTiming;
@@ -266,6 +267,10 @@ public final class UiExtentReportSession implements AutoCloseable {
 
     public static final class UiPhase implements AutoCloseable {
         private final UiPhaseLifecycle lifecycle;
+
+        /** Publishes neutral captured facts under this exact phase, without inventing assertions. */
+        public void observation(ReportObservation value) { lifecycle.observation(value); }
+        public boolean supportsObservations() { return lifecycle.supportsObservations(); }
 
         public void executionTiming(ReportPhaseTiming timing) { lifecycle.executionTiming(timing); }
         public UiPhaseExecution measureExecution() { return lifecycle.measureExecution(System::nanoTime); }

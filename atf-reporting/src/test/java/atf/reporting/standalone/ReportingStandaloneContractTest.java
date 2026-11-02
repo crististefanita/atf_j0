@@ -1,6 +1,8 @@
 package atf.reporting.standalone;
 
 import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.ui.model.AtfUiActionRecord;
+import atf.reporting.ui.model.AtfUiEvidenceSource;
 import atf.reporting.duration.AtfDurationFormatter;
 import atf.reporting.security.SensitiveDataRedactor;
 import org.junit.jupiter.api.Test;
@@ -50,5 +52,18 @@ class ReportingStandaloneContractTest {
         assertFalse(safe.contains("client-secret"));
         assertFalse(safe.contains("session-secret"));
         assertEquals("***REDACTED***", redactor.redactField("X-Api-Key", "api-key-secret"));
+    }
+    @Test void capturedUiValuesPreserveSignificantWhitespaceForBothSources() {
+        String captured = " \t\r\nState ♠ \n ";
+        for (var source : AtfUiEvidenceSource.values()) {
+            var row = new AtfUiActionRecord(7, "  Observe  ", "  #target  ", captured, captured, 1, AtfReportStatus.FAIL, source);
+            assertEquals(captured, row.expected()); assertEquals(captured, row.observed());
+            assertEquals("Observe", row.operation()); assertEquals("#target", row.target());
+            assertEquals(7, row.sequence()); assertEquals(AtfReportStatus.FAIL, row.status());
+        }
+    }
+    @Test void emptyCapturedUiValuesKeepTheExistingNullContract() {
+        var row = new AtfUiActionRecord(1, "observe", "target", null, " \t ", 0, AtfReportStatus.INFO);
+        assertEquals("", row.expected()); assertEquals(" \t ", row.observed());
     }
 }

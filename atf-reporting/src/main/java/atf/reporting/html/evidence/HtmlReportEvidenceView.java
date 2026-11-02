@@ -262,15 +262,11 @@ public final class HtmlReportEvidenceView {
 
     private void renderUiEvidence(StringBuilder html, List<AtfUiActionRecord> records, List<ReportScreenshot> captures,
                                   ReportUiActionDetailsMode detailsMode) {
-        var rows = records.stream().map(action -> new AtfUiActionRecord(
-                action.sequence(), redactor.redactText(action.operation()), redactor.redactText(action.target()),
-                redactor.redactText(action.expected()), redactor.redactText(action.observed()),
-                action.durationMillis(), action.status(), action.source())).toList();
-        var actions = rows.stream().filter(row -> row.source() == AtfUiEvidenceSource.ACTION).toList();
-        var observations = rows.stream().filter(row -> row.source() == AtfUiEvidenceSource.OBSERVE).toList();
+        var actions = records.stream().filter(row -> row.source() == AtfUiEvidenceSource.ACTION).toList();
+        var observations = records.stream().filter(row -> row.source() == AtfUiEvidenceSource.OBSERVE).toList();
         var screenshots = ExtentReportAssets.distinctScreenshotModels(captures);
         boolean inlineScreenshot = !actions.isEmpty() && screenshots.size() == 1;
-        html.append(new ExtentUiActionRenderer(settings, detailsMode).markup(actions,
+        html.append(new ExtentUiActionRenderer(settings, redactor, detailsMode).markup(actions,
                         inlineScreenshot ? screenshots : List.of()))
                 .append(new ExtentUiObservationRenderer(settings, redactor).markup(observations));
         for (ReportScreenshot screenshot : inlineScreenshot ? List.<ReportScreenshot>of() : screenshots) {

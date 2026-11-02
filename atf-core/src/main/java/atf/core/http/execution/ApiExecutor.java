@@ -139,7 +139,7 @@ public final class ApiExecutor {
         Objects.requireNonNull(options, "options");
         Objects.requireNonNull(cancellationToken, "cancellationToken");
         var diagnostics = new AtfConsoleDiagnostics(console);
-        String consoleName = request.method() + " " + request.path();
+        String consoleName = redactor.redactText(request.method() + " " + request.path());
         long consoleStarted = clock.nanoTime();
         diagnostics.publish(AtfConsoleEvent.started(AtfConsoleEvent.Scope.REQUEST, consoleName));
         diagnostics.publish(AtfConsoleEvent.detail(AtfConsoleEvent.Scope.REQUEST,

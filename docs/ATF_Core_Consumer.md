@@ -2,15 +2,15 @@
 
 ## Pe scurt
 
-J0 păstrează implementarea și toate testele native Core. J1, J2 și J3 consumă
-aceeași bibliotecă `atf.api:atf-core:1.0.0-c2`, fără modul sursă ori teste
-native copiate în live. Reporting J10 are publicare și acceptanță separate.
+J0 păstrează implementarea și toate testele native Core. J1, J2, J3 și J4 consumă
+aceeași bibliotecă `atf.api:atf-core:1.0.0-c3`, fără modul sursă ori teste
+native copiate în live. Reporting J14 are publicare și acceptanță separate.
 
-| Contract | C2 |
+| Contract | C3 |
 |---|---|
 | runtime | Java 21; Jackson Databind și YAML 2.17.2 |
 | independență | POM fără parent de reactor; zero dependențe ATF/JUnit/Extent de producție |
-| layout consumer | `lib/atf-core-1.0.0-c2.jar` și `.pom`, lângă perechea Reporting J10; exact patru fișiere |
+| layout consumer | `lib/atf-core-1.0.0-c3.jar` și `.pom`, lângă perechea Reporting J14; exact patru fișiere |
 | proveniență | `coreLibrary` în `library-provenance.json`; hash JAR/POM, intrări și catalog native; istoricul J9 rămâne distinct |
 | sursă și teste | ownerul sursei J0; niciun Core shadow în consumer |
 
@@ -31,14 +31,14 @@ la ambele. Un `-pl` care omite rădăcina necesită bootstrap-ul anterior.
 
 Core este acum dependență externă, astfel `-pl atf-core` se rulează doar în J0.
 Reactorul sursă rămâne la `1.0.0-SNAPSHOT`; numai dependențele Core ale
-consumerilor folosesc `atf.core.version=1.0.0-c2`.
+consumerilor folosesc `atf.core.version=1.0.0-c3`.
 
 ## Publicare și verificare
 
 1. Reconciliază schimbarea și probele la ownerul J0; păstrează codul și testele locale.
 2. Construiește în TMP cu POM parentless; transformarea de publicare schimbă numai versiunea proiectului, nu versiunea Test Kit de test.
 3. Rulează nativele și apoi aceleași teste pe JAR în harness TMP fără surse Core. Kit/JUnit rămân dependențe de test.
-4. Verifică separat J1/J2/J3: compile, contracte afectate, guvernanță, CodeSource/hash și rapoarte; J2 MOCK nu certifică un broker Kafka.
+4. Verifică separat J1/J2/J3/J4: compile, contracte afectate, guvernanță, CodeSource/hash și rapoarte; J2 MOCK nu certifică un broker Kafka.
 5. Livrează o singură pereche nouă per bibliotecă și proveniența verificată; retrage perechea anterioară fără versiuni paralele.
 
 Guvernanța verifică coordonata, POM-ul inclus byte cu byte, hash-urile,
@@ -57,10 +57,11 @@ Procedura completă este în [sincronizare](ATF_Workspace_Synchronization.md)
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Owner["J0<br/>sursă + native"] -->|verifică| Binary["Core C2<br/>JAR + POM"]
+    Owner["J0<br/>sursă + native"] -->|verifică| Binary["Core C3<br/>JAR + POM"]
     Binary -->|adoptă| J1["J1<br/>9 module sursă"]
-    Binary -->|adoptă| J2["J2 WIP<br/>7 module sursă"]
+    Binary -->|adoptă| J2["J2 WIP<br/>8 module sursă"]
     Binary -->|adoptă| J3["J3 speech<br/>7 module sursă"]
+    Binary -->|adoptă| J4["J4 Android<br/>7 module sursă"]
 ```
 
 <details>
@@ -75,9 +76,8 @@ flowchart LR
 
 ## Limita acceptanței Reporting
 
-Distribuția curentă folosește Core C2 și Reporting J10. Timing-ul capturat/publicare, REPORT-RECORDED-TIMING-83,
-rămâne deschis la ownerul J0; verdicturile corecte, tabelele lizibile și
-expandările verificate nu certifică relația temporală dintre fază și copil.
+Reporting J12 deține profilul explicit, timing-ul capturat/publicare și disclosure-ul standard.
+Aceste probe sunt distincte de Core C3 și de acceptanțele aplicațiilor; [verificarea J12](ATF_Reporting_J12_Verification.md) păstrează inventarul și limitele.
 
 ## Document JSON complet și evidence fidel
 
@@ -97,3 +97,9 @@ expandările verificate nu certifică relația temporală dintre fază și copil
 
 Nativele Core și regresiile generice Reporting rămân numai în J0. Harness-urile
 temporare verifică JAR-urile fizice, fără surse de implementare shadow.
+
+## Core C3 — console și anulare upstream
+
+Lifecycle-ul complet și string-urile JSON publice folosesc politica de redactare declarată. Future-ul HTTP păstrează o legătură best effort către operația upstream; cursele au un singur owner terminal, iar eșecul cleanup rămâne suppressed.
+
+Anularea nu confirmă rollback server-side și nu autorizează replay al unei mutații incerte. Nativele controlate, GET-ul local blocat și proba pe JAR rămân verificări distincte de E2E-ul consumerului.

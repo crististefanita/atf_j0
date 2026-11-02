@@ -61,6 +61,7 @@ final class StructuredJsonRedactor {
                 }
                 output.writeEndArray();
             }
+            case VALUE_STRING -> output.writeString(fallback.redact(input.getText()));
             case VALUE_NUMBER_INT, VALUE_NUMBER_FLOAT -> output.writeNumber(input.getText());
             default -> output.copyCurrentEvent(input);
         }

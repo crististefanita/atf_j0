@@ -3928,3 +3928,88 @@ testChanges:
 ```
 
 </details>
+
+<details>
+<summary><strong>Control verificat — CORE-C3-NATIVE-128</strong></summary>
+
+```yaml
+testChanges:
+  - id: CORE-C3-NATIVE-128
+    status: VERIFIED
+    base: 17ee3e6a12226e580ef46e987dc86283217f3501
+    expires: 2026-11-30
+    reason: Adoptă profilul explicit și corecțiile Core cerute, păstrând oracolele independente, nominalele și controalele negative; fără praguri relaxate sau surse shadow.
+    proof: mvn -B -f atf-core/pom.xml test
+    paths:
+      - atf-core/src/test/java/atf/core/http/ApiExecutorConsoleRedactionTest.java
+      - atf-core/src/test/java/atf/core/http/transport/HttpClientCancellationTest.java
+      - atf-core/src/test/java/atf/core/http/transport/HttpClientReadCancellationTest.java
+      - atf-core/src/test/java/atf/core/security/json/JsonPublicStringRedactionTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control verificat — CORE-C3-REPORTING-PROJECTION-129</strong></summary>
+
+```yaml
+testChanges:
+  - id: CORE-C3-REPORTING-PROJECTION-129
+    status: VERIFIED
+    base: 17ee3e6a12226e580ef46e987dc86283217f3501
+    expires: 2026-11-30
+    reason: Adoptă profilul explicit și corecțiile Core cerute, păstrând oracolele independente, nominalele și controalele negative; fără praguri relaxate sau surse shadow.
+    proof: mvn -B -pl atf-reporting-tests -am "-Dtest=CoreConsoleProjectionComponentTest,CoreRedactionPublicationComponentTest,JsonEvidenceRedactionComponentTest,JsonEvidenceFidelityComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/security/CoreConsoleProjectionComponentTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control verificat — Reporting J13</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-PUBLICATION-FULL-VALUES-J13
+    status: VERIFIED
+    base: 17ee3e6a12226e580ef46e987dc86283217f3501
+    expires: 2026-11-30
+    reason: Reproduce OOM la volum capturat și pierderea scalarilor ACTION/OBSERVE după preview; păstrează toate PNG-urile, verdicturile, pragurile existente și limita 240. Probe permanente sursă/JAR, neutre fără replay consumer; oracol streaming la heap implicit și assertions bounded separate de celula ACTION completă.
+    proof: mvn -B -pl atf-reporting-tests,atf-tests -am "-Dtest=UiFullValueComponentTest,UiFullValueBrowserComponentTest,UiPhaseObservationComponentTest,CapturedVolumePublicationComponentTest,ReportingStandaloneInlinePayloadTest,BoundedFailureEvidenceComponentTest,AtfTestLayerArchitectureTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/layers/AtfTestLayerArchitectureTest.java
+      - atf-reporting/src/test/java/atf/reporting/standalone/publication/ReportingStandaloneInlinePayloadTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/preview/BoundedFailureEvidenceComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/values/UiFullValueComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/values/UiFullValueBrowserComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/values/UiPhaseObservationComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/values/UiFullValueFixture.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/publication/CapturedVolumeProbe.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/publication/VolumeEvidenceSnapshot.java
+      - atf-reporting-tests/src/test/java/atf/reporting/extent/publication/CapturedVolumePublicationComponentTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control verificat — Reporting J14</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-UI-ROW-FIDELITY-J14
+    status: VERIFIED
+    base: 17ee3e6a12226e580ef46e987dc86283217f3501
+    expires: 2026-11-30
+    reason: Reproduce pierderea whitespace și politica divergentă de redacție; refactorizează numai proiecția comună UI, cu preview 240, verdict/ordinal și screenshot conservate, fără reevaluare business.
+    proof: mvn -B -pl atf-reporting-tests -am "-Dtest=ReportingStandaloneContractTest,UiRowProjectionComponentTest,UiRowProjectionBrowserComponentTest,UiFullValueComponentTest,UiFullValueBrowserComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting/src/test/java/atf/reporting/standalone/ReportingStandaloneContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/values/UiRowProjectionComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/values/UiRowEvidenceFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/values/UiRowProjectionBrowserComponentTest.java
+```
+
+Probe sursă/JAR și auditul celor două renderere: [J14](ATF_Reporting_J14_Verification.md).
+
+</details>

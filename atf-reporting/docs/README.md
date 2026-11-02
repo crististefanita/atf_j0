@@ -134,3 +134,13 @@ Aceste probe nu înlocuiesc analiza limitelor redacției ori oracolele browser.
 O schimbare de intrare, invariantă sau owner actualizează această hartă și
 README-ul pachetului în același increment. Rulările, hash-urile și rezultatele
 datate rămân în TMP; documentația păstrează contractul și limitele sale actuale.
+
+## Publicare și dovezi complete
+
+| Contract portabil | Intrare |
+|---|---|
+| memorie și cleanup PNG | [publicarea modulului](../README.md#publicarea-png-la-volum-mare) |
+| preview și celulă completă ACTION/OBSERVE | [proiecția comună](../README.md#actionobserve--preview-și-valori-complete) |
+| lifecycle observații UI | [atlasul UI](../src/main/java/atf/reporting/ui/README.md#observații-neutre-pe-uiphase) |
+
+Biblioteca primește dovezi și verdicturi capturate; nu execută aplicația sau comparațiile.
