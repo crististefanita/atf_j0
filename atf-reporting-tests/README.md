@@ -1304,3 +1304,17 @@ criteriul separat pentru valorile lungi ale assertions.
 
 Acestea nu execută Android și nu închid oracolul business J4. Capturile sunt
 PNG sintetice distincte pentru verificarea ownerului și a transportului.
+
+## Screenshot viewer contracts
+
+[ScreenshotReferenceComponentTest](src/test/java/atf/reporting/observation/ScreenshotReferenceComponentTest.java) verifies original PNG bytes, local captions and one-time entity decoding. [ScreenshotViewerBrowserComponentTest](src/test/java/atf/ui/tests/extent/component/screenshot/ScreenshotViewerBrowserComponentTest.java) uses mocked captures to exercise both native renderers with two owners and a long checkpoint sequence.
+
+| Invariant | Permanent oracle |
+|---|---|
+| fit geometry | full viewport, all image edges and original aspect ratio for portrait, landscape and square |
+| reference ownership | same owner/disclosures and local caption, including a hidden canonical capture in another test |
+| reading position | exact legal scroll without reflow; same visible checkpoint after resize, with zero-reset negative |
+| interaction | mouse, Enter, Space, fit/original-size, close/Escape and return focus |
+| fidelity | 45 checkpoint images, exact bytes and escaped caption literals; no external files or real device |
+
+[J16 verification](../docs/ATF_Reporting_J16_Verification.md) distinguishes native, source, physical-JAR and per-consumer acceptance. These neutral regressions do not certify Android rules or capture dimensions.

@@ -13,23 +13,10 @@ function synchronizeEvidenceDisclosureAria(details) {
   var summary = details.querySelector(':scope>summary');
   if (summary) summary.setAttribute('aria-expanded', String(details.open));
 }
-function openReferencedScreenshot(event) {
-  var target = event.target,
-    reference = target && target.closest && target.closest('a.atf-ui-screenshot-duplicate[data-atf-screenshot-ref]');
-  if (!reference) return;
-  var original = document.getElementById('atf-screenshot-' + reference.getAttribute('data-atf-screenshot-ref'));
-  if (!original || original.tagName !== 'A' ||
-      original.classList.contains('atf-ui-screenshot-duplicate') ||
-      !/^data:image\//.test(original.getAttribute('href') || '')) return;
-  event.preventDefault();
-  event.stopImmediatePropagation();
-  original.click();
-}
 function bindEvidenceDisclosureAria() {
   q('details').forEach(synchronizeEvidenceDisclosureAria);
   if (document.documentElement.hasAttribute('data-atf-evidence-toggle-bound')) return;
   document.documentElement.setAttribute('data-atf-evidence-toggle-bound', 'true');
-  document.addEventListener('click', openReferencedScreenshot, true);
   document.addEventListener('toggle', function (event) {
     var details = event.target;
     if (details && details.tagName === 'DETAILS') synchronizeEvidenceDisclosureAria(details);

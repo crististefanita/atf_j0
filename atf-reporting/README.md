@@ -2405,3 +2405,13 @@ biblioteca nu reconstruiește informația deja eliminată de un adapter.
 
 Preview-ul 240 și bugetul corpului rămân distincte. Callerul nu înlocuiește
 comparațiile cu statusuri citite din XML și nu cere rendererului să deducă verdictul.
+
+## Screenshot viewer and independent readers
+
+PNG evidence opens in one shared Extent/fallback viewer using the available browser viewport. Fit mode preserves the full image and aspect ratio; Original size is an explicit inspection mode. Closing or Escape restores the clicked checkpoint, keyboard focus, disclosure state and reading position.
+
+- Deduplicated captures resolve the original bytes without clicking or selecting the canonical owner; the local caption remains attached to the clicked checkpoint.
+- Mouse, Enter and Space open the same viewer; resize recomputes fit, and controls remain keyboard accessible without browser/OS fullscreen.
+- The producer supplies meaningful test purpose, effective setup/inputs, independent expected values and clear evidence limits; hashes and raw file dumps do not establish business correctness.
+
+The [inline contract](../docs/ATF_Inline_Audit_Contract.md) separates primary audit content from optional technical provenance. Permanent neutral [reference contracts](../atf-reporting-tests/src/test/java/atf/reporting/observation/ScreenshotReferenceComponentTest.java) and [browser journeys](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/screenshot/ScreenshotViewerBrowserComponentTest.java) cover the viewport and return context; Android capture/oracles stay in the consumer.

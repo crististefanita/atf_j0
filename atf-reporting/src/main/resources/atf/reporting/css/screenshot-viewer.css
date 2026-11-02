@@ -1,0 +1,72 @@
+.atf-screenshot-viewer[open] {
+  position: fixed !important;
+  inset: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid var(--atf-border, #344358) !important;
+  box-sizing: border-box !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  background: var(--atf-panel, #141d2b) !important;
+  color: var(--atf-text, #e5edf7) !important;
+  z-index: 2147483647 !important;
+  font-family: inherit !important;
+}
+.atf-screenshot-viewer::backdrop { background: rgba(0, 0, 0, .82); }
+.atf-screenshot-viewer > header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--atf-border, #344358);
+}
+.atf-screenshot-caption {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+.atf-screenshot-viewer button {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 6px 10px !important;
+  border: 1px solid var(--atf-border, #344358) !important;
+  border-radius: 6px !important;
+  background: var(--atf-panel, #141d2b) !important;
+  color: var(--atf-accent, #8db7ff) !important;
+  font: inherit !important;
+  font-size: 12px !important;
+  line-height: 18px !important;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.atf-screenshot-viewer button:focus-visible { outline: 2px solid var(--atf-accent, #8db7ff); outline-offset: 2px; }
+.atf-screenshot-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  min-width: 0;
+  padding: 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+.atf-screenshot-stage > img {
+  display: block !important;
+  max-width: none !important;
+  max-height: none !important;
+  flex: none;
+  object-fit: contain;
+}
+.atf-screenshot-viewer[data-view-mode="original"] .atf-screenshot-stage { display: block; overflow: auto; }
+
+.atf-screenshot-viewer::before { display: none !important; content: none !important; }

@@ -4036,3 +4036,25 @@ testChanges:
 Probe și limite: [J15](ATF_Reporting_J15_Verification.md).
 
 </details>
+
+<details>
+<summary><strong>Control verificat — viewer Reporting J16</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-SCREENSHOT-VIEWER-J16
+    status: VERIFIED
+    base: e077ed643f2167b56e711a0acdf9ad6619833a0d
+    expires: 2026-11-30
+    reason: Păstrează regresii neutre pentru viewport integral și contextul PNG deduplicat, bytes/caption exacte, keyboard, resize și scroll legal; bugete explicite numai pentru cele două assets noi, fără relaxarea verdicturilor, preview-ului 240 ori ownerului fallback.
+    proof: mvn -B -pl atf-reporting-tests -am "-Dtest=ScreenshotReferenceComponentTest,ScreenshotViewerBrowserComponentTest,ReportAssetSizeInventoryTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/observation/ScreenshotReferenceComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/screenshot/ScreenshotViewerFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/screenshot/ScreenshotViewerBrowserComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/asset/ReportAssetSizeInventoryTest.java
+```
+
+[Probe și limite](ATF_Reporting_J16_Verification.md).
+
+</details>

@@ -49,6 +49,12 @@ Artifact este în continuare o referință opțională pentru alți consumatori;
 Reporting nu citește fișierul referit. Profilul de mai sus se obține prin
 modelele publice existente, fără un switch global care schimbă alte rapoarte.
 
+## Reader context and configurable detail
+
+The producer supplies the purpose, effective setup/inputs, independent expected values and evidence limits needed by a reader without repository access. Hashes belong to optional technical provenance; they establish byte identity, not business correctness. Renderer settings remain neutral: assertion preview and body display budgets are separate from consumer-owned game grouping or selection policies.
+
+A summary profile must declare its scope and omissions. Display policy never changes the original evaluation, and missing mandatory evidence cannot be labeled COMPLETE audit acceptance. Large structures are grouped semantically before publication, with the caller retaining every comparison and input required by its claim.
+
 ## Text și valori complete
 
 - Corpurile JSON păstrează valorile tipizate, ordinea listelor și numerele exacte; formatarea nu este oracol.
@@ -63,7 +69,7 @@ Valorile assertions deja reduse de caller nu pot fi reconstruite. Criteriul
 
 The expanded image viewer must use the available browser viewport, with small bounded controls, while fitting the complete source image and preserving its aspect ratio. The default fit view has no clipped edges or image scroll; portrait/landscape margins are preferable to crop or stretch. Original-size inspection is an explicit mode and preserves the immutable source bytes.
 
-Closing, Escape and fit/zoom transitions must preserve the active invocation, disclosure state, scroll position and keyboard focus. Browser/OS fullscreen is optional and requires an explicit user action; viewport fit must work without that permission or API. These are open [viewport criteria 138](feedback/ATF_Reporting_Feedback.md#report-screenshot-viewport-138--imagine-integrală-în-spațiul-disponibil), not a claim about the current J15 viewer.
+Closing, Escape and fit/zoom transitions must preserve the active invocation, disclosure state, scroll position and keyboard focus. Browser/OS fullscreen is optional and requires an explicit user action; viewport fit must work without that permission or API. [J16 verification](ATF_Reporting_J16_Verification.md) owns the delivered viewport and return-context behavior; J15 artifacts remain historical.
 
 ## Acceptanță permanentă
 

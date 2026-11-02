@@ -24,6 +24,7 @@ său. Codul, POM-ul și testele live rămân autoritatea pentru ceea ce există.
 | operații browser | [operații browser](../atf-ui/src/main/java/atf/ui/playwright/README.md) | schimbi deadline-ul, interacțiunea ori diagnosticul |
 | rețea browser | [rețea browser](../atf-ui/src/main/java/atf/ui/network/README.md) | schimbi hook-uri, identitate, retenție ori cleanup |
 | biblioteca Reporting | [atlas Reporting](../atf-reporting/src/main/java/atf/reporting/README.md) | schimbi modelul, rendererul, publicarea ori contractul JAR |
+| viewer PNG | [J16](ATF_Reporting_J16_Verification.md) | păstrezi cadrul integral, caption-ul local și contextul după close, fără a reconstrui setup-ul consumerului |
 | compoziție inline | [contract](ATF_Inline_Audit_Contract.md) și [J15](ATF_Reporting_J15_Verification.md) | separi faptele callerului de renderer și probezi textul complet, assertions și PNG fără fișiere externe |
 | consolidare Reporting și probe | [implementare](feedback/ATF_Reporting_Feedback.md) / [Reporting Tests](feedback/ATF_Reporting_Tests_Feedback.md) | separi defectul de lifecycle/API de oracol, fixture binar și navigarea dovezii |
 

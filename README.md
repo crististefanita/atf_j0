@@ -465,3 +465,7 @@ Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 | audit | preview 240 și verdict original, fără reevaluare |
 
 J15 păstrează și CR/LF literal, inclusiv prima linie din corpurile TEXT inline.
+
+## Current screenshot viewer — J16
+
+[Reporting J16](docs/ATF_Reporting_J16_Verification.md) fits complete PNG evidence to the browser viewport and preserves the clicked checkpoint, local caption, disclosures and focus when closing the viewer. Core C3, the 240-character preview and the existing UI/API/SQL evidence contracts remain unchanged. Producer-side setup, inputs, independent expected values and capture completeness retain their own acceptance.

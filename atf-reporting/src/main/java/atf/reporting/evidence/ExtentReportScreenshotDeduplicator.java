@@ -1,6 +1,7 @@
 package atf.reporting.evidence;
 
 import atf.reporting.markup.AtfReportLabels;
+import org.jsoup.parser.Parser;
 import atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary;
 
 import java.nio.charset.StandardCharsets;
@@ -43,14 +44,14 @@ public final class ExtentReportScreenshotDeduplicator {
             }
             String replacement = canonical
                     ? withCanonicalReference(matcher.group(), reference)
-                    : duplicateReference(reference);
+                    : duplicateReference(reference, screenshotLabel(matcher.group()));
             matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
         }
         matcher.appendTail(result);
         return result.toString();
     }
 
-    private static String duplicateReference(String reference) {
+    private static String duplicateReference(String reference, String label) {
         String marker = AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.SPAN,
                 AtfReportLabels.BASE64_IMAGE_MARKER,
                 AtfReportHtmlVocabulary.classAttribute(
@@ -71,10 +72,16 @@ public final class ExtentReportScreenshotDeduplicator {
                         "#atf-screenshot-" + reference),
                 AtfReportHtmlVocabulary.attribute(
                         AtfReportHtmlVocabulary.Attribute.ARIA_LABEL,
-                        AtfReportLabels.OPEN_DUPLICATE_SCREENSHOT),
+                        label),
                 AtfReportHtmlVocabulary.attribute(
                         AtfReportHtmlVocabulary.Attribute.TITLE,
-                        AtfReportLabels.OPEN_DUPLICATE_SCREENSHOT));
+                        label));
+    }
+
+    private static String screenshotLabel(String anchor) {
+        String opening = anchor.substring(0, anchor.indexOf('>') + 1);
+        Matcher label = Pattern.compile("\\baria-label=\"([^\"]*)\"", Pattern.CASE_INSENSITIVE).matcher(opening);
+        return label.find() ? Parser.unescapeEntities(label.group(1), true) : AtfReportLabels.OPEN_DUPLICATE_SCREENSHOT;
     }
 
     private static String withCanonicalReference(String anchor, String reference) {

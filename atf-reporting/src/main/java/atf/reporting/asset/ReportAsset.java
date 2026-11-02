@@ -4,6 +4,8 @@ import java.util.Objects;
 
 /** Classpath-owned browser asset with a stable semantic owner and format. */
 public enum ReportAsset {
+    SCREENSHOT_VIEWER_CSS("/atf/reporting/css/screenshot-viewer.css", Format.CSS, "screenshot-viewer-style"),
+    SCREENSHOT_VIEWER_JS("/atf/reporting/javascript/screenshot-viewer.js", Format.JAVASCRIPT, "screenshot-viewer"),
     TABLE_VIEWPORT_CSS("/atf/reporting/css/table-viewport.css", Format.CSS, "table-viewport"),
     TABLE_VIEWPORT_JS("/atf/reporting/javascript/table-viewport.js", Format.JAVASCRIPT, "table-viewport-keyboard"),
     FALLBACK_CSS("/atf/reporting/css/fallback.css", Format.CSS, "fallback-theme"),

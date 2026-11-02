@@ -26,7 +26,7 @@ public final class ReportAssetComposer {
                 "CSS_VARIABLES", AtfReportThemeTokens.cssVariables(),
                 "FONT_STACK", AtfReportThemeTokens.FONT_STACK,
                 "SHADOW_SOFT", AtfReportColors.SHADOW_SOFT,
-                "WHITE_02", AtfReportColors.WHITE_02)) + disclosureIndicatorCss() + tableViewportCss();
+                "WHITE_02", AtfReportColors.WHITE_02)) + disclosureIndicatorCss() + tableViewportCss() + LOADER.loadForPublication(ReportAsset.SCREENSHOT_VIEWER_CSS);
     }
 
     public static String tableViewportCss() {
@@ -101,7 +101,7 @@ public final class ReportAssetComposer {
     public static String themeBaseCss() {
         return LOADER.renderForPublication(ReportAsset.EXTENT_THEME_BASE_CSS, Map.of(
                 "FONT_STACK", AtfReportThemeTokens.FONT_STACK,
-                "SHADOW_STRONG", AtfReportColors.SHADOW_STRONG));
+                "SHADOW_STRONG", AtfReportColors.SHADOW_STRONG)) + LOADER.loadForPublication(ReportAsset.SCREENSHOT_VIEWER_CSS);
     }
 
     public static String themeCategoryStatusCss() {
@@ -192,7 +192,8 @@ public final class ReportAssetComposer {
     }
 
     public static String fallbackNavigationScript() {
-        return LOADER.loadForPublication(ReportAsset.FALLBACK_NAVIGATION_JS) + extentEvidenceTableLayoutScript();
+        return LOADER.loadForPublication(ReportAsset.FALLBACK_NAVIGATION_JS) + extentEvidenceTableLayoutScript()
+                + LOADER.loadForPublication(ReportAsset.SCREENSHOT_VIEWER_JS);
     }
 
     public static String extentEvidenceRolesScript() {
@@ -200,7 +201,8 @@ public final class ReportAssetComposer {
     }
 
     public static String extentEvidenceDisclosureScript() {
-        return LOADER.loadForPublication(ReportAsset.EXTENT_EVIDENCE_DISCLOSURE_JS);
+        return LOADER.loadForPublication(ReportAsset.EXTENT_EVIDENCE_DISCLOSURE_JS)
+                + LOADER.loadForPublication(ReportAsset.SCREENSHOT_VIEWER_JS);
     }
 
     public static String extentEvidenceFailuresScript() {
