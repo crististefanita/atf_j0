@@ -82,3 +82,45 @@ Closing, Escape and fit/zoom transitions must preserve the active invocation, di
 | distribuție | aceleași controale pe sursă și JAR fizic; business-ul consumerului are acceptanță distinctă |
 
 Implementarea probelor este în [Reporting Tests](../atf-reporting-tests/README.md).
+
+## Composite screenshot evidence
+
+A checkpoint retains the supplied action sequence, comparisons, observations and
+original capture under its own scenario, phase and ordinal. The caller owns
+capture and evaluation; Reporting owns faithful publication and navigation.
+
+Observation-only screenshots use the explicit uiValidationAsMedia route.
+The empty-comparison THEN/flow-mode matrix remains separately characterized
+in feedback; a general step overload is not an implicit media capability.
+
+| Boundary | Stable contract |
+|---|---|
+| Composition | Keep keyword, title, target, ordinal, ordered actions, comparisons and the corresponding PNG together |
+| Comparisons | Retain name, expected, actual and the captured result; a summary cannot replace individual checks |
+| Screenshot | Preserve complete original PNG bytes at the correct checkpoint; a file link or gallery-only image cannot establish ownership |
+| Observation | Keep visual facts as INFO; explicit consumer WARNING and functional FAIL retain their separate meaning |
+| Failure | Retain completed evidence and the original throwable when action, capture, publication or cleanup fails |
+| Identity | Same-title owners remain distinct; invocation, checkpoint, comparison and capture are separate populations |
+| Renderers | Extent/fallback preserve semantic inputs, order, result and capture identity |
+| Library | Keep ADB, browser execution and application oracles outside the Reporting runtime; verify the physical JAR separately |
+
+Whole-context capture and 70% web geometry belong to the
+[J1 UI contract](../../atf_j1/atf-ui/README.md#full-context-screenshots).
+[Full-display Android capture](../../atf_j4/docs/ATF_Android_Report_Contract.md#full-display-android-screenshots)
+retains its independent device acceptance.
+
+## Composite evidence acceptance
+
+| Neutral fixture | Required evidence | Independent negative |
+|---|---|---|
+| Functional checkpoint | two ordered actions, two distinct comparisons and exact PNG | reverse an ordinal or remove only the second comparison |
+| Negative result | captured FAIL with expected/actual and its screenshot | replace only that result with PASS |
+| Observation | factual visual state, original capture and explicit warning when supplied | move the observation to a same-title sibling |
+| Intermediate failure | completed actions, available capture and original throwable | fail publication/close and retain the business cause |
+| Multiple owners | matching captions with distinct phases/results and stable Tests/Fails/Overview identity | change only ordering or ownership |
+| Physical JAR | declared pair and assets, with no producer source on the consumer runtime classpath | remove an asset or introduce shadow source |
+
+A marker found in script/CSS or a neighboring owner cannot satisfy the oracle.
+[Delivered source/JAR families](feedback/ATF_Reporting_Tests_Feedback.md) and
+[remaining capture boundaries](feedback/ATF_Android_UI_Reporting_Feedback.md)
+retain distinct acceptance scopes.

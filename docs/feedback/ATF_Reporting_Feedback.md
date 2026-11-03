@@ -44,6 +44,7 @@ sunt la ownerii lor, iar registrul păstrează numai criteriile încă deschise.
 | ID | Scor /100 | Criteriul care blochează închiderea |
 |---|---:|---|
 | [REPORT-SQL-STEPS-116](#report-sql-steps-116--query-uri-și-rezultate-auditabile) | 88 = 35 + 26 + 18 + 9 | pași SQL neutri, query/bind-uri și rezultate cu bugete independente; adoptare J2 după release |
+| [REPORT-UI-ASSERTION-FULL-EVIDENCE-133](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) | 88 — existing criterion | full UI values captured before caller preview; source/JAR owner and redaction proof remain separate |
 | `REPORT-PUBLIC-API-43` | 81 = 31 + 24 + 17 + 9 | API-ul susținut, compatibilitatea și capabilitățile adaptoarelor nu sunt delimitate suficient |
 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) | 80 = 31 + 24 + 18 + 7 | criteriu separat al consumerului: oracol per scenariu și containment fallback |
 | `UI-RECOVERY-AUDIT-01` | 78 = 33 + 22 + 16 + 7 | proiecția typed a încercărilor, bugetelor și corelării rămâne la Reporting |
@@ -51,6 +52,7 @@ sunt la ownerii lor, iar registrul păstrează numai criteriile încă deschise.
 | `REPORT-PORTABLE-DOCS-46` | 72 = 24 + 22 + 17 + 9 | contractele și linkurile README depind încă de documente din afara modulului |
 | [REPORT-FALLBACK-RESULT-WIDTH-101](#report-fallback-result-width-101--badge-ul-statusului-depășește-coloana) | 64 = 24 + 19 + 15 + 6 | badge-ul Warning depășește RESULT și produce overflow evitabil |
 | `REPORT-FLOW-PROJECTION-36` | 62 = 24 + 17 + 16 + 5 | calculul proiecției și protocolul publicării rămân amestecate |
+| [REPORT-DISTRIBUTION-METADATA-140](#report-distribution-metadata-140--bind-optional-adoption-paths) | P2; unscored | permanent negative for stale optional consumerDistribution paths; current bytes are already correct |
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
@@ -74,8 +76,6 @@ flowchart LR
   se mută la owner, iar controlul testelor în baseline; feedback-ul păstrează numai restanțele.
 
 </details>
-
-
 
 ## REPORT-PUBLIC-API-43 — suprafață susținută și ownership
 
@@ -260,7 +260,6 @@ sau repetarea deciziei la renderer.
       Extent neutre rămân în `atf-reporting-tests`; policy/resolver și adaptoarele
       au teste la owner, fără cuplarea testelor de business la HTML.
 
-
 ## Contracte existente
 
 
@@ -288,14 +287,6 @@ Refactorizările păstrează contractele ownerilor de mai sus și urmează
 [ghidul de probă](../ATF_Testing_Guide.md#proba-fiecărui-owner-de-resurse).
 Reevaluarea folosește [rubrica comună de cod](../README_Atf_CodeBestPractices.md#rubrica-reevaluării-modulelor),
 cu randare inspectată și regresiile ownerului trecute în TMP.
-
-## REPORT-ARTIFACT-PROFILE-62 — aplicabilitate explicită a inspectorului
-
-Contract consolidat în [README-ul Reporting](../../atf-reporting/README.md#inspecția-artifactului-cu-intenție-explicită), cu [probe J12](../ATF_Reporting_J12_Verification.md). Intenția callerului și rezultatul complet sunt explicite; overload-ul legacy rămâne Extent/HTTP. Regresia neutră și binară refuză inventarul degradat; adopția overload-ului în acceptorii aplicațiilor rămâne responsabilitatea consumerului.
-
-## REPORT-RECORDED-TIMING-83 — execuție capturată și cost de publicare
-
-Contract consolidat la [originea duratelor](../../atf-reporting/README.md#originea-duratelor-sub-o-fază-capturată). [J12](../ATF_Reporting_J12_Verification.md) păstrează execuția capturată, transportul și publicarea distincte, cu barieră controlată și probe individual/agregat în ambele renderere.
 
 ## REPORT-FALLBACK-RESULT-WIDTH-101 — badge-ul statusului depășește coloana
 
@@ -331,7 +322,6 @@ Revalidarea J8 păstrează criteriul 101 deschis: pe raportul media-warning J2,
 TAB MCP măsoară la viewport 1280 px RESULT 56,99 px și badge Warning 61,79 px
 (clientWidth 56, scrollWidth 65). Colapsarea și verdicturile sunt corecte;
 regresia geometrică neutră cerută rămâne distinctă de testele de disclosure.
-
 
 ## REPORT-SQL-STEPS-116 — query-uri și rezultate auditabile
 
@@ -434,82 +424,9 @@ generice rămân comportamentul livrat; această cerere nu certifică SQL LIVE.
 - Captura JDBC implicită are 4.194.304 unități conservative; nu este plafon HTML. Păstrați cerința distinctă pentru query 4.096, binds 2.048, rezultate 16.384 și total SQL 1.048.576, toate configurabile, fără payload complet ascuns. Preview-ul assertions rămâne 240.
 - [Dovada J2](../../../atf_j2/docs/ATF_SQL_Live_Verification.md) separă H2, Kafka/MySQL reale și aplicația Eventuate NOT RUN. Nu certificați saga sau dialecte SQL prin fixture-ul neutru al rendererului.
 
-## Reconfirmarea J2 — criterii încă deschise
-
-The current J2 native SQL matrix again has 12 legitimate SQL-only artifacts:
-36 invocations, four intended SQL failures and passing independent oracles/
-mutants. These historical J10 artifacts were noncompliant under the legacy Extent/HTTP inspector. J12 adds an explicit profile; SQL-STEPS-116 remains open for neutral SQL steps/budgets and consumer adoption.
-
-- Proof roots in TMP: j2-quality-64e05d574c24 and j3-host-run-c79f1aaffbba.
-- These observations do not execute the J0 native/browser regression suite.
-
-
 ## Diagnostic bounded al assertions — criteriu separat de verdict
 
-- Two different long values can correctly yield FAIL while their 240-character
-  previews are identical. The new browser fixture preserves that FAIL, its exact
-  Fails backlink and the neighboring PASS comparison.
-- If richer diagnosis is required, capture a safe reference or bounded redacted
-  mismatch context before information is discarded. Keep 240; do not publish
-  entire hidden originals for already-bounded assertions or derive a verdict from display text.
-- Kit's component Check already stores sanitized previews. Reporting cannot
-  reconstruct a missing suffix from those values. Keep neutral capture at the
-  test/evaluator boundary and rendering in Reporting; no second comparison.
-- Treat differences hidden by redaction separately. Avoid raw secret digests,
-  lengths or context as an accidental disclosure; an explicit withheld reason
-  can be the correct safe evidence.
-
-Evidence root: TMP j0-deep-audit-1057ca2f02ed, reporting-probe.log and
-source-reports. Two browser-audited source artifacts are controlled fixtures,
-not SQL, HTTP, ASR or device acceptance. No implementation changed.
-
-## REPORT-FALLBACK-ASSERTION-AFFORDANCE-124 — indicator vizual pentru assertions
-
-Contract livrat [J12](../ATF_Reporting_J12_Verification.md): disclosure comun, indicator vizibil închis/deschis/reînchis, mouse/Enter/Space și mutant care ascunde numai glyph-ul. Assertions, statusurile și preview-ul 240 rămân conservate.
-
-## Increment J12 — contracte și dovezi
-
-[Dovada J12](../ATF_Reporting_J12_Verification.md) deține hash-ul final, selecțiile executate, limitele și acceptanțele distincte J1–J4. Criteriile 62, 83 și 124 nu mai sunt ToDo-uri. PUBLIC-API-43 rămâne deschis pentru delimitarea API-ului susținut și capabilitățile adaptoarelor; invarianta rezultatului de inspecție este rezolvată.
-
-## Contractul rândului UI
-
-Fidelitatea și redacția comună sunt în [contractul modulului](../../atf-reporting/README.md#fidelitatea-rândului-ui-și-politica-de-redactare), cu [regresii sursă/JAR J14](../ATF_Reporting_J14_Verification.md). Criteriul 135 este verificat și nu mai reprezintă un ToDo.
-
-[Contractul inline](../ATF_Inline_Audit_Contract.md) și [regresia J15](../ATF_Reporting_J15_Verification.md) închid fidelitatea PRE pentru TEXT. Criteriul 133 al assertions deja limitate și remedierea semanticii consumerilor rămân separate.
-
-## REPORT-SCREENSHOT-RETURN-137 — PNG reutilizat schimbă ownerul și pierde expandările
-
-Rezolvat în [J16](../ATF_Reporting_J16_Verification.md): viewer comun Extent/fallback, rezolvare directă a bytes canonici și caption local păstrat, fără click pe ownerul original. Close/Escape păstrează selecția, expandările, focusul și checkpoint-ul de lectură, inclusiv după reflow.
-
-Regresiile permanente verifică doi owneri, referință canonică ascunsă, ultimul checkpoint după scroll lung și caption cu markup/entity literal. [Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-screenshot-return-137--contextul-viewer-ului-pentru-png-reutilizat) păstrează probele; criteriile de compoziție Android rămân la J4.
-
-<details>
-<summary><strong>Reproducerea istorică J15</strong></summary>
-
-- Fixture neutru: ownerul activ 1 devenea 0, iar 82 de noduri deschise se colapsau la deschiderea unui PNG duplicat.
-- Panoul ajungea la circa 201 px cu top circa −10.866 px, aparent gol; bytes PNG nu erau pierduți.
-- Handlerul legacy apela original.click(); noul [viewer comun](../../atf-reporting/src/main/resources/atf/reporting/javascript/screenshot-viewer.js) nu navighează ancora canonică.
-
-</details>
-
-## REPORT-SCREENSHOT-VIEWPORT-138 — imagine integrală în spațiul disponibil
-
-Rezolvat în [J16](../ATF_Reporting_J16_Verification.md): dialog la dimensiunea viewport-ului, fit integral cu raportul de aspect original și mod Original size explicit. Mouse/Enter/Space, resize, close/Escape și revenirea la checkpoint sunt verificate pe sursă și JAR fizic, fără crop, deformare ori înlocuirea PNG-ului.
-
-[Contractul inline](../ATF_Inline_Audit_Contract.md#full-image-viewer-target) și [familia permanentă](ATF_Reporting_Tests_Feedback.md#report-test-screenshot-viewport-138--fit-integral-fără-crop) sunt documentația curentă. J4 păstrează [captura display-ului și oracolele aplicației](../../../atf_j4/docs/ATF_Android_Report_Contract.md#full-display-android-screenshots); schimbarea JAR-ului nu certifică execuția pe device ori detaliile business absente.
-
-## REPORT-LARGE-NAVIGATION-139 — verified retained-evidence navigation
-
-[The contract](../ATF_Large_Report_Navigation.md) moves hidden-table measurement
-to the visible path, coalesces related mutations, invalidates direct text changes
-and reuses timing/view indexes only inside one pass. Original cells, PNGs,
-verdicts and preview 240 are retained.
-
-[The J17 record](../ATF_Reporting_J17_Verification.md) separates passing source/JAR
-regressions and Chromium rendering. The user approved the recorded alternative
-to unavailable TAB MCP controls for this publication.
-J17 excluded bulk expansion of the real artifact; J18 follows the later user
-permission for at most two explicitly selected original owners.
+The [safe assertion contract](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor) preserves the original verdict and preview 240. A bounded caller value cannot reconstruct a missing suffix; [criterion 133](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) owns the remaining capture/disclosure boundary.
 
 ## REPORT-DISTRIBUTION-METADATA-140 — bind optional adoption paths
 
@@ -528,24 +445,51 @@ hashes, Maven loading and binary behavior were already correct.
 The current metadata is corrected; the remaining criterion is guard coverage,
 without a renderer change, new module or new library version.
 
+<details>
+<summary><strong>Delivered contracts and historical compatibility routes</strong></summary>
+
+## REPORT-ARTIFACT-PROFILE-62 — aplicabilitate explicită a inspectorului
+
+[Inspection intent](../../atf-reporting/README.md#inspecția-artifactului-cu-intenție-explicită) and [J12 verification](../ATF_Reporting_J12_Verification.md) own the delivered profile and invariant contracts.
+
+## REPORT-RECORDED-TIMING-83 — execuție capturată și cost de publicare
+
+[Recorded timing](../../atf-reporting/README.md#originea-duratelor-sub-o-fază-capturată) and [J12](../ATF_Reporting_J12_Verification.md) retain distinct execution, capture and publication axes.
+
+## Reconfirmarea J2 — criterii încă deschise
+
+This is a historical J10/J12 consumer witness. [J2 SQL verification](../../../atf_j2/docs/ATF_SQL_Live_Verification.md) owns its original executions; SQL-STEPS-116 above retains the separate open neutral-step and budget criteria.
+
+## REPORT-FALLBACK-ASSERTION-AFFORDANCE-124 — indicator vizual pentru assertions
+
+The assertion indicator is delivered in [J12](../ATF_Reporting_J12_Verification.md). Its regression belongs to the [Reporting harness](../../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions).
+
+## Increment J12 — contracte și dovezi
+
+[J12 verification](../ATF_Reporting_J12_Verification.md) retains the dated inspector, timing and assertion-indicator evidence. PUBLIC-API-43 remains separately open.
+
+## Contractul rândului UI
+
+[UI row fidelity](../../atf-reporting/README.md#fidelitatea-rândului-ui-și-politica-de-redactare), [J14](../ATF_Reporting_J14_Verification.md) and [J15 inline evidence](../ATF_Reporting_J15_Verification.md) own the delivered redaction and literal-text contracts.
+
+## REPORT-SCREENSHOT-RETURN-137 — PNG reutilizat schimbă ownerul și pierde expandările
+
+[J16](../ATF_Reporting_J16_Verification.md) owns canonical PNG identity, local captions and return context. The permanent [screenshot family](ATF_Reporting_Tests_Feedback.md#report-test-screenshot-return-137--contextul-viewer-ului-pentru-png-reutilizat) remains a regression obligation.
+
+## REPORT-SCREENSHOT-VIEWPORT-138 — imagine integrală în spațiul disponibil
+
+The [full-image contract](../ATF_Inline_Audit_Contract.md#full-image-viewer-target) and [J16](../ATF_Reporting_J16_Verification.md) own whole-frame fit, aspect ratio and explicit original-size inspection. Consumer capture and device acceptance remain separate.
+
+## REPORT-LARGE-NAVIGATION-139 — verified retained-evidence navigation
+
+[Large-report navigation](../ATF_Large_Report_Navigation.md), [J17](../ATF_Reporting_J17_Verification.md) and [J18](../ATF_Reporting_J18_Verification.md) own retained-evidence navigation and bounded external-owner acceptance.
+
 ## REPORT-COLD-READINESS-141 — startup repeats work before readiness
 
-Resolved in [J18](../ATF_Reporting_J18_Verification.md), with permanent neutral
-source/JAR regressions and separate post-distribution acceptance in J1–J4.
-The [contract](../ATF_Large_Report_Navigation.md#cold-startup-and-readiness)
-now owns the lifecycle and measurement rules.
-
-- Initialize the requested view once; native load repairs hrefs without restarting readiness.
-- Publish readiness only after successful normalization; ignore identical presentation writes, coalesce real invalidation and skip known hidden geometry.
-- Fresh processes retain 10 s readiness/action and 45 s navigation; API retains 5 s, comparisons/PNG stay intact and preview remains 240.
-- External bulk acceptance is bounded to original Android owners 3 and 4, with complete semantic-tree checks and a canonical PNG mutation negative.
+[Cold-start readiness](../ATF_Large_Report_Navigation.md#cold-startup-and-readiness) and [J18](../ATF_Reporting_J18_Verification.md) retain the original deadlines and permanent source/JAR contracts.
 
 ## REPORT-TIMELINE-TITLE-142 — native JavaScript key encoding
 
-Resolved in [J18](../ATF_Reporting_J18_Verification.md#native-timeline-labels).
-The Spark adapter encodes native timeline keys as JSON strings, preserving
-full quoted/multiline/backslash/Unicode caller labels and original durations.
+[Native timeline labels](../ATF_Reporting_J18_Verification.md#native-timeline-labels) retain complete caller keys, original durations and executable source/JAR script checks.
 
-Neutral permanent source/JAR cases execute the actual embedded script and
-reject browser errors. The current J4 Learning publication is rendered again;
-timestamp, cold-start and adjacent consumer acceptance remain independent.
+</details>

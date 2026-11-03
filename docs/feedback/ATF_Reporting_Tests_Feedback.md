@@ -19,7 +19,6 @@ păstrată în staging. O selecție focalizată verde nu certifică inventarul r
 | păstrați două limite de distribuție | runtime-ul JAR nu primește sursa producătorului pentru a satisface un fixture |
 | controalele negative rămân executabile | eliminarea unei capturi, schimbarea unui verdict ori ascunderea dovezii originale trebuie detectate separat |
 
-
 ## REPORT-TEST-AUDIT-60 — o dovadă identificabilă pentru fiecare scenariu
 
 **Prioritate: 80/100** = impact 31 + lacună 24 + lucrabil 18 + documentare 7.
@@ -64,14 +63,6 @@ rămâne la aplicație; fixture-ul neutru nu aduce Shop/AutoEx în Reporting Tes
 Contractele și selecțiile sunt la [README-ul modulului](../../atf-reporting-tests/README.md).
 Build-ul și auditul respectă [procesul izolat](../ATF_Build_And_Execution_Safety.md);
 documentele normative nu păstrează artifacte sau rezultate datate.
-
-## REPORT-TEST-ARTIFACT-PROFILE-62 — matrice neutră fără HTTP fictiv
-
-Matricea permanentă este în [README-ul harness-ului](../../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions), cu [acceptanță J12](../ATF_Reporting_J12_Verification.md). Assertion/observation-only și HTTP obligatoriu, individual/agregat, Extent/fallback, mismatch numeric și după 240, inventar/verdict/owner degradat: criteriul de profil este consolidat. Auditul generic exact-row/reload rămâne în REPORT-TEST-AUDIT-60.
-
-## Timing capturat versus publicare — regresie de păstrat
-
-[RecordedPublicationTimingComponentTest](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/timing/RecordedPublicationTimingComponentTest.java) deține regresia permanentă cu barieră, fără sleep-uri probabilistice. [J12](../ATF_Reporting_J12_Verification.md) verifică sursa și JAR-ul fizic; atribuirea duratei nu mai este un ToDo.
 
 ## REPORT-TEST-FALLBACK-RESULT-WIDTH-101 — geometria celulei RESULT
 
@@ -154,65 +145,39 @@ query/bind-uri/schema efectiv capturate. Acceptanța anterioară J9 rămâne ist
 
 ## Limite active după consolidarea J12
 
-- J12 a închis invarianta recordurilor publice de inspecție prin negative permanente sursă/JAR; acestea nu mai sunt criterii deschise.
-- Regresiile Core console/cancellation sunt native Core. Proiecția public JSON-string este comparată separat în harness, fără dependență runtime Reporting → Core.
-- [Unicode și scope-uri Kit](../../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md) sunt cerințe J1; aici rămâne numai integrarea neutrelor cu tabelul Reporting.
-- SQL-STEPS-116, oracolul exact-row/reload și geometria RESULT rămân criterii distincte; probele verzi de profil nu le închid implicit.
+- SQL-STEPS-116, exact-row/reload failure identity and RESULT geometry remain separate open criteria.
+- [Unicode and Kit scope](../../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md) belong to J1; Reporting keeps the neutral rendering boundary.
+- [Long UI assertion capture](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) remains separate from the delivered ACTION/OBSERVE and literal TEXT contracts.
 
-[Acceptanța J12](../ATF_Reporting_J12_Verification.md) păstrează metadata, timing, indicatorul assertions și profilul explicit. [Core](ATF_Core_Feedback.md) deține schimbările de transport și politica redacției.
+<details>
+<summary><strong>Delivered regression families and compatibility routes</strong></summary>
 
-[Compoziția inline J15 verificată](../ATF_Reporting_J15_Verification.md) are regresii permanente; controlul 136 este în baseline. Semantica Android rămâne la consumer.
+## REPORT-TEST-ARTIFACT-PROFILE-62 — matrice neutră fără HTTP fictiv
+
+[J12](../ATF_Reporting_J12_Verification.md) and the [harness contract](../../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions) retain explicit artifact profiles and degraded-inventory negatives.
+
+## Timing capturat versus publicare — regresie de păstrat
+
+[RecordedPublicationTimingComponentTest](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/timing/RecordedPublicationTimingComponentTest.java) and [J12](../ATF_Reporting_J12_Verification.md) own the permanent barrier-based timing regression.
 
 ## REPORT-TEST-SCREENSHOT-RETURN-137 — contextul viewer-ului pentru PNG reutilizat
 
-Familie permanentă livrată în [J16](../ATF_Reporting_J16_Verification.md): [ScreenshotReferenceComponentTest](../../atf-reporting-tests/src/test/java/atf/reporting/observation/ScreenshotReferenceComponentTest.java) și [ScreenshotViewerBrowserComponentTest](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/screenshot/ScreenshotViewerBrowserComponentTest.java). Cei doi owneri și ultimul checkpoint după scroll lung păstrează bytes, caption local, selecția, nodurile și focusul; nu există dependență Android.
-
-Resize verifică identitatea și checkpoint-ul vizibil după reflow; fără reflow se cere scroll-ul legal exact. Controlul negativ refuză resetarea la zero chiar când documentul se micșorează; deadline-urile și preview-ul 240 rămân neschimbate.
+[Screenshot reference contracts](../../atf-reporting-tests/src/test/java/atf/reporting/observation/ScreenshotReferenceComponentTest.java), the [browser family](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/screenshot/ScreenshotViewerBrowserComponentTest.java) and [J16](../ATF_Reporting_J16_Verification.md) retain owner, caption, focus and legal scroll restoration.
 
 ## REPORT-TEST-SCREENSHOT-VIEWPORT-138 — fit integral fără crop
 
-[Fixture-ul neutru](../../atf-reporting-tests/src/test/java/atf/reporting/support/screenshot/ScreenshotViewerFixture.java) produce portrait/landscape/square, trei PNG canonice și 42 de referințe, fără date Whist sau device. Probe componente și browser sursă/JAR verifică originalele, geometria integrală, resize, fit/original-size și mouse/Enter/Space/Escape; caption-urile cu entity literal sunt decodate exact o dată.
-
-[Acceptanța J16](../ATF_Reporting_J16_Verification.md) păstrează separat nativele, matricea extinsă, rerulările afectate și fiecare consumer. Familiile 137/138 sunt în baseline; cerințele de setup/input/oracol și detaliu adaptiv ale J4 nu devin teste de business în Reporting.
-
+The [neutral fixture](../../atf-reporting-tests/src/test/java/atf/reporting/support/screenshot/ScreenshotViewerFixture.java) and [J16](../ATF_Reporting_J16_Verification.md) own full-image geometry, input controls and immutable PNG acceptance on source/JAR.
 
 ## REPORT-LARGE-NAVIGATION-139 — permanent retained-evidence regression
 
-The source/JAR navigation, hidden-table mutation and timing-cache contracts are
-verified in [J17](../ATF_Reporting_J17_Verification.md). The reviewed test-change
-control is retained in the [baseline](../ATF_Test_Changes_Baseline.md).
-
-- External large artifacts default to targeted assertions/PNG paths. J18 additionally permits at most two explicitly selected source owners, with complete semantic-tree and retained-evidence checks.
-- Selectors are scoped to the Tests view,
-so a hidden Fails copy cannot satisfy or invalidate the active-owner oracle.
-
-The final inventory includes canonical PNG payloads. A one-character mutation
-with unchanged link, caption and owner is rejected on source and physical JAR,
-including targeted acceptance of the complete archived Android report.
+[J17](../ATF_Reporting_J17_Verification.md) and [J18](../ATF_Reporting_J18_Verification.md) retain the navigation, hidden-table, semantic-tree and canonical-PNG mutation families. Large external reports use targeted paths or at most two explicitly selected original owners.
 
 ## REPORT-COLD-READINESS-141 — permanent startup regression
 
-[The J18 record](../ATF_Reporting_J18_Verification.md) preserves the failed
-J17 baseline and rejected bootstrap-only candidate, followed by permanent
-source/JAR contracts at the original deadlines.
-
-| Family | Required proof |
-|---|---|
-| ColdStartReadinessComponentTest | five startup destinations, deep link, stable repeated load/native hrefs, truthful failure/recovery and fresh real controls |
-| EvidenceTableVisibilityComponentTest | unchanged writes avoid glyph measurement; actual text/native cell-font changes remeasure; known hidden views avoid geometry until reveal |
-| LargeReportNavigationBrowserComponentTest | at most two explicit external bulk owners; every semantic card opens; original comparisons and canonical PNG inventories remain, with payload-mutation negative |
-
-Control 141 is [verified in the baseline](../ATF_Test_Changes_Baseline.md).
-The existing navigation/visibility paths remain under control 139; the new
-control owns only the cold-start class, without overlapping paths.
+[J18](../ATF_Reporting_J18_Verification.md) owns ColdStartReadinessComponentTest, unchanged-write measurement checks and the original cold-start deadlines. Control 141 remains verified in the [baseline](../ATF_Test_Changes_Baseline.md).
 
 ## REPORT-TIMELINE-TITLE-142 — permanent native-script contract
 
-TimelineTitleEncodingComponentTest retains three neutral owner labels: quoted
-multiline JSON, Windows backslashes and Unicode. It executes the actual Spark
-timeline script, compares full keys and rejects browser errors; the unchanged
-deadlines and five timestamp cases stay explicit.
+[Native timeline verification](../ATF_Reporting_J18_Verification.md#native-timeline-labels) retains three full-label script cases, the old-binary negative and unchanged timestamp coverage.
 
-The old binary fails all three cases. [J18 evidence](../ATF_Reporting_J18_Verification.md#native-timeline-labels)
-and the [verified baseline](../ATF_Test_Changes_Baseline.md) retain the proof,
-with no consumer business logic in the generic harness.
+</details>
