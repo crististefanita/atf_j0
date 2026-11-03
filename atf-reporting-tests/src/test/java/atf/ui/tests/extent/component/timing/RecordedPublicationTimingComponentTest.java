@@ -76,10 +76,25 @@ class RecordedPublicationTimingComponentTest {
                 assertEquals("903", publication.getAttribute("data-duration-ms")); assertEquals("publication", publication.getAttribute("data-duration-source"));
                 assertTrue(publication.evaluate("e => getComputedStyle(e,'::after').content").toString().toLowerCase(java.util.Locale.ROOT).contains("publication"));
             }
+            if (!fallback) assertTimingRefresh(page, phase, metadata, phaseBadge);
             assertCaptionSpacing(phaseBadge);
             if (!fallback) assertCaptionSpacing(badge);
             assertEquals("11", phaseBadge.getAttribute("data-duration-ms"), "descendant publication/transport must not be summed into captured execution");
         }
+    }
+
+    private static void assertTimingRefresh(Page page, Locator phase, Locator marker, Locator badge) {
+        String captured=marker.evaluate("e => e.outerHTML").toString();
+        marker.evaluate("e => e.remove()");
+        page.evaluate("() => window.atfActivate('test-view')");
+        assertThat(badge).hasAttribute("data-duration-source","aggregated");
+        phase.evaluate("(e, html) => e.insertAdjacentHTML('beforeend',html)",captured);
+        phase.locator("[data-atf-execution-duration-ms]").first().evaluate("e => e.setAttribute('data-atf-execution-duration-ms','19')");
+        page.evaluate("() => window.atfActivate('test-view')");
+        assertThat(badge).hasAttribute("data-duration-ms","19");
+        phase.locator("[data-atf-execution-duration-ms]").first().evaluate("e => e.setAttribute('data-atf-execution-duration-ms','11')");
+        page.evaluate("() => window.atfActivate('test-view')");
+        assertThat(badge).hasAttribute("data-duration-ms","11");
     }
 
     private static void assertCaptionSpacing(Locator badge) {

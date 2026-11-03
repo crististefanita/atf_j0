@@ -15,7 +15,7 @@ class ValidationTableLayoutComponentTest {
     void bothRenderersComposeTheSameContentAwareAllocatorAndIncrementalLifecycle() {
         String script = ExtentReportRuntimeEvidenceTableLayout.script();
         assertAll(
-                () -> assertTrue(ReportAssetComposer.fallbackNavigationScript().endsWith(script)),
+                () -> assertTrue(ReportAssetComposer.fallbackNavigationScript().contains(script)),
                 () -> assertTrue(script.contains("measureText")),
                 () -> assertTrue(script.contains("data-atf-content-column-max-px")),
                 () -> assertTrue(script.contains("data-atf-content-column-widths")),

@@ -1,4 +1,4 @@
-function normalizeCategoryDurations() {
+function normalizeCategoryDurations(lookup) {
   if (typeof normalizeCategoryLinks === 'function') normalizeCategoryLinks();
   q('#category-view .test-list-item>.test-item').forEach(function (item) {
     var links = q('a.linked[test-id],a.linked[data-atf-test-id]', item),
@@ -11,7 +11,7 @@ function normalizeCategoryDurations() {
       var index = link.getAttribute('data-atf-scenario-index');
       if (index === null && typeof categoryScenarioIndex === 'function')
         index = String(categoryScenarioIndex(link, id));
-      var card = scenarioCardFor(id, index);
+      var card = scenarioCardFor(id, index, lookup);
       var value = card && card.getAttribute('data-duration-ms');
       if (value !== null && /^\d+(?:\.\d+)?$/.test(value)) {
         total += Number(value);
@@ -33,8 +33,8 @@ function normalizeCategoryDurations() {
     field.setAttribute('data-duration-source', 'aggregated');
   });
 }
-function overviewTimelineEntries() {
-  var roots = typeof classItems === 'function' ? classItems() : [],
+function overviewTimelineEntries(lookup) {
+  var roots = lookup ? lookup.roots : typeof classItems === 'function' ? classItems() : [],
     entries = [];
   if (!roots.length) return null;
   var complete = roots.every(function (root) {
@@ -84,7 +84,7 @@ function publishOverviewTimeline(entries, canvas) {
     if (typeof chart.update === 'function') chart.update(0);
   });
 }
-function normalizeOverviewDuration() {
+function normalizeOverviewDuration(lookup) {
   var timeline = document.getElementById('timeline'),
     host =
       timeline ||
@@ -93,7 +93,7 @@ function normalizeOverviewDuration() {
   if (!host) return;
   var total = 0,
     source = window.timeline || {},
-    entries = overviewTimelineEntries();
+    entries = overviewTimelineEntries(lookup);
   if (entries) {
     publishOverviewTimeline(entries, timeline);
     entries.forEach(function (entry) { total += entry.milliseconds; });
@@ -109,11 +109,11 @@ function normalizeOverviewDuration() {
   host.setAttribute('aria-label', label);
   host.setAttribute('title', label);
 }
-function normalizeFailsDurations() {
+function normalizeFailsDurations(lookup) {
   q('#atf-fails-view .atf-failure').forEach(function (row) {
     var card = scenarioCardFor(
       row.getAttribute('data-atf-test-id'),
-      row.getAttribute('data-atf-scenario-index')
+      row.getAttribute('data-atf-scenario-index'), lookup
     );
     var value = card && card.getAttribute('data-duration-ms');
     if (value === null) return;
@@ -122,7 +122,8 @@ function normalizeFailsDurations() {
   });
 }
 function normalizeProjectedDurations() {
-  normalizeCategoryDurations();
-  normalizeOverviewDuration();
-  normalizeFailsDurations();
+  var lookup = scenarioDurationLookup();
+  normalizeCategoryDurations(lookup);
+  normalizeOverviewDuration(lookup);
+  normalizeFailsDurations(lookup);
 }

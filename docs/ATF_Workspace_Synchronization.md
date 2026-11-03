@@ -9,10 +9,10 @@ primește și verifică livrarea potrivită propriului deployment.
 | Workspace | Rol | Suprafață existentă |
 |---|---|---|
 | `atf_j0` | sursă Core/Reporting, teste native și `atf-reporting-tests`; referință pentru contractele comune | 12 module sursă; Core și guvernanța comune reconciliate |
-| `atf_j1` | testarea AutoEx și Shop; consumer Core și Reporting prin JAR | 9 module journeys; C3/J16 în lib și acceptanță proprie |
+| `atf_j1` | testarea AutoEx și Shop; consumer Core și Reporting prin JAR | 9 module journeys; C3/J18 în lib și acceptanță proprie |
 | `atf_j2` | WIP: framework și teste Kafka/mesagerie, fără module browser ori Shop/AutoEx | 8 module sursă, inclusiv SQL; Core și Reporting JAR; componente Eventuate MOCK; Kafka remote și clientul Java de infrastructură validate în incrementul J2; clientul/observerul framework-ului rămâne WIP |
-| `atf_j4` | consumer Android/ADB, șapte module; Core și Reporting JAR | adopție J16 separată, cu PNG sintetic; E2E device rămâne la J4 |
-| `atf_j3` | consumer speech, șapte module sursă; Core și Reporting prin JAR | C3/J16 în lib și acceptanță proprie, fără module web ori mesagerie |
+| `atf_j4` | consumer Android/ADB, șapte module; Core și Reporting JAR | adopție J18 separată, cu PNG original arhivat; E2E device rămâne la J4 |
+| `atf_j3` | consumer speech, șapte module sursă; Core și Reporting prin JAR | C3/J18 în lib și acceptanță proprie, fără module web ori mesagerie |
 | `demo2` | origine istorică a livrării J6 existente | nu mai este destinație activă de mentenanță sau sync |
 
 J1 poate avea schimbări comune în lucru. Referința J0 nu autorizează
@@ -135,3 +135,9 @@ J0 păstrează sursa și testele native Core; reactorul sursă are în continuar
 Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 
 [Livrarea observations J7](ATF_Reporting_J7_Verification.md) păstrează acceptanțele și istoricul versiunilor separat.
+
+## Current large-report delivery
+
+[Reporting J18](ATF_Reporting_J18_Verification.md) records the common pair and
+independent consumer checks. Core C3 is unchanged; device, ASR and Eventuate
+application acceptance remain separate from publication/rendering.

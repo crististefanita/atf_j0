@@ -13,7 +13,7 @@ consumul Reporting sursă. J2 pregătește separat testarea cozilor și mesajelo
 |---|---|
 | J0 | 12 module, sursa Reporting și regresiile native/mock/browser; [atlasul sursei](../atf_j0/docs/ATF_Context_Atlas.md) |
 | J1 | 9 module sursă, scenarii AutoEx/Shop și Core/Reporting JAR; [atlasul consumerului](../atf_j1/docs/ATF_Context_Atlas.md) |
-| J2 · WIP | 7 module sursă, Core/Reporting JAR, un modul de test Kafka/mesagerie și Setup PowerShell în Podman; [atlasul WIP](../atf_j2/docs/ATF_Context_Atlas.md) |
+| J2 · WIP | 8 module sursă, Core/Reporting JAR, un modul de test Kafka/mesagerie și Setup PowerShell în Podman; [atlasul WIP](../atf_j2/docs/ATF_Context_Atlas.md) |
 
 Rolul proiectului și rezultatul verificat sunt distincte: un build sau un MOCK verde nu certifică serviciul extern, brokerul ori întregul ATF.
 
@@ -466,6 +466,22 @@ Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 
 J15 păstrează și CR/LF literal, inclusiv prima linie din corpurile TEXT inline.
 
-## Current screenshot viewer — J16
+## Screenshot viewer — introduced in J16
 
 [Reporting J16](docs/ATF_Reporting_J16_Verification.md) fits complete PNG evidence to the browser viewport and preserves the clicked checkpoint, local caption, disclosures and focus when closing the viewer. Core C3, the 240-character preview and the existing UI/API/SQL evidence contracts remain unchanged. Producer-side setup, inputs, independent expected values and capture completeness retain their own acceptance.
+
+## Large-report navigation — J17
+
+[J17 acceptance](docs/ATF_Reporting_J17_Verification.md) records the retained-evidence
+navigation fix, permanent source/JAR regressions and this workspace's own sanity.
+The full Android artifact retains its supplied comparison rows and original PNGs;
+closed tables are measured when opened, and timing/view indexes are reused only
+within their aggregation pass. Preview 240, independent verdicts and the shared
+UI/API/SQL table formatting remain part of the contract.
+
+## Cold-start report readiness
+
+[Reporting J18 verification](docs/ATF_Reporting_J18_Verification.md) records
+single initialization for the requested view, truthful readiness and native
+navigation-link repair. PNGs, audit comparisons and preview 240 are retained;
+readiness/action and navigation deadlines remain 10 s and 45 s.

@@ -497,3 +497,55 @@ Regresiile permanente verifică doi owneri, referință canonică ascunsă, ulti
 Rezolvat în [J16](../ATF_Reporting_J16_Verification.md): dialog la dimensiunea viewport-ului, fit integral cu raportul de aspect original și mod Original size explicit. Mouse/Enter/Space, resize, close/Escape și revenirea la checkpoint sunt verificate pe sursă și JAR fizic, fără crop, deformare ori înlocuirea PNG-ului.
 
 [Contractul inline](../ATF_Inline_Audit_Contract.md#full-image-viewer-target) și [familia permanentă](ATF_Reporting_Tests_Feedback.md#report-test-screenshot-viewport-138--fit-integral-fără-crop) sunt documentația curentă. J4 păstrează [captura display-ului și oracolele aplicației](../../../atf_j4/docs/ATF_Android_Report_Contract.md#full-display-android-screenshots); schimbarea JAR-ului nu certifică execuția pe device ori detaliile business absente.
+
+## REPORT-LARGE-NAVIGATION-139 — verified retained-evidence navigation
+
+[The contract](../ATF_Large_Report_Navigation.md) moves hidden-table measurement
+to the visible path, coalesces related mutations, invalidates direct text changes
+and reuses timing/view indexes only inside one pass. Original cells, PNGs,
+verdicts and preview 240 are retained.
+
+[The J17 record](../ATF_Reporting_J17_Verification.md) separates passing source/JAR
+regressions and Chromium rendering. The user approved the recorded alternative
+to unavailable TAB MCP controls for this publication.
+J17 excluded bulk expansion of the real artifact; J18 follows the later user
+permission for at most two explicitly selected original owners.
+
+## REPORT-DISTRIBUTION-METADATA-140 — bind optional adoption paths
+
+**Priority: P2. Owner:** Reporting release/provenance in J0; deployment guards
+remain with their consumers.
+
+The J17 closing audit corrected stale J16 jar/pom
+paths in the current consumerDistribution objects of J1–J3. Native coordinates,
+hashes, Maven loading and binary behavior were already correct.
+
+- [ ] Add a permanent negative fixture with valid coordinate/hash and physical
+      JAR, but a stale optional consumerDistribution.jar or .pom path.
+- [ ] Require those fields, when present, to match the declared flat pair;
+      preserve the distinct J4 libraries/files schema and historical records.
+
+The current metadata is corrected; the remaining criterion is guard coverage,
+without a renderer change, new module or new library version.
+
+## REPORT-COLD-READINESS-141 — startup repeats work before readiness
+
+Resolved in [J18](../ATF_Reporting_J18_Verification.md), with permanent neutral
+source/JAR regressions and separate post-distribution acceptance in J1–J4.
+The [contract](../ATF_Large_Report_Navigation.md#cold-startup-and-readiness)
+now owns the lifecycle and measurement rules.
+
+- Initialize the requested view once; native load repairs hrefs without restarting readiness.
+- Publish readiness only after successful normalization; ignore identical presentation writes, coalesce real invalidation and skip known hidden geometry.
+- Fresh processes retain 10 s readiness/action and 45 s navigation; API retains 5 s, comparisons/PNG stay intact and preview remains 240.
+- External bulk acceptance is bounded to original Android owners 3 and 4, with complete semantic-tree checks and a canonical PNG mutation negative.
+
+## REPORT-TIMELINE-TITLE-142 — native JavaScript key encoding
+
+Resolved in [J18](../ATF_Reporting_J18_Verification.md#native-timeline-labels).
+The Spark adapter encodes native timeline keys as JSON strings, preserving
+full quoted/multiline/backslash/Unicode caller labels and original durations.
+
+Neutral permanent source/JAR cases execute the actual embedded script and
+reject browser errors. The current J4 Learning publication is rendered again;
+timestamp, cold-start and adjacent consumer acceptance remain independent.

@@ -82,14 +82,23 @@ function atfPerformanceMarkReady() {
   atfReportPerformanceState.readinessMs =
     Math.max(0, atfReportPerformanceState.readinessCompletedAt -
       atfReportPerformanceState.readinessStartedAt);
-  var navigation = window.performance && window.performance.getEntriesByType
-    ? window.performance.getEntriesByType('navigation') : [];
-  if (navigation && navigation.length)
-    atfReportPerformanceState.pageLoadMs = Math.max(0, Number(navigation[0].duration || 0));
+  atfPerformanceRecordPageLoad();
   atfReportPerformanceState.ready = true;
   document.documentElement.setAttribute('data-atf-test-view-ready', 'true');
   atfPerformancePublish();
 }
+function atfPerformanceRecordPageLoad() {
+  var entries = window.performance && window.performance.getEntriesByType
+    ? window.performance.getEntriesByType('navigation') : [],
+    duration = entries.length ? Number(entries[0].duration || 0) : 0;
+  if (duration > 0) atfReportPerformanceState.pageLoadMs = duration;
+}
+window.addEventListener('load', function () {
+  setTimeout(function () {
+    atfPerformanceRecordPageLoad();
+    atfPerformancePublish();
+  }, 0);
+});
 function atfPerformanceSnapshot() {
   return Object.assign({}, atfReportPerformanceState);
 }

@@ -174,3 +174,45 @@ Resize verifică identitatea și checkpoint-ul vizibil după reflow; fără refl
 [Fixture-ul neutru](../../atf-reporting-tests/src/test/java/atf/reporting/support/screenshot/ScreenshotViewerFixture.java) produce portrait/landscape/square, trei PNG canonice și 42 de referințe, fără date Whist sau device. Probe componente și browser sursă/JAR verifică originalele, geometria integrală, resize, fit/original-size și mouse/Enter/Space/Escape; caption-urile cu entity literal sunt decodate exact o dată.
 
 [Acceptanța J16](../ATF_Reporting_J16_Verification.md) păstrează separat nativele, matricea extinsă, rerulările afectate și fiecare consumer. Familiile 137/138 sunt în baseline; cerințele de setup/input/oracol și detaliu adaptiv ale J4 nu devin teste de business în Reporting.
+
+
+## REPORT-LARGE-NAVIGATION-139 — permanent retained-evidence regression
+
+The source/JAR navigation, hidden-table mutation and timing-cache contracts are
+verified in [J17](../ATF_Reporting_J17_Verification.md). The reviewed test-change
+control is retained in the [baseline](../ATF_Test_Changes_Baseline.md).
+
+- External large artifacts default to targeted assertions/PNG paths. J18 additionally permits at most two explicitly selected source owners, with complete semantic-tree and retained-evidence checks.
+- Selectors are scoped to the Tests view,
+so a hidden Fails copy cannot satisfy or invalidate the active-owner oracle.
+
+The final inventory includes canonical PNG payloads. A one-character mutation
+with unchanged link, caption and owner is rejected on source and physical JAR,
+including targeted acceptance of the complete archived Android report.
+
+## REPORT-COLD-READINESS-141 — permanent startup regression
+
+[The J18 record](../ATF_Reporting_J18_Verification.md) preserves the failed
+J17 baseline and rejected bootstrap-only candidate, followed by permanent
+source/JAR contracts at the original deadlines.
+
+| Family | Required proof |
+|---|---|
+| ColdStartReadinessComponentTest | five startup destinations, deep link, stable repeated load/native hrefs, truthful failure/recovery and fresh real controls |
+| EvidenceTableVisibilityComponentTest | unchanged writes avoid glyph measurement; actual text/native cell-font changes remeasure; known hidden views avoid geometry until reveal |
+| LargeReportNavigationBrowserComponentTest | at most two explicit external bulk owners; every semantic card opens; original comparisons and canonical PNG inventories remain, with payload-mutation negative |
+
+Control 141 is [verified in the baseline](../ATF_Test_Changes_Baseline.md).
+The existing navigation/visibility paths remain under control 139; the new
+control owns only the cold-start class, without overlapping paths.
+
+## REPORT-TIMELINE-TITLE-142 — permanent native-script contract
+
+TimelineTitleEncodingComponentTest retains three neutral owner labels: quoted
+multiline JSON, Windows backslashes and Unicode. It executes the actual Spark
+timeline script, compares full keys and rejects browser errors; the unchanged
+deadlines and five timestamp cases stay explicit.
+
+The old binary fails all three cases. [J18 evidence](../ATF_Reporting_J18_Verification.md#native-timeline-labels)
+and the [verified baseline](../ATF_Test_Changes_Baseline.md) retain the proof,
+with no consumer business logic in the generic harness.

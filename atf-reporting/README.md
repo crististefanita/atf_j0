@@ -2415,3 +2415,30 @@ PNG evidence opens in one shared Extent/fallback viewer using the available brow
 - The producer supplies meaningful test purpose, effective setup/inputs, independent expected values and clear evidence limits; hashes and raw file dumps do not establish business correctness.
 
 The [inline contract](../docs/ATF_Inline_Audit_Contract.md) separates primary audit content from optional technical provenance. Permanent neutral [reference contracts](../atf-reporting-tests/src/test/java/atf/reporting/observation/ScreenshotReferenceComponentTest.java) and [browser journeys](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/screenshot/ScreenshotViewerBrowserComponentTest.java) cover the viewport and return context; Android capture/oracles stay in the consumer.
+
+## Large-report navigation
+
+[The incremental navigation contract](../docs/ATF_Large_Report_Navigation.md) preserves all supplied assertions and original PNGs with preview 240. Hidden-table work is deferred, DOM updates are coalesced and execution-marker lookup is cached only for one aggregation pass.
+
+[Source/JAR and consumer evidence](../docs/ATF_Reporting_J17_Verification.md) distinguishes browser acceptance from fresh business/device execution; neutral permanent regressions remain in Reporting Tests.
+
+## Cold startup and readiness
+
+The navigation bootstrap honors the requested view once across DOMContentLoaded
+and load. Load timing updates independently; successful normalization publishes
+readiness, while an error leaves the cycle unready. Dynamic-content observers
+and explicit view switches remain active.
+
+[The cold-start contract](../docs/ATF_Large_Report_Navigation.md) and
+[J18 verification](../docs/ATF_Reporting_J18_Verification.md) retain fresh-browser
+10 s readiness/action and 45 s navigation bounds, canonical PNG payloads,
+comparisons and preview 240. Bulk acceptance selects at most two source owners.
+
+## Native timeline labels
+
+The Spark presentation adapter encodes timeline keys as JSON strings while
+preserving full caller labels and captured duration values. The pinned vendor
+expression is checked before publication; a changed template fails explicitly.
+
+[The J18 record](../docs/ATF_Reporting_J18_Verification.md) covers quoted and
+multiline JSON, backslashes and Unicode, alongside the unchanged 24-hour clock.

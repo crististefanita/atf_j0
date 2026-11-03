@@ -31,7 +31,9 @@ function aggregateChildDurations(card) {
   });
   return summary;
 }
+var atfExecutionTimingCache = new WeakMap();
 function executionTiming(card) {
+  if (atfExecutionTimingCache.has(card)) return atfExecutionTimingCache.get(card);
   var marker = q('[data-atf-execution-duration-ms]', card).find(item => item.closest('.card') === card);
   var row = marker && marker.closest('tr.event-row');
   if (row) {
@@ -40,6 +42,7 @@ function executionTiming(card) {
     row.remove();
     if (table && !table.querySelector('tbody tr')) table.remove();
   }
+  atfExecutionTimingCache.set(card, marker || null);
   return marker;
 }
 function durationDecision(card, children) {
@@ -79,6 +82,7 @@ function aggregateVisibleNodeDurations() {
   q('#test-view .test-content-detail .card[data-atf-node-role="phase"]').forEach(aggregateNodeDuration);
 }
 function aggregateNodeDurations() {
+  atfExecutionTimingCache = new WeakMap();
   testItems();
   rememberMeasuredDurations();
   allScenarioCards().forEach(aggregateNodeDuration);

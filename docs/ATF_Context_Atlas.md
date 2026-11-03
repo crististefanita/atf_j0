@@ -25,6 +25,7 @@ său. Codul, POM-ul și testele live rămân autoritatea pentru ceea ce există.
 | rețea browser | [rețea browser](../atf-ui/src/main/java/atf/ui/network/README.md) | schimbi hook-uri, identitate, retenție ori cleanup |
 | biblioteca Reporting | [atlas Reporting](../atf-reporting/src/main/java/atf/reporting/README.md) | schimbi modelul, rendererul, publicarea ori contractul JAR |
 | viewer PNG | [J16](ATF_Reporting_J16_Verification.md) | păstrezi cadrul integral, caption-ul local și contextul după close, fără a reconstrui setup-ul consumerului |
+| rapoarte mari | [navigare incrementală](ATF_Large_Report_Navigation.md) | păstrezi toate dovezile, amâni măsurarea ascunsă și verifici punctual assertion/PNG; bulk numai în fixture-ul neutru |
 | compoziție inline | [contract](ATF_Inline_Audit_Contract.md) și [J15](ATF_Reporting_J15_Verification.md) | separi faptele callerului de renderer și probezi textul complet, assertions și PNG fără fișiere externe |
 | consolidare Reporting și probe | [implementare](feedback/ATF_Reporting_Feedback.md) / [Reporting Tests](feedback/ATF_Reporting_Tests_Feedback.md) | separi defectul de lifecycle/API de oracol, fixture binar și navigarea dovezii |
 
@@ -87,7 +88,7 @@ pornește investigația; nu înlocuiește verificarea sursei afectate.
 | Decizie inițială | Sursa de adevăr | Limita ei |
 |---|---|---|
 | ce reactor folosesc? | [workspace-uri](ATF_Workspace_Synchronization.md), apoi POM-ul țintei | J0 sursă 12, J1 JAR 9, J2 WIP 8, J3 speech 7, J4 Android 7; profilurile nu se deduc din foldere absente |
-| schimbare Reporting? | [atlasul sursei J0](../../atf_j0/atf-reporting/src/main/java/atf/reporting/README.md) și [regresiile permanente](../../atf_j0/atf-reporting-tests/README.md) | Reporting J14 are acceptanțe distincte în J1/J2/J3/J4; documentația sursei nu certifică automat JAR-ul consumat |
+| schimbare Reporting? | [atlasul sursei J0](../../atf_j0/atf-reporting/src/main/java/atf/reporting/README.md) și [regresiile permanente](../../atf_j0/atf-reporting-tests/README.md) | Reporting are acceptanțe distincte în J1/J2/J3/J4; documentația sursei nu certifică automat JAR-ul consumat |
 | schimbare de aplicație? | [Shop](../../atf_j1/atf-test-practice-shop/README.md) sau [AutoEx](../../atf_j1/atf-test-auto-ex/README.md) | expected, captură și selecție business rămân în consumer |
 | schimbare Kafka/Podman? | [atlasul J2](../../atf_j2/docs/ATF_Context_Atlas.md), apoi Setup și configurația | trei componente MOCK și scripturi existente; clientul Java/brokerul real sunt WIP |
 
@@ -311,3 +312,10 @@ Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 
 Consumerii care păstrează apelul legacy al inspectorului primesc în continuare contractul strict Extent/HTTP.
 Adopția overload-ului explicit și acceptanța aplicației sunt decizii ale consumerului, separate de distribuția binarului.
+
+## Cold report initialization
+
+[The navigation contract](ATF_Large_Report_Navigation.md#cold-startup-and-readiness)
+links the lifecycle owner, truthful readiness, native link repair and permanent
+neutral regressions. [J18 acceptance](ATF_Reporting_J18_Verification.md) records
+the source/JAR boundary and independent consumer checks.

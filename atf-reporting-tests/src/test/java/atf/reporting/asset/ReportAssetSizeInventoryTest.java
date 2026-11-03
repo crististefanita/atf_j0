@@ -13,17 +13,18 @@ class ReportAssetSizeInventoryTest {
     // The table-layout, network-disclosure and bounded-evidence contracts are
     // part of the published runtime; keep measured headroom without masking
     // unrelated growth.
-    private static final long NATIVE_JAVASCRIPT_BASELINE_BYTES = 135_000L;
+    private static final long NATIVE_JAVASCRIPT_BASELINE_BYTES = 137_000L;
     // J8: fallback ARIA synchronization adds exactly 394 published bytes over J7.
     // Bound that owner separately so unrelated headroom cannot hide further growth.
-    private static final long PUBLICATION_JAVASCRIPT_BASELINE_BYTES = 113_000L;
+    private static final long PUBLICATION_JAVASCRIPT_BASELINE_BYTES = 114_000L;
     private static final long FALLBACK_NAVIGATION_PUBLICATION_BYTES = 2_848L;
-    private static final long NATIVE_TOTAL_BASELINE_BYTES = 273_000L;
-    private static final long PUBLICATION_TOTAL_BASELINE_BYTES = 229_000L;
+    private static final long NATIVE_TOTAL_BASELINE_BYTES = 276_000L;
+    private static final long PUBLICATION_TOTAL_BASELINE_BYTES = 231_000L;
     private static final long NATIVE_CSS_BASELINE_BYTES = 140_000L;
     private static final long PUBLICATION_CSS_BASELINE_BYTES = 120_000L;
 
-    // J16 adds one shared viewport viewer; its two owners are bounded separately.
+    // J17 indexes timing projections and tracks dirty table content; the four changed owners have narrow explicit limits.
+    // The J16 viewer and fallback owner limits remain independent.
     // Includes the typed component assertion disclosure. The old native JS
     // ceiling was already below the source inventory at the base revision;
     // these ceilings retain less than 2 KB headroom per changed dimension.
@@ -38,8 +39,16 @@ class ReportAssetSizeInventoryTest {
                     ReportAsset.Format.CSS, PUBLICATION_CSS_BASELINE_BYTES,
                     ReportAsset.Format.JAVASCRIPT, PUBLICATION_JAVASCRIPT_BASELINE_BYTES),
             java.util.Map.of(
+                    ReportAsset.EXTENT_EVIDENCE_TABLE_LAYOUT_JS.owner(), 13_000L,
+                    ReportAsset.DURATION_AGGREGATION_JS.owner(), 4_500L,
+                    ReportAsset.DURATION_PROJECTION_LOOKUP_JS.owner(), 600L,
+                    ReportAsset.DURATION_PROJECTION_VIEWS_JS.owner(), 5_300L,
                     ReportAsset.SCREENSHOT_VIEWER_CSS.owner(), 2_200L,
                     ReportAsset.SCREENSHOT_VIEWER_JS.owner(), 6_200L), java.util.Map.of(
+                    ReportAsset.EXTENT_EVIDENCE_TABLE_LAYOUT_JS.owner(), 11_000L,
+                    ReportAsset.DURATION_AGGREGATION_JS.owner(), 4_000L,
+                    ReportAsset.DURATION_PROJECTION_LOOKUP_JS.owner(), 500L,
+                    ReportAsset.DURATION_PROJECTION_VIEWS_JS.owner(), 4_400L,
                     ReportAsset.FALLBACK_NAVIGATION_JS.owner(), FALLBACK_NAVIGATION_PUBLICATION_BYTES,
                     ReportAsset.SCREENSHOT_VIEWER_CSS.owner(), 1_900L,
                     ReportAsset.SCREENSHOT_VIEWER_JS.owner(), 5_200L));
@@ -89,5 +98,14 @@ class ReportAssetSizeInventoryTest {
         assertFalse(CONSUMER_BASELINE.accepts(changed));
         assertTrue(CONSUMER_BASELINE.violations(changed).stream()
                 .anyMatch(message -> message.startsWith("publication owner[fallback-navigation] exceeds")));
+    }
+    @Test void refusesTableRuntimeGrowthEvenInsideTheFormatHeadroom() {
+        var inventory=ReportAssetSizeInventory.capture(new ReportAssetLoader(),ReportAssetManifest.production());
+        var entries=inventory.entries().stream().map(entry -> entry.asset()==ReportAsset.EXTENT_EVIDENCE_TABLE_LAYOUT_JS
+                ? new ReportAssetSizeInventory.Entry(entry.asset(),entry.nativeBytes(),11_001,entry.nativeSourceFormatted(),entry.publicationCompacted()) : entry).toList();
+        var changed=new ReportAssetSizeInventory(entries);
+        assertTrue(changed.bytesByFormat(true).get(ReportAsset.Format.JAVASCRIPT)<PUBLICATION_JAVASCRIPT_BASELINE_BYTES);
+        assertFalse(CONSUMER_BASELINE.accepts(changed));
+        assertTrue(CONSUMER_BASELINE.violations(changed).stream().anyMatch(v -> v.startsWith("publication owner[extent-evidence-table-layout] exceeds")));
     }
 }

@@ -1318,3 +1318,28 @@ PNG sintetice distincte pentru verificarea ownerului și a transportului.
 | fidelity | 45 checkpoint images, exact bytes and escaped caption literals; no external files or real device |
 
 [J16 verification](../docs/ATF_Reporting_J16_Verification.md) distinguishes native, source, physical-JAR and per-consumer acceptance. These neutral regressions do not certify Android rules or capture dimensions.
+
+## Large-report navigation
+
+[The incremental navigation contract](../docs/ATF_Large_Report_Navigation.md) preserves all supplied assertions and original PNGs with preview 240. Hidden-table work is deferred, DOM updates are coalesced and execution-marker lookup is cached only for one aggregation pass.
+
+[Source/JAR and consumer evidence](../docs/ATF_Reporting_J17_Verification.md) distinguishes browser acceptance from fresh business/device execution; neutral permanent regressions remain in Reporting Tests.
+
+## Cold startup and readiness
+
+The navigation bootstrap honors the requested view once across DOMContentLoaded
+and load. Load timing updates independently; successful normalization publishes
+readiness, while an error leaves the cycle unready. Dynamic-content observers
+and explicit view switches remain active.
+
+[The cold-start contract](../docs/ATF_Large_Report_Navigation.md) and
+[J18 verification](../docs/ATF_Reporting_J18_Verification.md) retain fresh-browser
+10 s readiness/action and 45 s navigation bounds, canonical PNG payloads,
+comparisons and preview 240. Bulk acceptance selects at most two source owners.
+
+## Native timeline label fidelity
+
+TimelineTitleEncodingComponentTest publishes neutral reports with quoted,
+multiline, backslash and Unicode owner names. It executes the actual native
+timeline script, compares complete keys and rejects browser errors at the
+original readiness/action and navigation deadlines.

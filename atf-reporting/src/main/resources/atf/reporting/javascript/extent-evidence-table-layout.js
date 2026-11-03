@@ -78,11 +78,7 @@ function evidenceTableFingerprint(table, count) {
       : '';
   var parts = [count, table.clientWidth || 0, font,
     table.querySelectorAll(':scope>colgroup>col').length];
-  Array.from(table.rows || []).forEach(row => {
-    Array.from(row.cells || []).forEach(cell => {
-      parts.push((cell.textContent || '').replace(/\s+/g, ' ').trim());
-    });
-  });
+  parts.push(evidenceTableCache(table).contentVersion || 0);
   return parts.join('|');
 }
 function evidenceTableSetAttribute(table, name, value) {
@@ -116,8 +112,26 @@ function evidenceTablesFromMutation(record) {
   return Array.from(tables);
 }
 
+function invalidateEvidenceTableContent(node) {
+  var table = node && node.closest && node.closest('table');
+  while (table) {
+    if (table.matches(ATF_EVIDENCE_TABLE_SELECTOR)) {
+      var cache = evidenceTableCache(table);
+      cache.contentVersion = (cache.contentVersion || 0) + 1;
+    }
+    table = table.parentElement && table.parentElement.closest('table');
+  }
+}
+function evidenceTableVisible(table) {
+  return !table.closest('details:not([open]),.d-none,.hide,[hidden]') && table.getClientRects().length > 0;
+}
+function observeVisibleEvidenceTables(tables) {
+  if (!window.__atfValidationTableResizeObserver) return;
+  tables.filter(evidenceTableVisible).forEach(table => window.__atfValidationTableResizeObserver.observe(table));
+}
 function normalizeEvidenceTableColumns(root) {
   evidenceTableCandidates(root).forEach(table => {
+    if (!evidenceTableVisible(table)) return;
     var parent = table.parentElement;
     if (parent && !parent.matches('${TABLE_VIEWPORTS}')) {
       var viewport = document.createElement('div');
@@ -130,16 +144,16 @@ function normalizeEvidenceTableColumns(root) {
     }
     var rows = Array.from(table.rows || []),
       count = rows.length ? rows[0].cells.length : 0;
-    if (count < 2 || table.closest('details:not([open])') || !table.getClientRects().length) return;
+    if (count < 2) return;
+    var cache = evidenceTableCache(table), fingerprint = evidenceTableFingerprint(table, count);
+    if (cache.fingerprint === fingerprint) return;
     var headers = Array.from({ length: count }, (_, index) => evidenceTableHeader(table, index)),
       columnKinds = headers.map((header, index) => evidenceTableColumnKind(header)
         || (evidenceTableNumericColumn(table, index) ? 4 : 0)),
       headerRow = table.tHead && table.tHead.rows[0],
       headerWidths = headers.map((_, index) => evidenceTableIntrinsicWidth(
         headerRow && headerRow.cells[index]));
-    var cache = evidenceTableCache(table),
-      fingerprint = evidenceTableFingerprint(table, count);
-    if (cache.fingerprint === fingerprint) return;
+
     var intrinsic = [];
     rows.forEach(row => {
       Array.from(row.cells || []).forEach((cell, index) => {
@@ -183,7 +197,7 @@ function bindValidationTableLayout() {
   normalizeValidationTableColumns();
   if (window.__atfValidationTableLayoutBound) return;
   window.__atfValidationTableLayoutBound = true;
-  var pendingTables = new Set(),
+  var pendingTables = new Set(), pendingRoots = new Set(),
     schedule = function (tables) {
       (tables || Array.from(document.querySelectorAll(ATF_EVIDENCE_TABLE_SELECTOR))).forEach(table => {
         pendingTables.add(table);
@@ -191,8 +205,15 @@ function bindValidationTableLayout() {
       if (window.__atfValidationTableLayoutFrame != null) return;
       var flush = function () {
         window.__atfValidationTableLayoutFrame = null;
+        pendingRoots.forEach(root => {
+          for (var parent = root.parentElement; parent; parent = parent.parentElement)
+            if (pendingRoots.has(parent)) return;
+          evidenceTablesFromMutation({target: root}).forEach(table => pendingTables.add(table));
+        });
+        pendingRoots.clear();
         var current = Array.from(pendingTables);
         pendingTables.clear();
+        observeVisibleEvidenceTables(current);
         normalizeValidationTableColumns(current);
       };
       window.__atfValidationTableLayoutFrame = window.requestAnimationFrame
@@ -205,28 +226,37 @@ function bindValidationTableLayout() {
       var tables = Array.from(entries, entry => entry.target);
       schedule(tables);
     });
-    initialTables.forEach(table => {
-      window.__atfValidationTableResizeObserver.observe(table);
-    });
+    observeVisibleEvidenceTables(initialTables);
   } else {
     window.addEventListener('resize', function () { schedule(); });
   }
   if (window.MutationObserver && document.body) {
     new MutationObserver(function (records) {
-      var tables = new Set();
+      var contentTargets = new Set();
       records.forEach(record => {
-        evidenceTablesFromMutation(record).forEach(table => {
-          tables.add(table);
+        var target = record.target.nodeType === 1 ? record.target : record.target.parentElement;
+        if (record.type === 'attributes' && record.oldValue === target.getAttribute(record.attributeName)) return;
+        if (target) contentTargets.add(target);
+        Array.from(record.removedNodes || []).forEach(node => {
+          if (node.nodeType !== 1 || node.isConnected || !window.__atfValidationTableResizeObserver) return;
+          evidenceTableCandidates(node).forEach(table => window.__atfValidationTableResizeObserver.unobserve(table));
+        });
+        if (target) {
+          var root = record.type === 'attributes' ? target : target.closest(ATF_EVIDENCE_TABLE_SELECTOR);
+          if (root) pendingRoots.add(root);
+        }
+        Array.from(record.addedNodes || []).forEach(node => {
+          if (node.nodeType === 1) pendingRoots.add(node);
         });
       });
-      if (window.__atfValidationTableResizeObserver) tables.forEach(table => {
-        window.__atfValidationTableResizeObserver.observe(table);
-      });
-      if (tables.size) schedule(Array.from(tables));
+      contentTargets.forEach(invalidateEvidenceTableContent);
+      if (pendingRoots.size) schedule([]);
     }).observe(document.body, {
       childList: true,
       subtree: true,
       attributes: true,
+      characterData: true,
+      attributeOldValue: true,
       attributeFilter: ['open', 'class']
     });
   }

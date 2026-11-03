@@ -17,8 +17,8 @@ function normalizeTestViewContent() {
   normalizeValidationTableColumns();
   } finally {
     atfPerformanceEnd(startedAt, 'normalizationDurationMs');
-    atfPerformanceMarkReady();
   }
+  atfPerformanceMarkReady();
 }
 function scheduleTestViewNormalization() {
   if (atfTestViewNormalizationPending) return;
@@ -152,7 +152,7 @@ function activateFromHash() {
   }
 }
 window.addEventListener('hashchange', activateFromHash);
-function normalizeNavigationLinks() {
+function normalizeNavigationTargets() {
   var links = {
     'nav-test': '#test-view',
     'nav-category': '#category-view',
@@ -163,6 +163,9 @@ function normalizeNavigationLinks() {
     var link = document.getElementById(id);
     if (link) link.setAttribute('href', links[id]);
   });
+}
+function normalizeNavigationLinks() {
+  normalizeNavigationTargets();
   normalizeTagFilter();
   bindTestFilters();
   ensureCategoryFilters();
@@ -171,7 +174,9 @@ function normalizeNavigationLinks() {
   bindNodeCollapse();
   watchScenarioCards();
 }
-document.addEventListener('DOMContentLoaded', function () {
+var atfReportNavigationInitialized = false;
+function initializeReportNavigation() {
+  if (atfReportNavigationInitialized) return;
   q('.collapse').forEach(function (v) {
     v.classList.remove('show');
   });
@@ -182,11 +187,11 @@ document.addEventListener('DOMContentLoaded', function () {
   normalizeNavigationLinks();
   watchDurationNodes();
   normalizeTestPackageMetadata();
-  atfActivate('dashboard-view');
   setTimeout(function () {
+    normalizeNavigationTargets();
     activateFromHash();
   }, 0);
-  setTimeout(normalizeNavigationLinks, 0);
+  atfReportNavigationInitialized = true;
   setTimeout(function () {
     watchDurationNodes();
     scheduleTestViewNormalization();
@@ -194,14 +199,9 @@ document.addEventListener('DOMContentLoaded', function () {
     removeUnsupportedOverviewCards();
     applyTestFilters();
   }, 250);
-});
+}
+document.addEventListener('DOMContentLoaded', initializeReportNavigation);
 window.addEventListener('load', function () {
-  setTimeout(function () {
-    normalizeCodeBlocks();
-    normalizeNavigationLinks();
-    watchDurationNodes();
-    removeUnsupportedOverviewCards();
-    activateFromHash();
-    applyTestFilters();
-  }, 0);
+  initializeReportNavigation();
+  setTimeout(normalizeNavigationTargets, 0);
 });

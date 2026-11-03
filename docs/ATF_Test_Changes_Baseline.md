@@ -4058,3 +4058,66 @@ testChanges:
 [Probe și limite](ATF_Reporting_J16_Verification.md).
 
 </details>
+
+<details>
+<summary><strong>Verified control — Reporting J17 navigation</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-LARGE-NAVIGATION-139
+    status: VERIFIED
+    base: f1bfc261e40a08cdfc3e411a2fd4ef1525970147
+    expires: 2026-11-30
+    reason: Reproduce blocajul raportului dens, verifică navigarea și bytes/assertions originale, layout lazy și invalidarea timing-ului între agregări; înlocuiește suffix-ul stale al allocatorului și plafonează separat assets măsurate, fără schimbarea verdicturilor sau preview-ului 240.
+    proof: mvn -B -pl atf-reporting-tests -am "-Dtest=LargeReportNavigationBrowserComponentTest,EvidenceTableVisibilityComponentTest,RecordedPublicationTimingComponentTest,ValidationTableLayoutComponentTest,ReportAssetSizeInventoryTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/navigation/LargeReportNavigationBrowserComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/navigation/LargeNavigationFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/layout/EvidenceTableVisibilityComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/timing/RecordedPublicationTimingComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/layout/ValidationTableLayoutComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/asset/ReportAssetSizeInventoryTest.java
+```
+
+[Source, physical-JAR and consumer evidence](ATF_Reporting_J17_Verification.md).
+
+</details>
+
+<details>
+<summary><strong>Verified control — Reporting J18 cold startup</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-COLD-READINESS-141
+    status: VERIFIED
+    base: f1bfc261e40a08cdfc3e411a2fd4ef1525970147
+    expires: 2026-11-30
+    reason: Reproduce duplicate startup activations and false readiness after normalization failure; preserve cold readiness/action deadlines, PNG payloads, comparisons and preview 240, with at most two explicitly selected bulk owners.
+    proof: mvn -B -pl atf-reporting-tests -am "-Dtest=ColdStartReadinessComponentTest,LargeReportNavigationBrowserComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/navigation/ColdStartReadinessComponentTest.java
+```
+
+[Cold bootstrap, failure/recovery and physical-JAR evidence](ATF_Reporting_J18_Verification.md).
+Existing navigation/visibility changes remain under control 139 at the same real base; no path is claimed twice.
+
+</details>
+
+<details>
+<summary><strong>Verified control — Reporting J18 native timeline labels</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-TIMELINE-TITLE-142
+    status: VERIFIED
+    base: f1bfc261e40a08cdfc3e411a2fd4ef1525970147
+    expires: 2026-11-30
+    reason: Reproduce invalid native timeline keys with full quoted multiline and Unicode labels, preserve exact caller text and clocks, and reject browser errors without relaxing deadlines.
+    proof: mvn -B -pl atf-reporting-tests -am "-Dtest=TimelineTitleEncodingComponentTest,ReportingTimestampComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/navigation/TimelineTitleEncodingComponentTest.java
+```
+
+[Source/JAR and current consumer evidence](ATF_Reporting_J18_Verification.md#native-timeline-labels).
+
+</details>
