@@ -49,16 +49,30 @@ class PlatformLibraryIntegrityTest {
         assertEquals("LIB-EMBEDDED-POM", assertThrows(IllegalStateException.class, surface::inspect).getMessage());
     }
 
+    @Test void consumerCannotBecomeTheLibrarySourceOrFeedbackOwner() throws Exception {
+        for (String field : List.of("sourceOwner", "feedbackOwner")) {
+            prepare("mock"); var mapper = new ObjectMapper(); Path file = root.resolve("library-provenance.json");
+            var metadata = mapper.readTree(file.toFile());
+            ((com.fasterxml.jackson.databind.node.ObjectNode) metadata.path("platformLibraryOwnership")).put(field, "atf_j4");
+            mapper.writeValue(file.toFile(), metadata);
+            assertEquals("LIB-OWNERSHIP", assertThrows(IllegalStateException.class,
+                    () -> new PlatformLibrarySurface(root, "mock").inspect()).getMessage());
+        }
+    }
+
     private void prepare(String artifact) throws Exception {
         Files.createDirectories(root.resolve("lib"));
         Files.writeString(root.resolve("pom.xml"), "<project><properties><atf.core.version>fixture</atf.core.version><atf."
                 + artifact + ".version>fixture</atf." + artifact + ".version></properties></project>");
         try (var files = Files.list(root.resolve("lib"))) { for (Path file : files.toList()) Files.delete(file); }
+        Files.writeString(root.resolve("lib/README.md"), "# Library ownership\n");
         for (String extension : List.of("jar", "pom")) Files.writeString(root.resolve("lib/atf-core-fixture." + extension), "fixture");
         String pom = "<project><groupId>atf.api</groupId><artifactId>atf-" + artifact
                 + "</artifactId><version>fixture</version><properties><atf.core.version>fixture</atf.core.version></properties></project>";
         Path publishedPom = root.resolve("lib/atf-" + artifact + "-fixture.pom"); Files.writeString(publishedPom, pom); pack(artifact, pom);
         var mapper = new ObjectMapper(); var metadata = mapper.createObjectNode(); var library = metadata.putObject("platformLibraries").putObject(artifact);
+        metadata.putObject("platformLibraryOwnership").put("sourceOwner", "atf_j0").put("feedbackOwner", "atf_j0")
+                .put("feedbackRegistry", "atf_j0/docs/feedback/README.md").put("contract", "lib/README.md");
         library.put("coordinate", "atf.api:atf-" + artifact + ":fixture");
         library.put("binarySha256", PlatformLibrarySurface.hash(root.resolve("lib/atf-" + artifact + "-fixture.jar")));
         library.put("publishedPomSha256", PlatformLibrarySurface.hash(publishedPom));

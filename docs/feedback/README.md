@@ -2,9 +2,21 @@
 
 ## Pe scurt
 
-J0 deține implementările Core/Reporting/Console/Mock, testele native Core și regresiile generice Reporting; J1 deține scenariile AutoEx/Shop. Contractele livrate sunt la [ownerii documentați](../ATF_Context_Atlas.md), iar aici rămân numai lacunele și traseele de închidere.
+J0 deține implementările Core/Reporting/Console/Mock, toate testele native și regresiile generice ale bibliotecilor; J1 deține scenariile AutoEx/Shop. Contractele livrate sunt la [ownerii documentați](../ATF_Context_Atlas.md), iar aici rămân numai lacunele și traseele de închidere.
 
 [Workspace-urile](../ATF_Workspace_Synchronization.md) separă J0 sursă, J1 consumer web și J2 WIP pentru Kafka/mesagerie cu Setup în Podman. Un rezultat sau o prioritate nu se transferă automat între ele.
+
+## Biblioteci comune
+
+J0 deține codul, contractele publice, testele native, împachetarea și feedback-ul Core, Reporting, Console și Mock, inclusiv constatările venite din J1–J4. [Ghidul de mentenanță](../../lib/README.md) definește o singură cerință per problemă și acceptanțe distincte la consumeri.
+
+| Bibliotecă / probă | Backlog canonic |
+|---|---|
+| Core | [Core](ATF_Core_Feedback.md) |
+| Reporting | [Reporting](ATF_Reporting_Feedback.md) |
+| Regresii generice Reporting | [Reporting Tests](ATF_Reporting_Tests_Feedback.md) |
+| Console și Mock | [Console / Mock](ATF_Console_Mock_Feedback.md) |
+
 
 ## Top feedback-uri active
 
@@ -49,8 +61,3 @@ SQL typed steps are an explicitly requested expansion, separate from maintenance
 | control Git verificat | [baseline](../ATF_Test_Changes_Baseline.md); nu se rebazează ori prelungește implicit |
 
 [Protocolul documentar](../README_Atf_DocumentationBestPractices.md#păstrarea-și-ștergerea-feedback-ului) și [build-ul în TMP](../ATF_Build_And_Execution_Safety.md) guvernează fiecare increment. Criteriul se elimină numai după probă și promovarea contractului stabil.
-
-
-## Console and Mock library ownership
-
-[J0 owns common library criteria](ATF_Console_Mock_Feedback.md); [the current adoption contract](../ATF_Platform_Libraries.md) defines the flat binary distribution. Consumer adapters, catalogs and domain acceptance remain local. Closed extraction requirements are retained as contracts, not duplicated TODOs.

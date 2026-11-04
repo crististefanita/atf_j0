@@ -2,7 +2,7 @@
 
 ## Pe scurt
 
-J0 owns the common Console and Mock implementation and native tests. The five live Java trees are textually identical; consumer POM and documentation differences remain deployment specific.
+J0 owns the common Console and Mock implementation and native tests. J1–J4 reutilizează JAR-urile și trimit aici constatările generice; adaptoarele, cataloagele și oracolele domeniului rămân locale.
 
 ## Delivered ownership contract
 

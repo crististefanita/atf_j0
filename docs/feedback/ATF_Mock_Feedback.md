@@ -1,9 +1,7 @@
-# Mock — contract comun întreținut în J1
+# Mock — ruta canonică de feedback
 
 ## Pe scurt
 
-[Contractul Mock J1](../../../atf_j1/atf-mock/README.md#json-strict-și-potrivire-numerică-exactă)
-deține documentele complete și comparația numerică exactă deja probate.
-Nu există cerințe Mock active în J0; eventualele lacune se înregistrează în [registrul J1](../../../atf_j1/docs/feedback/README.md).
+J0 deține implementarea, testele native și feedback-ul Mock. [Console / Mock](ATF_Console_Mock_Feedback.md) păstrează backlog-ul unic; această rută de compatibilitate nu copiază cerințe.
 
-Transporturile scriptate Eventuate și oracolele lor rămân la consumerul J2.
+[Contractul Mock](../../atf-mock/README.md) descrie comportamentul curent. Cataloagele și oracolele Eventuate rămân în J2; [ghidul bibliotecilor](../../lib/README.md) separă remedierea comună de acceptanța consumerului.

@@ -1,18 +1,20 @@
 # ATF — referința J0 și sincronizarea consumerilor
 
+[Owner, feedback și sincronizare](../lib/README.md) descrie contractul celor patru biblioteci; această pagină păstrează protocolul workspace-urilor.
+
 ## Pe scurt
 
-`atf_j0` înlocuiește `demo2` ca referință de mentenanță Core și Reporting.
+`atf_j0` deține codul, testele și feedback-ul Core, Reporting, Console și Mock; `demo2` rămâne istoric.
 Implementările Core/Reporting/Console/Mock și toate testele lor native rămân aici; fiecare destinație
 primește și verifică livrarea potrivită propriului deployment.
 
 | Workspace | Rol | Suprafață existentă |
 |---|---|---|
 | `atf_j0` | sursă Core/Reporting/Console/Mock, teste native și `atf-reporting-tests`; referință pentru contractele comune | 12 module sursă; Core și guvernanța comune reconciliate |
-| `atf_j1` | testarea AutoEx și Shop; consumer Core și Reporting prin JAR | 7 module journeys; Core/Reporting in lib și acceptanță proprie |
-| `atf_j2` | WIP: framework și teste Kafka/mesagerie, fără module browser ori Shop/AutoEx | 6 module sursă, inclusiv SQL; Core și Reporting JAR; componente Eventuate MOCK; Kafka remote și clientul Java de infrastructură validate în incrementul J2; clientul/observerul framework-ului rămâne WIP |
-| `atf_j4` | consumer Android/ADB, patru module; Core și Reporting JAR | independent binary adoption, with complete captured PNG evidence; E2E device rămâne la J4 |
-| `atf_j3` | consumer speech, cinci module sursă; Core și Reporting prin JAR | Core/Reporting in lib și acceptanță proprie, fără module web ori mesagerie |
+| `atf_j1` | testarea AutoEx și Shop; consumer Core/Reporting/Console/Mock prin JAR | 7 module journeys; patru perechi JAR/POM în lib și acceptanță proprie |
+| `atf_j2` | WIP: framework și teste Kafka/mesagerie, fără module browser ori Shop/AutoEx | 6 module sursă, inclusiv SQL; Core/Reporting/Console/Mock JAR; componente Eventuate MOCK; Kafka remote și clientul Java de infrastructură validate în incrementul J2; clientul/observerul framework-ului rămâne WIP |
+| `atf_j4` | consumer Android/ADB, patru module; Core/Reporting/Console/Mock JAR | independent binary adoption, with complete captured PNG evidence; E2E device rămâne la J4 |
+| `atf_j3` | consumer speech, cinci module sursă; Core/Reporting/Console/Mock prin JAR | Core/Reporting in lib și acceptanță proprie, fără module web ori mesagerie |
 | `demo2` | historical source workspace | nu mai este destinație activă de mentenanță sau sync |
 
 J1 poate avea schimbări comune în lucru. Referința J0 nu autorizează
@@ -23,7 +25,7 @@ suprascrierea lor: reconcilierea compară baza, diferența și proba fiecărui o
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Source["J0<br/>Core + Reporting"] -->|verifică| Candidate["Candidat unic<br/>JAR + POM + dovadă"]
+    Source["J0<br/>cele patru biblioteci"] -->|verifică| Candidate["Candidat unic<br/>JAR + POM + dovadă"]
     Candidate -->|livrează| J1["J1<br/>consumer existent"]
     Candidate -->|livrează| J2["J2<br/>consumer inițializat"]
     Candidate -->|livrează| J3["J3<br/>consumer speech"]
@@ -38,7 +40,7 @@ flowchart LR
   JAR/POM este oferită destinațiilor, fără rebuild separat sub aceeași versiune.
 - Fiecare muchie de livrare cere propria acceptanță. J2 are un Git separat,
   păstrat la baza sa existentă; profilul Eventuate exclude explicit Shop/AutoEx, UI și Debug UI, iar configurațiile lui evoluează separat.
-- J3 primește aceleași perechi Core/Reporting, cu acceptanță proprie; nu păstrează surse Core ori harness Reporting.
+- J3 primește aceleași patru perechi de biblioteci, cu acceptanță proprie; nu păstrează surse Core ori harness Reporting.
 - J4 păstrează adaptoarele Android, configurațiile și acceptanța fizică; primește aceeași pereche Reporting, fără sursa sau harness-ul J0.
 - Muchiile sunt livrări și probe, nu dependențe Maven ori module suplimentare.
 
@@ -138,12 +140,7 @@ Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 
 - Project README files, atlases and `docs` describe current contracts and ownership; they do not accumulate per-release library improvement narratives or verification notes.
 - Keep one current verification note per library in its producer packaging stage, beside the effective publication POM. Builds, logs and HTML evidence stay in owned TMP.
-- Consumer `library-provenance.json` records the current coordinate, hashes, original `buildStage` and `currentAcceptance.evidence` location. Consumer `lib` retains only the latest Core and Reporting JAR/POM pairs.
+- Consumer `library-provenance.json` records the current coordinate, hashes, original `buildStage` and `currentAcceptance.evidence` location. Consumer `lib` retains the latest Core, Reporting, Console and Mock JAR/POM pairs plus its dedicated README; no release notes are stored there.
 - Superseded notes are retired after their durable contracts have been reconciled. Historical build/test facts and original evidence paths remain provenance, explicitly marked as retired; they are not current document targets or fresh acceptance.
 
 Each current note is retained with its matching package; its coordinate and JAR/POM hashes must match the distributed pair. Documentation maintenance alone neither rebuilds a library nor repeats its recorded tests.
-
-
-## Shared platform libraries
-
-The current reactor has 12 source modules. [Platform library consumption](ATF_Platform_Libraries.md) defines the four library owners, flat distribution, Maven/IntelliJ bootstrap and independent consumer acceptance. Console/Mock native tests stay in J0; consumer adapters and catalogs stay local.

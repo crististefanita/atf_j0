@@ -1,6 +1,7 @@
 # ATF — platformă modulară pentru testare și rezultate verificabile
 
-Referința surselor Core/Reporting/Console/Mock și a regresiilor este `atf_j0`; distribuția către J1 și J2 urmează [protocolul de sincronizare](docs/ATF_Workspace_Synchronization.md).
+[Mentenanța bibliotecilor](lib/README.md) fixează J0 ca owner al codului, testelor, împachetării și feedback-ului; J1–J4 reutilizează livrările verificate.
+
 
 Scenariile AutoEx/Shop au owner în J1; copiile din acest reactor verifică
 consumul Reporting sursă. J2 pregătește separat testarea cozilor și mesajelor.
@@ -14,8 +15,8 @@ consumul Reporting sursă. J2 pregătește separat testarea cozilor și mesajelo
 | J0 | 12 module, sursa Reporting și regresiile native/mock/browser; [atlasul sursei](../atf_j0/docs/ATF_Context_Atlas.md) |
 | J1 | 7 module sursă, scenarii AutoEx/Shop și Core/Reporting JAR; [atlasul consumerului](../atf_j1/docs/ATF_Context_Atlas.md) |
 | J2 · WIP | 6 module sursă, Core/Reporting JAR, un modul de test Kafka/mesagerie și Setup PowerShell în Podman; [atlasul WIP](../atf_j2/docs/ATF_Context_Atlas.md) |
-| J3 | 7 source modules for English speech; Core/Reporting JARs; [speech architecture](../atf_j3/docs/ATF_Speech_Architecture.md) |
-| J4 | 7 source modules for Android; Core/Reporting JARs; [consumer documentation](../atf_j4/docs/README.md) |
+| J3 | 5 source modules for English speech; Core/Reporting JARs; [speech architecture](../atf_j3/docs/ATF_Speech_Architecture.md) |
+| J4 | 4 source modules for Android; Core/Reporting JARs; [consumer documentation](../atf_j4/docs/README.md) |
 
 Rolul proiectului și rezultatul verificat sunt distincte: un build sau un MOCK verde nu certifică serviciul extern, brokerul ori întregul ATF.
 
@@ -460,8 +461,3 @@ Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 | latest verification note beside the producer package | [Evidence retention](docs/ATF_Workspace_Synchronization.md#release-evidence-retention) |
 
 Library publication/rendering acceptance is separate from new business, device, broker or acoustic ASR execution. Release notes are not stored in project documentation or consumer `lib`.
-
-
-## Shared platform libraries
-
-The current reactor has 12 source modules. [Platform library consumption](docs/ATF_Platform_Libraries.md) defines the four library owners, flat distribution, Maven/IntelliJ bootstrap and independent consumer acceptance. Console/Mock native tests stay in J0; consumer adapters and catalogs stay local.

@@ -59,6 +59,11 @@ public record PlatformLibrarySurface(Path root, String artifact) {
         require(!Files.exists(root.resolve("atf-" + artifact)), "LIB-SOURCE-SHADOW");
         require(text(project, "version").equals(version(root, artifact)), "LIB-COORDINATE");
         require(text(project, "atf.core.version").equals(version(root, "core")), "LIB-CORE-VERSION");
+        var ownership = new ObjectMapper().readTree(root.resolve("library-provenance.json").toFile()).path("platformLibraryOwnership");
+        require(ownership.path("sourceOwner").asText().equals("atf_j0")
+                && ownership.path("feedbackOwner").asText().equals("atf_j0")
+                && ownership.path("feedbackRegistry").asText().equals("atf_j0/docs/feedback/README.md")
+                && ownership.path("contract").asText().equals("lib/README.md"), "LIB-OWNERSHIP");
         var metadata = metadata();
         require(metadata.path("coordinate").asText().equals("atf.api:atf-" + artifact + ":" + version(root, artifact)), "LIB-PROVENANCE-COORDINATE");
         require(hash(jar()).equalsIgnoreCase(metadata.path("binarySha256").asText()), "LIB-JAR-HASH");
@@ -116,6 +121,7 @@ public record PlatformLibrarySurface(Path root, String artifact) {
 
     public static void assertFlatLayout(Path root) throws Exception {
         var expected = new java.util.HashSet<String>();
+        expected.add("README.md");
         for (String artifact : List.of("core", "reporting", "console", "mock")) {
             String version = version(root, artifact);
             if (!version.isBlank()) for (String extension : List.of("jar", "pom")) expected.add("atf-" + artifact + "-" + version + "." + extension);

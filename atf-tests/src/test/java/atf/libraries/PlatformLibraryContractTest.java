@@ -26,6 +26,7 @@ class PlatformLibraryContractTest {
         Files.writeString(root.resolve("pom.xml"), "<project><properties><atf.console.version>fixture</atf.console.version>"
                 + "<atf.mock.version>fixture</atf.mock.version></properties></project>");
         Path lib = Files.createDirectory(root.resolve("lib"));
+        Files.writeString(lib.resolve("README.md"), "# Library ownership\n");
         for (String artifact : List.of("console", "mock")) for (String extension : List.of("jar", "pom"))
             Files.writeString(lib.resolve("atf-" + artifact + "-fixture." + extension), "fixture");
         PlatformLibrarySurface.assertFlatLayout(root);
@@ -35,6 +36,19 @@ class PlatformLibraryContractTest {
         assertThrows(IllegalStateException.class, () -> PlatformLibrarySurface.assertFlatLayout(root));
         Files.delete(nested); Files.delete(lib.resolve("atf-mock-fixture.pom"));
         assertThrows(IllegalStateException.class, () -> PlatformLibrarySurface.assertFlatLayout(root));
+    }
+
+    @Test void theDedicatedReadmeIsRequiredAndDoesNotPermitOtherDocumentation(@TempDir Path root) throws Exception {
+        Files.writeString(root.resolve("pom.xml"), "<project><properties><atf.mock.version>fixture</atf.mock.version></properties></project>");
+        Path lib = Files.createDirectory(root.resolve("lib"));
+        for (String extension : List.of("jar", "pom")) Files.writeString(lib.resolve("atf-mock-fixture." + extension), "fixture");
+        assertThrows(IllegalStateException.class, () -> PlatformLibrarySurface.assertFlatLayout(root), "The ownership guide is required");
+        Path readme = lib.resolve("README.md"); Files.writeString(readme, "# Ownership\n");
+        PlatformLibrarySurface.assertFlatLayout(root);
+        Path releaseNote = lib.resolve("verification.md"); Files.writeString(releaseNote, "release history");
+        assertThrows(IllegalStateException.class, () -> PlatformLibrarySurface.assertFlatLayout(root), "Only the dedicated README is allowed");
+        Files.delete(releaseNote); Files.delete(readme); Files.createDirectory(readme);
+        assertThrows(IllegalStateException.class, () -> PlatformLibrarySurface.assertFlatLayout(root), "A directory cannot substitute the README");
     }
 
     @Test void unsafeAndDuplicateVersionsAreRejectedBeforeResolvingLibraryPaths(@TempDir Path root) throws Exception {
