@@ -209,33 +209,6 @@ PUBLIC-API-43 and PORTABLE-DOCS-46 need permanent boundary oracles, not more app
 
 **Closure:** all original eight cases pass for a justified reason, the related negative controls still fail on the wrong behavior, and the full unit/source/JAR gates are green. Historical partial acceptance counts remain historical facts, not a substitute for this gate.
 
-## REPORT-TEST-CONTROLS-150 — reconcile existing Java changes at the real review base
+<a id="report-test-controls-150--reconcile-existing-java-changes-at-the-real-review-base"></a>
 
-**Priority: 87/100** = impact 31 + gap 26 + actionable 20 + documentation 10. Whole-ATF governance rejects 15 pre-existing Reporting Java test/support changes at the current Git base; this audit changes no Java source or test.
-
-- [ ] Reconcile the exact changed paths against the current HEAD and the earlier verified control; preserve the historical record and its original base.
-- [ ] Create a separately reviewed current control only after the affected tests, independent source/JAR oracles and adjacent regressions justify it; do not replace a historical base string to manufacture eligibility.
-- [ ] Restore the complete unit baseline and rerun WholeAtfGovernanceSuiteTest without exclusions or a forced old base.
-
-<details>
-<summary><strong>Paths requiring a current Reporting review</strong></summary>
-
-```text
-atf-reporting-tests/src/test/java/atf/reporting/markup/AtfReportMarkupTest.java
-atf-reporting-tests/src/test/java/atf/reporting/ui/ExtentReportUiEvidencePublishingTest.java
-atf-reporting-tests/src/test/java/atf/reporting/ui/ExtentReportUiEvidenceRenderingTest.java
-atf-reporting-tests/src/test/java/atf/reporting/ui/ExtentReportUiFailureEvidenceTest.java
-atf-reporting-tests/src/test/java/atf/reporting/ui/profile/ReportEvidenceProfileIntegrationTest.java
-atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/diagnostic/ReportPhaseAuditProbe.java
-atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failurecontext/UiFailureContextProbe.java
-atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/table/TableViewportProbe.java
-atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/section/extract/UiValidationSectionExtractor.java
-atf-reporting-tests/src/test/java/atf/reporting/ui/contract/UiActionAttributionContractTest.java
-atf-reporting-tests/src/test/java/atf/reporting/ui/contract/UiFailureCatalogueContractTest.java
-atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/provenance/UiActionAttributionComponentSuite.java
-atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/provenance/UiActionAttributionComponentTest.java
-atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/provenance/UiActionAttributionFixture.java
-atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/provenance/UiFailureCatalogueFixture.java
-```
-
-</details>
+Current Git control eligibility is governed by the [technical baseline](../ATF_Test_Changes_Baseline.md). The former review-base mismatch is closed after the actual live commits and strict current-base readback; the independent unit failures remain open under REPORT-UNIT-BASELINE-149.

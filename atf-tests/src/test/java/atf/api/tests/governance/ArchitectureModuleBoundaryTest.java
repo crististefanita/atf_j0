@@ -71,6 +71,7 @@ public class ArchitectureModuleBoundaryTest {
         assertEquals(deployment.reportingSource() ? AtfModuleIds.REACTOR_MODULES : AtfModuleIds.REACTOR_MODULES.stream()
                         .filter(module -> !module.equals(AtfModuleIds.REPORTING))
                         .filter(module -> deployment.coreSource() || !module.equals(AtfModuleIds.CORE))
+                        .filter(module -> !List.of(AtfModuleIds.CONSOLE, AtfModuleIds.MOCK).contains(module) || deployment.sourceModules().contains(module))
                         .filter(module -> !List.of(AtfModuleIds.PRACTICE_SHOP, AtfModuleIds.AUTOMATION_EXERCISE).contains(module) || deployment.sourceModules().contains(module))
                         .filter(module -> !module.equals(AtfModuleIds.REPORTING_TESTS)
                                 || deployment.sourceModules().contains(AtfModuleIds.REPORTING_TESTS)).toList(), deployment.sourceModules());
@@ -87,6 +88,9 @@ public class ArchitectureModuleBoundaryTest {
                 violations.addAll(ReportingGovernanceSurface.read(root).forbiddenReferences(rule.forbiddenTokens()));
             else if (rule.module().equals(AtfModuleIds.CORE) && !GovernanceDeployment.read(root).coreSource())
                 violations.addAll(CoreGovernanceSurface.read(root).forbiddenReferences(rule.forbiddenTokens()));
+            else if (List.of(AtfModuleIds.CONSOLE, AtfModuleIds.MOCK).contains(rule.module())
+                    && !GovernanceDeployment.read(root).sourceModules().contains(rule.module()))
+                violations.addAll(new atf.libraries.PlatformLibrarySurface(root, rule.module().substring(4)).forbiddenReferences(rule.forbiddenTokens()));
             else assertNoForbidden(moduleSource(root, rule.module(), false), rule.forbiddenTokens(), violations);
         }
         assertTrue(violations.isEmpty(), () -> "Architecture boundary violations: " + violations);
@@ -116,8 +120,9 @@ public class ArchitectureModuleBoundaryTest {
                     AtfGovernanceRules.REPORTING_FORBIDDEN_PRODUCTION_PACKAGES, violations);
         else violations.addAll(ReportingGovernanceSurface.read(root).forbiddenReferences(
                 AtfGovernanceRules.REPORTING_FORBIDDEN_PRODUCTION_PACKAGES));
-        assertNoForbidden(moduleSource(root, AtfModuleIds.CONSOLE, false),
-                List.of("atf.reporting", "com.aventstack"), violations);
+        var console = new atf.libraries.PlatformLibrarySurface(root, "console");
+        if (console.source()) assertNoForbidden(moduleSource(root, AtfModuleIds.CONSOLE, false), List.of("atf.reporting", "com.aventstack"), violations);
+        else violations.addAll(console.forbiddenReferences(List.of("atf.reporting", "com.aventstack")));
         assertTrue(violations.isEmpty(), () -> "Reporting boundary violations: " + violations);
     }
 

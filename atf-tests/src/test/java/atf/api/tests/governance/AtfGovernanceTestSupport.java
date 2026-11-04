@@ -226,6 +226,8 @@ public final class AtfGovernanceTestSupport {
     private static String modulePom(Path root, String module) throws Exception {
         return module.equals(AtfModuleIds.REPORTING) ? ReportingGovernanceSurface.read(root).pom()
                 : module.equals(AtfModuleIds.CORE) ? CoreGovernanceSurface.read(root).pom()
+                : List.of(AtfModuleIds.CONSOLE, AtfModuleIds.MOCK).contains(module)
+                ? new atf.libraries.PlatformLibrarySurface(root, module.substring("atf-".length())).pom()
                 : Files.readString(root.resolve(module).resolve("pom.xml"));
     }
 

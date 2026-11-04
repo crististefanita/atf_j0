@@ -898,3 +898,8 @@ helper nu autorizează un apel remote și nu transformă un fixture în dovadă 
 J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module.
 [Contractul Core](ATF_Core_Consumer.md) separă sursa, publicarea și acceptanțele J1/J2/J3.
 Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
+
+
+## Shared platform libraries
+
+The current reactor has 12 source modules. [Platform library consumption](ATF_Platform_Libraries.md) defines the four library owners, flat distribution, Maven/IntelliJ bootstrap and independent consumer acceptance. Console/Mock native tests stay in J0; consumer adapters and catalogs stay local.

@@ -90,13 +90,8 @@ public final class CoreGovernanceSurface {
                 .anyMatch(namespace -> line.matches(".*->\\s+" + java.util.regex.Pattern.quote(namespace) + "[.$].*"))).toList();
     }
     private void assertFlatLayout() throws Exception {
-        String core = "atf-core-" + deployment.coreVersion(), reporting = "atf-reporting-" + deployment.reportingVersion();
-        Set<String> expected = Set.of(core + ".jar", core + ".pom", reporting + ".jar", reporting + ".pom");
-        try (var files = Files.list(deployment.root().resolve("lib"))) {
-            var actual = files.toList();
-            require(actual.stream().allMatch(Files::isRegularFile)
-                    && actual.stream().map(p -> p.getFileName().toString()).collect(Collectors.toSet()).equals(expected), "GOV-CORE-FLAT-LIB");
-        }
+        try { atf.libraries.PlatformLibrarySurface.assertFlatLayout(deployment.root()); }
+        catch (IllegalStateException invalid) { throw new IllegalStateException("GOV-CORE-FLAT-LIB", invalid); }
     }
     private static void require(boolean condition, String reason) { if (!condition) throw new IllegalStateException(reason); }
 }

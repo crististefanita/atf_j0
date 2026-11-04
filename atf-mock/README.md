@@ -385,3 +385,10 @@ sau array-urile YAML nu sunt convertite tacit în absența constrângerii.
 [Contractele de componentă](src/test/java/atf/mock/json/MockNumericContractComponentTest.java)
 folosesc API-ul public, expected independent și transportul mock. Ele verifică
 fallback-ul, răspunsul original și încărcarea YAML, fără serviciu extern.
+
+
+## Library publication
+
+J0 keeps this implementation and its complete native test catalog. J1–J4 use the same published JAR and parentless POM directly in lib, with no shadow source module. 
+
+[Platform library consumption](../docs/ATF_Platform_Libraries.md) defines Core version pinning, the Console optional Kit bridge, Maven/IntelliJ bootstrap and physical-JAR acceptance. Package evidence stays beside the producer artifact in owned TMP.

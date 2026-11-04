@@ -2,7 +2,7 @@
 
 ## Pe scurt
 
-J0 deține implementările Core/Reporting, testele native Core și regresiile generice Reporting; J1 deține scenariile AutoEx/Shop. Contractele livrate sunt la [ownerii documentați](../ATF_Context_Atlas.md), iar aici rămân numai lacunele și traseele de închidere.
+J0 deține implementările Core/Reporting/Console/Mock, testele native Core și regresiile generice Reporting; J1 deține scenariile AutoEx/Shop. Contractele livrate sunt la [ownerii documentați](../ATF_Context_Atlas.md), iar aici rămân numai lacunele și traseele de închidere.
 
 [Workspace-urile](../ATF_Workspace_Synchronization.md) separă J0 sursă, J1 consumer web și J2 WIP pentru Kafka/mesagerie cu Setup în Podman. Un rezultat sau o prioritate nu se transferă automat între ele.
 
@@ -49,3 +49,8 @@ SQL typed steps are an explicitly requested expansion, separate from maintenance
 | control Git verificat | [baseline](../ATF_Test_Changes_Baseline.md); nu se rebazează ori prelungește implicit |
 
 [Protocolul documentar](../README_Atf_DocumentationBestPractices.md#păstrarea-și-ștergerea-feedback-ului) și [build-ul în TMP](../ATF_Build_And_Execution_Safety.md) guvernează fiecare increment. Criteriul se elimină numai după probă și promovarea contractului stabil.
+
+
+## Console and Mock library ownership
+
+[J0 owns common library criteria](ATF_Console_Mock_Feedback.md); [the current adoption contract](../ATF_Platform_Libraries.md) defines the flat binary distribution. Consumer adapters, catalogs and domain acceptance remain local. Closed extraction requirements are retained as contracts, not duplicated TODOs.

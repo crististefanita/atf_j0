@@ -4157,3 +4157,34 @@ testChanges:
 This control covers only the documentation path above. Historical controls and their real Git bases are unchanged.
 
 </details>
+
+
+<details>
+<summary><strong>CONSOLE-MOCK-LIBRARIES-J0 — source ownership and binary acceptance</strong></summary>
+
+```yaml
+testChanges:
+  - id: CONSOLE-MOCK-LIBRARIES-J0
+    status: VERIFIED
+    base: 3ca79cb239db2122b41a42a4b3bce89b7181159b
+    expires: 2026-11-30
+    reason: Centralize identical Console and Mock implementation/native tests in J0; retain independent source/JAR oracles, physical CodeSource, negative integrity checks and consumer-specific governance. Native consumer deletions retain the complete matching J0 catalog and TMP recovery copies.
+    proof: 'mvn -B -ntp -pl atf-tests -am -Dtest=PlatformLibraryContractTest,PlatformLibraryIntegrityTest -Dsurefire.failIfNoSpecifiedTests=false test'
+    allowDelete: false
+    paths:
+      - atf-console/pom.xml
+      - atf-mock/pom.xml
+      - atf-tests/pom.xml
+      - atf-tests/src/test/java/atf/api/tests/governance/ArchitectureModuleBoundaryTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/AtfGovernanceTestSupport.java
+      - atf-tests/src/test/java/atf/api/tests/governance/ConstantsOwnershipGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/GovernanceDeployment.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/core/CoreGovernanceSurface.java
+      - atf-tests/src/test/java/atf/libraries/PlatformLibraryContractTest.java
+      - atf-tests/src/test/java/atf/libraries/PlatformLibraryIntegrityTest.java
+      - atf-tests/src/test/java/atf/libraries/PlatformLibrarySurface.java
+```
+
+Package verification retains the complete native source/JAR gates and independent consumer results, including unresolved J1 UI/layer findings. Historical controls keep their original bases.
+
+</details>

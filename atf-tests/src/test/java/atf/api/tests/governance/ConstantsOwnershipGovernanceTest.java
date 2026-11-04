@@ -66,7 +66,7 @@ public class ConstantsOwnershipGovernanceTest {
                 "core must not own a concrete product route catalog");
         ReportingHarnessOwnership.read(root).requireFile(root.resolve(
                 "atf-reporting-tests/src/test/java/atf/reporting/api/execution/routing/RoutePaths.java"));
-        assertTrue(Files.isRegularFile(root.resolve(
+        assertTrue(new atf.libraries.PlatformLibrarySurface(root, "mock").owns(root.resolve(
                         "atf-mock/src/main/java/atf/mock/MockRoutePaths.java")));
     }
 
@@ -182,6 +182,13 @@ public class ConstantsOwnershipGovernanceTest {
     }
 
     private static void inspectCanonicalSource(Path root, String relative, List<String> violations) throws Exception {
+        if (relative.startsWith("atf-mock/")) {
+            var mock = new atf.libraries.PlatformLibrarySurface(root, "mock");
+            if (!mock.source()) {
+                assertTrue(mock.owns(root.resolve(relative)), "Published Mock class/native catalog is missing " + relative);
+                return;
+            }
+        }
         String content = stripTextBlocks(Files.readString(root.resolve(relative)));
         for (Pattern pattern : FORBIDDEN_CANONICALS) {
             if (pattern.matcher(content).find()) violations.add(relative + " contains unowned canonical literal: " + pattern);

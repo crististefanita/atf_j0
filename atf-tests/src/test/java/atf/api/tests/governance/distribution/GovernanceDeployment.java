@@ -27,10 +27,18 @@ public record GovernanceDeployment(Path root, List<String> sourceModules, boolea
         String profile = text(child(pom, "properties"), "atf.consumer.profile");
         if (!profile.isBlank() && (source || !List.of("journeys", "foundation", "eventuate").contains(profile)))
             throw new IllegalStateException("GOV-CONSUMER-PROFILE: " + profile);
+        boolean platform = !text(child(pom, "properties"), "atf.console.version").isBlank();
+        boolean mock = !text(child(pom, "properties"), "atf.mock.version").isBlank();
+        if (platform != mock || platform && source) throw new IllegalStateException("GOV-PLATFORM-VERSION");
+        if (platform) for (String artifact : List.of("console", "mock")) {
+            atf.libraries.PlatformLibrarySurface.version(root, artifact);
+            if (Files.exists(root.resolve("atf-" + artifact))) throw new IllegalStateException("GOV-PLATFORM-SHADOW: " + artifact);
+        }
         boolean foundation = List.of("foundation", "eventuate").contains(profile);
         List<String> binaryGate = AtfModuleIds.REACTOR_MODULES.stream()
                 .filter(module -> source || !module.equals(AtfModuleIds.REPORTING))
                 .filter(module -> !binaryCore || !module.equals(AtfModuleIds.CORE))
+                .filter(module -> !platform || !List.of(AtfModuleIds.CONSOLE, AtfModuleIds.MOCK).contains(module))
                 .filter(module -> !foundation || !consumerModule(module))
                 .filter(module -> !profile.equals("eventuate") || !List.of(AtfModuleIds.UI, AtfModuleIds.DEBUG_UI).contains(module)).toList();
         if (profile.equals("eventuate")) {
@@ -67,6 +75,9 @@ public record GovernanceDeployment(Path root, List<String> sourceModules, boolea
     }
 
     public List<String> documentationTargets(String configured) {
+        for (String artifact : List.of("console", "mock"))
+            if (!sourceModules.contains("atf-" + artifact) && configured.equals("atf-" + artifact + "/README.md"))
+                return List.of("docs/ATF_Platform_Libraries.md");
         if (!coreSource() && configured.equals("atf-core/README.md")) return List.of("docs/ATF_Core_Consumer.md");
         String module = configured.contains("/") ? configured.substring(0, configured.indexOf('/')) : "";
         if (List.of(AtfModuleIds.UI, AtfModuleIds.DEBUG_UI).contains(module) && !sourceModules.contains(module) && configured.equals(module + "/README.md"))

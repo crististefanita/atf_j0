@@ -51,6 +51,7 @@
             <artifactId>junit-platform-suite</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency><groupId>atf.api</groupId><artifactId>atf-mock</artifactId><version>${project.version}</version><scope>test</scope></dependency>
     </dependencies>
     <build>
         <!-- This module owns only whole-ATF governance tests; reporting composition tests stay in atf-reporting-tests. -->

@@ -89,3 +89,8 @@ The [Core lifecycle contract](../atf-core/README.md#proiecția-console-și-anula
 - `UrlConnectionTransport` currently leaves a pending body subscription independent of future cancellation and the caller deadline; releasing that body can still cause dispatch.
 - The [active Core criterion](feedback/ATF_Core_Feedback.md#core-urlconnection-cancel-126--body-subscription-and-dispatch-ownership) requires bounded body ownership and permanent source/JAR negatives.
 - Consumer acceptance remains distinct; an uncertain mutation is not eligible for automatic replay.
+
+
+## Shared platform libraries
+
+The current reactor has 12 source modules. [Platform library consumption](ATF_Platform_Libraries.md) defines the four library owners, flat distribution, Maven/IntelliJ bootstrap and independent consumer acceptance. Console/Mock native tests stay in J0; consumer adapters and catalogs stay local.

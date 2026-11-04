@@ -3,16 +3,16 @@
 ## Pe scurt
 
 `atf_j0` înlocuiește `demo2` ca referință de mentenanță Core și Reporting.
-Implementările Core/Reporting și toate testele lor native rămân aici; fiecare destinație
+Implementările Core/Reporting/Console/Mock și toate testele lor native rămân aici; fiecare destinație
 primește și verifică livrarea potrivită propriului deployment.
 
 | Workspace | Rol | Suprafață existentă |
 |---|---|---|
-| `atf_j0` | sursă Core/Reporting, teste native și `atf-reporting-tests`; referință pentru contractele comune | 12 module sursă; Core și guvernanța comune reconciliate |
-| `atf_j1` | testarea AutoEx și Shop; consumer Core și Reporting prin JAR | 9 module journeys; Core/Reporting in lib și acceptanță proprie |
-| `atf_j2` | WIP: framework și teste Kafka/mesagerie, fără module browser ori Shop/AutoEx | 8 module sursă, inclusiv SQL; Core și Reporting JAR; componente Eventuate MOCK; Kafka remote și clientul Java de infrastructură validate în incrementul J2; clientul/observerul framework-ului rămâne WIP |
-| `atf_j4` | consumer Android/ADB, șapte module; Core și Reporting JAR | independent binary adoption, with complete captured PNG evidence; E2E device rămâne la J4 |
-| `atf_j3` | consumer speech, șapte module sursă; Core și Reporting prin JAR | Core/Reporting in lib și acceptanță proprie, fără module web ori mesagerie |
+| `atf_j0` | sursă Core/Reporting/Console/Mock, teste native și `atf-reporting-tests`; referință pentru contractele comune | 12 module sursă; Core și guvernanța comune reconciliate |
+| `atf_j1` | testarea AutoEx și Shop; consumer Core și Reporting prin JAR | 7 module journeys; Core/Reporting in lib și acceptanță proprie |
+| `atf_j2` | WIP: framework și teste Kafka/mesagerie, fără module browser ori Shop/AutoEx | 6 module sursă, inclusiv SQL; Core și Reporting JAR; componente Eventuate MOCK; Kafka remote și clientul Java de infrastructură validate în incrementul J2; clientul/observerul framework-ului rămâne WIP |
+| `atf_j4` | consumer Android/ADB, patru module; Core și Reporting JAR | independent binary adoption, with complete captured PNG evidence; E2E device rămâne la J4 |
+| `atf_j3` | consumer speech, cinci module sursă; Core și Reporting prin JAR | Core/Reporting in lib și acceptanță proprie, fără module web ori mesagerie |
 | `demo2` | historical source workspace | nu mai este destinație activă de mentenanță sau sync |
 
 J1 poate avea schimbări comune în lucru. Referința J0 nu autorizează
@@ -64,14 +64,14 @@ rămân distincte; infrastructura copiată nu le demonstrează.
 | Reporting Java, assets, API sau POM | versiune nouă, JAR/POM și proveniență; documentele de adopție | native, regresii permanente și gate pe JAR-ul fizic |
 | Core Java, API sau POM | versiune Core nouă, pereche JAR/POM și proveniență; sursa și nativele rămân în J0 | native și contracte pe JAR, guvernanță și acceptanță distinctă J1/J2 |
 | numai regresii Reporting | testele rămân în J0; se verifică relevanța pentru versiunea consumată | reproducere negativă și acceptanță pe binarul afectat; fără copierea harness-ului în live |
-| cod comun non-Core/Reporting sau adaptoare Shop/AutoEx | numai sursele și probele selectate pentru același comportament | comparație cu schimbările locale și testele ownerului; un JAR Reporting nou nu este implicit necesar |
+| other shared source modules (Kit, Validation, UI) or Shop/AutoEx adapters | numai sursele și probele selectate pentru același comportament | comparație cu schimbările locale și testele ownerului; un JAR Reporting nou nu este implicit necesar |
 | documentație ori mutarea referinței | contracte și linkuri adaptate deployment-ului | guvernanță documentară; fără versiune binară nouă numai pentru redenumirea directorului |
 
 - `lib` păstrează o singură versiune per bibliotecă: câte un JAR/POM direct în folder.
   Hash-urile și catalogul native sunt în `library-provenance.json`, la rădăcină.
 - POM-urile reactorului, `.git`, bazele `testChanges`, configurațiile locale,
   cache-urile, output-urile și rapoartele nu se copiază prin mirror.
-- Feedback-ul Core/Reporting are owner în J0; cerințele comune nonbibliotecă sunt coordonate în J1. Feedback-ul unei implementări comune
+- Feedback-ul Core/Reporting/Console/Mock are owner în J0; cerințele comune nonbibliotecă sunt coordonate în J1. Feedback-ul unei implementări comune
   se închide în alt deployment numai după sincronizarea și proba codului său.
 
 ## Protocolul fiecărui increment
@@ -120,7 +120,7 @@ Acceptanța J2 Eventuate și limita hostului sunt în [dovada consumerului](../.
 
 ## J2 fără module browser — perimetru distinct
 
-J2 declară opt module sursă: platforma, SQL, Setup, Eventuate și guvernanța; Core și Reporting sunt biblioteci externe.
+J2 declară șase module sursă: platforma, SQL, Setup, Eventuate și guvernanța; Core și Reporting sunt biblioteci externe.
 [Scope-ul J2](../../atf_j2/docs/ATF_J2_Scope.md) delimitează contractul fără
 UI/Debug sau Playwright; retragerea este implementată în checkout-ul J2.
 
@@ -142,3 +142,8 @@ Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 - Superseded notes are retired after their durable contracts have been reconciled. Historical build/test facts and original evidence paths remain provenance, explicitly marked as retired; they are not current document targets or fresh acceptance.
 
 Each current note is retained with its matching package; its coordinate and JAR/POM hashes must match the distributed pair. Documentation maintenance alone neither rebuilds a library nor repeats its recorded tests.
+
+
+## Shared platform libraries
+
+The current reactor has 12 source modules. [Platform library consumption](ATF_Platform_Libraries.md) defines the four library owners, flat distribution, Maven/IntelliJ bootstrap and independent consumer acceptance. Console/Mock native tests stay in J0; consumer adapters and catalogs stay local.
