@@ -9,9 +9,22 @@ frozen J10/J13 witnesses and from a new device execution.
 
 | Current residual | Owner and closure boundary |
 |---|---|
+| UI action attribution | truthful action headings and failure diagnostics for neutral inputs |
 | Long UI comparisons, criterion 133 | capture before caller preview, safe disclosure and source/JAR negatives |
 | Observation routes | explicit media versus empty-comparison THEN, with independent flow-mode characterization |
 | Additional volume witness | neutral captured inputs and measured publication limits before assigning a renderer defect |
+
+## Proveniența acțiunilor UI
+
+**P1 · Reprodus în Extent J18, 4 noiembrie 2026.** Un cititor care deschide tabelul unei acțiuni Android vede `Playwright action sequence`. În primul checkpoint, rândurile sunt `Force-stop Android app` și `Launch Android activity`. Eticheta apare în toate cele nouă tabele din cele două publicații J4. [Probe și acceptanță Android](../../../atf_j4/docs/feedback/ATF_Android_Alignment_Feedback.md#proveniența-acțiunilor-android)
+
+`AtfUiActionRecord` descrie operația și rezultatul. `AtfUiEvidenceSource` distinge ACTION de OBSERVE. Niciunul dintre aceste câmpuri nu identifică driverul. `ExtentUiEvidenceMarkup.actionSummary` folosește eticheta Playwright atât la succes, cât și la eșec. Contractul generic de HTML cere același literal. [Etichete](../../atf-reporting/src/main/java/atf/reporting/markup/AtfReportLabels.java) · [Contractul HTML](../../atf-reporting/src/main/java/atf/reporting/ui/contract/UiReportArtifactContract.java)
+
+Există și un risc de diagnostic. Două ramuri JavaScript construiesc independent textul `Playwright action` pentru un rând UI eșuat. Codul este prezent în ambele HTML-uri arhivate. Ambele scenarii au trecut, deci efectul asupra unui FAIL este identificat în sursă și așteaptă o probă negativă. [Selectarea cauzei](../../atf-reporting/src/main/resources/atf/reporting/javascript/extent-failure-detection.js) · [Detaliul eșecului](../../atf-reporting/src/main/resources/atf/reporting/javascript/extent-evidence-failures.js)
+
+- [ ] Folosiți `UI action sequence` și `UI action` pentru recordurile neutre, inclusiv cele vechi. Un nume de driver este justificat numai prin proveniență explicită. Textul operației, locatorul, tagurile și browserul de audit nu stabilesc proveniența. Păstrați API-ul consumatorilor și clasele DOM folosite pentru expandare.
+- [ ] În Reporting Tests, folosiți aceleași nume de operație și țintă pentru un input web și unul non-web. Verificați titlul vizibil și numărul de intrări la PASS, apoi provocați un FAIL pe al doilea rând. Verificați operația, cauza, ordinalul și ținta la același checkpoint în Tests și în diagnosticul expus de fiecare renderer.
+- [ ] Verificați sursa și JAR-ul fizic, în Extent și fallback. Un checkpoint OBSERVE-only nu creează o acțiune. Păstrați separat assertions, captura și politica de expandare. Oracolul citește elementul vizibil în contextul său, astfel încât un nume legitim de driver dintr-o probă web să rămână permis.
 
 ## REPORT-UI-ASSERTION-FULL-EVIDENCE-133 — valori lungi capturate înainte de preview
 
@@ -48,7 +61,7 @@ The [consumer witness](../../../atf_j4/docs/ATF_J4_Report_Audit.md#concurrent-co
 
 ## Restanță generică și handoff
 
-The active J0 residuals above are long assertion capture and separate media/volume characterization. [J1/J4 coordination](../../../atf_j1/docs/feedback/ATF_Consumer_Reporting_Handoff_Feedback.md) owns device inputs and application assertions.
+Active J0 residuals are listed in the current table above. [J1/J4 coordination](../../../atf_j1/docs/feedback/ATF_Consumer_Reporting_Handoff_Feedback.md) owns device inputs and application assertions.
 
 ## REPORT-PUBLICATION-MEMORY-131 — copii integrale la publicare
 
