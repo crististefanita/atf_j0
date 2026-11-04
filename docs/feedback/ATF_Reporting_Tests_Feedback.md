@@ -34,8 +34,9 @@ scenariului, fazei, ownerului, ordinalului și capturii originale.
   Oracolul trebuie să identifice ownerul activ și comparația originală;
   vizibilitatea singură nu înlocuiește identitatea sau inventarul semantic.
 
-- [ ] Publicați un fixture neutru cu negative și vecini PASS; comparați numărul
-      și identitatea dovezilor în Tests, Fails și Overview, în Extent și fallback.
+Existing permanent families already cover original ACTION/OBSERVE/comparison ordinals, repeated failure labels, reverse navigation and reload. Preserve [catalog contracts](../../atf-reporting-tests/src/test/java/atf/reporting/ui/contract/UiFailureCatalogueContractTest.java) and [published navigation edges](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationEdgeComponentTest.java); do not relist their nominal coverage as missing.
+
+- [ ] Reconcile the remaining source/JAR mutation matrix per evidence kind and scenario; identify exactly which capture/owner/value degradation lacks an independent rejection before adding another fixture.
 - [ ] Controlul negativ elimină numai captura unui caz, mută dovada la un
       sibling sau inversează numai verdictul lui; oracolul trebuie să refuze
       fiecare variantă fără să fie satisfăcut de script ori de alt scenariu.
@@ -50,7 +51,6 @@ cu identitatea dovezii. [Proba business a consumerilor](../ATF_Testing_Guide.md#
 rămâne la aplicație; fixture-ul neutru nu aduce Shop/AutoEx în Reporting Tests.
 
 ## Dovada cerută pentru handoff
-
 
 | Livrabil | Criteriu |
 |---|---|
@@ -67,8 +67,7 @@ documentele normative nu păstrează artifacte sau rezultate datate.
 ## REPORT-TEST-FALLBACK-RESULT-WIDTH-101 — geometria celulei RESULT
 
 **Prioritate: 64/100.** [Defectul bibliotecii](ATF_Reporting_Feedback.md#report-fallback-result-width-101--badge-ul-statusului-depășește-coloana)
-are reproducere J7: badge-ul Warning este mai lat decât coloana RESULT,
-producând overflow mic, deși patru coloane pot fi afișate în panoul normal.
+retains a historical Warning/RESULT overflow witness. Recheck current source and the physical JAR with a dedicated geometric oracle before describing that historical overflow as a current renderer defect.
 
 - [ ] Adăugați ApiValidationColumnWidthComponentTest cu AtfComponentTest și fixture neutru partajat cu testul de disclosure; integrați selecția în suita componentă și gate-ul JAR.
 - [ ] Publicați separat PASS, FAIL și WARNING, cu vecini PASS și header sintetic lung; expected-ul verdictului este furnizat direct, fără parser MIME sau dependency către Validation.
@@ -143,7 +142,7 @@ query/bind-uri/schema efectiv capturate. Acceptanța anterioară J9 rămâne ist
 - Păstrați negativele query absent, ID diferit de metadata, DECIMAL rotunjit și rând/coloană duplicată pierdută. Adăugați cross-owner cu titluri identice și SQL-only fără HTTP; refuzul legacy J10 este istoric; J12 oferă profilul explicit, iar acceptoarele J2 îl adoptă separat.
 - Verificați separat captura parțială JDBC, tăierea HTML configurată și testul PASS care verifică o eroare SQL așteptată. Un error field nu impune FAIL asupra comparațiilor care au trecut; eroarea neconsumată păstrează FAIL și cauza originală.
 
-## Limite active după consolidarea J12
+## Current regression boundaries
 
 - SQL-STEPS-116, exact-row/reload failure identity and RESULT geometry remain separate open criteria.
 - [Unicode and Kit scope](../../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md) belong to J1; Reporting keeps the neutral rendering boundary.
@@ -154,30 +153,89 @@ query/bind-uri/schema efectiv capturate. Acceptanța anterioară J9 rămâne ist
 
 ## REPORT-TEST-ARTIFACT-PROFILE-62 — matrice neutră fără HTTP fictiv
 
-[J12](../ATF_Reporting_J12_Verification.md) and the [harness contract](../../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions) retain explicit artifact profiles and degraded-inventory negatives.
+[Reporting owner contract](../../atf-reporting/README.md) and the [harness contract](../../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions) retain explicit artifact profiles and degraded-inventory negatives.
 
 ## Timing capturat versus publicare — regresie de păstrat
 
-[RecordedPublicationTimingComponentTest](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/timing/RecordedPublicationTimingComponentTest.java) and [J12](../ATF_Reporting_J12_Verification.md) own the permanent barrier-based timing regression.
+[RecordedPublicationTimingComponentTest](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/timing/RecordedPublicationTimingComponentTest.java) and [Reporting owner contract](../../atf-reporting/README.md) own the permanent barrier-based timing regression.
 
 ## REPORT-TEST-SCREENSHOT-RETURN-137 — contextul viewer-ului pentru PNG reutilizat
 
-[Screenshot reference contracts](../../atf-reporting-tests/src/test/java/atf/reporting/observation/ScreenshotReferenceComponentTest.java), the [browser family](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/screenshot/ScreenshotViewerBrowserComponentTest.java) and [J16](../ATF_Reporting_J16_Verification.md) retain owner, caption, focus and legal scroll restoration.
+[Screenshot reference contracts](../../atf-reporting-tests/src/test/java/atf/reporting/observation/ScreenshotReferenceComponentTest.java), the [browser family](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/screenshot/ScreenshotViewerBrowserComponentTest.java) and [inline audit contract](../ATF_Inline_Audit_Contract.md) retain owner, caption, focus and legal scroll restoration.
 
 ## REPORT-TEST-SCREENSHOT-VIEWPORT-138 — fit integral fără crop
 
-The [neutral fixture](../../atf-reporting-tests/src/test/java/atf/reporting/support/screenshot/ScreenshotViewerFixture.java) and [J16](../ATF_Reporting_J16_Verification.md) own full-image geometry, input controls and immutable PNG acceptance on source/JAR.
+The [neutral fixture](../../atf-reporting-tests/src/test/java/atf/reporting/support/screenshot/ScreenshotViewerFixture.java) and [inline audit contract](../ATF_Inline_Audit_Contract.md) own full-image geometry, input controls and immutable PNG acceptance on source/JAR.
 
 ## REPORT-LARGE-NAVIGATION-139 — permanent retained-evidence regression
 
-[J17](../ATF_Reporting_J17_Verification.md) and [J18](../ATF_Reporting_J18_Verification.md) retain the navigation, hidden-table, semantic-tree and canonical-PNG mutation families. Large external reports use targeted paths or at most two explicitly selected original owners.
+The [navigation contract](../ATF_Large_Report_Navigation.md) defines the navigation, hidden-table, semantic-tree and canonical-PNG mutation families. Large external reports use targeted paths or at most two explicitly selected original owners.
 
 ## REPORT-COLD-READINESS-141 — permanent startup regression
 
-[J18](../ATF_Reporting_J18_Verification.md) owns ColdStartReadinessComponentTest, unchanged-write measurement checks and the original cold-start deadlines. Control 141 remains verified in the [baseline](../ATF_Test_Changes_Baseline.md).
+[navigation contract](../ATF_Large_Report_Navigation.md) owns ColdStartReadinessComponentTest, unchanged-write measurement checks and the original cold-start deadlines. Control 141 remains verified in the [baseline](../ATF_Test_Changes_Baseline.md).
 
 ## REPORT-TIMELINE-TITLE-142 — permanent native-script contract
 
-[Native timeline verification](../ATF_Reporting_J18_Verification.md#native-timeline-labels) retains three full-label script cases, the old-binary negative and unchanged timestamp coverage.
+[native timeline contract](../ATF_Large_Report_Navigation.md#native-timeline-labels) retains three full-label script cases, the old-binary negative and unchanged timestamp coverage.
+
+</details>
+
+## Public adapter and portable-document negatives
+
+PUBLIC-API-43 and PORTABLE-DOCS-46 need permanent boundary oracles, not more application journeys. Keep existing passing regressions while adding only the missing control.
+
+- [ ] Characterize lightweight legacy adapters: requested mandatory screenshots, actions, execution diagnostics and aggregate data either survive publication or receive an explicit capability refusal; a no-op call alone is not auditable evidence.
+- [ ] Exercise a declared supported API client against the physical JAR without producer implementation classes; compare supported signatures and runtime vendor assumptions independently.
+- [ ] Validate distributed adoption documentation with sibling source directories absent; a link that passes inside the full producer checkout does not prove portability.
+
+## REPORT-UNIT-BASELINE-149 — restore the complete existing unit gate
+
+**Priority: 93/100** = impact 36 + gap 28 + actionable 20 + documentation 9. The canonical unit suite currently executes 487 cases: 479 pass and eight fail, without errors or skips. All eight failing methods also reproduce individually against source and the physical JAR, with the loaded CodeSource recorded; retain their failures while classifying causes.
+
+| Existing regression | Required investigation |
+|---|---|
+| ReportAssetContractTest / HtmlReportNavigationScriptTest | exact selector text changed; verify real tab ownership, hash activation and keyboard behavior before replacing a substring oracle |
+| ExtentReportFailureProjectionContractTest | exact request-label script assignment changed; verify the failed phase/request and duration in rendered Fails rather than accepting an updated string alone |
+| ExtentReportRuntimeNavigationComponentTest | the controller and performance module register separate load listeners; the old literal-count assertion confuses timing observation with initialization. Preserve duplicate-initialization negatives through the permanent cold-start browser controls |
+| AtfReportThemeCompositionTest / HtmlReportComponentContractTest | screenshot-viewer backdrop uses rgba despite the documented hex-only theme contract; preserve the contract instead of weakening its checks |
+| AtfReportEvidenceCssTest | table viewport CSS is no longer the final composed fragment; prove effective precedence for every table family before deciding whether composition or the oracle changes |
+| ExtentReportUiScreenshotContractTest | raw marker count is two because the shared viewer script contains its selector; independent DOM inspection finds one screenshot link and one PNG data URI. Replace this script-sensitive oracle with semantic identity and byte/reference negatives, preserving caption ownership |
+
+- [ ] Classify each failure as implementation, fixture or oracle; keep its exact method and independent behavioral/semantic negative in the existing test family.
+- [ ] Verify the same tests on producer source and the physical JAR, with loaded CodeSource recorded; a focused green gate does not replace the canonical unit baseline.
+- [ ] Keep screenshots, assertions, timing and preview 240 intact; do not delete tests, increase budgets or change expected values only to obtain green.
+- [ ] Make the complete canonical unit suite a maintained release precondition alongside native and focused component/browser gates.
+
+**Closure:** all original eight cases pass for a justified reason, the related negative controls still fail on the wrong behavior, and the full unit/source/JAR gates are green. Historical partial acceptance counts remain historical facts, not a substitute for this gate.
+
+## REPORT-TEST-CONTROLS-150 — reconcile existing Java changes at the real review base
+
+**Priority: 87/100** = impact 31 + gap 26 + actionable 20 + documentation 10. Whole-ATF governance rejects 15 pre-existing Reporting Java test/support changes at the current Git base; this audit changes no Java source or test.
+
+- [ ] Reconcile the exact changed paths against the current HEAD and the earlier verified control; preserve the historical record and its original base.
+- [ ] Create a separately reviewed current control only after the affected tests, independent source/JAR oracles and adjacent regressions justify it; do not replace a historical base string to manufacture eligibility.
+- [ ] Restore the complete unit baseline and rerun WholeAtfGovernanceSuiteTest without exclusions or a forced old base.
+
+<details>
+<summary><strong>Paths requiring a current Reporting review</strong></summary>
+
+```text
+atf-reporting-tests/src/test/java/atf/reporting/markup/AtfReportMarkupTest.java
+atf-reporting-tests/src/test/java/atf/reporting/ui/ExtentReportUiEvidencePublishingTest.java
+atf-reporting-tests/src/test/java/atf/reporting/ui/ExtentReportUiEvidenceRenderingTest.java
+atf-reporting-tests/src/test/java/atf/reporting/ui/ExtentReportUiFailureEvidenceTest.java
+atf-reporting-tests/src/test/java/atf/reporting/ui/profile/ReportEvidenceProfileIntegrationTest.java
+atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/diagnostic/ReportPhaseAuditProbe.java
+atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failurecontext/UiFailureContextProbe.java
+atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/table/TableViewportProbe.java
+atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/section/extract/UiValidationSectionExtractor.java
+atf-reporting-tests/src/test/java/atf/reporting/ui/contract/UiActionAttributionContractTest.java
+atf-reporting-tests/src/test/java/atf/reporting/ui/contract/UiFailureCatalogueContractTest.java
+atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/provenance/UiActionAttributionComponentSuite.java
+atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/provenance/UiActionAttributionComponentTest.java
+atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/provenance/UiActionAttributionFixture.java
+atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/provenance/UiFailureCatalogueFixture.java
+```
 
 </details>

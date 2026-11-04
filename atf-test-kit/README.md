@@ -496,3 +496,11 @@ adaptorul fiecărui consumer; unit-urile obișnuite nu primesc această cerinț�
 | politica neutră ANY_PHASE / TEST_BODY | src/test/java/atf/testkit/assertions/requirement; aceleași zece cazuri, prin API-ul public |
 | eșecul controlat al fixture-urilor | Launcher explicit; nested fixtures nu sunt selectate independent prin wildcard |
 | coeziune | cele opt clase generale rămân în assertions, iar cele două probe de requirement au subpachet propriu |
+
+## Display fidelity boundaries
+
+RecordedAssertions compares original inputs and records a sanitized preview; the default remains 240 UTF-16 units. Stored expected/actual values are bounded projections rather than complete input snapshots.
+
+- The current boundary can split a supplementary Unicode character; [the shared owner criterion](../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md#kit-unicode-preview-127--preserve-valid-text-at-the-configured-boundary) requires a valid preview without increasing that budget.
+- A suffix-only mismatch retains FAIL even when stored previews coincide; complete safe evidence must be retained upstream of truncation before a renderer can disclose it.
+- Sanitization precedes preview, comparisons run once and original JUnit failures remain owned by the assertion boundary.

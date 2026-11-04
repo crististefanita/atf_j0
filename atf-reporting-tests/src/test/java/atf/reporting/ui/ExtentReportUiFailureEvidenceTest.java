@@ -47,7 +47,7 @@ class ExtentReportUiFailureEvidenceTest {
 
         String html = Files.readString(report);
         assertAll(
-                () -> assertTrue(html.contains("Playwright action sequence · 1 failed of 1")),
+                () -> assertTrue(html.contains("UI action sequence · 1 failed of 1")),
                 () -> assertTrue(html.contains("data-atf-evidence-status=\"fail\"")),
                 () -> assertTrue(html.contains("atf-ui-action-result-fail")),
                 () -> assertTrue(html.contains("AssertionError: disclosure remained closed")),
@@ -121,7 +121,7 @@ class ExtentReportUiFailureEvidenceTest {
         String html = Files.readString(report);
         assertAll(
                 () -> assertTrue(html.contains("atf-ui-failure-evidence")),
-                () -> assertTrue(html.contains("Playwright action sequence (1 entry)")),
+                () -> assertTrue(html.contains("UI action sequence (1 entry)")),
                 () -> assertTrue(html.contains("synthetic failure")),
                 () -> assertTrue(html.contains("Failure evidence")));
     }

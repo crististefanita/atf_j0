@@ -207,7 +207,7 @@ class ExtentReportUiEvidencePublishingTest {
         int setupPosition = html.indexOf("<span>SETUP</span>");
         int registrationPosition = html.indexOf("GIVEN a new account is registered");
         int setupEvidencePosition = html.indexOf("class=\"atf-setup-evidence-table\"");
-        int actionTablePosition = html.indexOf("Playwright action sequence (1 entry)");
+        int actionTablePosition = html.indexOf("UI action sequence (1 entry)");
         int screenshotPosition = html.indexOf("Authenticated account screen");
         int actionTableEnd = html.lastIndexOf("</table>", screenshotPosition);
         int testBodyPosition = html.indexOf("<span>TEST BODY</span>");
@@ -215,7 +215,7 @@ class ExtentReportUiEvidencePublishingTest {
                 () -> assertTrue(setupPosition >= 0 && registrationPosition > setupPosition),
                 () -> assertTrue(setupEvidencePosition > registrationPosition),
                 () -> assertTrue(html.contains("Setup evidence · 1 check")),
-                () -> assertTrue(html.contains("Playwright action sequence (1 entry)")),
+                () -> assertTrue(html.contains("UI action sequence (1 entry)")),
                 () -> assertTrue(html.contains("API validation")),
                 () -> assertTrue(html.contains("POST /users/register")),
                 () -> assertTrue(actionTablePosition >= 0 && actionTableEnd > actionTablePosition

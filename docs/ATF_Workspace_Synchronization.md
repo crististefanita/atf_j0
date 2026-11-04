@@ -9,11 +9,11 @@ primește și verifică livrarea potrivită propriului deployment.
 | Workspace | Rol | Suprafață existentă |
 |---|---|---|
 | `atf_j0` | sursă Core/Reporting, teste native și `atf-reporting-tests`; referință pentru contractele comune | 12 module sursă; Core și guvernanța comune reconciliate |
-| `atf_j1` | testarea AutoEx și Shop; consumer Core și Reporting prin JAR | 9 module journeys; C3/J18 în lib și acceptanță proprie |
+| `atf_j1` | testarea AutoEx și Shop; consumer Core și Reporting prin JAR | 9 module journeys; Core/Reporting in lib și acceptanță proprie |
 | `atf_j2` | WIP: framework și teste Kafka/mesagerie, fără module browser ori Shop/AutoEx | 8 module sursă, inclusiv SQL; Core și Reporting JAR; componente Eventuate MOCK; Kafka remote și clientul Java de infrastructură validate în incrementul J2; clientul/observerul framework-ului rămâne WIP |
-| `atf_j4` | consumer Android/ADB, șapte module; Core și Reporting JAR | adopție J18 separată, cu PNG original arhivat; E2E device rămâne la J4 |
-| `atf_j3` | consumer speech, șapte module sursă; Core și Reporting prin JAR | C3/J18 în lib și acceptanță proprie, fără module web ori mesagerie |
-| `demo2` | origine istorică a livrării J6 existente | nu mai este destinație activă de mentenanță sau sync |
+| `atf_j4` | consumer Android/ADB, șapte module; Core și Reporting JAR | independent binary adoption, with complete captured PNG evidence; E2E device rămâne la J4 |
+| `atf_j3` | consumer speech, șapte module sursă; Core și Reporting prin JAR | Core/Reporting in lib și acceptanță proprie, fără module web ori mesagerie |
+| `demo2` | historical source workspace | nu mai este destinație activă de mentenanță sau sync |
 
 J1 poate avea schimbări comune în lucru. Referința J0 nu autorizează
 suprascrierea lor: reconcilierea compară baza, diferența și proba fiecărui owner.
@@ -99,8 +99,8 @@ rămân distincte; infrastructura copiată nu le demonstrează.
 | Informație | Regula de păstrare |
 |---|---|
 | owner curent | `maintenanceReference` indică J0 și țintele de mentenanță |
-| build J6 existent | `producerDirectory`, commit-ul, hash-urile și acceptanța descriu execuția originală; nu se rescriu ca și cum ar fi rulat în J0 |
-| următorul build | înregistrează snapshot-ul efectiv din J0 și acceptanțele executate, fără moștenirea automată a rezultatelor J6 |
+| existing build | `producerDirectory`, commit-ul, hash-urile și acceptanța descriu execuția originală; nu se rescriu ca și cum ar fi rulat în J0 |
+| următorul build | înregistrează snapshot-ul efectiv din J0 și acceptanțele executate, without inheriting earlier execution results |
 | diferențe CRLF/LF | se explică separat; echivalența textuală nu substituie hash-ul byte cu byte al unui artifact sau al intrărilor publicate |
 | controale Git | baze reale per checkout; controalele istorice nu se rebazează prin înlocuire de text |
 
@@ -131,13 +131,14 @@ selectiv, iar backlog-ul Reporting și cel web rămân la ownerii J0/J1.
 ## Core ca bibliotecă — owner și deployment
 
 J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module.
-[Contractul Core C3](ATF_Core_Consumer.md) separă sursa, publicarea și acceptanțele J1/J2/J3.
+[Contractul Core](ATF_Core_Consumer.md) separă sursa, publicarea și acceptanțele J1/J2/J3.
 Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 
-[Livrarea observations J7](ATF_Reporting_J7_Verification.md) păstrează acceptanțele și istoricul versiunilor separat.
+## Release evidence retention
 
-## Current large-report delivery
+- Project README files, atlases and `docs` describe current contracts and ownership; they do not accumulate per-release library improvement narratives or verification notes.
+- Keep one current verification note per library in its producer packaging stage, beside the effective publication POM. Builds, logs and HTML evidence stay in owned TMP.
+- Consumer `library-provenance.json` records the current coordinate, hashes, original `buildStage` and `currentAcceptance.evidence` location. Consumer `lib` retains only the latest Core and Reporting JAR/POM pairs.
+- Superseded notes are retired after their durable contracts have been reconciled. Historical build/test facts and original evidence paths remain provenance, explicitly marked as retired; they are not current document targets or fresh acceptance.
 
-[Reporting J18](ATF_Reporting_J18_Verification.md) records the common pair and
-independent consumer checks. Core C3 is unchanged; device, ASR and Eventuate
-application acceptance remain separate from publication/rendering.
+Each current note is retained with its matching package; its coordinate and JAR/POM hashes must match the distributed pair. Documentation maintenance alone neither rebuilds a library nor repeats its recorded tests.

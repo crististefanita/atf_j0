@@ -44,7 +44,7 @@ public final class ExtentSectionGherkin {
             case CATEGORIES -> "the Categories section shows counts and working filters";
             case FAILS -> "the Fails section shows failure rows, causes and actionable links";
             case EVIDENCE -> "request evidence shows request JSON, response JSON and execution evidence";
-            case UI_VALIDATION -> "UI validation shows Playwright actions, audit observations, assertions and screenshot evidence";
+            case UI_VALIDATION -> "UI validation shows UI actions, audit observations, assertions and screenshot evidence";
         };
     }
 

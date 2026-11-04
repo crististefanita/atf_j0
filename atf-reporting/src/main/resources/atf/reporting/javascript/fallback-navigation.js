@@ -1,4 +1,5 @@
 history.scrollRestoration = 'manual';
+const nodes = (selector, root = document) => [...root.querySelectorAll(selector)];
 function synchronizeFallbackDisclosureAria(details) {
   const summary = details.querySelector(':scope > summary');
   if (summary) summary.setAttribute('aria-expanded', String(details.open));
@@ -7,23 +8,22 @@ document.querySelectorAll('details').forEach(synchronizeFallbackDisclosureAria);
 document.addEventListener('toggle', event => {
   if (event.target.tagName === 'DETAILS') synchronizeFallbackDisclosureAria(event.target);
 }, true);
-const tabs = [...document.querySelectorAll('.tab')];
-const panels = [...document.querySelectorAll('.tab-panel')];
+const tabs = nodes('.tab');
+const panels = nodes('.tab-panel');
 function activate(id) {
   tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === id));
   panels.forEach(p => p.classList.toggle('active', p.id === id));
   history.replaceState(null, '', '#' + id);
 }
 function fallbackFailureTargets(scenario) {
-  const diagnostics = [...scenario.querySelectorAll('.phase-diagnostics [data-atf-diagnostic-status="fail"]')];
-  return [...scenario.querySelectorAll('section[data-atf-node-role="phase"]')].flatMap(phase => [
+  const diagnostics = nodes('.phase-diagnostics [data-atf-diagnostic-status=fail]', scenario);
+  return nodes('section[data-atf-node-role=phase]', scenario).flatMap(phase => [
     ...diagnostics.filter(d => d.dataset.atfPhaseName.toLowerCase().replace(/ /g, '-') === phase.dataset.atfPhaseName)
-      .flatMap(d => [...d.querySelectorAll('tbody tr')]),
-    ...[...phase.querySelectorAll('[data-atf-terminal-failure="true"], table.assertions tbody tr')].filter(row => {
-      if (!row.matches('[data-atf-terminal-failure="true"]')) return row.cells[3]?.querySelector('.status-fail');
-      const request = row.closest('[data-atf-node-role="request"]');
-      return request?.querySelector(':scope > .node-title .status-fail');
-    })
+      .flatMap(d => nodes('tbody tr', d)),
+    ...nodes('[data-atf-terminal-failure=true],table.assertions tbody tr,.atf-ui-action-table tbody tr', phase)
+      .filter(row => row.matches('[data-atf-terminal-failure=true]')
+        ? row.closest('[data-atf-node-role=request]')?.querySelector(':scope>.node-title .status-fail')
+        : row.lastElementChild?.querySelector('.status-fail,.atf-ui-action-result-fail'))
   ]);
 }
 function revealFallbackFailure(id, ordinal) {

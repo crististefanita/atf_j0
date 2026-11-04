@@ -6,6 +6,8 @@ nu citește mock-uri sau fixture-uri de aplicație.
 
 ## Pe scurt
 
+- **Binary adoption:** the [minimal consumer](docs/README.md#minimal-binary-consumer) uses the physical JAR and its declared runtime dependencies, without Core, Kit or producer source directories.
+
 **Trasee rapide:** [Adopție JAR](#consumarea-bibliotecii-ca-jar) · [Arbore și ownership](#contractul-raportului) · [Aserțiuni și buget](#proiecția-sigură-a-aserțiunilor) · [Timing](#timing-e2e-la-ownerul-runtime) · [Tabele](#lizibilitatea-dovezilor-în-panouri-înguste) · [Probe și limite](#verificare-rapidă)
 
 - **producție** — contracte typed, modele semantice, renderer, asset-uri și
@@ -118,7 +120,6 @@ Compilarea izolată, consumul JAR-ului fizic și randarea sunt dovezi distincte.
 Exemplul de mai sus demonstrează porturile folosite; nu declară întregul API
 drept stabil pentru release. [Delimitarea API-ului și compatibilitatea](../docs/feedback/ATF_Reporting_Feedback.md)
 rămân criterii explicite, chiar când artifactul candidat poate fi consumat.
-
 
 ## Limitele librăriei autonome și consumatorul canonic
 
@@ -521,7 +522,7 @@ TestCase
 | action number | fiecare acțiune afișează `#n` într-un token dedicat, `atf-ui-action-number`, compact (`inline-block`/`max-content`); nu se reutilizează clasa extensibilă `atf-ui-action-sequence` |
 | screenshot | link inline cu emoji-ul curent; payload Base64 pentru prima apariție sau referință locală bounded (`screenshot-n`) pentru o stare deduplicată; fingerprint-ul rămâne intern și nu este afișat în locul linkului |
 | action table | acțiunile relevante includ `getText`/text extraction; timpul apare numai pentru acțiuni |
-| failures | `Setup`, `Playwright action`, `Audit observation` și `Assertion` au cauze distincte și `Open in Tests` |
+| failures | `Setup`, `UI action`, `Audit observation` și `Assertion` au cauze distincte și `Open in Tests` |
 | navigation | `Tests`, `Overview`, `Categories`, `Fails` folosesc aceeași identitate semantică și deep-link |
 
 Această ierarhie API nu trebuie confundată cu raportarea UI: acolo `UI validation`
@@ -810,7 +811,7 @@ flowchart LR
 
 | Suprafață | Contract observabil |
 |---|---|
-| Tests → Playwright action sequence | operația, locatorul, durata măsurată și contextul primei dovezi FAIL |
+| Tests → UI action sequence | operația, ținta, durata măsurată și contextul primei dovezi FAIL |
 | Tests → Audit observations | diagnostice INFO distincte: tip/mesaj primar, cauze, suppressed și observația originală; fiecare respectă bugetul |
 | Fails → Cause | context compact; mesajul nativ și markerul de redactare nu sunt obligatorii în acest rezumat |
 | Open in Tests | scenariul și ordinalul comparației eșuate deschid calea originală în Extent; faza, request-ul/pasul, validarea și disclosure-ul devin vizibile fără `Expand all` |
@@ -1428,7 +1429,7 @@ capturat și nu înlocuiește `ReportBodyAvailability`.
 
 <a id="fidelitatea-json"></a>
 
-J9 păstrează tokenurile numerice publice și toate aparițiile câmpurilor duplicate în redacție și pretty-print. Fiecare valoare sensibilă este mascată integral. Proiecția precedă truncarea configurată; nu rescrie raw body-ul sau verdictul callerului.
+The JSON projection preserves public numeric tokens and all duplicate-field occurrences during redaction and pretty-print. Every sensitive value is masked in full. Projection precedes the configured preview without rewriting the raw body or captured verdict.
 
 Formatarea comună nu modifică request-ul executat:
 
@@ -1537,7 +1538,6 @@ Cleanup-ul asset-urilor Spark tratează bounded atât `AccessDeniedException`, c
 și celelalte `FileSystemException`: maximum patru încercări, cu 50 ms între ele.
 O eroare I/O de alt tip nu este reîncercată; epuizarea limitei se propagă, iar
 întreruperea oprește cleanup-ul și păstrează flag-ul thread-ului.
-
 
 ### Navigare amânată și interacțiune explicită
 
@@ -2116,7 +2116,6 @@ flowchart LR
 probele consumerilor verifică scope-ul Jupiter și politica notificării finale.
 Bugetul configurat al sesiunii și pasul `Component assertions` colapsat se păstrează.
 
-
 ### Lizibilitatea dovezilor în panouri înguste
 
 Lățimea ferestrei și lățimea disponibilă tabelului sunt măsurători diferite.
@@ -2222,18 +2221,18 @@ trecerea întregului modul. Proba locală nu demonstrează randarea în browser;
 
 </details>
 
-## Limite de acceptanță încă deschise
+## Inspection, timing and distribution boundaries
 
 | Suprafață | Limită și owner |
 |---|---|
-| inspector generic | [profilul assertion-only/HTTP și renderer](../docs/feedback/ATF_Reporting_Feedback.md#report-artifact-profile-62--aplicabilitate-explicită-a-inspectorului) trebuie declarat; rezultatul J6 nu certifică orice structură de raport |
-| timing capturat/publicare | [sursele temporale](../docs/feedback/ATF_Reporting_Feedback.md#report-recorded-timing-83--execuție-capturată-și-cost-de-publicare) cer regresie neutră; un verdict corect nu certifică atribuirea duratei |
+| generic inspector | the caller declares artifact profile and renderer through [inspection intent](#inspecția-artifactului-cu-intenție-explicită); a legacy HTTP default cannot certify every report structure |
+| captured/publication timing | [recorded timing](#originea-duratelor-sub-o-fază-capturată) separates execution, transport and publication; a correct verdict does not certify duration attribution |
 | API și distribuție | [criteriile de release](../docs/feedback/ATF_Reporting_Feedback.md) rămân distincte de compilarea ori consumarea candidatului JAR |
 
 Contractele livrate sunt descrise în secțiunile ownerilor. Lacunele rămân în feedback, cu [regresii permanente](../atf-reporting-tests/README.md#regresia-permanentă-a-fiecărui-defect-reporting) înaintea corecției și a unui nou JAR.
 ## Observații publice fără transport
 
-J7 oferă observații typed fără transport și o proiecție comună pentru Extent/fallback.
+Typed observations publish non-transport facts through a shared Extent/fallback projection.
 
 | Boundary | Contract |
 |---|---|
@@ -2241,9 +2240,9 @@ J7 oferă observații typed fără transport și o proiecție comună pentru Ext
 | Verdict | INFO fără request/validation inventat; nu slăbește FAIL/SKIP; adaptorul fără capabilitate refuză publicarea |
 | Context | `Phase.detail` rămâne intern; snapshot-ul semantic păstrează etichetele, fără valori/corpuri ori căi de artifact |
 | Proiecție | redacție înainte de escaping/preview, disclosure colapsat și corp accesibil cu tastatura până la final |
-| Bugete | câmpuri/assertions implicit 240; body implicit 100 standalone, configurat 12000 în J3; evaluarea primește input integral |
+| Bugete | câmpuri/assertions implicit 240; body default 100 standalone, configured independently by each consumer; evaluarea primește input integral |
 | URI | file/http/https sunt referințe fără fetch; credential/query/fragment și scheme active refuzate; locația redactată nu persistă în href |
-| Compatibilitate | `ObservationStep`/`ObservationSnapshot` extind arborii sealed; simbolurile public/protected J6 sunt păstrate, dar switch-urile exhaustive vechi cer revizuire la recompilare |
+| Compatibilitate | `ObservationStep`/`ObservationSnapshot` extind arborii sealed; supported binary symbols and source-exhaustive switches require separate compatibility checks when sealed trees evolve |
 | Randare | glyph-ul depinde de summary/open propriu; End/Home/PageUp/PageDown folosesc scroll-ul comun `atf-observation-body`; bulk expand păstrează starea locală a dovezilor |
 | Owner | raw complet la caller; regresii native, compoziție/browser și gate JAR fizic la J0 |
 
@@ -2356,8 +2355,7 @@ Payload-urile PNG mari rămân în spool-ul privat al sesiunii, până la public
 | cleanup | spool închis și eliminat la succes/eșec; destinația se înlocuiește numai după restaurare completă |
 | limită | modelul Extent/Spark și textul încă folosesc heap proporțional cu dovezile; nu există un plafon universal |
 
-[Proba J13](../docs/ATF_Reporting_J13_Verification.md) separă durata publicării,
-alocările și memoria observată de timpul execuției capturate.
+The captured timing contract separates publication duration, allocations and observed memory from the captured execution interval.
 
 ## ACTION/OBSERVE — preview și valori complete
 
@@ -2420,7 +2418,7 @@ The [inline contract](../docs/ATF_Inline_Audit_Contract.md) separates primary au
 
 [The incremental navigation contract](../docs/ATF_Large_Report_Navigation.md) preserves all supplied assertions and original PNGs with preview 240. Hidden-table work is deferred, DOM updates are coalesced and execution-marker lookup is cached only for one aggregation pass.
 
-[Source/JAR and consumer evidence](../docs/ATF_Reporting_J17_Verification.md) distinguishes browser acceptance from fresh business/device execution; neutral permanent regressions remain in Reporting Tests.
+[navigation contract](../docs/ATF_Large_Report_Navigation.md) distinguishes browser acceptance from fresh business/device execution; neutral permanent regressions remain in Reporting Tests.
 
 ## Cold startup and readiness
 
@@ -2429,8 +2427,7 @@ and load. Load timing updates independently; successful normalization publishes
 readiness, while an error leaves the cycle unready. Dynamic-content observers
 and explicit view switches remain active.
 
-[The cold-start contract](../docs/ATF_Large_Report_Navigation.md) and
-[J18 verification](../docs/ATF_Reporting_J18_Verification.md) retain fresh-browser
+[The cold-start contract](../docs/ATF_Large_Report_Navigation.md) retains fresh-browser
 10 s readiness/action and 45 s navigation bounds, canonical PNG payloads,
 comparisons and preview 240. Bulk acceptance selects at most two source owners.
 
@@ -2440,5 +2437,33 @@ The Spark presentation adapter encodes timeline keys as JSON strings while
 preserving full caller labels and captured duration values. The pinned vendor
 expression is checked before publication; a changed template fails explicitly.
 
-[The J18 record](../docs/ATF_Reporting_J18_Verification.md) covers quoted and
+The [native timeline contract](../docs/ATF_Large_Report_Navigation.md#native-timeline-labels) covers quoted and
 multiline JSON, backslashes and Unicode, alongside the unchanged 24-hour clock.
+
+## Neutral UI attribution and failure ownership
+
+`AtfUiActionRecord` captures an operation, target, observed result and duration.
+Its ACTION/OBSERVE channel identifies the evidence kind.
+
+- Default publication uses **UI action sequence** and **UI action**, without inferring a driver.
+- Captured tool names remain intact; Android, web and mock callers share the neutral contract.
+
+| Evidence | Audit boundary |
+|---|---|
+| ACTION | actual dispatched operation, captured result and original sequence; a successful dispatch does not certify the resulting UI state |
+| OBSERVE | captured read-only observation; an observation-only checkpoint does not fabricate an ACTION table |
+| comparison | independently evaluated expected/actual/result; UI records do not inflate the assertion population |
+| Fails | captured failed ACTION, OBSERVE, comparison or execution diagnostic; navigation addresses the original owner and row |
+| screenshot | original complete PNG and checkpoint ownership; deduplication preserves each source link |
+
+Fallback projects request-owned and validation-owned UI failures in rendered
+ACTION/OBSERVE/comparison order. Native Fails preserves separate UI and assertion
+ordinals; its source links reveal the original ACTION/OBSERVE row without a
+second user expansion or a synthetic comparison.
+
+- Preview remains 240 characters; publication performs no business evaluation or driver inference.
+- Failure labels and causes share the original evidence redaction boundary.
+- Legacy public constants and contract check keys remain compatible; published headings use neutral wording.
+
+Permanent source and physical-JAR contracts belong to Reporting Tests. Android
+dispatch, hierarchy extraction and independent application oracles remain in J4.

@@ -49,18 +49,25 @@ public final class UiFailureContextProbe {
     }
     private static void checkTables(Page page, int limit) {
         var assertion = CONTEXT.assertionRows(page).filter(new Locator.FilterOptions().setHasText("Failure cause")).first();
-        checkContext(CONTEXT.cells(assertion).nth(2).innerText(), limit);
+        checkContext(preview(CONTEXT.cells(assertion).nth(2)), limit);
         var failed = CONTEXT.actionRows(page).filter(new Locator.FilterOptions().setHasText("#22")).first();
-        checkContext(CONTEXT.cells(failed).nth(3).innerText(), limit);
+        checkContext(preview(CONTEXT.cells(failed).nth(3)), limit);
         var observations = CONTEXT.observationRows(page);
         assertTrue(observations.count() >= 4, "primary, cause, suppressed and screenshot policy stay inspectable");
         assertTrue(observations.allTextContents().stream().anyMatch(text -> text.contains("Caused by diagnostic #1")));
         assertTrue(observations.allTextContents().stream().anyMatch(text -> text.contains("Suppressed by diagnostic #1")));
-        for (var row : observations.all()) assertTrue(CONTEXT.cells(row).nth(3).innerText().length() <= limit);
+        for (var row : observations.all()) assertTrue(preview(CONTEXT.cells(row).nth(3)).length() <= limit);
+        assertTrue(page.locator("details.atf-ui-value pre").allTextContents().stream().anyMatch(value ->
+                        value.contains("technical stack prefix ".repeat(100)) && value.contains("; token=***REDACTED***")),
+                "The bounded preview must retain the complete redacted primary diagnostic in its disclosure");
         var disclosure = CONTEXT.observations(page).first();
         var summary = CONTEXT.summary(disclosure);
         summary.press("Enter"); assertFalse(Boolean.TRUE.equals(disclosure.evaluate("d=>d.open")));
         summary.press("Space"); assertTrue(Boolean.TRUE.equals(disclosure.evaluate("d=>d.open")));
+    }
+    private static String preview(Locator cell) {
+        var disclosure = cell.locator(":scope>details.atf-ui-value");
+        return disclosure.count() == 0 ? cell.innerText() : disclosure.locator(":scope>summary").innerText();
     }
     private static void checkContext(String value, int limit) {
         assertTrue(value.length() <= limit, () -> "preview=" + value.length() + ": " + value);

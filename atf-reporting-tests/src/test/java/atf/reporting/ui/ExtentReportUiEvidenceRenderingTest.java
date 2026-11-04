@@ -110,7 +110,7 @@ class ExtentReportUiEvidenceRenderingTest {
         String html = Files.readString(report);
         assertAll(
                 () -> assertTrue(html.contains("class=\"atf-ui-action-sequence\"")),
-                () -> assertTrue(html.contains("Playwright action sequence (2 entries)")),
+                () -> assertTrue(html.contains("UI action sequence (2 entries)")),
                 () -> assertFalse(html.contains("<details class=\"atf-ui-action-sequence\" open")),
                 () -> assertTrue(html.contains("<th>ACTION</th>") && html.contains("<th>TARGET</th>")),
                 () -> assertTrue(html.contains("class=\"atf-ui-action-identity\"><span class=\"atf-ui-action-operation\">Get text</span>")),
@@ -181,7 +181,7 @@ class ExtentReportUiEvidenceRenderingTest {
         }
 
         String html = Files.readString(report);
-        assertTrue(html.contains("Playwright action sequence (2 entries)"));
+        assertTrue(html.contains("UI action sequence (2 entries)"));
         assertTrue(html.contains("value entered: [REDACTED]"));
         assertFalse(html.contains("4111111111111111"));
         assertFalse(html.contains("987"));
@@ -214,7 +214,7 @@ class ExtentReportUiEvidenceRenderingTest {
         }
 
         String html = Files.readString(report);
-        assertTrue(html.contains("Playwright action sequence (1 entry)"));
+        assertTrue(html.contains("UI action sequence (1 entry)"));
         assertTrue(html.contains("class=\"atf-ui-action-sequence\""));
         assertFalse(html.contains("<th>ACTION</th>"));
         assertFalse(html.contains("#tests"));
@@ -245,7 +245,7 @@ class ExtentReportUiEvidenceRenderingTest {
 
         String html = Files.readString(report);
         assertAll(
-                () -> assertTrue(html.contains("Playwright action sequence (2 entries)")),
+                () -> assertTrue(html.contains("UI action sequence (2 entries)")),
                 () -> assertTrue(html.contains("Retry")),
                 () -> assertTrue(html.contains("attempt 2 of 3")),
                 () -> assertTrue(html.contains("retry scheduled: DOM stabilization")),
@@ -274,7 +274,7 @@ class ExtentReportUiEvidenceRenderingTest {
 
         String html = Files.readString(report);
         assertAll(
-                () -> assertTrue(count(html, "data-atf-screenshot=\"base64\"") == 1,
+                () -> assertTrue(org.jsoup.Jsoup.parse(html).select("a[data-atf-screenshot=base64]").size() == 1,
                         "one visual state must produce one screenshot reference"),
                 () -> assertTrue(count(html, ">📷 base64 img</span>") == 1,
                         "the screenshot label must not be duplicated"),
@@ -314,7 +314,7 @@ class ExtentReportUiEvidenceRenderingTest {
 
         String html = Files.readString(report);
         assertAll(
-                () -> assertTrue(html.contains("Playwright action sequence (1 entry)")),
+                () -> assertTrue(html.contains("UI action sequence (1 entry)")),
                 () -> assertTrue(html.contains("Audit observations · 1 checkpoint")),
                 () -> assertEquals(1, count(html, "Audit screen contract")),
                 () -> assertTrue(html.contains("screenshot=valid PNG; url=/confirmation")),

@@ -88,7 +88,7 @@ class ReportEvidenceProfileIntegrationTest {
                 () -> assertTrue(html.contains("Exchange 1")),
                 () -> assertTrue(html.contains("Account")),
                 () -> assertTrue(html.contains("Order")),
-                () -> assertEquals(1, count(html, "data-atf-screenshot=\"base64\"")));
+                () -> assertEquals(1, inlineScreenshots(html)));
     }
 
     @Test
@@ -118,7 +118,7 @@ class ReportEvidenceProfileIntegrationTest {
                 () -> assertTrue(html.contains("rejected")),
                 () -> assertTrue(html.contains("data-atf-evidence-status=\"fail\"")),
                 () -> assertFalse(html.contains("<span>TEST BODY</span>")),
-                () -> assertFalse(html.contains("data-atf-screenshot=\"base64\"")));
+                () -> assertEquals(0, inlineScreenshots(html)));
     }
 
     @Test
@@ -210,10 +210,10 @@ class ReportEvidenceProfileIntegrationTest {
                 () -> assertTrue(html.contains("Payment form")),
                 () -> assertTrue(html.contains("Payment")),
                 () -> assertTrue(html.contains("Order confirmed")),
-                () -> assertEquals(1, count(html, "Playwright action sequence (2 entries)")),
+                () -> assertEquals(1, count(html, "UI action sequence (2 entries)")),
                 () -> assertTrue(html.contains("Audit observations · 1 checkpoint")),
                 () -> assertTrue(html.contains("class=\"atf-ui-observations\"")),
-                () -> assertEquals(1, count(html, "data-atf-screenshot=\"base64\"")),
+                () -> assertEquals(1, inlineScreenshots(html)),
                 () -> assertTrue(html.contains("href=\"data:image/png;base64,"
                         + ReportTestScreenshots.SECOND_PIXEL_PNG + "\"")),
                 () -> assertFalse(html.contains("href=\"data:image/png;base64,"
@@ -305,7 +305,7 @@ class ReportEvidenceProfileIntegrationTest {
                 () -> assertTrue(html.contains("GIVEN the page is open")),
                 () -> assertTrue(html.contains("THEN the result is visible")),
                 () -> assertEquals(2, count(html, "class=\"atf-ui-action-table\"")),
-                () -> assertEquals(2, count(html, "data-atf-screenshot=\"base64\"")),
+                () -> assertEquals(2, inlineScreenshots(html)),
                 () -> assertTrue(html.indexOf("GIVEN the page is open")
                         < html.indexOf("Navigate")),
                 () -> assertTrue(html.indexOf("Navigate")
@@ -384,7 +384,7 @@ class ReportEvidenceProfileIntegrationTest {
                 () -> assertTrue(html.contains("<span>THEN checkpoint result is visible</span>")),
                 () -> assertEquals(3, count(html, "class=\"atf-ui-action-table\"")),
                 // The shared asset manifest stores the two distinct PNG payloads once each.
-                () -> assertEquals(2, count(html, "data-atf-screenshot=\"base64\"")),
+                () -> assertEquals(2, inlineScreenshots(html)),
                 () -> assertEquals(1, count(html, ReportTestScreenshots.ONE_PIXEL_PNG)),
                 () -> assertEquals(1, count(html, ReportTestScreenshots.SECOND_PIXEL_PNG)));
     }
@@ -448,7 +448,7 @@ class ReportEvidenceProfileIntegrationTest {
                 () -> assertTrue(html.contains("<span>GIVEN checkpoint state is ready</span>")),
                 () -> assertTrue(html.contains("<span>THEN checkpoint result appears</span>")),
                 () -> assertEquals(3, count(html, "class=\"atf-ui-action-table\"")),
-                () -> assertEquals(2, count(html, "data-atf-screenshot=\"base64\"")),
+                () -> assertEquals(2, inlineScreenshots(html)),
                 () -> assertEquals(1, count(html, ReportTestScreenshots.ONE_PIXEL_PNG)),
                 () -> assertEquals(1, count(html, ReportTestScreenshots.SECOND_PIXEL_PNG)));
     }
@@ -462,6 +462,20 @@ class ReportEvidenceProfileIntegrationTest {
         return new ReportExecutionEvidence(response, 1, Duration.ofMillis(8), List.of(),
                 List.of(new ReportAttemptRecord(1, 201, Duration.ofMillis(8),
                         "SUCCESS", "created")), request, ReportTransportProvenance.ACCEPTANCE_MOCK);
+    }
+
+    @Test
+    void screenshotPopulationIgnoresExecutableSelectorsAndPreservesRealMultiplicity() {
+        String selector = "<script>const selector='a[data-atf-screenshot=\"base64\"]';</script>";
+        String image = "<a data-atf-screenshot=\"base64\" href=\"data:image/png;base64,fixture\">frame</a>";
+        assertEquals(0, inlineScreenshots(selector.repeat(3)));
+        assertEquals(1, inlineScreenshots(selector + image));
+        assertEquals(2, inlineScreenshots(selector.repeat(3) + image + image));
+        assertEquals(0, inlineScreenshots(selector + image.replace("data-atf-screenshot", "data-removed-capture")));
+    }
+
+    private static int inlineScreenshots(String html) {
+        return org.jsoup.Jsoup.parse(html).select("a[data-atf-screenshot=base64]").size();
     }
 
     private static int count(String html, String fragment) {

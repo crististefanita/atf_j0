@@ -14,16 +14,12 @@ particular.
 
 ## Pe scurt
 
-[Reporting J8 — validare API colapsabilă](ATF_Reporting_J8_Verification.md) păstrează dovada livrării și limitele ei.
-
 | Pentru | Citește întâi |
 |---|---|
 | orientare între proiecte | [workspace-uri](ATF_Workspace_Synchronization.md), apoi [atlasul de context](ATF_Context_Atlas.md) |
 | contract și owner | [arhitectură](ATF_Architecture.md), POM și README-ul modulului |
 | problemă încă deschisă | [registrul feedback-urilor](feedback/README.md); contractele livrate rămân la owner |
 | Kafka/Podman în J2 | [atlasul WIP](../../atf_j2/docs/ATF_Context_Atlas.md); nu este o extensie web a J1 |
-
-
 
 J0 deține implementarea și regresiile Reporting; J1 deține scenariile AutoEx/Shop.
 J2 a început bootstrap-ul pentru cozi și mesaje;
@@ -36,8 +32,8 @@ J2 a început bootstrap-ul pentru cozi și mesaje;
 | bibliotecă Reporting | [context portabil](../atf-reporting/docs/README.md) și [atlasul codului](../atf-reporting/src/main/java/atf/reporting/README.md) | ce intră în JAR, ce rămâne la consumer și ce probe disting adopția de release? |
 | hartă | [ATF_Architecture.md](ATF_Architecture.md), README-ul root | cine deține ce și în ce direcție curg dependențele? |
 | contract | [ATF_Reporting_Contract.md](ATF_Reporting_Contract.md), [ATF_Reporting_Display_Contract.md](ATF_Reporting_Display_Contract.md), ghidurile de modul | ce comportament semantic și ce formă vizibilă sunt stabile? |
-| viewer PNG și revenirea la checkpoint | [J16](ATF_Reporting_J16_Verification.md) | cum văd cadrul integral fără să pierd ownerul, expandările și poziția de audit? |
-| dovezi inline fără artifacte externe | [contractul de compoziție](ATF_Inline_Audit_Contract.md), [proba J15](ATF_Reporting_J15_Verification.md) | cum păstrăm faptele, comparațiile și PNG în ownerul corect? |
+| viewer PNG și revenirea la checkpoint | [inline audit contract](ATF_Inline_Audit_Contract.md) | cum văd cadrul integral fără să pierd ownerul, expandările și poziția de audit? |
+| dovezi inline fără artifacte externe | [contractul de compoziție](ATF_Inline_Audit_Contract.md) | cum păstrăm faptele, comparațiile și PNG în ownerul corect? |
 | evidence transversal | [ATF_Evidence_Capture_Contract.md](ATF_Evidence_Capture_Contract.md) | cum se separă flow-ul, policy-ul, sursa și publisherul? |
 | practică | [README_Atf_BestPractices.md](README_Atf_BestPractices.md) | cum adăugăm cod fără drift? |
 | testare | [ATF_Testing_Guide.md](ATF_Testing_Guide.md) | ce layer, modul și proof aleg pentru un comportament? |
@@ -238,7 +234,6 @@ sunt interzise.
 - `scenario` = testul complet, cu fazele și verdictul final
 - `artifact` = raportul HTML autonom rezultat după finalizarea sesiunii
 
-
 ## Cum verifici indexul
 
 | Întrebare | Autoritate și probă |
@@ -253,5 +248,9 @@ Validitatea linkurilor nu certifică semantica unui contract. Comanda gate-ului
 ## Core ca bibliotecă — owner și deployment
 
 J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module.
-[Contractul Core C1](ATF_Core_Consumer.md) separă sursa, publicarea și acceptanțele J1/J2.
+[Contractul Core](ATF_Core_Consumer.md) separă sursa, publicarea și acceptanțele J1/J2.
 Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
+
+## Library distribution contracts
+
+The [distribution contract](ATF_Core_Consumer.md) defines source ownership, flat binary consumption and independent acceptance. Coordinates and hashes are read from consumer provenance; execution notes stay with the packaged library under [evidence retention](ATF_Workspace_Synchronization.md#release-evidence-retention).

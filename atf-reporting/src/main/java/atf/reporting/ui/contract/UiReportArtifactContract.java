@@ -48,7 +48,7 @@ public final class UiReportArtifactContract {
                 ".test-view .test-content-detail .card-body>.table>tbody>tr.event-row:has(table.helm-validation-table)>td",
                 "border-top:0!important;border-bottom:0!important"));
         checks.put("Playwright action table", hasAll(source,
-                "Playwright action sequence", "<th>ACTION</th>", "<th>TARGET</th>",
+                "UI action sequence", "<th>ACTION</th>", "<th>TARGET</th>",
                 "<th>EXPECTED</th>", "<th>RESULT</th>"));
         checks.put("audit observations", hasAll(source,
                 "class=\"atf-ui-observations\"", "Audit observations"));

@@ -507,15 +507,13 @@ trecerea întregului modul. Nu calculează verdictul business și nu publică HT
 nominalele și negativele. Proba loopback verifică separat ambele transporturi,
 valorile complete, body-ul și o singură expediere, fără serviciu extern.
 
-## Distribuție Core C3
+## Core distribution
 
 J0 păstrează sursa și toate testele native. POM-ul Core este parentless, cu
 Java 21 și dependențe runtime Jackson explicite; Test Kit și JUnit sunt doar
 pentru teste și nu intră în tranzitivele de producție.
 
-J1/J2/J3/J4 consumă aceeași pereche Core C3 JAR/POM direct în lib, alături de Reporting
-J12. [Contractul de publicare și consum](../docs/ATF_Core_Consumer.md) descrie
-bootstrap-ul Maven/IntelliJ, proveniența și acceptanța fără surse Core.
+J1/J2/J3/J4 consume the same Core JAR/POM pair directly in lib, alongside the independently versioned Reporting pair. The [publication and consumption contract](../docs/ATF_Core_Consumer.md) defines Maven/IntelliJ bootstrap, provenance and acceptance without Core source.
 
 ### Timeout și ownership în probele native
 
@@ -542,8 +540,7 @@ forțează ambele stări; [ApiDiagnosticIsolationTest](src/test/java/atf/core/ht
 verifică integrarea diagnosticului. Probele externe refuză mutații fără
 cancel, fără verificare înainte de dispatch și fără atașarea diagnosticului.
 
-Core C3 întărește separat propagarea anulării în adaptorul HTTP, fără schimbarea politicii de retry sau a verdictului.
-
+HttpClientTransport links cancellation to its owned upstream operation. UrlConnectionTransport currently cancels only its exposed future: a pending body publisher can survive cancellation or the caller deadline and later dispatch. The [Core feedback](../docs/feedback/ATF_Core_Feedback.md#core-urlconnection-cancel-126--body-subscription-and-dispatch-ownership) owns this transport-specific gap; cancellation never proves server-side rollback.
 
 ## Document JSON complet și evidence fidel
 

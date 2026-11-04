@@ -28,7 +28,7 @@ hash-urile și catalogul probelor native sunt în `library-provenance.json`, la 
 | Intrare | Responsabilitate | Probă |
 |---|---|---|
 | [GovernanceDeployment](GovernanceDeployment.java) | catalog Maven strict și documente reale pentru fiecare deployment | [module și ținte](GovernanceDeploymentTest.java) |
-| [CoreGovernanceSurface](core/CoreGovernanceSurface.java) | POM parentless, pereche C1, ownership bytecode și identitate încărcată | [mutanți Core](core/CoreGovernanceSurfaceTest.java) |
+| [CoreGovernanceSurface](core/CoreGovernanceSurface.java) | POM parentless, Core JAR/POM pair, ownership bytecode și identitate încărcată | [mutanți Core](core/CoreGovernanceSurfaceTest.java) |
 | [ReportingGovernanceSurface](ReportingGovernanceSurface.java) | POM, ownership, proveniență și dependențe din sursă/JAR | [proveniență și mutanți](ReportingGovernanceSurfaceTest.java) |
 | [DeploymentFixture](DeploymentFixture.java) / [BinaryReportingFixture](BinaryReportingFixture.java) | fixture-uri private, cu mutații izolate | fără schimbarea sursei producătorului, cache-ului ori JAR-ului live |
 
@@ -95,4 +95,4 @@ Core shadow, inclusiv fără POM, și orice fișier suplimentar în lib.
 
 J0 verifică în continuare stilul și implementarea sursei Core. J1/J2 verifică
 POM-ul și clasele publicate, dependențele bytecode și hash-ul CodeSource;
-[contractul C1](../../../../../../../../../docs/ATF_Core_Consumer.md) separă aceste probe.
+[Core contract](../../../../../../../../../docs/ATF_Core_Consumer.md) separă aceste probe.

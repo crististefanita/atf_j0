@@ -1183,7 +1183,6 @@ verifică două invocări distincte, glyph local, Enter/Space, End și ultimul r
 Fixture-ul distribuției publică aceeași observație pe JAR-ul fizic, cu zero
 pachete Core/Kit/JUnit/Playwright în runtime-ul consumerului extern.
 
-
 ## Validarea API colapsabilă în fiecare renderer
 
 Fixture-ul neutru `ApiValidationDisclosureFixture` publică snapshot-uri mock prin
@@ -1218,7 +1217,7 @@ publice în Extent/fallback, individual și agregat, cu vecini PASS.
 Regresia pe JAR rulează într-un harness TMP fără implementare Reporting.
 Consumerii live păstrează numai JAR/POM și probele propriei aplicații.
 
-## Regresii disclosure și ABI J10
+## Disclosure and binary compatibility regressions
 
 | Probă | Dovadă |
 |---|---|
@@ -1227,10 +1226,9 @@ Consumerii live păstrează numai JAR/POM și probele propriei aplicații.
 | ReportingTagBinaryCompatibilityTest | client compilat față de ABI vechi, fără stub în classloaderul runtime |
 | observation | cele două componente sunt în atf.reporting.observation; assertions și fixture-urile rămân aceleași |
 
-J9 fizic reproduce cele trei eșecuri ale vecinilor; candidatul J10 verifică
-separat implementarea sursă și JAR-ul. Probele generice rămân permanent în J0.
+The same independent disclosure oracles run against source and the physical JAR. Visibility corruption must fail without changing captured values or expanded attributes; generic regressions remain in J0.
 
-## Probe System și index fallback J11
+## System metadata and fallback index contracts
 
 ReportSystemMetadataComponentTest citește șase facts exacte la ownerul Overview,
 în Extent/fallback și individual/agregat. FallbackIndexPresentationComponentTest
@@ -1254,7 +1252,7 @@ Fixture-ul `support/inspection/ArtifactProfileFixture` furnizează independent n
 Un mismatch numeric și unul după caracterul 240 păstrează FAIL chiar când preview-urile afișate coincid.
 Inspecția statică nu substituie navigarea la rândul original; proba source și proba JAR au classpath-uri și rezultate distincte.
 
-## Proiecția Core C3 în raport
+## Core projection in reports
 
 [CoreConsoleProjectionComponentTest](src/test/java/atf/reporting/security/CoreConsoleProjectionComponentTest.java) compară politica string-urilor JSON publice la boundary-ul Core CODE și în artifactul Extent/fallback. Inputul original rămâne intact; canary-ul trebuie să lipsească din întregul HTML, iar tokenul numeric precis și vecinul public rămân vizibile.
 
@@ -1276,7 +1274,7 @@ Inspecția statică nu substituie navigarea la rândul original; proba source ș
 - Hash-urile originale preced publicarea; favicon-urile nu intră în populația capturilor.
 - Sursa și JAR-ul fizic execută aceleași fixture-uri; probele existente la 384 MiB și bugetele assets rămân neschimbate.
 
-[Dovada J13](../docs/ATF_Reporting_J13_Verification.md)
+[Reporting owner contract](../atf-reporting/README.md)
 păstrează selecțiile, măsurătorile și limitele.
 
 ## Fidelitate UI și redacție comună
@@ -1317,13 +1315,13 @@ PNG sintetice distincte pentru verificarea ownerului și a transportului.
 | interaction | mouse, Enter, Space, fit/original-size, close/Escape and return focus |
 | fidelity | 45 checkpoint images, exact bytes and escaped caption literals; no external files or real device |
 
-[J16 verification](../docs/ATF_Reporting_J16_Verification.md) distinguishes native, source, physical-JAR and per-consumer acceptance. These neutral regressions do not certify Android rules or capture dimensions.
+The [inline audit contract](../docs/ATF_Inline_Audit_Contract.md) defines source/JAR regression boundaries; dated acceptance remains with the package. These neutral regressions do not certify Android rules or capture dimensions.
 
 ## Large-report navigation
 
 [The incremental navigation contract](../docs/ATF_Large_Report_Navigation.md) preserves all supplied assertions and original PNGs with preview 240. Hidden-table work is deferred, DOM updates are coalesced and execution-marker lookup is cached only for one aggregation pass.
 
-[Source/JAR and consumer evidence](../docs/ATF_Reporting_J17_Verification.md) distinguishes browser acceptance from fresh business/device execution; neutral permanent regressions remain in Reporting Tests.
+[navigation contract](../docs/ATF_Large_Report_Navigation.md) distinguishes browser acceptance from fresh business/device execution; neutral permanent regressions remain in Reporting Tests.
 
 ## Cold startup and readiness
 
@@ -1332,8 +1330,7 @@ and load. Load timing updates independently; successful normalization publishes
 readiness, while an error leaves the cycle unready. Dynamic-content observers
 and explicit view switches remain active.
 
-[The cold-start contract](../docs/ATF_Large_Report_Navigation.md) and
-[J18 verification](../docs/ATF_Reporting_J18_Verification.md) retain fresh-browser
+[The cold-start contract](../docs/ATF_Large_Report_Navigation.md) retains fresh-browser
 10 s readiness/action and 45 s navigation bounds, canonical PNG payloads,
 comparisons and preview 240. Bulk acceptance selects at most two source owners.
 
@@ -1343,3 +1340,15 @@ TimelineTitleEncodingComponentTest publishes neutral reports with quoted,
 multiline, backslash and Unicode owner names. It executes the actual native
 timeline script, compares complete keys and rejects browser errors at the
 original readiness/action and navigation deadlines.
+
+## Neutral UI attribution and captured failure catalogue
+
+Neutral captured input is verified independently on source and physical JAR, in Extent and fallback.
+
+| Permanent contract | Independent oracle |
+|---|---|
+| `UiActionAttributionContractTest` | identical web/Android inputs; PASS, second-action FAIL and OBSERVE-only; title-only false-driver mutation; legitimate tool names retained |
+| `UiFailureCatalogueContractTest` | interleaved request/validation ACTION and OBSERVE; separate comparison counts, causes, original ordinals and passing sibling |
+| `UiActionAttributionComponentTest` | actual keyboard expansion and Fails backlinks; no helper repairs after navigation; original 10 s action/readiness and 45 s navigation bounds |
+| `UiActionAttributionComponentSuite` | focused Maven/IDE discovery on source and physical JAR |
+| screenshot population | actual DOM anchors and multiplicity; script-only, one-frame, duplicate-anchor and missing-attribute controls |

@@ -12,7 +12,7 @@ import java.util.Objects;
  * Owns the completion boundary for one UI audit scenario.
  *
  * <p>This is reporting infrastructure, not browser infrastructure. The
- * caller supplies DOM observations and Playwright actions; this component
+ * caller supplies captured UI observations and actions; this component
  * guarantees that evidence is published before the phase and scenario are
  * completed, including the failure path.</p>
  */

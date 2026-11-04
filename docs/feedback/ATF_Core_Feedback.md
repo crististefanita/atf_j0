@@ -1,31 +1,35 @@
-# Core — criterii active și contracte consolidate
+# Core — active ownership and cancellation gaps
 
 ## Pe scurt
 
-Nu rămân cerințe Core active din auditul console/cancellation.
-[Core C3](../ATF_Core_C3_Verification.md) păstrează dovada sursă/JAR și distribuția distinctă către fiecare consumer.
+Core owns transport execution, cancellation, redaction and filesystem promotion. Current contracts are in the [Core README](../../atf-core/README.md); the active gap is specific to the URLConnection fallback and must not be generalized to HttpClient.
+
+## CORE-URLCONNECTION-CANCEL-126 — body subscription and dispatch ownership
+
+**Priority: 96/100** = impact 38 + gap 29 + actionable 20 + documentation 9.
+
+| Evidence | Observed behavior |
+|---|---|
+| source boundary | [UrlConnectionTransport.send/bodyBytes](../../atf-core/src/main/java/atf/core/http/transport/UrlConnectionTransport.java) uses an independent async supplier and an unbounded body future wait |
+| controlled cancellation | cancel returns true; the body subscription is not cancelled; controlled release causes a loopback request after termination |
+| controlled deadline | the original 250 ms caller deadline expires; the body survives; later release still dispatches |
+| distribution | both witnesses reproduce on freshly compiled source and the physical consumer JAR, without an external service |
+| existing protection | [transport catalog](../../atf-core/src/test/java/atf/core/http/transport/ApiLiveTransportCatalogTest.java) and HttpClient cancellation contracts do not close the fallback body lifecycle gap |
+
+- [ ] Give the operation explicit ownership of its body subscription, blocking worker and connection; cancellation must reach that operation instead of only completing its wrapper future.
+- [ ] Apply the remaining deadline to body collection and connection/read work; preserve a terminal guard immediately before dispatch so a late body cannot restart a cancelled operation.
+- [ ] Add permanent native tests with a controlled publisher and loopback receiver: cancellation, deadline, body failure, cancellation/completion race and cleanup failure; release every fixture resource in bounded finally blocks.
+- [ ] Re-run independent source/JAR witnesses; prove no post-terminal request, retain primary/suppressed causes and avoid retry or larger timeouts.
+- [ ] Revalidate both transport implementations and relevant consumer contracts before distributing a new Core package.
+
+**Closure:** the current implementation fails the new negatives; the corrected operation passes with no dispatch after pre-dispatch cancellation/deadline. Cancellation of an already dispatched mutation still does not establish rollback.
 
 <a id="core-console-redaction-124--sanitize-every-emitted-console-channel"></a>
-
-## Proiecția console — contract consolidat
-
-[Politica Core](../../atf-core/README.md#proiecția-console-și-anularea-transportului)
-redactează numele START/COMPLETE și string-urile JSON publice cu sintaxă cunoscută.
-Inputurile originale, numerele exacte, duplicatele și expected-ul independent rămân intacte.
-
 <a id="core-transport-cancel-125--retain-ownership-of-the-upstream-http-future"></a>
 
-## Anulare upstream — contract consolidat
+## Stable contracts and owner routes
 
-Future-ul expus transmite best effort anularea către operația preluată, cu interrupt flag păstrat.
-Cursele, finalizările târzii și cleanup-ul eșuat au probe native permanente; eroarea cleanup rămâne suppressed.
-
-Anularea nu dovedește rollback server-side și nu autorizează replay al unei mutații incerte.
-GET-ul local este probă HTTP distinctă de acceptanța aplicației Eventuate.
-
-## Owneri și restanțe distincte
-
-- [Reporting](ATF_Reporting_Feedback.md) păstrează criteriile generice de bibliotecă și release.
-- [Regresiile Reporting](ATF_Reporting_Tests_Feedback.md) păstrează oracolele și probele neutre.
-- [Registrul J1](../../../atf_j1/docs/feedback/README.md) deține criteriile comune non-Core/Reporting; consumerii păstrează acceptanțele domeniilor lor.
-- [Baseline-ul tehnic](../ATF_Test_Changes_Baseline.md) reține controalele VERIFIED, la bazele lor reale, separat de backlog.
+- [Console projection and HttpClient cancellation](../../atf-core/README.md#proiecția-console-și-anularea-transportului) retain permanent native regressions.
+- [Reporting](ATF_Reporting_Feedback.md) owns renderer behavior; [Reporting Tests](ATF_Reporting_Tests_Feedback.md) owns neutral source/JAR rendering oracles.
+- The [J1 registry](../../../atf_j1/docs/feedback/README.md) coordinates common non-library criteria; consumers retain domain acceptance.
+- Approved test controls remain in the [technical baseline](../ATF_Test_Changes_Baseline.md), separate from active backlog.

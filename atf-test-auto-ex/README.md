@@ -1872,3 +1872,9 @@ Comanda selectează proba numită și construiește dependențele; nu declară
 trecerea întregului modul. Contractul de componentă nu confirmă site-ul public ori identitatea/coșul după înregistrare.
 
 </details>
+
+## Catalog evidence association boundary
+
+The current API checkpoint awaits a catalog GET by method/path, then attaches its comparisons to captured exchanges selected by path. The [consumer correlation criterion](../../atf_j1/docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#autoex-catalog-evidence-146--bind-comparison-evidence-to-its-observed-exchange) requires characterization of mixed methods and repeated catalog requests before claiming unique exchange ownership.
+
+Independent expectations and captured verdicts remain application-owned; the renderer does not select the business exchange or fabricate a request.

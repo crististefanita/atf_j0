@@ -36,7 +36,7 @@ public final class HtmlReportFailsView {
             String status = ReportEvidenceMarkup.statusBadge(AtfReportStatus.FAIL);
             String content = status
                     + AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.STRONG,
-                    escape(failure.assertionName()))
+                    escape(redactor.redactText(failure.assertionName())))
                     + AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.SPAN,
                     escape(ExtentReportNodeSupport.display(
                             redactor.redactField(failure.assertionName(), failure.actual()), settings)));

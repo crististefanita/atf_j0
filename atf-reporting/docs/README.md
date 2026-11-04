@@ -144,3 +144,39 @@ datate rămân în TMP; documentația păstrează contractul și limitele sale a
 | lifecycle observații UI | [atlasul UI](../src/main/java/atf/reporting/ui/README.md#observații-neutre-pe-uiphase) |
 
 Biblioteca primește dovezi și verdicturi capturate; nu execută aplicația sau comparațiile.
+
+## Minimal binary consumer
+
+Declare `atf.api:atf-reporting` with the version installed from the distributed POM, then let Maven resolve that POM's runtime dependencies. Core, Kit, JUnit, Playwright and producer implementation directories are unnecessary for this example; the JAR is thin rather than a bundled runtime.
+
+Place this class in a consumer's main source set and compile with its normal Maven build. Pass an owned TMP output path and the observed state; the caller compares it independently before publishing, closes the report on both outcomes and fails the process when the state differs.
+
+```java
+import atf.reporting.contract.AtfAssertion;
+import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.html.HtmlReportSession;
+import java.nio.file.Path;
+import java.util.List;
+
+public final class MinimalBinaryReport {
+    public static void main(String[] args) {
+        if (args.length != 2) throw new IllegalArgumentException("output.html and observed state are required");
+        boolean passed = "READY".equals(args[1]);
+        var status = passed ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
+        try (var session = new HtmlReportSession(Path.of(args[0]))) {
+            var scenario = session.startScenario("MinimalBinaryReport", "Observed state", List.of("component"));
+            var phase = scenario.startPhase("TEST BODY");
+            var step = phase.startAssertionStep("State contract");
+            step.assertions(List.of(new AtfAssertion("state", "READY", args[1], passed)));
+            step.complete(status);
+            phase.complete(status);
+            scenario.complete(status);
+        }
+        if (!passed) throw new AssertionError("Expected READY");
+    }
+}
+```
+
+- `READY` produces a passing comparison and a successful process result.
+- `BROKEN` retains the failing comparison in the completed HTML and raises AssertionError.
+- This demonstrates existing API consumption; supported API classification, complete companion-document distribution and the full release gate remain separate contracts.

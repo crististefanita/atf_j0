@@ -2360,7 +2360,6 @@ testChanges:
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failure/FailureFlowInspector.java
       - atf-reporting-tests/src/test/java/atf/reporting/api/execution/terminal/TerminalExecutionProjectionTest.java
 
-
   - id: REPORT-SCOPE-ATOMICITY-14
     status: VERIFIED
     base: f5214994b4516c5ad1ecdad2e36b4866ee0d2a70
@@ -2402,7 +2401,6 @@ testChanges:
       - atf-reporting-tests/src/test/java/atf/reporting/ui/timing/UiPhaseExecutionTest.java
       - atf-reporting-tests/src/test/java/atf/reporting/ui/timing/UiPhaseTimingLifecycleComponentTest.java
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/lifecycle/UiSetupFallbackParityComponentTest.java
-
 
   - id: REPORT-SCOPE-RECOVERY-15
     status: VERIFIED
@@ -2655,7 +2653,6 @@ testChanges:
 ```
 
 </details>
-
 
 <details>
 <summary><strong>Registru YAML — controale VERIFIED pentru cele trei priorități</strong></summary>
@@ -3107,7 +3104,6 @@ testChanges:
 
 ## Control tehnic verificat — pregătire body-only
 
-
 ## Control tehnic verificat — setup cont, confirmare comandă/coș și cleanup pe profile AutoEx
 
 <details>
@@ -3297,7 +3293,6 @@ testChanges:
 
 </details>
 
-
 ## Control tehnic verificat — ATF-GOVERNANCE-PERIMETER-61
 
 <details>
@@ -3336,7 +3331,6 @@ testChanges:
 
 </details>
 
-
 ## Control tehnic verificat — REPORT-UNIFIED-BODY-61
 
 <details>
@@ -3360,7 +3354,6 @@ testChanges:
 ```
 
 </details>
-
 
 ## Control tehnic verificat — REPORT-FLAT-CONSUMER-62
 
@@ -3455,7 +3448,6 @@ testChanges:
 
 </details>
 
-
 ## Control tehnic verificat — J0-REFERENCE-GOVERNANCE-76
 
 <details>
@@ -3476,7 +3468,6 @@ testChanges:
 ```
 
 </details>
-
 
 ## Control tehnic verificat — J0-CORE-CONSUMERS-SYNC-78
 
@@ -3506,7 +3497,6 @@ testChanges:
 
 </details>
 
-
 <details>
 <summary><strong>Control tehnic — CORE-BOUNDARY-HARDENING-79</strong></summary>
 
@@ -3529,7 +3519,6 @@ testChanges:
 
 </details>
 
-
 <details>
 <summary><strong>Control tehnic — DEBUG-URI-IMPLEMENTATION-81</strong></summary>
 
@@ -3546,7 +3535,6 @@ testChanges:
 ```
 
 </details>
-
 
 <details>
 <summary><strong>Control tehnic — GOV-SOURCE-INVENTORY-80</strong></summary>
@@ -3566,7 +3554,6 @@ testChanges:
 
 </details>
 
-
 <details>
 <summary><strong>Control tehnic — AUTOEX-AUDIT-CREDENTIALS-85</strong></summary>
 
@@ -3583,7 +3570,6 @@ testChanges:
 ```
 
 </details>
-
 
 <details>
 <summary><strong>Control tehnic — CORE-LIB-C1-J0</strong></summary>
@@ -3691,7 +3677,6 @@ testChanges:
 
 </details>
 
-
 <details>
 <summary><strong>Control verificat — MIME-LIVE-J0</strong></summary>
 
@@ -3732,7 +3717,6 @@ testChanges:
 
 </details>
 
-
 <details>
 <summary><strong>Control verificat — Reporting J8 după reconcilierea live</strong></summary>
 
@@ -3754,7 +3738,6 @@ testChanges:
 ```
 
 </details>
-
 
 <details>
 <summary><strong>Control verificat — KIT-BODY-J0</strong></summary>
@@ -3856,7 +3839,7 @@ testChanges:
 
 Regresia refuză J9 și verifică sursa/JAR-ul J10. Contractele stabile sunt la
 [Reporting](../atf-reporting/README.md#taguri-și-compatibilitate-binară) și la
-[harness](../atf-reporting-tests/README.md#regresii-disclosure-și-abi-j10).
+[harness](../atf-reporting-tests/README.md#disclosure-and-binary-compatibility-regressions).
 
 ```yaml
 testChanges:
@@ -4010,7 +3993,7 @@ testChanges:
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/values/UiRowProjectionBrowserComponentTest.java
 ```
 
-Probe sursă/JAR și auditul celor două renderere: [J14](ATF_Reporting_J14_Verification.md).
+Probe sursă/JAR și auditul celor două renderere: Reporting J14 acceptance (historical execution record).
 
 </details>
 
@@ -4033,7 +4016,7 @@ testChanges:
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/composition/SelfContainedAuditBrowserComponentTest.java
 ```
 
-Probe și limite: [J15](ATF_Reporting_J15_Verification.md).
+Probe și limite: Reporting J15 acceptance (historical execution record).
 
 </details>
 
@@ -4055,7 +4038,7 @@ testChanges:
       - atf-reporting-tests/src/test/java/atf/reporting/asset/ReportAssetSizeInventoryTest.java
 ```
 
-[Probe și limite](ATF_Reporting_J16_Verification.md).
+Reporting J16 acceptance (historical execution record).
 
 </details>
 
@@ -4079,7 +4062,7 @@ testChanges:
       - atf-reporting-tests/src/test/java/atf/reporting/asset/ReportAssetSizeInventoryTest.java
 ```
 
-[Source, physical-JAR and consumer evidence](ATF_Reporting_J17_Verification.md).
+Reporting J17 acceptance (historical execution record).
 
 </details>
 
@@ -4098,7 +4081,7 @@ testChanges:
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/navigation/ColdStartReadinessComponentTest.java
 ```
 
-[Cold bootstrap, failure/recovery and physical-JAR evidence](ATF_Reporting_J18_Verification.md).
+Reporting J18 acceptance (historical execution record).
 Existing navigation/visibility changes remain under control 139 at the same real base; no path is claimed twice.
 
 </details>
@@ -4118,6 +4101,59 @@ testChanges:
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/navigation/TimelineTitleEncodingComponentTest.java
 ```
 
-[Source/JAR and current consumer evidence](ATF_Reporting_J18_Verification.md#native-timeline-labels).
+Reporting J18 acceptance (historical execution record).
+
+</details>
+
+<details>
+<summary><strong>Verified control — REPORT-NEUTRAL-UI-ACTIONS-20261104</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-NEUTRAL-UI-ACTIONS-20261104
+    status: VERIFIED
+    base: a31fefd9ebab4356327f1b887870b444565b5aa1
+    expires: 2026-11-30
+    reason: Replace false default driver attribution and include captured UI failures in fallback Fails without inventing assertions; retain independent rows, PNGs and comparison populations.
+    proof: mvn -B -pl atf-reporting-tests -am "-Dtest=UiActionAttributionComponentSuite,UiFailureContextComponentTest,ReportAssetSizeInventoryTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/markup/AtfReportMarkupTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/ExtentReportUiEvidencePublishingTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/ExtentReportUiEvidenceRenderingTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/ExtentReportUiFailureEvidenceTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/contract/UiActionAttributionContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/contract/UiFailureCatalogueContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/contract/UiReportArtifactContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/profile/ReportEvidenceProfileIntegrationTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/provenance/UiActionAttributionComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/provenance/UiActionAttributionComponentSuite.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/diagnostic/ReportPhaseAuditProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failurecontext/UiFailureContextProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/provenance/UiActionAttributionFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/provenance/UiFailureCatalogueFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/table/TableViewportProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/section/extract/UiValidationSectionExtractor.java
+```
+
+Reporting J20 acceptance (historical execution record).
+
+</details>
+
+<details>
+<summary><strong>Verified control — library contract documentation in the governance namespace</strong></summary>
+
+```yaml
+testChanges:
+  - id: DOC-LIBRARY-CONTRACTS-20261104
+    status: VERIFIED
+    base: 89c5b026de84042b032216e035e0008a5e7532c7
+    expires: 2026-11-30
+    reason: Direct user request removes obsolete Core release labels from official documentation; this README-only change alters no Java test, assertion, category or oracle.
+    proof: mvn -B -pl atf-tests -am "-Dtest=DocumentationTargetGovernanceTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/README.md
+```
+
+This control covers only the documentation path above. Historical controls and their real Git bases are unchanged.
 
 </details>

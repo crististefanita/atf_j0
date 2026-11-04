@@ -12,31 +12,32 @@ Scorurile sunt priorități, nu note de calitate sau procente de acoperire. Form
 
 | Ordine | Owner și criteriu | Prioritate /100 | Restanță concretă |
 |---:|---|---:|---|
-| 1 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md) | 89 | exact failure evidence, source/JAR negatives and distinct remaining geometry/SQL criteria |
-| 2 | [SQL reporting](ATF_Reporting_Feedback.md#report-sql-steps-116--query-uri-și-rezultate-auditabile) | 88 | neutral typed steps, independent SQL budgets and separate J2 adoption |
-| 3 | [Long UI assertion evidence](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) | 88 | capture before caller preview and safe full-value disclosure; ACTION/OBSERVE is already delivered |
-| 4 | [Supported public API](ATF_Reporting_Feedback.md#report-public-api-43--suprafață-susținută-și-ownership) | 81 | supported surface, adapter capabilities and compatibility policy |
-| 5 | [Recovery projection](ATF_Reporting_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent) | 78 | typed attempt, cause, timing and budget projection |
-| 6 | [Release contract](ATF_Reporting_Feedback.md#report-release-contract-45--ce-conține-și-ce-promite-pachetul) | 73 | automated declared-toolchain gate and external distribution metadata |
+| 1 | [Core fallback cancellation](ATF_Core_Feedback.md#core-urlconnection-cancel-126--body-subscription-and-dispatch-ownership) | 96 | pending body survives cancellation/deadline and can dispatch later; source/JAR reproduction, bounded ownership and permanent negatives required |
+| 2 | [Reporting unit baseline](ATF_Reporting_Tests_Feedback.md#report-unit-baseline-149--restore-the-complete-existing-unit-gate) | 93 | eight existing failures among 487 canonical unit cases; classify code/oracle causes and retain independent source/JAR negatives |
+| 3 | [SQL reporting](ATF_Reporting_Feedback.md#report-sql-steps-116--query-uri-și-rezultate-auditabile) | 88 | neutral typed steps, independent SQL budgets and separate J2 adoption |
+| 4 | [Long UI assertion evidence](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) | 88 | capture before caller preview and safe full-value disclosure; ACTION/OBSERVE is already delivered |
+| 5 | [Supported public API](ATF_Reporting_Feedback.md#report-public-api-43--suprafață-susținută-și-ownership) | 81 | supported surface, adapter capabilities and compatibility policy |
+| 6 | [Recovery projection](ATF_Reporting_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent) | 78 | typed attempt, cause, timing and budget projection |
+| 7 | [Release contract](ATF_Reporting_Feedback.md#report-release-contract-45--ce-conține-și-ce-promite-pachetul) | 73 | automated declared-toolchain gate and external distribution metadata |
 
-Masca literală, MIME, probele deadline-ului, corelarea comenzii, factura și lifecycle-urile deja livrate nu sunt relistate ca defecte. Rămân deschise numai negativele distincte descrise în feedback.
+Existing literal redaction, MIME, command correlation and lifecycle contracts retain their tests. The URLConnection body witness is a distinct transport gap; passing HttpClient or executor-wrapper cancellation does not close it.
+
+SQL typed steps are an explicitly requested expansion, separate from maintenance quality of existing features. Do not invent extensions or raise scores merely to reach a target; prioritize demonstrated correctness, auditability and ownership gaps first.
 
 ## Contracte și controale verificate
 
 | Boundary | Delivered contract and retained proof |
 |---|---|
-| Core C3 | [Core consumer contract](../ATF_Core_Consumer.md): source/native tests in J0, physical JAR consumption and independent acceptances |
-| Disclosure and governance | [J10](../ATF_Reporting_J10_Verification.md): criteria 114/100 are delivered |
-| System, inspector and timing | [J11](../ATF_Reporting_J11_Verification.md) and [J12](../ATF_Reporting_J12_Verification.md): criteria 117/66/62/83/124 are delivered |
-| Publication memory and full ACTION/OBSERVE | [J13](../ATF_Reporting_J13_Verification.md): criteria 131/132 are removed from the active ranking; bounded original source/JAR proof retained |
+| Core | [Core consumer contract](../ATF_Core_Consumer.md): source/native ownership and independent physical-JAR acceptance; fallback cancellation remains explicitly limited |
+| Disclosure and governance | [display contract](../ATF_Reporting_Display_Contract.md): criteria 114/100 are delivered |
+| System, inspector and timing | [display contract](../ATF_Reporting_Display_Contract.md) and [Reporting owner contract](../../atf-reporting/README.md): criteria 117/66/62/83/124 are delivered |
+| Publication memory and full ACTION/OBSERVE | [Reporting owner contract](../../atf-reporting/README.md): criteria 131/132 are removed from the active ranking; bounded original source/JAR proof retained |
 | Documentation and controls | [Atlas](../ATF_Context_Atlas.md), [architecture](../ATF_Architecture.md), [testing](../ATF_Testing_Guide.md) and [baseline](../ATF_Test_Changes_Baseline.md#controale-tehnice-verificate) retain stable contracts and real Git bases |
 | Latest consumer evidence | [J1 live purchases, 2026-11-03](../../../atf_j1/docs/ATF_J1_Live_Screenshot_Verification.md): four passing individual/filtered-suite invocations; residual generic J0 criteria remain separate |
 
 ## Cerințe transferate în J1
 
 [Registrul J1](../../../atf_j1/docs/feedback/README.md) deține Test Kit, guvernanța comună, designul AI și coordonarea consumerilor. ID-urile și probele sunt păstrate; transferul nu închide implementarea.
-
-[Auditul datat 2026-11-01](../ATF_Producer_Audit_2026-11-01.md) este istoric de proiect, cu scorurile și limitele originale. Nu reprezintă starea curentă a criteriilor închise ulterior.
 
 ## Păstrare, promovare și verificare
 
@@ -48,12 +49,3 @@ Masca literală, MIME, probele deadline-ului, corelarea comenzii, factura și li
 | control Git verificat | [baseline](../ATF_Test_Changes_Baseline.md); nu se rebazează ori prelungește implicit |
 
 [Protocolul documentar](../README_Atf_DocumentationBestPractices.md#păstrarea-și-ștergerea-feedback-ului) și [build-ul în TMP](../ATF_Build_And_Execution_Safety.md) guvernează fiecare increment. Criteriul se elimină numai după probă și promovarea contractului stabil.
-
-
-## Increment consolidat — 2026-11-02
-
-[Core C3](../ATF_Core_C3_Verification.md) consolidează console/cancellation cu native permanente, probă JAR și acceptanțe separate J1–J4. The increment is historical; [J18](../ATF_Reporting_J18_Verification.md) owns the current Reporting delivery.
-
-## Producer audit — 2026-11-01
-
-[Auditul istoric de proiect](../ATF_Producer_Audit_2026-11-01.md) păstrează scorurile și probele datate. Criteriile curente se citesc la ownerii Core/Reporting de mai sus și în registrul J1 pentru celelalte module.

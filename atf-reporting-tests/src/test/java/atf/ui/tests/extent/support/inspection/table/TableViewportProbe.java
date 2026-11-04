@@ -129,7 +129,7 @@ public final class TableViewportProbe {
                         assertTrue(LOCATORS.actions(scope).count() >= 6, "direct request actions must be present");
                         assertTrue(labels.stream().anyMatch(s -> s.contains("Setup evidence · 40 checks")), labels.toString());
                         assertTrue(labels.stream().anyMatch(s -> s.contains("Assertions · 40")), labels.toString());
-                        assertTrue(labels.stream().anyMatch(s -> s.contains("Playwright action sequence (40 entries)")), labels.toString());
+                        assertTrue(labels.stream().anyMatch(s -> s.contains("UI action sequence (40 entries)")), labels.toString());
                         assertEquals(0, LOCATORS.screenshots(scope).evaluateAll(
                                 "items => items.filter(e => e.closest('" + TableViewportLocators.VIEWPORTS + "')).length"));
                     }

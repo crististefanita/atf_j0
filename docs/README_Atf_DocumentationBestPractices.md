@@ -537,3 +537,12 @@ Comanda de [guvernanță](../atf-tests/README.md#verificare-rapidă) se rulează
 staging; artifactele Markdown randate se inspectează în TAB MCP. Rubrica
 editorială rămâne cea [de mai sus](#rubrica-reviziei-editoriale), fără praguri
 sau excepții introduse pentru o revizie particulară.
+
+## Library contracts and release history
+
+Official documentation describes the current API, ownership, configuration, limitations and verification procedure. Library improvement chronology, old/new release comparisons, dated execution counts and release-specific scorecards belong to packaging evidence or historical provenance.
+
+- Read coordinates and hashes from the consuming POM and provenance; avoid repeating release identifiers throughout contracts and atlases.
+- Keep one current verification note per library beside its producer package, with build logs and generated reports in owned TMP.
+- Keep active gaps in owner feedback and approved test-change controls in their technical baseline; neither becomes a second release journal.
+- Preserve architectural diagrams and legends when removing historical labels; document transport-specific limitations without implying a universal guarantee.

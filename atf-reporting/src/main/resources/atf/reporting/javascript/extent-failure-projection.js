@@ -41,7 +41,7 @@ function selectFailure(index) {
 function failureRecords() {
   return testItems().filter(item => statusOf(item) === 'fail').flatMap(item => {
     var records = [
-      ['assertion', failedAssertionRows(item)], ['diagnostic', failedDiagnosticRows(item)],
+      ['ui', failedUiRows(item)], ['assertion', failedAssertionRows(item)], ['diagnostic', failedDiagnosticRows(item)],
       ['execution', failedExecutionEvidence(item)]
     ].flatMap(([kind, rows]) => rows.map((assertionRow, ordinal) => ({ item, assertionRow, ordinal: ordinal + 1, kind })));
     return records.length ? records : [{ item, assertionRow: null, ordinal: 1, kind: 'scenario' }];

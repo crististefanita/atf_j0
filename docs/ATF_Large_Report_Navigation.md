@@ -29,7 +29,7 @@ for assertion rows.
 | LargeReportNavigationBrowserComponentTest | repeated owner switches, targeted assertion/PNG paths and return; bulk expansion on the neutral fixture or at most two explicitly selected external owners; per-owner SHA-256 inventory of original cells/bodies and canonical PNG payloads/references before/after; a one-character payload mutation is rejected |
 | EvidenceTableVisibilityComponentTest | identical presentation writes do not remeasure; actual cell-style changes do; known hidden views skip geometry; closed evidence remains structurally untouched; opening/reopening and direct text-node mutation receive full measured columns |
 | RecordedPublicationTimingComponentTest | execution and transport stay independent of publication; removed/replaced markers refresh at a subsequent aggregation |
-| adjacent browser families | standard UI/API tables, fallback layout, disclosure state, source labels and J16 screenshot viewport/return contracts |
+| adjacent browser families | standard UI/API tables, fallback layout, disclosure state, source labels and whole-frame screenshot viewport/return contracts |
 
 - The optional atf.navigation.input property defaults to targeted paths.
 - An explicit atf.navigation.expandOwners accepts at most two distinct, zero-based owner indices; duplicates, negative/out-of-range indices and unbounded requests are rejected.
@@ -43,8 +43,7 @@ for assertion rows.
 - Very large required evidence still consumes parser, layout and image memory; a content budget is not a total HTML or browser-heap guarantee.
 - Performance observations never turn a captured FAIL into PASS.
 
-[Current release acceptance](ATF_Reporting_J18_Verification.md) records source and physical-JAR
-checks, the large archived Android artifact and separate J1–J4 consumer sanity.
+The producer owns permanent source/JAR regressions. Consumer provenance records the current binary and independent acceptance; archived Android rendering does not certify a fresh device run.
 
 ## Cold startup and readiness
 
@@ -71,6 +70,4 @@ three fresh Chromium processes against the same complete artifact.
 | vendor upgrade | fail explicitly when the pinned native key expression changes, instead of silently publishing invalid script |
 | permanent proof | TimelineTitleEncodingComponentTest executes the real embedded script and rejects browser errors; timestamp regressions stay separate |
 
-[The release record](ATF_Reporting_J18_Verification.md) includes the current J4
-Learning witness and neutral source/JAR contracts. The producer owns the
-implementation and permanent tests; consumers retain their own oracles.
+The producer owns implementation and permanent source/JAR tests. Consumers retain their independent application oracles; dated external witnesses do not become fresh acceptance.

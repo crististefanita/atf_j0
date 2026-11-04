@@ -413,6 +413,14 @@ protejează cele cinci contracte, strict/warning, nominale și parametri
 
 ### Parser comun și proprietatea datelor
 
-Documentele complete folosesc JsonDocuments din Core C2: fără duplicate ori
+Documentele complete folosesc Core JsonDocuments: fără duplicate ori
 trailing content, cu decimale exacte. Validation păstrează diagnosticele și
 politica proprie pentru null; nu deține un mapper strict paralel.
+
+## Preview and audit boundaries
+
+ValidationTable stores redacted, bounded expected/actual values after the caller evaluates the complete inputs. Its default 240-character preview does not establish full-value retention or change an independently captured FAIL.
+
+- The current UTF-16 cut can split a supplementary character; the [shared fidelity criterion](../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md#kit-unicode-preview-127--preserve-valid-text-at-the-configured-boundary) includes this boundary and its native tests.
+- Long safe values needed for audit must be retained before preview, with explicit disclosure budgets; Reporting cannot reconstruct a discarded suffix.
+- This display limitation is separate from strict JSON/MIME decisions, literal redaction and the once-only validation predicate.

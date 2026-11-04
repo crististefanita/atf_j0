@@ -50,7 +50,7 @@ function openScenarioAuditPath(card) {
 function openScenarioFailurePath(card, ordinal, kind) {
   var index = Number(ordinal) - 1;
   if (!Number.isInteger(index) || index < 0) return;
-  var targets = kind === 'execution' ? failedExecutionEvidence(card) :
+  var targets = kind === 'ui' ? failedUiRows(card) : kind === 'execution' ? failedExecutionEvidence(card) :
     kind === 'diagnostic' ? failedDiagnosticRows(card) : failedAssertionRows(card);
   var target = targets[index];
   if (!target) return;

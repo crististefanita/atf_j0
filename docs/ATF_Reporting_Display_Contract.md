@@ -236,4 +236,4 @@ redeschide singur un ToDo. Redeschiderea cere o abatere reproductibilă în codu
 | verdict | rezultatul capturat rămâne integral, fără comparație pe preview |
 
 [Ownerul proiecției](../atf-reporting/README.md#actionobserve--preview-și-valori-complete)
-și [probele J13](ATF_Reporting_J13_Verification.md) delimitează valorile assertions separat.
+și [Reporting owner contract](../atf-reporting/README.md) delimitează valorile assertions separat.

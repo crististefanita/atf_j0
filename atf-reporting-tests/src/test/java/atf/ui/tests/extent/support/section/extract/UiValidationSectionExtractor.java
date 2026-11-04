@@ -179,7 +179,7 @@ public final class UiValidationSectionExtractor {
                 && verticallyCenteredScreenshots == screenshots.count();
         if (allNodes.count() < 1) violations.add("UI validation node is missing");
         if (actionSequences < 1) {
-            violations.add("UI validation must expose at least one Playwright action sequence");
+            violations.add("UI validation must expose at least one UI action sequence");
         }
         if (observations < 1) {
             violations.add("UI validation must expose at least one audit observation zone");

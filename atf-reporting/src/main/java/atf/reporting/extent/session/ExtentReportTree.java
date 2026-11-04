@@ -252,7 +252,7 @@ public final class ExtentReportTree {
         evidence.renderUiActions(node, actions, screenshots, mode);
     }
 
-    /** Renders a Playwright action table without embedding its screenshot. */
+    /** Renders a UI action table without embedding its screenshot. */
     public void renderUiActionsAsMedia(ExtentTest node, List<AtfUiActionRecord> actions) {
         evidence.renderUiActionsAsMedia(node, actions);
     }

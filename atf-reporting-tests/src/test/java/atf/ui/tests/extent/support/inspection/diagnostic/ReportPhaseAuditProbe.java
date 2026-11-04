@@ -83,7 +83,7 @@ public final class ReportPhaseAuditProbe {
                 String failures = LOCATORS.fails(page, fallback).innerText();
                 assertTrue(failures.contains(actualCause));
                 assertFalse(failures.contains(setupNote), "a passing phase must not contaminate another failure cause");
-                assertFalse(failures.contains("Playwright action"), "execution diagnostics are not UI action failures");
+                assertFalse(failures.contains("UI action"), "execution diagnostics are not UI action failures");
                 page.close();
             }
         }

@@ -10,7 +10,7 @@ function uiFailureSource(card) {
     assertionOnly = !action && !observation;
   if (assertionOnly && (!row || !failedAssertionRow(row))) return null;
   return {
-    kind: action ? 'Playwright action' : observation ? 'Audit observation' : 'Assertion',
+    kind: action ? 'UI action' : observation ? 'Audit observation' : 'Assertion',
     target: failed ? text(cells[1]) : assertionOnly ? text(cells[0]) : '',
     expected: text(cells[failed ? 2 : 1]),
     observed: text(cells[failed ? 3 : 2]),

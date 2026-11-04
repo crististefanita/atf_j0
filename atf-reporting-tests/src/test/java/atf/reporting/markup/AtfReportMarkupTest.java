@@ -23,8 +23,8 @@ class AtfReportMarkupTest {
                 () -> assertEquals("Audit details · 1 field", AtfReportLabels.auditDetails(1)),
                 () -> assertEquals("Setup evidence · 1 check", AtfReportLabels.setupEvidence(1)),
                 () -> assertEquals("Execution evidence · 1 attempt", AtfReportLabels.executionEvidence(1)),
-                () -> assertEquals("Playwright action sequence (1 entry)", AtfReportLabels.actionSequence(1)),
-                () -> assertEquals("Playwright action sequence (0 entries)", AtfReportLabels.actionSequence(0)));
+                () -> assertEquals("UI action sequence (1 entry)", AtfReportLabels.actionSequence(1)),
+                () -> assertEquals("UI action sequence (0 entries)", AtfReportLabels.actionSequence(0)));
     }
 
     @Test

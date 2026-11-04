@@ -34,7 +34,6 @@ Auditul structurii sursei aparține build-ului producătorului. Probele runtime 
 consumerul Maven extern verifică aceeași bibliotecă și ca JAR; contractele livrate
 sunt la ownerii lor, iar registrul păstrează numai criteriile încă deschise.
 
-
 - Restanțele de mai jos decid următorul increment. Contractele livrate sunt
   legate la [ownerii lor](#contracte-existente); un gate focalizat nu închide
   automat compatibilitatea API sau pregătirea întregului release.
@@ -45,6 +44,7 @@ sunt la ownerii lor, iar registrul păstrează numai criteriile încă deschise.
 |---|---:|---|
 | [REPORT-SQL-STEPS-116](#report-sql-steps-116--query-uri-și-rezultate-auditabile) | 88 = 35 + 26 + 18 + 9 | pași SQL neutri, query/bind-uri și rezultate cu bugete independente; adoptare J2 după release |
 | [REPORT-UI-ASSERTION-FULL-EVIDENCE-133](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) | 88 — existing criterion | full UI values captured before caller preview; source/JAR owner and redaction proof remain separate |
+| [REPORT-UNIT-BASELINE-149](ATF_Reporting_Tests_Feedback.md#report-unit-baseline-149--restore-the-complete-existing-unit-gate) | 93 — confirmed unit failures | restore eight existing failures with implementation/oracle classification and source/JAR behavioral controls |
 | `REPORT-PUBLIC-API-43` | 81 = 31 + 24 + 17 + 9 | API-ul susținut, compatibilitatea și capabilitățile adaptoarelor nu sunt delimitate suficient |
 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) | 80 = 31 + 24 + 18 + 7 | criteriu separat al consumerului: oracol per scenariu și containment fallback |
 | `UI-RECOVERY-AUDIT-01` | 78 = 33 + 22 + 16 + 7 | proiecția typed a încercărilor, bugetelor și corelării rămâne la Reporting |
@@ -262,7 +262,6 @@ sau repetarea deciziei la renderer.
 
 ## Contracte existente
 
-
 | Informație | Owner |
 |---|---|
 | Exchange terminal în Tests/Fails și backlink către execution evidence | [Reporting](../../atf-reporting/README.md#execuție-api-terminată-fără-răspuns) |
@@ -450,46 +449,56 @@ without a renderer change, new module or new library version.
 
 ## REPORT-ARTIFACT-PROFILE-62 — aplicabilitate explicită a inspectorului
 
-[Inspection intent](../../atf-reporting/README.md#inspecția-artifactului-cu-intenție-explicită) and [J12 verification](../ATF_Reporting_J12_Verification.md) own the delivered profile and invariant contracts.
+[Inspection intent](../../atf-reporting/README.md#inspecția-artifactului-cu-intenție-explicită) own the delivered profile and invariant contracts.
 
 ## REPORT-RECORDED-TIMING-83 — execuție capturată și cost de publicare
 
-[Recorded timing](../../atf-reporting/README.md#originea-duratelor-sub-o-fază-capturată) and [J12](../ATF_Reporting_J12_Verification.md) retain distinct execution, capture and publication axes.
+[Recorded timing](../../atf-reporting/README.md#originea-duratelor-sub-o-fază-capturată) and [Reporting owner contract](../../atf-reporting/README.md) retain distinct execution, capture and publication axes.
 
-## Reconfirmarea J2 — criterii încă deschise
+## Consumer reacceptance — separate remaining criteria
 
 This is a historical J10/J12 consumer witness. [J2 SQL verification](../../../atf_j2/docs/ATF_SQL_Live_Verification.md) owns its original executions; SQL-STEPS-116 above retains the separate open neutral-step and budget criteria.
 
 ## REPORT-FALLBACK-ASSERTION-AFFORDANCE-124 — indicator vizual pentru assertions
 
-The assertion indicator is delivered in [J12](../ATF_Reporting_J12_Verification.md). Its regression belongs to the [Reporting harness](../../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions).
+The [Reporting owner contract](../../atf-reporting/README.md) defines the delivered assertion indicator. Its regression belongs to the [Reporting harness](../../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions).
 
-## Increment J12 — contracte și dovezi
+## Inspector, timing and assertion contracts
 
-[J12 verification](../ATF_Reporting_J12_Verification.md) retains the dated inspector, timing and assertion-indicator evidence. PUBLIC-API-43 remains separately open.
+The [Reporting owner contract](../../atf-reporting/README.md) defines inspector intent, timing and assertion indicators; dated execution evidence remains with the package. PUBLIC-API-43 remains separately open.
 
 ## Contractul rândului UI
 
-[UI row fidelity](../../atf-reporting/README.md#fidelitatea-rândului-ui-și-politica-de-redactare), [J14](../ATF_Reporting_J14_Verification.md) and [J15 inline evidence](../ATF_Reporting_J15_Verification.md) own the delivered redaction and literal-text contracts.
+[UI row fidelity](../../atf-reporting/README.md#fidelitatea-rândului-ui-și-politica-de-redactare) and the [inline audit contract](../ATF_Inline_Audit_Contract.md) own the delivered redaction and literal-text contracts.
 
 ## REPORT-SCREENSHOT-RETURN-137 — PNG reutilizat schimbă ownerul și pierde expandările
 
-[J16](../ATF_Reporting_J16_Verification.md) owns canonical PNG identity, local captions and return context. The permanent [screenshot family](ATF_Reporting_Tests_Feedback.md#report-test-screenshot-return-137--contextul-viewer-ului-pentru-png-reutilizat) remains a regression obligation.
+[inline audit contract](../ATF_Inline_Audit_Contract.md) owns canonical PNG identity, local captions and return context. The permanent [screenshot family](ATF_Reporting_Tests_Feedback.md#report-test-screenshot-return-137--contextul-viewer-ului-pentru-png-reutilizat) remains a regression obligation.
 
 ## REPORT-SCREENSHOT-VIEWPORT-138 — imagine integrală în spațiul disponibil
 
-The [full-image contract](../ATF_Inline_Audit_Contract.md#full-image-viewer-target) and [J16](../ATF_Reporting_J16_Verification.md) own whole-frame fit, aspect ratio and explicit original-size inspection. Consumer capture and device acceptance remain separate.
+The [full-image contract](../ATF_Inline_Audit_Contract.md#full-image-viewer-target) owns whole-frame fit, aspect ratio and explicit original-size inspection. Consumer capture and device acceptance remain separate.
 
 ## REPORT-LARGE-NAVIGATION-139 — verified retained-evidence navigation
 
-[Large-report navigation](../ATF_Large_Report_Navigation.md), [J17](../ATF_Reporting_J17_Verification.md) and [J18](../ATF_Reporting_J18_Verification.md) own retained-evidence navigation and bounded external-owner acceptance.
+[Large-report navigation](../ATF_Large_Report_Navigation.md) owns retained-evidence navigation and bounded external-owner acceptance.
 
 ## REPORT-COLD-READINESS-141 — startup repeats work before readiness
 
-[Cold-start readiness](../ATF_Large_Report_Navigation.md#cold-startup-and-readiness) and [J18](../ATF_Reporting_J18_Verification.md) retain the original deadlines and permanent source/JAR contracts.
+[Cold-start readiness](../ATF_Large_Report_Navigation.md#cold-startup-and-readiness) retains the original deadlines and permanent source/JAR contracts.
 
 ## REPORT-TIMELINE-TITLE-142 — native JavaScript key encoding
 
-[Native timeline labels](../ATF_Reporting_J18_Verification.md#native-timeline-labels) retain complete caller keys, original durations and executable source/JAR script checks.
+The [native timeline contract](../ATF_Large_Report_Navigation.md#native-timeline-labels) retains complete caller keys, original durations and executable source/JAR script checks.
 
 </details>
+
+## Maintenance closure sequence
+
+The producer source still exposes optional default methods that silently ignore requested screenshot, UI action, execution and aggregate evidence. This is a capability/compatibility gap under PUBLIC-API-43; legacy adapter compatibility must remain explicit rather than being broken by blanket method changes.
+
+- [ ] Under PUBLIC-API-43, characterize the exact requested-evidence/default-adapter matrix; declare supported capabilities and require an observable refusal when mandatory evidence is unsupported. Decouple the journey aggregate DTO from its inspecting/calculating class only after caller and ABI characterization.
+- [ ] Under PORTABLE-DOCS-46, verify module documentation from a module-only copy and a binary-only consumer; the current project contracts are release-independent, but external source/harness links still require a declared companion-document route.
+- [ ] Under RELEASE-CONTRACT-45, retain an owned, repeatable release operator at its maintained owner; reproduce native gates, source/JAR regressions, embedded POM, raw input identity and byte-identical builds without relying on an earlier agent's TMP scripts.
+
+These are refinements of existing library contracts. SQL extensions and application/device acceptance remain separate from maintenance grading.

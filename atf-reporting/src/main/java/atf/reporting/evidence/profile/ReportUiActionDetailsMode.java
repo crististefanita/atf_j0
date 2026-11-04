@@ -3,7 +3,7 @@ package atf.reporting.evidence.profile;
 import java.util.Locale;
 import java.util.Objects;
 
-/** Controls how Playwright action evidence is disclosed without changing its capture. */
+/** Controls how UI action evidence is disclosed without changing its capture. */
 public enum ReportUiActionDetailsMode {
     INCLUDED_COLLAPSED("included-collapsed"),
     SUMMARY_ONLY("summary-only");

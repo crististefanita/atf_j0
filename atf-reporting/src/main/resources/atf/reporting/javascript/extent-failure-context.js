@@ -1,10 +1,16 @@
+function nodeTitle(card) {
+  return text(card, '.card-title a.node');
+}
+function ownerCard(node, role) {
+  return node.closest('.card[data-atf-node-role="' + role + '"]');
+}
 function failureTransportEvidence(card, state) {
   ['.helm-trace-table', '.execution-table'].forEach(function (selector) {
     var table = card.querySelector(selector);
     if (!table) return;
     q('tbody tr', table).forEach(function (row) {
-      var label = text(row.cells[0], '').toUpperCase(),
-        rawDuration = text(row.cells[1], '');
+      var label = text(row.cells[0]).toUpperCase(),
+        rawDuration = text(row.cells[1]);
       if (label === 'FAILURE CAUSE') state.message = rawDuration;
       if (['RESPONSE DURATION', 'RESPONSE DURATION (MS)', 'RESPONSE.DURATION.MS'].includes(label) && !state.duration) {
         var durationMs = atfDurationValue(rawDuration);
@@ -16,29 +22,28 @@ function failureTransportEvidence(card, state) {
 function failureValidationCandidate(card) {
   var table = card.querySelector('.helm-validation-table');
   if (!table) return null;
-  var rows = table.tBodies[0] ? Array.from(table.tBodies[0].rows) : [],
-    row = rows.find(failedAssertionRow);
+  var row = Array.from(table.tBodies[0]?.rows || []).find(failedAssertionRow);
   if (!row) return null;
   var cells = row.cells;
   return {
-    card: card,
-    label: text(cells[0], ''),
-    expected: text(cells[1], ''),
-    actual: text(cells[2], ''),
-    result: text(cells[3], '')
+    card,
+    label: text(cells[0]),
+    expected: text(cells[1]),
+    actual: text(cells[2]),
+    result: text(cells[3])
   };
 }
 function failureRequestIdentity(card) {
   if (!card) return '';
   var node = q('[data-atf-request-method]', card).find(candidate =>
-    candidate.closest('.card[data-atf-node-role="request"]') === card);
+    ownerCard(candidate, 'request') === card);
   return node ? node.dataset.atfRequestMethod + ' ' + node.dataset.atfRequestPath : '';
 }
 function collectFailureState(item) {
   var state = {
     phase: '',
     phaseCard: null,
-    component: !!item.querySelector('[data-atf-node-role="assertion-step"]'),
+    component: !!item.querySelector('[data-atf-node-role=assertion-step]'),
     requests: [],
     validations: [],
     uiFailures: [],
@@ -47,7 +52,7 @@ function collectFailureState(item) {
     duration: ''
   };
   q('.card', item).forEach(function (card) {
-    var title = text(card, '.card-title a.node'),
+    var title = nodeTitle(card),
       upper = title.toUpperCase();
     if (
       !state.phase &&
@@ -79,7 +84,7 @@ function failureEntryBelongsToPhase(entry, phaseCard) {
 }
 function latestFailureEntry(entries, phaseCard) {
   var scoped = entries.filter(entry => failureEntryBelongsToPhase(entry, phaseCard));
-  return scoped.length ? scoped[scoped.length - 1] : entries[0] || null;
+  return scoped.at(-1) || entries[0] || null;
 }
 function failureContextFromState(state) {
   var missing = 'Failure recorded; see exact test for full evidence',
@@ -98,8 +103,7 @@ function failureContextFromState(state) {
     return Object.assign(context, concrete, {
       ui: true,
       request: '',
-      duration: '',
-      step: concrete.step || 'UI step'
+      duration: ''
     });
   }
   if (state.component && !state.requests.length) context.evidenceOwner = 'component';
@@ -133,40 +137,42 @@ function failureContext(item) {
 function failureContextFor(item, anchor) {
   var ctx = failureContext(item);
   if (!anchor) return ctx;
-  ctx.previewLimit = +(anchor.closest('[data-atf-preview-limit]') || anchor).getAttribute('data-atf-preview-limit') || 240;
+  ctx.previewLimit = +(anchor.closest('[data-atf-preview-limit]') || anchor).dataset.atfPreviewLimit || 240;
+  var uiTable = anchor.closest('.atf-ui-action-table'),
+    ui = uiTable && uiFailureRowContext(anchor, uiTable.closest('details'));
   var diagnostic = anchor.closest('.phase-diagnostics [data-atf-phase-name]'),
-    terminal = anchor.matches('[data-atf-terminal-failure="true"]');
+    terminal = anchor.matches('[data-atf-terminal-failure=true]');
   if (diagnostic || terminal)
     Object.assign(ctx, { evidenceOwner: 'execution', ui: false, request: '', duration: '',
       checkpoint: '', step: 'Execution', assertion: 'No contract comparison recorded' });
   if (diagnostic) return Object.assign(ctx, {
     phase: diagnostic.getAttribute('data-atf-phase-name'),
-    validation: 'Execution diagnostics', diagnostic: text(anchor.cells[0], ''),
-    message: text(anchor.cells[1], '')
+    validation: 'Execution diagnostics', diagnostic: text(anchor.cells[0]),
+    message: text(anchor.cells[1])
   });
   if (terminal) {
-    var terminalPhase = anchor.closest('.card[data-atf-node-role="phase"]');
+    var terminalPhase = ownerCard(anchor, 'phase');
     return Object.assign(ctx, {
-      phase: terminalPhase ? text(terminalPhase, '.card-title a.node') : ctx.phase,
+      phase: terminalPhase ? nodeTitle(terminalPhase) : ctx.phase,
       request: anchor.getAttribute('data-atf-request-method') + ' ' + anchor.getAttribute('data-atf-request-path'),
       duration: anchor.getAttribute('data-atf-terminal-duration'), validation: 'Execution evidence',
       diagnostic: 'Transport failure',
       message: anchor.getAttribute('data-atf-terminal-message')
     });
   }
-  var cells = Array.from(anchor.cells || [], cell => text(cell, '')),
+  var cells = failureCells(anchor),
     label = cells[0] || 'Assertion',
     expected = cells[1] || '',
     actual = cells[2] || '';
   var validation = anchor.closest('.card'),
-    component = anchor.closest('.card[data-atf-node-role="assertion-step"]'),
-    phase = anchor.closest('.card[data-atf-node-role="phase"]');
+    component = ownerCard(anchor, 'assertion-step'),
+    phase = ownerCard(anchor, 'phase');
   if (component) {
-    var title = text(component, '.card-title a.node');
+    var title = nodeTitle(component);
     return Object.assign(ctx, {
       evidenceOwner: 'component', ui: false, request: '', duration: '',
       step: title, validation: title,
-      phase: phase ? text(phase, '.card-title a.node') : ctx.phase,
+      phase: phase ? nodeTitle(phase) : ctx.phase,
       assertion: label + ' → ' + expected + ' → ' + actual,
       message: label + ' expected ' + expected + ', actual ' + actual
     });
@@ -175,10 +181,10 @@ function failureContextFor(item, anchor) {
     channel = evidence && evidence.getAttribute('data-atf-evidence-owner'),
     requests = [];
   for (var parent = validation && validation.parentElement; parent; parent = parent.parentElement) {
-    if (parent.matches('.card[data-atf-node-role="request"]')) requests.push(parent);
+    if (parent.matches('.card[data-atf-node-role=request]')) requests.push(parent);
   }
   var nearest = requests[0],
-    requestTitle = nearest ? text(nearest, '.card-title a.node') : '',
+    requestTitle = nearest ? nodeTitle(nearest) : '',
     identity = failureRequestIdentity(nearest),
     httpRequest = !!identity || (channel !== 'api' && /^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s/.test(requestTitle));
   // Explicit typed ownership wins. Method-shaped titles are only a legacy fallback.
@@ -188,9 +194,9 @@ function failureContextFor(item, anchor) {
     ctx.request = ctx.ui ? '' : identity || (httpRequest ? requestTitle : 'API correlation');
     ctx.step = ctx.ui ? 'UI assertion' : '';
     ctx.duration = '';
-    var checkpoint = requests.length ? text(requests[requests.length - 1], '.card-title a.node') : '';
+    var checkpoint = requests.length ? nodeTitle(requests[requests.length - 1]) : '';
     ctx.checkpoint = checkpoint !== requestTitle || !httpRequest ? checkpoint : '';
-    if (phase) ctx.phase = text(phase, '.card-title a.node');
+    if (phase) ctx.phase = nodeTitle(phase);
     if (!ctx.ui && nearest && httpRequest) {
       var measured = { message: '', duration: '' };
       failureTransportEvidence(nearest, measured);
@@ -198,7 +204,7 @@ function failureContextFor(item, anchor) {
     }
   }
   if (validation) {
-    var title = text(validation, '.card-title a.node');
+    var title = nodeTitle(validation);
     if (title) {
       ctx.validation = title;
       if (title.toLowerCase() === 'failure evidence') ctx.step = 'Failure evidence';
@@ -212,5 +218,9 @@ function failureContextFor(item, anchor) {
     ctx.message = message + ' | Scenario diagnostics: ' + ctx.message;
   if (ctx.ui || !primary)
     ctx.message = ctx.ui && label === 'Failure cause' ? statusDisplay(actual) : message;
+  if (ui) Object.assign(ctx, ui, {
+    evidenceOwner: 'ui', request: '', duration: '', diagnostic: ui.assertion,
+    phase: phase ? nodeTitle(phase) : ctx.phase
+  });
   return ctx;
 }

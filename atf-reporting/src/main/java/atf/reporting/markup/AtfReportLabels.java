@@ -49,6 +49,8 @@ public final class AtfReportLabels {
     public static final String CHECK = "CHECK";
     public static final String UI_SCREENSHOT = "UI screenshot";
     public static final String AUDIT_OBSERVATIONS = "Audit observations";
+    public static final String UI_ACTION_SEQUENCE = "UI action sequence";
+    /** Legacy literal retained for binary compatibility; neutral publication uses UI_ACTION_SEQUENCE. */
     public static final String PLAYWRIGHT_ACTION_SEQUENCE = "Playwright action sequence";
     public static final String CHECKPOINT = "checkpoint";
     public static final String CHECKPOINTS = "checkpoints";
@@ -99,12 +101,12 @@ public final class AtfReportLabels {
     }
 
     public static String actionSequence(int entries) {
-        return String.format("%s (%d %s)", PLAYWRIGHT_ACTION_SEQUENCE, entries,
+        return String.format("%s (%d %s)", UI_ACTION_SEQUENCE, entries,
                 entries == 1 ? "entry" : ENTRIES);
     }
 
     public static String failedActions(long failures, int total) {
-        return String.format("%s · %d %s %d %s", PLAYWRIGHT_ACTION_SEQUENCE,
+        return String.format("%s · %d %s %d %s", UI_ACTION_SEQUENCE,
                 failures, FAILED_OF, total, total == 1 ? "entry" : ENTRIES);
     }
 
