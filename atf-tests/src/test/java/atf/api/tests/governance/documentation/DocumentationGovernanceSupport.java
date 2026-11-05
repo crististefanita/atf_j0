@@ -61,6 +61,9 @@ public final class DocumentationGovernanceSupport {
         }
         Path docsRoot = root.resolve("docs").toAbsolutePath().normalize();
         return isReadme(path)
+                || (Files.isRegularFile(normalized) && normalized.getParent().equals(projectRoot.resolve("lib"))
+                && List.of("README.Core.md", "README.Reporting.md", "README.Console.md", "README.Mock.md")
+                .contains(normalized.getFileName().toString()))
                 || (Files.isRegularFile(normalized)
                 && normalized.startsWith(docsRoot)
                 && normalized.getFileName().toString().toLowerCase().endsWith(".md"));

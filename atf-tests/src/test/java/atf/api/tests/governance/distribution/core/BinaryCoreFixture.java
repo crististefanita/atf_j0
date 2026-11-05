@@ -21,7 +21,8 @@ final class BinaryCoreFixture {
                 + "<atf.reporting.version>fixture</atf.reporting.version></properties><modules>"
                 + String.join("", modules.stream().map(n -> "<module>" + n + "</module>").toList()) + "</modules></project>");
         Files.createDirectories(root.resolve("lib"));
-        Files.writeString(root.resolve("lib/README.md"), "# Library ownership\n");
+        for (String guide : java.util.List.of("README.md", "README.Core.md", "README.Reporting.md", "README.Console.md", "README.Mock.md"))
+            Files.writeString(root.resolve("lib").resolve(guide), "# Library usage\n");
         jar = root.resolve("lib/atf-core-fixture.jar"); pom = root.resolve("lib/atf-core-fixture.pom");
         Files.writeString(root.resolve("lib/atf-reporting-fixture.jar"), "other artifact");
         Files.writeString(root.resolve("lib/atf-reporting-fixture.pom"), "other POM");

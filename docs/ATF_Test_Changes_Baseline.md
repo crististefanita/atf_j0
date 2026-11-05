@@ -4211,3 +4211,28 @@ testChanges:
 Controalele negative resping README-ul absent, documentele suplimentare, un director în locul README-ului și atribuirea codului ori feedback-ului unui consumer. Bibliotecile distribuite își păstrează coordonatele și hash-urile.
 
 </details>
+
+
+<details>
+<summary><strong>Ghiduri ale bibliotecilor — index scurt și ghiduri per bibliotecă</strong></summary>
+
+```yaml
+testChanges:
+  - id: LIBRARY-USAGE-GUIDES-J0
+    status: VERIFIED
+    base: f5ffc9e307b582f06ae73951c479eaecf546300e
+    expires: 2026-11-30
+    reason: Keep the exact flat binary inventory and require only the index plus four named usage guides; retain independent missing, directory and extra-file negatives, physical CodeSource and source/feedback ownership.
+    proof: 'mvn -B -ntp -Dtest=PlatformLibraryContractTest,PlatformLibraryIntegrityTest,LibraryDocumentationExampleTest,LibraryDocumentationInventoryTest test'
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationGovernanceSupport.java
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/LibraryDocumentationInventoryTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/core/BinaryCoreFixture.java
+      - atf-tests/src/test/java/atf/libraries/PlatformLibraryContractTest.java
+      - atf-tests/src/test/java/atf/libraries/PlatformLibraryIntegrityTest.java
+      - atf-tests/src/test/java/atf/libraries/PlatformLibrarySurface.java
+```
+
+Exemplele sunt extrase din README-uri și verificate pe JAR-urile fizice. Schimbarea păstrează perechile publicate și oracolele existente.
+
+</details>

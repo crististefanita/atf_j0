@@ -121,7 +121,7 @@ public record PlatformLibrarySurface(Path root, String artifact) {
 
     public static void assertFlatLayout(Path root) throws Exception {
         var expected = new java.util.HashSet<String>();
-        expected.add("README.md");
+        expected.addAll(List.of("README.md", "README.Core.md", "README.Reporting.md", "README.Console.md", "README.Mock.md"));
         for (String artifact : List.of("core", "reporting", "console", "mock")) {
             String version = version(root, artifact);
             if (!version.isBlank()) for (String extension : List.of("jar", "pom")) expected.add("atf-" + artifact + "-" + version + "." + extension);

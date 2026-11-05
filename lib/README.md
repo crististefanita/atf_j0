@@ -4,7 +4,16 @@
 
 J0 este ownerul unic al bibliotecilor Core, Reporting, Console și Mock: cod, contracte publice, teste native, regresii generice, împachetare și feedback. Codul rămâne în modulele sursă ale acestui proiect; J1–J4 reutilizează perechile JAR/POM verificate.
 
-## Cod și feedback
+## Ghiduri de utilizare
+
+| Bibliotecă | Ce oferă | Folosiți-o pentru |
+|---|---|---|
+| [Core](README.Core.md) | HTTP, configurație, JSON, redactare și lifecycle | Mecanisme comune și adaptoare neutre. |
+| [Reporting](README.Reporting.md) | Extent/fallback, aserțiuni și dovezi UI/API | Rapoarte auditabile din observațiile consumerului. |
+| [Console](README.Console.md) | Evenimente și diagnostic configurabil | Urmărirea execuției în Maven și IntelliJ. |
+| [Mock](README.Mock.md) | Transport HTTP determinist | Componente și contracte offline, cu catalog propriu. |
+
+## Mentenanță și feedback
 
 | Bibliotecă | Codul întreținut în J0 | Backlog canonic în J0 |
 |---|---|---|
@@ -50,7 +59,7 @@ flowchart LR
 
 | Control | Contract |
 |---|---|
-| Inventar consumer | Exact patru perechi JAR/POM și acest README, direct în lib; fără versiuni suplimentare, depozit imbricat sau note de release. |
+| Inventar consumer | Exact patru perechi JAR/POM, indexul și patru ghiduri de utilizare, direct în lib; fără versiuni suplimentare, depozit imbricat sau note de release. |
 | Identitate | Coordonate din POM; hash-uri și proveniență la rădăcină; POM-ul încorporat coincide cu perechea publicată. |
 | Încărcare | CodeSource indică JAR-ul fizic; sursele paralele și harness-urile native nu revin în consumer. |
 | Teste | Native și regresii generice în J0; contractele de adopție și acceptanța domeniului rămân locale, cu oracole independente. |

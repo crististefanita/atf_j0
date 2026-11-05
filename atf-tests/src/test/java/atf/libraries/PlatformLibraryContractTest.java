@@ -26,7 +26,7 @@ class PlatformLibraryContractTest {
         Files.writeString(root.resolve("pom.xml"), "<project><properties><atf.console.version>fixture</atf.console.version>"
                 + "<atf.mock.version>fixture</atf.mock.version></properties></project>");
         Path lib = Files.createDirectory(root.resolve("lib"));
-        Files.writeString(lib.resolve("README.md"), "# Library ownership\n");
+        for (String guide : List.of("README.md", "README.Core.md", "README.Reporting.md", "README.Console.md", "README.Mock.md")) Files.writeString(lib.resolve(guide), "# Library usage\n");
         for (String artifact : List.of("console", "mock")) for (String extension : List.of("jar", "pom"))
             Files.writeString(lib.resolve("atf-" + artifact + "-fixture." + extension), "fixture");
         PlatformLibrarySurface.assertFlatLayout(root);
@@ -38,17 +38,23 @@ class PlatformLibraryContractTest {
         assertThrows(IllegalStateException.class, () -> PlatformLibrarySurface.assertFlatLayout(root));
     }
 
-    @Test void theDedicatedReadmeIsRequiredAndDoesNotPermitOtherDocumentation(@TempDir Path root) throws Exception {
+    @Test void theDedicatedGuidesAreRequiredAndDoNotPermitOtherDocumentation(@TempDir Path root) throws Exception {
         Files.writeString(root.resolve("pom.xml"), "<project><properties><atf.mock.version>fixture</atf.mock.version></properties></project>");
         Path lib = Files.createDirectory(root.resolve("lib"));
         for (String extension : List.of("jar", "pom")) Files.writeString(lib.resolve("atf-mock-fixture." + extension), "fixture");
-        assertThrows(IllegalStateException.class, () -> PlatformLibrarySurface.assertFlatLayout(root), "The ownership guide is required");
-        Path readme = lib.resolve("README.md"); Files.writeString(readme, "# Ownership\n");
+        assertThrows(IllegalStateException.class, () -> PlatformLibrarySurface.assertFlatLayout(root), "The usage guides are required");
+        var guides = List.of("README.md", "README.Core.md", "README.Reporting.md", "README.Console.md", "README.Mock.md");
+        for (String guide : guides) Files.writeString(lib.resolve(guide), "# Usage\n");
         PlatformLibrarySurface.assertFlatLayout(root);
+        for (String guide : guides) {
+            Path file = lib.resolve(guide); Files.delete(file);
+            assertThrows(IllegalStateException.class, () -> PlatformLibrarySurface.assertFlatLayout(root), "Missing guide: " + guide);
+            Files.createDirectory(file);
+            assertThrows(IllegalStateException.class, () -> PlatformLibrarySurface.assertFlatLayout(root), "A directory cannot substitute a guide");
+            Files.delete(file); Files.writeString(file, "# Usage\n");
+        }
         Path releaseNote = lib.resolve("verification.md"); Files.writeString(releaseNote, "release history");
-        assertThrows(IllegalStateException.class, () -> PlatformLibrarySurface.assertFlatLayout(root), "Only the dedicated README is allowed");
-        Files.delete(releaseNote); Files.delete(readme); Files.createDirectory(readme);
-        assertThrows(IllegalStateException.class, () -> PlatformLibrarySurface.assertFlatLayout(root), "A directory cannot substitute the README");
+        assertThrows(IllegalStateException.class, () -> PlatformLibrarySurface.assertFlatLayout(root), "Only the index and four named guides are allowed");
     }
 
     @Test void unsafeAndDuplicateVersionsAreRejectedBeforeResolvingLibraryPaths(@TempDir Path root) throws Exception {

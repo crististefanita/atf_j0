@@ -61,7 +61,7 @@ Native library commands run at J0 only. Acceptance against a published JAR compi
 
 ## Integrity and maintenance
 
-- `lib` contains eight binary artifacts plus README.md: four JAR/POM pairs, no nested repository, old versions, source or verification notes.
+- `lib` contains eight binary artifacts plus the index and four per-library usage guides: four JAR/POM pairs, no nested repository, old versions, source or verification notes.
 - Root `library-provenance.json` retains original Core/Reporting provenance and adds `platformLibraries.console` and `platformLibraries.mock`: coordinates, binary/POM hashes, producer-input digest, native catalog and current package evidence.
 - The embedded Maven POM must equal the adjacent published POM byte for byte. Consumer governance verifies the physical JAR, source-shadow rejection, dependency boundary and flat inventory.
 - Builds, caches, recovery copies and the latest package verification note stay in the owned producer TMP stage. Official docs describe contracts rather than iterative release history.

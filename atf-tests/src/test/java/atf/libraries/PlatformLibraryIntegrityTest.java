@@ -65,7 +65,8 @@ class PlatformLibraryIntegrityTest {
         Files.writeString(root.resolve("pom.xml"), "<project><properties><atf.core.version>fixture</atf.core.version><atf."
                 + artifact + ".version>fixture</atf." + artifact + ".version></properties></project>");
         try (var files = Files.list(root.resolve("lib"))) { for (Path file : files.toList()) Files.delete(file); }
-        Files.writeString(root.resolve("lib/README.md"), "# Library ownership\n");
+        for (String guide : List.of("README.md", "README.Core.md", "README.Reporting.md", "README.Console.md", "README.Mock.md"))
+            Files.writeString(root.resolve("lib").resolve(guide), "# Library usage\n");
         for (String extension : List.of("jar", "pom")) Files.writeString(root.resolve("lib/atf-core-fixture." + extension), "fixture");
         String pom = "<project><groupId>atf.api</groupId><artifactId>atf-" + artifact
                 + "</artifactId><version>fixture</version><properties><atf.core.version>fixture</atf.core.version></properties></project>";
