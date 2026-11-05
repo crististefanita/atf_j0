@@ -1,0 +1,5 @@
+if (response.status() != 200 || !response.body().equals("{\"status\":\"ready\"}"))
+    throw new AssertionError("Documented YAML route differs: " + response);
+var missing = mock.send(ApiRequest.of("GET", "/unknown"), "https://offline.test/unknown", "none").join();
+if (missing.status() != 500 || !missing.body().equals("{}")) throw new AssertionError("Fallback differs: " + missing);
+System.out.println("MOCK_GUIDE=PASS");

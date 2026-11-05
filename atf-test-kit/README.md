@@ -1,6 +1,6 @@
 # ATF Test Kit
 
-`atf-test-kit` deține contractele transversale ale infrastructurii de test ATF.
+`atf-test-kit` deține contractele comune ale testelor ATF.
 Nu conține renderer, mock transport, browser sau logică business.
 Consumerii îl declară în test scope; adaptorul JUnit din `atf-console` are
 excepția explicită `optional compile`, pentru adnotări și resolvere neutre.
@@ -82,7 +82,7 @@ Fiecare clasă executabilă declară exact un nivel:
 | `atf.testkit.reporting` | `AtfReportPath`, `AtfReportPathPolicyResolver` | opt-in separat pentru calea raportului publicat |
 | `atf.testkit.output` | adnotările de director și `ReportOutputDirectory` | ancoră UI prin adnotare sau path project-relative validat pentru un artifact |
 | `atf.testkit.setup.api` | `ApiScenarioSetup`, `ApiTestRef` | declarații; catalogul și executarea rămân la consumator |
-| `atf.testkit.documentation` | `DocumentationTarget` repeatable | selecție de documente; validatorii rămân în ATF Tests |
+| `atf.testkit.documentation` | `DocumentationTarget`, ghiduri pe JAR | selecție și compilare izolată; oracole la owner |
 | `atf.testkit.evidence` | `AtfUiEvidence`, `AtfUiEvidencePlan`, `AtfUiEvidenceResolver` și enum-urile axelor | rezolvă independent flow-ul, capturile și detaliile acțiunilor; adaptorii consumer le mapează în profilul Reporting |
 | `atf.testkit.lifecycle` | `TestRunInitialization`, `CloseOnceResource`, `ArmedCleanup`, `FailureAwareCleanup`, `FailureEvidenceCleanup`, `AtfE2eActivationPolicy`, `ScopedAcceptanceRun` | achiziție/rollback, cleanup, activare E2E și lansare scoped; fără API UI/Reporting |
 | `atf.testkit.scope` | `TestRunScope`, `ScopedTestValue<T>`, `ScopedTestResource<T>` | ownership explicit în Store-ul JUnit, fără cache static sau resurse UI |

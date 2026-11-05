@@ -16,7 +16,6 @@ J0 deține codul, contractele publice, testele native, împachetarea și feedbac
 | Reporting | [Reporting](ATF_Reporting_Feedback.md) |
 | Regresii generice Reporting | [Reporting Tests](ATF_Reporting_Tests_Feedback.md) |
 | Console și Mock | [Console / Mock](ATF_Console_Mock_Feedback.md) |
-| Ghiduri de consum | [Validarea executabilă a ghidurilor](ATF_Library_Consumption_Feedback.md) |
 
 
 ## Top feedback-uri active
@@ -41,6 +40,7 @@ SQL typed steps are an explicitly requested expansion, separate from maintenance
 
 | Boundary | Delivered contract and retained proof |
 |---|---|
+| Ghiduri de consum | [Gate JAR/POM](../ATF_Platform_Libraries.md) |
 | Core | [Core consumer contract](../ATF_Core_Consumer.md): source/native ownership and independent physical-JAR acceptance; fallback cancellation remains explicitly limited |
 | Disclosure and governance | [display contract](../ATF_Reporting_Display_Contract.md): criteria 114/100 are delivered |
 | System, inspector and timing | [display contract](../ATF_Reporting_Display_Contract.md) and [Reporting owner contract](../../atf-reporting/README.md): criteria 117/66/62/83/124 are delivered |

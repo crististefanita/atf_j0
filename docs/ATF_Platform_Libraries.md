@@ -68,3 +68,29 @@ Native library commands run at J0 only. Acceptance against a published JAR compi
 - Changes start at J0, preserve the 240-character default preview and auditable collapsible assertions, then receive separate component acceptance in every affected consumer. No device, external broker or ASR acceptance is inferred from offline checks.
 
 See [workspace synchronization](ATF_Workspace_Synchronization.md) and [isolated execution](ATF_Build_And_Execution_Safety.md). The source owners are [Console](../atf-console/README.md) and [Mock](../atf-mock/README.md).
+
+## Ghiduri executabile pe publicația binară
+
+Profilul Maven `library-guides` verifică exemplele Java/YAML direct din cele patru README-uri livrate în lib. Ownerii sunt `CoreLibraryGuideIT`, `ConsoleLibraryGuideIT` și `MockLibraryGuideIT` în modulele native, respectiv `ReportingLibraryGuideIT` în atf-reporting-tests. Suportul neutru din Test Kit compilează și execută consumerul; oracolele rămân la biblioteci.
+
+Într-o copie J0 deținută în TMP, cu repository Maven și director JVM temporar proprii:
+
+```powershell
+mvn -B -ntp -DskipTests -pl atf-core,atf-console,atf-mock,atf-reporting-tests -am install
+mvn -B -ntp -Plibrary-guides "-Datf.guide.bundle=C:/cale/TMP/consumer/lib" -pl atf-core,atf-console,atf-mock,atf-reporting-tests test
+```
+
+Bundle-ul este obligatoriu și conține perechile JAR/POM efectiv distribuite și ghidurile asociate. Prima comandă pregătește runnerul; consumerul generat de a doua declară numai biblioteca testată, fără parent ATF. Folosiți `-Dmaven.repo.local=<cache TMP>` pentru runner și, dacă sunt necesare setări Maven proprii, `-Datf.guide.maven.settings=<settings.xml>` pentru resolverul izolat; fiecare probă are cache-ul său TMP.
+
+Pentru CI offline adăugați `-Datf.guide.maven.seed=<cache pregătit>`: se copiază numai JAR/POM vendor, fără artifacte ATF ori tracking remote, apoi perechile selectate din bundle. Resolverul rulează `--offline`; o dependență sau un plugin absent produce FAIL, cu aceeași limită de 180 s per proces.
+
+| Dovadă | Contract verificat |
+|---|---|
+| Publicație | POM explicit, fără parent, identic cu metadata încorporată; CodeSource și SHA-256 ale JAR-ului selectat |
+| Izolare | Compile/runtime doar cu JAR-urile rezolvate din POM; fără surse paralele, Kit ori module de aplicație; Reporting fără Core |
+| Comportament | Core: URL, zecimale și JSON strict; Mock: catalog YAML și fallback; Console: YAML și precedență; Reporting: PASS/FAIL/null, tabel și preview 240 |
+| Control negativ | API retras sau bibliotecă eliminată produc FAIL la compilare; Core refuză și lipsa tranzitivei Jackson |
+
+Profilul cere teste prezente; bundle-ul absent sau un proces refuzat/eșuat nu devine skip ori PASS. Fără profil, selecțiile native existente rămân distincte. Pentru o singură bibliotecă selectați modulul său cu același profil și bundle.
+
+Logurile, sursele extrase și HTML-urile rămân în TMP; această verificare nu certifică un browser, device, broker sau ASR real.

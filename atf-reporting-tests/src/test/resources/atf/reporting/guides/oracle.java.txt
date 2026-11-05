@@ -1,0 +1,21 @@
+try { Class.forName("atf.core.http.request.ApiRequest"); throw new AssertionError("Core leaked into Reporting consumer"); }
+catch (ClassNotFoundException expected) { }
+if (ReportingSettings.defaults().assertionMaxDisplayCharacters() != 240) throw new AssertionError("Default preview differs");
+var directory = java.nio.file.Files.createDirectories(Path.of(args[0]));
+for (int index = 0; index < 3; index++) {
+    String actual = index == 0 ? "ready" : index == 1 ? "wrong" : null;
+    Path html = directory.resolve("guide-" + index + ".html");
+    boolean rejected = false;
+    try { publish(html, actual); } catch (AssertionError expected) { rejected = true; }
+    if (rejected != (index > 0)) throw new AssertionError("Caller verdict differs for case " + index);
+    String content = java.nio.file.Files.readString(html);
+    String status = index == 0 ? "pass" : "fail";
+    if (!java.util.regex.Pattern.compile("<li\\s+class=\"test-item\"\\s+status=\"" + status + "\"").matcher(content).find())
+        throw new AssertionError("Rendered scenario verdict differs for " + index);
+    if (!content.contains("Component assertions")
+            || !content.contains("<td>State</td><td>ready</td><td>" + String.valueOf(actual) + "</td>"))
+        throw new AssertionError("Missing assertion evidence for " + index);
+    if (!content.contains("class=\"atf-ui-assertions\"") || !content.contains("data-atf-preview-limit=\"240\""))
+        throw new AssertionError("Missing standard assertion table or preview contract");
+}
+System.out.println("REPORTING_GUIDE=PASS; cases=PASS,FAIL,NULL; preview=240");

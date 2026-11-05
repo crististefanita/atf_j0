@@ -2,7 +2,7 @@
 
 ## Pe scurt
 
-J0 este ownerul unic al bibliotecilor Core, Reporting, Console și Mock: cod, API, teste, împachetare și feedback. Codul rămâne în modulele sursă ale acestui proiect; Consumerii ATF reutilizează perechile JAR/POM verificate.
+J0 deține bibliotecile Core, Reporting, Console și Mock: cod, API, teste, împachetare și feedback. Codul rămâne în modulele sursă ale acestui proiect; consumerii ATF reutilizează perechile JAR/POM verificate.
 
 ## Ghiduri de utilizare
 
@@ -62,7 +62,7 @@ flowchart LR
 | Inventar consumer | Exact patru perechi JAR/POM, indexul și patru ghiduri de utilizare, direct în lib; fără versiuni suplimentare, depozit imbricat sau note de release. |
 | Identitate | Coordonate din POM; hash-uri și proveniență la rădăcină; POM-ul încorporat coincide cu perechea publicată. |
 | Încărcare | CodeSource indică JAR-ul fizic; sursele paralele și harness-urile native nu revin în consumer. |
-| Teste | Native și regresii generice în J0; contractele de adopție și acceptanța domeniului rămân locale, cu oracole independente. |
+| Teste | [Exemple JAR/POM](../docs/ATF_Platform_Libraries.md#ghiduri-executabile-pe-publicația-binară) în J0; acceptanță locală la consumer. |
 | Raportare | Preview implicit 240, assert-uri auditabile și colapsabile, cadre complete; proba mock/componentă nu certifică un device, broker sau ASR real. |
 
 În J0, acest director este registrul de mentenanță; nu înlocuiește modulele sursă și nu găzduiește output-uri de build. [Contractul tehnic](../docs/ATF_Platform_Libraries.md) și [sincronizarea workspace-urilor](../docs/ATF_Workspace_Synchronization.md) detaliază publicarea.

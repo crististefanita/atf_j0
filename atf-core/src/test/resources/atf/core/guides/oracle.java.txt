@@ -1,0 +1,12 @@
+if (!url.toString().equals("https://example.test/api/orders/42")) throw new AssertionError("Documented URL differs: " + url);
+if (total.compareTo(new java.math.BigDecimal("19.90")) != 0) throw new AssertionError("Decimal value lost precision: " + total);
+var precise = JsonDocuments.read("{\"n\":0.12345678901234567890123456789}").path("n").decimalValue();
+if (precise.compareTo(new java.math.BigDecimal("0.12345678901234567890123456789")) != 0)
+    throw new AssertionError("High-precision decimal passed through a narrowing conversion: " + precise);
+for (String invalid : java.util.List.of("{} {}", "{\"total\":1,\"total\":2}")) {
+    boolean rejected = false;
+    try { JsonDocuments.read(invalid); }
+    catch (java.io.IOException | IllegalArgumentException expected) { rejected = true; }
+    if (!rejected) throw new AssertionError("Non-strict JSON accepted: " + invalid);
+}
+System.out.println("CORE_GUIDE=PASS");

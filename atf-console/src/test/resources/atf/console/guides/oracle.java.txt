@@ -1,0 +1,28 @@
+var root = java.nio.file.Path.of("").toAbsolutePath();
+var yaml = root.resolve("console.yaml");
+var context = new atf.console.AtfConsoleConfigurationContext(root, yaml.toString(), "");
+var configured = atf.console.AtfConsoleConfigurationLoader.load(context).settings();
+if (!configured.equals(new ConsoleSettings(true, false))) throw new AssertionError("Documented YAML was not loaded: " + configured);
+if (!atf.console.AtfConsoleConfigurationContext.CONFIG_PROPERTY.equals("atf.report.config")
+        || !atf.console.AtfConsoleConfigurationContext.CONFIG_ENVIRONMENT_VARIABLE.equals("ATF_REPORT_CONFIG"))
+    throw new AssertionError("Configuration selector names drifted");
+var environment = root.resolve("environment.yaml");
+java.nio.file.Files.writeString(environment, "reporting:\n  console:\n    enabled: false\n");
+if (!new atf.console.AtfConsoleConfigurationContext(root, yaml.toString(), environment.toString()).explicitConfigPath().equals(yaml))
+    throw new AssertionError("Property must precede environment");
+if (!new atf.console.AtfConsoleConfigurationContext(root, " ", environment.toString()).explicitConfigPath().equals(environment))
+    throw new AssertionError("Blank property must permit environment selection");
+String previous = System.getProperty("atf.report.config");
+try {
+    System.setProperty("atf.report.config", environment.toString());
+    var bytes = new java.io.ByteArrayOutputStream();
+    var previousOut = System.out;
+    try {
+        System.setOut(new java.io.PrintStream(bytes, true, java.nio.charset.StandardCharsets.UTF_8));
+        AtfConsoleReporter.configuredStdout().info("MUST_BE_DISABLED");
+    } finally { System.setOut(previousOut); }
+    if (!bytes.toString(java.nio.charset.StandardCharsets.UTF_8).isEmpty()) throw new AssertionError("Configured disabled console emitted output");
+} finally {
+    if (previous == null) System.clearProperty("atf.report.config"); else System.setProperty("atf.report.config", previous);
+}
+System.out.println("CONSOLE_GUIDE=PASS");
