@@ -17,7 +17,7 @@ var console = AtfConsoleReporter.configuredStdout(
 console.info("Catalogul de scenarii a fost încărcat");
 ```
 
-Pentru politica din `atf.yaml`, folosiți `AtfConsoleReporter.configuredStdout()`:
+`configuredStdout()` citește `atf.report.config` → `ATF_REPORT_CONFIG` → `atf.yaml/yml`; opțiunile sunt:
 
 ```yaml
 reporting:
@@ -36,7 +36,7 @@ reporting:
 | Calea raportului final în consolă | Constructorul cu `reportPathEnabled: true` și evenimentul `REPORT_PUBLISHED` |
 | Politică JUnit per clasă | Adaptorul JUnit Console și adnotările Test Kit; declarați Kit explicit |
 
-Constructorul standard lasă publicarea căii oprită. Mesajul cu calea cere artifact confirmat și consolă activă; activarea detaliilor nu îl pornește implicit.
+Calea cere opt-in, consolă activă și eveniment cu artifact confirmat; `detailsEnabled` controlează doar detaliile.
 
 Console depinde de Core; Kit este opțional pentru legătura JUnit. Proiecția rămâne diagnostică: comparația și verdictul aparțin testului.
 

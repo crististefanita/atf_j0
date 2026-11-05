@@ -48,7 +48,7 @@ public static void publish(Path output, String actual) {
 - Furnizați PNG-ul întregului viewport sau display; zoom-ul, capturarea și oracolul sunt responsabilitatea adaptorului.
 - Publicați timing-ul măsurat de caller separat de costul publicării; înregistrați explicit verdictul fiecărui scope.
 
-Reporting este un JAR thin, cu dependențele runtime din POM; nu are dependențe către alte module ATF. Folosiți adaptorul local existent pentru traducerea modelelor Core; biblioteca nu pornește browserul și nu execută request-uri.
+Reporting este thin și folosește modelele `atf.reporting.*`, distincte de Core. Consumerul citește YAML-ul și transmite `ReportingSettings`; `defaults()` folosește valorile JAR-ului.
 
 ---
 

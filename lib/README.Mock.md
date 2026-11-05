@@ -6,23 +6,23 @@
 
 ## Exemplu minim
 
-Fragment într-o metodă; execuția nu deschide o conexiune HTTP:
+`mock.yaml` în directorul de lucru:
+
+```yaml
+mock:
+  routes:
+    - {method: GET, path: /health, status: 200, body: '{"status":"ready"}'}
+  fallback: {status: 500, body: '{}'}
+```
+
+Fragment într-o metodă; transportul rămâne offline:
 
 ```java
 import atf.core.http.request.ApiRequest;
-import atf.mock.AtfMockConfiguration;
 import atf.mock.AtfMockTransport;
-import atf.mock.MockRoute;
-import java.time.Duration;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.Path;
 
-var ready = new MockRoute("GET", "/health", 200,
-        "{\"status\":\"ready\"}", Map.of(), Duration.ZERO);
-var unexpected = new MockRoute("*", "/*", 500,
-        "{}", Map.of(), Duration.ZERO);
-var mock = new AtfMockTransport(
-        new AtfMockConfiguration(List.of(ready), unexpected));
+var mock = AtfMockTransport.fromConfiguration(Path.of("mock.yaml"));
 var response = mock.send(ApiRequest.of("GET", "/health"),
         "https://offline.test/health", "none").join();
 ```
@@ -34,7 +34,7 @@ var response = mock.send(ApiRequest.of("GET", "/health"),
 | Necesitate | API sau contract |
 |---|---|
 | Catalog YAML explicit | `AtfMockTransport.fromConfiguration(Path)` |
-| Configurația proiectului | `fromProjectConfiguration()`; `atf.mock.config` sau `ATF_MOCK_CONFIG` |
+| Configurația proiectului | `fromProjectConfiguration()`: `atf.mock.config` > `ATF_MOCK_CONFIG` > `atf-mock.yaml/yml` |
 | Condiții de request | Metodă, cale, profil auth, query, headere cerute și corp așteptat în `MockRoute` |
 | Corp de request | Mod implicit `json`, probă MIME negativă `wrong-content-type`; potrivire numerică fără conversie prin `double` |
 | Query repetat | `ApiQueryParameters`; include valorile cerute, cu multiplicitate |

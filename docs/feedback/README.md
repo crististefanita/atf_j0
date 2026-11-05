@@ -8,7 +8,7 @@ J0 deține implementările Core/Reporting/Console/Mock, toate testele native și
 
 ## Biblioteci comune
 
-J0 deține codul, contractele publice, testele native, împachetarea și feedback-ul Core, Reporting, Console și Mock, inclusiv constatările venite din J1–J4. [Ghidul de mentenanță](../../lib/README.md) definește o singură cerință per problemă și acceptanțe distincte la consumeri.
+J0 deține codul, contractele publice, testele native, împachetarea și feedback-ul Core, Reporting, Console și Mock, inclusiv constatările venite din consumerii ATF. [Ghidul de mentenanță](../../lib/README.md) definește o singură cerință per problemă și acceptanțe distincte la consumeri.
 
 | Bibliotecă / probă | Backlog canonic |
 |---|---|
@@ -16,6 +16,7 @@ J0 deține codul, contractele publice, testele native, împachetarea și feedbac
 | Reporting | [Reporting](ATF_Reporting_Feedback.md) |
 | Regresii generice Reporting | [Reporting Tests](ATF_Reporting_Tests_Feedback.md) |
 | Console și Mock | [Console / Mock](ATF_Console_Mock_Feedback.md) |
+| Ghiduri de consum | [Validarea executabilă a ghidurilor](ATF_Library_Consumption_Feedback.md) |
 
 
 ## Top feedback-uri active

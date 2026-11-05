@@ -2,7 +2,7 @@
 
 ## Pe scurt
 
-J0 este ownerul unic al bibliotecilor Core, Reporting, Console și Mock: cod, contracte publice, teste native, regresii generice, împachetare și feedback. Codul rămâne în modulele sursă ale acestui proiect; J1–J4 reutilizează perechile JAR/POM verificate.
+J0 este ownerul unic al bibliotecilor Core, Reporting, Console și Mock: cod, API, teste, împachetare și feedback. Codul rămâne în modulele sursă ale acestui proiect; Consumerii ATF reutilizează perechile JAR/POM verificate.
 
 ## Ghiduri de utilizare
 
@@ -30,7 +30,7 @@ J0 este ownerul unic al bibliotecilor Core, Reporting, Console și Mock: cod, co
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     Owner["J0<br/>cod · teste · feedback"] -->|împachetează| Pair["Candidat verificat<br/>JAR + POM"]
-    Pair -->|sincronizează| Consumer["J1–J4<br/>adaptoare + acceptanță"]
+    Pair -->|sincronizează| Consumer["Consumatori ATF<br/>adaptoare + acceptanță"]
     Consumer -.->|feedback bibliotecă| Owner
 ```
 
