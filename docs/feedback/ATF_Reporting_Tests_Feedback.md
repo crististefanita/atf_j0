@@ -212,3 +212,7 @@ PUBLIC-API-43 and PORTABLE-DOCS-46 need permanent boundary oracles, not more app
 <a id="report-test-controls-150--reconcile-existing-java-changes-at-the-real-review-base"></a>
 
 Current Git control eligibility is governed by the [technical baseline](../ATF_Test_Changes_Baseline.md). The former review-base mismatch is closed after the actual live commits and strict current-base readback; the independent unit failures remain open under REPORT-UNIT-BASELINE-149.
+
+## Calificarea HTML-ului izolat
+
+[REPORT-ARTIFACT-AUTONOMY-150](ATF_Reporting_Feedback.md#report-artifact-autonomy-150--calificare-fără-dependențe-externe) păstrează criteriul canonic și matricea sursă/JAR. Refolosiți SelfContainedAuditComponentTest și SelfContainedAuditOracle pentru a verifica verdictul inspectorului public după degradare; existența unui control privat no-file nu califică API-ul de inspecție.
