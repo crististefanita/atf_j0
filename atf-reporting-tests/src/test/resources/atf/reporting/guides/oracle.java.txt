@@ -6,7 +6,7 @@ for (int index = 0; index < 3; index++) {
     String actual = index == 0 ? "ready" : index == 1 ? "wrong" : null;
     Path html = directory.resolve("guide-" + index + ".html");
     boolean rejected = false;
-    try { publish(html, actual); } catch (AssertionError expected) { rejected = true; }
+    try (var run = open(html)) { publish(run, actual); } catch (AssertionError expected) { rejected = true; }
     if (rejected != (index > 0)) throw new AssertionError("Caller verdict differs for case " + index);
     String content = java.nio.file.Files.readString(html);
     String status = index == 0 ? "pass" : "fail";
@@ -19,3 +19,22 @@ for (int index = 0; index < 3; index++) {
         throw new AssertionError("Missing standard assertion table or preview contract");
 }
 System.out.println("REPORTING_GUIDE=PASS; cases=PASS,FAIL,NULL; preview=240");
+Path combined = directory.resolve("shared.html");
+try (var run = open(combined)) {
+    publish(run, "ready");
+    boolean rejected = false;
+    try { publish(run, "wrong"); } catch (AssertionError expected) { rejected = true; }
+    if (!rejected) throw new AssertionError("Borrowed failure must retain the caller verdict");
+    if (java.nio.file.Files.exists(combined)) throw new AssertionError("Borrowed report closed its parent session");
+}
+var document = org.jsoup.Jsoup.parse(java.nio.file.Files.readString(combined));
+var owners = document.select("#test-view .test-list-wrapper > .test-list-item > .test-item");
+if (owners.size() != 1) throw new AssertionError("One shared original class owner is required");
+var scenarios = owners.first().selectFirst(".test-contents").selectFirst(".mt-4 > .accordion").children();
+if (scenarios.stream().filter(element -> element.hasClass("card")).count() != 2)
+    throw new AssertionError("Two same-title invocations must remain separate in one artifact");
+var tables = document.select("#test-view table.helm-validation-table");
+if (tables.size() != 2 || !tables.get(0).text().contains("ready") || !tables.get(1).text().contains("wrong")
+        || !tables.get(0).text().contains("✅") || !tables.get(1).text().contains("❌"))
+    throw new AssertionError("Original invocation comparisons or verdicts were reassociated");
+System.out.println("REPORTING_GUIDE_SHARED=PASS; invocations=2; artifact=1");

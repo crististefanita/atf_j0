@@ -1,14 +1,8 @@
 # ATF Test Kit
 
-`atf-test-kit` deține contractele comune ale testelor ATF.
-Nu conține renderer, mock transport, browser sau logică business.
-Consumerii îl declară în test scope; adaptorul JUnit din `atf-console` are
-excepția explicită `optional compile`, pentru adnotări și resolvere neutre.
+`atf-test-kit` oferă clasificare, lifecycle și comparații JUnit neutre, fără renderer, transport sau business. Codul și feedback-ul au owner în J0; copiile sursă din consumeri rămân până la adoptarea JAR-ului verificat.
 
-Rezoluția canalului și a declarațiilor UI evidence rămâne în Kit.
-Proiecția System și secvențierea vocabularului de raportare folosesc
-[primitivele Reporting](../atf-reporting/README.md#instantaneu-tipizat-pentru-overviewsystem),
-iar configurația concretă se proiectează în main la consumer.
+Produsul folosește Kit în `test`; suportul de test din main cere `compile` justificat, iar Console păstrează `optional compile`. Consumerul deține oracolul și publicarea. [Pregătirea bibliotecii](../../atf_j0/docs/ATF_Test_Kit_Library.md) delimitează migrarea și acceptanțele.
 
 ## Pe scurt
 

@@ -2,54 +2,62 @@
 
 ## Pe scurt
 
-`atf-reporting` publică observații, aserțiuni și capturi în Extent sau HTML fallback. Consumerul furnizează datele originale, comparația și verdictul; biblioteca deține proiecția și publicarea artifactului.
+Reporting publică datele, comparațiile și verdictul callerului în Extent/fallback, fără Core ori Kit.
 
-| Tip de dovadă | API de pornire |
+| Nevoie | API |
 |---|---|
-| Raport Extent | `ExtentReportSession` și porturile `AtfReportPorts` |
-| Aserțiuni de componentă, fără request artificial | `Phase.startAssertionStep(...)`, `AtfAssertion` |
-| Browser sau Android, cu capturi furnizate de adaptor | `UiExtentReportSession`, `UiExtentReportOptions` |
-| Publicare HTML fallback | `HtmlReportSession`, cu lifecycle propriu |
+| Rulare individuală/clasă/suită | `AssertionAuditRun` |
+| Invocare | `run.open(Identity)` → `AssertionAuditReport` |
+| Ports / fallback | `AtfReportPorts` / `HtmlReportSession` |
+| Capturi | `UiExtentReportSession`; PNG integral |
 
 ## Exemplu minim
 
-Metodă Java pentru o rulare individuală; `actual` poate fi `null`. În suite utilizați sesiunea comună a adaptorului local:
+Individual: `try (var run = open(output)) { publish(run, actual); }`. Suita păstrează run-ul și deschide un scenariu per invocare:
 
 ```java
+import atf.reporting.audit.AssertionAuditRun;
+import atf.reporting.audit.AssertionAuditReport;
 import atf.reporting.configuration.ReportingSettings;
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.extent.session.ExtentReportSession;
+import atf.reporting.security.SensitiveDataRedactor;
 import java.nio.file.Path;
 import java.util.List;
 
-public static void publish(Path output, String actual) {
-    String expected = "ready";
-    boolean passed = expected.equals(actual);
+public static AssertionAuditRun open(Path output) {
+    var settings = ReportingSettings.defaults();
+    var redactor = new SensitiveDataRedactor();
+    return new AssertionAuditRun(new ExtentReportSession(output, settings, redactor), redactor, settings);
+}
+
+public static void publish(AssertionAuditRun run, String actual) {
+    boolean passed = "ready".equals(actual);
     var status = passed ? AtfReportStatus.PASS : AtfReportStatus.FAIL;
-    try (var report = new ExtentReportSession(output, ReportingSettings.defaults());
-         var scenario = report.startScenario("HealthContract", "state is ready", List.of("component"));
-         var phase = scenario.startPhase("TEST BODY");
-         var checks = phase.startAssertionStep("Component assertions")) {
-        checks.assertions(List.of(new AtfAssertion("State", expected, String.valueOf(actual), passed)));
-        checks.complete(status);
-        phase.complete(status);
-        scenario.complete(status);
+    var identity = new AssertionAuditReport.Identity("HealthContract", "example", "state is ready", "state", List.of("component"));
+    try (var report = run.open(identity)) {
+        report.phase("TEST BODY", List.of(new AtfAssertion("State", "ready", String.valueOf(actual), passed)), status, "");
+        report.complete(status);
     }
     if (!passed) throw new AssertionError("State differs; inspect the report");
 }
 ```
 
-## Integrare corectă
+## Scope și integrare
 
-- Deschideți sesiunea la ownerul rulării sau suitei; un fișier comun cere o sesiune partajată și scope-uri distincte pentru scenarii.
-- Închideți copilul înaintea părintelui și sesiunea la final; artifactul Extent final este disponibil după `close()`.
-- Trimiteți valorile integrale înainte de preview; limita implicită pentru afișarea aserțiunilor este **240 de caractere**.
-- Furnizați PNG-ul întregului viewport sau display; zoom-ul, capturarea și oracolul sunt responsabilitatea adaptorului.
-- Publicați timing-ul măsurat de caller separat de costul publicării; înregistrați explicit verdictul fiecărui scope.
+| Owner | Închidere și limită |
+|---|---|
+| AssertionAuditRun | Deține sesiunea; close publică HTML-ul final. |
+| run.open(identity) | Împrumută sesiunea; close închide scenariul invocării. |
+| Constructorul AssertionAuditReport(session, ...) | Deține și închide sesiunea proprie. |
 
-Reporting este thin și folosește modelele `atf.reporting.*`, distincte de Core. Consumerul citește YAML-ul și transmite `ReportingSettings`; `defaults()` folosește valorile JAR-ului.
+- Aceleași settings/redactor în run și renderer; preview implicit **240**, citit prin assertionMaxDisplayCharacters(). Valorile complete preced preview-ul.
+- Exemplul urmează thread-ul sesiunii; AssertionAuditRun.extent(...) serializează publicarea pentru apelanți concurenți.
+- Kit colectează comparația JUnit evaluată o dată; Reporting publică. Callerul păstrează verdictul, cauza și timing-ul prin phase(..., timing).
+- PNG-ul păstrează întregul viewport/display; captura și zoom-ul aparțin adaptorului.
+- După close, ReportArtifactInspector.inspect(path, profile) califică inventarul și resursele embedded; diagnosticul localizează dependențele externe. Căile text rămân valide.
 
 ---
 
-Mentenanța codului și regresiilor generice aparține proiectelor sursă `atf_j0/atf-reporting` și `atf_j0/atf-reporting-tests`; [feedback-ul și sincronizarea](README.md#mentenanță-și-feedback) pornesc de la J0.
+J0: [cod, teste și feedback](README.md#mentenanță-și-feedback).

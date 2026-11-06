@@ -173,7 +173,7 @@ diagnostic FAIL distinct. Fixture-urile negative nu intră în selecțiile canon
 | execuție HTTP, request și răspuns observat | [Core](../atf-core/README.md); Reporting primește valori, fără executor | endpoint, operația și expected-ul aplicației |
 | comparație și rezultat de validare | [Validation](../atf-validation/README.md); fără renderer ori JUnit | regula business și expected-ul independent |
 | browser, deadline, captură și listener | [UI](../atf-ui/README.md); fără rute Shop/AutoEx | semnalul aplicației care confirmă acțiunea și selecția dovezii |
-| protocol runner, scope și cleanup neutru | [Test Kit](../atf-test-kit/README.md); compus la granița JUnit | Store-ul concret, conturile și ordinea proprie a resurselor |
+| protocol runner, scope și cleanup neutru | [Test Kit](../atf-test-kit/README.md); [owner J0 și adopție](ATF_Test_Kit_Library.md) | Store-ul concret, conturile și ordinea proprie a resurselor |
 | proiecție typed, status, markup și publicare | [Reporting](../atf-reporting/docs/README.md); fără Core, UI sau Kit | observația, verdictul și metadata aplicației |
 | query observat și identitate | [contractul Reporting](../atf-reporting/README.md#fidelitatea-contractului-query); UI calculează amprenta înaintea redactării | mapperul conservă perechile disponibile sau amprenta opacă; selecția business rămâne locală |
 | diagnostic de consolă | [Console](../atf-console/README.md); bridge la compoziție | alegerea sink-ului; fără dependență Console în JAR-ul Reporting |

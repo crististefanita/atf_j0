@@ -17,7 +17,9 @@ class ReportingLibraryGuideIT {
         assertTrue(compiled.passed(), compiled::diagnostics);
         String output = consumer.execute(compiled);
         assertTrue(output.contains("REPORTING_GUIDE=PASS; cases=PASS,FAIL,NULL; preview=240"));
+        assertTrue(output.contains("REPORTING_GUIDE_SHARED=PASS; invocations=2; artifact=1"));
         assertTrue(consumer.classpath().stream().noneMatch(file -> file.getFileName().toString().startsWith("atf-core-")));
-        consumer.verifyRefusals(true, oracle, ".startScenario(");
+        assertTrue(consumer.classpath().stream().noneMatch(file -> file.getFileName().toString().startsWith("atf-test-kit-")));
+        consumer.verifyRefusals(true, oracle, ".open(");
     }
 }

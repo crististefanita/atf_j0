@@ -2,13 +2,13 @@
 
 ## Pe scurt
 
-J0 deține implementările Core/Reporting/Console/Mock, toate testele native și regresiile generice ale bibliotecilor; J1 deține scenariile AutoEx/Shop. Contractele livrate sunt la [ownerii documentați](../ATF_Context_Atlas.md), iar aici rămân numai lacunele și traseele de închidere.
+J0 deține implementările Core/Reporting/Console/Mock/Test Kit, toate testele native și regresiile generice ale bibliotecilor; J1 deține scenariile AutoEx/Shop. Contractele livrate sunt la [ownerii documentați](../ATF_Context_Atlas.md), iar aici rămân numai lacunele și traseele de închidere.
 
 [Workspace-urile](../ATF_Workspace_Synchronization.md) separă J0 sursă, J1 consumer web și J2 WIP pentru Kafka/mesagerie cu Setup în Podman. Un rezultat sau o prioritate nu se transferă automat între ele.
 
 ## Biblioteci comune
 
-J0 deține codul, contractele publice, testele native, împachetarea și feedback-ul Core, Reporting, Console și Mock, inclusiv constatările venite din consumerii ATF. [Ghidul de mentenanță](../../lib/README.md) definește o singură cerință per problemă și acceptanțe distincte la consumeri.
+J0 deține codul, contractele publice, testele native, împachetarea și feedback-ul Core, Reporting, Console, Mock și Test Kit, inclusiv constatările venite din consumerii ATF. [Ghidul de mentenanță](../../lib/README.md) definește o singură cerință per problemă și acceptanțe distincte la consumeri.
 
 | Bibliotecă / probă | Backlog canonic |
 |---|---|
@@ -16,6 +16,7 @@ J0 deține codul, contractele publice, testele native, împachetarea și feedbac
 | Reporting | [Reporting](ATF_Reporting_Feedback.md) |
 | Regresii generice Reporting | [Reporting Tests](ATF_Reporting_Tests_Feedback.md) |
 | Console și Mock | [Console / Mock](ATF_Console_Mock_Feedback.md) |
+| Test Kit și pregătire JAR | [Test Kit](ATF_Common_Test_Support_Feedback.md) |
 
 
 ## Top feedback-uri active
@@ -50,7 +51,7 @@ SQL typed steps are an explicitly requested expansion, separate from maintenance
 
 ## Cerințe transferate în J1
 
-[Registrul J1](../../../atf_j1/docs/feedback/README.md) deține Test Kit, guvernanța comună, designul AI și coordonarea consumerilor. ID-urile și probele sunt păstrate; transferul nu închide implementarea.
+[Registrul J1](../../../atf_j1/docs/feedback/README.md) deține guvernanța comună, designul AI și coordonarea consumerilor. Test Kit revine la ownerul J0; adopția binară rămâne în pregătire. ID-urile și probele sunt păstrate; transferul nu închide implementarea.
 
 ## Păstrare, promovare și verificare
 

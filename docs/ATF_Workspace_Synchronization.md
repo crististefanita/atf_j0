@@ -15,6 +15,7 @@ primește și verifică livrarea potrivită propriului deployment.
 | `atf_j2` | WIP: framework și teste Kafka/mesagerie, fără module browser ori Shop/AutoEx | 6 module sursă, inclusiv SQL; Core/Reporting/Console/Mock JAR; componente Eventuate MOCK; Kafka remote și clientul Java de infrastructură validate în incrementul J2; clientul/observerul framework-ului rămâne WIP |
 | `atf_j4` | consumer Android/ADB, patru module; Core/Reporting/Console/Mock JAR | independent binary adoption, with complete captured PNG evidence; E2E device rămâne la J4 |
 | `atf_j3` | consumer speech, cinci module sursă; Core/Reporting/Console/Mock prin JAR | Core/Reporting in lib și acceptanță proprie, fără module web ori mesagerie |
+| `atf_j5` | WIP Rentz: trei module Maven, inclusiv motorul local; Kit sursă | patru perechi în lib preluate din J4; identitatea adopției și acceptanța J5 se califică distinct |
 | `demo2` | historical source workspace | nu mai este destinație activă de mentenanță sau sync |
 
 J1 poate avea schimbări comune în lucru. Referința J0 nu autorizează
@@ -73,7 +74,7 @@ rămân distincte; infrastructura copiată nu le demonstrează.
   Hash-urile și catalogul native sunt în `library-provenance.json`, la rădăcină.
 - POM-urile reactorului, `.git`, bazele `testChanges`, configurațiile locale,
   cache-urile, output-urile și rapoartele nu se copiază prin mirror.
-- Feedback-ul Core/Reporting/Console/Mock are owner în J0; cerințele comune nonbibliotecă sunt coordonate în J1. Feedback-ul unei implementări comune
+- Feedback-ul Core/Reporting/Console/Mock și Test Kit are owner în J0; cerințele comune nonbibliotecă sunt coordonate în J1. [Test Kit](ATF_Test_Kit_Library.md) este în pregătire pentru distribuție în J1–J5; modulele sursă rămân până la acceptanță. Feedback-ul unei implementări comune
   se închide în alt deployment numai după sincronizarea și proba codului său.
 
 ## Protocolul fiecărui increment

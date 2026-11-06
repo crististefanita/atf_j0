@@ -94,3 +94,7 @@ Pentru CI offline adăugați `-Datf.guide.maven.seed=<cache pregătit>`: se copi
 Profilul cere teste prezente; bundle-ul absent sau un proces refuzat/eșuat nu devine skip ori PASS. Fără profil, selecțiile native existente rămân distincte. Pentru o singură bibliotecă selectați modulul său cu același profil și bundle.
 
 Logurile, sursele extrase și HTML-urile rămân în TMP; această verificare nu certifică un browser, device, broker sau ASR real.
+
+## Pregătirea Test Kit
+
+[Test Kit](ATF_Test_Kit_Library.md) are owner de cod și feedback în J0. Rămâne momentan modul sursă în J1–J5; distribuția binară, ghidul local și adaptarea inventarului se verifică înainte de retragerea surselor. Cele patru perechi existente nu demonstrează adopția Kit.
