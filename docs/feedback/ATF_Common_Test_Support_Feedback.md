@@ -6,7 +6,7 @@ J0 deține codul, API-ul, testele native, împachetarea și feedback-ul Test Kit
 
 ## KIT-LIBRARY-151 — distribuție unică, fără surse paralele
 
-**P1 · owner J0; adopție independentă în J1–J5.** Cele 50 de clase comune nu prezintă divergențe de comportament: diferențele J4/J5 sunt importuri. J0 are șase utilitare suplimentare pentru ghiduri, cu cinci clase de teste.
+**P1 · owner J0; adopție independentă în J1–J5.** Comparați inventarul și comportamentul API-urilor live înaintea împachetării; simpla egalitate a numelor claselor nu dovedește echivalența consumatorilor. Utilitarele ghidurilor și primitivele de execuție au contracte distincte.
 
 POM-urile Kit depind încă de parent și versiunile moștenite; J5 are parent Rentz. Un build fără parent a fost verificat în TMP, fără modificarea proiectelor live.
 
@@ -24,6 +24,13 @@ POM-urile Kit depind încă de parent și versiunile moștenite; J5 are parent R
 - [ ] J5 nu are Git inițializat în locația analizată; utilizați snapshot-uri SHA și promovare guarded per fișier. Nu inventați HEAD, nu inițializați ori înlocuiți Git prin distribuirea bibliotecii.
 
 **Închidere:** nativele sursă/JAR, exemplele portabile și acceptanțele distincte sunt verzi, sursa Kit rămâne numai în J0, iar toate cele cinci proiecte încarcă aceeași pereche declarată.
+
+## KIT-ASSERTION-OVERLOADS — compatibilitatea capturii cu aserțiunea originală
+
+**P2 · owner Test Kit; reconciliere înaintea adopției binare.** Agregarea componentelor J4 consumă și `assertFalse(boolean, Supplier<String>)`, `assertNull(Object, String)` și `assertSame(Object, Object, String)` din `AuditedAssertions`. Extensiile locale și regresia `messageOverloadsKeepIdentityNullAndLazySupplierSemantics` din `AuditedAssertionsTest` sunt intrări de reconciliere, nu surse de copiat integral peste producător.
+
+- [ ] Verificați echivalența cu overload-ul JUnit: evaluare o singură dată, supplier leneș numai la eșec, identitate prin referință, valoare null și mesajul original; captura nu schimbă verdictul sau cauza.
+- [ ] Păstrați primitivele fără Reporting ori cunoașterea lansatorului consumatorului. Împachetarea și acceptanța fiecărui consumator califică separat API-ul reconciliat.
 
 ## KIT-ACCEPTANCE-DIAGNOSTICS-123 — reuse scope, preserve causes
 

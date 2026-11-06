@@ -2310,22 +2310,21 @@ elimină numai un fact sau reintroduc badge-ul pe linkul întreg; sunt refuzați
 
 ## Inspecția artifactului cu intenție explicită
 
-Callerul declară un [ReportArtifactProfile](src/main/java/atf/reporting/artifact/ReportArtifactProfile.java) cu renderer, scenarii, faze și dovezi obligatorii.
+Declarați un [ReportArtifactProfile](src/main/java/atf/reporting/artifact/ReportArtifactProfile.java) cu renderer, scenarii, faze și dovezi obligatorii.
 `ReportArtifactInspector.inspect(path, profile)` și overload-ul `inspectFresh` păstrează profilul în `ProfileInspection`.
 Varianta fără profil păstrează contractul strict Extent/HTTP; un raport legitim fără HTTP folosește overload-ul explicit.
 
 | Responsabilitate | Contract |
 |---|---|
 | intenția callerului | identitatea clasei/scenariului, faze, statusuri, observation fields/bodies, assertion rows ori exchange și canale HTTP obligatorii |
-| inspectorul | DOM-ul publicat al ownerului original; inventar exact și verdict efectiv, fără satisfacere prin template, script ori sibling |
+| inspectorul | DOM original, inventar exact și verdict; aceeași politică de resurse operative pentru Extent/fallback și profilul declarat |
 | rezultatul public | inventar complet, diagnostice unice și consistente; un rezultat gol, parțial sau contradictoriu este neconform |
 | comparația business | expected/actual și evaluarea integrală aparțin callerului; profilul nu recalculează valori business din preview |
 | browserul | vizibilitatea, tastatura, geometria și deep-link-ul rămân probe distincte de inspecția statică |
 
-- Assertion-only și observation-only nu primesc HTTP fictiv.
-- Eliminarea unui request declarat obligatoriu rămâne neconformă.
-- Statusurile INFO/PASS/WARNING/SKIP/FAIL se conservă; o comparație advisory nu devine PASS.
-- Record-ul legacy de inspecție își păstrează constructorul și accessorii; reconstruirea rezultatului cu profil se face prin `ProfileInspection`.
+- Fără HTTP fictiv; eliminarea unui request obligatoriu este neconformă.
+- Verdicturile și API-ul legacy se păstrează; reconstruirea folosește `ProfileInspection`.
+- Resursele și dovezile operative externe sunt refuzate, cu owner/atribut/referință în diagnostic; căile text și linkurile de documentare rămân valide. PNG-urile deduplicate cer o țintă inline unică.
 
 ### Originea duratelor sub o fază capturată
 

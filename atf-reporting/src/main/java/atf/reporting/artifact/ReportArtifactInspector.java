@@ -45,13 +45,21 @@ public final class ReportArtifactInspector {
             return new ReportArtifactInspection(
                     reportPath,
                     evaluation.checks(),
-                    ReportArtifactContractChecks.diagnostics(evaluation),
+                    resourceDiagnostics(html, evaluation),
                     "");
         } catch (IOException error) {
             return new ReportArtifactInspection(reportPath, Map.of(), List.of(
                     new ReportArtifactDiagnostic("artifact", "html exists", false,
                             reportPath.toString(), error.toString())), error.toString());
         }
+    }
+
+    private static List<ReportArtifactDiagnostic> resourceDiagnostics(String html,
+            atf.reporting.artifact.contract.ReportArtifactContractEvaluation evaluation) {
+        var diagnostics = ReportArtifactContractChecks.diagnostics(evaluation);
+        if (!Boolean.FALSE.equals(evaluation.checks().get("autonomous artifact"))) return diagnostics;
+        var resource = atf.reporting.artifact.resources.ReportArtifactResources.inspect(html).diagnostic();
+        return diagnostics.stream().map(d -> d.check().equals("autonomous artifact") ? resource : d).toList();
     }
 
     /**

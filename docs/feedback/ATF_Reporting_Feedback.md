@@ -12,18 +12,9 @@ cauzei terminale. Sursa izolată și JAR-ul fizic au gate separat în
 - Reporting Tests rămâne modul intern de verificare. Fiecare increment închide
   împreună codul, ownership-ul, proba și documentația.
 
-## REPORT-ARTIFACT-AUTONOMY-150 — calificare fără dependențe externe
+<a id="report-artifact-autonomy-150--calificare-fără-dependențe-externe"></a>
 
-**P1 · responsabil Reporting: inspectorul public și contractul reutilizabil.** Proba pe JAR-ul fizic acceptă profiluri nominale Extent/fallback, apoi păstrează autonomous artifact=true și isCompliant=true după introducerea separată a unui link XML file:///missing/evidence.xml ori a unei imagini file:///missing/frame.png. Cazurile nominale sunt controale pozitive; restul inventarului și comparațiile nu se schimbă.
-
-[ReportProfileContractChecks](../../atf-reporting/src/main/java/atf/reporting/artifact/ReportProfileContractChecks.java) verifică numai scripturile și stylesheet-urile pentru autonomie; ruta legacy are altă regulă, iar [oracolul no-file](../../atf-reporting-tests/src/test/java/atf/reporting/support/composition/SelfContainedAuditOracle.java) refuză deja linkurile de fișier în fixture. Invariantul testat nu protejează calificarea API-ului public. Reproducerea J4 istorică este păstrată în [arhiva identificată prin registrul retenției](../../../atf_j4/artifacts/reports/1.9.2/retention-migration.json); constatarea rămâne legată de exemplarul arhivat.
-
-- [ ] Delimitați explicit autonomia runtime-ului de autonomia dovezii de audit; intenția raportului autonom califică resursele operative și conținutul obligatoriu, prin aceeași politică în Extent/fallback și la inspectorul public. Păstrați compatibilitatea callerilor și profilul declarat.
-- [ ] Refuzați dependențe operative de fișiere, imagini ori anexe externe când întregul audit este cerut în HTML. Validați DOM-ul și referințele canonice; căile originale afișate ca text și XML/JSON afișat ca text sigur nu devin false dependențe. Diagnosticul identifică ownerul, atributul și referința respinsă.
-- [ ] În atf-reporting-tests reutilizați familia SelfContainedAuditComponentTest: nominal și mutanți care schimbă numai href XML, src PNG, o referință relativă ori ținta PNG canonică. Verificați rezultatul inspectorului public, nu doar un oracol privat, pe sursă și JAR fără implementări paralele.
-- [ ] Proba detașată are numai HTML-ul, directoarele inițiale și rețeaua indisponibile, cu capturi originale, comparații complete, navigare și preview 240. Refuzul este observabil; zero verificări aplicate nu califică documentul.
-
-**Limită:** biblioteca proiectează datele primite și califică propriul artifact; nu colectează ierarhii Android, nu reconstruiește oracole JUnit și nu șterge fișierele callerului. [J4](../../../atf_j4/docs/feedback/ATF_Reporting.md#rpt-android-html-only--livrabilul-de-audit-fără-copii-auxiliare) deține datele complete, unicul exemplar livrat și eliminarea duplicatelor după calificare.
+[Contractul de autonomie](../ATF_Inline_Audit_Contract.md#profilul-fără-referințe-externe) descrie calificarea inspectorului; colectarea și livrarea Android rămân la consumer.
 
 ## REPORT-SINGLE-ACTIVE-VIEW — starea unică a navigării
 

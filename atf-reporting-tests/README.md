@@ -1296,8 +1296,8 @@ criteriul separat pentru valorile lungi ale assertions.
 
 | Probă | Acoperire |
 |---|---|
-| SelfContainedAuditComponentTest | opt combinații individual/combinat, componentă/UI și Extent/fallback; mutanți de owner, rând, verdict, timp, referință și PNG |
-| SelfContainedAuditBrowserComponentTest | textContent exact, Enter/Space, End, vecin colapsat și geometrie îngustă |
+| SelfContainedAuditComponentTest / SelfContainedArtifactInspectionComponentTest | matrice individual/combinat și Extent/fallback; mutanți de dovezi și resurse la inspectorul public |
+| SelfContainedAuditBrowserComponentTest / SelfContainedArtifactOfflineComponentTest | valori exacte, tastatură, vecin colapsat; HTML detașat offline cu PNG original |
 | ReportingStandaloneObservationTest | PRE păstrează LF/CR și entități literale, fără markup executabil |
 
 Acestea nu execută Android și nu închid oracolul business J4. Capturile sunt
@@ -1325,10 +1325,7 @@ The [inline audit contract](../docs/ATF_Inline_Audit_Contract.md) defines source
 
 ## Cold startup and readiness
 
-The navigation bootstrap honors the requested view once across DOMContentLoaded
-and load. Load timing updates independently; successful normalization publishes
-readiness, while an error leaves the cycle unready. Dynamic-content observers
-and explicit view switches remain active.
+Bootstrap-ul aplică view-ul cerut o dată, independent de load timing. Normalizarea reușită publică readiness; eroarea nu produce ready. Observatorii și navigarea explicită rămân active.
 
 [The cold-start contract](../docs/ATF_Large_Report_Navigation.md) retains fresh-browser
 10 s readiness/action and 45 s navigation bounds, canonical PNG payloads,

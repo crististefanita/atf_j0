@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * Static, renderer-specific contract for the autonomous fallback HTML.
  * Extent artifacts use {@code ReportArtifactContractChecks}; this contract
- * deliberately validates only the fallback surface and never parses a DOM.
+ * validates the fallback surface and shares the DOM-aware resource policy.
  */
 public final class HtmlReportStaticContract {
     private HtmlReportStaticContract() { }
@@ -30,8 +30,8 @@ public final class HtmlReportStaticContract {
         checks.put("runtime asset", source.contains("<script")
                 && source.contains("activate('overview')"));
         checks.put("hex-only theme", !source.matches("(?s).*rgba?\\s*\\(.*"));
-        checks.put("no project absolute paths", !source.contains("file:/")
-                && !source.matches("(?s).*\\b[A-Z]:[\\\\/].*"));
+        // Historical key retained; literal paths are provenance, operative references must be autonomous.
+        checks.put("no project absolute paths", atf.reporting.artifact.resources.ReportArtifactResources.inspect(source).isAutonomous());
         return new Evaluation(checks);
     }
 

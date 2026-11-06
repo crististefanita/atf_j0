@@ -29,7 +29,7 @@ flowchart LR
 - Callerul deține semantica datelor și oracolul; Reporting nu execută transportul, nu citește XML și nu deduce starea din PNG.
 - Faptele neutre sunt observations INFO; comparațiile conțin verdictul evaluării originale.
 - Muchiile transferă date, fără reevaluare ori scenarii PASS create numai pentru transport.
-- HTML-ul păstrează informația necesară deciziei; fișierele diagnostice pot rămâne în afara lui.
+- HTML-ul livrat păstrează informația necesară deciziei; acest profil nu cere copii PNG/XML/JSON auxiliare.
 
 </details>
 
@@ -48,6 +48,10 @@ flowchart LR
 Artifact este în continuare o referință opțională pentru alți consumatori;
 Reporting nu citește fișierul referit. Profilul de mai sus se obține prin
 modelele publice existente, fără un switch global care schimbă alte rapoarte.
+
+- Inspectorul public califică DOM-ul în Extent, fallback și profilul declarat: resurse embedded, referințe interne rezolvabile și ținte PNG canonice unice.
+- Dovezile operative externe sunt refuzate, cu owner/atribut/referință în diagnostic; căile text, XML/JSON escaped și linkurile de documentare rămân valide.
+- Inspecția nu accesează rețeaua și nu șterge fișierele callerului; autonomia interactivă are probă offline distinctă.
 
 ## Reader context and configurable detail
 

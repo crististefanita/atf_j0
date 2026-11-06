@@ -6,8 +6,7 @@ final class ReportArtifactEvidenceContracts {
     private ReportArtifactEvidenceContracts() { }
 
     static void evaluate(String html, Map<String, Boolean> checks) {
-        checks.put("autonomous artifact", !html.contains("spark/")
-                && !html.contains("fontawesome-webfont.woff2"));
+        checks.put("autonomous artifact", atf.reporting.artifact.resources.ReportArtifactResources.inspect(html).isAutonomous());
         checks.put("collapsed evidence", !html.contains("class=\"collapse show\""));
         checks.put("scrollable JSON", html.contains("code-block") && html.contains("overflow:auto"));
         checks.put("compact technical trace", html.contains("TECHNICAL TRACE")

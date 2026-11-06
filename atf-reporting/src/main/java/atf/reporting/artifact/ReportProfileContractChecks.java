@@ -24,10 +24,9 @@ final class ReportProfileContractChecks {
         boolean fallback = parsed.document.selectFirst("section#tests") != null;
         checks.put("profile renderer", parsed.fallback ? fallback && !extent : extent && !fallback);
         checks.put("profile navigation", navigation(parsed));
-        // Parsing never fetches URLs. Only embedded executable/stylesheet resources satisfy autonomy.
+        // Inspect operative DOM references without fetching resources or scanning literal evidence.
         var original = parsed.document;
-        checks.put("autonomous artifact", original.select("script[src],link[rel=stylesheet][href]").stream()
-                .allMatch(e -> (e.hasAttr("src") ? e.attr("src") : e.attr("href")).startsWith("data:")));
+        checks.put("autonomous artifact", atf.reporting.artifact.resources.ReportArtifactResources.inspect(original).isAutonomous());
         checks.put("profile runtime", original.select(parsed.fallback ? "body > script" : "head > script#atf-report-behaviour").stream()
                 .anyMatch(e -> e.data().contains(parsed.fallback ? "synchronizeFallbackDisclosureAria" : "window.atfActivate")));
         checks.put("profile theme", original.select("style").stream().anyMatch(e ->

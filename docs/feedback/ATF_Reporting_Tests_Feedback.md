@@ -213,6 +213,10 @@ PUBLIC-API-43 and PORTABLE-DOCS-46 need permanent boundary oracles, not more app
 
 Current Git control eligibility is governed by the [technical baseline](../ATF_Test_Changes_Baseline.md). The former review-base mismatch is closed after the actual live commits and strict current-base readback; the independent unit failures remain open under REPORT-UNIT-BASELINE-149.
 
-## Calificarea HTML-ului izolat
+## REPORT-TEST-SETUP-153 — inițializare browser cu termen propriu
 
-[REPORT-ARTIFACT-AUTONOMY-150](ATF_Reporting_Feedback.md#report-artifact-autonomy-150--calificare-fără-dependențe-externe) păstrează criteriul canonic și matricea sursă/JAR. Refolosiți SelfContainedAuditComponentTest și SelfContainedAuditOracle pentru a verifica verdictul inspectorului public după degradare; existența unui control privat no-file nu califică API-ul de inspecție.
+**P2 · owner Reporting Tests.** Stack-ul capturat pentru ReportArtifactProfileComponentTest.verifyBrowser rămâne în BrowserContextImpl.newPage → PipeTransport.poll, înaintea navigării. Pragurile existente de acțiune și navigare nu mărginesc acest apel; o rulare fără rezultat terminal nu este PASS.
+
+- [ ] Delimitați setup-ul și cleanup-ul browserului prin ownership și termen explicit; păstrați cauza inițială și diagnosticul procesului. Închiderea vizează numai resursele acelei rulări, fără oprire globală de procese.
+- [ ] Control negativ cu factory care nu termină inițializarea și control pozitiv pe același SDK; sursa și JAR-ul folosesc același protocol. Păstrați pragurile acțiunilor/navigării, fără retry care transformă blocajul în succes.
+- [ ] Separați verdictul inspectorului de acceptanța interactivă: matricea statică verde și resursele identice nu certifică o pornire browser neterminată.
