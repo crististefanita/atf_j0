@@ -1,5 +1,13 @@
 package atf.testkit.assertions.requirements;
 
+import atf.testkit.assertions.AuditedAssertions;
+
+import atf.testkit.assertions.AssertionValueDisplay;
+import atf.testkit.assertions.ComponentAssertionAudit;
+import atf.testkit.assertions.ComponentAuditAdapter;
+import atf.testkit.assertions.ComponentAuditExtension;
+import atf.testkit.assertions.RecordedAssertions;
+
 import atf.testkit.assertions.*;
 
 import atf.testkit.AtfComponentTest;
@@ -22,24 +30,24 @@ class TestBodyAssertionRequirementComponentTest {
 
     @Test void realJUnitRejectsPlainAndSetupOnlyBodiesButKeepsTheAuditedInvocation() {
         var summary = run(BodyFixture.class);
-        assertEquals(1, summary.getTestsSucceededCount());
-        assertEquals(2, summary.getTestsFailedCount());
-        assertEquals(2, RESULTS.stream().filter(result -> result.failure() != null
+        AuditedAssertions.assertEquals(1, summary.getTestsSucceededCount());
+        AuditedAssertions.assertEquals(2, summary.getTestsFailedCount());
+        AuditedAssertions.assertEquals(2, RESULTS.stream().filter(result -> result.failure() != null
                 && result.failure().getMessage().contains("TEST BODY passed without")).count());
     }
 
     @Test void everyTemplateInvocationHasItsOwnCoverageDecision() {
         var summary = run(TemplateFixture.class);
-        assertEquals(1, summary.getTestsSucceededCount());
-        assertEquals(1, summary.getTestsFailedCount());
-        assertEquals(2, RESULTS.size());
+        AuditedAssertions.assertEquals(1, summary.getTestsSucceededCount());
+        AuditedAssertions.assertEquals(1, summary.getTestsFailedCount());
+        AuditedAssertions.assertEquals(2, RESULTS.size());
     }
 
     @Test void lifecycleAbortKeepsItsOriginalOutcomeAndNoBodyPhase() {
         var summary = run(AbortFixture.class);
-        assertEquals(1, summary.getTestsAbortedCount());
-        assertEquals(ComponentAssertionAudit.Outcome.ABORTED, RESULTS.getFirst().outcome());
-        assertTrue(RESULTS.getFirst().phases().stream().noneMatch(phase -> phase.phase() == ComponentAssertionAudit.Phase.TEST_BODY));
+        AuditedAssertions.assertEquals(1, summary.getTestsAbortedCount());
+        AuditedAssertions.assertEquals(ComponentAssertionAudit.Outcome.ABORTED, RESULTS.getFirst().outcome());
+        AuditedAssertions.assertTrue(RESULTS.getFirst().phases().stream().noneMatch(phase -> phase.phase() == ComponentAssertionAudit.Phase.TEST_BODY));
     }
 
     private static org.junit.platform.launcher.listeners.TestExecutionSummary run(Class<?> type) {

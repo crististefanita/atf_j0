@@ -1,0 +1,22 @@
+    var passed = new RecordedAssertions();
+    verifyState(passed, "ready");
+    org.junit.jupiter.api.Assertions.assertEquals(1, passed.checks().size());
+    if (passed.checks().size() != 1 || !passed.checks().getFirst().passed()) throw new AssertionError("PASS lost");
+    var failed = new RecordedAssertions();
+    Throwable original;
+    try { verifyState(failed, "wrong"); throw new IllegalStateException("Missing original failure"); }
+    catch (org.opentest4j.AssertionFailedError failure) { original = failure; }
+    if (!original.getMessage().contains("State") || failed.checks().size() != 1 || failed.checks().getFirst().passed())
+        throw new AssertionError("Audited failure lost");
+    var nullValue = new RecordedAssertions();
+    try { verifyState(nullValue, null); throw new IllegalStateException("Missing null failure"); }
+    catch (org.opentest4j.AssertionFailedError expected) { }
+    String prefix = "x".repeat(300);
+    var suffix = new RecordedAssertions();
+    try { suffix.equals("Suffix", prefix + "expected", prefix + "actual"); throw new IllegalStateException("False PASS"); }
+    catch (org.opentest4j.AssertionFailedError expected) { }
+    var check = suffix.checks().getFirst();
+    if (check.passed() || check.expected().length() > 240 || check.actual().length() > 240
+            || !check.expected().equals(check.actual()) || RecordedAssertions.DEFAULT_MAX_DISPLAYED_CHARACTERS != 240)
+        throw new AssertionError("Full comparison must precede bounded preview");
+    System.out.println("TESTKIT_GUIDE=PASS");

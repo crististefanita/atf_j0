@@ -26,7 +26,7 @@ final class GuideBundle {
 
     static List<Artifact> publish(Path bundle, Path repository) throws Exception {
         var artifacts = new ArrayList<Artifact>();
-        for (String id : List.of("core", "reporting", "console", "mock")) {
+        for (String id : List.of("core", "reporting", "console", "mock", "test-kit")) {
             List<Path> matches;
             try (var files = Files.list(bundle)) {
                 matches = files.filter(file -> file.getFileName().toString().matches("atf-" + id + "-.+\\.pom")).toList();

@@ -17,6 +17,7 @@ public final class AuditedAssertionScope implements AutoCloseable {
         final String method;
         final RecordedAssertions assertions;
         int suppressed;
+        boolean captureFailed;
 
         Frame(String owner, String method, RecordedAssertions assertions) {
             this.owner = owner;
@@ -65,10 +66,11 @@ public final class AuditedAssertionScope implements AutoCloseable {
                          Executable executable) {
         Throwable failure = null;
         try { executable.execute(); } catch (Throwable error) { failure = error; }
-        recorder.record(name, expected, actual, failure == null, failure);
+        Throwable original = failure;
+        failure = recordSafely(recorder, name, expected, actual, original, failure);
         Frame frame = active();
         if (frame != null && frame.assertions != recorder)
-            frame.assertions.record(name, expected, actual, failure == null, failure);
+            failure = recordSafely(frame.assertions, name, expected, actual, original, failure);
         if (failure != null) AuditedAssertionScope.<Void, RuntimeException>rethrow(failure);
     }
 
@@ -104,7 +106,7 @@ public final class AuditedAssertionScope implements AutoCloseable {
             Throwable thrown = failure;
             Object projection = observed == null ? actual : (AssertionValueDisplay.Value) () ->
                     String.valueOf(thrown == null ? observed.apply(returned) : thrown.getMessage());
-            frame.assertions.record(label, expected, projection, failure == null, failure);
+            failure = recordSafely(frame.assertions, label, expected, projection, failure, failure);
         }
         if (failure != null) return rethrow(failure);
         return result;
@@ -113,17 +115,30 @@ public final class AuditedAssertionScope implements AutoCloseable {
     static void group(String message, Executable executable) {
         Frame frame = active();
         int before = frame == null ? 0 : frame.assertions.checks().size();
-        try {
-            executable.execute();
-            if (frame != null && frame.assertions.checks().size() == before)
-                frame.assertions.record(name("assertAll", message), "all checks succeed", "all checks succeeded", true);
-        } catch (Throwable error) {
-            if (frame != null && frame.assertions.checks().subList(before, frame.assertions.checks().size())
-                    .stream().allMatch(RecordedAssertions.Check::passed))
-                frame.assertions.record(name("assertAll", message), "all checks succeed",
-                        (AssertionValueDisplay.Value) error::getMessage, false, error);
-            AuditedAssertionScope.<Void, RuntimeException>rethrow(error);
+        Throwable failure = null;
+        try { executable.execute(); } catch (Throwable error) { failure = error; }
+        if (frame != null && !frame.captureFailed && (failure == null ? frame.assertions.checks().size() == before
+                : frame.assertions.checks().subList(before, frame.assertions.checks().size()).stream().allMatch(RecordedAssertions.Check::passed))) {
+            Throwable original = failure;
+            failure = recordSafely(frame.assertions, name("assertAll", message), "all checks succeed",
+                    original == null ? "all checks succeeded" : (AssertionValueDisplay.Value) original::getMessage, original, failure);
         }
+        if (failure != null) AuditedAssertionScope.<Void, RuntimeException>rethrow(failure);
+    }
+
+    private static Throwable recordSafely(RecordedAssertions recorder, String name, Object expected, Object actual,
+                                          Throwable original, Throwable primary) {
+        try { recorder.record(name, expected, actual, original == null, original); }
+        catch (Throwable capture) {
+            Frame frame = owned();
+            if (frame != null) {
+                frame.captureFailed = true;
+                if (frame.assertions != recorder) frame.assertions.captureFailure(primary == null ? capture : primary);
+            }
+            if (primary == null) return capture;
+            if (capture != primary) primary.addSuppressed(capture);
+        }
+        return primary;
     }
 
     @SuppressWarnings("unchecked")

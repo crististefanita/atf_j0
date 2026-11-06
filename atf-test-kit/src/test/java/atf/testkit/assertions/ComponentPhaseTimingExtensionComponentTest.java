@@ -1,5 +1,7 @@
 package atf.testkit.assertions;
 
+import atf.testkit.assertions.AuditedAssertions;
+
 import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,60 +28,60 @@ class ComponentPhaseTimingExtensionComponentTest {
     }
     @Test void repeatedCallbacksAndTemplatesExcludeAcquisitionPublicationAndClose() {
         var probe = launch(false, TemplateCase.class);
-        assertEquals(2, probe.summary.getTestsSucceededCount());
-        assertEquals(2, probe.results.size());
+        AuditedAssertions.assertEquals(2, probe.summary.getTestsSucceededCount());
+        AuditedAssertions.assertEquals(2, probe.results.size());
         for (var result : probe.results) {
-            assertEquals(List.of(12L, 20L, 11L), result.phases().stream()
+            AuditedAssertions.assertEquals(List.of(12L, 20L, 11L), result.phases().stream()
                     .map(p -> p.timing().orElseThrow().elapsed().toMillis()).toList());
-            assertEquals(List.of(2, 1, 2), result.phases().stream()
+            AuditedAssertions.assertEquals(List.of(2, 1, 2), result.phases().stream()
                     .map(p -> p.timing().orElseThrow().intervals()).toList());
         }
-        assertEquals(12_086, probe.ticks.get() / 1_000_000L);
+        AuditedAssertions.assertEquals(12_086, probe.ticks.get() / 1_000_000L);
     }
     @Test void bodyFailureKeepsTimingAndTheOriginalErrorWhenPublicationAlsoFails() {
         var probe = launch(true, FailureCase.class);
-        assertEquals(1, probe.summary.getTestsFailedCount());
-        assertSame(probe.primary, probe.summary.getFailures().getFirst().getException());
-        assertEquals(Duration.ofMillis(30), probe.results.getFirst().phases().getFirst().timing().orElseThrow().elapsed());
-        assertEquals("publication", probe.primary.getSuppressed()[0].getMessage());
+        AuditedAssertions.assertEquals(1, probe.summary.getTestsFailedCount());
+        AuditedAssertions.assertSame(probe.primary, probe.summary.getFailures().getFirst().getException());
+        AuditedAssertions.assertEquals(Duration.ofMillis(30), probe.results.getFirst().phases().getFirst().timing().orElseThrow().elapsed());
+        AuditedAssertions.assertEquals("publication", probe.primary.getSuppressed()[0].getMessage());
     }
     @Test void classSetupFailureMeasuresCallbacksBeforeOpeningTheDiagnosticPublisher() {
         var probe = launch(false, ClassFailureCase.class);
-        assertEquals(1, probe.summary.getContainersFailedCount());
-        assertSame(probe.primary, probe.summary.getFailures().getFirst().getException());
+        AuditedAssertions.assertEquals(1, probe.summary.getContainersFailedCount());
+        AuditedAssertions.assertSame(probe.primary, probe.summary.getFailures().getFirst().getException());
         var phase = probe.results.getFirst().phases().getFirst();
-        assertEquals(ComponentAssertionAudit.Phase.SETUP, phase.phase());
-        assertEquals(Duration.ofMillis(700), phase.timing().orElseThrow().elapsed());
-        assertTrue(phase.checks().isEmpty());
+        AuditedAssertions.assertEquals(ComponentAssertionAudit.Phase.SETUP, phase.phase());
+        AuditedAssertions.assertEquals(Duration.ofMillis(700), phase.timing().orElseThrow().elapsed());
+        AuditedAssertions.assertTrue(phase.checks().isEmpty());
     }
     @Test void abortedBodyAndIndependentLaunchesRetainTheirOwnIntervals() {
         var abort = launch(false, AbortCase.class);
-        assertEquals(1, abort.summary.getTestsAbortedCount());
-        assertEquals(ComponentAssertionAudit.Outcome.ABORTED, abort.results.getFirst().outcome());
-        assertEquals(Duration.ofMillis(40), abort.results.getFirst().phases().getFirst().timing().orElseThrow().elapsed());
+        AuditedAssertions.assertEquals(1, abort.summary.getTestsAbortedCount());
+        AuditedAssertions.assertEquals(ComponentAssertionAudit.Outcome.ABORTED, abort.results.getFirst().outcome());
+        AuditedAssertions.assertEquals(Duration.ofMillis(40), abort.results.getFirst().phases().getFirst().timing().orElseThrow().elapsed());
         var second = launch(false, TemplateCase.class);
-        assertEquals(2, second.results.size());
-        assertEquals(Duration.ofMillis(20), second.results.getLast().phases().get(1).timing().orElseThrow().elapsed());
+        AuditedAssertions.assertEquals(2, second.results.size());
+        AuditedAssertions.assertEquals(Duration.ofMillis(20), second.results.getLast().phases().get(1).timing().orElseThrow().elapsed());
     }
     @Test void failedMethodLifecycleClosesOnlyTheCallbacksThatActuallyRan() {
         var setup = launch(false, SetupFailureCase.class);
-        assertSame(setup.primary, setup.summary.getFailures().getFirst().getException());
-        assertEquals(1, setup.results.getFirst().phases().size());
-        assertEquals(Duration.ofMillis(9), setup.results.getFirst().phases().getFirst().timing().orElseThrow().elapsed());
+        AuditedAssertions.assertSame(setup.primary, setup.summary.getFailures().getFirst().getException());
+        AuditedAssertions.assertEquals(1, setup.results.getFirst().phases().size());
+        AuditedAssertions.assertEquals(Duration.ofMillis(9), setup.results.getFirst().phases().getFirst().timing().orElseThrow().elapsed());
         var teardown = launch(false, TeardownFailureCase.class);
-        assertSame(teardown.primary, teardown.summary.getFailures().getFirst().getException());
-        assertEquals(List.of(20L, 11L), teardown.results.getFirst().phases().stream()
+        AuditedAssertions.assertSame(teardown.primary, teardown.summary.getFailures().getFirst().getException());
+        AuditedAssertions.assertEquals(List.of(20L, 11L), teardown.results.getFirst().phases().stream()
                 .map(phase -> phase.timing().orElseThrow().elapsed().toMillis()).toList());
     }
     @Test void classTeardownFailureKeepsItsOwnTimingAfterTheSuccessfulBody() {
         var probe = launch(false, ClassTeardownFailureCase.class);
-        assertEquals(1, probe.summary.getContainersFailedCount());
-        assertEquals(1, probe.summary.getTestsSucceededCount());
-        assertSame(probe.primary, probe.summary.getFailures().getFirst().getException());
+        AuditedAssertions.assertEquals(1, probe.summary.getContainersFailedCount());
+        AuditedAssertions.assertEquals(1, probe.summary.getTestsSucceededCount());
+        AuditedAssertions.assertSame(probe.primary, probe.summary.getFailures().getFirst().getException());
         var phase = probe.results.getLast().phases().getFirst();
-        assertEquals(ComponentAssertionAudit.Phase.TEARDOWN, phase.phase());
-        assertEquals(Duration.ofMillis(80), phase.timing().orElseThrow().elapsed());
-        assertTrue(phase.checks().isEmpty());
+        AuditedAssertions.assertEquals(ComponentAssertionAudit.Phase.TEARDOWN, phase.phase());
+        AuditedAssertions.assertEquals(Duration.ofMillis(80), phase.timing().orElseThrow().elapsed());
+        AuditedAssertions.assertTrue(phase.checks().isEmpty());
     }
     private static Probe launch(boolean fails, Class<?> fixture) {
         var probe = new Probe(); probe.publicationFails = fails; ACTIVE.set(probe);

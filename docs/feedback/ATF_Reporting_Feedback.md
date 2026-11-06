@@ -463,6 +463,26 @@ without a renderer change, new module or new library version.
 
 [Inspection intent](../../atf-reporting/README.md#inspecția-artifactului-cu-intenție-explicită) own the delivered profile and invariant contracts.
 
+## REPORT-COMPONENT-FRAGMENTS — costul multor corpuri mici
+
+**P2 · owner Reporting; consumatorul deține partiționarea inputului.** Agregarea completă J4 a produs `OutOfMemoryError` în `StringWriter`/FreeMarker cu heap de 768 MiB, în timp ce publicările mici treceau. Intrările conțin texte complete împărțite în foarte multe corpuri scurte; cauza algoritmică și complexitatea nu sunt încă demonstrate. [Diagnosticul capturat](../../../../whist_back/maintenance/20261106-component-suite-aggregation/qualified-components/run.json) identifică încercarea neacceptată; stiva originală este în staging-ul declarat de aceasta.
+
+- [ ] Comparați același text și aceleași invocări cu părți mici și mari, pe input înghețat: caractere, număr de corpuri/noduri, heap, durată și octeții HTML. Controlați separat inventarul tehnic al surselor de datele obligatorii ale comparației.
+- [ ] Calificați un buget sau un refuz explicit înaintea epuizării memoriei, fără eliminarea comparațiilor, schimbarea verdictului ori trunchierea valorilor obligatorii. Nu creșteți preview-ul implicit de 240 pentru a masca problema.
+- [ ] Partajarea manifestului de hash-uri și părțile mai mari sunt optimizări de input ale consumatorului; nu dovedesc că rendererul este calificat pentru orice cardinalitate de corpuri. Nativele generice și împachetarea rămân aici.
+
+## REPORT-PROFILE-LABELS — convenția textului vizibil
+
+**P1 separat · titluri cu text de argument.** În J21, numele parametrizării `Datele sunt în release/<version>/reports/.` ajunge ca `<version>` neescapat în titlul Extent și dispare din textul DOM, deși testul funcțional trece. [Agregatul neacceptat](../../../../whist_back/maintenance/20261106-component-suite-aggregation/final-live-components/atf-tests/component-report.html) păstrează cazul; `execution.json` identifică refuzul profilului la scenariul 80.
+
+- [ ] Calificați titlurile ca text în ambele renderere, cu `<version>`, `&`, ghilimele, închideri de elemente și canar script inofensiv; niciun argument nu devine element DOM sau cod executabil. Profilul trebuie să păstreze identitatea vizibilă și să refuze mutanții care interpretează textul drept marcaj.
+- [ ] Consumatorul transmite temporar metoda și ordinalul drept titlu controlat și păstrează display name-ul original în corp textual sigur. Această adaptare a inputului nu califică titlurile generice ale bibliotecii și nu autorizează un patch local de renderer.
+
+**P2 · owner Reporting: clarificarea contractului public al profilului.** Consumatorul a furnizat etichete brute cu LF/CRLF și spații repetate, iar inspectorul compară `Element.text()`. Agregatele neacceptate păstrează cazurile originale; [controalele locale](../../../../whist_back/maintenance/20261106-component-suite-aggregation/multiline-profile-controls-verified.log) califică proiecția etichetelor așteptate, separat de corpurile și valorile nemodificate. Aceasta este o corecție a inputului profilului, fără modificarea rendererului.
+
+- [ ] Documentați dacă numele din profil reprezintă textul vizibil normalizat și expuneți, dacă este potrivit, proiecția reutilizabilă în API-ul împachetat. Consumatorii nu trebuie să ghicească independent convenția pentru LF, CRLF, tab, NBSP sau spații de margine.
+- [ ] Calificați convenția în ambele renderere: scenariu, aserțiune și observație cu etichete multiline, plus valori lungi ale căror spații și ultimul caracter rămân originale. Profilul rămâne construit din intenția capturată, fără derivarea așteptărilor din HTML-ul verificat.
+
 ## REPORT-RECORDED-TIMING-83 — execuție capturată și cost de publicare
 
 [Recorded timing](../../atf-reporting/README.md#originea-duratelor-sub-o-fază-capturată) and [Reporting owner contract](../../atf-reporting/README.md) retain distinct execution, capture and publication axes.

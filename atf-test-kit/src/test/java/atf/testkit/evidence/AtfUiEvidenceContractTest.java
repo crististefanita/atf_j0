@@ -1,5 +1,7 @@
 package atf.testkit.evidence;
 
+import atf.testkit.assertions.AuditedAssertions;
+
 import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
 
@@ -25,14 +27,14 @@ class AtfUiEvidenceContractTest {
     void declarationSeparatesFlowAndScreenshotAxesWithConfigurationDefaults() {
         var defaults = Defaults.class.getAnnotation(AtfUiEvidence.class);
         var finalOnly = FinalOnly.class.getAnnotation(AtfUiEvidence.class);
-        assertAll(
-                () -> assertEquals(AtfUiEvidenceFlow.CONFIGURED, defaults.flow()),
-                () -> assertEquals(AtfUiScreenshotPolicy.CONFIGURED, defaults.screenshots()),
-                () -> assertEquals(AtfUiEvidenceFlow.UNIFIED_FLOW, finalOnly.flow()),
-                () -> assertEquals(AtfUiScreenshotPolicy.FINAL_ONLY, finalOnly.screenshots()),
-                () -> assertEquals(RetentionPolicy.RUNTIME,
+        AuditedAssertions.assertAll(
+                () -> AuditedAssertions.assertEquals(AtfUiEvidenceFlow.CONFIGURED, defaults.flow()),
+                () -> AuditedAssertions.assertEquals(AtfUiScreenshotPolicy.CONFIGURED, defaults.screenshots()),
+                () -> AuditedAssertions.assertEquals(AtfUiEvidenceFlow.UNIFIED_FLOW, finalOnly.flow()),
+                () -> AuditedAssertions.assertEquals(AtfUiScreenshotPolicy.FINAL_ONLY, finalOnly.screenshots()),
+                () -> AuditedAssertions.assertEquals(RetentionPolicy.RUNTIME,
                         AtfUiEvidence.class.getAnnotation(Retention.class).value()),
-                () -> assertEquals(ElementType.TYPE,
+                () -> AuditedAssertions.assertEquals(ElementType.TYPE,
                         AtfUiEvidence.class.getAnnotation(Target.class).value()[0]));
     }
 }

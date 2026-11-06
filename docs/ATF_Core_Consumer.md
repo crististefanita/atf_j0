@@ -54,6 +54,7 @@ flowchart LR
     Binary -->|adopts| J2["J2 WIP<br/>messaging"]
     Binary -->|adopts| J3["J3<br/>speech"]
     Binary -->|adopts| J4["J4<br/>Android"]
+    Binary -->|adopts| J5["J5 WIP<br/>Rentz"]
 ```
 
 <details>
@@ -86,11 +87,11 @@ flowchart LR
 
 The [Core lifecycle contract](../atf-core/README.md#proiecția-console-și-anularea-transportului) preserves redaction, primary failure and suppressed cleanup diagnostics. `HttpClientTransport` links cancellation to its owned upstream future; cancellation does not prove server-side rollback.
 
-- `UrlConnectionTransport` currently leaves a pending body subscription independent of future cancellation and the caller deadline; releasing that body can still cause dispatch.
-- The [active Core criterion](feedback/ATF_Core_Feedback.md#core-urlconnection-cancel-126--body-subscription-and-dispatch-ownership) requires bounded body ownership and permanent source/JAR negatives.
+- `UrlConnectionTransport` owns its body subscription, virtual worker and connection. Body collection, connect and reads share the original monotonic deadline; a late body cannot claim a dispatch after cancellation or expiry.
+- Native controlled-publisher and loopback contracts cover cancellation, the original 250 ms deadline, body/cleanup failures and terminal races on source and physical JAR.
 - Consumer acceptance remains distinct; an uncertain mutation is not eligible for automatic replay.
 
 
 ## Shared platform libraries
 
-The current reactor has 12 source modules. [Platform library consumption](ATF_Platform_Libraries.md) defines the four library owners, flat distribution, Maven/IntelliJ bootstrap and independent consumer acceptance. Console/Mock native tests stay in J0; consumer adapters and catalogs stay local.
+The current reactor has 12 source modules. [Platform library consumption](ATF_Platform_Libraries.md) defines the five library owners, flat distribution, Maven/IntelliJ bootstrap and independent consumer acceptance. Console/Mock native tests stay in J0; consumer adapters and catalogs stay local.

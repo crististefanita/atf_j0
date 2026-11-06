@@ -34,10 +34,14 @@ public record GovernanceDeployment(Path root, List<String> sourceModules, boolea
             atf.libraries.PlatformLibrarySurface.version(root, artifact);
             if (Files.exists(root.resolve("atf-" + artifact))) throw new IllegalStateException("GOV-PLATFORM-SHADOW: " + artifact);
         }
+        boolean binaryKit = !atf.libraries.PlatformLibrarySurface.version(root, "test-kit").isBlank();
+        if (binaryKit && (source || actual.contains(AtfModuleIds.TEST_KIT) || Files.exists(root.resolve(AtfModuleIds.TEST_KIT))))
+            throw new IllegalStateException("GOV-KIT-SHADOW: source in binary deployment");
         boolean foundation = List.of("foundation", "eventuate").contains(profile);
         List<String> binaryGate = AtfModuleIds.REACTOR_MODULES.stream()
                 .filter(module -> source || !module.equals(AtfModuleIds.REPORTING))
                 .filter(module -> !binaryCore || !module.equals(AtfModuleIds.CORE))
+                .filter(module -> !binaryKit || !module.equals(AtfModuleIds.TEST_KIT))
                 .filter(module -> !platform || !List.of(AtfModuleIds.CONSOLE, AtfModuleIds.MOCK).contains(module))
                 .filter(module -> !foundation || !consumerModule(module))
                 .filter(module -> !profile.equals("eventuate") || !List.of(AtfModuleIds.UI, AtfModuleIds.DEBUG_UI).contains(module)).toList();
@@ -78,6 +82,7 @@ public record GovernanceDeployment(Path root, List<String> sourceModules, boolea
         for (String artifact : List.of("console", "mock"))
             if (!sourceModules.contains("atf-" + artifact) && configured.equals("atf-" + artifact + "/README.md"))
                 return List.of("docs/ATF_Platform_Libraries.md");
+        if (!sourceModules.contains(AtfModuleIds.TEST_KIT) && configured.equals("atf-test-kit/README.md")) return List.of("lib/README.TestKit.md");
         if (!coreSource() && configured.equals("atf-core/README.md")) return List.of("docs/ATF_Core_Consumer.md");
         String module = configured.contains("/") ? configured.substring(0, configured.indexOf('/')) : "";
         if (List.of(AtfModuleIds.UI, AtfModuleIds.DEBUG_UI).contains(module) && !sourceModules.contains(module) && configured.equals(module + "/README.md"))

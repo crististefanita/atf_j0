@@ -47,6 +47,10 @@ public final class AuditedAssertions {
         AuditedAssertionScope.check("assertNotEquals", AssertionValueDisplay.prefix("not ", expected), actual, null,
                 () -> Assertions.assertNotEquals(expected, actual));
     }
+    public static void assertNotEquals(Object expected, Object actual, String message) {
+        AuditedAssertionScope.check("assertNotEquals", AssertionValueDisplay.prefix("not ", expected), actual, message,
+                () -> Assertions.assertNotEquals(expected, actual, message));
+    }
     public static void assertTrue(boolean actual) {
         AuditedAssertionScope.check("assertTrue", true, actual, null, () -> Assertions.assertTrue(actual));
     }
@@ -62,8 +66,14 @@ public final class AuditedAssertions {
     public static void assertFalse(boolean actual, String message) {
         AuditedAssertionScope.check("assertFalse", false, actual, message, () -> Assertions.assertFalse(actual, message));
     }
+    public static void assertFalse(boolean actual, Supplier<String> message) {
+        AuditedAssertionScope.check("assertFalse", false, actual, null, () -> Assertions.assertFalse(actual, message));
+    }
     public static void assertNull(Object actual) {
         AuditedAssertionScope.check("assertNull", "null", actual, null, () -> Assertions.assertNull(actual));
+    }
+    public static void assertNull(Object actual, String message) {
+        AuditedAssertionScope.check("assertNull", "null", actual, message, () -> Assertions.assertNull(actual, message));
     }
     public static void assertNotNull(Object actual) {
         AuditedAssertionScope.check("assertNotNull", "not null", actual, null, () -> Assertions.assertNotNull(actual));
@@ -82,6 +92,20 @@ public final class AuditedAssertions {
     }
     public static void assertArrayEquals(Object[] expected, Object[] actual) {
         AuditedAssertionScope.check("assertArrayEquals", expected, actual, null, () -> Assertions.assertArrayEquals(expected, actual));
+    }
+    public static void assertSame(Object expected, Object actual, String message) {
+        AuditedAssertionScope.check("assertSame", AssertionValueDisplay.identity(expected), AssertionValueDisplay.identity(actual),
+                message, () -> Assertions.assertSame(expected, actual, message));
+    }
+    public static void assertArrayEquals(byte[] expected, byte[] actual) {
+        AuditedAssertionScope.check("assertArrayEquals", (AssertionValueDisplay.Value) () -> java.util.Arrays.toString(expected),
+                (AssertionValueDisplay.Value) () -> java.util.Arrays.toString(actual), null,
+                () -> Assertions.assertArrayEquals(expected, actual));
+    }
+    public static void assertArrayEquals(int[] expected, int[] actual) {
+        AuditedAssertionScope.check("assertArrayEquals", (AssertionValueDisplay.Value) () -> java.util.Arrays.toString(expected),
+                (AssertionValueDisplay.Value) () -> java.util.Arrays.toString(actual), null,
+                () -> Assertions.assertArrayEquals(expected, actual));
     }
     public static <T> T assertInstanceOf(Class<T> expected, Object actual) {
         return AuditedAssertionScope.value("assertInstanceOf", AssertionValueDisplay.type(expected),

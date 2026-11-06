@@ -1,5 +1,7 @@
 package atf.testkit.lifecycle;
 
+import atf.testkit.assertions.AuditedAssertions;
+
 import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +20,7 @@ class ArmedCleanupTest {
         var primaryFailure = new IllegalStateException("mutation response was malformed");
         var cleanupFailure = new AssertionError("compensation failed");
 
-        IllegalStateException thrown = assertThrows(IllegalStateException.class, () -> {
+        IllegalStateException thrown = AuditedAssertions.assertThrows(IllegalStateException.class, () -> {
             try (var cleanup = new ArmedCleanup(() -> {
                 cleanupCalls.incrementAndGet();
                 throw cleanupFailure;
@@ -28,10 +30,10 @@ class ArmedCleanupTest {
             }
         });
 
-        assertEquals(1, cleanupCalls.get());
-        assertSame(primaryFailure, thrown, "the create failure remains the primary failure");
-        assertEquals(1, thrown.getSuppressed().length);
-        assertSame(cleanupFailure, thrown.getSuppressed()[0]);
+        AuditedAssertions.assertEquals(1, cleanupCalls.get());
+        AuditedAssertions.assertSame(primaryFailure, thrown, "the create failure remains the primary failure");
+        AuditedAssertions.assertEquals(1, thrown.getSuppressed().length);
+        AuditedAssertions.assertSame(cleanupFailure, thrown.getSuppressed()[0]);
     }
 
     @Test
@@ -42,7 +44,7 @@ class ArmedCleanupTest {
             // No mutation was attempted, so no compensation is required.
         }
 
-        assertEquals(0, cleanupCalls.get());
+        AuditedAssertions.assertEquals(0, cleanupCalls.get());
     }
     @Test
     void successfulCompensationDisarmsButFailedCompensationCanBeRetriedExplicitly() {
@@ -51,10 +53,10 @@ class ArmedCleanupTest {
             if (calls.incrementAndGet() == 1) throw new IllegalStateException("transient cleanup failure");
         });
         cleanup.arm();
-        assertThrows(IllegalStateException.class, cleanup::close);
+        AuditedAssertions.assertThrows(IllegalStateException.class, cleanup::close);
         cleanup.close();
         cleanup.close();
-        assertEquals(2, calls.get());
+        AuditedAssertions.assertEquals(2, calls.get());
     }
 
     @Test
@@ -65,6 +67,6 @@ class ArmedCleanupTest {
         cleanup.close();
         cleanup.arm();
         cleanup.close();
-        assertEquals(2, calls.get());
+        AuditedAssertions.assertEquals(2, calls.get());
     }
 }

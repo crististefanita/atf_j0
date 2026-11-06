@@ -1,4 +1,6 @@
-package atf.api.tests.governance.documentation;
+package atf.api.tests.governance.documentation.factual;
+
+import atf.api.tests.governance.documentation.DocumentationGovernanceSupport;
 
 import atf.testkit.AtfUnitTest;
 import java.nio.file.*;
@@ -11,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class LibraryDocumentationInventoryTest {
     @Test void onlyNamedRegularLibraryGuidesJoinTheDocumentationInventory(@TempDir Path root) throws Exception {
         Path lib = Files.createDirectory(root.resolve("lib"));
-        for (String name : List.of("README.md", "README.Core.md", "README.Reporting.md", "README.Console.md", "README.Mock.md")) {
+        for (String name : List.of("README.md", "README.Core.md", "README.Reporting.md", "README.Console.md", "README.Mock.md", "README.TestKit.md")) {
             Path file = lib.resolve(name); Files.writeString(file, "# Ghid\n");
             assertTrue(DocumentationGovernanceSupport.isGovernedMarkdown(root, file), name);
         }

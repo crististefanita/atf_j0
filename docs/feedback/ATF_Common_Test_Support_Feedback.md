@@ -2,35 +2,15 @@
 
 ## Pe scurt
 
-J0 deține codul, API-ul, testele native, împachetarea și feedback-ul Test Kit. J1–J5 păstrează integrarea și oracolele lor; deocamdată folosesc module sursă. [Planul de adopție](../ATF_Test_Kit_Library.md) separă ținta de starea livrată.
+J0 deține codul, API-ul, testele native, împachetarea și feedback-ul Test Kit. J1–J5 păstrează integrarea și oracolele lor; consumă perechea verificată din lib, fără surse ori native Kit paralele. [Contractul bibliotecii](../ATF_Test_Kit_Library.md) descrie distribuția și acceptanțele distincte.
 
-## KIT-LIBRARY-151 — distribuție unică, fără surse paralele
+<a id="kit-library-151--distribuție-unică-fără-surse-paralele"></a>
 
-**P1 · owner J0; adopție independentă în J1–J5.** Comparați inventarul și comportamentul API-urilor live înaintea împachetării; simpla egalitate a numelor claselor nu dovedește echivalența consumatorilor. Utilitarele ghidurilor și primitivele de execuție au contracte distincte.
+[Contractul bibliotecii](../ATF_Test_Kit_Library.md) păstrează distribuția, scope-urile, ghidul local și acceptanțele independente. Codul, nativele și guvernanța implementării rămân în J0; consumerii verifică binarul și oracolele proprii.
 
-POM-urile Kit depind încă de parent și versiunile moștenite; J5 are parent Rentz. Un build fără parent a fost verificat în TMP, fără modificarea proiectelor live.
+<a id="kit-assertion-overloads--compatibilitatea-capturii-cu-aserțiunea-originală"></a>
 
-| Poartă | Lacună și criteriu de închidere |
-|---|---|
-| Pachet independent | POM fără parent ATF, versiuni vendor explicite, JDK 21, build reproductibil; JAR thin numai atf.testkit, fără surse, native sau cod business. Testele native rămân în J0. |
-| Console | Adaptorul declară Kit optional compile cu versiune SNAPSHOT; demonstrați integrarea cu versiunea publicată explicit la consumer. Dacă se schimbă POM-ul Console, publicați o coordonată nouă, fără rescrierea c1. Core/Mock folosesc Kit numai în teste. |
-| Guvernanță | ConsumerModuleArchitectureGovernanceTest cere fișiere Kit .java; în consumerul binar verificați API, JAR, CodeSource/hash și catalogul de proveniență. Inspecția sursei și nativele rămân în J0. Refuzați shadow sources și versiunile multiple. |
-| Adopție | Eliminați modulul numai după verificare; dependențele folosesc proprietatea Kit explicită, nu project.version. Bootstrap Maven/IntelliJ, scripturile scoped, inventarele și politicile JSON păstrează reactorul fiecărui consumer. AndroidComponentPublication din J4 folosește efectiv API Kit în main: permiteți compile explicit pentru suportul de test, fără propagare în APK/produs. În rest verificați utilizarea înainte de alegerea scope-ului. |
-| Documentație | GuideBundle.publish enumeră explicit numai Core/Reporting/Console/Mock; extindeți controlat sandbox-ul pentru Kit și păstrați refuzul surselor paralele. Ghid local lib/README.TestKit.md cu adnotări, RecordedAssertions, lifecycle, configurație, scope, limite și exemplu executabil pe JAR/POM; accesul la J0 rămâne necesar doar mentenanței. |
-
-- [ ] Construiți o singură pereche JAR/POM, verificată separat de reactor; aceeași pereche și provenance cu istoricul păstrat în toate cele cinci ținte. Inventarul lib acceptă explicit a cincea bibliotecă și ghidul ei; nu relaxați regula exactă a folderului.
-- [ ] Păstrați regresii pentru niveluri/meta-adnotări, rezoluția politicilor, scope-uri paralele, lifecycle/cleanup cu cauza originală, configurație și aserțiuni obligatorii. Proba negativă elimină ori substituie numai Kit; nu trebuie să treacă printr-o copie sursă sau un cache ATF vechi.
-- [ ] Verificați independent J1 web, J2 mesagerie, J3 speech, J4 Android și J5 Rentz: componentă, lansare individuală/suită, FAIL controlat, setup/cleanup și raport Extent/fallback unde adaptorul există. Nu introduceți Playwright în J2/J3 și nu confundați fixture-urile cu device/broker/ASR real.
-- [ ] J5 nu are Git inițializat în locația analizată; utilizați snapshot-uri SHA și promovare guarded per fișier. Nu inventați HEAD, nu inițializați ori înlocuiți Git prin distribuirea bibliotecii.
-
-**Închidere:** nativele sursă/JAR, exemplele portabile și acceptanțele distincte sunt verzi, sursa Kit rămâne numai în J0, iar toate cele cinci proiecte încarcă aceeași pereche declarată.
-
-## KIT-ASSERTION-OVERLOADS — compatibilitatea capturii cu aserțiunea originală
-
-**P2 · owner Test Kit; reconciliere înaintea adopției binare.** Agregarea componentelor J4 consumă și `assertFalse(boolean, Supplier<String>)`, `assertNull(Object, String)` și `assertSame(Object, Object, String)` din `AuditedAssertions`. Extensiile locale și regresia `messageOverloadsKeepIdentityNullAndLazySupplierSemantics` din `AuditedAssertionsTest` sunt intrări de reconciliere, nu surse de copiat integral peste producător.
-
-- [ ] Verificați echivalența cu overload-ul JUnit: evaluare o singură dată, supplier leneș numai la eșec, identitate prin referință, valoare null și mesajul original; captura nu schimbă verdictul sau cauza.
-- [ ] Păstrați primitivele fără Reporting ori cunoașterea lansatorului consumatorului. Împachetarea și acceptanța fiecărui consumator califică separat API-ul reconciliat.
+[Contractul aserțiunilor](../../lib/README.TestKit.md#scope-și-integrare) păstrează semantica JUnit, diagnosticul lazy și scope-ul adaptorului; regresiile native aparțin J0.
 
 ## KIT-ACCEPTANCE-DIAGNOSTICS-123 — reuse scope, preserve causes
 
@@ -49,7 +29,7 @@ POM-urile Kit depind încă de parent și versiunile moștenite; J5 are parent R
 
 ## Retenția comparațiilor — coordonare cu Reporting
 
-RecordedAssertions stochează proiecția limitată, iar ValidationTable păstrează expected/actual reduse. FAIL-ul dincolo de preview rămâne corect, dar explicația completă poate lipsi.
+RecordedAssertions stochează proiecția limitată și oferă observerul opțional Projection pentru valorile redactate integrale. O eroare de captură păstrează cauza și verdictul pe fază; ValidationTable și politica de retenție a consumerului rămân criterii distincte.
 
 - [ ] Coordonați [dovada integrală Reporting](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview): captură sigură înaintea trunchierii, limite integrale explicite, fără comparație dublă și fără modificarea preview-ului 240. Controlul negativ are preview-uri identice și un sufix diferit.
 

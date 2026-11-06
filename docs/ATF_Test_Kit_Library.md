@@ -1,8 +1,8 @@
-# Test Kit — pregătirea bibliotecii comune
+# Test Kit — biblioteca comună
 
 ## Pe scurt
 
-J0 este owner pentru cod, API, teste native, împachetare și feedback Test Kit. J1–J5 păstrează adaptoarele și acceptanța domeniului lor. Kit este încă modul sursă în aceste proiecte; ținta este o singură pereche JAR/POM direct în `lib`, cu ghid local de utilizare și proveniență la rădăcină.
+J0 deține codul, API-ul, nativele, împachetarea și feedback-ul Test Kit. J1–J5 păstrează adaptoarele și oracolele domeniului și consumă o singură pereche JAR/POM direct în `lib`, cu ghid local și proveniență la rădăcină; guvernanța implementării rămâne în J0.
 
 ## Contractul păstrat
 
@@ -35,7 +35,7 @@ flowchart LR
 
 </details>
 
-## Migrarea controlată
+## Mentenanță și distribuție
 
 1. Reconciliați diferențele live și păstrați API-ul comun. POM-ul publicat devine independent de parent, cu versiuni vendor explicite, JDK 21 și build reproductibil.
 2. Verificați nativele și aceleași contracte pe JAR, fără surse Kit pe classpath; păstrați metadata runtime a adnotărilor, cauzele originale, scope-urile și limitele existente.
@@ -43,7 +43,7 @@ flowchart LR
 4. Adaptați bootstrap-ul Maven/IntelliJ, scripturile, politicile și guvernanța înainte de eliminarea modulului. Verificarea sursei aparține J0; consumerul verifică API, CodeSource/hash, inventar și lipsa copiilor paralele.
 5. Distribuiți aceeași pereche verificată și păstrați istoricul provenienței. `lib` conține numai versiunea curentă a fiecărei biblioteci; ghidul Kit intră în inventarul exact împreună cu perechea sa.
 
-Console publicat declară în prezent Kit opțional cu versiune `SNAPSHOT`. Compatibilitatea cu Kit publicat se demonstrează explicit; schimbarea POM-ului Console cere o coordonată nouă, fără rescrierea publicației existente.
+Console păstrează dependența Kit opțională din publicația sa; consumerul declară explicit versiunea Kit. Compatibilitatea bridge-ului se verifică pe JAR. Schimbarea POM-ului Console cere o coordonată nouă, fără rescrierea publicației existente.
 
 Runnerul păstrează motorul JUnit Jupiter în dependențele sale de test; Kit expune API-ul, fără să furnizeze automat engine-ul sau un lansator pentru aplicație.
 
@@ -61,9 +61,9 @@ Un FAIL controlat rămâne FAIL cu aceeași cauză și aceleași comparații. Un
 
 ## Ghidul local al JAR-ului
 
-La adopție, fiecare `lib/README.TestKit.md` trebuie să fie suficient fără acces la J0: dependență și scope corecte, adnotări, un exemplu compilat, lifecycle, configurare și limitele preview-ului. Explicați explicit că publicarea Extent cere adaptorul consumerului. Exemplele se verifică pe perechea distribuită, fără surse paralele.
+Fiecare `lib/README.TestKit.md` este contractul local, suficient fără acces la J0: dependență și scope corecte, adnotări, un exemplu compilat, lifecycle, configurare și limitele preview-ului. Explicați explicit că publicarea Extent cere adaptorul consumerului. Exemplele se verifică pe perechea distribuită, fără surse paralele.
 
-- `GuideBundle.publish` instalează în prezent patru biblioteci; poarta Kit extinde explicit inventarul și verifică încărcarea din perechea distribuită.
+- `GuideBundle.publish` verifică explicit cele cinci biblioteci. KitLibraryGuideIT probează exemplul și controalele de compilare/bootstrap pe perechea selectată.
 - Unitățile pure păstrează politica lor; migrarea nu le impune raportarea de componentă/E2E.
 
 Footerul trimite mentenanța și constatările către [feedback-ul Kit din J0](feedback/ATF_Common_Test_Support_Feedback.md). Cerințele active, inclusiv Unicode și retenția înainte de preview, rămân acolo; acest contract nu le declară rezolvate.

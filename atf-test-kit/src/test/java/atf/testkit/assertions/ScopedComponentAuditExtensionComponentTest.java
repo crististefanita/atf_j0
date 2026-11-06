@@ -1,10 +1,12 @@
 package atf.testkit.assertions;
 
+import atf.testkit.assertions.AuditedAssertions;
+
 import atf.testkit.AtfComponentTest;
 import atf.testkit.scope.TestRunScope;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.ExtensionContext;
+
 import org.junit.platform.launcher.core.*;
 import org.junit.platform.launcher.listeners.*;
 import java.util.List;
@@ -32,58 +34,58 @@ class ScopedComponentAuditExtensionComponentTest {
 
     @Test void suiteSharesOneResourceButKeepsIndependentAudits() {
         var probe = launch("suite", false, FirstFixture.class, SecondFixture.class);
-        assertEquals(3, probe.summary.getTestsSucceededCount());
-        assertEquals(1, probe.opened.get());
-        assertEquals(1, probe.closed.get());
-        assertEquals(3, probe.results.size());
-        assertTrue(probe.results.stream().allMatch(result -> result.phases().size() == 1
+        AuditedAssertions.assertEquals(3, probe.summary.getTestsSucceededCount());
+        AuditedAssertions.assertEquals(1, probe.opened.get());
+        AuditedAssertions.assertEquals(1, probe.closed.get());
+        AuditedAssertions.assertEquals(3, probe.results.size());
+        AuditedAssertions.assertTrue(probe.results.stream().allMatch(result -> result.phases().size() == 1
                 && result.phases().getFirst().checks().size() == 1));
     }
 
     @Test void defaultClassOwnershipAndRepeatedLaunchesRemainIndependent() {
         var first = launch(null, false, FirstFixture.class, SecondFixture.class);
         var second = launch(null, false, FirstFixture.class);
-        assertEquals(2, first.opened.get());
-        assertEquals(2, first.closed.get());
-        assertEquals(1, second.opened.get());
-        assertEquals(1, second.closed.get());
+        AuditedAssertions.assertEquals(2, first.opened.get());
+        AuditedAssertions.assertEquals(2, first.closed.get());
+        AuditedAssertions.assertEquals(1, second.opened.get());
+        AuditedAssertions.assertEquals(1, second.closed.get());
     }
 
     @Test void classSetupFailureHasADiagnosticWithoutInventedChecks() {
         var probe = launch("suite", false, BeforeAllFixture.class);
-        assertEquals(1, probe.summary.getContainersFailedCount());
-        assertEquals(0, probe.summary.getTestsStartedCount());
-        assertEquals(1, probe.results.size());
+        AuditedAssertions.assertEquals(1, probe.summary.getContainersFailedCount());
+        AuditedAssertions.assertEquals(0, probe.summary.getTestsStartedCount());
+        AuditedAssertions.assertEquals(1, probe.results.size());
         var phase = probe.results.getFirst().phases().getFirst();
-        assertEquals(ComponentAssertionAudit.Phase.SETUP, phase.phase());
-        assertEquals(ComponentAssertionAudit.Outcome.FAIL, phase.outcome());
-        assertTrue(phase.checks().isEmpty());
-        assertTrue(phase.diagnostic().contains("class setup failed"));
-        assertEquals(1, probe.closed.get());
+        AuditedAssertions.assertEquals(ComponentAssertionAudit.Phase.SETUP, phase.phase());
+        AuditedAssertions.assertEquals(ComponentAssertionAudit.Outcome.FAIL, phase.outcome());
+        AuditedAssertions.assertTrue(phase.checks().isEmpty());
+        AuditedAssertions.assertTrue(phase.diagnostic().contains("class setup failed"));
+        AuditedAssertions.assertEquals(1, probe.closed.get());
     }
 
     @Test void classTeardownAndResourceCloseFailuresDoNotRerunBodies() {
         var teardown = launch("suite", false, AfterAllFixture.class);
-        assertEquals(1, teardown.summary.getTestsSucceededCount());
-        assertEquals(1, teardown.summary.getContainersFailedCount());
-        assertEquals(2, teardown.results.size());
-        assertEquals(ComponentAssertionAudit.Phase.TEARDOWN,
+        AuditedAssertions.assertEquals(1, teardown.summary.getTestsSucceededCount());
+        AuditedAssertions.assertEquals(1, teardown.summary.getContainersFailedCount());
+        AuditedAssertions.assertEquals(2, teardown.results.size());
+        AuditedAssertions.assertEquals(ComponentAssertionAudit.Phase.TEARDOWN,
                 teardown.results.getLast().phases().getFirst().phase());
         var close = launch("suite", true, FirstFixture.class, SecondFixture.class);
-        assertEquals(3, close.summary.getTestsSucceededCount());
-        assertEquals(1, close.summary.getContainersFailedCount());
-        assertEquals(1, close.closed.get());
-        assertEquals(3, close.results.size());
+        AuditedAssertions.assertEquals(3, close.summary.getTestsSucceededCount());
+        AuditedAssertions.assertEquals(1, close.summary.getContainersFailedCount());
+        AuditedAssertions.assertEquals(1, close.closed.get());
+        AuditedAssertions.assertEquals(3, close.results.size());
     }
 
     @Test void anAbortedClassDoesNotHideAPublicationFailure() {
         var probe = launch("suite", false, true, AbortedClassFixture.class);
-        assertEquals(1, probe.summary.getContainersFailedCount());
-        assertEquals(0, probe.summary.getContainersAbortedCount());
-        assertEquals(1, probe.results.size());
-        assertEquals(ComponentAssertionAudit.Outcome.ABORTED, probe.results.getFirst().outcome());
-        assertTrue(probe.summary.getFailures().getFirst().getException().getMessage().contains("publication failed"));
-        assertEquals(1, probe.closed.get());
+        AuditedAssertions.assertEquals(1, probe.summary.getContainersFailedCount());
+        AuditedAssertions.assertEquals(0, probe.summary.getContainersAbortedCount());
+        AuditedAssertions.assertEquals(1, probe.results.size());
+        AuditedAssertions.assertEquals(ComponentAssertionAudit.Outcome.ABORTED, probe.results.getFirst().outcome());
+        AuditedAssertions.assertTrue(probe.summary.getFailures().getFirst().getException().getMessage().contains("publication failed"));
+        AuditedAssertions.assertEquals(1, probe.closed.get());
     }
 
     private static Probe launch(String scope, boolean failClose, Class<?>... fixtures) {

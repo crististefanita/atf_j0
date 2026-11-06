@@ -46,6 +46,22 @@ public class GovernanceDeploymentTest {
             assertTrue(assertThrows(IllegalStateException.class, () -> GovernanceDeployment.read(root)).getMessage().startsWith("GOV-REACTOR:"));
         }
     }
+    @Test void binaryKitNeedsAnExplicitCoordinateAndRejectsParallelSource() throws Exception {
+        prepare(false);
+        Path pom = root.resolve("pom.xml"), kit = root.resolve("atf-test-kit");
+        String declared = Files.readString(pom).replace("<module>atf-test-kit</module>", "");
+        Files.delete(kit.resolve("pom.xml")); Files.delete(kit);
+        Files.writeString(pom, declared);
+        assertTrue(assertThrows(IllegalStateException.class, () -> GovernanceDeployment.read(root)).getMessage().startsWith("GOV-REACTOR:"));
+        Files.writeString(pom, declared.replace("<properties>", "<properties><atf.testkit.version>fixture</atf.testkit.version>"));
+        var binary = GovernanceDeployment.read(root);
+        assertFalse(binary.sourceModules().contains("atf-test-kit"));
+        assertEquals(List.of("lib/README.TestKit.md"), binary.documentationTargets("atf-test-kit/README.md"));
+        Files.createDirectory(kit);
+        assertEquals("GOV-KIT-SHADOW: source in binary deployment",
+                assertThrows(IllegalStateException.class, () -> GovernanceDeployment.read(root)).getMessage());
+    }
+
     private void prepare(boolean reportingSource) throws Exception { DeploymentFixture.prepare(root, reportingSource); }
 
     @Test void binaryConsumerAndExternalHarnessKeepExplicitCatalogs() throws Exception {

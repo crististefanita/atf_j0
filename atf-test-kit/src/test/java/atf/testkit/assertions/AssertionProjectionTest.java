@@ -7,6 +7,36 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @AtfUnitTest
 class AssertionProjectionTest {
+    @Test void completeSanitizedValuesRemainAvailableBesideTheBoundedPreview() {
+        var observed = new java.util.ArrayList<AssertionValueDisplay.Projection>();
+        var display = new AssertionValueDisplay(8, (field, text) -> text.replace("secret", "MASK"), observed::add);
+        var rows = new RecordedAssertions(display);
+        rows.equals("long value", "secret-" + "x".repeat(30), "secret-" + "x".repeat(30));
+        assertEquals(8, rows.checks().getFirst().expected().length());
+        assertEquals(2, observed.size());
+        assertEquals(AssertionValueDisplay.Role.EXPECTED, observed.getFirst().role());
+        assertEquals(AssertionValueDisplay.Role.ACTUAL, observed.getLast().role());
+        assertTrue(observed.getFirst().truncated());
+        assertEquals("MASK-" + "x".repeat(30), observed.getFirst().fullText());
+    }
+
+    @Test void aBrokenProjectionObserverCannotReplaceTheOriginalFailureOrBeRetriedByAGroup() {
+        var capture = new IllegalStateException("Evidence receiver failed");
+        var calls = new java.util.concurrent.atomic.AtomicInteger();
+        var rows = new RecordedAssertions(new AssertionValueDisplay(8, (field, text) -> text,
+                value -> { calls.incrementAndGet(); throw capture; }));
+        try (var scope = AuditedAssertionScope.open(getClass().getName(),
+                "aBrokenProjectionObserverCannotReplaceTheOriginalFailureOrBeRetriedByAGroup", rows)) {
+            var failure = assertThrows(org.opentest4j.MultipleFailuresError.class,
+                    () -> AuditedAssertions.assertAll(() -> AuditedAssertions.assertEquals(1, 2)));
+            assertEquals(1, failure.getFailures().size());
+            var original = assertInstanceOf(org.opentest4j.AssertionFailedError.class, failure.getFailures().getFirst());
+            assertEquals(1, original.getExpected().getValue());
+            assertEquals(2, original.getActual().getValue());
+            assertSame(capture, original.getSuppressed()[0]);
+        }
+        assertEquals(1, calls.get());
+    }
     @Test void sanitizesTheCompleteValueBeforeApplyingTheCharacterLimit() {
         String secret = "{\"password\":\"synthetic-canary-" + "q".repeat(280) + "\"}";
         var seen = new java.util.ArrayList<String>();

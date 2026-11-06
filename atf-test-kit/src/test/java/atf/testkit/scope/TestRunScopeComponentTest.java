@@ -1,5 +1,7 @@
 package atf.testkit.scope;
 
+import atf.testkit.assertions.AuditedAssertions;
+
 import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
@@ -23,10 +25,10 @@ class TestRunScopeComponentTest {
     @Test
     void classScopeSharesMethodsButSeparatesConcreteClasses() {
         var observed = execute("class", false, FirstFixture.class, SecondFixture.class);
-        assertEquals(0, observed.failedTests);
-        assertEquals(2, observed.created);
-        assertEquals(3, observed.values.size());
-        assertEquals(2, observed.values.stream().distinct().count());
+        AuditedAssertions.assertEquals(0, observed.failedTests);
+        AuditedAssertions.assertEquals(2, observed.created);
+        AuditedAssertions.assertEquals(3, observed.values.size());
+        AuditedAssertions.assertEquals(2, observed.values.stream().distinct().count());
         assertReleased(observed);
     }
 
@@ -34,13 +36,13 @@ class TestRunScopeComponentTest {
     void suiteScopeSharesClassesOnlyWithinTheCurrentExecution() {
         var first = execute("suite", false, FirstFixture.class, SecondFixture.class);
         var second = execute("suite", false, FirstFixture.class, SecondFixture.class);
-        assertEquals(0, first.failedTests + second.failedTests);
-        assertEquals(1, first.created);
-        assertEquals(1, second.created);
-        assertEquals(1, first.values.stream().distinct().count());
-        assertEquals(3, first.values.size());
-        assertNotSame(first.values.getFirst(), second.values.getFirst());
-        assertEquals(first.rootIds.getFirst(), second.rootIds.getFirst(),
+        AuditedAssertions.assertEquals(0, first.failedTests + second.failedTests);
+        AuditedAssertions.assertEquals(1, first.created);
+        AuditedAssertions.assertEquals(1, second.created);
+        AuditedAssertions.assertEquals(1, first.values.stream().distinct().count());
+        AuditedAssertions.assertEquals(3, first.values.size());
+        AuditedAssertions.assertNotSame(first.values.getFirst(), second.values.getFirst());
+        AuditedAssertions.assertEquals(first.rootIds.getFirst(), second.rootIds.getFirst(),
                 "identical textual engine IDs must not share resources across launches");
         assertReleased(first);
         assertReleased(second);
@@ -50,10 +52,10 @@ class TestRunScopeComponentTest {
     void repeatedClassLaunchesInTheSameJvmDoNotReuseValues() {
         var first = execute(null, false, FirstFixture.class);
         var second = execute(null, false, FirstFixture.class);
-        assertEquals(1, first.created);
-        assertEquals(1, second.created);
-        assertEquals(0, first.failedTests + second.failedTests);
-        assertNotSame(first.values.getFirst(), second.values.getFirst());
+        AuditedAssertions.assertEquals(1, first.created);
+        AuditedAssertions.assertEquals(1, second.created);
+        AuditedAssertions.assertEquals(0, first.failedTests + second.failedTests);
+        AuditedAssertions.assertNotSame(first.values.getFirst(), second.values.getFirst());
         assertReleased(first);
         assertReleased(second);
     }
@@ -61,34 +63,34 @@ class TestRunScopeComponentTest {
     @Test
     void failedPreparationIsNotRetriedByTheFollowingMethod() {
         var observed = execute("class", true, FirstFixture.class);
-        assertEquals(2, observed.failedTests);
-        assertEquals(1, observed.created);
-        assertEquals(2, observed.values.size());
-        assertSame(observed.values.getFirst(), observed.values.getLast());
+        AuditedAssertions.assertEquals(2, observed.failedTests);
+        AuditedAssertions.assertEquals(1, observed.created);
+        AuditedAssertions.assertEquals(2, observed.values.size());
+        AuditedAssertions.assertSame(observed.values.getFirst(), observed.values.getLast());
         assertReleased(observed);
     }
 
     @Test
     void invalidScopeFailsBeforeTheFactory() {
         var observed = execute("unknown", false, FirstFixture.class);
-        assertEquals(2, observed.failedTests);
-        assertEquals(0, observed.created);
-        assertTrue(observed.values.isEmpty());
+        AuditedAssertions.assertEquals(2, observed.failedTests);
+        AuditedAssertions.assertEquals(0, observed.created);
+        AuditedAssertions.assertTrue(observed.values.isEmpty());
     }
 
     @Test
     void failedTestBodyStillReleasesItsClassScope() {
         var observed = execute("class", false, FailingBodyFixture.class);
-        assertEquals(1, observed.failedTests);
-        assertEquals(1, observed.created);
+        AuditedAssertions.assertEquals(1, observed.failedTests);
+        AuditedAssertions.assertEquals(1, observed.created);
         assertReleased(observed);
     }
 
     @Test
     void namespaceNameTypeAndScopeAreIndependent() {
         var observed = execute("suite", false, NamespaceFixture.class);
-        assertEquals(0, observed.failedTests);
-        assertEquals(5, observed.values.stream().distinct().count());
+        AuditedAssertions.assertEquals(0, observed.failedTests);
+        AuditedAssertions.assertEquals(5, observed.values.stream().distinct().count());
         assertReleased(observed);
     }
 
@@ -102,8 +104,8 @@ class TestRunScopeComponentTest {
             for (Class<?> fixture : fixtures) request.selectors(selectClass(fixture));
             var summary = new SummaryGeneratingListener();
             LauncherFactory.create().execute(request.build(), summary);
-            assertEquals(0, summary.getSummary().getTestsSkippedCount());
-            assertTrue(summary.getSummary().getTestsFoundCount() > 0);
+            AuditedAssertions.assertEquals(0, summary.getSummary().getTestsSkippedCount());
+            AuditedAssertions.assertTrue(summary.getSummary().getTestsFoundCount() > 0);
             observed.failedTests = summary.getSummary().getTestsFailedCount();
             return observed;
         } finally {
@@ -112,8 +114,8 @@ class TestRunScopeComponentTest {
     }
 
     private static void assertReleased(Observations observed) {
-        assertTrue(observed.values.stream().allMatch(ScopedTestValue::isClosed));
-        assertTrue(observed.values.stream().allMatch(value -> value.current().isEmpty()));
+        AuditedAssertions.assertTrue(observed.values.stream().allMatch(ScopedTestValue::isClosed));
+        AuditedAssertions.assertTrue(observed.values.stream().allMatch(value -> value.current().isEmpty()));
     }
 
     private static final class Observations {

@@ -1,8 +1,8 @@
 # ATF Test Kit
 
-`atf-test-kit` oferă clasificare, lifecycle și comparații JUnit neutre, fără renderer, transport sau business. Codul și feedback-ul au owner în J0; copiile sursă din consumeri rămân până la adoptarea JAR-ului verificat.
+`atf-test-kit` oferă clasificare, lifecycle și comparații JUnit neutre, fără renderer, transport sau business. Codul și feedback-ul au owner în J0; J1–J5 folosesc perechea JAR/POM din lib, fără surse ori native Kit paralele.
 
-Produsul folosește Kit în `test`; suportul de test din main cere `compile` justificat, iar Console păstrează `optional compile`. Consumerul deține oracolul și publicarea. [Pregătirea bibliotecii](../../atf_j0/docs/ATF_Test_Kit_Library.md) delimitează migrarea și acceptanțele.
+Produsul folosește Kit în `test`; suportul de test din main cere `compile` justificat, iar Console păstrează `optional compile`. Consumerul deține oracolul și publicarea. [Contractul bibliotecii](../../atf_j0/docs/ATF_Test_Kit_Library.md) delimitează migrarea și acceptanțele.
 
 ## Pe scurt
 
@@ -457,6 +457,10 @@ trecerea întregului modul. Rendererul, browserul și regula business aparțin o
 `double` execută JUnit o singură dată și publică expected ± delta, actual
 și mesajul în assertion-step-ul standard. Nu reduce comparația la true/true;
 preview-ul rămâne 240, iar verdictul și cauza JUnit sunt păstrate.
+
+### Proiecția integrală opțională
+
+AssertionValueDisplay poate primi un observer Projection pentru expected/actual după redactare și înainte de preview. Captura nu reevaluează comparația; consumerul deține retenția și publicarea valorilor, iar limita implicită rămâne 240.
 
 ## Audit obligatoriu în corpul testului
 

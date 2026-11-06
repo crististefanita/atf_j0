@@ -18,8 +18,10 @@ import org.w3c.dom.Element;
 public record PlatformLibrarySurface(Path root, String artifact) {
     public PlatformLibrarySurface {
         root = root.toAbsolutePath().normalize();
-        require(List.of("console", "mock").contains(artifact), "LIB-ARTIFACT");
+        require(List.of("console", "mock", "test-kit").contains(artifact), "LIB-ARTIFACT");
     }
+
+    private String namespace() { return artifact.equals("test-kit") ? "atf/testkit/" : "atf/" + artifact + "/"; }
 
     public static Path workspace() {
         Path current = Path.of("").toAbsolutePath();
@@ -46,6 +48,7 @@ public record PlatformLibrarySurface(Path root, String artifact) {
         for (int index = 0; index < dependencies.getLength(); index++) {
             var dependency = (Element) dependencies.item(index);
             require(!text(dependency, "version").isBlank() || text(dependency, "groupId").startsWith("org.junit"), "LIB-DEPENDENCY-VERSION");
+            if (artifact.equals("test-kit")) require(!text(dependency, "groupId").equals("atf.api"), "LIB-KIT-BOUNDARY");
             if (!text(dependency, "groupId").equals("atf.api")) continue;
             String id = text(dependency, "artifactId");
             require(id.equals("atf-core") || id.equals("atf-test-kit"), "LIB-BOUNDARY");
@@ -53,12 +56,12 @@ public record PlatformLibrarySurface(Path root, String artifact) {
                     || artifact.equals("console") && text(dependency, "optional").equals("true"), "LIB-KIT-SCOPE");
         }
         if (source()) {
-            require(Files.isDirectory(root.resolve("atf-" + artifact + "/src/main/java/atf/" + artifact)), "LIB-SOURCE");
+            require(Files.isDirectory(root.resolve("atf-" + artifact + "/src/main/java").resolve(namespace())), "LIB-SOURCE");
             return;
         }
         require(!Files.exists(root.resolve("atf-" + artifact)), "LIB-SOURCE-SHADOW");
         require(text(project, "version").equals(version(root, artifact)), "LIB-COORDINATE");
-        require(text(project, "atf.core.version").equals(version(root, "core")), "LIB-CORE-VERSION");
+        if (!artifact.equals("test-kit")) require(text(project, "atf.core.version").equals(version(root, "core")), "LIB-CORE-VERSION");
         var ownership = new ObjectMapper().readTree(root.resolve("library-provenance.json").toFile()).path("platformLibraryOwnership");
         require(ownership.path("sourceOwner").asText().equals("atf_j0")
                 && ownership.path("feedbackOwner").asText().equals("atf_j0")
@@ -83,9 +86,9 @@ public record PlatformLibrarySurface(Path root, String artifact) {
         try (var archive = new JarFile(jar().toFile())) {
             var embedded = archive.getJarEntry("META-INF/maven/atf.api/atf-" + artifact + "/pom.xml");
             require(embedded != null && java.util.Arrays.equals(archive.getInputStream(embedded).readAllBytes(), Files.readAllBytes(publishedPom)), "LIB-EMBEDDED-POM");
-            require(archive.getJarEntry("atf/" + artifact + "/" + (artifact.equals("console") ? "AtfConsoleReporter" : "AtfMockTransport") + ".class") != null, "LIB-API");
+            require(archive.getJarEntry(namespace() + (artifact.equals("console") ? "AtfConsoleReporter" : artifact.equals("mock") ? "AtfMockTransport" : "assertions/RecordedAssertions") + ".class") != null, "LIB-API");
             require(archive.stream().noneMatch(entry -> entry.getName().endsWith(".java")
-                    || entry.getName().endsWith(".class") && !entry.getName().startsWith("atf/" + artifact + "/")), "LIB-NAMESPACE");
+                    || entry.getName().endsWith(".class") && !entry.getName().startsWith(namespace())), "LIB-NAMESPACE");
         }
         assertFlatLayout(root);
     }
@@ -121,8 +124,8 @@ public record PlatformLibrarySurface(Path root, String artifact) {
 
     public static void assertFlatLayout(Path root) throws Exception {
         var expected = new java.util.HashSet<String>();
-        expected.addAll(List.of("README.md", "README.Core.md", "README.Reporting.md", "README.Console.md", "README.Mock.md"));
-        for (String artifact : List.of("core", "reporting", "console", "mock")) {
+        expected.addAll(List.of("README.md", "README.Core.md", "README.Reporting.md", "README.Console.md", "README.Mock.md", "README.TestKit.md"));
+        for (String artifact : List.of("core", "reporting", "console", "mock", "test-kit")) {
             String version = version(root, artifact);
             if (!version.isBlank()) for (String extension : List.of("jar", "pom")) expected.add("atf-" + artifact + "-" + version + "." + extension);
         }
@@ -134,7 +137,7 @@ public record PlatformLibrarySurface(Path root, String artifact) {
     }
 
     public static String version(Path root, String artifact) throws Exception {
-        String value = text(xml(Files.readString(root.resolve("pom.xml"))), "atf." + artifact + ".version");
+        String value = text(xml(Files.readString(root.resolve("pom.xml"))), "atf." + (artifact.equals("test-kit") ? "testkit" : artifact) + ".version");
         require(value.isBlank() || value.matches("[A-Za-z0-9][A-Za-z0-9._-]*"), "LIB-UNSAFE-VERSION");
         return value;
     }

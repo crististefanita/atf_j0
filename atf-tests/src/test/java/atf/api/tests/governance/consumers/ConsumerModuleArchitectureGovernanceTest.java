@@ -355,9 +355,12 @@ public class ConsumerModuleArchitectureGovernanceTest {
     }
 
     @Test
-    void sharedInitializationAndNeutralProofsStayAtTheirOwners() throws IOException {
+    void sharedInitializationAndNeutralProofsStayAtTheirOwners() throws Exception {
         Path kit = module("atf-test-kit");
-        assertTrue(Files.isRegularFile(kit.resolve(
+        var kitSurface = new atf.libraries.PlatformLibrarySurface(AtfGovernanceTestSupport.locateProjectRoot(), "test-kit");
+        kitSurface.inspect();
+        kitSurface.assertLoaded(atf.testkit.lifecycle.TestRunInitialization.class);
+        if (kitSurface.source()) assertTrue(Files.isRegularFile(kit.resolve(
                 "src/main/java/atf/testkit/lifecycle/TestRunInitialization.java")),
                 "generic acquisition and rollback belong to Test Kit");
         if (consumer("atf-test-auto-ex")) {
@@ -388,7 +391,8 @@ public class ConsumerModuleArchitectureGovernanceTest {
                                     + "|com\\.microsoft\\.playwright\\.).*"),
                     "Test Kit must remain independent of Reporting and Playwright: " + source);
         }
-        String pom = Files.readString(kit.resolve("pom.xml"));
+        String pom = kitSurface.pom();
+        if (!kitSurface.source()) assertTrue(kitSurface.forbiddenReferences(List.of("atf.reporting", "atf.ui", "com.microsoft.playwright", "atf.shop", "atf.autoex")).isEmpty());
         for (String forbidden : List.of("atf-reporting", "atf-ui", "atf-reporting-tests",
                 "atf-test-practice-shop", "atf-test-auto-ex")) {
             assertFalse(pom.contains("<artifactId>" + forbidden + "</artifactId>"),
@@ -399,7 +403,10 @@ public class ConsumerModuleArchitectureGovernanceTest {
     @Test
     void sharedConsumerSupportIsWiredAtItsOwnerWithoutLocalCopies() throws Exception {
         Path kit = module("atf-test-kit");
-        for (String primitive : List.of("lifecycle/CloseOnceResource", "lifecycle/ArmedCleanup")) {
+        var kitSurface = new atf.libraries.PlatformLibrarySurface(AtfGovernanceTestSupport.locateProjectRoot(), "test-kit");
+        kitSurface.inspect();
+        kitSurface.assertLoaded(atf.testkit.lifecycle.CloseOnceResource.class);
+        if (kitSurface.source()) for (String primitive : List.of("lifecycle/CloseOnceResource", "lifecycle/ArmedCleanup")) {
             assertTrue(Files.isRegularFile(kit.resolve("src/main/java/atf/testkit/" + primitive + ".java")));
             assertTrue(Files.isRegularFile(kit.resolve("src/test/java/atf/testkit/" + primitive + "Test.java")));
         }

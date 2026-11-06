@@ -19,7 +19,7 @@ public final class LibraryGuideConsumer {
         Files.createDirectories(this.work);
         Path bundle = GuideBundle.selected();
         var artifacts = GuideBundle.publish(bundle, work.resolve("published"));
-        artifact = artifacts.stream().filter(item -> item.id().equals("atf-" + library.toLowerCase(java.util.Locale.ROOT))).findFirst().orElseThrow();
+        artifact = artifacts.stream().filter(item -> item.id().equals(library.equals("TestKit") ? "atf-test-kit" : "atf-" + library.toLowerCase(java.util.Locale.ROOT))).findFirst().orElseThrow();
         guide = new GuideMarkdown(Files.readString(bundle.resolve("README." + library + ".md")));
         Files.writeString(work.resolve("pom.xml"), pom(artifact, work.resolve("published")));
         var resolution = GuideProcesses.maven(work, List.of("org.apache.maven.plugins:maven-dependency-plugin:3.8.1:build-classpath",
@@ -92,12 +92,16 @@ public final class LibraryGuideConsumer {
 
     private String binaryOracle() {
         String entry = switch (artifact.id()) {
+            case "atf-test-kit" -> "atf.testkit.assertions.RecordedAssertions";
             case "atf-core" -> "atf.core.http.request.ApiRequest";
             case "atf-console" -> "atf.console.AtfConsoleReporter";
             case "atf-mock" -> "atf.mock.AtfMockTransport";
             case "atf-reporting" -> "atf.reporting.extent.session.ExtentReportSession";
             default -> throw new IllegalStateException("Unknown guide library");
         };
+        String isolation = artifact.id().equals("atf-test-kit")
+                ? "try { Class.forName(\"atf.reporting.audit.AssertionAuditRun\"); throw new AssertionError(\"Reporting leaked into Kit consumer\"); } catch (ClassNotFoundException expected) { }"
+                : "try { Class.forName(\"atf.testkit.AtfUnitTest\"); throw new AssertionError(\"Kit leaked into consumer\"); } catch (ClassNotFoundException expected) { }";
         return """
                 private static void assertBinary() throws Exception {
                     var loaded = java.nio.file.Path.of(Class.forName("%s").getProtectionDomain().getCodeSource().getLocation().toURI());
@@ -105,11 +109,10 @@ public final class LibraryGuideConsumer {
                     var digest = java.security.MessageDigest.getInstance("SHA-256");
                     String hash = java.util.HexFormat.of().formatHex(digest.digest(java.nio.file.Files.readAllBytes(loaded)));
                     if (!hash.equals("%s")) throw new AssertionError("Wrong binary hash");
-                    try { Class.forName("atf.testkit.AtfUnitTest"); throw new AssertionError("Kit leaked into consumer"); }
-                    catch (ClassNotFoundException expected) { }
+                    %s
                     System.out.println("GUIDE_BINARY=%s; SHA256=" + hash);
                 }
-                """.formatted(entry, artifact.hash(), artifact.id());
+                """.formatted(entry, artifact.hash(), isolation, artifact.id());
     }
 
     private static String pom(GuideBundle.Artifact artifact, Path published) {

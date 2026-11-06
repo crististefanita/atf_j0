@@ -16,7 +16,7 @@ J0 deține codul, contractele publice, testele native, împachetarea și feedbac
 | Reporting | [Reporting](ATF_Reporting_Feedback.md) |
 | Regresii generice Reporting | [Reporting Tests](ATF_Reporting_Tests_Feedback.md) |
 | Console și Mock | [Console / Mock](ATF_Console_Mock_Feedback.md) |
-| Test Kit și pregătire JAR | [Test Kit](ATF_Common_Test_Support_Feedback.md) |
+| Test Kit | [Test Kit](ATF_Common_Test_Support_Feedback.md) |
 
 
 ## Top feedback-uri active
@@ -25,15 +25,14 @@ Scorurile sunt priorități, nu note de calitate sau procente de acoperire. Form
 
 | Ordine | Owner și criteriu | Prioritate /100 | Restanță concretă |
 |---:|---|---:|---|
-| 1 | [Core fallback cancellation](ATF_Core_Feedback.md#core-urlconnection-cancel-126--body-subscription-and-dispatch-ownership) | 96 | pending body survives cancellation/deadline and can dispatch later; source/JAR reproduction, bounded ownership and permanent negatives required |
-| 2 | [Reporting unit baseline](ATF_Reporting_Tests_Feedback.md#report-unit-baseline-149--restore-the-complete-existing-unit-gate) | 93 | eight existing failures among 487 canonical unit cases; classify code/oracle causes and retain independent source/JAR negatives |
-| 3 | [SQL reporting](ATF_Reporting_Feedback.md#report-sql-steps-116--query-uri-și-rezultate-auditabile) | 88 | neutral typed steps, independent SQL budgets and separate J2 adoption |
-| 4 | [Long UI assertion evidence](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) | 88 | capture before caller preview and safe full-value disclosure; ACTION/OBSERVE is already delivered |
-| 5 | [Supported public API](ATF_Reporting_Feedback.md#report-public-api-43--suprafață-susținută-și-ownership) | 81 | supported surface, adapter capabilities and compatibility policy |
-| 6 | [Recovery projection](ATF_Reporting_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent) | 78 | typed attempt, cause, timing and budget projection |
-| 7 | [Release contract](ATF_Reporting_Feedback.md#report-release-contract-45--ce-conține-și-ce-promite-pachetul) | 73 | automated declared-toolchain gate and external distribution metadata |
+| 1 | [Reporting unit baseline](ATF_Reporting_Tests_Feedback.md#report-unit-baseline-149--restore-the-complete-existing-unit-gate) | 93 | eight existing failures among 487 canonical unit cases; classify code/oracle causes and retain independent source/JAR negatives |
+| 2 | [SQL reporting](ATF_Reporting_Feedback.md#report-sql-steps-116--query-uri-și-rezultate-auditabile) | 88 | neutral typed steps, independent SQL budgets and separate J2 adoption |
+| 3 | [Long UI assertion evidence](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) | 88 | capture before caller preview and safe full-value disclosure; ACTION/OBSERVE is already delivered |
+| 4 | [Supported public API](ATF_Reporting_Feedback.md#report-public-api-43--suprafață-susținută-și-ownership) | 81 | supported surface, adapter capabilities and compatibility policy |
+| 5 | [Recovery projection](ATF_Reporting_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent) | 78 | typed attempt, cause, timing and budget projection |
+| 6 | [Release contract](ATF_Reporting_Feedback.md#report-release-contract-45--ce-conține-și-ce-promite-pachetul) | 73 | automated declared-toolchain gate and external distribution metadata |
 
-Existing literal redaction, MIME, command correlation and lifecycle contracts retain their tests. The URLConnection body witness is a distinct transport gap; passing HttpClient or executor-wrapper cancellation does not close it.
+Contractele de redactare literală, MIME, corelare și lifecycle își păstrează probele. Core verifică separat anularea HttpClient și URLConnection; acceptanța fiecărui consumer rămâne distinctă.
 
 SQL typed steps are an explicitly requested expansion, separate from maintenance quality of existing features. Do not invent extensions or raise scores merely to reach a target; prioritize demonstrated correctness, auditability and ownership gaps first.
 
@@ -42,7 +41,7 @@ SQL typed steps are an explicitly requested expansion, separate from maintenance
 | Boundary | Delivered contract and retained proof |
 |---|---|
 | Ghiduri de consum | [Gate JAR/POM](../ATF_Platform_Libraries.md) |
-| Core | [Core consumer contract](../ATF_Core_Consumer.md): source/native ownership and independent physical-JAR acceptance; fallback cancellation remains explicitly limited |
+| Core | [Core consumer contract](../ATF_Core_Consumer.md): source/native ownership, body/deadline cancellation and independent physical-JAR acceptance |
 | Disclosure and governance | [display contract](../ATF_Reporting_Display_Contract.md): criteria 114/100 are delivered |
 | System, inspector and timing | [display contract](../ATF_Reporting_Display_Contract.md) and [Reporting owner contract](../../atf-reporting/README.md): criteria 117/66/62/83/124 are delivered |
 | Publication memory and full ACTION/OBSERVE | [Reporting owner contract](../../atf-reporting/README.md): criteria 131/132 are removed from the active ranking; bounded original source/JAR proof retained |
@@ -51,7 +50,7 @@ SQL typed steps are an explicitly requested expansion, separate from maintenance
 
 ## Cerințe transferate în J1
 
-[Registrul J1](../../../atf_j1/docs/feedback/README.md) deține guvernanța comună, designul AI și coordonarea consumerilor. Test Kit revine la ownerul J0; adopția binară rămâne în pregătire. ID-urile și probele sunt păstrate; transferul nu închide implementarea.
+[Registrul J1](../../../atf_j1/docs/feedback/README.md) deține guvernanța comună, designul AI și coordonarea consumerilor. Test Kit are owner în J0 și este consumat ca JAR în J1–J5, fără surse paralele. ID-urile și probele sunt păstrate; transferul nu închide implementarea.
 
 ## Păstrare, promovare și verificare
 

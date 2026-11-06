@@ -17,7 +17,7 @@ class PlatformLibraryIntegrityTest {
     @TempDir Path root;
 
     @Test void rejectsChangedJarPomAndParallelSourceWithoutSuppressingTheOriginalFailure() throws Exception {
-        for (String artifact : List.of("console", "mock")) {
+        for (String artifact : List.of("console", "mock", "test-kit")) {
             prepare(artifact);
             var surface = new PlatformLibrarySurface(root, artifact); surface.inspect();
             Path jar = surface.jar(); byte[] original = Files.readAllBytes(jar);
@@ -63,9 +63,10 @@ class PlatformLibraryIntegrityTest {
     private void prepare(String artifact) throws Exception {
         Files.createDirectories(root.resolve("lib"));
         Files.writeString(root.resolve("pom.xml"), "<project><properties><atf.core.version>fixture</atf.core.version><atf."
-                + artifact + ".version>fixture</atf." + artifact + ".version></properties></project>");
+                + (artifact.equals("test-kit") ? "testkit" : artifact) + ".version>fixture</atf."
+                + (artifact.equals("test-kit") ? "testkit" : artifact) + ".version></properties></project>");
         try (var files = Files.list(root.resolve("lib"))) { for (Path file : files.toList()) Files.delete(file); }
-        for (String guide : List.of("README.md", "README.Core.md", "README.Reporting.md", "README.Console.md", "README.Mock.md"))
+        for (String guide : List.of("README.md", "README.Core.md", "README.Reporting.md", "README.Console.md", "README.Mock.md", "README.TestKit.md"))
             Files.writeString(root.resolve("lib").resolve(guide), "# Library usage\n");
         for (String extension : List.of("jar", "pom")) Files.writeString(root.resolve("lib/atf-core-fixture." + extension), "fixture");
         String pom = "<project><groupId>atf.api</groupId><artifactId>atf-" + artifact
@@ -84,7 +85,7 @@ class PlatformLibraryIntegrityTest {
     private void pack(String artifact, String pom) throws Exception {
         try (var archive = new JarOutputStream(Files.newOutputStream(root.resolve("lib/atf-" + artifact + "-fixture.jar")))) {
             archive.putNextEntry(new JarEntry("META-INF/maven/atf.api/atf-" + artifact + "/pom.xml")); archive.write(pom.getBytes(java.nio.charset.StandardCharsets.UTF_8)); archive.closeEntry();
-            archive.putNextEntry(new JarEntry("atf/" + artifact + "/" + (artifact.equals("console") ? "AtfConsoleReporter" : "AtfMockTransport") + ".class"));
+            archive.putNextEntry(new JarEntry((artifact.equals("test-kit") ? "atf/testkit/assertions/RecordedAssertions" : "atf/" + artifact + "/" + (artifact.equals("console") ? "AtfConsoleReporter" : "AtfMockTransport")) + ".class"));
             archive.write(new byte[]{1}); archive.closeEntry();
         }
     }

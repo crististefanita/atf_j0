@@ -1,5 +1,7 @@
 package atf.testkit.evidence;
 
+import atf.testkit.assertions.AuditedAssertions;
+
 import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
 
@@ -18,26 +20,26 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AtfUiEvidenceResolverTest {
     @Test
     void absentAndConfiguredRemainDistinctWithoutInventingAnOverride() {
-        assertTrue(AtfUiEvidenceResolver.resolve(Object.class).isEmpty());
-        assertEquals(AtfUiEvidencePlan.configured(), AtfUiEvidenceResolver.resolve(Configured.class).orElseThrow());
+        AuditedAssertions.assertTrue(AtfUiEvidenceResolver.resolve(Object.class).isEmpty());
+        AuditedAssertions.assertEquals(AtfUiEvidencePlan.configured(), AtfUiEvidenceResolver.resolve(Configured.class).orElseThrow());
     }
 
     @Test
     void directComposedAndInheritedDeclarationsResolveTheSameIndependentAxes() {
         var expected = new AtfUiEvidencePlan(UNIFIED_FLOW, FINAL_AND_FAILURE, SUMMARY_ONLY);
-        assertEquals(expected, AtfUiEvidenceResolver.resolve(Direct.class).orElseThrow());
-        assertEquals(expected, AtfUiEvidenceResolver.resolve(Composed.class).orElseThrow());
-        assertEquals(expected, AtfUiEvidenceResolver.resolve(Inherited.class).orElseThrow());
-        assertEquals(AtfUiEvidencePlan.configured(), AtfUiEvidenceResolver.resolve(Reset.class).orElseThrow());
+        AuditedAssertions.assertEquals(expected, AtfUiEvidenceResolver.resolve(Direct.class).orElseThrow());
+        AuditedAssertions.assertEquals(expected, AtfUiEvidenceResolver.resolve(Composed.class).orElseThrow());
+        AuditedAssertions.assertEquals(expected, AtfUiEvidenceResolver.resolve(Inherited.class).orElseThrow());
+        AuditedAssertions.assertEquals(AtfUiEvidencePlan.configured(), AtfUiEvidenceResolver.resolve(Reset.class).orElseThrow());
     }
 
     @Test
     void complementaryCompositionsMergeAndConflictingAxesFailWithTheOwner() {
-        assertEquals(new AtfUiEvidencePlan(UNIFIED_FLOW, NONE, SUMMARY_ONLY),
+        AuditedAssertions.assertEquals(new AtfUiEvidencePlan(UNIFIED_FLOW, NONE, SUMMARY_ONLY),
                 AtfUiEvidenceResolver.resolve(Complementary.class).orElseThrow());
-        var failure = assertThrows(IllegalStateException.class, () -> AtfUiEvidenceResolver.resolve(Conflicting.class));
-        assertTrue(failure.getMessage().contains(Conflicting.class.getName()));
-        assertTrue(failure.getMessage().contains("screenshots"));
+        var failure = AuditedAssertions.assertThrows(IllegalStateException.class, () -> AtfUiEvidenceResolver.resolve(Conflicting.class));
+        AuditedAssertions.assertTrue(failure.getMessage().contains(Conflicting.class.getName()));
+        AuditedAssertions.assertTrue(failure.getMessage().contains("screenshots"));
     }
 
     @AtfUiEvidence static class Configured { }

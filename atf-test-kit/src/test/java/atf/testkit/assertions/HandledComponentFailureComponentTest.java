@@ -1,5 +1,7 @@
 package atf.testkit.assertions;
 
+import atf.testkit.assertions.AuditedAssertions;
+
 import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.*;
@@ -27,35 +29,35 @@ class HandledComponentFailureComponentTest {
     }
     @Test void swallowingABodyErrorCannotMakeJunitPassWhileItsReportFails() {
         var probe = launch(FailureCase.class);
-        assertEquals(1, probe.summary.getTestsFailedCount());
-        assertSame(probe.failure, probe.summary.getFailures().getFirst().getException());
-        assertEquals(ComponentAssertionAudit.Outcome.FAIL, probe.results.getFirst().outcome());
-        assertEquals(Duration.ofMillis(20), probe.results.getFirst().phases().getFirst().timing().orElseThrow().elapsed());
-        assertTrue(probe.results.getFirst().phases().getFirst().checks().getFirst().passed(), "a later runtime error must not fabricate a failed assertion");
-        assertEquals(1, probe.closed);
+        AuditedAssertions.assertEquals(1, probe.summary.getTestsFailedCount());
+        AuditedAssertions.assertSame(probe.failure, probe.summary.getFailures().getFirst().getException());
+        AuditedAssertions.assertEquals(ComponentAssertionAudit.Outcome.FAIL, probe.results.getFirst().outcome());
+        AuditedAssertions.assertEquals(Duration.ofMillis(20), probe.results.getFirst().phases().getFirst().timing().orElseThrow().elapsed());
+        AuditedAssertions.assertTrue(probe.results.getFirst().phases().getFirst().checks().getFirst().passed(), "a later runtime error must not fabricate a failed assertion");
+        AuditedAssertions.assertEquals(1, probe.closed);
     }
     @Test void swallowingAnAbortRetainsSkipAndItsMeasuredInterval() {
         var probe = launch(AbortCase.class);
-        assertEquals(1, probe.summary.getTestsAbortedCount());
-        assertEquals(0, probe.summary.getTestsFailedCount());
-        assertEquals(ComponentAssertionAudit.Outcome.ABORTED, probe.results.getFirst().outcome());
-        assertSame(probe.abort, probe.results.getFirst().failure());
-        assertEquals(Duration.ofMillis(40), probe.results.getFirst().phases().getFirst().timing().orElseThrow().elapsed());
+        AuditedAssertions.assertEquals(1, probe.summary.getTestsAbortedCount());
+        AuditedAssertions.assertEquals(0, probe.summary.getTestsFailedCount());
+        AuditedAssertions.assertEquals(ComponentAssertionAudit.Outcome.ABORTED, probe.results.getFirst().outcome());
+        AuditedAssertions.assertSame(probe.abort, probe.results.getFirst().failure());
+        AuditedAssertions.assertEquals(Duration.ofMillis(40), probe.results.getFirst().phases().getFirst().timing().orElseThrow().elapsed());
     }
     @Test void translatingAnErrorToAnAbortKeepsTheOriginalErrorPrimary() {
         var probe = launch(TranslatedCase.class);
-        assertEquals(1, probe.summary.getTestsFailedCount());
-        assertSame(probe.failure, probe.summary.getFailures().getFirst().getException());
-        assertEquals(List.of(probe.abort), List.of(probe.failure.getSuppressed()));
+        AuditedAssertions.assertEquals(1, probe.summary.getTestsFailedCount());
+        AuditedAssertions.assertSame(probe.failure, probe.summary.getFailures().getFirst().getException());
+        AuditedAssertions.assertEquals(List.of(probe.abort), List.of(probe.failure.getSuppressed()));
     }
     @Test void handledLifecycleErrorsKeepTheirOwnPhaseAndDoNotStopLaterCallbacks() {
         var probe = launch(LifecycleCase.class);
-        assertEquals(1, probe.summary.getTestsFailedCount());
-        assertSame(probe.failure, probe.summary.getFailures().getFirst().getException());
+        AuditedAssertions.assertEquals(1, probe.summary.getTestsFailedCount());
+        AuditedAssertions.assertSame(probe.failure, probe.summary.getFailures().getFirst().getException());
         var result = probe.results.getFirst();
-        assertEquals(List.of(9L, 20L, 11L), result.phases().stream().map(p -> p.timing().orElseThrow().elapsed().toMillis()).toList());
-        assertEquals(ComponentAssertionAudit.Outcome.FAIL, result.phases().getFirst().outcome());
-        assertEquals(ComponentAssertionAudit.Outcome.PASS, result.phases().get(1).outcome());
+        AuditedAssertions.assertEquals(List.of(9L, 20L, 11L), result.phases().stream().map(p -> p.timing().orElseThrow().elapsed().toMillis()).toList());
+        AuditedAssertions.assertEquals(ComponentAssertionAudit.Outcome.FAIL, result.phases().getFirst().outcome());
+        AuditedAssertions.assertEquals(ComponentAssertionAudit.Outcome.PASS, result.phases().get(1).outcome());
     }
     private static Probe launch(Class<?> fixture) {
         var probe = new Probe(); ACTIVE.set(probe);

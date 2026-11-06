@@ -93,6 +93,7 @@ public final class ComponentAssertionAudit {
         for (Phase phase : Phase.values()) {
             var recorder = recorder(phase);
             Throwable phaseFailure = failures.get(phase);
+            if (phaseFailure == null) phaseFailure = recorder.captureFailure();
             if (!started.contains(phase) && recorder.checks().isEmpty() && phaseFailure == null) continue;
             Outcome outcome = recorder.checks().stream().anyMatch(check -> !check.passed())
                     ? Outcome.FAIL : outcome(phaseFailure);

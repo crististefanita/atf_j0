@@ -570,12 +570,22 @@ temporare verifică JAR-urile fizice, fără surse de implementare shadow.
 | fidelitate | numerele păstrează tokenul exact, câmpurile duplicate rămân distincte, iar vecinii nesensibili rămân vizibili |
 | cancel după dispatch | future-ul expus transmite o singură cerere best effort upstream, cu același interrupt flag |
 | competiție cu finalizarea | primul rezultat terminal câștigă; cancel după succes/eșec nu anulează retroactiv operația |
+| URLConnection înainte de dispatch | operația deține subscription-ul body, workerul virtual și conexiunea; body-ul întârziat nu poate relansa un request terminal |
+| deadline URLConnection | body, connect și read împart bugetul monoton original; cleanup-ul deadline-ului este independent de carrierii virtuali, fără retry implicit |
 | cleanup refuzat/eșuat | anularea callerului rămâne terminală; excepția cleanup este suppressed, fără pretenție de rollback server-side |
 
 [HttpClientCancellationTest](src/test/java/atf/core/http/transport/HttpClientCancellationTest.java)
 controlează succesul, eșecul, anularea și cursele fără rețea.
 [HttpClientReadCancellationTest](src/test/java/atf/core/http/transport/HttpClientReadCancellationTest.java)
 verifică separat un GET local blocat: un dispatch, CANCELLED și fără răspuns inventat.
+
+[UrlConnectionCancellationTest](src/test/java/atf/core/http/transport/UrlConnectionCancellationTest.java) și
+[UrlConnectionDeadlineTest](src/test/java/atf/core/http/transport/UrlConnectionDeadlineTest.java)
+verifică subscription întârziat, deadline propriu și caller de 250 ms, publisher
+blocat, cauză/suppressed și curse; anularea după dispatch nu dovedește rollback.
+
+[Izolarea deadline-ului](src/test/java/atf/core/http/transport/UrlConnectionDeadlineIsolationTest.java)
+verifică într-un JVM separat progresul cu un singur carrier virtual blocat.
 
 [Proiecția console](src/test/java/atf/core/http/ApiExecutorConsoleRedactionTest.java)
 verifică absența canary-ului în fiecare canal, păstrând request/response originale.

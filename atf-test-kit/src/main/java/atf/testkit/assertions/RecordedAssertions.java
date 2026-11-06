@@ -13,6 +13,7 @@ public final class RecordedAssertions {
     private final List<Check> checks = new ArrayList<>();
     private final AssertionValueDisplay display;
     private Throwable failure;
+    private Throwable captureFailure;
 
     public RecordedAssertions() { this(DEFAULT_MAX_DISPLAYED_CHARACTERS); }
 
@@ -30,8 +31,13 @@ public final class RecordedAssertions {
 
     void record(String name, Object expected, Object actual, boolean passed, Throwable error) {
         if (AuditedAssertionScope.isSuppressed()) return;
-        checks.add(new Check(display.display(null, name), display.display(name, expected),
-                display.display(name, actual), passed));
+        try {
+            checks.add(new Check(display.display(null, name), display.comparison(name, AssertionValueDisplay.Role.EXPECTED, expected),
+                    display.comparison(name, AssertionValueDisplay.Role.ACTUAL, actual), passed));
+        } catch (Throwable capture) {
+            captureFailure(error == null ? capture : error);
+            throw capture;
+        }
         if (!passed && failure == null) failure = error;
     }
 
@@ -50,4 +56,9 @@ public final class RecordedAssertions {
 
     public List<Check> checks() { return List.copyOf(checks); }
     Throwable failure() { return failure; }
+    Throwable captureFailure() { return captureFailure; }
+    void captureFailure(Throwable cause) {
+        if (failure == null) failure = cause;
+        if (captureFailure == null) captureFailure = cause;
+    }
 }

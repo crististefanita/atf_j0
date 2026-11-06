@@ -1,35 +1,28 @@
-# Core — active ownership and cancellation gaps
+# Core — contracte și trasee de mentenanță
 
 ## Pe scurt
 
-Core owns transport execution, cancellation, redaction and filesystem promotion. Current contracts are in the [Core README](../../atf-core/README.md); the active gap is specific to the URLConnection fallback and must not be generalized to HttpClient.
+J0 deține execuția transporturilor, anularea, redactarea și promovarea fișierelor. Contractele și probele permanente sunt în [Core README](../../atf-core/README.md); consumerii păstrează acceptanța propriului deployment.
 
-## CORE-URLCONNECTION-CANCEL-126 — body subscription and dispatch ownership
-
-**Priority: 96/100** = impact 38 + gap 29 + actionable 20 + documentation 9.
-
-| Evidence | Observed behavior |
-|---|---|
-| source boundary | [UrlConnectionTransport.send/bodyBytes](../../atf-core/src/main/java/atf/core/http/transport/UrlConnectionTransport.java) uses an independent async supplier and an unbounded body future wait |
-| controlled cancellation | cancel returns true; the body subscription is not cancelled; controlled release causes a loopback request after termination |
-| controlled deadline | the original 250 ms caller deadline expires; the body survives; later release still dispatches |
-| distribution | both witnesses reproduce on freshly compiled source and the physical consumer JAR, without an external service |
-| existing protection | [transport catalog](../../atf-core/src/test/java/atf/core/http/transport/ApiLiveTransportCatalogTest.java) and HttpClient cancellation contracts do not close the fallback body lifecycle gap |
-
-- [ ] Give the operation explicit ownership of its body subscription, blocking worker and connection; cancellation must reach that operation instead of only completing its wrapper future.
-- [ ] Apply the remaining deadline to body collection and connection/read work; preserve a terminal guard immediately before dispatch so a late body cannot restart a cancelled operation.
-- [ ] Add permanent native tests with a controlled publisher and loopback receiver: cancellation, deadline, body failure, cancellation/completion race and cleanup failure; release every fixture resource in bounded finally blocks.
-- [ ] Re-run independent source/JAR witnesses; prove no post-terminal request, retain primary/suppressed causes and avoid retry or larger timeouts.
-- [ ] Revalidate both transport implementations and relevant consumer contracts before distributing a new Core package.
-
-**Closure:** the current implementation fails the new negatives; the corrected operation passes with no dispatch after pre-dispatch cancellation/deadline. Cancellation of an already dispatched mutation still does not establish rollback.
-
+<a id="core-urlconnection-cancel-126--body-subscription-and-dispatch-ownership"></a>
 <a id="core-console-redaction-124--sanitize-every-emitted-console-channel"></a>
 <a id="core-transport-cancel-125--retain-ownership-of-the-upstream-http-future"></a>
 
-## Stable contracts and owner routes
+## Contracte păstrate la owner
 
-- [Console projection and HttpClient cancellation](../../atf-core/README.md#proiecția-console-și-anularea-transportului) retain permanent native regressions.
-- [Reporting](ATF_Reporting_Feedback.md) owns renderer behavior; [Reporting Tests](ATF_Reporting_Tests_Feedback.md) owns neutral source/JAR rendering oracles.
-- The [J1 registry](../../../atf_j1/docs/feedback/README.md) coordinates common non-library criteria; consumers retain domain acceptance.
-- Approved test controls remain in the [technical baseline](../ATF_Test_Changes_Baseline.md), separate from active backlog.
+| Boundary | Contract și probă permanentă |
+|---|---|
+| HttpClient | [Anularea upstream](../../atf-core/README.md#proiecția-console-și-anularea-transportului), un singur rezultat terminal și cleanup suppressed |
+| URLConnection | Subscription body, worker virtual și conexiune deținute de aceeași operație; body-ul întârziat nu poate începe un dispatch după anulare sau deadline |
+| Deadline | Colectarea body-ului, connect și read folosesc bugetul original; [regresiile](../../atf-core/src/test/java/atf/core/http/transport/UrlConnectionDeadlineTest.java) păstrează 250 ms; [izolarea JVM](../../atf-core/src/test/java/atf/core/http/transport/UrlConnectionDeadlineIsolationTest.java) probează progresul când un carrier virtual este blocat |
+| Erori și curse | [Publisher controlat și loopback](../../atf-core/src/test/java/atf/core/http/transport/UrlConnectionCancellationTest.java): cauză originală, suppressed, finalizare concurentă și lipsa unui dispatch ulterior |
+| Distribuție | [Contractul consumerului](../ATF_Core_Consumer.md): native sursă/JAR, POM încorporat identic și perechi dependente coerente |
+
+Anularea unei operații deja expediate nu confirmă rollback și nu autorizează replay. Probele Core nu certifică aplicația, brokerul, dispozitivul ori ASR-ul consumerului.
+
+## Unde se înregistrează următoarea lacună
+
+- Trigger, coordonată/hash, reproducere minimă, așteptat/observat și criteriu negativ; o problemă a unui transport nu se generalizează la celălalt.
+- [Reporting](ATF_Reporting_Feedback.md) deține rendererul; [Reporting Tests](ATF_Reporting_Tests_Feedback.md) deține oracolele neutre de randare.
+- [Registrul J1](../../../atf_j1/docs/feedback/README.md) coordonează criteriile comune nonbibliotecă; consumerii păstrează acceptanța domeniului.
+- [Baseline-ul tehnic](../ATF_Test_Changes_Baseline.md) păstrează controalele Git separat de backlog.

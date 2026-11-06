@@ -27,7 +27,7 @@ class GuideBundleTest {
     @Test void realPairsAreValidatedAndMetadataDriftFailsBeforeResolution() throws Exception {
         Path bundle = fixture();
         var artifacts = GuideBundle.publish(bundle, root.resolve("published"));
-        assertEquals(4, artifacts.size());
+        assertEquals(5, artifacts.size());
         for (var artifact : artifacts) assertEquals(64, artifact.hash().length());
         Path pom = bundle.resolve("atf-core-fixture.pom");
         Files.writeString(pom, Files.readString(pom).replace("</project>", "<name>changed</name></project>"));
@@ -51,7 +51,7 @@ class GuideBundleTest {
 
     private Path fixture() throws Exception {
         Path bundle = Files.createDirectory(root.resolve("lib"));
-        for (String id : List.of("core", "reporting", "console", "mock")) {
+        for (String id : List.of("core", "reporting", "console", "mock", "test-kit")) {
             String pom = "<project><groupId>atf.api</groupId><artifactId>atf-" + id + "</artifactId><version>fixture</version></project>";
             Files.writeString(bundle.resolve("atf-" + id + "-fixture.pom"), pom);
             try (var output = new JarOutputStream(Files.newOutputStream(bundle.resolve("atf-" + id + "-fixture.jar")))) {

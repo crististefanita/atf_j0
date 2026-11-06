@@ -2,7 +2,7 @@
 
 ## Pe scurt
 
-J0 deține bibliotecile Core, Reporting, Console și Mock: cod, API, teste, împachetare și feedback. Codul rămâne în modulele sursă ale acestui proiect; consumerii ATF reutilizează perechile JAR/POM verificate.
+J0 deține bibliotecile Core, Reporting, Console, Mock și Test Kit: cod, API, teste, împachetare și feedback. Codul rămâne în modulele sursă ale acestui proiect; consumerii ATF reutilizează perechile JAR/POM verificate.
 
 ## Ghiduri de utilizare
 
@@ -12,6 +12,7 @@ J0 deține bibliotecile Core, Reporting, Console și Mock: cod, API, teste, împ
 | [Reporting](README.Reporting.md) | Extent/fallback, aserțiuni și dovezi UI/API | Rapoarte auditabile din observațiile consumerului. |
 | [Console](README.Console.md) | Evenimente și diagnostic configurabil | Urmărirea execuției în Maven și IntelliJ. |
 | [Mock](README.Mock.md) | Transport HTTP determinist | Componente și contracte offline, cu catalog propriu. |
+| [Test Kit](README.TestKit.md) | `atf-test-kit` · audit și lifecycle JUnit neutru | Clasificare, comparații și suportul testelor. |
 
 ## Mentenanță și feedback
 
@@ -21,6 +22,7 @@ J0 deține bibliotecile Core, Reporting, Console și Mock: cod, API, teste, împ
 | Reporting | [atf-reporting](../atf-reporting/README.md) | [Feedback](../docs/feedback/ATF_Reporting_Feedback.md) |
 | Console | [atf-console](../atf-console/README.md) | [Feedback](../docs/feedback/ATF_Console_Mock_Feedback.md) |
 | Mock | [atf-mock](../atf-mock/README.md) | [Feedback](../docs/feedback/ATF_Console_Mock_Feedback.md) |
+| Test Kit | [atf-test-kit](../atf-test-kit/README.md) | [Feedback](../docs/feedback/ATF_Common_Test_Support_Feedback.md) |
 
 [Registrul J0](../docs/feedback/README.md#biblioteci-comune) este punctul de intrare pentru toate proiectele. Regresiile generice de compoziție și randare Reporting rămân în [atf-reporting-tests](../atf-reporting-tests/README.md); celelalte teste native stau lângă implementarea bibliotecii.
 
@@ -59,7 +61,8 @@ flowchart LR
 
 | Control | Contract |
 |---|---|
-| Inventar consumer | Exact patru perechi JAR/POM, indexul și patru ghiduri de utilizare, direct în lib; fără versiuni suplimentare, depozit imbricat sau note de release. |
+| Inventar consumer | Exact cinci perechi JAR/POM, indexul și cinci ghiduri de utilizare, direct în lib; fără versiuni suplimentare, depozit imbricat sau note de release. |
+| Dependențe | Console și Mock fixează versiunea Core verificată; schimbarea ei cere republicarea JAR/POM împreună, fără editarea izolată a POM-ului. |
 | Identitate | Coordonate din POM; hash-uri și proveniență la rădăcină; POM-ul încorporat coincide cu perechea publicată. |
 | Încărcare | CodeSource indică JAR-ul fizic; sursele paralele și harness-urile native nu revin în consumer. |
 | Teste | [Exemple JAR/POM](../docs/ATF_Platform_Libraries.md#ghiduri-executabile-pe-publicația-binară) în J0; acceptanță locală la consumer. |
