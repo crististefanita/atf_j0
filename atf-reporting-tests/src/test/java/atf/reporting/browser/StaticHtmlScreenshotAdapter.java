@@ -1,5 +1,7 @@
 package atf.reporting.browser;
 
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
@@ -33,15 +35,21 @@ public final class StaticHtmlScreenshotAdapter {
             if (output.getParent() != null) {
                 Files.createDirectories(output.getParent());
             }
-            try (Playwright playwright = Playwright.create();
-                 Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
-                         .setHeadless(true))) {
-                Page page = browser.newPage(new Browser.NewPageOptions()
-                        .setViewportSize(viewportWidth, viewportHeight));
-                page.navigate(input.toUri().toString());
-                page.screenshot(new Page.ScreenshotOptions()
-                        .setPath(output)
-                        .setFullPage(true));
+            try (var playwrightLease = BrowserResources.open(Playwright::create);
+                 var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions()
+                         .setHeadless(true)))) {
+                try {
+                    Browser browser = browserLease.value();
+                    Page page = BrowserResources.newPage(browser, new Browser.NewContextOptions()
+                            .setViewportSize(viewportWidth, viewportHeight));
+                    page.navigate(input.toUri().toString());
+                    page.screenshot(new Page.ScreenshotOptions()
+                            .setPath(output)
+                            .setFullPage(true));
+                } catch (Exception | Error reportingBrowserFailure) {
+                    BrowserResources.recordFailure(reportingBrowserFailure);
+                    throw reportingBrowserFailure;
+                }
             }
             return new Capture(output.toAbsolutePath().normalize(), viewportWidth, viewportHeight,
                     isPng(output));

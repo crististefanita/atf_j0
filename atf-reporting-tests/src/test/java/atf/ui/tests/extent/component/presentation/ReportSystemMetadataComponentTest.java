@@ -1,5 +1,9 @@
 package atf.ui.tests.extent.component.presentation;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.testkit.AtfComponentTest;
 import atf.ui.tests.extent.support.presentation.PresentationReportFixture;
 import com.microsoft.playwright.*;
@@ -20,32 +24,49 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Reads the actual visible System rows, never a script/template marker or another table. */
 @AtfComponentTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ReportBrowserTest
 class ReportSystemMetadataComponentTest {
     @TempDir Path directory;
     private Playwright playwright;
     private Browser browser;
-    @BeforeAll void start() { playwright = Playwright.create(); browser = playwright.chromium().launch(); }
-    @AfterAll void stop() { if (browser != null) browser.close(); if (playwright != null) playwright.close(); }
+    @BeforeAll void start() { playwright = BrowserResources.create(Playwright::create); browser = BrowserResources.launch(playwright); }
+    @AfterAll void stop() {
+        BrowserResources.closeAll(browser, playwright);
+    }
     static Stream<Arguments> matrix() {
         return Stream.of(false, true).flatMap(fallback -> Stream.of(false, true).map(aggregate -> Arguments.of(fallback, aggregate)));
     }
     @ParameterizedTest @MethodSource("matrix")
     void overviewPublishesTheSameCommonFactsWithTheActualRenderer(boolean fallback, boolean aggregate) {
         Path file = PresentationReportFixture.publish(directory.resolve("metadata-" + fallback + "-" + aggregate + ".html"), fallback, aggregate);
-        try (var page = browser.newPage()) {
-            open(page, file, fallback);
-            assertEquals(expected(fallback), read(table(page, fallback)));
+        try (var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browser))) {
+            try {
+                var page = pageLease.value();
+                open(page, file, fallback);
+                assertEquals(expected(fallback), read(table(page, fallback)));
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
     @ParameterizedTest @ValueSource(booleans = {false, true})
     void oracleRejectsOneMissingFactWhileTheOtherTablesAndValuesRemain(boolean fallback) {
         Path file = PresentationReportFixture.publish(directory.resolve("mutant-" + fallback + ".html"), fallback, true);
-        try (var page = browser.newPage()) {
-            open(page, file, fallback);
-            var table = table(page, fallback);
-            assertEquals(expected(fallback), read(table));
-            table.locator("tr").filter(new Locator.FilterOptions().setHasText("Runtime")).evaluate("row => row.remove()");
-            assertThrows(AssertionError.class, () -> assertEquals(expected(fallback), read(table)));
+        try (var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browser))) {
+            try {
+                var page = pageLease.value();
+                open(page, file, fallback);
+                var table = table(page, fallback);
+                assertEquals(expected(fallback), read(table));
+                table.locator("tr").filter(new Locator.FilterOptions().setHasText("Runtime")).evaluate("row => row.remove()");
+                assertThrows(AssertionError.class, () -> assertEquals(expected(fallback), read(table)));
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
     private static void open(Page page, Path file, boolean fallback) {

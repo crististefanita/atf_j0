@@ -1,5 +1,9 @@
 package atf.ui.tests.extent.component.timing;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.testkit.AtfComponentTest;
 import atf.reporting.audit.*;
 import atf.reporting.contract.*;
@@ -21,6 +25,7 @@ import static atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary.Attribute.
 
 /** Numeric expectations are independent of publication speed, native timestamps and browser formatting. */
 @AtfComponentTest
+@ReportBrowserTest
 class ReportPhaseTimingComponentTest {
     private static final ReportPhaseAuditLocators PHASES = new ReportPhaseAuditLocators();
     private static final ReportPhaseTimingLocators TIMING = new ReportPhaseTimingLocators();
@@ -43,46 +48,60 @@ class ReportPhaseTimingComponentTest {
     @Test void browserUsesExecutionInsteadOfSnapshotPublicationAndDoesNotCountItTwice(@TempDir Path directory) throws Exception {
         var nativeReport = publish(directory.resolve("extent.html"), false);
         var fallback = publish(directory.resolve("fallback.html"), true);
-        try (var playwright = Playwright.create();
-             var browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            for (boolean plain : List.of(false, true)) try (var page = browser.newPage()) {
-                page.navigate((plain ? fallback : nativeReport).path().toUri() + (plain ? "" : "#test-view"));
-                if (plain) PHASES.testsTab(page, true).click();
-                else {
-                    PHASES.firstOwner(page).click();
-                    page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                var browser = browserLease.value();
+                for (boolean plain : List.of(false, true)) try (var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browser))) {
+                try {
+                    var page = pageLease.value();
+                        page.navigate((plain ? fallback : nativeReport).path().toUri() + (plain ? "" : "#test-view"));
+                        if (plain) PHASES.testsTab(page, true).click();
+                        else {
+                            PHASES.firstOwner(page).click();
+                            page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+                        }
+                        var scenario = PHASES.scenarios(page, plain).first();
+                        if (!plain) PHASES.header(scenario).click();
+                        var phases = PHASES.phases(scenario);
+                        assertEquals(3, phases.count());
+                        for (int index = 0; index < 3; index++) {
+                            var phase = phases.nth(index);
+                            if (!plain) PHASES.header(phase).click();
+                            String expected = List.of("12", "345", "0").get(index);
+                            assertEquals(expected, TIMING.metadata(phase).getAttribute(EXECUTION_DURATION.value()));
+                            assertEquals(expected, TIMING.badge(phase, plain).getAttribute(DURATION.value()));
+                            assertEquals("execution", TIMING.badge(phase, plain).getAttribute(DURATION_SOURCE.value()));
+                            assertEquals(index == 0 ? "2" : "1", TIMING.metadata(phase).getAttribute(EXECUTION_INTERVALS.value()));
+                            assertTrue(Long.parseLong(TIMING.metadata(phase).getAttribute(PUBLICATION_DURATION.value())) >= 0);
+                            var step = PHASES.assertionStep(phase);
+                            if (plain) PHASES.diagnosticSummary(step).click(); else PHASES.header(step).click();
+                            assertTrue(PHASES.assertionTable(step, plain).isVisible());
+                            assertEquals(1, PHASES.assertionRows(PHASES.assertionTable(step, plain)).count());
+                            if (!plain) {
+                                assertEquals("publication", TIMING.stepBadge(step).getAttribute(DURATION_SOURCE.value()));
+                                PHASES.header(step).press("Enter"); PHASES.header(step).press("Space");
+                            }
+                            assertEquals(expected, TIMING.badge(phase, plain).getAttribute(DURATION.value()), "reopening must not replace execution timing");
+                        }
+                        if (plain) {
+                            TIMING.overviewTab(page).click();
+                            assertEquals("1071", TIMING.fallbackOverviewDuration(page).getAttribute(DURATION.value()));
+                        } else {
+                            assertEquals("714", TIMING.classes(page).nth(0).getAttribute(DURATION.value()));
+                            assertEquals("357", TIMING.classes(page).nth(1).getAttribute(DURATION.value()));
+                            assertTrue(TIMING.timeline(page).getAttribute("aria-label").contains("1.071"), "Overview uses the same class execution totals");
+                        }
+            
+                } catch (Exception | Error reportingBrowserFailure) {
+                    BrowserResources.recordFailure(reportingBrowserFailure);
+                    throw reportingBrowserFailure;
                 }
-                var scenario = PHASES.scenarios(page, plain).first();
-                if (!plain) PHASES.header(scenario).click();
-                var phases = PHASES.phases(scenario);
-                assertEquals(3, phases.count());
-                for (int index = 0; index < 3; index++) {
-                    var phase = phases.nth(index);
-                    if (!plain) PHASES.header(phase).click();
-                    String expected = List.of("12", "345", "0").get(index);
-                    assertEquals(expected, TIMING.metadata(phase).getAttribute(EXECUTION_DURATION.value()));
-                    assertEquals(expected, TIMING.badge(phase, plain).getAttribute(DURATION.value()));
-                    assertEquals("execution", TIMING.badge(phase, plain).getAttribute(DURATION_SOURCE.value()));
-                    assertEquals(index == 0 ? "2" : "1", TIMING.metadata(phase).getAttribute(EXECUTION_INTERVALS.value()));
-                    assertTrue(Long.parseLong(TIMING.metadata(phase).getAttribute(PUBLICATION_DURATION.value())) >= 0);
-                    var step = PHASES.assertionStep(phase);
-                    if (plain) PHASES.diagnosticSummary(step).click(); else PHASES.header(step).click();
-                    assertTrue(PHASES.assertionTable(step, plain).isVisible());
-                    assertEquals(1, PHASES.assertionRows(PHASES.assertionTable(step, plain)).count());
-                    if (!plain) {
-                        assertEquals("publication", TIMING.stepBadge(step).getAttribute(DURATION_SOURCE.value()));
-                        PHASES.header(step).press("Enter"); PHASES.header(step).press("Space");
-                    }
-                    assertEquals(expected, TIMING.badge(phase, plain).getAttribute(DURATION.value()), "reopening must not replace execution timing");
-                }
-                if (plain) {
-                    TIMING.overviewTab(page).click();
-                    assertEquals("1071", TIMING.fallbackOverviewDuration(page).getAttribute(DURATION.value()));
-                } else {
-                    assertEquals("714", TIMING.classes(page).nth(0).getAttribute(DURATION.value()));
-                    assertEquals("357", TIMING.classes(page).nth(1).getAttribute(DURATION.value()));
-                    assertTrue(TIMING.timeline(page).getAttribute("aria-label").contains("1.071"), "Overview uses the same class execution totals");
-                }
+            }
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
         }
     }

@@ -1,5 +1,7 @@
 package atf.reporting.browser;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
 import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.html.HtmlReportSession;
 import atf.reporting.support.ApiReportTestUrls;
@@ -15,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Verifies the optional real-browser seam against a locally generated report only. */
 @AtfIntegrationTest
+@ReportBrowserTest
 class StaticHtmlScreenshotAdapterTest {
     private static final int VIEWPORT_WIDTH = 1280;
     private static final int VIEWPORT_HEIGHT = 900;

@@ -77,3 +77,14 @@ The long-assertion criterion also depends on upstream collection: Kit RecordedAs
 
 - [ ] Reconcile safe full-value retention with the [J1 Kit/Validation owner](../../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md); keep preview 240, compare original values once and sanitize before every display projection.
 - [ ] Add a neutral composition witness whose first mismatch lies after preview and an independent negative that removes only the retained suffix; full ACTION/OBSERVE disclosure does not by itself close assertion capture.
+
+## REPORT-SETUP-MEDIA-COMPLETENESS — captura acceptată trebuie păstrată sau refuzată
+
+**P1 · responsabil Reporting.** Ruta publică `UiPhase.setup` acceptă un `ReportScreenshot` valid cu liste de acțiuni și comparații goale, dar JAR-ul fizic `1.0.0-j22` publică numai «Setup evidence · 0 checks», fără legătură către PNG. Un profil logic și simpla căutare a prefixului base64 nu detectează pierderea: assets-urile raportului conțin propriile PNG-uri.
+
+- [ ] Caracterizați explicit combinațiile setup/observație/media, fără acțiuni ori comparații inventate. Dacă setup nu susține captura, refuzați intrarea la boundary cu diagnostic; nu o acceptați cu pierdere tăcută.
+- [ ] Regresia neutră confruntă payload-ul capturat cu PNG-ul rezolvat din legătura ownerului, inclusiv dimensiuni, pixeli și hash; un logo sau un sibling nu poate satisface proba.
+- [ ] Profilul artefactului trebuie să poată cere o imagine de observație fără HTTP și fără o aserțiune business artificială. Eliminați numai PNG-ul declarat și cereți eșec independent de resursele încorporate ale temei.
+- [ ] Calificați sursă și JAR fizic, Extent/fallback unde ruta este susținută, apoi viewerul detașat cu revenire la același owner. Documentați ruta publică intenționată pentru rastere JVM sintetice.
+
+[Proba neutră a consumatorului](../../../../whist_back/maintenance/20261107-gradle-release-final/image-probe.html) păstrează ruta setup cu raster controlat; nu este execuție Android. Consumatorul califică separat ruta publică media, fără modificarea JAR-ului sau postprocesarea HTML-ului.

@@ -230,6 +230,48 @@ Fidelitatea dovezii fiecărui scenariu are un
 [criteriu de audit independent](../docs/feedback/ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu).
 Un gate focalizat trecut nu înlocuiește rezultatul suitei canonice.
 
+Profilul Maven `reporting-release` păstrează suita unitară completă ca precondiție
+de livrare, alături de probele browser pentru taburi/hash/tastatură, inițializare
+idempotentă, asocierea request–fază–durată, viewport-uri și capturi originale.
+Cu dependențele reactorului instalate în cache-ul privat al staging-ului:
+
+```text
+mvn -pl atf-reporting-tests -Preporting-release test
+```
+
+`UnitBaselineBehaviorComponentTest` respinge tabul nelegat, inițializarea duplicată
+și request-ul/durata vecinului PASS. Deschiderea directă în Fails și reload-ul
+păstrează indexul după handlerul nativ Tests; reintroducerea clasei native a
+hostului trebuie respinsă de același oracol. `ScreenshotLinkContract` verifică linkul DOM,
+octeții PNG și caption-ul; duplicatele, captura schimbată și caption-ul străin
+rămân controale negative. Un selector aflat în script nu este un link publicat.
+Aceeași selecție se execută și cu JAR-ul fizic, fără clase Reporting paralele;
+CodeSource și rezultatele se păstrează lângă candidatul din TMP.
+Pentru JAR-ul instalat în cache-ul privat, setează `atf.reporting.test.version`
+la versiunea publicată și rulează profilul fără `-am`. Implicit, proprietatea
+urmează `${project.version}` și păstrează execuția pe sursa reactorului.
+
+### Setup browser și verdict terminal
+
+`ReportArtifactProfileComponentTest` păstrează separat inspecția statică și
+proba interactivă. `BrowserProbeProcess` execută fiecare probă într-un JVM propriu;
+un factory blocat înainte de navigare produce FAIL, inclusiv când HTML-ul este conform.
+
+| Limită | Contract |
+|---|---|
+| Setup | 30 s, inclusiv pornirea JVM/SDK, launch și `newPage`; fără retry |
+| Verificare | 60 s pentru probă; pragurile originale de acțiune 5 s și navigare 30 s rămân independente |
+| Cleanup | 5 s pentru închiderea normală; la eșec, terminarea forțată are propriul termen de 5 s și vizează numai arborele procesului deținut |
+| Diagnostic | fază, PID-uri, log și stack-uri la timeout; matricea eșuată și controalele lifecycle păstrează directorul probei, iar cauza inițială precede erorile de cleanup |
+| TMP nativ | director scurt, unic și marcat cu owner; JVM și SDK primesc aceeași rădăcină, fără profil browser în TMP-ul comun |
+| Acceptanță | fază terminală DONE, exit 0 și resurse închise; lipsa verdictului nu este PASS |
+
+`BrowserProbeProcessComponentTest` acoperă factory-ul necooperant, cleanup-ul blocat,
+cauzele suprimate și întreruperea părintelui; un proces independent trebuie să
+supraviețuiască. Același SDK și aceleași probe rulează pe sursa reactorului și pe
+JAR-ul fizic prin `reporting-release`. Harness-ul rămâne în J0, fără Playwright
+adăugat în biblioteca standalone ori în consumerii fără browser.
+
 ### Tabele publicate și inventar independent
 
 `PublishedEvidenceTableComponentTest` publică UI, API și UI+API prin porturile
@@ -1349,3 +1391,26 @@ Neutral captured input is verified independently on source and physical JAR, in 
 | `UiActionAttributionComponentTest` | actual keyboard expansion and Fails backlinks; no helper repairs after navigation; original 10 s action/readiness and 45 s navigation bounds |
 | `UiActionAttributionComponentSuite` | focused Maven/IDE discovery on source and physical JAR |
 | screenshot population | actual DOM anchors and multiplicity; script-only, one-frame, duplicate-anchor and missing-attribute controls |
+
+## Izolarea tuturor intrărilor browser
+
+`@ReportBrowserTest` execută o singură dată selecția clasei într-un worker deținut exclusiv. Metodele, iterațiile și cazurile dinamice păstrează identitatea JUnit; fiecare rezultat părinte cere verdictul terminal al cazului original. `@BeforeAll` și `@AfterAll` rămân comune selecției.
+
+| Boundary | Contract |
+|---|---|
+| setup / cleanup | `BrowserResources` păstrează obiectele SDK concrete; setup 30 s, cleanup 5 s pe apel SDK efectiv, cu limita globală legacy păstrată separat |
+| publicare | închiderea unui server ori publicarea HTML păstrează faza apelantului; numai disposal-ul SDK consumă termenul de cleanup |
+| verificare | 120 s per scope de verificare și 10 min per clasă; pragurile existente pentru acțiuni, navigare și performanță rămân independente |
+| eroare | cauza inițială rămâne primară; excepțiile de disposal păstrează încercarea celorlalte resurse și devin suppressed; un blocaj oprește workerul și procesele proprii |
+| identitate | resurse distincte rămân distincte la disposal; referințele slabe păstrează închiderea idempotentă fără retenția obiectelor SDK |
+| selecție | rezultat absent, străin, duplicat, zero cazuri, skip/abort sau container eșuat refuză PASS |
+| cauză inițială | corpul testului este capturat înainte de disposal; erorile prinse intenționat sunt eliminate din diagnosticul provizoriu după finalizarea corpului |
+| diagnostic | stdout/stderr Java sunt UTF-8; octeții nativi invalizi nu înlocuiesc eroarea originală, iar fișierul brut rămâne păstrat |
+| output | rapoartele workerului folosesc scratch-ul scurt deținut exclusiv; scratch.path și ATF_OWNER leagă output-ul de folderul de diagnostic |
+| procese | sampling-ul descendenților este separat de deadline; eșecul recitește imediat inventarul, iar un PID reutilizat înlocuiește numai handle-ul propriu deja mort |
+| canal de faze | citire incrementală, fără rescanarea jurnalului; numai cadrul complet schimbă faza, iar markerii imuabili păstrează auditul |
+| inventar | guvernanța inspectează apelurile SDK tipizate și traseele indirecte; `AtfReportingBrowserSuite` selectează tagul `report-browser` |
+
+Profilul `reporting-release` selectează suita unitară canonică și suita browser, pe sursă și JAR fizic. Regresiile compilează și un client controlat pentru metoda individuală, iterație și caz dinamic; setup-ul necooperativ și cleanup-ul blocat trebuie refuzate.
+
+Logurile, markerii de fază, stack-urile și HTML-urile rămân în TMP. Preview-ul 240, PNG-urile și oracolele originale nu sunt înlocuite de succesul transportului workerului.

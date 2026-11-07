@@ -1,5 +1,7 @@
 package atf.ui.tests.extent.support.inspection.disclosure;
 
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.api.ReportAttemptRecord;
@@ -52,121 +54,142 @@ public final class ExtentReportDisclosureProbe {
     public static void verifyReferencedScreenshot() {
         Path report = checkpointReport();
         var common = new ReportUiLocators();
-        try (Playwright playwright = Playwright.create();
-             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            Page page = browser.newPage();
-            List<String> errors = new ArrayList<>();
-            page.onPageError(errors::add);
-            page.navigate(report.toUri() + "#test-view");
-            LOCATORS.firstOwner(page).click();
-            page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
-            Locator scenarios = LOCATORS.scenarios(page);
-            assertEquals("false", scenarios.first().getAttribute("data-atf-scenario-open"),
-                    "the canonical image belongs to an unexpanded scenario");
-            Locator duplicateScenario = scenarios.nth(1);
-            openIfClosed(duplicateScenario, "data-atf-scenario-open");
-            Locator phase = LOCATORS.firstPhase(duplicateScenario);
-            openIfClosed(phase, "data-atf-phase-open");
-            Locator checkpoint = LOCATORS.requests(phase).first();
-            openIfClosed(checkpoint, "data-atf-node-open");
-            Locator validation = LOCATORS.validations(checkpoint).first();
-            openIfClosed(validation, "data-atf-node-open");
-            LOCATORS.summary(common.actionSequences(validation).first()).click();
-            Locator duplicate = common.duplicateScreenshotMarkers(validation).first();
-            assertEquals(1, duplicate.count());
-            String originalUrl = page.url();
-            for (boolean keyboard : List.of(false, true)) {
-                if (keyboard) duplicate.press("Enter");
-                else duplicate.click();
-                Locator lightbox = common.lightbox(page);
-                lightbox.waitFor(new Locator.WaitForOptions().setState(VISIBLE));
-                Locator image = common.lightboxImage(lightbox);
-                assertTrue(image.getAttribute("src").startsWith("data:image/png;base64,"));
-                assertEquals(originalUrl, page.url(), "media access must not jump to a hidden anchor");
-                assertEquals("false", scenarios.first().getAttribute("data-atf-scenario-open"));
-                common.lightboxClose(lightbox).click();
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                Browser browser = browserLease.value();
+                Page page = BrowserResources.newPage(browser);
+                List<String> errors = new ArrayList<>();
+                page.onPageError(errors::add);
+                page.navigate(report.toUri() + "#test-view");
+                LOCATORS.firstOwner(page).click();
+                page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+                Locator scenarios = LOCATORS.scenarios(page);
+                assertEquals("false", scenarios.first().getAttribute("data-atf-scenario-open"),
+                        "the canonical image belongs to an unexpanded scenario");
+                Locator duplicateScenario = scenarios.nth(1);
+                openIfClosed(duplicateScenario, "data-atf-scenario-open");
+                Locator phase = LOCATORS.firstPhase(duplicateScenario);
+                openIfClosed(phase, "data-atf-phase-open");
+                Locator checkpoint = LOCATORS.requests(phase).first();
+                openIfClosed(checkpoint, "data-atf-node-open");
+                Locator validation = LOCATORS.validations(checkpoint).first();
+                openIfClosed(validation, "data-atf-node-open");
+                LOCATORS.summary(common.actionSequences(validation).first()).click();
+                Locator duplicate = common.duplicateScreenshotMarkers(validation).first();
+                assertEquals(1, duplicate.count());
+                String originalUrl = page.url();
+                for (boolean keyboard : List.of(false, true)) {
+                    if (keyboard) duplicate.press("Enter");
+                    else duplicate.click();
+                    Locator lightbox = common.lightbox(page);
+                    lightbox.waitFor(new Locator.WaitForOptions().setState(VISIBLE));
+                    Locator image = common.lightboxImage(lightbox);
+                    assertTrue(image.getAttribute("src").startsWith("data:image/png;base64,"));
+                    assertEquals(originalUrl, page.url(), "media access must not jump to a hidden anchor");
+                    assertEquals("false", scenarios.first().getAttribute("data-atf-scenario-open"));
+                    common.lightboxClose(lightbox).click();
+                }
+                assertTrue(errors.isEmpty(), () -> "Report runtime errors: " + errors);
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            assertTrue(errors.isEmpty(), () -> "Report runtime errors: " + errors);
         }
     }
 
     public static void verifyCustomValidationTitleLocator() {
-        try (Playwright playwright = Playwright.create();
-             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            Page page = browser.newPage();
-            String customTitle = "Catalog evidence audit";
-            String markup = """
-                    <div id="test-view"><div class="test-content-detail">
-                      <div data-atf-node-role="validation">
-                        <div class="card-header"><div class="card-title">
-                          <a class="node">%s</a>
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                Browser browser = browserLease.value();
+                Page page = BrowserResources.newPage(browser);
+                String customTitle = "Catalog evidence audit";
+                String markup = """
+                        <div id="test-view"><div class="test-content-detail">
+                          <div data-atf-node-role="validation">
+                            <div class="card-header"><div class="card-title">
+                              <a class="node">%s</a>
+                            </div></div>
+                            %s
+                          </div>
                         </div></div>
-                        %s
-                      </div>
-                    </div></div>
-                    """;
-            var locators = new ReportUiLocators();
-            page.setContent(markup.formatted(customTitle,
-                    "<details class=\"atf-ui-action-sequence\"></details>"));
-            assertEquals(customTitle, locators.uiValidationNodes(page).innerText());
-            page.setContent(markup.formatted(customTitle, "<details class=\"request-evidence\"></details>"));
-            assertEquals(0, locators.uiValidationNodes(page).count(),
-                    "an API-only validation is not a UI action-evidence section");
+                        """;
+                var locators = new ReportUiLocators();
+                page.setContent(markup.formatted(customTitle,
+                        "<details class=\"atf-ui-action-sequence\"></details>"));
+                assertEquals(customTitle, locators.uiValidationNodes(page).innerText());
+                page.setContent(markup.formatted(customTitle, "<details class=\"request-evidence\"></details>"));
+                assertEquals(0, locators.uiValidationNodes(page).count(),
+                        "an API-only validation is not a UI action-evidence section");
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 
     public static void verifyUiCheckpointEvidence() {
         Path report = checkpointReport();
-        try (Playwright playwright = Playwright.create();
-             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            Page page = browser.newPage();
-            List<String> errors = new ArrayList<>();
-            page.onPageError(errors::add);
-            page.navigate(report.toUri() + "#test-view");
-            LOCATORS.firstOwner(page).click();
-            page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
-            Locator scenarios = LOCATORS.scenarios(page);
-            assertEquals(3, scenarios.count());
-            for (int index = 0; index < scenarios.count(); index++) {
-                Locator scenario = scenarios.nth(index);
-                openIfClosed(scenario, "data-atf-scenario-open");
-                Locator phase = LOCATORS.firstPhase(scenario);
-                openIfClosed(phase, "data-atf-phase-open");
-                Locator checkpoint = LOCATORS.requests(phase).first();
-                openIfClosed(checkpoint, "data-atf-node-open");
-                assertAll(
-                        () -> assertEquals(0, LOCATORS.directLogTables(checkpoint).count(),
-                                "UI context must not create a Status/Details log table"),
-                        () -> assertEquals(0, LOCATORS.directRequestEvidence(checkpoint).count()),
-                        () -> assertEquals(0, LOCATORS.directEvidence(checkpoint, RESPONSE_EVIDENCE).count(),
-                                "checkpoint policy must not become a synthetic HTTP response"),
-                        () -> assertFalse(checkpoint.innerText().contains("REQUEST ACTION")),
-                        () -> assertFalse(checkpoint.innerText().contains("REQUEST TARGET")));
-                Locator validation = LOCATORS.validations(checkpoint);
-                openIfClosed(validation.first(), "data-atf-node-open");
-                Locator assertions = LOCATORS.assertionSummary(validation.first());
-                if (assertions.count() > 0) assertions.click();
-                assertTrue(LOCATORS.assertionTables(validation.first()).isVisible());
-                assertEquals(1, LOCATORS.screenshots(validation.first()).count(),
-                        () -> "Selected validation DOM: " + validation.first().innerHTML());
-                if (index == 0) {
-                    openIfClosed(validation.nth(1), "data-atf-node-open");
-                    Locator exchange = LOCATORS.requests(validation.nth(1)).first();
-                    openIfClosed(exchange, "data-atf-node-open");
-                    assertEquals(1, LOCATORS.evidence(exchange, REQUEST_EVIDENCE).count());
-                    assertEquals(1, LOCATORS.evidence(exchange, RESPONSE_EVIDENCE).count());
-                    assertEquals(1, LOCATORS.evidence(exchange, EXECUTION_EVIDENCE).count());
-                    assertTrue(exchange.textContent().contains("REQUEST JSON"));
-                    assertTrue(exchange.textContent().contains("RESPONSE JSON"));
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                Browser browser = browserLease.value();
+                Page page = BrowserResources.newPage(browser);
+                List<String> errors = new ArrayList<>();
+                page.onPageError(errors::add);
+                page.navigate(report.toUri() + "#test-view");
+                LOCATORS.firstOwner(page).click();
+                page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+                Locator scenarios = LOCATORS.scenarios(page);
+                assertEquals(3, scenarios.count());
+                for (int index = 0; index < scenarios.count(); index++) {
+                    Locator scenario = scenarios.nth(index);
+                    openIfClosed(scenario, "data-atf-scenario-open");
+                    Locator phase = LOCATORS.firstPhase(scenario);
+                    openIfClosed(phase, "data-atf-phase-open");
+                    Locator checkpoint = LOCATORS.requests(phase).first();
+                    openIfClosed(checkpoint, "data-atf-node-open");
+                    assertAll(
+                            () -> assertEquals(0, LOCATORS.directLogTables(checkpoint).count(),
+                                    "UI context must not create a Status/Details log table"),
+                            () -> assertEquals(0, LOCATORS.directRequestEvidence(checkpoint).count()),
+                            () -> assertEquals(0, LOCATORS.directEvidence(checkpoint, RESPONSE_EVIDENCE).count(),
+                                    "checkpoint policy must not become a synthetic HTTP response"),
+                            () -> assertFalse(checkpoint.innerText().contains("REQUEST ACTION")),
+                            () -> assertFalse(checkpoint.innerText().contains("REQUEST TARGET")));
+                    Locator validation = LOCATORS.validations(checkpoint);
+                    openIfClosed(validation.first(), "data-atf-node-open");
+                    Locator assertions = LOCATORS.assertionSummary(validation.first());
+                    if (assertions.count() > 0) assertions.click();
+                    assertTrue(LOCATORS.assertionTables(validation.first()).isVisible());
+                    assertEquals(1, LOCATORS.screenshots(validation.first()).count(),
+                            () -> "Selected validation DOM: " + validation.first().innerHTML());
+                    if (index == 0) {
+                        openIfClosed(validation.nth(1), "data-atf-node-open");
+                        Locator exchange = LOCATORS.requests(validation.nth(1)).first();
+                        openIfClosed(exchange, "data-atf-node-open");
+                        assertEquals(1, LOCATORS.evidence(exchange, REQUEST_EVIDENCE).count());
+                        assertEquals(1, LOCATORS.evidence(exchange, RESPONSE_EVIDENCE).count());
+                        assertEquals(1, LOCATORS.evidence(exchange, EXECUTION_EVIDENCE).count());
+                        assertTrue(exchange.textContent().contains("REQUEST JSON"));
+                        assertTrue(exchange.textContent().contains("RESPONSE JSON"));
+                    }
+                    LOCATORS.header(checkpoint).click();
+                    assertFalse(LOCATORS.header(validation.first()).isVisible());
                 }
-                LOCATORS.header(checkpoint).click();
-                assertFalse(LOCATORS.header(validation.first()).isVisible());
+                assertAll(
+                        () -> assertTrue(errors.isEmpty(), () -> "Report runtime errors: " + errors),
+                        () -> assertEquals(0, LOCATORS.separators(page).count()),
+                        () -> assertEquals(Boolean.TRUE, page.evaluate(
+                                "document.documentElement.scrollWidth <= document.documentElement.clientWidth")));
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            assertAll(
-                    () -> assertTrue(errors.isEmpty(), () -> "Report runtime errors: " + errors),
-                    () -> assertEquals(0, LOCATORS.separators(page).count()),
-                    () -> assertEquals(Boolean.TRUE, page.evaluate(
-                            "document.documentElement.scrollWidth <= document.documentElement.clientWidth")));
         }
     }
 
@@ -201,71 +224,78 @@ public final class ExtentReportDisclosureProbe {
             scenario.complete(AtfReportStatus.PASS);
         }
 
-        try (Playwright playwright = Playwright.create();
-             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            Page page = browser.newPage();
-            page.navigate(report.toUri() + "#test-view");
-            LOCATORS.firstOwner(page).click();
-            page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
-            Locator scenario = LOCATORS.scenarios(page).first();
-            openIfClosed(scenario, "data-atf-scenario-open");
-            Locator phase = LOCATORS.firstPhase(scenario);
-            openIfClosed(phase, "data-atf-phase-open");
-            assertEquals(0, LOCATORS.evidence(phase, PHASE_DETAILS).count(),
-                    "internal phase metadata must not publish an audit disclosure");
-            assertEquals(0, LOCATORS.directLogTables(phase).count(),
-                    "removing the audit disclosure must not leave a phase log wrapper");
-            Locator request = LOCATORS.requests(phase).first();
-            assertTrue(request.count() > 0, "request node must be present in the generated report");
-            Locator validation = LOCATORS.validations(request).first();
-            assertEquals("validation", validation.getAttribute("data-atf-node-role"),
-                    "a custom validation title must not change its semantic role");
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                Browser browser = browserLease.value();
+                Page page = BrowserResources.newPage(browser);
+                page.navigate(report.toUri() + "#test-view");
+                LOCATORS.firstOwner(page).click();
+                page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+                Locator scenario = LOCATORS.scenarios(page).first();
+                openIfClosed(scenario, "data-atf-scenario-open");
+                Locator phase = LOCATORS.firstPhase(scenario);
+                openIfClosed(phase, "data-atf-phase-open");
+                assertEquals(0, LOCATORS.evidence(phase, PHASE_DETAILS).count(),
+                        "internal phase metadata must not publish an audit disclosure");
+                assertEquals(0, LOCATORS.directLogTables(phase).count(),
+                        "removing the audit disclosure must not leave a phase log wrapper");
+                Locator request = LOCATORS.requests(phase).first();
+                assertTrue(request.count() > 0, "request node must be present in the generated report");
+                Locator validation = LOCATORS.validations(request).first();
+                assertEquals("validation", validation.getAttribute("data-atf-node-role"),
+                        "a custom validation title must not change its semantic role");
 
-            Locator header = LOCATORS.header(request);
-            header.click();
-            assertState(request, true);
-            Locator requestEvidence = LOCATORS.evidence(request, REQUEST_EVIDENCE);
-            LOCATORS.summary(requestEvidence).click();
-            Locator viewport = LOCATORS.viewport(requestEvidence);
-            assertTrue(Boolean.TRUE.equals(viewport.evaluate("element => "
-                    + "element.scrollHeight > element.clientHeight && "
-                    + "getComputedStyle(element).overflowY === 'auto'")),
-                    "long request metadata must scroll within the shared viewport");
-            assertTrue(lastRowReachableWithStickyHeader(viewport),
-                    "the final request metadata row must be reachable below the sticky header");
-            Locator executionEvidence = LOCATORS.evidence(request, EXECUTION_EVIDENCE);
-            LOCATORS.summary(executionEvidence).click();
-            Locator retryViewport = LOCATORS.viewport(executionEvidence);
-            assertTrue(Boolean.TRUE.equals(retryViewport.evaluate("element => "
-                    + "element.scrollHeight > element.clientHeight && "
-                    + "getComputedStyle(element).overflowY === 'auto'")),
-                    "long retry history must scroll within the shared viewport");
-            assertEquals("40", LOCATORS.finalAttempt(retryViewport).innerText(),
-                    "the final retry row must remain in the rendered table");
-            assertTrue(lastRowReachableWithStickyHeader(retryViewport),
-                    "the final retry row must be reachable below the sticky header");
-            page.setViewportSize(760, 900);
-            assertTrue(lastRowReachableWithStickyHeader(viewport),
-                    "the final request metadata row must remain reachable at a narrow viewport");
-            assertTrue(lastRowReachableWithStickyHeader(retryViewport),
-                    "the final retry row must remain reachable at a narrow viewport");
-            assertEquals(Boolean.TRUE, page.evaluate(
-                    "document.documentElement.scrollWidth <= document.documentElement.clientWidth"),
-                    "narrow report layout must not introduce document-level horizontal overflow");
-            page.evaluate("() => window.scrollTo(0, 0)");
-            page.screenshot(new Page.ScreenshotOptions()
-                    .setPath(report.resolveSibling("extent-request-subtree-disclosure-narrow.png"))
-                    .setFullPage(true));
-            assertTrue(LOCATORS.assertionTables(validation).count() > 0,
-                    "custom-titled API validation must retain the direct assertion table");
-            assertEquals(0, LOCATORS.assertionSummary(validation).count());
-            header.click();
-            assertState(request, false);
-            header.focus();
-            header.press("Enter");
-            assertState(request, true);
-            header.press("Space");
-            assertState(request, false);
+                Locator header = LOCATORS.header(request);
+                header.click();
+                assertState(request, true);
+                Locator requestEvidence = LOCATORS.evidence(request, REQUEST_EVIDENCE);
+                LOCATORS.summary(requestEvidence).click();
+                Locator viewport = LOCATORS.viewport(requestEvidence);
+                assertTrue(Boolean.TRUE.equals(viewport.evaluate("element => "
+                        + "element.scrollHeight > element.clientHeight && "
+                        + "getComputedStyle(element).overflowY === 'auto'")),
+                        "long request metadata must scroll within the shared viewport");
+                assertTrue(lastRowReachableWithStickyHeader(viewport),
+                        "the final request metadata row must be reachable below the sticky header");
+                Locator executionEvidence = LOCATORS.evidence(request, EXECUTION_EVIDENCE);
+                LOCATORS.summary(executionEvidence).click();
+                Locator retryViewport = LOCATORS.viewport(executionEvidence);
+                assertTrue(Boolean.TRUE.equals(retryViewport.evaluate("element => "
+                        + "element.scrollHeight > element.clientHeight && "
+                        + "getComputedStyle(element).overflowY === 'auto'")),
+                        "long retry history must scroll within the shared viewport");
+                assertEquals("40", LOCATORS.finalAttempt(retryViewport).innerText(),
+                        "the final retry row must remain in the rendered table");
+                assertTrue(lastRowReachableWithStickyHeader(retryViewport),
+                        "the final retry row must be reachable below the sticky header");
+                page.setViewportSize(760, 900);
+                assertTrue(lastRowReachableWithStickyHeader(viewport),
+                        "the final request metadata row must remain reachable at a narrow viewport");
+                assertTrue(lastRowReachableWithStickyHeader(retryViewport),
+                        "the final retry row must remain reachable at a narrow viewport");
+                assertEquals(Boolean.TRUE, page.evaluate(
+                        "document.documentElement.scrollWidth <= document.documentElement.clientWidth"),
+                        "narrow report layout must not introduce document-level horizontal overflow");
+                page.evaluate("() => window.scrollTo(0, 0)");
+                page.screenshot(new Page.ScreenshotOptions()
+                        .setPath(report.resolveSibling("extent-request-subtree-disclosure-narrow.png"))
+                        .setFullPage(true));
+                assertTrue(LOCATORS.assertionTables(validation).count() > 0,
+                        "custom-titled API validation must retain the direct assertion table");
+                assertEquals(0, LOCATORS.assertionSummary(validation).count());
+                header.click();
+                assertState(request, false);
+                header.focus();
+                header.press("Enter");
+                assertState(request, true);
+                header.press("Space");
+                assertState(request, false);
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 
@@ -279,28 +309,35 @@ public final class ExtentReportDisclosureProbe {
             scenario.complete(AtfReportStatus.PASS);
         }
 
-        try (Playwright playwright = Playwright.create();
-             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            Page page = browser.newPage();
-            page.navigate(report.toUri() + "#test-view");
-            LOCATORS.firstOwner(page).click();
-            page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                Browser browser = browserLease.value();
+                Page page = BrowserResources.newPage(browser);
+                page.navigate(report.toUri() + "#test-view");
+                LOCATORS.firstOwner(page).click();
+                page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
 
-            Locator scenario = LOCATORS.scenarios(page).first();
-            openIfClosed(scenario, "data-atf-scenario-open");
-            Locator phase = LOCATORS.firstPhase(scenario);
-            Locator header = LOCATORS.header(phase);
-            assertEquals("false", phase.getAttribute("data-atf-node-expandable"),
-                    "an empty phase must be marked as a leaf");
-            assertNull(header.getAttribute("role"), "an empty phase header is not an interactive control");
-            assertNull(header.getAttribute("tabindex"), "an empty phase header is not keyboard-focusable");
-            assertNull(header.getAttribute("aria-expanded"), "a leaf must not announce an expansion state");
-            assertEquals("none", header.evaluate("element => getComputedStyle(element, '::before').display"),
-                    "an empty phase must not show a plus glyph");
+                Locator scenario = LOCATORS.scenarios(page).first();
+                openIfClosed(scenario, "data-atf-scenario-open");
+                Locator phase = LOCATORS.firstPhase(scenario);
+                Locator header = LOCATORS.header(phase);
+                assertEquals("false", phase.getAttribute("data-atf-node-expandable"),
+                        "an empty phase must be marked as a leaf");
+                assertNull(header.getAttribute("role"), "an empty phase header is not an interactive control");
+                assertNull(header.getAttribute("tabindex"), "an empty phase header is not keyboard-focusable");
+                assertNull(header.getAttribute("aria-expanded"), "a leaf must not announce an expansion state");
+                assertEquals("none", header.evaluate("element => getComputedStyle(element, '::before').display"),
+                        "an empty phase must not show a plus glyph");
 
-            header.click();
-            assertNull(phase.getAttribute("data-atf-phase-open"),
-                    "clicking an empty phase must not create a false open state");
+                header.click();
+                assertNull(phase.getAttribute("data-atf-phase-open"),
+                        "clicking an empty phase must not create a false open state");
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 

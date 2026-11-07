@@ -1,6 +1,9 @@
 package atf.ui.tests.extent.component.inspection.profile;
 
+import org.junit.jupiter.api.Tag;
+
 import atf.reporting.artifact.*;
+import atf.reporting.browser.lifecycle.BrowserProbeProcess;
 import atf.reporting.extent.session.ExtentReportSession;
 import atf.reporting.html.HtmlReportSession;
 import atf.reporting.contract.AtfReportPorts;
@@ -8,8 +11,6 @@ import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfReportStatus;
 import atf.testkit.AtfComponentTest;
 import atf.ui.tests.extent.support.inspection.ArtifactProfileFixture;
-import atf.ui.tests.extent.support.locators.diagnostic.ReportPhaseAuditLocators;
-import com.microsoft.playwright.*;
 import java.nio.file.*;
 import java.time.Instant;
 import java.util.List;
@@ -19,21 +20,17 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.io.CleanupMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
-import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /** A declared inventory accepts legitimate no-HTTP reports and refuses degradation at the exact original owner. */
 @AtfComponentTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Tag("report-browser")
 class ReportArtifactProfileComponentTest {
-    private static final ReportPhaseAuditLocators LOCATORS = new ReportPhaseAuditLocators();
-    @TempDir Path directory;
-    private Playwright playwright;
-    private Browser browser;
-    @BeforeAll void start() { playwright = Playwright.create(); browser = playwright.chromium().launch(); }
-    @AfterAll void stop() { if (browser != null) browser.close(); if (playwright != null) playwright.close(); }
+    @TempDir(cleanup = CleanupMode.ON_SUCCESS) Path directory;
 
     static Stream<Arguments> matrix() {
         return Stream.of(false, true).flatMap(fallback -> Stream.of(false, true)
@@ -97,42 +94,8 @@ class ReportArtifactProfileComponentTest {
         else refuseMutation(file, profile, "observation-row", doc -> doc.select("[data-atf-node-role=observation] table tbody > tr").get(original * 2).remove());
         var wrongRenderer = new ReportArtifactProfile(fallback ? ReportArtifactProfile.Renderer.EXTENT : ReportArtifactProfile.Renderer.FALLBACK, profile.scenarios());
         assertFalse(ReportArtifactInspector.inspect(file, wrongRenderer).isCompliant());
-        verifyBrowser(file, fallback, original, http);
-    }
-
-    private void verifyBrowser(Path file, boolean fallback, int original, boolean http) {
-        try (var page = browser.newPage(new Browser.NewPageOptions().setViewportSize(1100, 900))) {
-            page.setDefaultTimeout(5_000); page.setDefaultNavigationTimeout(30_000);
-            page.navigate(file.toUri() + (fallback ? "" : "#test-view"));
-            if (fallback) LOCATORS.testsTab(page, true).click();
-            else {
-                LOCATORS.firstOwner(page).click();
-                page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
-            }
-            var scenario = LOCATORS.scenarios(page, fallback).nth(original);
-            if (!fallback) LOCATORS.header(scenario).click();
-            var phase = LOCATORS.phases(scenario).first();
-            if (!fallback) LOCATORS.header(phase).click();
-            Locator group;
-            if (http) {
-                var request = LOCATORS.requests(phase, fallback).first();
-                if (!fallback) LOCATORS.header(request).click();
-                var validation = request.locator("[data-atf-node-role=validation]").first();
-                if (fallback) validation.locator("details.assertion-evidence > summary").click(); else LOCATORS.header(validation).click();
-                group = validation;
-            } else {
-                group = LOCATORS.assertionStep(phase).first();
-                if (fallback) group.locator("summary").first().press("Space"); else LOCATORS.header(group).press("Enter");
-            }
-            var table = group.locator((fallback ? "table.assertions" : "table.helm-validation-table") + ":visible");
-            assertThat(table).isVisible();
-            var rows = table.locator("tbody > tr"); assertEquals(3, rows.count());
-            assertEquals("13", rows.first().locator("td").nth(2).innerText());
-            assertEquals(fallback ? "Fail" : "❌", rows.first().locator("td").nth(3).innerText());
-            assertEquals(rows.nth(1).locator("td").nth(1).innerText(), rows.nth(1).locator("td").nth(2).innerText(), "bounded previews may match while the original verdict stays FAIL");
-            assertEquals(fallback ? "Fail" : "❌", rows.nth(1).locator("td").nth(3).innerText());
-            assertThat(rows.last()).isVisible(); assertTrue(rows.last().innerText().contains("final original comparison"));
-        }
+        BrowserProbeProcess.run(directory, ArtifactProfileBrowserProbe.class, file.toString(),
+                Boolean.toString(fallback), Integer.toString(original), Boolean.toString(http));
     }
 
     private static void refuseMutation(Path original, ReportArtifactProfile profile, String name, Consumer<Document> mutation) throws Exception {

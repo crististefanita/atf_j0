@@ -1,4 +1,5 @@
 package atf.reporting.html;
+import static atf.reporting.support.navigation.NavigationScriptContract.assertTabBindings;
 import atf.reporting.html.script.HtmlReportNavigationScript;
 import atf.testkit.AtfUnitTest;
 
@@ -19,7 +20,7 @@ class HtmlReportNavigationScriptTest {
 
         assertAll(
                 () -> assertNotNull(script),
-                () -> assertTrue(script.contains("document.querySelectorAll('.tab')")),
+                () -> assertTabBindings(script),
                 () -> assertTrue(script.contains("history.replaceState")),
                 () -> assertTrue(script.contains("activate('overview')")),
                 () -> assertTrue(script.contains("activate('tests')")));

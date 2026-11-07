@@ -1,5 +1,7 @@
 package atf.reporting.api.request;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
 import atf.reporting.api.ApiManualReplay;
 import atf.reporting.api.ReportTransportProvenance;
 import atf.reporting.api.evidence.ApiExchangeEvidence;
@@ -26,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary.escapeHtml;
 
 @AtfComponentTest
+@ReportBrowserTest
 class ObservedRequestEvidenceComponentTest {
     @ParameterizedTest(name = "{0}: {1}")
     @MethodSource("cases")

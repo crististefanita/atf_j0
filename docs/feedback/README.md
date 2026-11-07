@@ -25,12 +25,11 @@ Scorurile sunt priorități, nu note de calitate sau procente de acoperire. Form
 
 | Ordine | Owner și criteriu | Prioritate /100 | Restanță concretă |
 |---:|---|---:|---|
-| 1 | [Reporting unit baseline](ATF_Reporting_Tests_Feedback.md#report-unit-baseline-149--restore-the-complete-existing-unit-gate) | 93 | eight existing failures among 487 canonical unit cases; classify code/oracle causes and retain independent source/JAR negatives |
-| 2 | [SQL reporting](ATF_Reporting_Feedback.md#report-sql-steps-116--query-uri-și-rezultate-auditabile) | 88 | neutral typed steps, independent SQL budgets and separate J2 adoption |
-| 3 | [Long UI assertion evidence](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) | 88 | capture before caller preview and safe full-value disclosure; ACTION/OBSERVE is already delivered |
-| 4 | [Supported public API](ATF_Reporting_Feedback.md#report-public-api-43--suprafață-susținută-și-ownership) | 81 | supported surface, adapter capabilities and compatibility policy |
-| 5 | [Recovery projection](ATF_Reporting_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent) | 78 | typed attempt, cause, timing and budget projection |
-| 6 | [Release contract](ATF_Reporting_Feedback.md#report-release-contract-45--ce-conține-și-ce-promite-pachetul) | 73 | automated declared-toolchain gate and external distribution metadata |
+| 1 | [SQL reporting](ATF_Reporting_Feedback.md#report-sql-steps-116--query-uri-și-rezultate-auditabile) | 88 | neutral typed steps, independent SQL budgets and separate J2 adoption |
+| 2 | [Long UI assertion evidence](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) | 88 | capture before caller preview and safe full-value disclosure; ACTION/OBSERVE is already delivered |
+| 3 | [Supported public API](ATF_Reporting_Feedback.md#report-public-api-43--suprafață-susținută-și-ownership) | 81 | supported surface, adapter capabilities and compatibility policy |
+| 4 | [Recovery projection](ATF_Reporting_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent) | 78 | typed attempt, cause, timing and budget projection |
+| 5 | [Release contract](ATF_Reporting_Feedback.md#report-release-contract-45--ce-conține-și-ce-promite-pachetul) | 73 | automated declared-toolchain gate and external distribution metadata |
 
 Contractele de redactare literală, MIME, corelare și lifecycle își păstrează probele. Core verifică separat anularea HttpClient și URLConnection; acceptanța fiecărui consumer rămâne distinctă.
 

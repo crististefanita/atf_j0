@@ -1,5 +1,9 @@
 package atf.ui.tests.extent.component.inspection.validation;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.contract.AtfReportStatus;
 import atf.testkit.AtfComponentTest;
 import atf.ui.tests.extent.support.inspection.disclosure.ApiValidationDisclosureFixture;
@@ -26,18 +30,18 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
 /** Public API mock -> real publisher -> browser, including independent oracle degradation controls. */
 @AtfComponentTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ReportBrowserTest
 class ApiValidationDisclosureComponentTest {
     private static final ApiValidationDisclosureLocators DOM = new ApiValidationDisclosureLocators();
     private Playwright playwright;
     private Browser browser;
 
     @BeforeAll void startBrowser() {
-        playwright = Playwright.create();
-        browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
+        playwright = BrowserResources.create(Playwright::create);
+        browser = BrowserResources.launch(playwright, new BrowserType.LaunchOptions().setHeadless(true));
     }
     @AfterAll void closeBrowser() {
-        if (browser != null) browser.close();
-        if (playwright != null) playwright.close();
+        BrowserResources.closeAll(browser, playwright);
     }
 
     static Stream<Arguments> matrix() {
@@ -52,39 +56,46 @@ class ApiValidationDisclosureComponentTest {
             throws Exception {
         var report = ApiValidationDisclosureFixture.publish(fallback, aggregate, status);
         assertFalse(Files.readString(report).contains(ApiValidationDisclosureFixture.CANARY));
-        try (var page = browser.newPage()) {
-            page.setDefaultTimeout(5_000);
-            var errors = new ArrayList<String>();
-            page.onPageError(errors::add);
-            page.navigate(report.toUri() + "#test-view");
-            var table = arrive(page, fallback);
-            verifyClosed(table, fallback, status);
-            var disclosure = DOM.disclosure(table, fallback);
-            var summary = DOM.summary(disclosure, fallback);
-            summary.click();
-            assertThat(table).isVisible();
-            assertThat(summary).hasAttribute("aria-expanded", "true");
-            DOM.rows(table).last().scrollIntoViewIfNeeded();
-            assertThat(DOM.rows(table).last()).isVisible();
-            summary.press("Enter");
-            assertThat(table).isHidden();
-            summary.press("Space");
-            assertThat(table).isVisible();
-            if (status == AtfReportStatus.FAIL) {
+        try (var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browser))) {
+            try {
+                var page = pageLease.value();
+                page.setDefaultTimeout(5_000);
+                var errors = new ArrayList<String>();
+                page.onPageError(errors::add);
+                page.navigate(report.toUri() + "#test-view");
+                var table = arrive(page, fallback);
+                verifyClosed(table, fallback, status);
+                var disclosure = DOM.disclosure(table, fallback);
+                var summary = DOM.summary(disclosure, fallback);
                 summary.click();
-                DOM.followFailure(page, fallback);
-                table = DOM.table(DOM.validation(DOM.scenario(page, fallback, ApiValidationDisclosureFixture.SUBJECT)));
                 assertThat(table).isVisible();
-                assertEquals("JSON null · final comparison", DOM.cells(DOM.rows(table).last()).first().innerText().trim());
-                String deepLink = page.url();
-                page.reload();
-                assertEquals(deepLink, page.url());
-                assertThat(DOM.table(DOM.validation(DOM.scenario(page, fallback,
-                        ApiValidationDisclosureFixture.SUBJECT)))).isVisible();
+                assertThat(summary).hasAttribute("aria-expanded", "true");
+                DOM.rows(table).last().scrollIntoViewIfNeeded();
+                assertThat(DOM.rows(table).last()).isVisible();
+                summary.press("Enter");
+                assertThat(table).isHidden();
+                summary.press("Space");
+                assertThat(table).isVisible();
+                if (status == AtfReportStatus.FAIL) {
+                    summary.click();
+                    DOM.followFailure(page, fallback);
+                    table = DOM.table(DOM.validation(DOM.scenario(page, fallback, ApiValidationDisclosureFixture.SUBJECT)));
+                    assertThat(table).isVisible();
+                    assertEquals("JSON null · final comparison", DOM.cells(DOM.rows(table).last()).first().innerText().trim());
+                    String deepLink = page.url();
+                    page.reload();
+                    assertEquals(deepLink, page.url());
+                    assertThat(DOM.table(DOM.validation(DOM.scenario(page, fallback,
+                            ApiValidationDisclosureFixture.SUBJECT)))).isVisible();
+                }
+                page.setViewportSize(392, 860);
+                assertTrue((Boolean) table.evaluate("t => t.getBoundingClientRect().width <= innerWidth"), "narrow table width");
+                assertTrue(errors.isEmpty(), errors.toString());
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            page.setViewportSize(392, 860);
-            assertTrue((Boolean) table.evaluate("t => t.getBoundingClientRect().width <= innerWidth"), "narrow table width");
-            assertTrue(errors.isEmpty(), errors.toString());
         }
     }
 
@@ -93,13 +104,20 @@ class ApiValidationDisclosureComponentTest {
             "false,missing-disclosure", "false,initially-open", "false,stolen-final-row"})
     void oracleRejectsMissingDisclosureInitialExpansionAndSiblingEvidence(boolean fallback, String mutation) throws Exception {
         var report = ApiValidationDisclosureFixture.publish(fallback, true, AtfReportStatus.FAIL);
-        try (var page = browser.newPage()) {
-            page.setDefaultTimeout(5_000);
-            page.navigate(report.toUri() + "#test-view");
-            var table = arrive(page, fallback);
-            verifyClosed(table, fallback, AtfReportStatus.FAIL);
-            DOM.mutate(table, fallback, mutation);
-            assertThrows(AssertionError.class, () -> verifyClosed(table, fallback, AtfReportStatus.FAIL), mutation);
+        try (var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browser))) {
+            try {
+                var page = pageLease.value();
+                page.setDefaultTimeout(5_000);
+                page.navigate(report.toUri() + "#test-view");
+                var table = arrive(page, fallback);
+                verifyClosed(table, fallback, AtfReportStatus.FAIL);
+                DOM.mutate(table, fallback, mutation);
+                assertThrows(AssertionError.class, () -> verifyClosed(table, fallback, AtfReportStatus.FAIL), mutation);
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 
@@ -107,24 +125,31 @@ class ApiValidationDisclosureComponentTest {
     @CsvSource({"true,FAIL", "true,WARNING", "false,FAIL", "false,WARNING"})
     void preservesEachTypedMediaVerdictAndRejectsItsReassignment(boolean fallback, AtfReportStatus status) throws Exception {
         var report = ApiValidationDisclosureFixture.publishMedia(fallback, status);
-        try (var page = browser.newPage()) {
-            page.setDefaultTimeout(5_000);
-            page.navigate(report.toUri() + "#test-view");
-            var table = arrive(page, fallback);
-            verifyMedia(table, fallback, status);
-            DOM.swapFirstTwoResults(table);
-            assertThrows(AssertionError.class, () -> verifyMedia(table, fallback, status),
-                    "The same negative count on a different row must not pass");
-            DOM.swapFirstTwoResults(table);
-            verifyMedia(table, fallback, status);
-            DOM.summary(DOM.disclosure(table, fallback), fallback).click();
-            assertThat(table).isVisible();
-            DOM.rows(table).last().scrollIntoViewIfNeeded();
-            assertThat(DOM.rows(table).last()).isVisible();
-            DOM.summary(DOM.disclosure(table, fallback), fallback).press("Enter");
-            assertThat(table).isHidden();
-            DOM.summary(DOM.disclosure(table, fallback), fallback).press("Space");
-            assertThat(table).isVisible();
+        try (var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browser))) {
+            try {
+                var page = pageLease.value();
+                page.setDefaultTimeout(5_000);
+                page.navigate(report.toUri() + "#test-view");
+                var table = arrive(page, fallback);
+                verifyMedia(table, fallback, status);
+                DOM.swapFirstTwoResults(table);
+                assertThrows(AssertionError.class, () -> verifyMedia(table, fallback, status),
+                        "The same negative count on a different row must not pass");
+                DOM.swapFirstTwoResults(table);
+                verifyMedia(table, fallback, status);
+                DOM.summary(DOM.disclosure(table, fallback), fallback).click();
+                assertThat(table).isVisible();
+                DOM.rows(table).last().scrollIntoViewIfNeeded();
+                assertThat(DOM.rows(table).last()).isVisible();
+                DOM.summary(DOM.disclosure(table, fallback), fallback).press("Enter");
+                assertThat(table).isHidden();
+                DOM.summary(DOM.disclosure(table, fallback), fallback).press("Space");
+                assertThat(table).isVisible();
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 

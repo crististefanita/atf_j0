@@ -1,5 +1,7 @@
 package atf.ui.tests.extent.support.audit.query;
 
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.api.ReportQueryParameter;
 import atf.reporting.api.ReportQueryParameters;
 import atf.reporting.api.contract.*;
@@ -55,31 +57,38 @@ public final class QueryFailureReportProbe {
     }
 
     private static void verifyBrowser(Path file, boolean fallback) {
-        try (var playwright = Playwright.create();
-             var browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
-             var page = browser.newPage()) {
-            page.navigate(file.toUri().toString()); UI.overview(page, fallback).click();
-            assertEquals("1", UI.metric(page, fallback, fallback ? "Passed" : "Tests Passed").innerText());
-            assertEquals("1", UI.metric(page, fallback, fallback ? "Failed" : "Tests Failed").innerText());
-            UI.tests(page, fallback).click(); if (!fallback) UI.expandAll(page).click();
-            if (fallback) {
-                var disclosure = DISCLOSURE.fallbackAssertions(page);
-                assertThat(disclosure).not().hasAttribute("open", "");
-                DISCLOSURE.summary(disclosure).press("Enter"); assertThat(disclosure).hasAttribute("open", "");
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)));
+             var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browserLease.value()))) {
+            try {
+                var page = pageLease.value();
+                page.navigate(file.toUri().toString()); UI.overview(page, fallback).click();
+                assertEquals("1", UI.metric(page, fallback, fallback ? "Passed" : "Tests Passed").innerText());
+                assertEquals("1", UI.metric(page, fallback, fallback ? "Failed" : "Tests Failed").innerText());
+                UI.tests(page, fallback).click(); if (!fallback) UI.expandAll(page).click();
+                if (fallback) {
+                    var disclosure = DISCLOSURE.fallbackAssertions(page);
+                    assertThat(disclosure).not().hasAttribute("open", "");
+                    DISCLOSURE.summary(disclosure).press("Enter"); assertThat(disclosure).hasAttribute("open", "");
+                }
+                var table = UI.comparisonTable(page, fallback);
+                assertThat(table).isVisible(); assertEquals(2, UI.rows(table).count());
+                assertTrue(UI.rows(table).first().innerText().contains("expected query tag"));
+                for (String cell : UI.valueCells(table).allInnerTexts()) assertTrue(cell.length() <= 240);
+                UI.fails(page, fallback).click(); assertEquals(2, UI.failures(page, fallback).count());
+                if (!fallback) UI.failures(page, false).first().click(); UI.openFailure(page, fallback).click();
+                var scenario = UI.scenario(page, fallback, "negative query"); assertThat(scenario).isVisible();
+                if (!fallback) {
+                    var header = UI.scenarioHeader(scenario); assertThat(header).hasAttribute("aria-expanded", "true");
+                    header.press("Enter"); assertThat(header).hasAttribute("aria-expanded", "false");
+                    header.press("Space"); assertThat(header).hasAttribute("aria-expanded", "true"); UI.expandAll(page).click();
+                }
+                assertThat(UI.comparisonTable(page, fallback)).isVisible();
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            var table = UI.comparisonTable(page, fallback);
-            assertThat(table).isVisible(); assertEquals(2, UI.rows(table).count());
-            assertTrue(UI.rows(table).first().innerText().contains("expected query tag"));
-            for (String cell : UI.valueCells(table).allInnerTexts()) assertTrue(cell.length() <= 240);
-            UI.fails(page, fallback).click(); assertEquals(2, UI.failures(page, fallback).count());
-            if (!fallback) UI.failures(page, false).first().click(); UI.openFailure(page, fallback).click();
-            var scenario = UI.scenario(page, fallback, "negative query"); assertThat(scenario).isVisible();
-            if (!fallback) {
-                var header = UI.scenarioHeader(scenario); assertThat(header).hasAttribute("aria-expanded", "true");
-                header.press("Enter"); assertThat(header).hasAttribute("aria-expanded", "false");
-                header.press("Space"); assertThat(header).hasAttribute("aria-expanded", "true"); UI.expandAll(page).click();
-            }
-            assertThat(UI.comparisonTable(page, fallback)).isVisible();
         }
     }
 }

@@ -18,6 +18,9 @@ public final class ReportReadabilityLocators {
         return page.locator(fallback ? "[id='tests']" : "[class~='test-content-detail']:visible");
     }
     public Locator failsTab(Page page) { return page.locator("[id='nav-fails']"); }
+    public Locator comparisonFailure(Page page, int ordinal) {
+        return page.locator("#atf-failure-list > [data-atf-failure-kind='assertion'][data-atf-failure-ordinal='" + ordinal + "']");
+    }
     public Locator testsView(Page page) { return page.locator("[id='test-view']"); }
     public Locator firstVisibleSummary(Locator request) { return request.locator("details:visible > summary").first(); }
 }

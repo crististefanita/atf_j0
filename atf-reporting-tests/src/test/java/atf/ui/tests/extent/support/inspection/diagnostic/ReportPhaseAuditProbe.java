@@ -1,5 +1,7 @@
 package atf.ui.tests.extent.support.inspection.diagnostic;
 
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.api.ReportAttemptRecord;
 import atf.reporting.api.ReportRequest;
 import atf.reporting.api.ReportResponse;
@@ -55,58 +57,72 @@ public final class ReportPhaseAuditProbe {
     public static void verifyPhaseDiagnosticIsolation() {
         String setupNote = "informational setup association";
         String actualCause = "actual test body failure";
-        try (Playwright playwright = Playwright.create();
-             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            for (boolean fallback : List.of(false, true)) {
-                Path report = TestReportPaths.report(fallback
-                        ? "fallback-phase-diagnostic-isolation.html" : "extent-phase-diagnostic-isolation.html");
-                try (AtfReportPorts.Session session = fallback
-                        ? new HtmlReportSession(report) : new ExtentReportSession(report)) {
-                    var scenario = session.startScenario("PhaseDiagnosticIsolation", "phase ownership", List.of("api"));
-                    var setup = scenario.startPhase("SETUP");
-                    setup.detail("API contract association", setupNote);
-                    setup.complete(AtfReportStatus.PASS);
-                    var body = scenario.startPhase("TEST BODY");
-                    body.detail("JUnit failure", actualCause);
-                    body.complete(AtfReportStatus.FAIL);
-                    scenario.complete(AtfReportStatus.FAIL);
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                Browser browser = browserLease.value();
+                for (boolean fallback : List.of(false, true)) {
+                    Path report = TestReportPaths.report(fallback
+                            ? "fallback-phase-diagnostic-isolation.html" : "extent-phase-diagnostic-isolation.html");
+                    try (AtfReportPorts.Session session = fallback
+                            ? new HtmlReportSession(report) : new ExtentReportSession(report)) {
+                        var scenario = session.startScenario("PhaseDiagnosticIsolation", "phase ownership", List.of("api"));
+                        var setup = scenario.startPhase("SETUP");
+                        setup.detail("API contract association", setupNote);
+                        setup.complete(AtfReportStatus.PASS);
+                        var body = scenario.startPhase("TEST BODY");
+                        body.detail("JUnit failure", actualCause);
+                        body.complete(AtfReportStatus.FAIL);
+                        scenario.complete(AtfReportStatus.FAIL);
+                    }
+                    Page page = BrowserResources.newPage(browser);
+                    page.navigate(report.toUri() + (fallback ? "" : "#test-view"));
+                    if (!fallback) {
+                        LOCATORS.firstOwner(page).click();
+                        page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+                    }
+                    assertTrue(LOCATORS.body(page).textContent().contains(setupNote),
+                            "the informational diagnostic remains available in Tests");
+                    LOCATORS.failsTab(page, fallback).click();
+                    String failures = LOCATORS.fails(page, fallback).innerText();
+                    assertTrue(failures.contains(actualCause));
+                    assertFalse(failures.contains(setupNote), "a passing phase must not contaminate another failure cause");
+                    assertFalse(failures.contains("UI action"), "execution diagnostics are not UI action failures");
+                    BrowserResources.close(page);
                 }
-                Page page = browser.newPage();
-                page.navigate(report.toUri() + (fallback ? "" : "#test-view"));
-                if (!fallback) {
-                    LOCATORS.firstOwner(page).click();
-                    page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
-                }
-                assertTrue(LOCATORS.body(page).textContent().contains(setupNote),
-                        "the informational diagnostic remains available in Tests");
-                LOCATORS.failsTab(page, fallback).click();
-                String failures = LOCATORS.fails(page, fallback).innerText();
-                assertTrue(failures.contains(actualCause));
-                assertFalse(failures.contains(setupNote), "a passing phase must not contaminate another failure cause");
-                assertFalse(failures.contains("UI action"), "execution diagnostics are not UI action failures");
-                page.close();
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
         }
     }
 
     public static void rejectsHiddenRenamedAndEmptyPhaseLogBands() {
-        try (Playwright playwright = Playwright.create();
-             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            Page page = browser.newPage();
-            for (String body : List.of("<details class='phase-details'>Audit details</details>",
-                    "<details>Renamed bookkeeping</details>", "")) {
-                for (String wrapper : List.of("collapse", "card-body", "legacy-trace")) {
-                    page.setContent("""
-                            <article class='scenario'><section data-atf-node-role='phase'>
-                              <div class='%s' style='display:none'>
-                                <table class='table'><tbody><tr><td>Info</td><td>%s</td></tr></tbody></table>
-                              </div>
-                            </section></article>
-                            """.formatted(wrapper, body));
-                    Locator phase = LOCATORS.phases(LOCATORS.scenarios(page, true)).first();
-                    assertThrows(AssertionError.class, () -> assertNoPhaseLogBand(phase),
-                            "CSS hiding, renaming, and an empty wrapper must not satisfy the structural gate");
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                Browser browser = browserLease.value();
+                Page page = BrowserResources.newPage(browser);
+                for (String body : List.of("<details class='phase-details'>Audit details</details>",
+                        "<details>Renamed bookkeeping</details>", "")) {
+                    for (String wrapper : List.of("collapse", "card-body", "legacy-trace")) {
+                        page.setContent("""
+                                <article class='scenario'><section data-atf-node-role='phase'>
+                                  <div class='%s' style='display:none'>
+                                    <table class='table'><tbody><tr><td>Info</td><td>%s</td></tr></tbody></table>
+                                  </div>
+                                </section></article>
+                                """.formatted(wrapper, body));
+                        Locator phase = LOCATORS.phases(LOCATORS.scenarios(page, true)).first();
+                        assertThrows(AssertionError.class, () -> assertNoPhaseLogBand(phase),
+                                "CSS hiding, renaming, and an empty wrapper must not satisfy the structural gate");
+                    }
                 }
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
         }
     }
@@ -116,40 +132,47 @@ public final class ReportPhaseAuditProbe {
         publish(report, fallback);
         String html = Files.readString(report);
         assertFalse(html.contains("private-token"), "failure diagnostics must cross the redaction boundary");
-        try (Playwright playwright = Playwright.create();
-             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            Page page = browser.newPage();
-            List<String> errors = new ArrayList<>();
-            page.onPageError(errors::add);
-            page.navigate(report.toUri() + (fallback ? "" : "#test-view"));
-            if (fallback) LOCATORS.testsTab(page, true).click();
-            else {
-                LOCATORS.firstOwner(page).click();
-                page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                Browser browser = browserLease.value();
+                Page page = BrowserResources.newPage(browser);
+                List<String> errors = new ArrayList<>();
+                page.onPageError(errors::add);
+                page.navigate(report.toUri() + (fallback ? "" : "#test-view"));
+                if (fallback) LOCATORS.testsTab(page, true).click();
+                else {
+                    LOCATORS.firstOwner(page).click();
+                    page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+                }
+                Locator scenarios = LOCATORS.scenarios(page, fallback);
+                assertEquals(CASES.size(), scenarios.count());
+                if (!fallback) {
+                    assertFalse(LOCATORS.diagnostics(scenarios.nth(3)).isVisible(),
+                            "a collapsed scenario must not leak its execution diagnostic");
+                }
+                for (int index = 0; index < CASES.size(); index++) {
+                    verifyScenario(scenarios.nth(index), CASES.get(index), fallback);
+                }
+                LOCATORS.failsTab(page, fallback).click();
+                var causes = new ArrayList<String>();
+                if (fallback) causes.add(LOCATORS.fails(page, true).innerText());
+                else for (int index = 0; index < LOCATORS.failureEntries(page).count(); index++) {
+                    LOCATORS.failureEntries(page).nth(index).click();
+                    causes.add(LOCATORS.failureIndex(page).innerText());
+                }
+                assertTrue(causes.stream().anyMatch(cause -> cause.contains("observed status mismatch")),
+                        "Fails must retain the actual JUnit cause even without a contract assertion");
+                assertTrue(causes.stream().anyMatch(cause -> cause.contains(ASSOCIATION_MESSAGE)),
+                        "Each explicit diagnostic remains reachable through its own Fails record");
+                assertAll(
+                        () -> assertFalse(LOCATORS.body(page).textContent().contains(INTERNAL_VALUE)),
+                        () -> assertTrue(errors.isEmpty(), () -> "Report runtime errors: " + errors));
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            Locator scenarios = LOCATORS.scenarios(page, fallback);
-            assertEquals(CASES.size(), scenarios.count());
-            if (!fallback) {
-                assertFalse(LOCATORS.diagnostics(scenarios.nth(3)).isVisible(),
-                        "a collapsed scenario must not leak its execution diagnostic");
-            }
-            for (int index = 0; index < CASES.size(); index++) {
-                verifyScenario(scenarios.nth(index), CASES.get(index), fallback);
-            }
-            LOCATORS.failsTab(page, fallback).click();
-            var causes = new ArrayList<String>();
-            if (fallback) causes.add(LOCATORS.fails(page, true).innerText());
-            else for (int index = 0; index < LOCATORS.failureEntries(page).count(); index++) {
-                LOCATORS.failureEntries(page).nth(index).click();
-                causes.add(LOCATORS.failureIndex(page).innerText());
-            }
-            assertTrue(causes.stream().anyMatch(cause -> cause.contains("observed status mismatch")),
-                    "Fails must retain the actual JUnit cause even without a contract assertion");
-            assertTrue(causes.stream().anyMatch(cause -> cause.contains(ASSOCIATION_MESSAGE)),
-                    "Each explicit diagnostic remains reachable through its own Fails record");
-            assertAll(
-                    () -> assertFalse(LOCATORS.body(page).textContent().contains(INTERNAL_VALUE)),
-                    () -> assertTrue(errors.isEmpty(), () -> "Report runtime errors: " + errors));
         }
     }
 

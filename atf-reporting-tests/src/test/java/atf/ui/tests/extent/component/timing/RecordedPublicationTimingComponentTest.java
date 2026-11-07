@@ -1,5 +1,9 @@
 package atf.ui.tests.extent.component.timing;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.configuration.ReportingSettings;
 import atf.reporting.console.*;
 import atf.reporting.contract.*;
@@ -26,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Captured execution/transport and controlled publication clocks stay distinct without wall-clock thresholds. */
 @AtfComponentTest
+@ReportBrowserTest
 class RecordedPublicationTimingComponentTest {
     private static final ReportPhaseAuditLocators LOCATORS = new ReportPhaseAuditLocators();
     @TempDir Path directory;
@@ -49,37 +54,46 @@ class RecordedPublicationTimingComponentTest {
             task.get(30, TimeUnit.SECONDS);
         }
         if (!fallback) stampPublicationClocks(file);
-        try (var playwright = Playwright.create(); var browser = playwright.chromium().launch(); var page = browser.newPage()) {
-            page.setDefaultTimeout(5_000); page.setDefaultNavigationTimeout(30_000);
-            page.navigate(file.toUri() + (fallback ? "" : "#test-view"));
-            if (fallback) LOCATORS.testsTab(page,true).click();
-            else { LOCATORS.firstOwner(page).click(); page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'"); }
-            var scenario = LOCATORS.scenarios(page,fallback).first();
-            if (!fallback) LOCATORS.header(scenario).click();
-            var phase = LOCATORS.phases(scenario).first();
-            if (!fallback) LOCATORS.header(phase).click();
-            var metadata = phase.locator("[data-atf-execution-duration-ms]").first();
-            assertEquals("11", metadata.getAttribute("data-atf-execution-duration-ms"));
-            assertTrue(Long.parseLong(metadata.getAttribute("data-atf-publication-duration-ms")) >= 700);
-            var phaseBadge = phase.locator(fallback ? ":scope > h3 > .badge" : ":scope > .card-header .badge-default").first();
-            assertEquals("11", phaseBadge.getAttribute("data-duration-ms")); assertEquals("execution", phaseBadge.getAttribute("data-duration-source"));
-            var request = LOCATORS.requests(phase,fallback).first();
-            var badge = request.locator(fallback ? ":scope > .node-title > .badge" : ":scope > .card-header .badge-default").first();
-            assertEquals(1, badge.count(), "the request must expose its captured transport badge");
-            assertEquals("7", badge.getAttribute("data-duration-ms")); assertEquals("transport", badge.getAttribute("data-duration-source"));
-            if (fallback) assertThat(request.locator(":scope > .node-title > .atf-duration-origin")).hasText("Transport");
-            else assertTrue(badge.evaluate("e => getComputedStyle(e,'::after').content").toString().toLowerCase(java.util.Locale.ROOT).contains("transport"));
-            if (!fallback) {
-                LOCATORS.header(request).click();
-                var validation = request.locator("[data-atf-node-role=validation]").first();
-                var publication = validation.locator(":scope > .card-header .badge-default").first();
-                assertEquals("903", publication.getAttribute("data-duration-ms")); assertEquals("publication", publication.getAttribute("data-duration-source"));
-                assertTrue(publication.evaluate("e => getComputedStyle(e,'::after').content").toString().toLowerCase(java.util.Locale.ROOT).contains("publication"));
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value()));
+             var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browserLease.value()))) {
+            try {
+                var page = pageLease.value();
+                page.setDefaultTimeout(5_000); page.setDefaultNavigationTimeout(30_000);
+                page.navigate(file.toUri() + (fallback ? "" : "#test-view"));
+                if (fallback) LOCATORS.testsTab(page,true).click();
+                else { LOCATORS.firstOwner(page).click(); page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'"); }
+                var scenario = LOCATORS.scenarios(page,fallback).first();
+                if (!fallback) LOCATORS.header(scenario).click();
+                var phase = LOCATORS.phases(scenario).first();
+                if (!fallback) LOCATORS.header(phase).click();
+                var metadata = phase.locator("[data-atf-execution-duration-ms]").first();
+                assertEquals("11", metadata.getAttribute("data-atf-execution-duration-ms"));
+                assertTrue(Long.parseLong(metadata.getAttribute("data-atf-publication-duration-ms")) >= 700);
+                var phaseBadge = phase.locator(fallback ? ":scope > h3 > .badge" : ":scope > .card-header .badge-default").first();
+                assertEquals("11", phaseBadge.getAttribute("data-duration-ms")); assertEquals("execution", phaseBadge.getAttribute("data-duration-source"));
+                var request = LOCATORS.requests(phase,fallback).first();
+                var badge = request.locator(fallback ? ":scope > .node-title > .badge" : ":scope > .card-header .badge-default").first();
+                assertEquals(1, badge.count(), "the request must expose its captured transport badge");
+                assertEquals("7", badge.getAttribute("data-duration-ms")); assertEquals("transport", badge.getAttribute("data-duration-source"));
+                if (fallback) assertThat(request.locator(":scope > .node-title > .atf-duration-origin")).hasText("Transport");
+                else assertTrue(badge.evaluate("e => getComputedStyle(e,'::after').content").toString().toLowerCase(java.util.Locale.ROOT).contains("transport"));
+                if (!fallback) {
+                    LOCATORS.header(request).click();
+                    var validation = request.locator("[data-atf-node-role=validation]").first();
+                    var publication = validation.locator(":scope > .card-header .badge-default").first();
+                    assertEquals("903", publication.getAttribute("data-duration-ms")); assertEquals("publication", publication.getAttribute("data-duration-source"));
+                    assertTrue(publication.evaluate("e => getComputedStyle(e,'::after').content").toString().toLowerCase(java.util.Locale.ROOT).contains("publication"));
+                }
+                if (!fallback) assertTimingRefresh(page, phase, metadata, phaseBadge);
+                assertCaptionSpacing(phaseBadge);
+                if (!fallback) assertCaptionSpacing(badge);
+                assertEquals("11", phaseBadge.getAttribute("data-duration-ms"), "descendant publication/transport must not be summed into captured execution");
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            if (!fallback) assertTimingRefresh(page, phase, metadata, phaseBadge);
-            assertCaptionSpacing(phaseBadge);
-            if (!fallback) assertCaptionSpacing(badge);
-            assertEquals("11", phaseBadge.getAttribute("data-duration-ms"), "descendant publication/transport must not be summed into captured execution");
         }
     }
 

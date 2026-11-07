@@ -1,5 +1,7 @@
 package atf.ui.tests.extent.support.inspection.table;
 
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.ui.tests.extent.support.locators.table.TableViewportLocators;
 import atf.reporting.support.TestReportPaths;
 import com.microsoft.playwright.*;
@@ -72,118 +74,139 @@ public final class TableViewportProbe {
     private TableViewportProbe() { }
 
     public static void verifyGeometryMatrix() {
-        try (Playwright playwright = Playwright.create();
-             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            Page page = browser.newPage();
-            for (boolean fallback : List.of(false, true)) {
-                for (int width : List.of(1440, 1280, 591)) {
-                    page.setViewportSize(width, 900);
-                    for (int rows : List.of(0, 1, TableViewportReportFixture.LONG_ROWS)) {
-                        page.setContent(TableViewportReportFixture.componentHtml(fallback, rows, false));
-                        for (int cap : List.of(500, 260)) {
-                            setCap(page, cap);
-                            verifyAll(LOCATORS.componentTables(page), "component " + fallback + "/" + width + "/" + rows);
-                            assertEquals(cap, ((Number) LOCATORS.system(page).evaluate(
-                                    "e => parseFloat(getComputedStyle(e).maxHeight)")).intValue());
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                Browser browser = browserLease.value();
+                Page page = BrowserResources.newPage(browser);
+                for (boolean fallback : List.of(false, true)) {
+                    for (int width : List.of(1440, 1280, 591)) {
+                        page.setViewportSize(width, 900);
+                        for (int rows : List.of(0, 1, TableViewportReportFixture.LONG_ROWS)) {
+                            page.setContent(TableViewportReportFixture.componentHtml(fallback, rows, false));
+                            for (int cap : List.of(500, 260)) {
+                                setCap(page, cap);
+                                verifyAll(LOCATORS.componentTables(page), "component " + fallback + "/" + width + "/" + rows);
+                                assertEquals(cap, ((Number) LOCATORS.system(page).evaluate(
+                                        "e => parseFloat(getComputedStyle(e).maxHeight)")).intValue());
+                            }
+                            if (rows == 1) verifyBoundary(page, LOCATORS.componentTables(page).first());
                         }
-                        if (rows == 1) verifyBoundary(page, LOCATORS.componentTables(page).first());
+                        page.setContent(TableViewportReportFixture.componentHtml(fallback, 1, true));
+                        verifyAll(LOCATORS.componentTables(page), "single tall cell " + width);
+                        assertTrue(measure(LOCATORS.componentTables(page).first()).get("long").equals(true),
+                                "A single multi-line row must overflow without a row-count threshold");
                     }
-                    page.setContent(TableViewportReportFixture.componentHtml(fallback, 1, true));
-                    verifyAll(LOCATORS.componentTables(page), "single tall cell " + width);
-                    assertTrue(measure(LOCATORS.componentTables(page).first()).get("long").equals(true),
-                            "A single multi-line row must overflow without a row-count threshold");
                 }
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
         }
     }
 
     public static void verifyPublishedReports() {
-        try (Playwright playwright = Playwright.create();
-             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            for (boolean fallback : List.of(false, true)) {
-                Path report = TableViewportReportFixture.publish(fallback);
-                Page page = browser.newPage();
-                page.setDefaultTimeout(8_000);
-                List<String> errors = new ArrayList<>();
-                page.onPageError(errors::add);
-                page.navigate(report.toUri() + (fallback ? "" : "#test-view"));
-                for (int width : List.of(1440, 1280, 591)) {
-                    page.setViewportSize(width, 900);
-                    Locator scope;
-                    if (fallback) {
-                        LOCATORS.fallbackTests(page).click();
-                        scope = LOCATORS.fallbackContent(page);
-                    } else {
-                        LOCATORS.firstOwner(page).click();
-                        page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
-                        scope = LOCATORS.selected(page);
-                        expand(scope);
-                    }
-                    LOCATORS.disclosures(scope).evaluateAll("items => items.forEach(e => e.open = true)");
-                    settle(page);
-                    Locator tables = LOCATORS.dataTables(scope);
-                    assertTrue(tables.count() >= 12, "All phases must expose real rendered tables");
-                    List<String> labels = LOCATORS.summaries(scope).allTextContents();
-                    if (!fallback) {
-                        assertEquals(6, LOCATORS.setup(scope).count(), "SETUP evidence may not silently disappear");
-                        assertTrue(LOCATORS.actions(scope).count() >= 6, "direct request actions must be present");
-                        assertTrue(labels.stream().anyMatch(s -> s.contains("Setup evidence · 40 checks")), labels.toString());
-                        assertTrue(labels.stream().anyMatch(s -> s.contains("Assertions · 40")), labels.toString());
-                        assertTrue(labels.stream().anyMatch(s -> s.contains("UI action sequence (40 entries)")), labels.toString());
-                        assertEquals(0, LOCATORS.screenshots(scope).evaluateAll(
-                                "items => items.filter(e => e.closest('" + TableViewportLocators.VIEWPORTS + "')).length"));
-                    }
-                    assertEquals(6, LOCATORS.assertions(scope).count(), "Every phase has short and long assertions");
-                    verifyAll(tables, report + " at " + width);
-                    verifyKeyboardAndMouse(page, tables);
-                    if (width == 1280) page.screenshot(new Page.ScreenshotOptions().setPath(
-                            TestReportPaths.report("table-viewport-"
-                                    + (fallback ? "fallback" : "extent") + "-proof.png")));
-                    assertEquals(labels, LOCATORS.summaries(scope).allTextContents(), "Measuring scroll must not alter titles/counts");
-                    if (!fallback) {
-                        LOCATORS.disclosures(scope).evaluateAll("items => items.forEach(e => e.open = false)");
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                Browser browser = browserLease.value();
+                for (boolean fallback : List.of(false, true)) {
+                    Path report = TableViewportReportFixture.publish(fallback);
+                    Page page = BrowserResources.newPage(browser);
+                    page.setDefaultTimeout(8_000);
+                    List<String> errors = new ArrayList<>();
+                    page.onPageError(errors::add);
+                    page.navigate(report.toUri() + (fallback ? "" : "#test-view"));
+                    for (int width : List.of(1440, 1280, 591)) {
+                        page.setViewportSize(width, 900);
+                        Locator scope;
+                        if (fallback) {
+                            LOCATORS.fallbackTests(page).click();
+                            scope = LOCATORS.fallbackContent(page);
+                        } else {
+                            LOCATORS.firstOwner(page).click();
+                            page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+                            scope = LOCATORS.selected(page);
+                            expand(scope);
+                        }
                         LOCATORS.disclosures(scope).evaluateAll("items => items.forEach(e => e.open = true)");
                         settle(page);
-                        verifyAll(LOCATORS.dataTables(scope), "reopened " + width);
+                        Locator tables = LOCATORS.dataTables(scope);
+                        assertTrue(tables.count() >= 12, "All phases must expose real rendered tables");
+                        List<String> labels = LOCATORS.summaries(scope).allTextContents();
+                        if (!fallback) {
+                            assertEquals(6, LOCATORS.setup(scope).count(), "SETUP evidence may not silently disappear");
+                            assertTrue(LOCATORS.actions(scope).count() >= 6, "direct request actions must be present");
+                            assertTrue(labels.stream().anyMatch(s -> s.contains("Setup evidence · 40 checks")), labels.toString());
+                            assertTrue(labels.stream().anyMatch(s -> s.contains("Assertions · 40")), labels.toString());
+                            assertTrue(labels.stream().anyMatch(s -> s.contains("UI action sequence (40 entries)")), labels.toString());
+                            assertEquals(0, LOCATORS.screenshots(scope).evaluateAll(
+                                    "items => items.filter(e => e.closest('" + TableViewportLocators.VIEWPORTS + "')).length"));
+                        }
+                        assertEquals(6, LOCATORS.assertions(scope).count(), "Every phase has short and long assertions");
+                        verifyAll(tables, report + " at " + width);
+                        verifyKeyboardAndMouse(page, tables);
+                        if (width == 1280) page.screenshot(new Page.ScreenshotOptions().setPath(
+                                TestReportPaths.report("table-viewport-"
+                                        + (fallback ? "fallback" : "extent") + "-proof.png")));
+                        assertEquals(labels, LOCATORS.summaries(scope).allTextContents(), "Measuring scroll must not alter titles/counts");
+                        if (!fallback) {
+                            LOCATORS.disclosures(scope).evaluateAll("items => items.forEach(e => e.open = false)");
+                            LOCATORS.disclosures(scope).evaluateAll("items => items.forEach(e => e.open = true)");
+                            settle(page);
+                            verifyAll(LOCATORS.dataTables(scope), "reopened " + width);
+                        }
                     }
+                    assertTrue(errors.isEmpty(), errors.toString());
+                    BrowserResources.close(page);
                 }
-                assertTrue(errors.isEmpty(), errors.toString());
-                page.close();
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
         }
     }
 
     public static void verifyNegativeCases() {
-        try (Playwright playwright = Playwright.create();
-             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            Page page = browser.newPage();
-            for (String defect : List.of("missing", "cap", "unbounded", "hidden", "double", "header", "last-row",
-                    "column-header", "stacked", "horizontal")) {
-                page.setContent(TableViewportReportFixture.componentHtml(false, defect.equals("unbounded") ? 1 : 40, false));
-                Locator table = LOCATORS.componentTables(page).first();
-                table.evaluate("""
-                        (t, defect) => {
-                          const p=t.parentElement;
-                          if(defect==='missing') p.replaceWith(t);
-                          if(defect==='cap') p.style.setProperty('max-height','100px','important');
-                          if(defect==='unbounded') p.style.setProperty('max-height','none','important');
-                          if(defect==='hidden') p.style.setProperty('overflow-y','hidden','important');
-                          if(defect==='double') {const outer=p.cloneNode(false);p.replaceWith(outer);outer.appendChild(p);}
-                          if(defect==='header') t.querySelector('th').style.setProperty('position','static','important');
-                          if(defect==='column-header') t.tHead.style.setProperty('clip-path','inset(50%)','important');
-                          if(defect==='stacked') Array.from(t.tBodies[0].rows).forEach(row=>Array.from(row.cells)
-                            .forEach(cell=>cell.style.setProperty('display','block','important')));
-                          if(defect==='horizontal') p.style.setProperty('overflow-x','hidden','important');
-                          if(defect==='last-row') {
-                            t.style.setProperty('display','block','important');
-                            t.style.setProperty('height','100px','important');
-                            t.style.setProperty('overflow','hidden','important');
-                          }
-                        }
-                        """, defect);
-                List<?> failures = messages(measure(table));
-                assertFalse(failures.isEmpty(), "Probe must reject deliberate defect: " + defect);
-                if (defect.equals("last-row")) assertTrue(failures.contains("last row clipped"), failures.toString());
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                Browser browser = browserLease.value();
+                Page page = BrowserResources.newPage(browser);
+                for (String defect : List.of("missing", "cap", "unbounded", "hidden", "double", "header", "last-row",
+                        "column-header", "stacked", "horizontal")) {
+                    page.setContent(TableViewportReportFixture.componentHtml(false, defect.equals("unbounded") ? 1 : 40, false));
+                    Locator table = LOCATORS.componentTables(page).first();
+                    table.evaluate("""
+                            (t, defect) => {
+                              const p=t.parentElement;
+                              if(defect==='missing') p.replaceWith(t);
+                              if(defect==='cap') p.style.setProperty('max-height','100px','important');
+                              if(defect==='unbounded') p.style.setProperty('max-height','none','important');
+                              if(defect==='hidden') p.style.setProperty('overflow-y','hidden','important');
+                              if(defect==='double') {const outer=p.cloneNode(false);p.replaceWith(outer);outer.appendChild(p);}
+                              if(defect==='header') t.querySelector('th').style.setProperty('position','static','important');
+                              if(defect==='column-header') t.tHead.style.setProperty('clip-path','inset(50%)','important');
+                              if(defect==='stacked') Array.from(t.tBodies[0].rows).forEach(row=>Array.from(row.cells)
+                                .forEach(cell=>cell.style.setProperty('display','block','important')));
+                              if(defect==='horizontal') p.style.setProperty('overflow-x','hidden','important');
+                              if(defect==='last-row') {
+                                t.style.setProperty('display','block','important');
+                                t.style.setProperty('height','100px','important');
+                                t.style.setProperty('overflow','hidden','important');
+                              }
+                            }
+                            """, defect);
+                    List<?> failures = messages(measure(table));
+                    assertFalse(failures.isEmpty(), "Probe must reject deliberate defect: " + defect);
+                    if (defect.equals("last-row")) assertTrue(failures.contains("last row clipped"), failures.toString());
+                }
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
         }
     }

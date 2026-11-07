@@ -1,5 +1,9 @@
 package atf.ui.tests.extent.component.inspection.disclosure;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.testkit.AtfComponentTest;
 import atf.ui.tests.extent.support.inspection.json.JsonEvidenceFixture;
 import atf.ui.tests.extent.support.locators.disclosure.ApiValidationDisclosureLocators;
@@ -20,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Real publishers, neutral mock evidence and the active owner; hidden DOM cannot satisfy the oracle. */
 @AtfComponentTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ReportBrowserTest
 class SiblingDisclosureStateComponentTest {
     private static final ApiValidationDisclosureLocators DOM = new ApiValidationDisclosureLocators();
     private static final SiblingDisclosureLocators CONTROLS = new SiblingDisclosureLocators();
@@ -27,12 +32,11 @@ class SiblingDisclosureStateComponentTest {
     private Browser browser;
 
     @BeforeAll void start() {
-        playwright = Playwright.create();
-        browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
+        playwright = BrowserResources.create(Playwright::create);
+        browser = BrowserResources.launch(playwright, new BrowserType.LaunchOptions().setHeadless(true));
     }
     @AfterAll void close() {
-        if (browser != null) browser.close();
-        if (playwright != null) playwright.close();
+        BrowserResources.closeAll(browser, playwright);
     }
     static Stream<Arguments> matrix() {
         return Stream.of(false, true).flatMap(fallback -> Stream.of(false, true).flatMap(aggregate ->
@@ -43,61 +47,75 @@ class SiblingDisclosureStateComponentTest {
     void localControlsPreserveTheOtherScenarioAndBulkControlsRemainExplicit(boolean fallback, boolean aggregate, String action)
             throws Exception {
         var report = JsonEvidenceFixture.publish(fallback, aggregate);
-        try (var page = browser.newPage()) {
-            page.setDefaultTimeout(5_000);
-            page.setDefaultNavigationTimeout(30_000);
-            var errors = new ArrayList<String>();
-            page.onPageError(errors::add);
-            page.navigate(report.toUri() + "#test-view", new Page.NavigateOptions().setWaitUntil(WaitUntilState.DOMCONTENTLOADED));
-            DOM.selectTests(page, fallback);
-            var subject = DOM.scenario(page, fallback, JsonEvidenceFixture.SUBJECT);
-            if (!fallback) CONTROLS.expandAll(page);
-            else DOM.summary(DOM.disclosure(DOM.table(DOM.validation(subject)), true), true).click();
-            CONTROLS.summary(CONTROLS.response(subject)).click();
-            verifyVisibleEvidence(subject, fallback);
-            var before = CONTROLS.states(subject, fallback);
-            if (aggregate) {
-                for (var title : List.of("JSON neighbor before", "JSON neighbor after")) {
-                    var neighbor = DOM.scenario(page, fallback, title);
-                    var control = fallback ? DOM.summary(DOM.disclosure(DOM.table(DOM.validation(neighbor)), true), true)
-                            : CONTROLS.header(neighbor);
+        try (var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browser))) {
+            try {
+                var page = pageLease.value();
+                page.setDefaultTimeout(5_000);
+                page.setDefaultNavigationTimeout(30_000);
+                var errors = new ArrayList<String>();
+                page.onPageError(errors::add);
+                page.navigate(report.toUri() + "#test-view", new Page.NavigateOptions().setWaitUntil(WaitUntilState.DOMCONTENTLOADED));
+                DOM.selectTests(page, fallback);
+                var subject = DOM.scenario(page, fallback, JsonEvidenceFixture.SUBJECT);
+                if (!fallback) CONTROLS.expandAll(page);
+                else DOM.summary(DOM.disclosure(DOM.table(DOM.validation(subject)), true), true).click();
+                CONTROLS.summary(CONTROLS.response(subject)).click();
+                verifyVisibleEvidence(subject, fallback);
+                var before = CONTROLS.states(subject, fallback);
+                if (aggregate) {
+                    for (var title : List.of("JSON neighbor before", "JSON neighbor after")) {
+                        var neighbor = DOM.scenario(page, fallback, title);
+                        var control = fallback ? DOM.summary(DOM.disclosure(DOM.table(DOM.validation(neighbor)), true), true)
+                                : CONTROLS.header(neighbor);
+                        toggle(control, action);
+                        verifyVisibleEvidence(subject, fallback);
+                        assertEquals(before, CONTROLS.states(subject, fallback), "neighbor changed subject state");
+                        toggle(control, action);
+                        verifyVisibleEvidence(subject, fallback);
+                    }
+                } else {
+                    var control = DOM.summary(DOM.disclosure(DOM.table(DOM.validation(subject)), fallback), fallback);
                     toggle(control, action);
-                    verifyVisibleEvidence(subject, fallback);
-                    assertEquals(before, CONTROLS.states(subject, fallback), "neighbor changed subject state");
+                    assertThat(DOM.table(DOM.validation(subject))).isHidden();
                     toggle(control, action);
                     verifyVisibleEvidence(subject, fallback);
                 }
-            } else {
-                var control = DOM.summary(DOM.disclosure(DOM.table(DOM.validation(subject)), fallback), fallback);
-                toggle(control, action);
-                assertThat(DOM.table(DOM.validation(subject))).isHidden();
-                toggle(control, action);
-                verifyVisibleEvidence(subject, fallback);
+                if (!fallback) {
+                    CONTROLS.collapseAll(page);
+                    assertThat(DOM.table(DOM.validation(subject))).isHidden();
+                    CONTROLS.expandAll(page);
+                    verifyVisibleEvidence(subject, false);
+                }
+                assertTrue(errors.isEmpty(), errors.toString());
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            if (!fallback) {
-                CONTROLS.collapseAll(page);
-                assertThat(DOM.table(DOM.validation(subject))).isHidden();
-                CONTROLS.expandAll(page);
-                verifyVisibleEvidence(subject, false);
-            }
-            assertTrue(errors.isEmpty(), errors.toString());
         }
     }
 
     @ParameterizedTest @ValueSource(booleans = {false, true})
     void oracleRejectsInvisibleBodyEvenWhenExpandedAttributesAndAllValuesRemain(boolean aggregate) throws Exception {
         var report = JsonEvidenceFixture.publish(false, aggregate);
-        try (var page = browser.newPage()) {
-            page.setDefaultTimeout(5_000);
-            page.setDefaultNavigationTimeout(30_000);
-            page.navigate(report.toUri() + "#test-view", new Page.NavigateOptions().setWaitUntil(WaitUntilState.DOMCONTENTLOADED));
-            DOM.selectTests(page, false);
-            CONTROLS.expandAll(page);
-            var subject = DOM.scenario(page, false, JsonEvidenceFixture.SUBJECT);
-            CONTROLS.summary(CONTROLS.response(subject)).click();
-            verifyVisibleEvidence(subject, false);
-            CONTROLS.hideBodyKeepingExpandedMetadata(subject);
-            assertThrows(AssertionError.class, () -> verifyVisibleEvidence(subject, false));
+        try (var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browser))) {
+            try {
+                var page = pageLease.value();
+                page.setDefaultTimeout(5_000);
+                page.setDefaultNavigationTimeout(30_000);
+                page.navigate(report.toUri() + "#test-view", new Page.NavigateOptions().setWaitUntil(WaitUntilState.DOMCONTENTLOADED));
+                DOM.selectTests(page, false);
+                CONTROLS.expandAll(page);
+                var subject = DOM.scenario(page, false, JsonEvidenceFixture.SUBJECT);
+                CONTROLS.summary(CONTROLS.response(subject)).click();
+                verifyVisibleEvidence(subject, false);
+                CONTROLS.hideBodyKeepingExpandedMetadata(subject);
+                assertThrows(AssertionError.class, () -> verifyVisibleEvidence(subject, false));
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 

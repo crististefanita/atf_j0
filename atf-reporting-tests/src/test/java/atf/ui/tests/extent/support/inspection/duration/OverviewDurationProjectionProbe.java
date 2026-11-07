@@ -1,5 +1,7 @@
 package atf.ui.tests.extent.support.inspection.duration;
 
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.asset.ReportAssetComposer;
 import atf.testkit.files.AtfTestResourceReader;
 import com.microsoft.playwright.Browser;
@@ -20,51 +22,72 @@ public final class OverviewDurationProjectionProbe {
     private OverviewDurationProjectionProbe() { }
 
     public static void verifyMeasuredProjectionAndRefresh() {
-        try (Playwright playwright = Playwright.create();
-             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            Page page = fixture(browser);
-            var first = snapshot(page);
-            assertProjection(first, 30_000, List.of(10, 20), 1);
-            assertProjection(snapshot(page), 30_000, List.of(10, 20), 1);
-            assertProjection(change(page, "cart"), 35_000, List.of(15, 20), 2);
-            assertProjection(change(page, "array-registry"), 35_000, List.of(15, 20), 2);
-            assertProjection(change(page, "duplicate"), 35_000, List.of(15, 20), 3);
-            assertProjection(snapshot(page), 35_000, List.of(15, 20), 3);
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                Browser browser = browserLease.value();
+                Page page = fixture(browser);
+                var first = snapshot(page);
+                assertProjection(first, 30_000, List.of(10, 20), 1);
+                assertProjection(snapshot(page), 30_000, List.of(10, 20), 1);
+                assertProjection(change(page, "cart"), 35_000, List.of(15, 20), 2);
+                assertProjection(change(page, "array-registry"), 35_000, List.of(15, 20), 2);
+                assertProjection(change(page, "duplicate"), 35_000, List.of(15, 20), 3);
+                assertProjection(snapshot(page), 35_000, List.of(15, 20), 3);
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 
     public static void verifyZeroAndNativeFallback() {
-        try (Playwright playwright = Playwright.create();
-             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            Page measured = fixture(browser);
-            assertProjection(change(measured, "zero"), 0, List.of(0, 0), 1);
-            var unmeasured = change(fixture(browser), "unmeasured");
-            assertEquals(500_000, number(unmeasured.get("total")));
-            assertEquals(List.of(300L, 200L), numbers(unmeasured.get("nativeValues")));
-            assertEquals(List.of(300L, 200L), numbers(unmeasured.get("chartValues")));
-            assertEquals(0, number(unmeasured.get("updates")));
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                Browser browser = browserLease.value();
+                Page measured = fixture(browser);
+                assertProjection(change(measured, "zero"), 0, List.of(0, 0), 1);
+                var unmeasured = change(fixture(browser), "unmeasured");
+                assertEquals(500_000, number(unmeasured.get("total")));
+                assertEquals(List.of(300L, 200L), numbers(unmeasured.get("nativeValues")));
+                assertEquals(List.of(300L, 200L), numbers(unmeasured.get("chartValues")));
+                assertEquals(0, number(unmeasured.get("updates")));
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 
     public static void verifyAuditRejectsNumericButInconsistentProjection() {
-        try (Playwright playwright = Playwright.create();
-             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            for (String target : List.of("marker", "model", "chart")) {
-                Page page = fixture(browser);
-                snapshot(page);
-                var before = ApiReportDurationProjectionAuditor.inspectCurrentDom(page);
-                assertTrue(before.stream().allMatch(projection -> projection.valid()));
-                page.evaluate("target => corruptOverviewDuration(target)", target);
-                var overview = ApiReportDurationProjectionAuditor.inspectCurrentDom(page).stream()
-                        .filter(projection -> "Overview".equals(projection.projection())).findFirst().orElseThrow();
-                assertFalse(overview.valid(), target + " must fail even when every marker is numeric");
-                assertTrue(overview.violations().stream().anyMatch(value -> value.contains("Timeline " + target)));
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                Browser browser = browserLease.value();
+                for (String target : List.of("marker", "model", "chart")) {
+                    Page page = fixture(browser);
+                    snapshot(page);
+                    var before = ApiReportDurationProjectionAuditor.inspectCurrentDom(page);
+                    assertTrue(before.stream().allMatch(projection -> projection.valid()));
+                    page.evaluate("target => corruptOverviewDuration(target)", target);
+                    var overview = ApiReportDurationProjectionAuditor.inspectCurrentDom(page).stream()
+                            .filter(projection -> "Overview".equals(projection.projection())).findFirst().orElseThrow();
+                    assertFalse(overview.valid(), target + " must fail even when every marker is numeric");
+                    assertTrue(overview.violations().stream().anyMatch(value -> value.contains("Timeline " + target)));
+                }
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
         }
     }
 
     private static Page fixture(Browser browser) {
-        Page page = browser.newPage();
+        Page page = BrowserResources.newPage(browser);
         page.setContent(resource(".html"));
         page.addScriptTag(new Page.AddScriptTagOptions().setContent(resource(".js")));
         page.addScriptTag(new Page.AddScriptTagOptions().setContent(

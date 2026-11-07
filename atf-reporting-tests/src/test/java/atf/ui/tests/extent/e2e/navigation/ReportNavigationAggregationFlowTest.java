@@ -1,4 +1,6 @@
 package atf.ui.tests.extent.e2e.navigation;
+
+import atf.reporting.browser.junit.ReportBrowserTest;
 import atf.reporting.contract.AtfAssertion;
 import atf.testkit.AtfE2eTest;
 import atf.testkit.channel.AtfTestChannel;
@@ -44,6 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @AtfE2eTest
 @AtfTestChannel(TestChannel.UI)
 @ProjectRelativeUiReportDirectory("artifacts/reports/ui/e2e")
+@ReportBrowserTest
 class ReportNavigationAggregationFlowTest {
     private UiConfiguration configuration;
     private Path inputReport;

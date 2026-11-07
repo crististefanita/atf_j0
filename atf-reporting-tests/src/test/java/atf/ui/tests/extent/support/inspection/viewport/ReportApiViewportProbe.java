@@ -1,5 +1,7 @@
 package atf.ui.tests.extent.support.inspection.viewport;
 
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.api.ReportAttemptRecord;
 import atf.reporting.api.ReportRequest;
 import atf.reporting.api.ReportResponse;
@@ -44,51 +46,65 @@ public final class ReportApiViewportProbe {
             phase.complete(AtfReportStatus.PASS);
             scenario.complete(AtfReportStatus.PASS);
         }
-        try (Playwright playwright = Playwright.create();
-             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            Page page = browser.newPage();
-            page.setViewportSize(1280, 900);
-            page.navigate(report.toUri() + "#test-view");
-            LOCATORS.firstOwner(page).click();
-            page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
-            Locator scenario = LOCATORS.scenarios(page).first();
-            openNode(scenario, "data-atf-scenario-open");
-            Locator phase = LOCATORS.firstPhase(scenario);
-            openNode(phase, "data-atf-phase-open");
-            Locator request = LOCATORS.requests(phase).first();
-            openNode(request, "data-atf-node-open");
-            LOCATORS.summary(LOCATORS.evidence(request, REQUEST_EVIDENCE)).click();
-            LOCATORS.summary(LOCATORS.evidence(request, EXECUTION_EVIDENCE)).click();
-            Locator requestTable = LOCATORS.viewport(request, REQUEST_EVIDENCE);
-            Locator retryTable = LOCATORS.viewport(request, EXECUTION_EVIDENCE);
-            assertNatural(requestTable);
-            assertNatural(retryTable);
-            page.setViewportSize(760, 900);
-            assertNatural(requestTable);
-            assertNatural(retryTable);
-            assertEquals(Boolean.TRUE, page.evaluate(
-                    "document.documentElement.scrollWidth <= document.documentElement.clientWidth"));
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                Browser browser = browserLease.value();
+                Page page = BrowserResources.newPage(browser);
+                page.setViewportSize(1280, 900);
+                page.navigate(report.toUri() + "#test-view");
+                LOCATORS.firstOwner(page).click();
+                page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+                Locator scenario = LOCATORS.scenarios(page).first();
+                openNode(scenario, "data-atf-scenario-open");
+                Locator phase = LOCATORS.firstPhase(scenario);
+                openNode(phase, "data-atf-phase-open");
+                Locator request = LOCATORS.requests(phase).first();
+                openNode(request, "data-atf-node-open");
+                LOCATORS.summary(LOCATORS.evidence(request, REQUEST_EVIDENCE)).click();
+                LOCATORS.summary(LOCATORS.evidence(request, EXECUTION_EVIDENCE)).click();
+                Locator requestTable = LOCATORS.viewport(request, REQUEST_EVIDENCE);
+                Locator retryTable = LOCATORS.viewport(request, EXECUTION_EVIDENCE);
+                assertNatural(requestTable);
+                assertNatural(retryTable);
+                page.setViewportSize(760, 900);
+                assertNatural(requestTable);
+                assertNatural(retryTable);
+                assertEquals(Boolean.TRUE, page.evaluate(
+                        "document.documentElement.scrollWidth <= document.documentElement.clientWidth"));
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 
     public static void verifyFallbackTables() {
         Path report = fallbackReport();
-        try (Playwright playwright = Playwright.create();
-             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            Page page = browser.newPage();
-            page.setViewportSize(1280, 900);
-            page.navigate(report.toUri().toString());
-            LOCATORS.fallbackTestsTab(page).click();
-            Locator requests = LOCATORS.fallbackRequests(page);
-            assertEquals(2, requests.count());
-            for (int index = 0; index < requests.count(); index++) {
-                Locator request = requests.nth(index);
-                LOCATORS.summary(LOCATORS.evidence(request, REQUEST_EVIDENCE)).click();
-                LOCATORS.summary(LOCATORS.evidence(request, EXECUTION_EVIDENCE)).click();
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                Browser browser = browserLease.value();
+                Page page = BrowserResources.newPage(browser);
+                page.setViewportSize(1280, 900);
+                page.navigate(report.toUri().toString());
+                LOCATORS.fallbackTestsTab(page).click();
+                Locator requests = LOCATORS.fallbackRequests(page);
+                assertEquals(2, requests.count());
+                for (int index = 0; index < requests.count(); index++) {
+                    Locator request = requests.nth(index);
+                    LOCATORS.summary(LOCATORS.evidence(request, REQUEST_EVIDENCE)).click();
+                    LOCATORS.summary(LOCATORS.evidence(request, EXECUTION_EVIDENCE)).click();
+                }
+                verifyAtWidth(page, requests);
+                page.setViewportSize(760, 900);
+                verifyAtWidth(page, requests);
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            verifyAtWidth(page, requests);
-            page.setViewportSize(760, 900);
-            verifyAtWidth(page, requests);
         }
     }
 

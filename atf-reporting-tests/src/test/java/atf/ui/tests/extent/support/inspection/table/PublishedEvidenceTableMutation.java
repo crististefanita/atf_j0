@@ -2,6 +2,7 @@ package atf.ui.tests.extent.support.inspection.table;
 
 import atf.ui.tests.extent.support.locators.table.PublishedEvidenceTableLocators;
 import com.microsoft.playwright.ElementHandle;
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
 import com.microsoft.playwright.Locator;
 import java.util.Map;
 import java.util.Objects;
@@ -19,10 +20,9 @@ final class PublishedEvidenceTableMutation implements AutoCloseable {
     }
 
     @Override public void close() {
-        viewport.evaluate("(p,data)=>{p.innerHTML=data.html;"
+        BrowserResources.finish(() -> viewport.evaluate("(p,data)=>{p.innerHTML=data.html;"
                 + "if(data.style)p.setAttribute('style',data.style);else p.removeAttribute('style');}",
-                Map.of("html", markup, "style", style));
-        viewport.dispose();
+                Map.of("html", markup, "style", style)), (AutoCloseable) () -> BrowserResources.dispose(viewport));
     }
 }
 

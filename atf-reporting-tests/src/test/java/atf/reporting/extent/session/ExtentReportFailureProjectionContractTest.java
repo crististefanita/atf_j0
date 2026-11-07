@@ -85,7 +85,7 @@ class ExtentReportFailureProjectionContractTest {
         assertAll(
                 () -> assertTrue(html.contains("function scopeFailureContextToPhase(item,context)"),
                         "Fails must resolve the request from the failing phase, not the first request in the scenario"),
-                () -> assertTrue(html.contains("context.request=text(request,'.card-title a.node')"),
+                () -> assertTrue(html.contains("context.request=nodeTitle(request)"),
                         "the request shown in Fails must belong to the failed phase"),
                 () -> assertTrue(html.contains("failureTransportEvidence(request,measured)")
                                 && html.contains("context.duration=measured.duration||context.duration"),

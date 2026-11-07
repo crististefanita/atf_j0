@@ -1,5 +1,9 @@
 package atf.ui.tests.extent.component.inspection.json;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.testkit.AtfComponentTest;
 import atf.ui.tests.extent.support.inspection.json.JsonEvidenceFixture;
 import atf.ui.tests.extent.support.locators.disclosure.ApiValidationDisclosureLocators;
@@ -25,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Real publishers and browser DOM, authored mock snapshots, with negative controls at the active owner. */
 @AtfComponentTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ReportBrowserTest
 class JsonEvidenceFidelityComponentTest {
     private static final ApiValidationDisclosureLocators DOM = new ApiValidationDisclosureLocators();
     private static final JsonEvidenceLocators JSON = new JsonEvidenceLocators();
@@ -32,13 +37,12 @@ class JsonEvidenceFidelityComponentTest {
     private Browser browser;
 
     @BeforeAll void startBrowser() {
-        playwright = Playwright.create();
-        browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
+        playwright = BrowserResources.create(Playwright::create);
+        browser = BrowserResources.launch(playwright, new BrowserType.LaunchOptions().setHeadless(true));
     }
 
     @AfterAll void closeBrowser() {
-        if (browser != null) browser.close();
-        if (playwright != null) playwright.close();
+        BrowserResources.closeAll(browser, playwright);
     }
 
     @ParameterizedTest
@@ -46,29 +50,36 @@ class JsonEvidenceFidelityComponentTest {
     void keepsJsonAndTypedVerdictsAcrossIndividualAndAggregateReports(boolean fallback, boolean aggregate) throws Exception {
         var report = JsonEvidenceFixture.publish(fallback, aggregate);
         assertFalse(Files.readString(report).contains("synthetic-json-secret-"));
-        try (var page = browser.newPage()) {
-            page.setDefaultTimeout(5_000);
-            var errors = new ArrayList<String>();
-            page.onPageError(errors::add);
-            page.navigate(report.toUri() + "#test-view");
-            var scenario = arrive(page, fallback);
-            verifyJson(JSON.body(scenario, fallback), fallback);
-            var table = DOM.table(DOM.validation(scenario));
-            assertEquals(1, table.count());
-            var disclosure = DOM.disclosure(table, fallback);
-            var summary = DOM.summary(disclosure, fallback);
-            assertFalse(DOM.isOpen(disclosure, fallback));
-            assertThat(table).isHidden();
-            verifyComparisons(table, fallback);
-            summary.click();
-            assertThat(table).isVisible();
-            DOM.rows(table).last().scrollIntoViewIfNeeded();
-            assertThat(DOM.rows(table).last()).isVisible();
-            summary.press("Enter");
-            assertThat(table).isHidden();
-            summary.press("Space");
-            assertThat(table).isVisible();
-            assertTrue(errors.isEmpty(), errors.toString());
+        try (var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browser))) {
+            try {
+                var page = pageLease.value();
+                page.setDefaultTimeout(5_000);
+                var errors = new ArrayList<String>();
+                page.onPageError(errors::add);
+                page.navigate(report.toUri() + "#test-view");
+                var scenario = arrive(page, fallback);
+                verifyJson(JSON.body(scenario, fallback), fallback);
+                var table = DOM.table(DOM.validation(scenario));
+                assertEquals(1, table.count());
+                var disclosure = DOM.disclosure(table, fallback);
+                var summary = DOM.summary(disclosure, fallback);
+                assertFalse(DOM.isOpen(disclosure, fallback));
+                assertThat(table).isHidden();
+                verifyComparisons(table, fallback);
+                summary.click();
+                assertThat(table).isVisible();
+                DOM.rows(table).last().scrollIntoViewIfNeeded();
+                assertThat(DOM.rows(table).last()).isVisible();
+                summary.press("Enter");
+                assertThat(table).isHidden();
+                summary.press("Space");
+                assertThat(table).isVisible();
+                assertTrue(errors.isEmpty(), errors.toString());
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 
@@ -76,13 +87,20 @@ class JsonEvidenceFidelityComponentTest {
     @CsvSource({"false,rounded-number", "false,lost-duplicate", "true,rounded-number", "true,lost-duplicate"})
     void rejectsRoundedNumbersAndLostDuplicatesEvenWhenStatusIsUnchanged(boolean fallback, String mutation) throws Exception {
         var report = JsonEvidenceFixture.publish(fallback, true);
-        try (var page = browser.newPage()) {
-            page.setDefaultTimeout(5_000);
-            page.navigate(report.toUri() + "#test-view");
-            var body = JSON.body(arrive(page, fallback), fallback);
-            verifyJson(body, fallback);
-            JSON.mutate(body, mutation);
-            assertThrows(AssertionError.class, () -> verifyJson(body, fallback), mutation);
+        try (var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browser))) {
+            try {
+                var page = pageLease.value();
+                page.setDefaultTimeout(5_000);
+                page.navigate(report.toUri() + "#test-view");
+                var body = JSON.body(arrive(page, fallback), fallback);
+                verifyJson(body, fallback);
+                JSON.mutate(body, mutation);
+                assertThrows(AssertionError.class, () -> verifyJson(body, fallback), mutation);
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 

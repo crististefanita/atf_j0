@@ -31,7 +31,10 @@ class ExtentReportRuntimeNavigationComponentTest {
                 () -> assertEquals(1, count(script, "window.atfOpenTest=function")),
                 () -> assertEquals(1, count(script, "window.atfActivate=function")),
                 () -> assertEquals(1, count(script, "document.addEventListener('DOMContentLoaded'")),
-                () -> assertEquals(1, count(script, "window.addEventListener('load'")),
+                () -> assertEquals(1, count(ExtentReportRuntimeNavigationController.script(), "window.addEventListener('load'")),
+                () -> assertEquals(1, count(ExtentReportRuntimeNavigationPerformance.script(), "window.addEventListener('load'")),
+                () -> assertEquals(2, count(script, "window.addEventListener('load'"),
+                        "Navigation initialization and passive load timing are separate owners"),
                 () -> FUNCTIONS.forEach(function -> assertEquals(1,
                         count(script, "function " + function + "("),
                         () -> "Navigation function must have one declaration: " + function)));

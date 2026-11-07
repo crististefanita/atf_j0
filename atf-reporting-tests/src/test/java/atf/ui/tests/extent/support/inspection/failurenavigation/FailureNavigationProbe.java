@@ -1,5 +1,7 @@
 package atf.ui.tests.extent.support.inspection.failurenavigation;
 
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.support.failurecorrelation.FailureNavigationFixture;
 import atf.reporting.support.failurecorrelation.FailureNavigationFixture.Owner;
 import atf.ui.tests.extent.support.locators.failurenavigation.FailureNavigationLocators;
@@ -14,35 +16,42 @@ public final class FailureNavigationProbe {
 
     public static void verify(Owner owner, int width) {
         var output = FailureNavigationFixture.publish(owner);
-        try (var playwright = Playwright.create();
-             var browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
-             var page = browser.newPage(new Browser.NewPageOptions().setViewportSize(width, 900))) {
-            var errors = new ArrayList<String>(); page.onPageError(errors::add);
-            page.navigate(output.toUri() + "#test-view");
-            for (int phaseIndex = 0; phaseIndex < FailureNavigationFixture.PHASES.size(); phaseIndex++) {
-                String phase = FailureNavigationFixture.PHASES.get(phaseIndex);
-                int ordinal = phaseIndex * 2 + 2;
-                open(page, ordinal, width == 392);
-                page.waitForCondition(() -> LOCATORS.target(page, phase).isVisible());
-                assertVisible(page, phase);
-                assertTrue(page.url().contains("failure-ordinal=" + ordinal), "Reloadable address retains exact assertion identity");
-                assertNotEquals("true", LOCATORS.sibling(page).getAttribute("data-atf-scenario-open"),
-                        "The adjacent passing scenario is not expanded by failure navigation");
-                // Native navigation owns display and may update it after the first visible frame.
-                // The negative control hides the phase independently, then removes only its own mutation.
-                LOCATORS.phase(page, phase).evaluate("p=>p.style.setProperty('content-visibility','hidden','important')");
-                assertThrows(AssertionError.class, () -> assertVisible(page, phase),
-                        "A visible scenario with a hidden phase must fail the independent oracle");
-                LOCATORS.phase(page, phase).evaluate("p=>p.style.removeProperty('content-visibility')");
-                open(page, ordinal, false);
-                page.waitForCondition(() -> LOCATORS.target(page, phase).isVisible());
-                assertVisible(page, phase);
-                page.reload();
-                page.waitForCondition(() -> LOCATORS.target(page, phase).isVisible());
-                assertVisible(page, phase);
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)));
+             var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browserLease.value(), new Browser.NewContextOptions().setViewportSize(width, 900)))) {
+            try {
+                var page = pageLease.value();
+                var errors = new ArrayList<String>(); page.onPageError(errors::add);
+                page.navigate(output.toUri() + "#test-view");
+                for (int phaseIndex = 0; phaseIndex < FailureNavigationFixture.PHASES.size(); phaseIndex++) {
+                    String phase = FailureNavigationFixture.PHASES.get(phaseIndex);
+                    int ordinal = phaseIndex * 2 + 2;
+                    open(page, ordinal, width == 392);
+                    page.waitForCondition(() -> LOCATORS.target(page, phase).isVisible());
+                    assertVisible(page, phase);
+                    assertTrue(page.url().contains("failure-ordinal=" + ordinal), "Reloadable address retains exact assertion identity");
+                    assertNotEquals("true", LOCATORS.sibling(page).getAttribute("data-atf-scenario-open"),
+                            "The adjacent passing scenario is not expanded by failure navigation");
+                    // Native navigation owns display and may update it after the first visible frame.
+                    // The negative control hides the phase independently, then removes only its own mutation.
+                    LOCATORS.phase(page, phase).evaluate("p=>p.style.setProperty('content-visibility','hidden','important')");
+                    assertThrows(AssertionError.class, () -> assertVisible(page, phase),
+                            "A visible scenario with a hidden phase must fail the independent oracle");
+                    LOCATORS.phase(page, phase).evaluate("p=>p.style.removeProperty('content-visibility')");
+                    open(page, ordinal, false);
+                    page.waitForCondition(() -> LOCATORS.target(page, phase).isVisible());
+                    assertVisible(page, phase);
+                    page.reload();
+                    page.waitForCondition(() -> LOCATORS.target(page, phase).isVisible());
+                    assertVisible(page, phase);
+                }
+                assertTrue(errors.isEmpty(), errors::toString);
+                page.screenshot(new Page.ScreenshotOptions().setPath(java.nio.file.Path.of(output + "-" + width + ".png")));
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            assertTrue(errors.isEmpty(), errors::toString);
-            page.screenshot(new Page.ScreenshotOptions().setPath(java.nio.file.Path.of(output + "-" + width + ".png")));
         }
     }
 

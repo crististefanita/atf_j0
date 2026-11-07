@@ -1,5 +1,8 @@
 package atf.ui.tests.extent.component.inspection.network;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.ui.network.ReportNetworkCaptureStatus;
 import atf.reporting.ui.network.ReportNetworkInspector;
 import atf.reporting.ui.network.ReportNetworkAggregateMarkup;
@@ -40,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @AtfComponentTest
+@ReportBrowserTest
 class NetworkCaptureEvidenceTest {
     private static final ReportNetworkCaptureLocators CAPTURE = new ReportNetworkCaptureLocators();
     @TempDir Path directory;
@@ -77,24 +81,30 @@ class NetworkCaptureEvidenceTest {
         assertTrue(html.contains("/cart/add/1"));
 
         try (var server = DebugUiServer.start(DebugUiConfiguration.forHtml(artifact, 0));
-             var browser = PlaywrightUiSession.open(UiBrowserConfiguration.defaults())) {
-            var page = browser.page();
-            page.navigate(server.uriFor(artifact) + "#test-view");
-            var locators = new ReportUiLocators();
-            locators.navTab(page, ReportUiContract.Tab.TESTS).click();
-            locators.testOwnerItem(page, 0).click();
-            for (String title : List.of("Selected browser traffic", "TEST BODY", "WHEN item is added to cart",
-                    "API validation", "GET /cart/add/1", "Browser network summary", "Network aggregate")) {
-                expand(page, title);
+             var browser = BrowserResources.create(() -> PlaywrightUiSession.open(UiBrowserConfiguration.defaults()))) {
+            try {
+                var page = browser.page();
+                page.navigate(server.uriFor(artifact) + "#test-view");
+                var locators = new ReportUiLocators();
+                locators.navTab(page, ReportUiContract.Tab.TESTS).click();
+                locators.testOwnerItem(page, 0).click();
+                for (String title : List.of("Selected browser traffic", "TEST BODY", "WHEN item is added to cart",
+                        "API validation", "GET /cart/add/1", "Browser network summary", "Network aggregate")) {
+                    expand(page, title);
+                }
+                CAPTURE.coverage(page).click();
+                String text = CAPTURE.document(page).innerText();
+                assertTrue(text.contains("WHEN item is added to cart"));
+                assertTrue(text.contains("GET /cart/add/1"));
+                assertTrue(text.contains("Complete within scope"));
+                assertTrue(text.contains("Setup exchanges"));
+                assertTrue(text.contains("Causal exchanges"));
+                assertFalse(text.contains("Incomplete within scope"));
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            CAPTURE.coverage(page).click();
-            String text = CAPTURE.document(page).innerText();
-            assertTrue(text.contains("WHEN item is added to cart"));
-            assertTrue(text.contains("GET /cart/add/1"));
-            assertTrue(text.contains("Complete within scope"));
-            assertTrue(text.contains("Setup exchanges"));
-            assertTrue(text.contains("Causal exchanges"));
-            assertFalse(text.contains("Incomplete within scope"));
         }
     }
 
@@ -108,17 +118,23 @@ class NetworkCaptureEvidenceTest {
         assertTrue(html.contains("Dropped"));
         assertTrue(html.contains("Limit reached"));
         try (var server = DebugUiServer.start(DebugUiConfiguration.forHtml(artifact, 0));
-             var browser = PlaywrightUiSession.open(UiBrowserConfiguration.defaults())) {
-            var page = browser.page();
-            page.navigate(server.uriFor(artifact).toString());
-            var locators = new ReportUiLocators();
-            locators.navTab(page, ReportUiContract.Tab.TESTS).click();
-            locators.testOwnerItem(page, 0).click();
-            for (String title : List.of("Selected browser traffic", "TEST BODY",
-                    "Browser network summary", "Network aggregate")) expand(page, title);
-            CAPTURE.coverage(page).click();
-            assertTrue(CAPTURE.document(page).innerText().contains("Incomplete within scope"));
-            assertFalse(CAPTURE.document(page).innerText().contains("Complete within scope"));
+             var browser = BrowserResources.create(() -> PlaywrightUiSession.open(UiBrowserConfiguration.defaults()))) {
+            try {
+                var page = browser.page();
+                page.navigate(server.uriFor(artifact).toString());
+                var locators = new ReportUiLocators();
+                locators.navTab(page, ReportUiContract.Tab.TESTS).click();
+                locators.testOwnerItem(page, 0).click();
+                for (String title : List.of("Selected browser traffic", "TEST BODY",
+                        "Browser network summary", "Network aggregate")) expand(page, title);
+                CAPTURE.coverage(page).click();
+                assertTrue(CAPTURE.document(page).innerText().contains("Incomplete within scope"));
+                assertFalse(CAPTURE.document(page).innerText().contains("Complete within scope"));
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 

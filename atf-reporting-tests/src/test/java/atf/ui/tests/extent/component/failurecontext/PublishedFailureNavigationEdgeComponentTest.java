@@ -1,5 +1,7 @@
 package atf.ui.tests.extent.component.failurecontext;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
 import atf.reporting.support.failurecorrelation.FailureNavigationFixture.Owner;
 import atf.testkit.AtfComponentTest;
 import atf.ui.tests.extent.support.inspection.failurenavigation.FailureNavigationEdgeProbe;
@@ -7,6 +9,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 @AtfComponentTest
+@ReportBrowserTest
 class PublishedFailureNavigationEdgeComponentTest {
     @ParameterizedTest @CsvSource({"240,1280", "18,392"})
     void repeatedUiFailureLabelsKeepTheirOriginalOrdinalAcrossReloadAndReverseNavigation(int limit, int width) throws Exception {

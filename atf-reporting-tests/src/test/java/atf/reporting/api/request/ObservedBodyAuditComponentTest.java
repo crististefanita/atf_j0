@@ -1,5 +1,7 @@
 package atf.reporting.api.request;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
 import atf.reporting.audit.ReportAuditSnapshot;
 import atf.reporting.api.contract.ApiReportContractAuditor;
 import atf.reporting.api.contract.ApiReportContractInput;
@@ -28,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @AtfComponentTest
+@ReportBrowserTest
 class ObservedBodyAuditComponentTest {
     @ParameterizedTest(name = "{0}: audit {1}")
     @MethodSource("cases")

@@ -1,4 +1,7 @@
 package atf.ui.tests.extent.e2e.sanity;
+
+import atf.reporting.browser.junit.ReportBrowserTest;
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
 import atf.testkit.AtfE2eTest;
 import atf.testkit.channel.AtfTestChannel;
 import atf.testkit.channel.TestChannel;
@@ -25,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @AtfModuleTest(requires = {AtfModule.REPORTING, AtfModule.UI})
 @AtfE2eTest
 @AtfTestChannel(TestChannel.UI)
+@ReportBrowserTest
 class UiThenDisclosureSanityTest {
     @Test
     void explicitTeardownOutcomeIsStandaloneGherkinDisclosure() throws Exception {
@@ -32,16 +36,22 @@ class UiThenDisclosureSanityTest {
         Path root = Files.createTempDirectory("atf-ui-then-disclosure-");
         Path report = UiThenDisclosureReportFixtures.publishTeardown(root);
         try (DebugUiServer server = DebugUiServer.start(DebugUiConfiguration.forHtml(report, 0));
-             PlaywrightUiSession browser = PlaywrightUiSession.open(configuration.browser())) {
-            browser.navigate(java.net.URI.create(server.uriFor(report) + ReportUiContract.Tab.TESTS.hash()));
-            ThenDisclosureFlow.ThenSnapshot snapshot = new ThenDisclosureFlow().inspectThenDisclosure(browser.page());
-            assertAll(
-                    () -> assertTrue(snapshot.rendered(), "The THEN outcome must be rendered"),
-                    () -> assertEquals("request", snapshot.role()),
-                    () -> assertTrue(snapshot.initialized(), "The THEN card must be initialized as a disclosure"),
-                    () -> assertTrue(snapshot.disclosureGlyph(), "The collapsed THEN card must expose a disclosure glyph"),
-                    () -> assertEquals(0, snapshot.nestedUiValidations(), "The publication outcome must not contain a synthetic UI validation child"),
-                    () -> assertTrue(snapshot.titleVisible(), "The final Gherkin outcome must remain visible"));
+             PlaywrightUiSession browser = BrowserResources.create(() -> PlaywrightUiSession.open(configuration.browser()))) {
+            try {
+                browser.navigate(java.net.URI.create(server.uriFor(report) + ReportUiContract.Tab.TESTS.hash()));
+                ThenDisclosureFlow.ThenSnapshot snapshot = new ThenDisclosureFlow().inspectThenDisclosure(browser.page());
+                assertAll(
+                        () -> assertTrue(snapshot.rendered(), "The THEN outcome must be rendered"),
+                        () -> assertEquals("request", snapshot.role()),
+                        () -> assertTrue(snapshot.initialized(), "The THEN card must be initialized as a disclosure"),
+                        () -> assertTrue(snapshot.disclosureGlyph(), "The collapsed THEN card must expose a disclosure glyph"),
+                        () -> assertEquals(0, snapshot.nestedUiValidations(), "The publication outcome must not contain a synthetic UI validation child"),
+                        () -> assertTrue(snapshot.titleVisible(), "The final Gherkin outcome must remain visible"));
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 
@@ -51,14 +61,20 @@ class UiThenDisclosureSanityTest {
         Path root = Files.createTempDirectory("atf-ui-no-teardown-sanity-");
         Path report = UiThenDisclosureReportFixtures.publishWithoutTeardown(root);
         try (DebugUiServer server = DebugUiServer.start(DebugUiConfiguration.forHtml(report, 0));
-             PlaywrightUiSession browser = PlaywrightUiSession.open(configuration.browser())) {
-            browser.navigate(java.net.URI.create(server.uriFor(report) + ReportUiContract.Tab.TESTS.hash()));
-            ThenDisclosureFlow.PhaseSnapshot snapshot = new ThenDisclosureFlow().inspectWithoutTeardown(browser.page());
-            assertAll(
-                    () -> assertEquals(2, snapshot.phaseCount(), "Only SETUP and TEST BODY should render"),
-                    () -> assertTrue(snapshot.setupVisible()),
-                    () -> assertTrue(snapshot.testBodyVisible()),
-                    () -> assertTrue(!snapshot.teardownVisible(), "A UI audit without cleanup must not render TEARDOWN"));
+             PlaywrightUiSession browser = BrowserResources.create(() -> PlaywrightUiSession.open(configuration.browser()))) {
+            try {
+                browser.navigate(java.net.URI.create(server.uriFor(report) + ReportUiContract.Tab.TESTS.hash()));
+                ThenDisclosureFlow.PhaseSnapshot snapshot = new ThenDisclosureFlow().inspectWithoutTeardown(browser.page());
+                assertAll(
+                        () -> assertEquals(2, snapshot.phaseCount(), "Only SETUP and TEST BODY should render"),
+                        () -> assertTrue(snapshot.setupVisible()),
+                        () -> assertTrue(snapshot.testBodyVisible()),
+                        () -> assertTrue(!snapshot.teardownVisible(), "A UI audit without cleanup must not render TEARDOWN"));
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 

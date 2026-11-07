@@ -1637,6 +1637,12 @@ Gate-ul nativ `mvn -f atf-reporting/pom.xml test` selectează explicit pachetul
 `atf.reporting.standalone` și implicit eșuează dacă nu descoperă teste.
 Un `BUILD SUCCESS` fără clase/cazuri executate nu dovedește contractul librăriei.
 
+| Control | Contract de păstrat |
+|---|---|
+| [Release Reporting Tests](../atf-reporting-tests/README.md) | profilul `reporting-release`: suita unitară completă și probele browser pe sursă/JAR, cu CodeSource înregistrat; gate-ul nativ rămâne separat |
+| Controale negative | request-ul și durata fazei corecte, inițializare unică și PNG original |
+| Host Fails | clasă proprie, separată de `.detail-body` nativ; hash/reload și selecția Tests păstrează diagnosticul; arborele complet se deschide prin backlink |
+
 [ReportingStandaloneVerdictComponentTest](src/test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java)
 este proba de componentă nativă pentru lifecycle, status și snapshot, cu
 JUnit `@Tag("component")`, fără importuri ATF externe sau browser.

@@ -1,5 +1,9 @@
 package atf.ui.tests.extent.support.audit;
 
+import atf.reporting.browser.lifecycle.BrowserProbeScope;
+
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.ui.audit.input.ReportAuditInput;
 import atf.reporting.api.tests.support.console.ReportingTestConsole;
 import atf.reporting.ui.audit.input.ReportAuditInputKind;
@@ -88,7 +92,7 @@ public final class ReportAuditContext implements AutoCloseable {
         PlaywrightUiSession browser = null;
         try {
             debugUi = DebugUiServer.start(DebugUiConfiguration.forHtml(inputReport, 0));
-            browser = PlaywrightUiSession.open(configuration.browser(), console.core());
+            browser = BrowserResources.create(() -> PlaywrightUiSession.open(configuration.browser(), console.core()));
             CopyOnWriteArrayList<String> consoleErrors = new CopyOnWriteArrayList<>();
             CopyOnWriteArrayList<String> pageErrors = new CopyOnWriteArrayList<>();
             CopyOnWriteArrayList<String> requestFailures = new CopyOnWriteArrayList<>();
@@ -104,9 +108,9 @@ public final class ReportAuditContext implements AutoCloseable {
             return new ReportAuditContext(resolved, audit, debugUi, browser,
                     consoleErrors, pageErrors, requestFailures);
         } catch (RuntimeException failure) {
-            if (browser != null) browser.close();
-            if (debugUi != null) debugUi.close();
-            audit.close();
+            BrowserProbeScope.recordFailure(failure);
+            try { BrowserResources.closeAll(browser, debugUi, audit); }
+            catch (RuntimeException | Error cleanup) { if (cleanup != failure) failure.addSuppressed(cleanup); }
             throw failure;
         }
     }
@@ -183,9 +187,7 @@ public final class ReportAuditContext implements AutoCloseable {
 
     @Override
     public void close() {
-        browser.close();
-        server.close();
-        auditSession.close();
+        BrowserResources.closeAll(browser, server, auditSession);
     }
 
     public record BrowserDiagnostics(List<String> consoleErrors,

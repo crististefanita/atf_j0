@@ -11,8 +11,11 @@
     <artifactId>atf-reporting-tests</artifactId>
     <name>ATF Reporting Composition Tests</name>
     <description>API/UI/E2E composition suite consuming standalone atf-reporting.</description>
+    <properties>
+        <atf.reporting.test.version>${project.version}</atf.reporting.test.version>
+    </properties>
     <dependencies>
-        <dependency><groupId>atf.api</groupId><artifactId>atf-reporting</artifactId><version>${project.version}</version><scope>test</scope></dependency>
+        <dependency><groupId>atf.api</groupId><artifactId>atf-reporting</artifactId><version>${atf.reporting.test.version}</version><scope>test</scope></dependency>
         <dependency><groupId>atf.api</groupId><artifactId>atf-core</artifactId><version>${project.version}</version><scope>test</scope></dependency>
         <dependency><groupId>atf.api</groupId><artifactId>atf-mock</artifactId><version>${project.version}</version><scope>test</scope></dependency>
         <dependency><groupId>atf.api</groupId><artifactId>atf-validation</artifactId><version>${project.version}</version><scope>test</scope></dependency>
@@ -24,6 +27,19 @@
         <dependency><groupId>org.junit.platform</groupId><artifactId>junit-platform-suite</artifactId><scope>test</scope></dependency>
     </dependencies>
     <profiles>
+        <profile>
+            <id>reporting-release</id>
+            <build><plugins><plugin>
+                <groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.5.2</version>
+                <configuration>
+                    <includes>
+                        <include>**/AtfReportingUnitSuite.java</include>
+                        <include>**/AtfReportingBrowserSuite.java</include>
+                    </includes>
+                    <failIfNoTests>true</failIfNoTests>
+                </configuration>
+            </plugin></plugins></build>
+        </profile>
         <profile>
             <id>library-guides</id>
             <build><plugins><plugin>

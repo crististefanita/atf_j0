@@ -1,5 +1,9 @@
 package atf.ui.tests.extent.component.screenshot;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.support.screenshot.ScreenshotViewerFixture;
 import atf.testkit.AtfComponentTest;
 import com.microsoft.playwright.*;
@@ -12,51 +16,61 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** End-to-end browser contract with mocked capture inputs in both native renderers. */
 @AtfComponentTest
+@ReportBrowserTest
 class ScreenshotViewerBrowserComponentTest {
     @ParameterizedTest @ValueSource(booleans={true,false})
     void deduplicatedCaptureKeepsOwnerDisclosuresScrollAndFocus(boolean extent)throws Exception {
         var file=ScreenshotViewerFixture.publish(extent);
-        try(var playwright=Playwright.create();var browser=playwright.chromium().launch();var page=browser.newPage()) {
-            page.setDefaultTimeout(5000);page.setViewportSize(1280,800);var errors=new ArrayList<String>();page.onPageError(errors::add);
-            page.route("http://**/*",Route::abort);page.route("https://**/*",Route::abort);
-            page.navigate(file.toUri()+(extent?"#test-view":""));
-            if(extent){
-                page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready')==='true'");
-                page.locator(".test-list-wrapper .test-list-item>li.test-item[test-id]").nth(1).click();
-                page.getByRole(AriaRole.BUTTON,new Page.GetByRoleOptions().setName("Expand all nodes").setExact(true)).click();
-            }else {
-                page.getByRole(AriaRole.BUTTON,new Page.GetByRoleOptions().setName("Tests").setExact(true)).click();
-                page.locator("#tests details").evaluateAll("nodes => nodes.forEach(n => n.open=true)");
-            }
-            var frames=page.locator(extent?".test-content-detail a:is([data-atf-screenshot],[data-atf-screenshot-ref]):visible":"#tests a[data-atf-screenshot]:visible");
-            for(int which:List.of(39,40,41)) {
-                var anchor=frames.nth(extent?which:which+3);anchor.scrollIntoViewIfNeeded();anchor.focus();
-                String caption=anchor.getAttribute("aria-label");
-                assertTrue(caption.contains("Owner 1"),"Deduplication retains the local capture caption");
-                for(String action:List.of("click","Enter"," ")) {
-                    anchor.focus();Object before=state(page,extent);
-                    if(action.equals("click"))anchor.click();else anchor.press(action);
-                    var dialog=page.getByRole(AriaRole.DIALOG,new Page.GetByRoleOptions().setName("Screenshot viewer"));
-                    dialog.waitFor();var image=dialog.locator("img");
-                    String shape=which==39?"portrait":which==40?"landscape":"square";
-                    assertEquals("data:image/png;base64,"+ScreenshotViewerFixture.png(shape),image.getAttribute("src"));
-                    assertTrue(dialog.innerText().contains(caption.replaceFirst("^Open ","")),"Local caption belongs to clicked owner");
-                    page.waitForFunction("() => document.querySelector('.atf-screenshot-viewer img')?.complete===true");
-                    assertFit(page);
-                    if(action.equals("click")){page.setViewportSize(320,480);assertFit(page);}
-                    dialog.getByRole(AriaRole.BUTTON,new Locator.GetByRoleOptions().setName("Original size").setExact(true)).click();
-                    assertEquals("original",dialog.getAttribute("data-view-mode"));
-                    page.waitForFunction("e => {const r=e.getBoundingClientRect();return Math.abs(r.width-e.naturalWidth)<1&&Math.abs(r.height-e.naturalHeight)<1;}",image.elementHandle());
-                    dialog.getByRole(AriaRole.BUTTON,new Locator.GetByRoleOptions().setName("Fit to screen").setExact(true)).click();
-                    assertFit(page);if(action.equals("click")){page.setViewportSize(1280,800);assertFit(page);}
-                    if(action.equals("Enter"))page.keyboard().press("Escape");
-                    else dialog.getByRole(AriaRole.BUTTON,new Locator.GetByRoleOptions().setName("Close screenshot").setExact(true)).click();
-                    if(action.equals("click"))assertContext(before,state(page,extent));else assertRestored(before,state(page,extent));
-                    page.waitForFunction("e => {const r=e.getBoundingClientRect();return r.height>0&&r.bottom>0&&r.top<innerHeight;}",anchor.elementHandle());
-                    assertEquals(true,anchor.evaluate("e => document.activeElement===e"),"Focus returns without scrolling");
+        try(var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value()));
+             var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browserLease.value()))) {
+            try {
+                var page = pageLease.value();
+                page.setDefaultTimeout(5000);page.setViewportSize(1280,800);var errors=new ArrayList<String>();page.onPageError(errors::add);
+                page.route("http://**/*",Route::abort);page.route("https://**/*",Route::abort);
+                page.navigate(file.toUri()+(extent?"#test-view":""));
+                if(extent){
+                    page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready')==='true'");
+                    page.locator(".test-list-wrapper .test-list-item>li.test-item[test-id]").nth(1).click();
+                    page.getByRole(AriaRole.BUTTON,new Page.GetByRoleOptions().setName("Expand all nodes").setExact(true)).click();
+                }else {
+                    page.getByRole(AriaRole.BUTTON,new Page.GetByRoleOptions().setName("Tests").setExact(true)).click();
+                    page.locator("#tests details").evaluateAll("nodes => nodes.forEach(n => n.open=true)");
                 }
+                var frames=page.locator(extent?".test-content-detail a:is([data-atf-screenshot],[data-atf-screenshot-ref]):visible":"#tests a[data-atf-screenshot]:visible");
+                for(int which:List.of(39,40,41)) {
+                    var anchor=frames.nth(extent?which:which+3);anchor.scrollIntoViewIfNeeded();anchor.focus();
+                    String caption=anchor.getAttribute("aria-label");
+                    assertTrue(caption.contains("Owner 1"),"Deduplication retains the local capture caption");
+                    for(String action:List.of("click","Enter"," ")) {
+                        anchor.focus();Object before=state(page,extent);
+                        if(action.equals("click"))anchor.click();else anchor.press(action);
+                        var dialog=page.getByRole(AriaRole.DIALOG,new Page.GetByRoleOptions().setName("Screenshot viewer"));
+                        dialog.waitFor();var image=dialog.locator("img");
+                        String shape=which==39?"portrait":which==40?"landscape":"square";
+                        assertEquals("data:image/png;base64,"+ScreenshotViewerFixture.png(shape),image.getAttribute("src"));
+                        assertTrue(dialog.innerText().contains(caption.replaceFirst("^Open ","")),"Local caption belongs to clicked owner");
+                        page.waitForFunction("() => document.querySelector('.atf-screenshot-viewer img')?.complete===true");
+                        assertFit(page);
+                        if(action.equals("click")){page.setViewportSize(320,480);assertFit(page);}
+                        dialog.getByRole(AriaRole.BUTTON,new Locator.GetByRoleOptions().setName("Original size").setExact(true)).click();
+                        assertEquals("original",dialog.getAttribute("data-view-mode"));
+                        page.waitForFunction("e => {const r=e.getBoundingClientRect();return Math.abs(r.width-e.naturalWidth)<1&&Math.abs(r.height-e.naturalHeight)<1;}",image.elementHandle());
+                        dialog.getByRole(AriaRole.BUTTON,new Locator.GetByRoleOptions().setName("Fit to screen").setExact(true)).click();
+                        assertFit(page);if(action.equals("click")){page.setViewportSize(1280,800);assertFit(page);}
+                        if(action.equals("Enter"))page.keyboard().press("Escape");
+                        else dialog.getByRole(AriaRole.BUTTON,new Locator.GetByRoleOptions().setName("Close screenshot").setExact(true)).click();
+                        if(action.equals("click"))assertContext(before,state(page,extent));else assertRestored(before,state(page,extent));
+                        page.waitForFunction("e => {const r=e.getBoundingClientRect();return r.height>0&&r.bottom>0&&r.top<innerHeight;}",anchor.elementHandle());
+                        assertEquals(true,anchor.evaluate("e => document.activeElement===e"),"Focus returns without scrolling");
+                    }
+                }
+                assertTrue(errors.isEmpty(),errors.toString());
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            assertTrue(errors.isEmpty(),errors.toString());
         }
     }
     private static Object state(Page page,boolean extent){

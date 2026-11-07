@@ -1,5 +1,9 @@
 package atf.ui.tests.extent.component.execution;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.api.*;
 import atf.reporting.api.evidence.ApiExchangeEvidence;
 import atf.reporting.configuration.ReportingSettings;
@@ -20,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Renderer-owned no-response fixture; execution policy and consumer business oracles stay at their owners. */
 @AtfComponentTest
+@ReportBrowserTest
 class TerminalApiExecutionReportTest {
     private static final TerminalExecutionLocators UI = new TerminalExecutionLocators();
     private static final String SECRET = "terminal-evidence-private-token";
@@ -47,26 +52,33 @@ class TerminalApiExecutionReportTest {
         String html = Files.readString(file);
         assertFalse(html.contains(SECRET)); assertFalse(html.contains("HTTP 0"));
         assertTrue(html.contains("No HTTP response received for a terminal exchange"));
-        try (var playwright = Playwright.create();
-             var browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
-             var page = browser.newPage()) {
-            page.navigate(file.toAbsolutePath().toUri() + (fallback ? "" : "#test-view"));
-            UI.testsTab(page, fallback).click();
-            if (!fallback) UI.expandAll(page).click();
-            var disclosure = UI.execution(page);
-            assertEquals(1, disclosure.count()); assertFalse((Boolean) disclosure.evaluate("node => node.open"));
-            assertEquals(0, UI.responseDisclosures(page).count(), "execution diagnostics are not an HTTP response");
-            UI.summary(disclosure).click();
-            var attempts = UI.attempts(disclosure);
-            assertEquals(2, attempts.count());
-            assertEquals("503", UI.cells(attempts.first()).nth(1).innerText());
-            assertEquals("Unavailable", UI.cells(attempts.last()).nth(1).innerText());
-            assertEquals("FAILED", UI.cells(attempts.last()).nth(3).innerText());
-            assertFalse(UI.executionSummary(disclosure).innerText().contains("Response duration"));
-            attempts.last().scrollIntoViewIfNeeded(); assertTrue(attempts.last().isVisible());
-            UI.summary(disclosure).focus(); page.keyboard().press("Enter");
-            assertFalse((Boolean) disclosure.evaluate("node => node.open"));
-            page.keyboard().press("Space"); assertTrue((Boolean) disclosure.evaluate("node => node.open"));
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)));
+             var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browserLease.value()))) {
+            try {
+                var page = pageLease.value();
+                page.navigate(file.toAbsolutePath().toUri() + (fallback ? "" : "#test-view"));
+                UI.testsTab(page, fallback).click();
+                if (!fallback) UI.expandAll(page).click();
+                var disclosure = UI.execution(page);
+                assertEquals(1, disclosure.count()); assertFalse((Boolean) disclosure.evaluate("node => node.open"));
+                assertEquals(0, UI.responseDisclosures(page).count(), "execution diagnostics are not an HTTP response");
+                UI.summary(disclosure).click();
+                var attempts = UI.attempts(disclosure);
+                assertEquals(2, attempts.count());
+                assertEquals("503", UI.cells(attempts.first()).nth(1).innerText());
+                assertEquals("Unavailable", UI.cells(attempts.last()).nth(1).innerText());
+                assertEquals("FAILED", UI.cells(attempts.last()).nth(3).innerText());
+                assertFalse(UI.executionSummary(disclosure).innerText().contains("Response duration"));
+                attempts.last().scrollIntoViewIfNeeded(); assertTrue(attempts.last().isVisible());
+                UI.summary(disclosure).focus(); page.keyboard().press("Enter");
+                assertFalse((Boolean) disclosure.evaluate("node => node.open"));
+                page.keyboard().press("Space"); assertTrue((Boolean) disclosure.evaluate("node => node.open"));
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 

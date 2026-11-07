@@ -1,5 +1,9 @@
 package atf.ui.tests.extent.component.presentation;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.testkit.AtfComponentTest;
 import atf.ui.tests.extent.support.presentation.PresentationReportFixture;
 import com.microsoft.playwright.*;
@@ -17,39 +21,49 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Checks real text contrast, independent status badges, complete labels and keyboard navigation. */
 @AtfComponentTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ReportBrowserTest
 class FallbackIndexPresentationComponentTest {
     @TempDir Path directory;
     private Playwright playwright;
     private Browser browser;
-    @BeforeAll void start() { playwright = Playwright.create(); browser = playwright.chromium().launch(); }
-    @AfterAll void stop() { if (browser != null) browser.close(); if (playwright != null) playwright.close(); }
+    @BeforeAll void start() { playwright = BrowserResources.create(Playwright::create); browser = BrowserResources.launch(playwright); }
+    @AfterAll void stop() {
+        BrowserResources.closeAll(browser, playwright);
+    }
     @ParameterizedTest @ValueSource(ints = {1280, 392})
     void statusDoesNotRepaintTheIndexOrConcealLabels(int width) {
         Path file = PresentationReportFixture.publish(directory.resolve("index-" + width + ".html"), true, true);
-        try (var page = browser.newPage(new Browser.NewPageOptions().setViewportSize(width, 900))) {
-            page.setDefaultTimeout(5_000); page.setDefaultNavigationTimeout(30_000);
-            page.navigate(file.toUri().toString(), new Page.NavigateOptions().setWaitUntil(WaitUntilState.DOMCONTENTLOADED));
-            page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Tests").setExact(true)).click();
-            var links = page.locator("#tests aside .test-link"); assertEquals(3, links.count());
-            for (int i = 0; i < 3; i++) {
-                var link = links.nth(i); assertThat(link).isVisible();
-                assertEquals(PresentationReportFixture.CLASS_NAME, link.locator("small").innerText());
-                assertTrue(link.innerText().contains(PresentationReportFixture.TITLE + i));
-                assertEquals(1, link.locator(":scope > .status").count(), "one separate status badge per original link");
-                assertEquals(List.of("Pass", "Fail", "Skip").get(i), link.locator(":scope > .status").innerText());
-                verifyPresentation(link);
-                link.press("Shift+Tab"); page.keyboard().press("Tab");
-                assertEquals(Boolean.TRUE, link.evaluate("e => e === document.activeElement"));
-                assertEquals(Boolean.TRUE, link.evaluate("e => getComputedStyle(e).outlineStyle !== 'none' && parseFloat(getComputedStyle(e).outlineWidth) >= 2"));
-                String target = link.getAttribute("href").substring(1);
-                link.press("Enter");
-                page.waitForCondition(() -> target.equals(URI.create(page.url()).getFragment()));
-                assertThat(page.locator("article[id='" + link.getAttribute("href").substring(1) + "'] h2"))
-                        .hasText(PresentationReportFixture.TITLE + i);
+        try (var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browser, new Browser.NewContextOptions().setViewportSize(width, 900)))) {
+            try {
+                var page = pageLease.value();
+                page.setDefaultTimeout(5_000); page.setDefaultNavigationTimeout(30_000);
+                page.navigate(file.toUri().toString(), new Page.NavigateOptions().setWaitUntil(WaitUntilState.DOMCONTENTLOADED));
+                page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Tests").setExact(true)).click();
+                var links = page.locator("#tests aside .test-link"); assertEquals(3, links.count());
+                for (int i = 0; i < 3; i++) {
+                    var link = links.nth(i); assertThat(link).isVisible();
+                    assertEquals(PresentationReportFixture.CLASS_NAME, link.locator("small").innerText());
+                    assertTrue(link.innerText().contains(PresentationReportFixture.TITLE + i));
+                    assertEquals(1, link.locator(":scope > .status").count(), "one separate status badge per original link");
+                    assertEquals(List.of("Pass", "Fail", "Skip").get(i), link.locator(":scope > .status").innerText());
+                    verifyPresentation(link);
+                    link.press("Shift+Tab"); page.keyboard().press("Tab");
+                    assertEquals(Boolean.TRUE, link.evaluate("e => e === document.activeElement"));
+                    assertEquals(Boolean.TRUE, link.evaluate("e => getComputedStyle(e).outlineStyle !== 'none' && parseFloat(getComputedStyle(e).outlineWidth) >= 2"));
+                    String target = link.getAttribute("href").substring(1);
+                    link.press("Enter");
+                    page.waitForCondition(() -> target.equals(URI.create(page.url()).getFragment()));
+                    assertThat(page.locator("article[id='" + link.getAttribute("href").substring(1) + "'] h2"))
+                            .hasText(PresentationReportFixture.TITLE + i);
+                }
+                var link = links.first();
+                link.evaluate("e => e.classList.add('status','status-pass')");
+                assertThrows(AssertionError.class, () -> verifyPresentation(link), "the old whole-link badge must be refused");
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            var link = links.first();
-            link.evaluate("e => e.classList.add('status','status-pass')");
-            assertThrows(AssertionError.class, () -> verifyPresentation(link), "the old whole-link badge must be refused");
         }
     }
     private static void verifyPresentation(Locator link) {

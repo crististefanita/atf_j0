@@ -1,5 +1,9 @@
 package atf.ui.tests.extent.component.navigation;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.testkit.AtfComponentTest;
 import atf.reporting.support.navigation.LargeNavigationFixture;
 import com.microsoft.playwright.*;
@@ -11,60 +15,70 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Physical report navigation keeps the original source evidence intact. */
 @AtfComponentTest
+@ReportBrowserTest
 class LargeReportNavigationBrowserComponentTest {
     @Test void switchesOwnersAndOpensTheFinalCheckpointWithoutBlocking() throws Exception {
         String input=System.getProperty("atf.navigation.input");
         Path file=input==null?LargeNavigationFixture.publish():Path.of(input);
-        try(var pw=Playwright.create();var browser=pw.chromium().launch();var page=browser.newPage()) {
-            var errors=new ArrayList<String>();page.onPageError(errors::add);page.setDefaultTimeout(10000);
-            page.setDefaultNavigationTimeout(45000);page.route("http://**/*",Route::abort);page.route("https://**/*",Route::abort);
-            long began=System.nanoTime();page.navigate(file.toUri()+"#test-view");
-            page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready')==='true'");
-            System.out.println("LARGE_READY_MS="+(System.nanoTime()-began)/1000000);
-            Object original=evidence(page);
-            var owners=page.locator("#test-view .test-list-wrapper .test-list-item>li.test-item[test-id]");
-            int count=owners.count();assertTrue(count>=2);
-            assertEquals(count,((List<?>)original).size());
-            if(input==null)for(Object row:(List<?>)original){
-                var inventory=(Map<?,?>)row;assertEquals(12004,((Number)inventory.get("cells")).intValue());
-                assertEquals(1,((Number)inventory.get("frames")).intValue());
-            }
-            var pendingBulk=selectedBulkOwners(System.getProperty("atf.navigation.expandOwners",""));
-            assertTrue(pendingBulk.stream().allMatch(index->index<count),"Selected bulk owners must exist in this report");
-            var sequence=new ArrayList<>(List.of(count-1,0));
-            for(int owner:pendingBulk)if(!sequence.contains(owner))sequence.add(owner);
-            sequence.add(count-1);
-            for(int which:sequence) {
-                String selectedName=owners.nth(which).locator(".test-detail .name").innerText();
-                began=System.nanoTime();owners.nth(which).locator(".test-detail").click();
-                com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat(page.locator("#test-view .test-content-detail .detail-head h5:visible")).hasText(selectedName);
-                System.out.println("LARGE_OWNER_MS="+(System.nanoTime()-began)/1000000);
-                var expand=page.locator("#test-view .test-content-detail [role=button][aria-label='Expand all nodes']:visible");
-                began=System.nanoTime();
-                boolean selectedBulk=pendingBulk.remove(which);
-                if(selectedBulk)System.out.println("LARGE_BULK_OWNER="+which);
-                if((input==null&&which!=0)||selectedBulk){expand.click();assertExpandedTree(page);}
-                else openCheckpoint(page,which);
-                System.out.println("LARGE_DISCLOSURE_MS="+(System.nanoTime()-began)/1000000);
-                System.out.println("LARGE_METRICS="+page.evaluate("() => window.__atfReportPerformance"));
-                var frames=page.locator("#test-view .test-content-detail a:is([data-atf-screenshot],[data-atf-screenshot-ref]):visible");
-                if(frames.count()>0){
-                    var frame=frames.last();String caption=frame.getAttribute("aria-label");frame.click();
-                    var viewer=page.locator("dialog.atf-screenshot-viewer[open]");viewer.waitFor();
-                    assertEquals("Screenshot viewer",viewer.getAttribute("aria-label"));
-                    assertTrue(viewer.innerText().contains(caption.replaceFirst("^Open ","")));
-                    capture(page,"owner-"+which+"-png");
-                    viewer.getByRole(AriaRole.BUTTON,new Locator.GetByRoleOptions().setName("Close screenshot").setExact(true)).click();
+        try(var pwLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(pwLease.value()));
+             var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browserLease.value()))) {
+            try {
+                var page = pageLease.value();
+                var errors=new ArrayList<String>();page.onPageError(errors::add);page.setDefaultTimeout(10000);
+                page.setDefaultNavigationTimeout(45000);page.route("http://**/*",Route::abort);page.route("https://**/*",Route::abort);
+                long began=System.nanoTime();page.navigate(file.toUri()+"#test-view");
+                page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready')==='true'");
+                System.out.println("LARGE_READY_MS="+(System.nanoTime()-began)/1000000);
+                Object original=evidence(page);
+                var owners=page.locator("#test-view .test-list-wrapper .test-list-item>li.test-item[test-id]");
+                int count=owners.count();assertTrue(count>=2);
+                assertEquals(count,((List<?>)original).size());
+                if(input==null)for(Object row:(List<?>)original){
+                    var inventory=(Map<?,?>)row;assertEquals(12004,((Number)inventory.get("cells")).intValue());
+                    assertEquals(1,((Number)inventory.get("frames")).intValue());
                 }
+                var pendingBulk=selectedBulkOwners(System.getProperty("atf.navigation.expandOwners",""));
+                assertTrue(pendingBulk.stream().allMatch(index->index<count),"Selected bulk owners must exist in this report");
+                var sequence=new ArrayList<>(List.of(count-1,0));
+                for(int owner:pendingBulk)if(!sequence.contains(owner))sequence.add(owner);
+                sequence.add(count-1);
+                for(int which:sequence) {
+                    String selectedName=owners.nth(which).locator(".test-detail .name").innerText();
+                    began=System.nanoTime();owners.nth(which).locator(".test-detail").click();
+                    com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat(page.locator("#test-view .test-content-detail .detail-head h5:visible")).hasText(selectedName);
+                    System.out.println("LARGE_OWNER_MS="+(System.nanoTime()-began)/1000000);
+                    var expand=page.locator("#test-view .test-content-detail [role=button][aria-label='Expand all nodes']:visible");
+                    began=System.nanoTime();
+                    boolean selectedBulk=pendingBulk.remove(which);
+                    if(selectedBulk)System.out.println("LARGE_BULK_OWNER="+which);
+                    if((input==null&&which!=0)||selectedBulk){expand.click();assertExpandedTree(page);}
+                    else openCheckpoint(page,which);
+                    System.out.println("LARGE_DISCLOSURE_MS="+(System.nanoTime()-began)/1000000);
+                    System.out.println("LARGE_METRICS="+page.evaluate("() => window.__atfReportPerformance"));
+                    var frames=page.locator("#test-view .test-content-detail a:is([data-atf-screenshot],[data-atf-screenshot-ref]):visible");
+                    if(frames.count()>0){
+                        var frame=frames.last();String caption=frame.getAttribute("aria-label");frame.click();
+                        var viewer=page.locator("dialog.atf-screenshot-viewer[open]");viewer.waitFor();
+                        assertEquals("Screenshot viewer",viewer.getAttribute("aria-label"));
+                        assertTrue(viewer.innerText().contains(caption.replaceFirst("^Open ","")));
+                        capture(page,"owner-"+which+"-png");
+                        viewer.getByRole(AriaRole.BUTTON,new Locator.GetByRoleOptions().setName("Close screenshot").setExact(true)).click();
+                    }
+                }
+                assertTrue(pendingBulk.isEmpty(),"Every explicitly selected bulk owner must be exercised once");
+                capture(page,"final-owner");
+                assertEquals(original,evidence(page),"Every original comparison cell and PNG reference remains byte-identical in its source owner");
+                var canonical=page.locator("#test-view .test-list-wrapper a[data-atf-screenshot]").first();
+                assertTrue(canonical.count()>0,"Canonical PNG bytes must exist independently of deduplicated references");
+                canonical.evaluate("e => {const v=e.getAttribute('data-atf-screenshot');e.setAttribute('data-atf-screenshot',(v[0]==='A'?'B':'A')+v.slice(1));}");
+                assertNotEquals(original,evidence(page),"Changing only a canonical PNG payload must invalidate the retained-evidence inventory");
+                assertTrue(errors.isEmpty(),errors.toString());
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            assertTrue(pendingBulk.isEmpty(),"Every explicitly selected bulk owner must be exercised once");
-            capture(page,"final-owner");
-            assertEquals(original,evidence(page),"Every original comparison cell and PNG reference remains byte-identical in its source owner");
-            var canonical=page.locator("#test-view .test-list-wrapper a[data-atf-screenshot]").first();
-            assertTrue(canonical.count()>0,"Canonical PNG bytes must exist independently of deduplicated references");
-            canonical.evaluate("e => {const v=e.getAttribute('data-atf-screenshot');e.setAttribute('data-atf-screenshot',(v[0]==='A'?'B':'A')+v.slice(1));}");
-            assertNotEquals(original,evidence(page),"Changing only a canonical PNG payload must invalidate the retained-evidence inventory");
-            assertTrue(errors.isEmpty(),errors.toString());
         }
     }
     @Test void bulkSelectionIsBoundedAndRejectsAmbiguousInput(){

@@ -1,5 +1,7 @@
 package atf.ui.tests.extent.support.inspection.failurecontext;
 
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.ui.failurecontext.UiTimeoutReportFixture;
 import atf.ui.tests.extent.support.locators.disclosure.ReportDisclosureLocators;
 import atf.ui.tests.extent.support.locators.failurecontext.ReportFailureContextLocators;
@@ -25,44 +27,51 @@ public final class UiTimeoutReportProbe {
         var file = UiTimeoutReportFixture.publish(fallback, limit);
         String html = Files.readString(file);
         for (String secret : UiTimeoutReportFixture.SECRETS) assertFalse(html.contains(secret), "raw secret in artifact");
-        try (var playwright = Playwright.create();
-             var browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
-             var page = browser.newPage()) {
-            var errors = new ArrayList<String>();
-            page.onPageError(errors::add);
-            page.navigate(file.toUri().toString());
-            VIEWS.tests(page, fallback).click();
-            if (!fallback) { COMMON.firstOwner(page).click(); VIEWS.expandAll(page).click(); }
-            var scenario = VIEWS.scenario(page, fallback, UiTimeoutReportFixture.SCENARIO);
-            var diagnostics = CONTEXT.allObservations(scenario);
-            assertEquals(1, diagnostics.count());
-            assertFalse(open(diagnostics), "diagnostic arrives collapsed");
-            assertFalse(open(CONTEXT.actionDetails(scenario)), "actions arrive collapsed");
-            if (!fallback) assertFalse(open(CONTEXT.assertionDetails(scenario)), "Extent validation assertions arrive collapsed");
-            for (var summary : PREVIEW.summaries(page).all())
-                if (summary.isVisible() && !Boolean.TRUE.equals(summary.evaluate("s=>s.parentElement.open"))) summary.press("Enter");
-            checkTests(page, fallback, limit);
-            CONTEXT.summary(diagnostics).press("Enter"); assertFalse(open(diagnostics));
-            CONTEXT.summary(diagnostics).press("Space"); assertTrue(open(diagnostics));
-            checkTests(page, fallback, limit);
-            proveOracleRejectsMissingTimeoutAndRawCredential(scenario, limit);
-            page.setViewportSize(392, 900);
-            checkTests(page, fallback, limit);
-            VIEWS.fails(page, fallback).click();
-            assertEquals(1, VIEWS.failures(page, fallback).count(), "only the timeout scenario fails");
-            if (!fallback) VIEWS.failures(page, false).first().click();
-            String cause = (fallback ? CONTEXT.fallbackCause(page) : PREVIEW.failureCause(page)).innerText();
-            checkContext(cause, limit);
-            VIEWS.openFailure(page, fallback).click();
-            assertThat(VIEWS.scenario(page, fallback, UiTimeoutReportFixture.SCENARIO)).isVisible();
-            if (!fallback) VIEWS.expandAll(page).click();
-            for (var summary : PREVIEW.summaries(page).all())
-                if (summary.isVisible() && !Boolean.TRUE.equals(summary.evaluate("s=>s.parentElement.open"))) summary.press("Enter");
-            checkTests(page, fallback, limit);
-            VIEWS.overview(page, fallback).click();
-            assertEquals("1", VIEWS.metric(page, fallback, fallback ? "Failed" : "Tests Failed").innerText());
-            assertEquals("1", VIEWS.metric(page, fallback, fallback ? "Passed" : "Tests Passed").innerText());
-            assertTrue(errors.isEmpty(), errors::toString);
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)));
+             var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browserLease.value()))) {
+            try {
+                var page = pageLease.value();
+                var errors = new ArrayList<String>();
+                page.onPageError(errors::add);
+                page.navigate(file.toUri().toString());
+                VIEWS.tests(page, fallback).click();
+                if (!fallback) { COMMON.firstOwner(page).click(); VIEWS.expandAll(page).click(); }
+                var scenario = VIEWS.scenario(page, fallback, UiTimeoutReportFixture.SCENARIO);
+                var diagnostics = CONTEXT.allObservations(scenario);
+                assertEquals(1, diagnostics.count());
+                assertFalse(open(diagnostics), "diagnostic arrives collapsed");
+                assertFalse(open(CONTEXT.actionDetails(scenario)), "actions arrive collapsed");
+                if (!fallback) assertFalse(open(CONTEXT.assertionDetails(scenario)), "Extent validation assertions arrive collapsed");
+                for (var summary : PREVIEW.summaries(page).all())
+                    if (summary.isVisible() && !Boolean.TRUE.equals(summary.evaluate("s=>s.parentElement.open"))) summary.press("Enter");
+                checkTests(page, fallback, limit);
+                CONTEXT.summary(diagnostics).press("Enter"); assertFalse(open(diagnostics));
+                CONTEXT.summary(diagnostics).press("Space"); assertTrue(open(diagnostics));
+                checkTests(page, fallback, limit);
+                proveOracleRejectsMissingTimeoutAndRawCredential(scenario, limit);
+                page.setViewportSize(392, 900);
+                checkTests(page, fallback, limit);
+                VIEWS.fails(page, fallback).click();
+                assertEquals(1, VIEWS.failures(page, fallback).count(), "only the timeout scenario fails");
+                if (!fallback) VIEWS.failures(page, false).first().click();
+                String cause = (fallback ? CONTEXT.fallbackCause(page) : PREVIEW.failureCause(page)).innerText();
+                checkContext(cause, limit);
+                VIEWS.openFailure(page, fallback).click();
+                assertThat(VIEWS.scenario(page, fallback, UiTimeoutReportFixture.SCENARIO)).isVisible();
+                if (!fallback) VIEWS.expandAll(page).click();
+                for (var summary : PREVIEW.summaries(page).all())
+                    if (summary.isVisible() && !Boolean.TRUE.equals(summary.evaluate("s=>s.parentElement.open"))) summary.press("Enter");
+                checkTests(page, fallback, limit);
+                VIEWS.overview(page, fallback).click();
+                assertEquals("1", VIEWS.metric(page, fallback, fallback ? "Failed" : "Tests Failed").innerText());
+                assertEquals("1", VIEWS.metric(page, fallback, fallback ? "Passed" : "Tests Passed").innerText());
+                assertTrue(errors.isEmpty(), errors::toString);
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 

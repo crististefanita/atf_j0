@@ -1,11 +1,14 @@
 package atf.ui.tests.extent.component.layout;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
 import atf.testkit.AtfComponentTest;
 import atf.ui.tests.extent.support.inspection.layout.EvidenceColumnSizingProbe;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 @AtfComponentTest
+@ReportBrowserTest
 class EvidenceColumnSizingComponentTest {
     @ParameterizedTest @ValueSource(booleans = {false, true})
     void contentReclaimsSpaceFromShortColumnsWithoutLosingHeaders(boolean fallback) {

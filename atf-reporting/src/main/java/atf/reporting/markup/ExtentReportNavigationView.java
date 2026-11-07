@@ -126,7 +126,7 @@ public final class ExtentReportNavigationView {
                         AtfReportHtmlVocabulary.idAttribute(
                                 AtfReportHtmlVocabulary.ElementId.FAILURE_DETAIL),
                         AtfReportHtmlVocabulary.classAttribute(
-                                AtfReportHtmlVocabulary.CssClass.DETAIL_BODY)),
+                                AtfReportHtmlVocabulary.CssClass.FAILURE_DETAIL)),
                 AtfReportHtmlVocabulary.classAttribute(
                         AtfReportHtmlVocabulary.CssClass.TEST_CONTENT_DETAIL));
         String content = AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.DIV, detail,

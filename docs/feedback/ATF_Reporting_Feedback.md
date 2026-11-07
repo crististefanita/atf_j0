@@ -40,6 +40,17 @@ Fiecare extracție păstrează fațada și compatibilitatea necesară callerilor
 Justificați motivul de schimbare și proba independentă; o clasă nouă ori un
 package mutat nu constituie singure o îmbunătățire de arhitectură.
 
+## REPORT-OBSERVATION-CONTRACT — domeniul validatorului de artefact
+
+**P2 · responsabil Reporting.** Contractul unui raport de observații trebuie delimitat de un demonstrator care exercită toate canalele. Un consumator care citește PNG-uri de componentă prin `ImageIO` nu trebuie să inventeze acțiuni Playwright, schimburi HTTP sau evenimente Android pentru a califica imaginile și comparațiile publicate.
+
+- Clarificați domeniul `ReportArtifactInspector`, `UiReportArtifactContract` și alegerea contractului pentru API, acțiuni UI, observații și raster de componentă. Cerințele comune pentru inventar, expected/actual, statut, ownership și resurse autonome rămân obligatorii.
+- Prin JAR-ul fizic, reproduceți publicarea numai cu `AtfUiEvidenceSource.OBSERVE`, setup real de fișier și `uiValidation`, fără browser sau HTTP. În proba curentă, inspectorul generic cere split request/response, iar contractul UI cere tabel Playwright și secțiuni implicite, deși capturile și comparațiile sunt publicate.
+- Folosiți rolurile și modelul tipizat pentru proprietăți, fără ca un titlu care conține o expresie convențională să poată substitui dovada. Absența unui canal nefolosit se distinge de o captură declarată dar lipsă.
+- Controalele negative elimină un PNG inline, schimbă ownerul capturii, alterează rezultatul unei comparații sau injectează în titlu numele secțiunii lipsă. Nu se acceptă relaxări globale sau pași fictivi la consumator.
+
+[Reproducătorul public](../../../../whist_back/maintenance/20261106-history-responsive-strike/HistoryRasterReadbackReport.java) și [artefactul UI nemodificat](../../../../whist_back/maintenance/20261106-history-responsive-strike/reports/history-components-canonical.html) păstrează intrarea concretă; manifestul și diagnosticele aparțin auditului extern. Implementarea și împachetarea rămân la producător; consumatorul păstrează explicit calificarea structurală deschisă.
+
 ## Ordinea pregătirii
 
 Auditul structurii sursei aparține build-ului producătorului. Probele runtime și
@@ -56,7 +67,6 @@ sunt la ownerii lor, iar registrul păstrează numai criteriile încă deschise.
 |---|---:|---|
 | [REPORT-SQL-STEPS-116](#report-sql-steps-116--query-uri-și-rezultate-auditabile) | 88 = 35 + 26 + 18 + 9 | pași SQL neutri, query/bind-uri și rezultate cu bugete independente; adoptare J2 după release |
 | [REPORT-UI-ASSERTION-FULL-EVIDENCE-133](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) | 88 — existing criterion | full UI values captured before caller preview; source/JAR owner and redaction proof remain separate |
-| [REPORT-UNIT-BASELINE-149](ATF_Reporting_Tests_Feedback.md#report-unit-baseline-149--restore-the-complete-existing-unit-gate) | 93 — confirmed unit failures | restore eight existing failures with implementation/oracle classification and source/JAR behavioral controls |
 | `REPORT-PUBLIC-API-43` | 81 = 31 + 24 + 17 + 9 | API-ul susținut, compatibilitatea și capabilitățile adaptoarelor nu sunt delimitate suficient |
 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) | 80 = 31 + 24 + 18 + 7 | criteriu separat al consumerului: oracol per scenariu și containment fallback |
 | `UI-RECOVERY-AUDIT-01` | 78 = 33 + 22 + 16 + 7 | proiecția typed a încercărilor, bugetelor și corelării rămâne la Reporting |

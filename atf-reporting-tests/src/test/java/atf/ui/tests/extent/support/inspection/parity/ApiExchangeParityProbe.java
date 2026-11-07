@@ -1,5 +1,7 @@
 package atf.ui.tests.extent.support.inspection.parity;
 
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.api.ReportAttemptRecord;
 import atf.reporting.api.ReportRequest;
 import atf.reporting.api.ReportResponse;
@@ -56,26 +58,33 @@ public final class ApiExchangeParityProbe {
         Path api = TestReportPaths.report("api-exchange-parity_" + stamp + ".html");
         Path fallback = TestReportPaths.report("fallback-exchange-parity_" + stamp + ".html");
         Path ui = fixtures(api, fallback);
-        try (Playwright playwright = Playwright.create();
-             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            Page page = browser.newPage();
-            var errors = new ArrayList<String>();
-            page.onPageError(errors::add);
-            page.setViewportSize(1280, 900);
-            page.navigate(api.toUri() + "#test-view");
-            select(page, 0);
-            var direct = inspect(page, false);
-            select(page, 1);
-            assertEquals(direct, inspect(page, false), "legacy field seam must preserve the typed projection");
-            page.navigate(ui.toUri() + "#test-view");
-            select(page, 0);
-            assertEquals(direct, inspect(page, false), "UI nesting must not change API evidence ownership or payloads");
-            page.setViewportSize(960, 900);
-            assertEquals(Boolean.TRUE, page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth"));
-            page.navigate(fallback.toUri().toString());
-            LOCATORS.fallbackTests(page).click();
-            assertEquals(direct, inspect(page, true), "fallback and Extent must use the same evidence schema");
-            assertTrue(errors.isEmpty(), errors.toString());
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                Browser browser = browserLease.value();
+                Page page = BrowserResources.newPage(browser);
+                var errors = new ArrayList<String>();
+                page.onPageError(errors::add);
+                page.setViewportSize(1280, 900);
+                page.navigate(api.toUri() + "#test-view");
+                select(page, 0);
+                var direct = inspect(page, false);
+                select(page, 1);
+                assertEquals(direct, inspect(page, false), "legacy field seam must preserve the typed projection");
+                page.navigate(ui.toUri() + "#test-view");
+                select(page, 0);
+                assertEquals(direct, inspect(page, false), "UI nesting must not change API evidence ownership or payloads");
+                page.setViewportSize(960, 900);
+                assertEquals(Boolean.TRUE, page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth"));
+                page.navigate(fallback.toUri().toString());
+                LOCATORS.fallbackTests(page).click();
+                assertEquals(direct, inspect(page, true), "fallback and Extent must use the same evidence schema");
+                assertTrue(errors.isEmpty(), errors.toString());
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 

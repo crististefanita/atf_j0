@@ -1,5 +1,7 @@
 package atf.ui.tests.extent.support.inspection.navigation;
 
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.support.navigation.FallbackLongTitleFixture;
 import atf.ui.tests.extent.support.locators.navigation.FallbackLongTitleLocators;
 import com.microsoft.playwright.Browser;
@@ -20,41 +22,48 @@ public final class FallbackLongTitleProbe {
 
     public static void verify(int width, boolean regression) throws Exception {
         var fixture = FallbackLongTitleFixture.publish();
-        try (var playwright = Playwright.create();
-             var browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
-             var page = browser.newPage(new Browser.NewPageOptions().setViewportSize(width, 900))) {
-            page.setDefaultTimeout(4000);
-            var errors = new ArrayList<String>();page.onPageError(errors::add);
-            page.navigate(fixture.path().toUri().toString());LOCATORS.tests(page).click();
-            assertThat(LOCATORS.links(page)).hasCount(2);
-            assertTrue(LOCATORS.links(page).first().innerText().contains(FallbackLongTitleFixture.TITLE));
-            assertTrue(LOCATORS.links(page).first().innerText().contains(FallbackLongTitleFixture.CLASS_NAME));
-            var first = LOCATORS.scenario(page, fixture.firstId());
-            assertEquals(FallbackLongTitleFixture.TITLE, LOCATORS.heading(first).innerText());
-            if (regression) {
-                page.addStyleTag(new Page.AddStyleTagOptions().setContent(".test-link{white-space:nowrap!important}"));
-                var failure = assertThrows(AssertionError.class, () -> verifyGeometry(page));
-                assertTrue(failure.getMessage().contains("title containment"));
-                return;
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)));
+             var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browserLease.value(), new Browser.NewContextOptions().setViewportSize(width, 900)))) {
+            try {
+                var page = pageLease.value();
+                page.setDefaultTimeout(4000);
+                var errors = new ArrayList<String>();page.onPageError(errors::add);
+                page.navigate(fixture.path().toUri().toString());LOCATORS.tests(page).click();
+                assertThat(LOCATORS.links(page)).hasCount(2);
+                assertTrue(LOCATORS.links(page).first().innerText().contains(FallbackLongTitleFixture.TITLE));
+                assertTrue(LOCATORS.links(page).first().innerText().contains(FallbackLongTitleFixture.CLASS_NAME));
+                var first = LOCATORS.scenario(page, fixture.firstId());
+                assertEquals(FallbackLongTitleFixture.TITLE, LOCATORS.heading(first).innerText());
+                if (regression) {
+                    page.addStyleTag(new Page.AddStyleTagOptions().setContent(".test-link{white-space:nowrap!important}"));
+                    var failure = assertThrows(AssertionError.class, () -> verifyGeometry(page));
+                    assertTrue(failure.getMessage().contains("title containment"));
+                    return;
+                }
+                verifyGeometry(page);
+                LOCATORS.links(page).first().press("Enter");
+                page.waitForURL(url -> fixture.firstId().equals(java.net.URI.create(url).getFragment()));
+                LOCATORS.assertionSummary(first).press("Space");
+                assertThat(LOCATORS.assertionRows(first)).hasCount(1);
+                assertThat(LOCATORS.assertionRows(first)).isVisible();
+                assertTrue(LOCATORS.assertionRows(first).innerText().contains("original evidence"));
+                LOCATORS.assertionSummary(first).press("Enter");assertThat(LOCATORS.assertionRows(first)).not().isVisible();
+                LOCATORS.links(page).last().press("Enter");
+                page.waitForURL(url -> fixture.siblingId().equals(java.net.URI.create(url).getFragment()));
+                var sibling = LOCATORS.scenario(page, fixture.siblingId());
+                LOCATORS.assertionSummary(sibling).press("Enter");
+                assertTrue(LOCATORS.assertionRows(sibling).innerText().contains("sibling evidence"));
+                LOCATORS.links(page).first().click();page.reload();
+                assertEquals(fixture.firstId(), java.net.URI.create(page.url()).getFragment());
+                assertThat(LOCATORS.assertionRows(first)).not().isVisible();
+                verifyGeometry(page);
+                assertTrue(errors.isEmpty(), errors::toString);
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            verifyGeometry(page);
-            LOCATORS.links(page).first().press("Enter");
-            page.waitForURL(url -> fixture.firstId().equals(java.net.URI.create(url).getFragment()));
-            LOCATORS.assertionSummary(first).press("Space");
-            assertThat(LOCATORS.assertionRows(first)).hasCount(1);
-            assertThat(LOCATORS.assertionRows(first)).isVisible();
-            assertTrue(LOCATORS.assertionRows(first).innerText().contains("original evidence"));
-            LOCATORS.assertionSummary(first).press("Enter");assertThat(LOCATORS.assertionRows(first)).not().isVisible();
-            LOCATORS.links(page).last().press("Enter");
-            page.waitForURL(url -> fixture.siblingId().equals(java.net.URI.create(url).getFragment()));
-            var sibling = LOCATORS.scenario(page, fixture.siblingId());
-            LOCATORS.assertionSummary(sibling).press("Enter");
-            assertTrue(LOCATORS.assertionRows(sibling).innerText().contains("sibling evidence"));
-            LOCATORS.links(page).first().click();page.reload();
-            assertEquals(fixture.firstId(), java.net.URI.create(page.url()).getFragment());
-            assertThat(LOCATORS.assertionRows(first)).not().isVisible();
-            verifyGeometry(page);
-            assertTrue(errors.isEmpty(), errors::toString);
         }
     }
 

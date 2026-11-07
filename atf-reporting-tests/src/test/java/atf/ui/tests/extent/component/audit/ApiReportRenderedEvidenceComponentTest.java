@@ -1,11 +1,14 @@
 package atf.ui.tests.extent.component.audit;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
 import atf.testkit.AtfComponentTest;
 import atf.ui.tests.extent.support.inspection.reconciliation.ApiReportRenderedEvidenceProbe;
 import org.junit.jupiter.api.Test;
 
 /** Controlled publication and real runtime, without an application endpoint. */
 @AtfComponentTest
+@ReportBrowserTest
 class ApiReportRenderedEvidenceComponentTest {
     @Test
     void reconcilesCanonicalRenderedMetadataAndQuery() {

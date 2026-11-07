@@ -1,5 +1,7 @@
 package atf.ui.tests.extent.support.inspection.failurecontext;
 
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.ui.failurecontext.UiFailureContextFixture;
 import atf.ui.tests.extent.support.locators.disclosure.ReportDisclosureLocators;
 import atf.ui.tests.extent.support.locators.preview.ReportPreviewLocators;
@@ -18,27 +20,34 @@ public final class UiFailureContextProbe {
     public static void verify(boolean fallback, int limit) throws Exception {
         var report = UiFailureContextFixture.publish(fallback, limit);
         assertFalse(Files.readString(report).contains(UiFailureContextFixture.SECRET));
-        try (var playwright = Playwright.create();
-             var browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
-             var page = browser.newPage()) {
-            var errors = new ArrayList<String>(); page.onPageError(errors::add);
-            page.navigate(report.toUri() + (fallback ? "" : "#test-view"));
-            open(page, fallback);
-            checkTables(page, limit);
-            page.setViewportSize(392, 900);
-            checkTables(page, limit);
-            if (fallback) {
-                PREVIEW.fallbackFailsTab(page).click();
-                String cause = CONTEXT.fallbackCause(page).first().innerText();
-                checkContext(cause, limit);
-                PREVIEW.fallbackFailureLinks(page).first().click();
-            } else {
-                PREVIEW.failsTab(page).click(); PREVIEW.failureItems(page).first().click();
-                checkContext(PREVIEW.failureCause(page).innerText(), limit);
-                PREVIEW.openFailureInTests(page).click();
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)));
+             var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browserLease.value()))) {
+            try {
+                var page = pageLease.value();
+                var errors = new ArrayList<String>(); page.onPageError(errors::add);
+                page.navigate(report.toUri() + (fallback ? "" : "#test-view"));
+                open(page, fallback);
+                checkTables(page, limit);
+                page.setViewportSize(392, 900);
+                checkTables(page, limit);
+                if (fallback) {
+                    PREVIEW.fallbackFailsTab(page).click();
+                    String cause = CONTEXT.fallbackCause(page).first().innerText();
+                    checkContext(cause, limit);
+                    PREVIEW.fallbackFailureLinks(page).first().click();
+                } else {
+                    PREVIEW.failsTab(page).click(); PREVIEW.failureItems(page).first().click();
+                    checkContext(PREVIEW.failureCause(page).innerText(), limit);
+                    PREVIEW.openFailureInTests(page).click();
+                }
+                open(page, fallback); checkTables(page, limit);
+                assertTrue(errors.isEmpty(), errors::toString);
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            open(page, fallback); checkTables(page, limit);
-            assertTrue(errors.isEmpty(), errors::toString);
         }
     }
     private static void open(Page page, boolean fallback) {

@@ -1,4 +1,5 @@
 package atf.reporting.asset;
+import static atf.reporting.support.navigation.NavigationScriptContract.assertTabBindings;
 
 import atf.reporting.theme.tokens.AtfReportThemeTokens;
 import atf.reporting.runtime.tests.ExtentReportRuntimeTestFilters;
@@ -242,7 +243,7 @@ class ReportAssetContractTest {
                 () -> assertTrue(failureProjection.contains("atf-failure fail-row")),
                 () -> assertTrue(failureProjection.contains("status status-fail")),
                 () -> assertTrue(failureProjection.contains("atf-empty-state")),
-                () -> assertTrue(script.contains("document.querySelectorAll('.tab')")),
+                () -> assertTabBindings(script),
                 () -> assertTrue(script.contains("history.replaceState(null,'','#'+id)")),
                 () -> assertTrue(script.contains("activate('overview')")),
                 () -> assertTrue(script.contains("activate('tests')")),

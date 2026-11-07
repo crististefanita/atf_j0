@@ -1,6 +1,6 @@
 # Atlas de context ATF — intrări, ownership și probe
 
-[Referința J0 și sincronizarea J1/J2](ATF_Workspace_Synchronization.md) fixează ownership-ul, starea țintelor și dovada fiecărei livrări.
+[Referința J0 și sincronizarea consumerilor](ATF_Workspace_Synchronization.md) fixează ownership-ul, starea țintelor și dovada fiecărei livrări.
 
 ## Pe scurt
 
@@ -21,6 +21,7 @@ său. Codul, POM-ul și testele live rămân autoritatea pentru ceea ce există.
 | suma facturii AutoEx | [contractul monetar](../atf-test-auto-ex/README.md#validarea-completă-a-sumei-facturii) | schimbi delimitarea clauzei, gramatica numerică, comparația sau proiecția; checks independente și probe negative auditabile |
 | runtime AutoEx | [runtime AutoEx](../atf-test-auto-ex/src/main/java/atf/autoex/runtime/README.md) | schimbi compoziția, ownerul contului, observația facturii ori finalizarea |
 | suport Shop | [suport Shop](../atf-test-practice-shop/src/main/atf/shop/support/README.md) | schimbi validarea, confirmarea coșului, selecția traficului ori readiness-ul |
+| lifecycle browser Reporting Tests | [harness și selecții](../atf-reporting-tests/README.md#izolarea-tuturor-intrărilor-browser) | schimbi setup/cleanup, identitatea JUnit, inventarul SDK sau classpath-ul sursă/JAR |
 | operații browser | [operații browser](../atf-ui/src/main/java/atf/ui/playwright/README.md) | schimbi deadline-ul, interacțiunea ori diagnosticul |
 | rețea browser | [rețea browser](../atf-ui/src/main/java/atf/ui/network/README.md) | schimbi hook-uri, identitate, retenție ori cleanup |
 | biblioteca Reporting | [atlas Reporting](../atf-reporting/src/main/java/atf/reporting/README.md) | schimbi modelul, rendererul, publicarea ori contractul JAR |

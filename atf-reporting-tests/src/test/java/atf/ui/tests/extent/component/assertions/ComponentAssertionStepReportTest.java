@@ -1,5 +1,9 @@
 package atf.ui.tests.extent.component.assertions;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfReportPorts;
 import atf.reporting.contract.AtfReportStatus;
@@ -24,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** A component assertion step has one semantic owner in Extent and fallback HTML. */
 @AtfComponentTest
+@ReportBrowserTest
 class ComponentAssertionStepReportTest {
     private static final ReportPhaseAuditLocators PHASES = new ReportPhaseAuditLocators();
     @Test
@@ -71,45 +76,66 @@ class ComponentAssertionStepReportTest {
         try (var extent = new ExtentReportSession(extentPath)) { publish(extent); }
         try (var fallback = new HtmlReportSession(fallbackPath)) { publish(fallback); }
 
-        try (var playwright = Playwright.create();
-             var browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            try (var page = browser.newPage()) {
-                page.navigate(extentPath.toUri() + "#test-view");
-                PHASES.firstOwner(page).click();
-                page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
-                var scenario = PHASES.scenarios(page, false).first();
-                PHASES.header(scenario).click();
-                var phase = PHASES.phases(scenario).first();
-                PHASES.header(phase).click();
-                var step = PHASES.assertionStep(phase);
-                assertEquals(1, step.count());
-                assertEquals("false", step.getAttribute("data-atf-node-open"));
-                PHASES.header(step).click();
-                assertEquals("true", step.getAttribute("data-atf-node-open"));
-                var rows = PHASES.assertionRows(PHASES.assertionTable(step, false));
-                assertTrue(PHASES.assertionTable(step, false).isVisible());
-                assertEquals(42, rows.count());
-                rows.last().scrollIntoViewIfNeeded();
-                assertTrue(rows.last().isVisible());
-                PHASES.header(step).focus();
-                page.keyboard().press("Enter");
-                assertEquals("false", step.getAttribute("data-atf-node-open"));
-                page.keyboard().press("Space");
-                assertEquals("true", step.getAttribute("data-atf-node-open"));
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                var browser = browserLease.value();
+                try (var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browser))) {
+                try {
+                    var page = pageLease.value();
+                        page.navigate(extentPath.toUri() + "#test-view");
+                        PHASES.firstOwner(page).click();
+                        page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+                        var scenario = PHASES.scenarios(page, false).first();
+                        PHASES.header(scenario).click();
+                        var phase = PHASES.phases(scenario).first();
+                        PHASES.header(phase).click();
+                        var step = PHASES.assertionStep(phase);
+                        assertEquals(1, step.count());
+                        assertEquals("false", step.getAttribute("data-atf-node-open"));
+                        PHASES.header(step).click();
+                        assertEquals("true", step.getAttribute("data-atf-node-open"));
+                        var rows = PHASES.assertionRows(PHASES.assertionTable(step, false));
+                        assertTrue(PHASES.assertionTable(step, false).isVisible());
+                        assertEquals(42, rows.count());
+                        rows.last().scrollIntoViewIfNeeded();
+                        assertTrue(rows.last().isVisible());
+                        PHASES.header(step).focus();
+                        page.keyboard().press("Enter");
+                        assertEquals("false", step.getAttribute("data-atf-node-open"));
+                        page.keyboard().press("Space");
+                        assertEquals("true", step.getAttribute("data-atf-node-open"));
+            
+                } catch (Exception | Error reportingBrowserFailure) {
+                    BrowserResources.recordFailure(reportingBrowserFailure);
+                    throw reportingBrowserFailure;
+                }
             }
-            try (var page = browser.newPage()) {
-                page.navigate(fallbackPath.toUri().toString());
-                PHASES.testsTab(page, true).click();
-                var step = PHASES.fallbackAssertionStep(page);
-                assertEquals(1, step.count());
-                assertFalse((Boolean) step.evaluate("element => element.open"));
-                PHASES.diagnosticSummary(step).click();
-                assertTrue((Boolean) step.evaluate("element => element.open"));
-                var rows = PHASES.assertionRows(PHASES.assertionTable(step, true));
-                assertTrue(PHASES.assertionTable(step, true).isVisible());
-                assertEquals(42, rows.count());
-                rows.last().scrollIntoViewIfNeeded();
-                assertTrue(rows.last().isVisible());
+                try (var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browser))) {
+                try {
+                    var page = pageLease.value();
+                        page.navigate(fallbackPath.toUri().toString());
+                        PHASES.testsTab(page, true).click();
+                        var step = PHASES.fallbackAssertionStep(page);
+                        assertEquals(1, step.count());
+                        assertFalse((Boolean) step.evaluate("element => element.open"));
+                        PHASES.diagnosticSummary(step).click();
+                        assertTrue((Boolean) step.evaluate("element => element.open"));
+                        var rows = PHASES.assertionRows(PHASES.assertionTable(step, true));
+                        assertTrue(PHASES.assertionTable(step, true).isVisible());
+                        assertEquals(42, rows.count());
+                        rows.last().scrollIntoViewIfNeeded();
+                        assertTrue(rows.last().isVisible());
+            
+                } catch (Exception | Error reportingBrowserFailure) {
+                    BrowserResources.recordFailure(reportingBrowserFailure);
+                    throw reportingBrowserFailure;
+                }
+            }
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
         }
     }
@@ -157,31 +183,38 @@ class ComponentAssertionStepReportTest {
             body.complete(AtfReportStatus.PASS);
             scenario.complete(AtfReportStatus.PASS);
         }
-        try (var playwright = Playwright.create();
-             var browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
-             var page = browser.newPage()) {
-            page.navigate(report.toUri() + "#test-view");
-            PHASES.firstOwner(page).click();
-            page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
-            PHASES.failsTab(page, false).click();
-            var index = PHASES.failureIndex(page);
-            assertEquals("component", index.getAttribute("data-atf-evidence-owner"));
-            String text = index.innerText().replaceAll("\\s+", " ");
-            assertTrue(text.contains("STEP Component assertions"), text);
-            assertTrue(text.contains("Configured quantity expected 200, actual 201"), text);
-            assertFalse(text.contains("UI assertion") || text.contains("REQUEST")
-                    || text.contains("DURATION") || text.contains("200 OK"), text);
-            PHASES.openFailureInTests(page).click();
-            var scenario = PHASES.scenarios(page, false).first();
-            page.waitForCondition(() -> "true".equals(scenario.getAttribute("data-atf-scenario-open")));
-            assertEquals("true", scenario.getAttribute("data-atf-scenario-open"));
-            var phase = PHASES.phases(scenario).first();
-            var step = PHASES.assertionStep(phase);
-            page.waitForCondition(() -> PHASES.assertionTable(step, false).isVisible());
-            assertEquals("true", phase.getAttribute("data-atf-phase-open"));
-            assertEquals("true", step.getAttribute("data-atf-node-open"));
-            assertTrue(PHASES.assertionTable(step, false).isVisible());
-            assertEquals(1, PHASES.assertionRows(PHASES.assertionTable(step, false)).count());
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)));
+             var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browserLease.value()))) {
+            try {
+                var page = pageLease.value();
+                page.navigate(report.toUri() + "#test-view");
+                PHASES.firstOwner(page).click();
+                page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+                PHASES.failsTab(page, false).click();
+                var index = PHASES.failureIndex(page);
+                assertEquals("component", index.getAttribute("data-atf-evidence-owner"));
+                String text = index.innerText().replaceAll("\\s+", " ");
+                assertTrue(text.contains("STEP Component assertions"), text);
+                assertTrue(text.contains("Configured quantity expected 200, actual 201"), text);
+                assertFalse(text.contains("UI assertion") || text.contains("REQUEST")
+                        || text.contains("DURATION") || text.contains("200 OK"), text);
+                PHASES.openFailureInTests(page).click();
+                var scenario = PHASES.scenarios(page, false).first();
+                page.waitForCondition(() -> "true".equals(scenario.getAttribute("data-atf-scenario-open")));
+                assertEquals("true", scenario.getAttribute("data-atf-scenario-open"));
+                var phase = PHASES.phases(scenario).first();
+                var step = PHASES.assertionStep(phase);
+                page.waitForCondition(() -> PHASES.assertionTable(step, false).isVisible());
+                assertEquals("true", phase.getAttribute("data-atf-phase-open"));
+                assertEquals("true", step.getAttribute("data-atf-node-open"));
+                assertTrue(PHASES.assertionTable(step, false).isVisible());
+                assertEquals(1, PHASES.assertionRows(PHASES.assertionTable(step, false)).count());
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 

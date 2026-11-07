@@ -1,5 +1,7 @@
 package atf.ui.tests.extent.component.audit;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
 import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.audit.ValidationResult;
 import atf.testkit.AtfComponentTest;
@@ -19,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * and that one broken projection is reported precisely.
  */
 @AtfComponentTest
+@ReportBrowserTest
 class CategoryOutcomeFlowAuditorTest {
     private static final List<AtfReportStatus> STATUSES = List.of(
             AtfReportStatus.PASS, AtfReportStatus.FAIL, AtfReportStatus.WARNING,

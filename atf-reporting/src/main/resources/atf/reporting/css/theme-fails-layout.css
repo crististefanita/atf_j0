@@ -58,7 +58,7 @@
     overflow: visible !important;
   }
   .exception-view.atf-fails-view .test-content-detail,
-  .exception-view.atf-fails-view .detail-body,
+  .exception-view.atf-fails-view .atf-failure-detail,
   .exception-view.atf-fails-view .test-contents {
     width: 100% !important;
     max-width: 100% !important;

@@ -1,5 +1,7 @@
 package atf.ui.tests.extent.e2e.uireport;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
 import atf.ui.tests.extent.support.uireport.contract.UiReportInput;
 import atf.testkit.AtfE2eTest;
 import atf.testkit.channel.AtfTestChannel;
@@ -42,6 +44,7 @@ import java.util.stream.Stream;
 @AtfE2eTest
 @AtfTestChannel(TestChannel.UI)
 @ProjectRelativeUiReportDirectory("artifacts/reports/ui/e2e")
+@ReportBrowserTest
 class StaticUiExtentReportContractTest {
     private UiReportContractFixture fixture;
 

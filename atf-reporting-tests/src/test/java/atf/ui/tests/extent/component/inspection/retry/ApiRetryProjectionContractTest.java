@@ -1,5 +1,9 @@
 package atf.ui.tests.extent.component.inspection.retry;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.api.ReportAttemptRecord;
 import atf.reporting.api.ReportRequest;
 import atf.reporting.api.ReportResponse;
@@ -46,6 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Rendered exchange cardinality for standalone, fallback and UI+API; no consumer dependency. */
 @AtfComponentTest
+@ReportBrowserTest
 class ApiRetryProjectionContractTest {
     private static final String PASSWORD = "projection-form-secret";
     private static final String RETRY_SECRET = "projection-retry-secret";
@@ -61,22 +66,19 @@ class ApiRetryProjectionContractTest {
 
     @BeforeAll
     static void openBrowser() {
-        playwright = Playwright.create();
+        playwright = BrowserResources.create(Playwright::create);
         try {
-            browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
+            browser = BrowserResources.launch(playwright, new BrowserType.LaunchOptions().setHeadless(true));
         } catch (RuntimeException failure) {
-            playwright.close();
+            try { BrowserResources.close(playwright); }
+            catch (RuntimeException | Error cleanup) { if (cleanup != failure) failure.addSuppressed(cleanup); }
             throw failure;
         }
     }
 
     @AfterAll
     static void closeBrowser() {
-        try {
-            if (browser != null) browser.close();
-        } finally {
-            if (playwright != null) playwright.close();
-        }
+        BrowserResources.closeAll(browser, playwright);
     }
 
     @ParameterizedTest
@@ -92,44 +94,51 @@ class ApiRetryProjectionContractTest {
 
         assertFalse(html.contains(PASSWORD));
         assertFalse(html.contains(RETRY_SECRET));
-        try (Page page = browser.newPage()) {
-            boolean fallback = projection == Projection.FALLBACK;
-            page.navigate(report.toUri() + (fallback ? "" : "#test-view"));
-            if (fallback) PHASES.testsTab(page, true).click();
-            else {
-                PHASES.firstOwner(page).click();
-                page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+        try (var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browser))) {
+            try {
+                Page page = pageLease.value();
+                boolean fallback = projection == Projection.FALLBACK;
+                page.navigate(report.toUri() + (fallback ? "" : "#test-view"));
+                if (fallback) PHASES.testsTab(page, true).click();
+                else {
+                    PHASES.firstOwner(page).click();
+                    page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+                }
+                var scenario = PHASES.scenarios(page, fallback).first();
+                var phase = PHASES.phases(scenario).first();
+                assertEquals(1, PHASES.requests(phase, fallback).count());
+                var request = PHASES.requests(phase, fallback).first();
+                if (projection == Projection.UI_API) {
+                    assertEquals(1, DISCLOSURES.validations(request).count());
+                    var validation = DISCLOSURES.validations(request).first();
+                    assertEquals(1, PHASES.requests(validation, false).count());
+                    request = PHASES.requests(validation, false).first();
+                }
+                var requestDetails = PHASES.evidence(request, REQUEST_EVIDENCE);
+                var responseDetails = PHASES.evidence(request, RESPONSE_EVIDENCE);
+                var executionDetails = PHASES.evidence(request, EXECUTION_EVIDENCE);
+                String requestHtml = request.innerHTML();
+                assertAll(
+                        () -> assertEquals(1, requestDetails.count()),
+                        () -> assertEquals(1, responseDetails.count()),
+                        () -> assertEquals(1, executionDetails.count()),
+                        () -> assertTrue(DISCLOSURES.summary(requestDetails).textContent().trim()
+                                .matches("Request details · \\d+ fields?")),
+                        () -> assertTrue(DISCLOSURES.summary(responseDetails).textContent().trim()
+                                .matches("Response details · \\d+ fields?")),
+                        () -> assertEquals(retried ? "Execution evidence · 2 attempts" : "Execution evidence · 1 attempt",
+                                DISCLOSURES.summary(executionDetails).textContent().trim()),
+                        () -> assertTrue(requestHtml.indexOf("Request details ·")
+                                < requestHtml.indexOf("Response details ·")),
+                        () -> assertTrue(requestHtml.indexOf("Response details ·")
+                                < requestHtml.indexOf("Execution evidence ·")),
+                        () -> assertEquals(retried, executionDetails.textContent().contains("temporary upstream")),
+                        () -> assertTrue(executionDetails.textContent().contains("final observed response")));
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            var scenario = PHASES.scenarios(page, fallback).first();
-            var phase = PHASES.phases(scenario).first();
-            assertEquals(1, PHASES.requests(phase, fallback).count());
-            var request = PHASES.requests(phase, fallback).first();
-            if (projection == Projection.UI_API) {
-                assertEquals(1, DISCLOSURES.validations(request).count());
-                var validation = DISCLOSURES.validations(request).first();
-                assertEquals(1, PHASES.requests(validation, false).count());
-                request = PHASES.requests(validation, false).first();
-            }
-            var requestDetails = PHASES.evidence(request, REQUEST_EVIDENCE);
-            var responseDetails = PHASES.evidence(request, RESPONSE_EVIDENCE);
-            var executionDetails = PHASES.evidence(request, EXECUTION_EVIDENCE);
-            String requestHtml = request.innerHTML();
-            assertAll(
-                    () -> assertEquals(1, requestDetails.count()),
-                    () -> assertEquals(1, responseDetails.count()),
-                    () -> assertEquals(1, executionDetails.count()),
-                    () -> assertTrue(DISCLOSURES.summary(requestDetails).textContent().trim()
-                            .matches("Request details · \\d+ fields?")),
-                    () -> assertTrue(DISCLOSURES.summary(responseDetails).textContent().trim()
-                            .matches("Response details · \\d+ fields?")),
-                    () -> assertEquals(retried ? "Execution evidence · 2 attempts" : "Execution evidence · 1 attempt",
-                            DISCLOSURES.summary(executionDetails).textContent().trim()),
-                    () -> assertTrue(requestHtml.indexOf("Request details ·")
-                            < requestHtml.indexOf("Response details ·")),
-                    () -> assertTrue(requestHtml.indexOf("Response details ·")
-                            < requestHtml.indexOf("Execution evidence ·")),
-                    () -> assertEquals(retried, executionDetails.textContent().contains("temporary upstream")),
-                    () -> assertTrue(executionDetails.textContent().contains("final observed response")));
         }
     }
 
@@ -156,7 +165,7 @@ class ApiRetryProjectionContractTest {
                     Integer.toString(evidence.response().status()), status == AtfReportStatus.PASS)));
             validation.complete(status);
             request.complete(status);
-            request.close();
+            BrowserResources.close(request);
             phase.complete(status);
             scenario.complete(status);
             var snapshot = snapshot(session);

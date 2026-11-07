@@ -2,7 +2,7 @@
 
 ## Pe scurt
 
-J0 deține codul, API-ul, nativele, împachetarea și feedback-ul Test Kit. J1–J5 păstrează adaptoarele și oracolele domeniului și consumă o singură pereche JAR/POM direct în `lib`, cu ghid local și proveniență la rădăcină; guvernanța implementării rămâne în J0.
+J0 deține codul, API-ul, nativele, împachetarea și feedback-ul Test Kit. J1–J6 păstrează adaptoarele și oracolele domeniului și consumă o singură pereche JAR/POM direct în `lib`, cu ghid local și proveniență la rădăcină; guvernanța implementării rămâne în J0.
 
 ## Contractul păstrat
 
@@ -22,7 +22,7 @@ Sesiunea comună și proiecția invocării sunt deja API Reporting: [AssertionAu
 %%{init: {"themeVariables":{"fontSize":"15px"},"flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10}}}%%
 flowchart LR
     Owner["J0<br/>API · sursă · native"] -->|verifică| Pair["Candidat unic<br/>JAR + POM"]
-    Pair -->|distribuie| Consumers["J1–J5<br/>adaptoare locale"]
+    Pair -->|distribuie| Consumers["J1–J6<br/>adaptoare locale"]
     Consumers -.->|reproducere și feedback| Owner
 ```
 
@@ -56,6 +56,7 @@ Runnerul păstrează motorul JUnit Jupiter în dependențele sale de test; Kit e
 | J3 — speech | Componente de lifecycle/configurație și adaptorul de raportare cu fixture; fără modele, înregistrare sau acceptanță ASR presupusă. |
 | J4 — Android | Comparații pe faze, cleanup și publisherul cu PNG furnizat; acceptanța fizică ADB rămâne distinctă. |
 | J5 — Rentz | Componentele motorului și adaptorului, scriptul TMP și guvernanța proprie; fără introducerea modulelor Whist retrase. |
+| J6 — Hold’em | Bootstrap Maven din lib și integrare offline în holdem-app; bibliotecile sunt test-scoped, iar cele cinci module de domeniu rămân independente. |
 
 Un FAIL controlat rămâne FAIL cu aceeași cauză și aceleași comparații. Un test nedescoperit, un container eșuat sau o sursă paralelă nu califică migrarea. Nicio acceptanță nu se transferă între proiecte.
 

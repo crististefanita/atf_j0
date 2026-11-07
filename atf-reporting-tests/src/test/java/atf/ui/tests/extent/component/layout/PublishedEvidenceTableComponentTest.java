@@ -1,5 +1,7 @@
 package atf.ui.tests.extent.component.layout;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
 import atf.testkit.AtfComponentTest;
 import atf.ui.tests.extent.support.inspection.table.PublishedEvidenceTableFixture.Profile;
 import atf.ui.tests.extent.support.inspection.table.PublishedEvidenceTableProbe;
@@ -14,6 +16,7 @@ import java.util.stream.Stream;
 
 /** Real publications, with an independent visual oracle rather than allocator-derived percentages. */
 @AtfComponentTest
+@ReportBrowserTest
 class PublishedEvidenceTableComponentTest {
     @ParameterizedTest(name = "{0}; fallback={1}") @MethodSource("profiles")
     void allPublishedTablesRemainReadableAcrossProfilesWidthsAndDisclosures(Profile profile, boolean fallback) {

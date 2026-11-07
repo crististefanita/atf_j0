@@ -16,6 +16,7 @@ primește și verifică livrarea potrivită propriului deployment.
 | `atf_j4` | consumer Android/ADB, trei module; Core/Reporting/Console/Mock/Test Kit JAR | independent binary adoption, with complete captured PNG evidence; E2E device rămâne la J4 |
 | `atf_j3` | consumer speech, patru module sursă; Core/Reporting/Console/Mock/Test Kit prin JAR | Core/Reporting in lib și acceptanță proprie, fără module web ori mesagerie |
 | `atf_j5` | WIP Rentz: două module Maven, inclusiv motorul local; Kit JAR | cinci perechi în lib; originea copiei inițiale este păstrată, iar acceptanța J5 se califică distinct |
+| `atf_j6` | WIP Hold’em, cinci module de domeniu; consumer al celor cinci biblioteci JAR | bootstrap Maven din lib, comparații offline și acceptanță proprie; fără harness ori surse paralele ale bibliotecilor |
 | `demo2` | historical source workspace | nu mai este destinație activă de mentenanță sau sync |
 
 J1 poate avea schimbări comune în lucru. Referința J0 nu autorizează
@@ -32,6 +33,7 @@ flowchart LR
     Candidate -->|livrează| J3["J3<br/>consumer speech"]
     Candidate -->|livrează| J4["J4<br/>consumer Android"]
     Candidate -->|livrează| J5["J5 WIP<br/>consumer Rentz"]
+    Candidate -->|livrează| J6["J6 WIP<br/>consumer Hold’em"]
 ```
 
 <details>
@@ -68,7 +70,7 @@ rămân distincte; infrastructura copiată nu le demonstrează.
 | Reporting Java, assets, API sau POM | versiune nouă, JAR/POM și proveniență; documentele de adopție | native, regresii permanente și gate pe JAR-ul fizic |
 | Core Java, API sau POM | versiune Core nouă, pereche JAR/POM și proveniență; sursa și nativele rămân în J0 | native și contracte pe JAR, guvernanță și acceptanță distinctă J1/J2 |
 | numai regresii Reporting | testele rămân în J0; se verifică relevanța pentru versiunea consumată | reproducere negativă și acceptanță pe binarul afectat; fără copierea harness-ului în live |
-| Test Kit, Console sau Mock | versiune nouă și pereche JAR/POM în J1–J5; sursa și nativele rămân în J0 | native, contracte pe JAR și acceptanța fiecărui consumer |
+| Test Kit, Console sau Mock | versiune nouă și pereche JAR/POM în J1–J6; sursa și nativele rămân în J0 | native, contracte pe JAR și acceptanța fiecărui consumer |
 | surse comune Validation/UI sau adaptoare Shop/AutoEx | numai sursele și probele selectate pentru același comportament | comparație cu schimbările locale și testele ownerului; un JAR Reporting nou nu este implicit necesar |
 | documentație ori mutarea referinței | contracte și linkuri adaptate deployment-ului | guvernanță documentară; fără versiune binară nouă numai pentru redenumirea directorului |
 
@@ -76,7 +78,7 @@ rămân distincte; infrastructura copiată nu le demonstrează.
   Hash-urile și catalogul native sunt în `library-provenance.json`, la rădăcină.
 - POM-urile reactorului, `.git`, bazele `testChanges`, configurațiile locale,
   cache-urile, output-urile și rapoartele nu se copiază prin mirror.
-- Feedback-ul Core/Reporting/Console/Mock/Test Kit are owner în J0; cerințele comune nonbibliotecă sunt coordonate în J1. [Test Kit](ATF_Test_Kit_Library.md) este distribuit ca bibliotecă în J1–J5; sursa și nativele rămân în J0. Feedback-ul unei implementări comune
+- Feedback-ul Core/Reporting/Console/Mock/Test Kit are owner în J0; cerințele comune nonbibliotecă sunt coordonate în J1. [Test Kit](ATF_Test_Kit_Library.md) este distribuit ca bibliotecă în J1–J6; sursa și nativele rămân în J0. Feedback-ul unei implementări comune
   se închide în alt deployment numai după sincronizarea și proba codului său.
 
 ## Protocolul fiecărui increment

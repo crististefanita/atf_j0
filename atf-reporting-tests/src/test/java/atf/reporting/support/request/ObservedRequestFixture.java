@@ -1,4 +1,6 @@
 package atf.reporting.support.request;
+
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
 import atf.reporting.api.ReportAttemptRecord;
 import atf.reporting.api.ReportRetryEvent;
 import atf.ui.tests.extent.support.audit.api.ApiJsonEvidenceAuditor;
@@ -94,21 +96,28 @@ public final class ObservedRequestFixture {
 
     public static ApiJsonEvidenceAuditor.Result inspectBody(
             Published published, Renderer renderer) {
-        try (var playwright = Playwright.create();
-             var browser = playwright.chromium().launch(
-                     new BrowserType.LaunchOptions().setHeadless(true))) {
-            var page = browser.newPage();
-            page.navigate(published.path().toUri().toString() + "#test-view");
-            if (renderer == Renderer.FALLBACK) {
-                page.locator("[data-tab='tests']").click();
-            } else {
-                page.locator("#test-view .test-item").first().click();
-                page.getByRole(AriaRole.BUTTON,
-                        new Page.GetByRoleOptions().setName("Expand all nodes").setExact(true)).click();
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), 
+                     new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                var browser = browserLease.value();
+                var page = BrowserResources.newPage(browser);
+                page.navigate(published.path().toUri().toString() + "#test-view");
+                if (renderer == Renderer.FALLBACK) {
+                    page.locator("[data-tab='tests']").click();
+                } else {
+                    page.locator("#test-view .test-item").first().click();
+                    page.getByRole(AriaRole.BUTTON,
+                            new Page.GetByRoleOptions().setName("Expand all nodes").setExact(true)).click();
+                }
+                var metadata = page.locator("[data-atf-request-method]").first();
+                var request = metadata.locator("xpath=ancestor::*[@data-atf-node-role='request'][1]");
+                return new ApiJsonEvidenceAuditor().inspect(request);
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            var metadata = page.locator("[data-atf-request-method]").first();
-            var request = metadata.locator("xpath=ancestor::*[@data-atf-node-role='request'][1]");
-            return new ApiJsonEvidenceAuditor().inspect(request);
         }
     }
 

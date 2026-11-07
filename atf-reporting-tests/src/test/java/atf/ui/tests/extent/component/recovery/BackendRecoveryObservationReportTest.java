@@ -1,5 +1,9 @@
 package atf.ui.tests.extent.component.recovery;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.contract.*;
 import atf.reporting.console.AtfConsoleSink;
 import atf.reporting.evidence.ReportScreenshotPolicy;
@@ -17,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Renderer contract for neutral INFO observations; no backend policy or application execution lives here. */
 @AtfComponentTest
+@ReportBrowserTest
 class BackendRecoveryObservationReportTest {
     private static final ReportPhaseAuditLocators PHASES = new ReportPhaseAuditLocators();
     private static final ReportFailureContextLocators EVIDENCE = new ReportFailureContextLocators();
@@ -51,33 +56,40 @@ class BackendRecoveryObservationReportTest {
             assertEquals(List.of(AtfReportStatus.PASS, AtfReportStatus.FAIL),
                     report.semanticSnapshot().classes().getFirst().scenarios().stream().map(value -> value.status()).toList());
         }
-        try (var playwright = Playwright.create();
-             var browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
-             var page = browser.newPage()) {
-            page.navigate(file.toAbsolutePath().toUri() + "#test-view");
-            PHASES.firstOwner(page).click();
-            var scenario = PHASES.scenarios(page, false).first();
-            PHASES.header(scenario).click();
-            var phase = PHASES.phases(scenario).first();
-            PHASES.header(phase).click();
-            var request = TREE.requests(phase).first();
-            TREE.header(request).click();
-            TREE.header(TREE.validations(request).first()).click();
-            // Native hierarchy is open, while the evidence disclosure is initially collapsed.
-            var observation = EVIDENCE.observations(page).first();
-            assertFalse((Boolean) observation.evaluate("node => node.open"));
-            EVIDENCE.summary(observation).click();
-            var rows = EVIDENCE.observationRows(page);
-            assertEquals(12, rows.count());
-            assertTrue(rows.last().innerText().contains("RECOVERED"));
-            assertTrue(rows.last().innerText().contains("ℹ"));
-            for (var row : rows.all()) {
-                for (String cell : EVIDENCE.cells(row).allTextContents()) assertTrue(cell.trim().length() <= 240, cell);
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)));
+             var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browserLease.value()))) {
+            try {
+                var page = pageLease.value();
+                page.navigate(file.toAbsolutePath().toUri() + "#test-view");
+                PHASES.firstOwner(page).click();
+                var scenario = PHASES.scenarios(page, false).first();
+                PHASES.header(scenario).click();
+                var phase = PHASES.phases(scenario).first();
+                PHASES.header(phase).click();
+                var request = TREE.requests(phase).first();
+                TREE.header(request).click();
+                TREE.header(TREE.validations(request).first()).click();
+                // Native hierarchy is open, while the evidence disclosure is initially collapsed.
+                var observation = EVIDENCE.observations(page).first();
+                assertFalse((Boolean) observation.evaluate("node => node.open"));
+                EVIDENCE.summary(observation).click();
+                var rows = EVIDENCE.observationRows(page);
+                assertEquals(12, rows.count());
+                assertTrue(rows.last().innerText().contains("RECOVERED"));
+                assertTrue(rows.last().innerText().contains("ℹ"));
+                for (var row : rows.all()) {
+                    for (String cell : EVIDENCE.cells(row).allTextContents()) assertTrue(cell.trim().length() <= 240, cell);
+                }
+                rows.last().scrollIntoViewIfNeeded(); assertTrue(rows.last().isVisible());
+                EVIDENCE.summary(observation).focus(); page.keyboard().press("Enter");
+                assertFalse((Boolean) observation.evaluate("node => node.open"));
+                page.keyboard().press("Space"); assertTrue((Boolean) observation.evaluate("node => node.open"));
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            rows.last().scrollIntoViewIfNeeded(); assertTrue(rows.last().isVisible());
-            EVIDENCE.summary(observation).focus(); page.keyboard().press("Enter");
-            assertFalse((Boolean) observation.evaluate("node => node.open"));
-            page.keyboard().press("Space"); assertTrue((Boolean) observation.evaluate("node => node.open"));
         }
     }
 }

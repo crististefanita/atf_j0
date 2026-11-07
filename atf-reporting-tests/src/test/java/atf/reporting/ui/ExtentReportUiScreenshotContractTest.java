@@ -1,4 +1,5 @@
 package atf.reporting.ui;
+import static atf.reporting.support.screenshot.ScreenshotLinkContract.assertSingleOriginal;
 import atf.testkit.AtfUnitTest;
 
 import atf.reporting.console.AtfConsoleSink;
@@ -84,10 +85,23 @@ class ExtentReportUiScreenshotContractTest {
 
         String html = Files.readString(report);
         assertAll(
-                () -> assertEquals(1, count(html, "data-atf-screenshot=\"base64\"")),
+                () -> assertSingleOriginal(
+                        html, ReportTestScreenshots.ONE_PIXEL_PNG, "first visual state"),
                 () -> assertEquals(1, count(html, "data:image/png;base64," + ReportTestScreenshots.ONE_PIXEL_PNG)),
                 () -> assertTrue(html.contains("aria-label=\"Open first visual state\"")),
                 () -> assertFalse(html.contains("same visual state again")));
+        var document = org.jsoup.Jsoup.parse(html);
+        var link = document.selectFirst("a[data-atf-screenshot=base64]");
+        link.after(link.outerHtml());
+        assertThrows(AssertionError.class, () -> assertSingleOriginal(
+                document.outerHtml(), ReportTestScreenshots.ONE_PIXEL_PNG, "first visual state"));
+        link.nextElementSibling().remove();
+        link.attr("href", "data:image/png;base64," + ReportTestScreenshots.SECOND_PIXEL_PNG);
+        assertThrows(AssertionError.class, () -> assertSingleOriginal(
+                document.outerHtml(), ReportTestScreenshots.ONE_PIXEL_PNG, "first visual state"));
+        link.attr("href", "data:image/png;base64," + ReportTestScreenshots.ONE_PIXEL_PNG).attr("aria-label", "Open another checkpoint");
+        assertThrows(AssertionError.class, () -> assertSingleOriginal(
+                document.outerHtml(), ReportTestScreenshots.ONE_PIXEL_PNG, "first visual state"));
     }
 
     @Test

@@ -4,7 +4,7 @@
 
 ## Pe scurt
 
-This workspace is the twelve-module producer. J0 owns Core, Reporting, Console, Mock and Test Kit implementation and native tests. J1–J5 consume exactly one current JAR/POM pair per library directly in `lib`; their application adapters, configuration and acceptance remain local.
+This workspace is the twelve-module producer. J0 owns Core, Reporting, Console, Mock and Test Kit implementation and native tests. J1–J6 consume exactly one current JAR/POM pair per library directly in `lib`; their application adapters, configuration and acceptance remain local.
 
 | Workspace | Source modules | Domain |
 |---|---|---|
@@ -14,6 +14,7 @@ This workspace is the twelve-module producer. J0 owns Core, Reporting, Console, 
 | J3 | 4 | Speech framework and acceptance |
 | J4 | 3 | Android framework and acceptance |
 | J5 | 2 | Rentz WIP and independent library acceptance |
+| J6 | 5 | Hold’em WIP; test-scoped adoption in holdem-app, without producer sources or harness |
 
 ## Console and Mock boundaries
 
@@ -33,7 +34,7 @@ Console and Mock do not depend on Reporting, Validation or application modules. 
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     Source["J0<br/>source + native tests"] -->|package| Pair["One candidate<br/>JAR + standalone POM"]
-    Pair -->|adopt| Lib["J1–J5<br/>flat lib"]
+    Pair -->|adopt| Lib["J1–J6<br/>flat lib"]
     Lib -->|validate| Acceptance["Per-consumer<br/>contracts + components"]
 ```
 
@@ -99,4 +100,4 @@ Logurile, sursele extrase și HTML-urile rămân în TMP; această verificare nu
 
 ## Test Kit ca bibliotecă
 
-[Test Kit](ATF_Test_Kit_Library.md) are owner de cod, native și feedback în J0. J1–J5 consumă perechea din lib și [ghidul local](../lib/README.TestKit.md); verifică binarul și integrarea, fără surse Kit paralele. Console păstrează bridge-ul opțional, iar produsul declară Kit numai în test scope.
+[Test Kit](ATF_Test_Kit_Library.md) are owner de cod, native și feedback în J0. J1–J6 consumă perechea din lib și [ghidul local](../lib/README.TestKit.md); verifică binarul și integrarea, fără surse Kit paralele. Console păstrează bridge-ul opțional, iar produsul declară Kit numai în test scope.

@@ -1,5 +1,7 @@
 package atf.ui.tests.extent.component.readability;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
 import atf.testkit.AtfComponentTest;
 import atf.ui.tests.extent.support.inspection.readability.NarrowEvidenceReadabilityProbe;
 import atf.ui.tests.extent.support.inspection.readability.NarrowEvidenceFailureFixture;
@@ -7,6 +9,7 @@ import atf.ui.tests.extent.support.inspection.table.TableViewportReportFixture;
 import org.junit.jupiter.api.Test;
 
 @AtfComponentTest
+@ReportBrowserTest
 class NarrowEvidenceReadabilityComponentTest {
     @Test
     void extentKeepsLabelsValuesAndFinalRowsReadableAtViewportAndPanelWidths() {

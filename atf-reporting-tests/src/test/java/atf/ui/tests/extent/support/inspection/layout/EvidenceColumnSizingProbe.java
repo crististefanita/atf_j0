@@ -1,5 +1,7 @@
 package atf.ui.tests.extent.support.inspection.layout;
 
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.asset.ReportAssetComposer;
 import atf.reporting.markup.AtfReportMarkup;
 import atf.reporting.theme.AtfReportTheme;
@@ -173,9 +175,9 @@ public final class EvidenceColumnSizingProbe {
     }
 
     private static final class Fixture implements AutoCloseable {
-        private final Playwright playwright = Playwright.create();
-        private final Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
-        private final Page page = browser.newPage();
+        private final Playwright playwright = BrowserResources.create(Playwright::create);
+        private final Browser browser = BrowserResources.launch(playwright, new BrowserType.LaunchOptions().setHeadless(true));
+        private final Page page = BrowserResources.newPage(browser);
         private final List<String> errors = new ArrayList<>();
 
         Fixture(boolean fallback) {
@@ -210,8 +212,7 @@ public final class EvidenceColumnSizingProbe {
         List<Locator> tables() { return LOCATORS.componentTables(page).all(); }
 
         public void close() {
-            try { assertTrue(errors.isEmpty(), errors::toString); }
-            finally { browser.close(); playwright.close(); }
+            BrowserResources.finish(() -> assertTrue(errors.isEmpty(), errors::toString), browser, playwright);
         }
     }
 }

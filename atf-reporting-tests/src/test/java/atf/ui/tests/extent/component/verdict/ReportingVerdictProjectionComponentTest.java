@@ -1,5 +1,9 @@
 package atf.ui.tests.extent.component.verdict;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfGherkinKeyword;
 import atf.reporting.contract.AtfReportPorts;
@@ -31,6 +35,7 @@ import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertTha
 
 /** Actual browser projections must agree with evaluated evidence and preserve disclosure access. */
 @AtfComponentTest
+@ReportBrowserTest
 class ReportingVerdictProjectionComponentTest {
     private static final VerdictReportLocators UI = new VerdictReportLocators();
 
@@ -77,38 +82,45 @@ class ReportingVerdictProjectionComponentTest {
 
     private static void verifyBrowser(Path file, boolean fallback, int passed, int failed) throws Exception {
         assertFalse(Files.readString(file).contains("bounded-prefix ".repeat(30) + "actual suffix"));
-        try (var playwright = Playwright.create();
-             var browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
-             var page = browser.newPage()) {
-            page.navigate(file.toAbsolutePath().toUri().toString());
-            UI.overview(page, fallback).click();
-            assertEquals(Integer.toString(passed), UI.metric(page, fallback, fallback ? "Passed" : "Tests Passed").innerText());
-            assertEquals(Integer.toString(failed), UI.metric(page, fallback, fallback ? "Failed" : "Tests Failed").innerText());
-            UI.tests(page, fallback).click();
-            if (!fallback) UI.expandAll(page).click();
-            var table = UI.comparisonTable(page, fallback);
-            assertEquals(1, table.count(), "Inspect the canonical visible table, excluding source and navigation clones");
-            assertEquals(42, UI.rows(table).count());
-            assertTrue(table.isVisible());
-            UI.rows(table).last().scrollIntoViewIfNeeded();
-            assertTrue(UI.rows(table).last().isVisible());
-            for (String value : UI.valueCells(table).allInnerTexts()) assertTrue(value.length() <= 240);
-            UI.fails(page, fallback).click();
-            assertEquals(1, UI.failures(page, fallback).count());
-            if (!fallback) UI.failures(page, false).first().click();
-            UI.openFailure(page, fallback).click();
-            var scenario = UI.scenario(page, fallback, "negative");
-            assertThat(scenario).isVisible();
-            if (!fallback) {
-                var header = UI.scenarioHeader(scenario);
-                assertThat(header).hasAttribute("aria-expanded", "true");
-                header.press("Enter");
-                assertThat(header).hasAttribute("aria-expanded", "false");
-                header.press("Space");
-                assertThat(header).hasAttribute("aria-expanded", "true");
-                UI.expandAll(page).click();
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)));
+             var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browserLease.value()))) {
+            try {
+                var page = pageLease.value();
+                page.navigate(file.toAbsolutePath().toUri().toString());
+                UI.overview(page, fallback).click();
+                assertEquals(Integer.toString(passed), UI.metric(page, fallback, fallback ? "Passed" : "Tests Passed").innerText());
+                assertEquals(Integer.toString(failed), UI.metric(page, fallback, fallback ? "Failed" : "Tests Failed").innerText());
+                UI.tests(page, fallback).click();
+                if (!fallback) UI.expandAll(page).click();
+                var table = UI.comparisonTable(page, fallback);
+                assertEquals(1, table.count(), "Inspect the canonical visible table, excluding source and navigation clones");
+                assertEquals(42, UI.rows(table).count());
+                assertTrue(table.isVisible());
+                UI.rows(table).last().scrollIntoViewIfNeeded();
+                assertTrue(UI.rows(table).last().isVisible());
+                for (String value : UI.valueCells(table).allInnerTexts()) assertTrue(value.length() <= 240);
+                UI.fails(page, fallback).click();
+                assertEquals(1, UI.failures(page, fallback).count());
+                if (!fallback) UI.failures(page, false).first().click();
+                UI.openFailure(page, fallback).click();
+                var scenario = UI.scenario(page, fallback, "negative");
+                assertThat(scenario).isVisible();
+                if (!fallback) {
+                    var header = UI.scenarioHeader(scenario);
+                    assertThat(header).hasAttribute("aria-expanded", "true");
+                    header.press("Enter");
+                    assertThat(header).hasAttribute("aria-expanded", "false");
+                    header.press("Space");
+                    assertThat(header).hasAttribute("aria-expanded", "true");
+                    UI.expandAll(page).click();
+                }
+                assertThat(UI.comparisonTable(page, fallback)).isVisible();
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            assertThat(UI.comparisonTable(page, fallback)).isVisible();
         }
     }
 

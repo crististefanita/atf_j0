@@ -1,5 +1,9 @@
 package atf.ui.tests.extent.component.timing;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.audit.*;
 import atf.reporting.contract.*;
 import atf.reporting.extent.session.ExtentReportSession;
@@ -20,88 +24,117 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Empty measured lifecycle phases and runtime errors after successful checks remain auditable. */
 @AtfComponentTest
+@ReportBrowserTest
 class ComponentExecutionDiagnosticReportTest {
     private static final ReportPhaseAuditLocators PHASES = new ReportPhaseAuditLocators();
     private static final ReportPhaseTimingLocators TIMING = new ReportPhaseTimingLocators();
     private static final ComponentDiagnosticLocators DIAGNOSTICS = new ComponentDiagnosticLocators();
 
     @Test void runtimeErrorsDoNotBlamePassingComparisonsOrInventHttpFields(@TempDir Path output) throws Exception {
-        try (var playwright = Playwright.create();
-             var browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            for (boolean fallback : List.of(false, true)) try (var page = browser.newPage()) {
-                Path report = publish(output.resolve(fallback ? "fallback.html" : "extent.html"), fallback);
-                page.navigate(report.toUri() + (fallback ? "" : "#test-view"));
-                if (!fallback) {
-                    PHASES.firstOwner(page).click();
-                    page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                var browser = browserLease.value();
+                for (boolean fallback : List.of(false, true)) try (var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browser))) {
+                try {
+                    var page = pageLease.value();
+                        Path report = publish(output.resolve(fallback ? "fallback.html" : "extent.html"), fallback);
+                        page.navigate(report.toUri() + (fallback ? "" : "#test-view"));
+                        if (!fallback) {
+                            PHASES.firstOwner(page).click();
+                            page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+                        }
+                        PHASES.failsTab(page, fallback).click();
+                        if (fallback) {
+                            assertEquals(2, DIAGNOSTICS.fallbackFailures(page).count());
+                            assertTrue(PHASES.fails(page, true).innerText().contains("controlled runtime error"));
+                            assertFalse(PHASES.fails(page, true).innerText().contains("previous passing check"));
+                            DIAGNOSTICS.fallbackFailures(page).filter(new Locator.FilterOptions().setHasText("controlled runtime error")).click();
+                            assertTrue(PHASES.scenarios(page, true).first().isVisible());
+                        } else {
+                            DIAGNOSTICS.nativeFailures(page).filter(new Locator.FilterOptions().setHasText("runtime error")).click();
+                            assertEquals("execution", DIAGNOSTICS.failureIndex(page).getAttribute("data-atf-evidence-owner"),
+                                    "A phase exception is execution evidence, independent of its passing comparisons");
+                            assertFalse(DIAGNOSTICS.labels(page).allTextContents().contains("REQUEST"));
+                            assertFalse(DIAGNOSTICS.labels(page).allTextContents().contains("DURATION"));
+                            assertFalse(DIAGNOSTICS.failureIndex(page).innerText().contains("previous passing check"));
+                            assertTrue(DIAGNOSTICS.failureIndex(page).innerText().contains("controlled runtime error"));
+                            PHASES.openFailureInTests(page).click();
+                            var scenario = PHASES.scenarios(page, false).first();
+                            assertEquals("357", scenario.getAttribute("data-duration-ms"));
+                            assertEquals("345", TIMING.badge(PHASES.phases(scenario).nth(1), false).getAttribute("data-duration-ms"));
+                            PHASES.failsTab(page, false).click();
+                            DIAGNOSTICS.nativeFailures(page).filter(new Locator.FilterOptions().setHasText("error before checks")).click();
+                            assertEquals("execution", DIAGNOSTICS.failureIndex(page).getAttribute("data-atf-evidence-owner"));
+                            assertFalse(DIAGNOSTICS.labels(page).allTextContents().contains("REQUEST"));
+                            assertFalse(DIAGNOSTICS.labels(page).allTextContents().contains("DURATION"));
+                        }
+            
+                } catch (Exception | Error reportingBrowserFailure) {
+                    BrowserResources.recordFailure(reportingBrowserFailure);
+                    throw reportingBrowserFailure;
                 }
-                PHASES.failsTab(page, fallback).click();
-                if (fallback) {
-                    assertEquals(2, DIAGNOSTICS.fallbackFailures(page).count());
-                    assertTrue(PHASES.fails(page, true).innerText().contains("controlled runtime error"));
-                    assertFalse(PHASES.fails(page, true).innerText().contains("previous passing check"));
-                    DIAGNOSTICS.fallbackFailures(page).filter(new Locator.FilterOptions().setHasText("controlled runtime error")).click();
-                    assertTrue(PHASES.scenarios(page, true).first().isVisible());
-                } else {
-                    DIAGNOSTICS.nativeFailures(page).filter(new Locator.FilterOptions().setHasText("runtime error")).click();
-                    assertEquals("execution", DIAGNOSTICS.failureIndex(page).getAttribute("data-atf-evidence-owner"),
-                            "A phase exception is execution evidence, independent of its passing comparisons");
-                    assertFalse(DIAGNOSTICS.labels(page).allTextContents().contains("REQUEST"));
-                    assertFalse(DIAGNOSTICS.labels(page).allTextContents().contains("DURATION"));
-                    assertFalse(DIAGNOSTICS.failureIndex(page).innerText().contains("previous passing check"));
-                    assertTrue(DIAGNOSTICS.failureIndex(page).innerText().contains("controlled runtime error"));
-                    PHASES.openFailureInTests(page).click();
-                    var scenario = PHASES.scenarios(page, false).first();
-                    assertEquals("357", scenario.getAttribute("data-duration-ms"));
-                    assertEquals("345", TIMING.badge(PHASES.phases(scenario).nth(1), false).getAttribute("data-duration-ms"));
-                    PHASES.failsTab(page, false).click();
-                    DIAGNOSTICS.nativeFailures(page).filter(new Locator.FilterOptions().setHasText("error before checks")).click();
-                    assertEquals("execution", DIAGNOSTICS.failureIndex(page).getAttribute("data-atf-evidence-owner"));
-                    assertFalse(DIAGNOSTICS.labels(page).allTextContents().contains("REQUEST"));
-                    assertFalse(DIAGNOSTICS.labels(page).allTextContents().contains("DURATION"));
-                }
+            }
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
         }
     }
 
     @Test void emptyMeasuredPhasesStayNonExpandableAndAllBoundedChecksRemainReachable(@TempDir Path output) throws Exception {
-        try (var playwright = Playwright.create();
-             var browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            for (boolean fallback : List.of(false, true)) try (var page = browser.newPage()) {
-                Path report = publish(output.resolve(fallback ? "fallback.html" : "extent.html"), fallback);
-                page.navigate(report.toUri() + (fallback ? "" : "#test-view"));
-                if (fallback) PHASES.testsTab(page, true).click();
-                else {
-                    PHASES.firstOwner(page).click();
-                    page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                var browser = browserLease.value();
+                for (boolean fallback : List.of(false, true)) try (var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browser))) {
+                try {
+                    var page = pageLease.value();
+                        Path report = publish(output.resolve(fallback ? "fallback.html" : "extent.html"), fallback);
+                        page.navigate(report.toUri() + (fallback ? "" : "#test-view"));
+                        if (fallback) PHASES.testsTab(page, true).click();
+                        else {
+                            PHASES.firstOwner(page).click();
+                            page.waitForFunction("() => document.documentElement.getAttribute('data-atf-test-view-ready') === 'true'");
+                        }
+                        var scenario = PHASES.scenarios(page, fallback).first();
+                        if (!fallback) PHASES.header(scenario).click();
+                        var phases = PHASES.phases(scenario);
+                        assertEquals(3, phases.count());
+                        for (int index : List.of(0, 2)) {
+                            assertEquals(index == 0 ? "12" : "0", TIMING.badge(phases.nth(index), fallback).getAttribute("data-duration-ms"));
+                            assertEquals(0, PHASES.assertionStep(phases.nth(index)).count());
+                            if (!fallback) {
+                                assertEquals("false", phases.nth(index).getAttribute("data-atf-node-expandable"));
+                                assertNull(PHASES.header(phases.nth(index)).getAttribute("aria-expanded"));
+                            }
+                        }
+                        var body = phases.nth(1);
+                        if (!fallback) PHASES.header(body).click();
+                        var step = PHASES.assertionStep(body);
+                        var header = fallback ? PHASES.diagnosticSummary(step) : PHASES.header(step);
+                        assertFalse(PHASES.assertionTable(step, fallback).isVisible());
+                        header.press("Enter");
+                        var table = PHASES.assertionTable(step, fallback);
+                        assertTrue(table.isVisible());
+                        assertEquals(42, PHASES.assertionRows(table).count());
+                        assertTrue(DIAGNOSTICS.assertionValues(table).allTextContents().stream().allMatch(value -> value.length() <= 240));
+                        PHASES.assertionRows(table).last().scrollIntoViewIfNeeded();
+                        assertTrue(PHASES.assertionRows(table).last().isVisible());
+                        header.press("Space"); assertFalse(table.isVisible());
+                        header.press("Enter"); assertTrue(table.isVisible());
+                        assertEquals("345", TIMING.badge(body, fallback).getAttribute("data-duration-ms"));
+            
+                } catch (Exception | Error reportingBrowserFailure) {
+                    BrowserResources.recordFailure(reportingBrowserFailure);
+                    throw reportingBrowserFailure;
                 }
-                var scenario = PHASES.scenarios(page, fallback).first();
-                if (!fallback) PHASES.header(scenario).click();
-                var phases = PHASES.phases(scenario);
-                assertEquals(3, phases.count());
-                for (int index : List.of(0, 2)) {
-                    assertEquals(index == 0 ? "12" : "0", TIMING.badge(phases.nth(index), fallback).getAttribute("data-duration-ms"));
-                    assertEquals(0, PHASES.assertionStep(phases.nth(index)).count());
-                    if (!fallback) {
-                        assertEquals("false", phases.nth(index).getAttribute("data-atf-node-expandable"));
-                        assertNull(PHASES.header(phases.nth(index)).getAttribute("aria-expanded"));
-                    }
-                }
-                var body = phases.nth(1);
-                if (!fallback) PHASES.header(body).click();
-                var step = PHASES.assertionStep(body);
-                var header = fallback ? PHASES.diagnosticSummary(step) : PHASES.header(step);
-                assertFalse(PHASES.assertionTable(step, fallback).isVisible());
-                header.press("Enter");
-                var table = PHASES.assertionTable(step, fallback);
-                assertTrue(table.isVisible());
-                assertEquals(42, PHASES.assertionRows(table).count());
-                assertTrue(DIAGNOSTICS.assertionValues(table).allTextContents().stream().allMatch(value -> value.length() <= 240));
-                PHASES.assertionRows(table).last().scrollIntoViewIfNeeded();
-                assertTrue(PHASES.assertionRows(table).last().isVisible());
-                header.press("Space"); assertFalse(table.isVisible());
-                header.press("Enter"); assertTrue(table.isVisible());
-                assertEquals("345", TIMING.badge(body, fallback).getAttribute("data-duration-ms"));
+            }
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
         }
     }

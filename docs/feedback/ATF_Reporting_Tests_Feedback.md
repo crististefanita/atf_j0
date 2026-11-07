@@ -1,5 +1,18 @@
 # ATF Reporting Tests — oracole independente și acceptanță sursă/JAR
 
+## REPORT-BROWSER-LIFECYCLE-154 — acceptanța închiderii native
+
+**P1 · owner Reporting Tests.** [Contractul de izolare](../../atf-reporting-tests/README.md#izolarea-tuturor-intrărilor-browser)
+separă apelurile SDK, păstrează cleanup-ul global legacy și reține cauza anterioară unui blocaj.
+
+Proba nominală `sameSdkCreatesANewPageAndClosesItsResources` a depășit
+termenul global de 5 s și în baseline-ul recompilat din sursele originale.
+Stack-ul indică așteptarea închiderii native; SDK-ul și limitele rămân fixate.
+
+- [ ] Confirmați cauza opririi native pe hostul Windows și repetabilitatea probei legacy cu SDK-ul fixat, în același buget. Păstrați stack-ul și arborele de procese al eșecului.
+- [ ] Măsurați discovery JUnit separat pe traseul Maven: controlul de `@AfterEach` trebuie să ajungă efectiv în cleanup, înainte ca verdictul lui să califice profilul.
+- [ ] Certificați suita browser completă pe sursă și pe JAR, cu aceleași identități și verdicte, fără skip, retry sau schimbarea termenelor.
+
 ## Pe scurt
 
 Acest feedback deține corectitudinea probelor din `atf-reporting-tests`:
@@ -189,34 +202,161 @@ PUBLIC-API-43 and PORTABLE-DOCS-46 need permanent boundary oracles, not more app
 - [ ] Exercise a declared supported API client against the physical JAR without producer implementation classes; compare supported signatures and runtime vendor assumptions independently.
 - [ ] Validate distributed adoption documentation with sibling source directories absent; a link that passes inside the full producer checkout does not prove portability.
 
-## REPORT-UNIT-BASELINE-149 — restore the complete existing unit gate
+<a id="report-unit-baseline-149--restore-the-complete-existing-unit-gate"></a>
 
-**Priority: 93/100** = impact 36 + gap 28 + actionable 20 + documentation 9. The canonical unit suite currently executes 487 cases: 479 pass and eight fail, without errors or skips. All eight failing methods also reproduce individually against source and the physical JAR, with the loaded CodeSource recorded; retain their failures while classifying causes.
-
-| Existing regression | Required investigation |
-|---|---|
-| ReportAssetContractTest / HtmlReportNavigationScriptTest | exact selector text changed; verify real tab ownership, hash activation and keyboard behavior before replacing a substring oracle |
-| ExtentReportFailureProjectionContractTest | exact request-label script assignment changed; verify the failed phase/request and duration in rendered Fails rather than accepting an updated string alone |
-| ExtentReportRuntimeNavigationComponentTest | the controller and performance module register separate load listeners; the old literal-count assertion confuses timing observation with initialization. Preserve duplicate-initialization negatives through the permanent cold-start browser controls |
-| AtfReportThemeCompositionTest / HtmlReportComponentContractTest | screenshot-viewer backdrop uses rgba despite the documented hex-only theme contract; preserve the contract instead of weakening its checks |
-| AtfReportEvidenceCssTest | table viewport CSS is no longer the final composed fragment; prove effective precedence for every table family before deciding whether composition or the oracle changes |
-| ExtentReportUiScreenshotContractTest | raw marker count is two because the shared viewer script contains its selector; independent DOM inspection finds one screenshot link and one PNG data URI. Replace this script-sensitive oracle with semantic identity and byte/reference negatives, preserving caption ownership |
-
-- [ ] Classify each failure as implementation, fixture or oracle; keep its exact method and independent behavioral/semantic negative in the existing test family.
-- [ ] Verify the same tests on producer source and the physical JAR, with loaded CodeSource recorded; a focused green gate does not replace the canonical unit baseline.
-- [ ] Keep screenshots, assertions, timing and preview 240 intact; do not delete tests, increase budgets or change expected values only to obtain green.
-- [ ] Make the complete canonical unit suite a maintained release precondition alongside native and focused component/browser gates.
-
-**Closure:** all original eight cases pass for a justified reason, the related negative controls still fail on the wrong behavior, and the full unit/source/JAR gates are green. Historical partial acceptance counts remain historical facts, not a substitute for this gate.
+Contractul suitei canonice, al hostului Fails și al controalelor negative este
+menținut în [Reporting Tests](../../atf-reporting-tests/README.md). Controalele
+tehnice eligibile rămân în [baseline](../ATF_Test_Changes_Baseline.md).
 
 <a id="report-test-controls-150--reconcile-existing-java-changes-at-the-real-review-base"></a>
 
-Current Git control eligibility is governed by the [technical baseline](../ATF_Test_Changes_Baseline.md). The former review-base mismatch is closed after the actual live commits and strict current-base readback; the independent unit failures remain open under REPORT-UNIT-BASELINE-149.
+Eligibilitatea controalelor Git este guvernată de [baseline-ul tehnic](../ATF_Test_Changes_Baseline.md), cu path-uri exacte și baza reală a revizuirii.
 
-## REPORT-TEST-SETUP-153 — inițializare browser cu termen propriu
+<a id="report-test-setup-153--inițializare-browser-cu-termen-propriu"></a>
 
-**P2 · owner Reporting Tests.** Stack-ul capturat pentru ReportArtifactProfileComponentTest.verifyBrowser rămâne în BrowserContextImpl.newPage → PipeTransport.poll, înaintea navigării. Pragurile existente de acțiune și navigare nu mărginesc acest apel; o rulare fără rezultat terminal nu este PASS.
+Contractul de [setup și verdict terminal](../../atf-reporting-tests/README.md#setup-browser-și-verdict-terminal)
+separă inspecția statică de proba browser. Controalele de factory necooperant,
+cleanup, cauză inițială și ownership rămân permanente în J0; controlul tehnic
+verificat este în [baseline](../ATF_Test_Changes_Baseline.md).
 
-- [ ] Delimitați setup-ul și cleanup-ul browserului prin ownership și termen explicit; păstrați cauza inițială și diagnosticul procesului. Închiderea vizează numai resursele acelei rulări, fără oprire globală de procese.
-- [ ] Control negativ cu factory care nu termină inițializarea și control pozitiv pe același SDK; sursa și JAR-ul folosesc același protocol. Păstrați pragurile acțiunilor/navigării, fără retry care transformă blocajul în succes.
-- [ ] Separați verdictul inspectorului de acceptanța interactivă: matricea statică verde și resursele identice nu certifică o pornire browser neterminată.
+<details>
+<summary><strong>Control tehnic — REPORT-BROWSER-LIFECYCLE-154-CONTROL</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-BROWSER-LIFECYCLE-154-CONTROL
+    status: ACTIVE
+    base: 2f33813701b47e362b8091c6aca7c1c2b602727d
+    expires: 2026-11-25
+    reason: Cerinta explicita 154. Izoleaza selectia JUnit originala si lifecycle-ul SDK concret, cu contexte explicite, cleanup dupa identitate si cauza primara pastrata. Canalul incremental refuza cadrele incomplete fara rescanning ori inlocuirea fisierului deschis pe Windows. Pastreaza assertiile si pragurile originale; transfera exclusiv path-urile suprapuse de la controalele 149 si 153 la aceeasi baza.
+    proof: mvn -pl atf-reporting-tests -am -Preporting-release -Dsurefire.failIfNoSpecifiedTests=false test; mvn -pl atf-reporting-tests -Preporting-release -Datf.reporting.test.version=1.0.0-j22 test
+    paths:
+      - atf-reporting-tests/pom.xml
+      - atf-reporting-tests/src/test/java/atf/reporting/api/request/ObservedBodyAuditComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/api/request/ObservedRequestEvidenceComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/StaticHtmlScreenshotAdapter.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/StaticHtmlScreenshotAdapterTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/contract/BrowserBoundaryContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/contract/BrowserPhaseChannelContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/contract/BrowserPhaseDeadlineContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/contract/BrowserProcessInventoryContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/contract/BrowserResourcesContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/governance/BrowserLifecycleGovernanceTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/governance/BrowserReachabilityContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/governance/BrowserSourceInventory.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/junit/BrowserClassRun.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/junit/BrowserSelection.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/junit/BrowserTestBoundary.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/junit/JunitBrowserProbe.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/junit/ReportBrowserTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/lifecycle/BrowserLease.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/lifecycle/BrowserProbeBudget.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/lifecycle/BrowserProbeDiagnostics.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/lifecycle/BrowserProbeProcess.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/lifecycle/BrowserProbeScope.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/lifecycle/BrowserProbeWorker.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/process/BrowserPhaseChannel.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/process/BrowserPhaseDeadline.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/process/BrowserProcessInventory.java
+      - atf-reporting-tests/src/test/java/atf/reporting/governance/AtfReportingBrowserSuite.java
+      - atf-reporting-tests/src/test/java/atf/reporting/observation/ReportObservationBrowserComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/observation/ObservationBrowserProbe.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/request/ObservedRequestFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/assertions/ComponentAssertionStepReportTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/audit/ApiReportRenderedEvidenceComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/audit/CategoryOutcomeFlowAuditorTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/audit/UiApiVerdictProjectionComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/audit/UiFailureCorrelationComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/composition/SelfContainedAuditBrowserComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/execution/TerminalApiExecutionReportTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/execution/UiTerminalExchangeReportComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationEdgeComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/TerminalFailureNavigationComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/UiFailureContextComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/UiTimeoutReportComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/flow/BodyOnlyUnifiedFlowComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/flow/PhaseUnifiedFlowComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/ApiExchangeParityComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/EvidenceDisclosureAriaComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/ExtentReportDisclosureBrowserComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/ReportApiViewportParityComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/ReportBulkDisclosureComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/ReportPhaseAuditBrowserComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/disclosure/SiblingDisclosureStateComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/duration/OverviewDurationProjectionComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/json/JsonEvidenceFidelityComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/network/NetworkCaptureEvidenceTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/profile/ReportArtifactProfileComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/profile/SelfContainedArtifactOfflineComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/retry/ApiRetryProjectionContractTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/table/TableViewportBrowserComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/validation/ApiValidationDisclosureComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/layout/EvidenceColumnSizingComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/layout/EvidenceTableVisibilityComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/layout/FallbackLongTitleComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/layout/PublishedEvidenceTableComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/lifecycle/BrowserProbeProcessComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/lifecycle/UiSetupFallbackParityComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/navigation/ColdStartReadinessComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/navigation/LargeReportNavigationBrowserComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/navigation/TimelineTitleEncodingComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/presentation/AssertionIndicatorComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/presentation/FallbackIndexPresentationComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/presentation/ReportSystemMetadataComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/preview/LegacyPreviewBudgetComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/provenance/UiActionAttributionComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/readability/NarrowEvidenceReadabilityComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/recovery/BackendRecoveryObservationReportTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/regression/UnitBaselineBehaviorComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/screenshot/ScreenshotViewerBrowserComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/section/contract/SectionAuditRegistryTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/timing/ComponentExecutionDiagnosticReportTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/timing/RecordedPublicationTimingComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/timing/ReportPhaseTimingComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/values/UiFullValueBrowserComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/values/UiRowProjectionBrowserComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/verdict/QueryFailureReportComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/verdict/ReportingVerdictProjectionComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/e2e/configurable/CategoryCardinalityBrowserFixtureTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/e2e/failure/FailureEvidenceFlowTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/e2e/failure/UiFailureReportContractTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/e2e/navigation/ReportNavigationAggregationFlowTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/e2e/sanity/UiThenDisclosureSanityTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/e2e/section/SelectedApiTestsReportUiTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/e2e/uireport/StaticUiExtentReportContractTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/audit/ReportAuditContext.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/audit/query/QueryFailureReportProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/diagnostic/ReportPhaseAuditProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/disclosure/EvidenceDisclosureAriaProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/disclosure/ExtentReportDisclosureProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/disclosure/ReportBulkDisclosureProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/duration/OverviewDurationProjectionProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/execution/UiTerminalExchangeProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failurecontext/UiFailureContextProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failurecontext/UiTimeoutReportProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failurenavigation/FailureNavigationEdgeProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failurenavigation/FailureNavigationProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failurenavigation/TerminalFailureIndexProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/flow/BodyOnlyUnifiedFlowProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/flow/PhaseUnifiedFlowProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/layout/EvidenceColumnSizingProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/navigation/FallbackLongTitleProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/parity/ApiExchangeParityProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/preview/LegacyPreviewBudgetProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/readability/NarrowEvidenceReadabilityProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/reconciliation/ApiReportRenderedEvidenceProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/reconciliation/UiApiVerdictProjectionProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/reconciliation/UiFailureCorrelationProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/table/PublishedEvidenceTableMutation.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/table/PublishedEvidenceTableProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/table/TableViewportProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/viewport/ReportApiViewportProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/lifecycle/BrowserResources.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/lifecycle/SinglePageBrowserProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/readability/ReportReadabilityLocators.java
+      - atf-reporting-tests/src/test/resources/META-INF/services/org.junit.platform.launcher.LauncherDiscoveryListener
+      - atf-reporting-tests/src/test/resources/META-INF/services/org.junit.platform.launcher.TestExecutionListener
+```
+
+</details>

@@ -1,4 +1,6 @@
 package atf.ui.tests.extent.component.section.contract;
+
+import atf.reporting.browser.junit.ReportBrowserTest;
 import atf.testkit.AtfComponentTest;
 
 import atf.ui.tests.extent.support.section.module.SectionAuditRegistry;
@@ -9,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @AtfComponentTest
+@ReportBrowserTest
 class SectionAuditRegistryTest {
     @Test
     void everySupportedSectionHasOnePlugAndPlayModule() {

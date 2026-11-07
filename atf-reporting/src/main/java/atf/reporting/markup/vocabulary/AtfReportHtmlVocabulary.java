@@ -202,6 +202,7 @@ public final class AtfReportHtmlVocabulary {
         TEST_CONTENT_TOOLS("test-content-tools"),
         TEST_CONTENT_DETAIL("test-content-detail"),
         DETAIL_BODY("detail-body"),
+        FAILURE_DETAIL("atf-failure-detail"),
         FA("fa"),
         FA_ARROW_LEFT("fa-arrow-left"),
         TAB("tab"),

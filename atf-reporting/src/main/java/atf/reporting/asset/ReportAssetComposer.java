@@ -26,7 +26,8 @@ public final class ReportAssetComposer {
                 "CSS_VARIABLES", AtfReportThemeTokens.cssVariables(),
                 "FONT_STACK", AtfReportThemeTokens.FONT_STACK,
                 "SHADOW_SOFT", AtfReportColors.SHADOW_SOFT,
-                "WHITE_02", AtfReportColors.WHITE_02)) + disclosureIndicatorCss() + tableViewportCss() + LOADER.loadForPublication(ReportAsset.SCREENSHOT_VIEWER_CSS);
+                "WHITE_02", AtfReportColors.WHITE_02)) + disclosureIndicatorCss()
+                + LOADER.loadForPublication(ReportAsset.SCREENSHOT_VIEWER_CSS) + tableViewportCss();
     }
 
     public static String tableViewportCss() {

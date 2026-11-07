@@ -1,0 +1,133 @@
+package atf.reporting.browser.lifecycle;
+
+import java.nio.file.Files;
+import atf.reporting.browser.process.BrowserProcessInventory;
+import atf.reporting.browser.process.BrowserPhaseDeadline;
+import atf.reporting.browser.process.BrowserPhaseChannel;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+/** A stuck SDK call is contained by process ownership rather than an interrupt on a shared browser thread. */
+public final class BrowserProbeProcess {
+    private BrowserProbeProcess() { }
+
+    public static Path run(Path root, Class<? extends BrowserProbe> factory, String... arguments) throws Exception {
+        return run(root, factory, BrowserProbeBudget.DEFAULT, arguments);
+    }
+
+    public static Path run(Path root, Class<? extends BrowserProbe> factory, BrowserProbeBudget budget, String... arguments) throws Exception {
+        return run(root, factory, budget, List.of(), arguments);
+    }
+
+    public static Path run(Path root, Class<? extends BrowserProbe> factory, BrowserProbeBudget budget, List<Path> classpath, String... arguments) throws Exception {
+        Files.createDirectories(root);
+        Path directory = Files.createTempDirectory(root, "browser-probe-").toAbsolutePath();
+        String temporary = System.getenv("TEMP");
+        Path scratch = Files.createTempDirectory(Path.of(temporary == null ? System.getProperty("java.io.tmpdir") : temporary), "atf-bp-").toAbsolutePath();
+        Files.writeString(scratch.resolve("ATF_OWNER"), directory.toString());
+        Files.writeString(directory.resolve("scratch.path"), scratch.toString());
+        var command = new ArrayList<String>();
+        command.add(Path.of(System.getProperty("java.home"), "bin", "java").toString());
+        command.add("-Xmx256m");
+        command.add("-Dfile.encoding=UTF-8");
+        command.add("-Dstdout.encoding=UTF-8");
+        command.add("-Dstderr.encoding=UTF-8");
+        command.add("-Djava.io.tmpdir=" + scratch);
+        for (String key : System.getProperties().stringPropertyNames().stream().filter(value -> value.startsWith("atf.")).sorted().toList()) {
+            String value = key.equals("atf.test.reportDirectory") ? scratch.resolve("reports").toString() : System.getProperty(key);
+            command.add("-D" + key + "=" + value);
+        }
+        if (System.getProperty("atf.test.reportDirectory") == null) command.add("-Datf.test.reportDirectory=" + scratch.resolve("reports"));
+        for (String key : List.of("playwright.cli.dir")) {
+            String value = System.getProperty(key);
+            if (value != null) command.add("-D" + key + "=" + value);
+        }
+        String extra = classpath.stream().map(Path::toString).collect(java.util.stream.Collectors.joining(java.io.File.pathSeparator));
+        String path = System.getProperty("java.class.path") + (extra.isEmpty() ? "" : java.io.File.pathSeparator + extra);
+        command.addAll(List.of("-cp", path, BrowserProbeWorker.class.getName(),
+                directory.toString(), factory.getName()));
+        command.addAll(List.of(arguments));
+        Path argfile = directory.resolve("java.args");
+        Files.write(argfile, command.subList(1, command.size()).stream().map(BrowserProbeProcess::quote).toList());
+        var builder = new ProcessBuilder(command.get(0), "@" + argfile).redirectErrorStream(true)
+                .redirectOutput(directory.resolve("process.log").toFile());
+        for (String key : List.of("TEMP", "TMP", "TMPDIR")) builder.environment().put(key, scratch.toString());
+        Process process = builder.start();
+        var owned = new BrowserProcessInventory(process.toHandle());
+        String phase = "SETUP";
+        var deadline = new BrowserPhaseDeadline();
+        long lifetime = System.nanoTime();
+        long maximum = budget.lifetime().toNanos();
+        Throwable primary = null;
+        try (var phases = new BrowserPhaseChannel(directory)) {
+            while (process.isAlive()) {
+                owned.captureIfDue();
+                String latest = phases.current();
+                deadline.observe(latest);
+                phase = deadline.phase();
+                if (deadline.expired(budget) || System.nanoTime() - lifetime >= maximum) {
+                    Files.writeString(directory.resolve("diagnose"), phase + "\nevent=" + latest + "\nelapsedNanos=" + deadline.elapsedNanos());
+                    long diagnosticStart = System.nanoTime();
+                    while (process.isAlive() && !Files.exists(directory.resolve("threads.log"))
+                            && System.nanoTime() - diagnosticStart < Duration.ofMillis(500).toNanos()) Thread.sleep(10);
+                    throw failure(directory, process, owned, phase, "Browser probe exceeded its own " + budget.forPhase(phase) + " deadline; event=" + latest);
+                }
+                process.waitFor(10, TimeUnit.MILLISECONDS);
+            }
+            String terminal = phases.current().substring(15);
+            if (process.exitValue() != 0 || !terminal.equals("DONE"))
+                throw failure(directory, process, owned, read(directory.resolve("failure-phase")).isBlank() ? phase
+                        : read(directory.resolve("failure-phase")), "Browser probe did not complete successfully; exit=" + process.exitValue());
+            long cleanupStarted = phase.equals("CLEANUP") ? deadline.startedAt() : System.nanoTime();
+            while (owned.handles().values().stream().anyMatch(ProcessHandle::isAlive)
+                    && System.nanoTime() - cleanupStarted < budget.cleanup().toNanos()) Thread.sleep(10);
+            if (owned.handles().values().stream().anyMatch(ProcessHandle::isAlive))
+                throw failure(directory, process, owned, "CLEANUP", "Browser probe left owned resources alive");
+            Files.writeString(directory.resolve("outcome"), "PASS\npid=" + process.pid());
+            return directory;
+        } catch (Exception | Error error) {
+            primary = error;
+            if (error instanceof InterruptedException) Thread.currentThread().interrupt();
+            try {
+                if (!Files.exists(directory.resolve("outcome")))
+                    Files.writeString(directory.resolve("outcome"), "FAIL\nphase=" + phase + "\npid=" + process.pid() + "\n" + error);
+            } catch (Exception diagnostic) { error.addSuppressed(diagnostic); }
+            throw error;
+        } finally {
+            owned.captureNow();
+            try { terminate(owned.handles(), Duration.ofSeconds(5)); }
+            catch (Exception error) { if (primary == null) throw error; else primary.addSuppressed(error); }
+        }
+    }
+
+    private static BrowserProbeFailure failure(Path directory, Process process, BrowserProcessInventory owned, String phase, String reason) throws Exception {
+        owned.captureNow();
+        var inventory = new StringBuilder(reason).append("\nphase=").append(phase).append('\n');
+        owned.handles().values().forEach(handle -> inventory.append("pid=").append(handle.pid()).append(" alive=")
+                .append(handle.isAlive()).append(" ").append(handle.info()).append('\n'));
+        Files.writeString(directory.resolve("processes.log"), inventory);
+        Files.writeString(directory.resolve("outcome"), "FAIL\n" + inventory);
+        return new BrowserProbeFailure(phase, process.pid(), directory, reason,
+                read(directory.resolve("failure.log")) + read(directory.resolve("process.log")));
+    }
+
+    private static void terminate(Map<Long, ProcessHandle> owned, Duration budget) throws Exception {
+        var handles = new ArrayList<>(owned.values());
+        handles.forEach(handle -> { if (handle.isAlive()) handle.destroyForcibly(); });
+        long started = System.nanoTime();
+        boolean interrupted = Thread.interrupted();
+        try {
+            while (handles.stream().anyMatch(ProcessHandle::isAlive) && System.nanoTime() - started < budget.toNanos()) {
+                try { Thread.sleep(10); } catch (InterruptedException error) { interrupted = true; }
+            }
+        } finally { if (interrupted) Thread.currentThread().interrupt(); }
+        if (handles.stream().anyMatch(ProcessHandle::isAlive)) throw new IllegalStateException("Owned browser probe resources did not terminate: " + owned.keySet());
+    }
+
+    private static String read(Path file) throws Exception { return Files.exists(file) ? new String(Files.readAllBytes(file), java.nio.charset.StandardCharsets.UTF_8) : ""; }
+    private static String quote(String value) { return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""; }
+}

@@ -1,5 +1,7 @@
 package atf.ui.tests.extent.support.inspection.preview;
 
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.configuration.ReportingSettings;
 import atf.reporting.contract.*;
 import atf.reporting.contract.evidence.ReportEvidenceOwner;
@@ -33,37 +35,44 @@ public final class LegacyPreviewBudgetProbe {
         Path report = publish(fallback, limit);
         String html = Files.readString(report);
         assertFalse(html.contains(SECRET), "full raw HTML must not retain a private prefix or hidden raw value");
-        try (var playwright = Playwright.create();
-             var browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
-             var page = browser.newPage()) {
-            var errors = new ArrayList<String>();
-            page.onPageError(errors::add);
-            page.navigate(report.toUri() + (fallback ? "" : "#test-view"));
-            openTests(page, fallback);
-            assertTableValues(page, limit);
-            page.setViewportSize(392, 900);
-            assertTableValues(page, limit);
-            if (fallback) {
-                PREVIEWS.fallbackFailsTab(page).click();
-                var causes = PREVIEWS.fallbackCauses(page).allTextContents();
-                assertFalse(causes.isEmpty());
-                causes.forEach(cause -> assertTrue(cause.length() <= limit, () -> "fallback Fails value length=" + cause.length()));
-                PREVIEWS.fallbackFailureLinks(page).first().click();
-                LOCATORS.fallbackTestsTab(page).click();
-            } else {
-                PREVIEWS.failsTab(page).click();
-                var items = PREVIEWS.failureItems(page);
-                assertTrue(items.count() >= 3);
-                for (int i = 0; i < items.count(); i++) {
-                    items.nth(i).click();
-                    String cause = PREVIEWS.failureCause(page).innerText();
-                    assertTrue(cause.length() <= limit, () -> "Extent Fails value length=" + cause.length() + "; " + cause);
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)));
+             var pageLease = BrowserResources.open(() -> BrowserResources.newPage(browserLease.value()))) {
+            try {
+                var page = pageLease.value();
+                var errors = new ArrayList<String>();
+                page.onPageError(errors::add);
+                page.navigate(report.toUri() + (fallback ? "" : "#test-view"));
+                openTests(page, fallback);
+                assertTableValues(page, limit);
+                page.setViewportSize(392, 900);
+                assertTableValues(page, limit);
+                if (fallback) {
+                    PREVIEWS.fallbackFailsTab(page).click();
+                    var causes = PREVIEWS.fallbackCauses(page).allTextContents();
+                    assertFalse(causes.isEmpty());
+                    causes.forEach(cause -> assertTrue(cause.length() <= limit, () -> "fallback Fails value length=" + cause.length()));
+                    PREVIEWS.fallbackFailureLinks(page).first().click();
+                    LOCATORS.fallbackTestsTab(page).click();
+                } else {
+                    PREVIEWS.failsTab(page).click();
+                    var items = PREVIEWS.failureItems(page);
+                    assertTrue(items.count() >= 3);
+                    for (int i = 0; i < items.count(); i++) {
+                        items.nth(i).click();
+                        String cause = PREVIEWS.failureCause(page).innerText();
+                        assertTrue(cause.length() <= limit, () -> "Extent Fails value length=" + cause.length() + "; " + cause);
+                    }
+                    PREVIEWS.openFailureInTests(page).click();
                 }
-                PREVIEWS.openFailureInTests(page).click();
+                openTests(page, fallback);
+                assertTableValues(page, limit);
+                assertTrue(errors.isEmpty(), errors::toString);
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            openTests(page, fallback);
-            assertTableValues(page, limit);
-            assertTrue(errors.isEmpty(), errors::toString);
         }
     }
 
@@ -122,7 +131,12 @@ public final class LegacyPreviewBudgetProbe {
                   const labels=Array.from(table.tHead.rows[0].cells,c=>c.textContent.trim().toUpperCase());
                   return Array.from(table.tBodies).flatMap(body=>Array.from(body.rows).flatMap(row=>
                     Array.from(row.cells).filter((cell,i)=>['EXPECTED','ACTUAL','OBSERVED'].includes(labels[i]))
-                      .map(cell=>({value:cell.textContent,name:row.cells[0].textContent,result:row.cells[row.cells.length-1].textContent}))));
+                      .map(cell=>{
+                        const disclosure=cell.querySelector(':scope > details.atf-ui-value');
+                        const summary=disclosure?.querySelector(':scope > summary');
+                        if(disclosure && !summary) throw new Error('UI value disclosure has no preview');
+                        return {value:summary?summary.textContent:cell.textContent,name:row.cells[0].textContent,result:row.cells[row.cells.length-1].textContent};
+                      })));
                 })
                 """);
         assertTrue(values.size() >= 12, () -> "fixture coverage=" + values.size());

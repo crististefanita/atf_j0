@@ -4236,3 +4236,76 @@ testChanges:
 Exemplele sunt extrase din README-uri și verificate pe JAR-urile fizice. Schimbarea păstrează perechile publicate și oracolele existente.
 
 </details>
+
+<details>
+<summary><strong>Control tehnic — REPORT-UNIT-BASELINE-149-CONTROL</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-UNIT-BASELINE-149-CONTROL
+    status: VERIFIED
+    base: 5e89e77064a1c57e340c101847f89998395f8197
+    expires: 2026-11-25
+    reason: Cerinta explicita Reporting-149. Pastreaza toate cele opt metode originale si suita unitara canonica; inlocuieste numai oracole dependente de textul scriptului cu verificari structurale motivate si comportament browser independent, cu mutanti negativi. Fara praguri marite, retry sau eliminarea testelor.
+    proof: mvn -pl atf-reporting-tests -am "-Dtest=AtfReportingUnitSuite,UnitBaselineBehaviorComponentTest,ColdStartReadinessComponentTest,TableViewportBrowserComponentTest,ScreenshotViewerBrowserComponentTest,PublishedFailureNavigationComponentTest" "-Datf.governance.testChanges.baseRef=5e89e77064a1c57e340c101847f89998395f8197" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/pom.xml
+      - atf-reporting-tests/src/test/java/atf/reporting/asset/ReportAssetContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/html/HtmlReportNavigationScriptTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/extent/session/ExtentReportFailureProjectionContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/runtime/section/ExtentReportRuntimeNavigationComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/ExtentReportUiScreenshotContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/navigation/NavigationScriptContract.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/screenshot/ScreenshotLinkContract.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/regression/UnitBaselineReportFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/regression/UnitBaselineBehaviorComponentTest.java
+```
+
+</details>
+
+
+<details>
+<summary><strong>Control tehnic — REPORT-149-LIVE-BASE-RECONCILIATION</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-149-LIVE-BASE-RECONCILIATION
+    status: VERIFIED
+    base: 2f33813701b47e362b8091c6aca7c1c2b602727d
+    expires: 2026-11-25
+    reason: Commitul live a integrat Core si Kit fara sa schimbe input-urile Reporting verificate. Control nou exclusiv pentru delta Reporting-149 ramasa; bazele si dovezile istorice nu sunt rebazate.
+    proof: mvn -pl atf-reporting-tests -am "-Dtest=AtfReportingUnitSuite,UnitBaselineBehaviorComponentTest,ColdStartReadinessComponentTest,TableViewportBrowserComponentTest,ScreenshotViewerBrowserComponentTest,PublishedFailureNavigationComponentTest" "-Datf.governance.testChanges.baseRef=2f33813701b47e362b8091c6aca7c1c2b602727d" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/asset/ReportAssetContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/html/HtmlReportNavigationScriptTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/extent/session/ExtentReportFailureProjectionContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/runtime/section/ExtentReportRuntimeNavigationComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/ui/ExtentReportUiScreenshotContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/navigation/NavigationScriptContract.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/screenshot/ScreenshotLinkContract.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/regression/UnitBaselineReportFixture.java
+```
+
+</details>
+
+Profilul Maven și path-urile transferate sunt revizuite prin controlul REPORT-BROWSER-LIFECYCLE-154-CONTROL;
+controalele istorice își păstrează bazele reale.
+
+<details>
+<summary><strong>Control tehnic — REPORT-TEST-SETUP-153-CONTROL</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-TEST-SETUP-153-CONTROL
+    status: VERIFIED
+    base: 2f33813701b47e362b8091c6aca7c1c2b602727d
+    expires: 2026-11-25
+    reason: Cerinta explicita 153. Izoleaza setup-ul si cleanup-ul browserului intr-un proces detinut exclusiv, fara schimbarea pragurilor existente ori a oracolelor matricei. Adauga fabrici necooperative si diagnostic al cauzei originale, permanent pe sursa si JAR.
+    proof: mvn -pl atf-reporting-tests -Preporting-release test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/lifecycle/BrowserProbe.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/lifecycle/BrowserProbeFailure.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/inspection/profile/ArtifactProfileBrowserProbe.java
+```
+
+</details>

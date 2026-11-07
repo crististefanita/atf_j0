@@ -1,11 +1,14 @@
 package atf.ui.tests.extent.component.inspection;
 
+import atf.reporting.browser.junit.ReportBrowserTest;
+
 import atf.testkit.AtfComponentTest;
 import atf.ui.tests.extent.support.inspection.disclosure.ExtentReportDisclosureProbe;
 import org.junit.jupiter.api.Test;
 
 /** Browser component intents; report fixtures and browser mechanics belong to support. */
 @AtfComponentTest
+@ReportBrowserTest
 class ExtentReportDisclosureBrowserComponentTest {
     @Test
     void duplicateScreenshotOpensItsCanonicalImageFromACollapsedScenario() {

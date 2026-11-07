@@ -1,5 +1,7 @@
 package atf.ui.tests.extent.support.inspection.disclosure;
 
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
+
 import atf.reporting.extent.session.ExtentReportSession;
 import atf.reporting.support.TestReportPaths;
 import atf.ui.tests.extent.support.locators.disclosure.ReportBulkDisclosureLocators;
@@ -22,34 +24,41 @@ public final class ReportBulkDisclosureProbe {
 
     public static void verify() {
         Path report = fixture();
-        try (Playwright playwright = Playwright.create();
-             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true))) {
-            Page page = browser.newPage();
-            var errors = new ArrayList<String>();
-            page.onPageError(errors::add);
-            page.navigate(report.toUri() + "#test-view");
-            LOCATORS.owners(page).first().click();
-            ready(page);
-            assertTree(page, false);
-            LOCATORS.expand(page).click();
-            assertTree(page, true);
-            LOCATORS.expand(page).click();
-            assertTree(page, true);
-            assertEquals(0, LOCATORS.disclosures(page).evaluateAll(
-                    "nodes => nodes.filter(node => node.open).length"),
-                    "bulk structural expansion must not override local evidence disclosure state");
-            LOCATORS.owners(page).nth(1).click();
-            ready(page);
-            assertTree(page, false);
-            LOCATORS.expand(page).press("Enter");
-            assertTree(page, true);
-            LOCATORS.collapse(page).press(" ");
-            assertTree(page, false);
-            LOCATORS.expand(page).click();
-            assertTree(page, true);
-            LOCATORS.collapse(page).click();
-            assertTree(page, false);
-            assertTrue(errors.isEmpty(), errors.toString());
+        try (var playwrightLease = BrowserResources.open(Playwright::create);
+             var browserLease = BrowserResources.open(() -> BrowserResources.launch(playwrightLease.value(), new BrowserType.LaunchOptions().setHeadless(true)))) {
+            try {
+                Browser browser = browserLease.value();
+                Page page = BrowserResources.newPage(browser);
+                var errors = new ArrayList<String>();
+                page.onPageError(errors::add);
+                page.navigate(report.toUri() + "#test-view");
+                LOCATORS.owners(page).first().click();
+                ready(page);
+                assertTree(page, false);
+                LOCATORS.expand(page).click();
+                assertTree(page, true);
+                LOCATORS.expand(page).click();
+                assertTree(page, true);
+                assertEquals(0, LOCATORS.disclosures(page).evaluateAll(
+                        "nodes => nodes.filter(node => node.open).length"),
+                        "bulk structural expansion must not override local evidence disclosure state");
+                LOCATORS.owners(page).nth(1).click();
+                ready(page);
+                assertTree(page, false);
+                LOCATORS.expand(page).press("Enter");
+                assertTree(page, true);
+                LOCATORS.collapse(page).press(" ");
+                assertTree(page, false);
+                LOCATORS.expand(page).click();
+                assertTree(page, true);
+                LOCATORS.collapse(page).click();
+                assertTree(page, false);
+                assertTrue(errors.isEmpty(), errors.toString());
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 

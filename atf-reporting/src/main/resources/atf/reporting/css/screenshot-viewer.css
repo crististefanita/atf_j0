@@ -17,7 +17,7 @@
   z-index: 2147483647 !important;
   font-family: inherit !important;
 }
-.atf-screenshot-viewer::backdrop { background: rgba(0, 0, 0, .82); }
+.atf-screenshot-viewer::backdrop { background: #000000d1; }
 .atf-screenshot-viewer > header {
   display: flex;
   align-items: center;

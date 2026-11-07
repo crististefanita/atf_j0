@@ -1,4 +1,5 @@
 package atf.ui.tests.extent.support.inspection.reconciliation;
+import atf.ui.tests.extent.support.lifecycle.BrowserResources;
 
 import atf.core.http.request.HttpMethod;
 import atf.reporting.api.ReportAttemptRecord;
@@ -51,27 +52,33 @@ public final class ApiReportRenderedEvidenceProbe {
                 missingRequestQuery);
         var policy = UiConfiguration.defaults(report.getParent()).withReportDirectory(report.getParent());
         try (var context = ReportAuditContext.open(policy, report, AUDIT)) {
-            var audit = audit(context, policy);
-            var flow = new ApiReportUiFlow(audit, LOCATORS);
-            var page = audit.openTab(ReportUiContract.Tab.TESTS.hash());
-            var owner = flow.openOwner(page, OWNER);
-            assertEquals(1, flow.expandOwnerRequests(owner));
-            var request = LOCATORS.requests(owner.detail()).first();
-            assertEquals(acceptedUrl(), LOCATORS.responseUrl(request), "response URL remains independently observable");
-            assertEquals(List.of(String.valueOf(acceptedInput().actualStatus())),
-                    ApiReportEvidenceField.RESPONSE_STATUS.valuesIn(LOCATORS.executionFields(request)));
-            var validator = new ApiReportContractValidation(LOCATORS,
-                    new MockReportContractAuditor(configuration(acceptedPostRoute())));
-            var result = validator.inspect(owner);
-            assertEquals(1, result.requestCount());
-            if (missingRequestQuery) {
-                assertFalse(result.violations().isEmpty());
-                assertTrue(result.violations().stream().anyMatch(value -> value.contains("expected query mode")),
-                        () -> result.violations().toString());
-            } else {
-                assertTrue(result.violations().isEmpty(), () -> result.violations().toString());
+            try {
+                var audit = audit(context, policy);
+                var flow = new ApiReportUiFlow(audit, LOCATORS);
+                var page = audit.openTab(ReportUiContract.Tab.TESTS.hash());
+                var owner = flow.openOwner(page, OWNER);
+                assertEquals(1, flow.expandOwnerRequests(owner));
+                var request = LOCATORS.requests(owner.detail()).first();
+                assertEquals(acceptedUrl(), LOCATORS.responseUrl(request), "response URL remains independently observable");
+                assertEquals(List.of(String.valueOf(acceptedInput().actualStatus())),
+                        ApiReportEvidenceField.RESPONSE_STATUS.valuesIn(LOCATORS.executionFields(request)));
+                var validator = new ApiReportContractValidation(LOCATORS,
+                        new MockReportContractAuditor(configuration(acceptedPostRoute())));
+                var result = validator.inspect(owner);
+                assertEquals(1, result.requestCount());
+                if (missingRequestQuery) {
+                    assertFalse(result.violations().isEmpty());
+                    assertTrue(result.violations().stream().anyMatch(value -> value.contains("expected query mode")),
+                            () -> result.violations().toString());
+                } else {
+                    assertTrue(result.violations().isEmpty(), () -> result.violations().toString());
+                }
+                assertTrue(context.browserDiagnostics().valid(), () -> context.browserDiagnostics().violations().toString());
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            assertTrue(context.browserDiagnostics().valid(), () -> context.browserDiagnostics().violations().toString());
         }
     }
 
@@ -79,25 +86,31 @@ public final class ApiReportRenderedEvidenceProbe {
         Path report = publish("rendered-api-missing-response-disclosure.html", false);
         var policy = UiConfiguration.defaults(report.getParent()).withReportDirectory(report.getParent());
         try (var context = ReportAuditContext.open(policy, report, AUDIT)) {
-            var audit = audit(context, policy);
-            var owner = new ApiReportUiFlow(audit, LOCATORS)
-                    .openOwner(audit.openTab(ReportUiContract.Tab.TESTS.hash()), OWNER);
-            assertEquals(1, LOCATORS.requests(owner.detail()).count());
-            var request = LOCATORS.requests(owner.detail()).first();
-            var responseDisclosure = LOCATORS.responseEvidenceDisclosure(request);
-            assertEquals(1, responseDisclosure.count(), "the baseline fixture must contain response evidence");
-            LOCATORS.parentDisclosure(responseDisclosure).evaluate("details => details.remove()");
+            try {
+                var audit = audit(context, policy);
+                var owner = new ApiReportUiFlow(audit, LOCATORS)
+                        .openOwner(audit.openTab(ReportUiContract.Tab.TESTS.hash()), OWNER);
+                assertEquals(1, LOCATORS.requests(owner.detail()).count());
+                var request = LOCATORS.requests(owner.detail()).first();
+                var responseDisclosure = LOCATORS.responseEvidenceDisclosure(request);
+                assertEquals(1, responseDisclosure.count(), "the baseline fixture must contain response evidence");
+                LOCATORS.parentDisclosure(responseDisclosure).evaluate("details => details.remove()");
 
-            var validator = new ApiReportContractValidation(LOCATORS,
-                    new MockReportContractAuditor(configuration(acceptedPostRoute())));
-            var result = validator.inspect(owner);
-            assertFalse(result.compliant(), "missing response evidence must not pass as a valid exchange");
-            assertTrue(result.violations().stream().anyMatch(value -> value.contains("response JSON body count")),
-                    () -> result.violations().toString());
-            assertEquals(0, LOCATORS.responseDetails(request).count(),
-                    "the negative fixture removes the rendered response disclosure itself");
-            assertTrue(context.browserDiagnostics().valid(),
-                    () -> context.browserDiagnostics().violations().toString());
+                var validator = new ApiReportContractValidation(LOCATORS,
+                        new MockReportContractAuditor(configuration(acceptedPostRoute())));
+                var result = validator.inspect(owner);
+                assertFalse(result.compliant(), "missing response evidence must not pass as a valid exchange");
+                assertTrue(result.violations().stream().anyMatch(value -> value.contains("response JSON body count")),
+                        () -> result.violations().toString());
+                assertEquals(0, LOCATORS.responseDetails(request).count(),
+                        "the negative fixture removes the rendered response disclosure itself");
+                assertTrue(context.browserDiagnostics().valid(),
+                        () -> context.browserDiagnostics().violations().toString());
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 
@@ -105,22 +118,28 @@ public final class ApiReportRenderedEvidenceProbe {
         Path report = publish("rendered-api-missing-request-disclosure.html", false);
         var policy = UiConfiguration.defaults(report.getParent()).withReportDirectory(report.getParent());
         try (var context = ReportAuditContext.open(policy, report, AUDIT)) {
-            var audit = audit(context, policy);
-            var owner = new ApiReportUiFlow(audit, LOCATORS)
-                    .openOwner(audit.openTab(ReportUiContract.Tab.TESTS.hash()), OWNER);
-            var request = LOCATORS.requests(owner.detail()).first();
-            var disclosure = LOCATORS.requestEvidenceDisclosure(request);
-            assertEquals(1, disclosure.count(), "the baseline fixture must contain request evidence");
-            LOCATORS.parentDisclosure(disclosure).evaluate("details => details.remove()");
+            try {
+                var audit = audit(context, policy);
+                var owner = new ApiReportUiFlow(audit, LOCATORS)
+                        .openOwner(audit.openTab(ReportUiContract.Tab.TESTS.hash()), OWNER);
+                var request = LOCATORS.requests(owner.detail()).first();
+                var disclosure = LOCATORS.requestEvidenceDisclosure(request);
+                assertEquals(1, disclosure.count(), "the baseline fixture must contain request evidence");
+                LOCATORS.parentDisclosure(disclosure).evaluate("details => details.remove()");
 
-            var result = validator().inspect(owner);
-            assertFalse(result.compliant(), "missing request evidence must not pass as a valid exchange");
-            assertTrue(result.violations().stream().anyMatch(value -> value.contains("request JSON body count")),
-                    () -> result.violations().toString());
-            assertEquals(0, LOCATORS.requestDetails(request).count(),
-                    "the negative fixture removes the rendered request disclosure itself");
-            assertTrue(context.browserDiagnostics().valid(),
-                    () -> context.browserDiagnostics().violations().toString());
+                var result = validator().inspect(owner);
+                assertFalse(result.compliant(), "missing request evidence must not pass as a valid exchange");
+                assertTrue(result.violations().stream().anyMatch(value -> value.contains("request JSON body count")),
+                        () -> result.violations().toString());
+                assertEquals(0, LOCATORS.requestDetails(request).count(),
+                        "the negative fixture removes the rendered request disclosure itself");
+                assertTrue(context.browserDiagnostics().valid(),
+                        () -> context.browserDiagnostics().violations().toString());
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 
@@ -128,25 +147,31 @@ public final class ApiReportRenderedEvidenceProbe {
         Path report = publish("rendered-api-misowned-response-disclosure.html", false);
         var policy = UiConfiguration.defaults(report.getParent()).withReportDirectory(report.getParent());
         try (var context = ReportAuditContext.open(policy, report, AUDIT)) {
-            var audit = audit(context, policy);
-            var owner = new ApiReportUiFlow(audit, LOCATORS)
-                    .openOwner(audit.openTab(ReportUiContract.Tab.TESTS.hash()), OWNER);
-            var request = LOCATORS.requests(owner.detail()).first();
-            var responseDisclosure = LOCATORS.responseEvidenceDisclosure(request);
-            assertEquals(1, responseDisclosure.count(), "the baseline fixture must contain response evidence");
+            try {
+                var audit = audit(context, policy);
+                var owner = new ApiReportUiFlow(audit, LOCATORS)
+                        .openOwner(audit.openTab(ReportUiContract.Tab.TESTS.hash()), OWNER);
+                var request = LOCATORS.requests(owner.detail()).first();
+                var responseDisclosure = LOCATORS.responseEvidenceDisclosure(request);
+                assertEquals(1, responseDisclosure.count(), "the baseline fixture must contain response evidence");
 
-            LOCATORS.moveResponseEvidenceToOwner(owner.detail());
+                LOCATORS.moveResponseEvidenceToOwner(owner.detail());
 
-            assertEquals(0, LOCATORS.responseDetails(request).count(),
-                    "response evidence moved to the scenario owner must no longer belong to the exchange");
-            assertEquals(1, LOCATORS.responseEvidenceDisclosure(owner.detail()).count(),
-                    "the malformed response evidence remains visible, but under the wrong owner");
-            var result = validator().inspect(owner);
-            assertFalse(result.compliant(), "evidence under the scenario cannot satisfy the request contract");
-            assertTrue(result.violations().stream().anyMatch(value -> value.contains("response JSON body count")),
-                    () -> result.violations().toString());
-            assertTrue(context.browserDiagnostics().valid(),
-                    () -> context.browserDiagnostics().violations().toString());
+                assertEquals(0, LOCATORS.responseDetails(request).count(),
+                        "response evidence moved to the scenario owner must no longer belong to the exchange");
+                assertEquals(1, LOCATORS.responseEvidenceDisclosure(owner.detail()).count(),
+                        "the malformed response evidence remains visible, but under the wrong owner");
+                var result = validator().inspect(owner);
+                assertFalse(result.compliant(), "evidence under the scenario cannot satisfy the request contract");
+                assertTrue(result.violations().stream().anyMatch(value -> value.contains("response JSON body count")),
+                        () -> result.violations().toString());
+                assertTrue(context.browserDiagnostics().valid(),
+                        () -> context.browserDiagnostics().violations().toString());
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 
@@ -154,24 +179,30 @@ public final class ApiReportRenderedEvidenceProbe {
         Path report = publish("rendered-api-misowned-request-disclosure.html", false);
         var policy = UiConfiguration.defaults(report.getParent()).withReportDirectory(report.getParent());
         try (var context = ReportAuditContext.open(policy, report, AUDIT)) {
-            var audit = audit(context, policy);
-            var owner = new ApiReportUiFlow(audit, LOCATORS)
-                    .openOwner(audit.openTab(ReportUiContract.Tab.TESTS.hash()), OWNER);
-            var request = LOCATORS.requests(owner.detail()).first();
-            assertEquals(1, LOCATORS.requestEvidenceDisclosure(request).count(),
-                    "the baseline fixture must contain request evidence");
-            LOCATORS.moveRequestEvidenceToOwner(owner.detail());
+            try {
+                var audit = audit(context, policy);
+                var owner = new ApiReportUiFlow(audit, LOCATORS)
+                        .openOwner(audit.openTab(ReportUiContract.Tab.TESTS.hash()), OWNER);
+                var request = LOCATORS.requests(owner.detail()).first();
+                assertEquals(1, LOCATORS.requestEvidenceDisclosure(request).count(),
+                        "the baseline fixture must contain request evidence");
+                LOCATORS.moveRequestEvidenceToOwner(owner.detail());
 
-            assertEquals(0, LOCATORS.requestDetails(request).count(),
-                    "request evidence moved to the scenario owner cannot belong to the exchange");
-            assertEquals(1, LOCATORS.requestEvidenceDisclosure(owner.detail()).count(),
-                    "the malformed request evidence remains visible under the wrong owner");
-            var result = validator().inspect(owner);
-            assertFalse(result.compliant(), "evidence under the scenario cannot satisfy the request contract");
-            assertTrue(result.violations().stream().anyMatch(value -> value.contains("request JSON body count")),
-                    () -> result.violations().toString());
-            assertTrue(context.browserDiagnostics().valid(),
-                    () -> context.browserDiagnostics().violations().toString());
+                assertEquals(0, LOCATORS.requestDetails(request).count(),
+                        "request evidence moved to the scenario owner cannot belong to the exchange");
+                assertEquals(1, LOCATORS.requestEvidenceDisclosure(owner.detail()).count(),
+                        "the malformed request evidence remains visible under the wrong owner");
+                var result = validator().inspect(owner);
+                assertFalse(result.compliant(), "evidence under the scenario cannot satisfy the request contract");
+                assertTrue(result.violations().stream().anyMatch(value -> value.contains("request JSON body count")),
+                        () -> result.violations().toString());
+                assertTrue(context.browserDiagnostics().valid(),
+                        () -> context.browserDiagnostics().violations().toString());
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 
@@ -179,25 +210,31 @@ public final class ApiReportRenderedEvidenceProbe {
         Path report = publishWithSiblingOwner("rendered-api-sibling-owners.html");
         var policy = UiConfiguration.defaults(report.getParent()).withReportDirectory(report.getParent());
         try (var context = ReportAuditContext.open(policy, report, AUDIT)) {
-            var audit = audit(context, policy);
-            var flow = new ApiReportUiFlow(audit, LOCATORS);
-            var page = flow.openTests();
-            assertEquals(List.of(OWNER, SIBLING_OWNER), flow.ownerNames(page),
-                    "both API owners must be independently selectable in one report");
+            try {
+                var audit = audit(context, policy);
+                var flow = new ApiReportUiFlow(audit, LOCATORS);
+                var page = flow.openTests();
+                assertEquals(List.of(OWNER, SIBLING_OWNER), flow.ownerNames(page),
+                        "both API owners must be independently selectable in one report");
 
-            for (String ownerName : List.of(OWNER, SIBLING_OWNER)) {
-                var owner = flow.openOwner(page, ownerName);
-                assertEquals(1, LOCATORS.requests(owner.detail()).count(),
-                        () -> ownerName + " must expose only its own exchange");
-                assertTrue(LOCATORS.requestTitle(LOCATORS.requests(owner.detail()).first()).contains(ownerName),
-                        "the selected detail panel must not retain a sibling owner's request");
-                var result = validator().inspect(owner);
-                assertEquals(1, result.requestCount(),
-                        () -> ownerName + " audit must not include sibling exchanges");
-                assertTrue(result.violations().isEmpty(), () -> result.violations().toString());
+                for (String ownerName : List.of(OWNER, SIBLING_OWNER)) {
+                    var owner = flow.openOwner(page, ownerName);
+                    assertEquals(1, LOCATORS.requests(owner.detail()).count(),
+                            () -> ownerName + " must expose only its own exchange");
+                    assertTrue(LOCATORS.requestTitle(LOCATORS.requests(owner.detail()).first()).contains(ownerName),
+                            "the selected detail panel must not retain a sibling owner's request");
+                    var result = validator().inspect(owner);
+                    assertEquals(1, result.requestCount(),
+                            () -> ownerName + " audit must not include sibling exchanges");
+                    assertTrue(result.violations().isEmpty(), () -> result.violations().toString());
+                }
+                assertTrue(context.browserDiagnostics().valid(),
+                        () -> context.browserDiagnostics().violations().toString());
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            assertTrue(context.browserDiagnostics().valid(),
-                    () -> context.browserDiagnostics().violations().toString());
         }
     }
 
@@ -210,49 +247,55 @@ public final class ApiReportRenderedEvidenceProbe {
         Path report = publish("rendered-api-phase-navigation.html", false);
         var policy = UiConfiguration.defaults(report.getParent()).withReportDirectory(report.getParent());
         try (var context = ReportAuditContext.open(policy, report, AUDIT)) {
-            var audit = audit(context, policy);
-            var extractor = new EvidenceSectionExtractor(audit, LOCATORS);
-            var page = audit.openTab(ReportUiContract.Tab.TESTS.hash());
-            for (int repeat = 0; repeat < 2; repeat++) {
-                var evidence = extractor.extractFirstRequestWithEvidence(page);
-                assertTrue(evidence.tablesVisible(), () -> "request/response/execution evidence: " + evidence);
-                assertEquals(1, evidence.requestTableCount());
-                assertEquals(1, evidence.responseTableCount());
-                assertEquals(1, evidence.executionTableCount());
+            try {
+                var audit = audit(context, policy);
+                var extractor = new EvidenceSectionExtractor(audit, LOCATORS);
+                var page = audit.openTab(ReportUiContract.Tab.TESTS.hash());
+                for (int repeat = 0; repeat < 2; repeat++) {
+                    var evidence = extractor.extractFirstRequestWithEvidence(page);
+                    assertTrue(evidence.tablesVisible(), () -> "request/response/execution evidence: " + evidence);
+                    assertEquals(1, evidence.requestTableCount());
+                    assertEquals(1, evidence.responseTableCount());
+                    assertEquals(1, evidence.executionTableCount());
+                }
+                var inspectedActions = audit.actions().snapshot();
+                assertTrue(inspectedActions.size() > 5, "the evidence trace includes phase and request disclosure actions");
+                assertSame(page, audit.evidencePage(ReportUiContract.Tab.TESTS));
+                assertEquals(inspectedActions, audit.actions().snapshot(), "capture must not reset the action trace");
+                var inspectedRequest = LOCATORS.requests(LOCATORS.visibleTestDetail(page)).first();
+                assertTrue(LOCATORS.visibleResponseTable(inspectedRequest).isVisible(),
+                        "capture must retain the expanded evidence rather than a freshly collapsed page");
+                audit.actions().click(LOCATORS.requestNodeToggleAction(inspectedRequest),
+                        "collapse API exchange and hide its evidence tables");
+                audit.actions().waitForAttribute(page, LOCATORS.nodeCardAction(inspectedRequest),
+                        "data-atf-node-open", "false", "API exchange is collapsed");
+                assertEquals(0, LOCATORS.visibleRequestTable(inspectedRequest).count());
+                assertEquals(0, LOCATORS.visibleResponseTable(inspectedRequest).count());
+                assertEquals(0, LOCATORS.visibleExecutionTable(inspectedRequest).count());
+                audit.actions().click(LOCATORS.requestNodeToggleAction(inspectedRequest),
+                        "reopen API exchange and restore its evidence tables");
+                audit.actions().waitForAttribute(page, LOCATORS.nodeCardAction(inspectedRequest),
+                        "data-atf-node-open", "true", "API exchange is reopened");
+                assertEquals(1, LOCATORS.visibleRequestTable(inspectedRequest).count(),
+                        "request evidence must return visibly after reopening the exchange");
+                assertEquals(1, LOCATORS.visibleResponseTable(inspectedRequest).count(),
+                        "response evidence must return visibly after reopening the exchange");
+                assertEquals(1, LOCATORS.visibleExecutionTable(inspectedRequest).count(),
+                        "execution evidence must return visibly after reopening the exchange");
+                audit.actions().click(LOCATORS.navTabAction(page, ReportUiContract.Tab.OVERVIEW), "leave Tests");
+                page = audit.evidencePage(ReportUiContract.Tab.TESTS);
+                assertTrue(audit.actions().snapshot().size() > inspectedActions.size());
+                assertEquals(inspectedActions, audit.actions().snapshot().subList(0, inspectedActions.size()),
+                        "cross-tab evidence navigation must retain the preceding audit actions");
+                assertTrue(extractor.extractFirstRequestWithEvidence(page).tablesVisible());
+                page = audit.openTab(ReportUiContract.Tab.TESTS.hash());
+                assertTrue(extractor.extractFirstRequestWithEvidence(page).tablesVisible(), "fresh document navigation rebinds the phase");
+                assertTrue(context.browserDiagnostics().valid(), () -> context.browserDiagnostics().violations().toString());
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
             }
-            var inspectedActions = audit.actions().snapshot();
-            assertTrue(inspectedActions.size() > 5, "the evidence trace includes phase and request disclosure actions");
-            assertSame(page, audit.evidencePage(ReportUiContract.Tab.TESTS));
-            assertEquals(inspectedActions, audit.actions().snapshot(), "capture must not reset the action trace");
-            var inspectedRequest = LOCATORS.requests(LOCATORS.visibleTestDetail(page)).first();
-            assertTrue(LOCATORS.visibleResponseTable(inspectedRequest).isVisible(),
-                    "capture must retain the expanded evidence rather than a freshly collapsed page");
-            audit.actions().click(LOCATORS.requestNodeToggleAction(inspectedRequest),
-                    "collapse API exchange and hide its evidence tables");
-            audit.actions().waitForAttribute(page, LOCATORS.nodeCardAction(inspectedRequest),
-                    "data-atf-node-open", "false", "API exchange is collapsed");
-            assertEquals(0, LOCATORS.visibleRequestTable(inspectedRequest).count());
-            assertEquals(0, LOCATORS.visibleResponseTable(inspectedRequest).count());
-            assertEquals(0, LOCATORS.visibleExecutionTable(inspectedRequest).count());
-            audit.actions().click(LOCATORS.requestNodeToggleAction(inspectedRequest),
-                    "reopen API exchange and restore its evidence tables");
-            audit.actions().waitForAttribute(page, LOCATORS.nodeCardAction(inspectedRequest),
-                    "data-atf-node-open", "true", "API exchange is reopened");
-            assertEquals(1, LOCATORS.visibleRequestTable(inspectedRequest).count(),
-                    "request evidence must return visibly after reopening the exchange");
-            assertEquals(1, LOCATORS.visibleResponseTable(inspectedRequest).count(),
-                    "response evidence must return visibly after reopening the exchange");
-            assertEquals(1, LOCATORS.visibleExecutionTable(inspectedRequest).count(),
-                    "execution evidence must return visibly after reopening the exchange");
-            audit.actions().click(LOCATORS.navTabAction(page, ReportUiContract.Tab.OVERVIEW), "leave Tests");
-            page = audit.evidencePage(ReportUiContract.Tab.TESTS);
-            assertTrue(audit.actions().snapshot().size() > inspectedActions.size());
-            assertEquals(inspectedActions, audit.actions().snapshot().subList(0, inspectedActions.size()),
-                    "cross-tab evidence navigation must retain the preceding audit actions");
-            assertTrue(extractor.extractFirstRequestWithEvidence(page).tablesVisible());
-            page = audit.openTab(ReportUiContract.Tab.TESTS.hash());
-            assertTrue(extractor.extractFirstRequestWithEvidence(page).tablesVisible(), "fresh document navigation rebinds the phase");
-            assertTrue(context.browserDiagnostics().valid(), () -> context.browserDiagnostics().violations().toString());
         }
     }
 
@@ -260,12 +303,18 @@ public final class ApiReportRenderedEvidenceProbe {
         Path report = publish("rendered-api-missing-test-body.html", false, ReportUiContract.Phase.SETUP);
         var policy = UiConfiguration.defaults(report.getParent()).withReportDirectory(report.getParent());
         try (var context = ReportAuditContext.open(policy, report, AUDIT)) {
-            var audit = audit(context, policy);
-            var page = audit.openTab(ReportUiContract.Tab.TESTS.hash());
-            var evidence = new EvidenceSectionExtractor(audit, LOCATORS).extractFirstRequestWithEvidence(page);
-            assertFalse(evidence.tablesVisible());
-            assertEquals(0, evidence.requestTableCount());
-            assertEquals(List.of("TEST BODY is missing"), evidence.jsonEvidence().violations());
+            try {
+                var audit = audit(context, policy);
+                var page = audit.openTab(ReportUiContract.Tab.TESTS.hash());
+                var evidence = new EvidenceSectionExtractor(audit, LOCATORS).extractFirstRequestWithEvidence(page);
+                assertFalse(evidence.tablesVisible());
+                assertEquals(0, evidence.requestTableCount());
+                assertEquals(List.of("TEST BODY is missing"), evidence.jsonEvidence().violations());
+        
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
         }
     }
 

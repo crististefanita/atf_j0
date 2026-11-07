@@ -1,4 +1,6 @@
 package atf.ui.tests.extent.e2e.failure;
+
+import atf.reporting.browser.junit.ReportBrowserTest;
 import atf.testkit.AtfE2eTest;
 import atf.testkit.channel.AtfTestChannel;
 import atf.testkit.channel.TestChannel;
@@ -49,6 +51,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @AtfE2eTest
 @AtfTestChannel(TestChannel.UI)
 @ProjectRelativeUiReportDirectory("artifacts/reports/ui/e2e")
+@ReportBrowserTest
 class FailureEvidenceFlowTest {
     private UiConfiguration configuration;
     private Path inputReport;
