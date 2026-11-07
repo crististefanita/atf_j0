@@ -125,7 +125,14 @@ public final class FailureNavigationEdgeProbe {
     }
 
     private static boolean inViewport(Locator row) {
-        return (Boolean) row.evaluate("row=>{const r=row.getBoundingClientRect();return r.height>innerHeight?r.top<innerHeight&&r.bottom>0:r.top>=0&&r.bottom<=innerHeight}");
+        return (Boolean) row.evaluateAll("""
+                rows => {
+                  if (rows.length !== 1) return false;
+                  const bounds = rows[0].getBoundingClientRect();
+                  return bounds.height > innerHeight ? bounds.top < innerHeight && bounds.bottom > 0
+                      : bounds.height > 0 && bounds.top >= 0 && bounds.bottom <= innerHeight;
+                }
+                """);
     }
 
     private static void waitForFallbackTarget(Page page, Locator row, Path report, Owner owner,
@@ -133,9 +140,9 @@ public final class FailureNavigationEdgeProbe {
         try {
             page.waitForCondition(() -> row.isVisible() && inViewport(row));
         } catch (PlaywrightException failure) {
-            String geometry = row.evaluate("row=>{const r=row.getBoundingClientRect();return JSON.stringify({top:r.top,bottom:r.bottom,"
+            String geometry = row.evaluateAll("rows=>rows.map(row=>{const r=row.getBoundingClientRect();return JSON.stringify({top:r.top,bottom:r.bottom,"
                     + "height:r.height,width:r.width,viewport:[innerWidth,innerHeight],scroll:[scrollX,scrollY],"
-                    + "ancestors:Array.from(document.querySelectorAll('details')).filter(d=>d.contains(row)).map(d=>[d.className,d.open])})}").toString();
+                    + "ancestors:Array.from(document.querySelectorAll('details')).filter(d=>d.contains(row)).map(d=>[d.className,d.open])})})").toString();
             page.screenshot(new Page.ScreenshotOptions().setPath(Path.of(report + "-viewport-timeout.png")));
             throw new AssertionError("Fallback target: " + owner + "/" + width + "/" + phase + "/" + operation
                     + "; report=" + report + "; geometry=" + geometry, failure);
@@ -149,6 +156,6 @@ public final class FailureNavigationEdgeProbe {
         assertEquals(1, LOCATORS.failedStatus(row).count());
         assertTrue(inViewport(row),
                 () -> "Navigation scrolls the exact original row into the viewport: "
-                        + row.evaluate("row=>{const r=row.getBoundingClientRect();return [r.top,r.bottom,r.height,innerHeight]}"));
+                        + row.evaluateAll("rows=>rows.map(row=>{const r=row.getBoundingClientRect();return [r.top,r.bottom,r.height,innerHeight]})"));
     }
 }

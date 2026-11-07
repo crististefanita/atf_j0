@@ -9,6 +9,7 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /** Locator boundary for request/response and UI evidence disclosures. */
@@ -217,40 +218,40 @@ final class ReportEvidenceLocators {
     }
 
     private String cellValue(Locator table, ApiReportEvidenceField field) {
-        Locator rows = table.locator("tbody tr");
-        for (int index = 0; index < rows.count(); index++) {
-            Locator row = rows.nth(index);
-            if (field.matches(row.locator("td").first().innerText())) {
-                return row.locator("td").nth(1).innerText().trim();
-            }
-        }
-        return "";
+        return fieldValue(table.locator("tbody tr"), field);
     }
 
     private Map<String, String> fieldValues(Locator table) {
         Map<String, String> values = new LinkedHashMap<>();
-        Locator rows = table.locator("tbody tr");
-        for (int index = 0; index < rows.count(); index++) {
-            Locator cells = rows.nth(index).locator("td");
-            if (cells.count() < 2) continue;
-            String field = cells.first().innerText().trim();
-            if (!field.isBlank()) values.put(field, cells.nth(1).innerText().trim());
+        for (FieldRow row : fieldRows(table.locator("tbody tr"))) {
+            if (!row.label().isBlank()) values.put(row.label(), row.value());
         }
         return Map.copyOf(values);
     }
 
     private int statusFromRows(Locator rows, ApiReportEvidenceField field) {
-        for (int index = 0; index < rows.count(); index++) {
-            Locator row = rows.nth(index);
-            if (!field.matches(row.locator("td").first().innerText())) continue;
-            try {
-                return Integer.parseInt(row.locator("td").nth(1).innerText().trim());
-            } catch (NumberFormatException ignored) {
-                return -1;
-            }
+        try {
+            return Integer.parseInt(fieldValue(rows, field));
+        } catch (NumberFormatException ignored) {
+            return -1;
         }
-        return -1;
     }
+
+    private static String fieldValue(Locator rows, ApiReportEvidenceField field) {
+        return fieldRows(rows).stream().filter(row -> field.matches(row.label()))
+                .map(FieldRow::value).findFirst().orElse("");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<FieldRow> fieldRows(Locator rows) {
+        var cells = (List<List<String>>) rows.evaluateAll("""
+                rows => rows.filter(row => row.cells.length >= 2)
+                    .map(row => [row.cells[0].innerText, row.cells[1].innerText])
+                """);
+        return cells.stream().map(pair -> new FieldRow(pair.get(0).trim(), pair.get(1).trim())).toList();
+    }
+
+    private record FieldRow(String label, String value) { }
 
     private static String nodeId(Locator header) {
         Locator node = header.locator("xpath=..")

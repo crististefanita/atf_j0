@@ -1,5 +1,12 @@
 package atf.reporting.standalone;
 
+import atf.reporting.evidence.ReportScreenshotPolicy;
+import atf.reporting.evidence.profile.ReportUiActionDetailsMode;
+import atf.reporting.ui.failure.UiFailureEvidencePublisher;
+import atf.reporting.ui.model.AtfUiActionRecord;
+import atf.reporting.ui.model.AtfUiEvidenceSource;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import atf.reporting.api.ReportRequest;
 import atf.reporting.api.ReportResponse;
 import atf.reporting.api.ReportTransportProvenance;
@@ -239,6 +246,78 @@ class ReportingStandaloneVerdictComponentTest {
     void capturedResponseKeepsCompatibilityWithoutInterpretingHttpBusinessPolicy() {
         assertEquals(PASS, new UiApiValidationEvidence.Exchange(captured(503), List.of()).status());
         assertEquals(WARNING, new UiApiValidationEvidence.Exchange(captured(-1), List.of()).status());
+    }
+
+    @Test void terminalDiagnosticAndIndependentComparisonWithTheSameLabelKeepSeparateRoles() throws Exception {
+        Path report = directory.resolve("terminal-action.html");
+        try (var session = new HtmlReportSession(report)) {
+            var scenario = session.startScenario("TerminalFixture", "Checkout", List.of("component"));
+            var phase = scenario.startPhase("TEST BODY");
+            var comparison = phase.startRequest("Business checkpoint", "", "");
+            var validation = comparison.startValidation("Independent comparison");
+            validation.assertions(List.of(new AtfAssertion("Failure cause", "confirmed", "pending", false)));
+            validation.complete(FAIL);
+            comparison.complete(FAIL);
+            publish(phase, ReportUiActionDetailsMode.INCLUDED_COLLAPSED, List.of(failedUiRow(AtfUiEvidenceSource.ACTION)));
+            phase.complete(FAIL);
+            scenario.complete(FAIL);
+        }
+        var html = Jsoup.parse(report);
+        var failures = html.select("#fails a.fail-row");
+        assertEquals(List.of("Failure cause", "UI action · Inspect #1 → #submit"), failures.select("strong").eachText());
+        assertEquals(List.of("1", "2"), failures.eachAttr("data-atf-failure-ordinal"));
+        assertEquals(2, html.select("#tests table.assertions tbody tr").size());
+        assertEquals("Info", html.select("#tests table.assertions tbody tr").last().select("td").last().text());
+    }
+
+    @Test void hiddenActionAndAnUnrecordedExceptionRetainANavigableCause() throws Exception {
+        verifySingleFailure("hidden-action", List.of(failedUiRow(AtfUiEvidenceSource.ACTION)), "Failure cause");
+        verifySingleFailure("exception-only", List.of(), "Failure cause");
+        verifySingleFailure("visible-observation", List.of(failedUiRow(AtfUiEvidenceSource.OBSERVE)), "Audit observation · Inspect #1 → #submit");
+    }
+
+    @Test void aVisibleIndependentObservationDoesNotReplaceTheHiddenTerminalAction() throws Exception {
+        var observation = new AtfUiActionRecord(2, "Inspect result", "#outcome", "confirmed", "pending",
+                9, FAIL, AtfUiEvidenceSource.OBSERVE);
+        var html = renderSummary("mixed-sources", List.of(failedUiRow(AtfUiEvidenceSource.ACTION), observation));
+        var failures = html.select("#fails a.fail-row");
+        assertEquals(List.of("Audit observation · Inspect result #2 → #outcome", "Failure cause"), failures.select("strong").eachText());
+        assertEquals(List.of("pending", "IllegalStateException; first failed evidence: Inspect #1 -> #submit; elapsed=7 ms; expected=checkout visible"),
+                failures.select("span:last-child").eachText());
+        assertEquals(List.of("1", "2"), failures.eachAttr("data-atf-failure-ordinal"));
+    }
+
+    private void verifySingleFailure(String name, List<AtfUiActionRecord> rows, String label) throws Exception {
+        var html = renderSummary(name, rows);
+        var failures = html.select("#fails a.fail-row");
+        assertEquals(List.of(label), failures.select("strong").eachText(), name);
+        assertEquals(List.of("1"), failures.eachAttr("data-atf-failure-ordinal"));
+        assertTrue(html.select("#tests .atf-ui-action-table:not(.atf-ui-observation-table)").isEmpty());
+        assertTrue(html.select("#tests table.assertions").text().contains("IllegalStateException"));
+    }
+
+    private Document renderSummary(String name, List<AtfUiActionRecord> rows) throws Exception {
+        Path report = directory.resolve(name + ".html");
+        try (var session = new HtmlReportSession(report)) {
+            var scenario = session.startScenario("TerminalFixture", name, List.of("component"));
+            var phase = scenario.startPhase("TEST BODY");
+            publish(phase, ReportUiActionDetailsMode.SUMMARY_ONLY, rows);
+            phase.complete(FAIL);
+            scenario.complete(FAIL);
+        }
+        return Jsoup.parse(report);
+    }
+
+    private static void publish(AtfReportPorts.Phase phase,
+                                ReportUiActionDetailsMode mode, List<AtfUiActionRecord> rows) {
+        new UiFailureEvidencePublisher(phase, ReportScreenshotPolicy.NONE, mode)
+                .publish("Checkout did not complete", "#submit", rows,
+                        new IllegalStateException("terminal diagnostic"), null, false);
+    }
+
+    private static AtfUiActionRecord failedUiRow(AtfUiEvidenceSource source) {
+        return new AtfUiActionRecord(1, "Inspect", "#submit", "checkout visible", "missing",
+                7, FAIL, source);
     }
 
     private static ReportExecutionEvidence terminal(String outcome) {

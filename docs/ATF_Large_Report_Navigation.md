@@ -51,15 +51,16 @@ The producer owns permanent source/JAR regressions. Consumer provenance records 
 |---|---|
 | DOMContentLoaded/load | initialize once and activate only the requested hash target; an empty hash opens Overview |
 | native Spark load | reconcile the four navigation hrefs after the vendor rewrites them; do not reactivate or restart the readiness clock |
-| readiness | publish only after successful normalization; a controlled failure remains unready until real recovery |
+| readiness | run initial structural normalization in a coalesced task even when visual frames are deferred; publish only after success |
 | page load | record the completed navigation timing independently; an unfinished load remains unknown rather than zero |
 | dynamic content | retain observers, revision invalidation and scheduled normalization for later mutations |
 | deadlines | readiness/action 10,000 ms; navigation 45,000 ms; existing API matrices retain 5,000 ms |
 
 [ColdStartReadinessComponentTest](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/navigation/ColdStartReadinessComponentTest.java)
 checks five initial destinations, startup scenario deep links, native link
-repair, repeated load and failure/recovery. An external atf.cold.input runs
-three fresh Chromium processes against the same complete artifact.
+repair and repeated load. It verifies that readiness waits for real structural
+normalization and that Tests controls work when animation frames are withheld.
+An external atf.cold.input runs three fresh Chromium processes against the same complete artifact.
 
 ## Native timeline labels
 

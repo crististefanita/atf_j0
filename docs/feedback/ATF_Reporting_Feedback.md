@@ -296,6 +296,7 @@ sau repetarea deciziei la renderer.
 | Tranziții de scope și refuz fără mutație | [Reporting](../../atf-reporting/README.md#atomicitatea-tranzițiilor-de-scope) |
 | Timing explicit, capturi și publicare | [Reporting](../../atf-reporting/README.md#timing-e2e-la-ownerul-runtime) |
 | Setup și dovezi UI în fallback | [Reporting](../../atf-reporting/README.md#evidence-ui-și-setup-în-fallback) |
+| Cauza terminală unică și backlink către dovada UI | [Reporting](../../atf-reporting/README.md#neutral-ui-attribution-and-failure-ownership) |
 | Coloane dinamice și scroll local | [Reporting](../../atf-reporting/README.md#lizibilitatea-dovezilor-în-panouri-înguste) |
 | Probe de compatibilitate și browser | [Reporting Tests](../../atf-reporting-tests/README.md) |
 | Oracole, fixture-uri binare și dovezi exacte | [Feedback Reporting Tests](ATF_Reporting_Tests_Feedback.md) |

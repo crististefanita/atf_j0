@@ -153,7 +153,9 @@ public final class PublishedEvidenceTableProbe {
         int opened = 0;
         while (LOCATORS.closedDetails(page).count() > 0) {
             assertTrue(opened++ < 256, "published disclosures must converge to a fully opened state");
-            LOCATORS.summary(LOCATORS.closedDetails(page).first()).click();
+            var disclosure = LOCATORS.firstClosedDisclosure(page);
+            LOCATORS.summary(disclosure).press("Enter");
+            assertEquals(Boolean.TRUE, disclosure.evaluate("d => d.open"), "keyboard opens the selected evidence");
             settle(page);
         }
         settle(page);

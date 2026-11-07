@@ -79,8 +79,17 @@ class BackendRecoveryObservationReportTest {
                 assertTrue(rows.last().innerText().contains("RECOVERED"));
                 assertTrue(rows.last().innerText().contains("ℹ"));
                 for (var row : rows.all()) {
-                    for (String cell : EVIDENCE.cells(row).allTextContents()) assertTrue(cell.trim().length() <= 240, cell);
+                    for (var cell : EVIDENCE.cells(row).all()) {
+                        String preview = EVIDENCE.preview(cell).innerText().trim();
+                        assertTrue(preview.length() <= 240, preview);
+                    }
                 }
+                var observed = EVIDENCE.cells(rows.last()).nth(3);
+                assertFalse(EVIDENCE.fullValue(observed).isVisible());
+                EVIDENCE.preview(observed).press("Enter");
+                assertTrue(EVIDENCE.fullValue(observed).isVisible());
+                assertEquals(("RECOVERED; observation only; no business action replay; "
+                        + "bounded-safe-metadata ".repeat(30)).stripTrailing(), EVIDENCE.fullValue(observed).innerText().stripTrailing());
                 rows.last().scrollIntoViewIfNeeded(); assertTrue(rows.last().isVisible());
                 EVIDENCE.summary(observation).focus(); page.keyboard().press("Enter");
                 assertFalse((Boolean) observation.evaluate("node => node.open"));

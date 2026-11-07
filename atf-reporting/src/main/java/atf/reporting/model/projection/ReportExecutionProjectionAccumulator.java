@@ -62,7 +62,8 @@ final class ReportExecutionProjectionAccumulator {
                                   List<ReportExecutionModel.Node> nodes) {
         for (var node : nodes) {
             if (node instanceof ReportExecutionModel.Request request) {
-                failures.addAll(ReportUiFailureProjection.collect(scenario.id(), request.uiEvidence().actions()));
+                failures.addAll(ReportUiFailureProjection.collect(scenario.id(), request.uiEvidence().actions(),
+                        request.uiEvidence().detailsMode()));
                 if (request.status() == AtfReportStatus.FAIL) {
                     request.executions().stream().flatMap(execution ->
                                     atf.reporting.model.diagnostic.ReportExecutionFailure.from(execution).stream())
@@ -82,7 +83,7 @@ final class ReportExecutionProjectionAccumulator {
             }
             if (node instanceof ReportExecutionModel.ObservationStep) continue;
             var validation = (ReportExecutionModel.Validation) node;
-            failures.addAll(ReportUiFailureProjection.collect(scenario.id(), validation.uiActions()));
+            failures.addAll(ReportUiFailureProjection.collect(scenario.id(), validation.uiActions(), validation.actionDetailsMode()));
             validation.assertions().stream()
                     .filter(assertion -> assertion.resultStatus() == AtfReportStatus.FAIL)
                     .map(assertion -> new ReportExecutionModel.Failure(

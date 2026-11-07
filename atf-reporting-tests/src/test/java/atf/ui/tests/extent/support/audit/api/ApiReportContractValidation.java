@@ -53,9 +53,10 @@ public final class ApiReportContractValidation {
                     String title = locators.requestTitle(request);
                     String url = locators.requestUrl(request);
                     ApiJsonEvidenceAuditor.Result json = jsonAuditor.inspect(request);
+                    int responseStatus = locators.responseStatus(request);
                     MockReportContractAuditor.Result mock = mockAuditor.inspect(
                             title, url,
-                            locators.responseStatus(request), json,
+                            responseStatus, json,
                             new MockReportContractAuditor.RenderedEvidence(
                                     locators.requestFields(request),
                                     locators.responseFields(request),
@@ -69,7 +70,7 @@ public final class ApiReportContractValidation {
                                 + " mock: " + mock.violations());
                     }
                     requestsAudited.add(new RequestAudit(title, url,
-                            locators.responseStatus(request), json.requestHasPayload(),
+                            responseStatus, json.requestHasPayload(),
                             json.responseHasPayload(), json.compliant() && mock.compliant()));
                 }
             }

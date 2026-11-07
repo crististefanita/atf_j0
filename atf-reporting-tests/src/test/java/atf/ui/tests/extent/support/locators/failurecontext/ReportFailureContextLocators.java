@@ -9,6 +9,12 @@ public final class ReportFailureContextLocators {
     public Locator actionRows(Page page) { return page.locator("table[class~='atf-ui-action-table']:visible tbody tr"); }
     public Locator observationRows(Page page) { return page.locator("table[class~='atf-ui-observation-table']:visible tbody tr"); }
     public Locator cells(Locator row) { return row.locator("td"); }
+    public Locator valueDisclosure(Locator cell) { return cell.locator(":scope > details[class~='atf-ui-value']"); }
+    public Locator preview(Locator cell) {
+        var disclosure = valueDisclosure(cell);
+        return disclosure.count() == 0 ? cell : summary(disclosure);
+    }
+    public Locator fullValue(Locator cell) { return valueDisclosure(cell).locator(":scope > div > pre"); }
     public Locator operation(Locator row) { return row.locator("[class~='atf-ui-action-operation']"); }
     public Locator sequence(Locator row) { return row.locator("[class~='atf-ui-action-number']"); }
     public Locator result(Locator row) { return row.locator("[class~='atf-ui-action-result']"); }

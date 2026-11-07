@@ -28,7 +28,8 @@ function scheduleTestViewNormalization() {
     atfTestViewNormalizationPending = false;
     normalizeTestViewContent();
   };
-  if (window.requestAnimationFrame) window.requestAnimationFrame(flush);
+  // Cold readiness is structural and must also complete when visual frames are deferred.
+  if (atfReportPerformanceState.ready && window.requestAnimationFrame) window.requestAnimationFrame(flush);
   else setTimeout(flush, 0);
 }
 function scheduleTestViewNormalizationAt(delay) {

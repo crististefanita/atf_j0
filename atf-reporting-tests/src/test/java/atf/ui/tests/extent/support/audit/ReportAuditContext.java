@@ -16,7 +16,7 @@ import atf.ui.tests.extent.support.config.UiConfiguration;
 import atf.ui.tests.extent.support.config.environment.UiReportEnvironmentSnapshotFactory;
 import atf.ui.config.UiScreenValidationConfiguration;
 import atf.ui.playwright.PlaywrightActionSequence;
-import atf.ui.playwright.PlaywrightUiSession;
+import atf.ui.playwright.ReportingBrowserSession;
 import atf.ui.playwright.UiScreenValidation;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
 import atf.reporting.ui.contract.ReportUiContract;
@@ -36,14 +36,14 @@ public final class ReportAuditContext implements AutoCloseable {
     private final Path inputReport;
     private final UiExtentReportSession auditSession;
     private final DebugUiServer server;
-    private final PlaywrightUiSession browser;
+    private final ReportingBrowserSession browser;
     private final ReportUiLocators locators = new ReportUiLocators();
     private final CopyOnWriteArrayList<String> consoleErrors;
     private final CopyOnWriteArrayList<String> pageErrors;
     private final CopyOnWriteArrayList<String> requestFailures;
 
     private ReportAuditContext(ReportAuditInput input, UiExtentReportSession auditSession,
-                               DebugUiServer server, PlaywrightUiSession browser,
+                               DebugUiServer server, ReportingBrowserSession browser,
                                CopyOnWriteArrayList<String> consoleErrors,
                                CopyOnWriteArrayList<String> pageErrors,
                                CopyOnWriteArrayList<String> requestFailures) {
@@ -89,10 +89,10 @@ public final class ReportAuditContext implements AutoCloseable {
                 UiReportEnvironmentSnapshotFactory.audit(configuration,
                         "Extent UI audit", "artifact inspection"));
         DebugUiServer debugUi = null;
-        PlaywrightUiSession browser = null;
+        ReportingBrowserSession browser = null;
         try {
             debugUi = DebugUiServer.start(DebugUiConfiguration.forHtml(inputReport, 0));
-            browser = BrowserResources.create(() -> PlaywrightUiSession.open(configuration.browser(), console.core()));
+            browser = BrowserResources.create(() -> ReportingBrowserSession.open(configuration.browser(), console.core()));
             CopyOnWriteArrayList<String> consoleErrors = new CopyOnWriteArrayList<>();
             CopyOnWriteArrayList<String> pageErrors = new CopyOnWriteArrayList<>();
             CopyOnWriteArrayList<String> requestFailures = new CopyOnWriteArrayList<>();

@@ -65,20 +65,28 @@ public final class BrowserProbeProcess {
         Throwable primary = null;
         try (var phases = new BrowserPhaseChannel(directory)) {
             while (process.isAlive()) {
-                owned.captureIfDue();
-                String latest = phases.current();
-                deadline.observe(latest);
+                String latest = phases.advanceTimed(frame -> deadline.observe(frame, budget));
                 phase = deadline.phase();
                 if (deadline.expired(budget) || System.nanoTime() - lifetime >= maximum) {
                     Files.writeString(directory.resolve("diagnose"), phase + "\nevent=" + latest + "\nelapsedNanos=" + deadline.elapsedNanos());
                     long diagnosticStart = System.nanoTime();
                     while (process.isAlive() && !Files.exists(directory.resolve("threads.log"))
                             && System.nanoTime() - diagnosticStart < Duration.ofMillis(500).toNanos()) Thread.sleep(10);
-                    throw failure(directory, process, owned, phase, "Browser probe exceeded its own " + budget.forPhase(phase) + " deadline; event=" + latest);
+                    // A committed boundary can race the watchdog. Only worker-timed progress within its prior budget can advance it.
+                    latest = phases.advanceTimed(frame -> deadline.observe(frame, budget));
+                    phase = deadline.phase();
+                    if (deadline.expired(budget) || System.nanoTime() - lifetime >= maximum)
+                        throw failure(directory, process, owned, phase, "Browser probe exceeded its own " + budget.forPhase(phase) + " deadline; event=" + latest);
+                    Files.move(directory.resolve("diagnose"), directory.resolve("diagnose-reconciled-" + latest));
                 }
+                owned.captureIfDue();
                 process.waitFor(10, TimeUnit.MILLISECONDS);
             }
-            String terminal = phases.current().substring(15);
+            String lastEvent = phases.advanceTimed(frame -> deadline.observe(frame, budget));
+            phase = deadline.phase();
+            if (deadline.expired(budget) || System.nanoTime() - lifetime >= maximum)
+                throw failure(directory, process, owned, phase, "Browser probe exceeded its own " + budget.forPhase(phase) + " deadline; event=" + lastEvent);
+            String terminal = lastEvent.substring(15);
             if (process.exitValue() != 0 || !terminal.equals("DONE"))
                 throw failure(directory, process, owned, read(directory.resolve("failure-phase")).isBlank() ? phase
                         : read(directory.resolve("failure-phase")), "Browser probe did not complete successfully; exit=" + process.exitValue());

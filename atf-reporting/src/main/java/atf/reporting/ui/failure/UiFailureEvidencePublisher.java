@@ -56,8 +56,13 @@ public final class UiFailureEvidencePublisher {
                             "A screenshot target is required when screenshot evidence is published");
                     validation.screenshot("UI failure screenshot", base64Png);
                 }
-                if (!reportedCheckpoint) validation.assertions(List.of(new AtfAssertion(
-                        "Failure cause", "no failure", context.summary(), false)));
+                if (!reportedCheckpoint) {
+                    boolean indexedEvidence = context.terminalSource()
+                            .filter(source -> source == AtfUiEvidenceSource.OBSERVE || detailsMode != ReportUiActionDetailsMode.SUMMARY_ONLY)
+                            .isPresent();
+                    validation.assertions(List.of(new AtfAssertion("Failure cause", "no failure", context.summary(),
+                            false, indexedEvidence ? AtfReportStatus.INFO : AtfReportStatus.FAIL)));
+                }
                 validation.completeFailure(AtfReportStatus.FAIL);
                 }, validation::close);
             request.complete(AtfReportStatus.FAIL);

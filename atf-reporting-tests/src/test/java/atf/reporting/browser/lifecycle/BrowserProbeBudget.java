@@ -22,7 +22,7 @@ public record BrowserProbeBudget(Duration setup, Duration verification, Duration
 
     public Duration forPhase(String phase) {
         return switch (phase) {
-            case "VERIFY" -> verification;
+            case "DISCOVERY", "VERIFY" -> verification;
             case "CLEANUP", "DONE", "FAILED" -> cleanup;
             default -> setup;
         };

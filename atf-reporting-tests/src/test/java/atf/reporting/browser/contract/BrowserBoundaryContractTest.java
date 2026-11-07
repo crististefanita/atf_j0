@@ -21,12 +21,13 @@ import static org.junit.jupiter.api.Assertions.*;
 @AtfComponentTest
 @Tag("report-browser")
 class BrowserBoundaryContractTest {
+    @TempDir(cleanup = CleanupMode.NEVER) static Path compilation;
     @TempDir(cleanup = CleanupMode.NEVER) Path directory;
     private static final String OWNER = "browser.control.OriginalCases";
     private static final String ROOT = "[engine:junit-jupiter]/[class:" + OWNER + "]";
 
     @Test void originalClassLifecycleRunsOnceAndAFailedSiblingCannotBecomePass() throws Exception {
-        try (var fixture = compile()) {
+        try (var fixture = fixture()) {
             var result = fixture.run(selectClass(fixture.type));
             assertEquals(6, result.getTestsStartedCount());
             assertEquals(5, result.getTestsSucceededCount());
@@ -40,7 +41,7 @@ class BrowserBoundaryContractTest {
     }
 
     @Test void individualMethodDoesNotExecuteItsSiblingOrItsDynamicFactory() throws Exception {
-        try (var fixture = compile()) {
+        try (var fixture = fixture()) {
             var result = fixture.run(selectMethod(fixture.type, "originalPass"));
             assertEquals(1, result.getTestsSucceededCount());
             assertEquals(1, result.getTestsStartedCount());
@@ -53,7 +54,7 @@ class BrowserBoundaryContractTest {
     }
 
     @Test void anIndividualParameterizedIterationKeepsItsOriginalValue() throws Exception {
-        try (var fixture = compile()) {
+        try (var fixture = fixture()) {
             var result = fixture.run(selectIteration(selectMethod(fixture.type, "originalArgument", int.class), 1));
             assertEquals(1, result.getTestsSucceededCount());
             assertEquals(1, result.getTestsStartedCount());
@@ -64,7 +65,7 @@ class BrowserBoundaryContractTest {
     }
 
     @Test void anIndividualDynamicCaseKeepsItsOriginalContainerAndOrdinal() throws Exception {
-        try (var fixture = compile()) {
+        try (var fixture = fixture()) {
             var result = fixture.run(selectUniqueId(ROOT + "/[test-factory:originalDynamic()]/[dynamic-container:#1]/[dynamic-test:#2]"));
             assertEquals(1, result.getTestsSucceededCount());
             assertEquals(1, result.getTestsStartedCount());
@@ -75,7 +76,7 @@ class BrowserBoundaryContractTest {
     }
 
     @Test void theReportOutputUsesTheShortOwnedSdkScratchInsteadOfTheLongParentRoot() throws Exception {
-        try (var fixture = compile(); var mode = new Property("atf.browser.control.mode", "short-output")) {
+        try (var fixture = fixture(); var mode = new Property("atf.browser.control.mode", "short-output")) {
             var result = fixture.run(selectMethod(fixture.type, "originalPass"));
             assertEquals(1, result.getTestsSucceededCount());
             assertEquals(1, result.getTestsStartedCount());
@@ -84,14 +85,27 @@ class BrowserBoundaryContractTest {
     }
 
     @Test void missingSelectionCannotCertifyAZeroCaseBrowserRun() throws Exception {
-        try (var fixture = compile()) {
+        try (var fixture = fixture()) {
             assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
                     negativeBudget(), List.of(fixture.classes), ROOT + "/[method:missing()]"));
         }
     }
 
+    @Test void aStuckDiscoveryCannotRunTheBodyOrBeReportedAsACleanupFailure() throws Exception {
+        try (var fixture = fixture(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
+             var mode = new Property("atf.browser.control.mode", "discovery-hang")) {
+            var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
+                    negativeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]", ROOT + "/[method:originalFail()]"));
+            assertEquals("DISCOVERY", failure.phase());
+            assertEquals(1, fixture.lines("discovery"), "The negative must reach Jupiter's orderer");
+            assertEquals(0, fixture.lines("beforeAll"));
+            assertEquals(0, fixture.lines("pass"));
+            assertFalse(ProcessHandle.of(failure.pid()).map(ProcessHandle::isAlive).orElse(false));
+        }
+    }
+
     @Test void aNonCooperativeSetupIsStoppedAtItsOwnPhase() throws Exception {
-        try (var fixture = compile(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
+        try (var fixture = fixture(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
              var property = new Property("atf.browser.control.mode", "setup-hang")) {
             var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
                     negativeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
@@ -102,7 +116,7 @@ class BrowserBoundaryContractTest {
     }
 
     @Test void originalAssertionRemainsAuditableWhenAfterAllCleanupHangs() throws Exception {
-        try (var fixture = compile(); var property = new Property("atf.browser.control.mode", "cleanup-hang")) {
+        try (var fixture = fixture(); var property = new Property("atf.browser.control.mode", "cleanup-hang")) {
             var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
                     negativeBudget(), List.of(fixture.classes), ROOT + "/[method:originalFail()]"));
             assertEquals("CLEANUP", failure.phase());
@@ -112,7 +126,7 @@ class BrowserBoundaryContractTest {
     }
 
     @Test void aVerificationInsideFinallyIsRecordedBeforeANonCooperativeDisposer() throws Exception {
-        try (var fixture = compile(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
+        try (var fixture = fixture(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
              var mode = new Property("atf.browser.control.mode", "finish-hang")) {
             var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
                     negativeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
@@ -123,7 +137,7 @@ class BrowserBoundaryContractTest {
     }
 
     @Test void originalTryBodyIsRecordedBeforeItsResourceDisposalCanHang() throws Exception {
-        try (var fixture = compile(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
+        try (var fixture = fixture(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
              var mode = new Property("atf.browser.control.mode", "twr-hang")) {
             var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
                     negativeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
@@ -134,7 +148,7 @@ class BrowserBoundaryContractTest {
     }
 
     @Test void originalBodyFailureIsRecordedBeforeAfterEachCanHang() throws Exception {
-        try (var fixture = compile(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
+        try (var fixture = fixture(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
              var mode = new Property("atf.browser.control.mode", "after-each-hang")) {
             var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
                     negativeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
@@ -145,7 +159,7 @@ class BrowserBoundaryContractTest {
     }
 
     @Test void theFirstCleanupExceptionSurvivesALaterNonCooperativeDisposer() throws Exception {
-        try (var fixture = compile(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
+        try (var fixture = fixture(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
              var mode = new Property("atf.browser.control.mode", "first-cleanup-then-hang")) {
             var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
                     negativeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
@@ -156,7 +170,7 @@ class BrowserBoundaryContractTest {
     }
 
     @Test void aHandledExpectedFailureCannotBecomeTheLaterCleanupCause() throws Exception {
-        try (var fixture = compile(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
+        try (var fixture = fixture(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
              var mode = new Property("atf.browser.control.mode", "handled-cleanup-hang")) {
             var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
                     negativeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
@@ -167,7 +181,7 @@ class BrowserBoundaryContractTest {
     }
 
     @Test void nativeLogBytesCannotReplaceTheOriginalFailureWithADecodingException() throws Exception {
-        try (var fixture = compile(); var mode = new Property("atf.browser.control.mode", "non-utf8-log")) {
+        try (var fixture = fixture(); var mode = new Property("atf.browser.control.mode", "non-utf8-log")) {
             var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
                     negativeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
             assertTrue(failure.getCause().getMessage().contains("ORIGINAL-LOG-SENTINEL"));
@@ -178,7 +192,7 @@ class BrowserBoundaryContractTest {
     }
 
     @Test void ownedJavaDiagnosticsAreEncodedAsUtf8IndependentlyOfTheWindowsConsole() throws Exception {
-        try (var fixture = compile(); var mode = new Property("atf.browser.control.mode", "utf8-log")) {
+        try (var fixture = fixture(); var mode = new Property("atf.browser.control.mode", "utf8-log")) {
             Path result = BrowserProbeProcess.run(directory, JunitBrowserProbe.class, negativeBudget(),
                     List.of(fixture.classes), ROOT + "/[method:originalPass()]");
             assertTrue(Files.readString(result.resolve("process.log")).contains("café – săgeată →"));
@@ -189,14 +203,16 @@ class BrowserBoundaryContractTest {
         return new BrowserProbeBudget(Duration.ofSeconds(3), Duration.ofSeconds(15), Duration.ofSeconds(2));
     }
 
-    private Fixture compile() throws Exception {
-        Path classes = Files.createDirectory(directory.resolve("classes"));
-        Path source = directory.resolve("OriginalCases.java"); Files.writeString(source, FIXTURE);
+    @BeforeAll static void compileFixture() throws Exception {
+        Path source = compilation.resolve("OriginalCases.java"); Files.writeString(source, FIXTURE);
         int exit = ToolProvider.getSystemJavaCompiler().run(null, null, null, "-proc:none", "-encoding", "UTF-8", "-cp",
-                System.getProperty("java.class.path"), "-d", classes.toString(), source.toString());
+                System.getProperty("java.class.path"), "-d", compilation.toString(), source.toString());
         assertEquals(0, exit, "The controlled client must compile against the real harness classpath");
-        var loader = new URLClassLoader(new java.net.URL[] {classes.toUri().toURL()}, getClass().getClassLoader());
-        return new Fixture(classes, loader, loader.loadClass(OWNER), directory.resolve("calls.log"));
+    }
+
+    private Fixture fixture() throws Exception {
+        var loader = new URLClassLoader(new java.net.URL[] {compilation.toUri().toURL()}, getClass().getClassLoader());
+        return new Fixture(compilation, loader, loader.loadClass(OWNER), directory.resolve("calls.log"));
     }
 
     private record Fixture(Path classes, URLClassLoader loader, Class<?> type, Path log) implements AutoCloseable {
@@ -232,7 +248,7 @@ class BrowserBoundaryContractTest {
             import org.junit.jupiter.params.ParameterizedTest;
             import org.junit.jupiter.params.provider.ValueSource;
             import static org.junit.jupiter.api.Assertions.*;
-            @ReportBrowserTest @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+            @ReportBrowserTest @TestInstance(TestInstance.Lifecycle.PER_CLASS) @TestMethodOrder(OriginalCases.Order.class)
             public class OriginalCases {
               private AutoCloseable resource;
               private static void log(String value) throws Exception {
@@ -240,6 +256,13 @@ class BrowserBoundaryContractTest {
                 if(file!=null)Files.writeString(Path.of(file),value+"\\n",StandardOpenOption.CREATE,StandardOpenOption.APPEND);
               }
               private static void hang(){while(true){Thread.interrupted();LockSupport.parkNanos(10000000);}}
+              public static class Order implements MethodOrderer {
+                public void orderMethods(MethodOrdererContext context) {
+                  if(!"discovery-hang".equals(System.getProperty("atf.browser.control.mode"))) return;
+                  try { log("discovery"); } catch(Exception error) { throw new IllegalStateException(error); }
+                  hang();
+                }
+              }
               @BeforeAll void beforeAll() throws Exception {
                 assertTrue(BrowserProbeScope.active(),"Parent must not execute browser lifecycle");log("beforeAll");
                 if("non-utf8-log".equals(System.getProperty("atf.browser.control.mode"))) {

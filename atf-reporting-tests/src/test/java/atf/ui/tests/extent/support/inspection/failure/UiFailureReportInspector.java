@@ -3,6 +3,7 @@ package atf.ui.tests.extent.support.inspection.failure;
 import atf.ui.tests.extent.support.failure.UiFailureReportFixture;
 import atf.reporting.ui.failure.UiFailureSurface;
 import atf.reporting.ui.contract.ReportUiContract;
+import atf.ui.tests.extent.support.locators.failurecontext.ReportFailureContextLocators;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 
@@ -15,6 +16,7 @@ import java.nio.file.Files;
 
 /** Browser adapter that validates one failure channel without hard-coded test selectors. */
 public final class UiFailureReportInspector {
+    private static final ReportFailureContextLocators EVIDENCE = new ReportFailureContextLocators();
     private final UiFailureReportFixture fixture;
 
     public UiFailureReportInspector(UiFailureReportFixture fixture) {
@@ -60,12 +62,10 @@ public final class UiFailureReportInspector {
         boolean siblingIsolationClean = surface != UiFailureSurface.PLAYWRIGHT_ACTION
                 || validatePlaywrightFailureIsolation(owner.detail(), violations);
         if (surface == UiFailureSurface.PLAYWRIGHT_ACTION) {
-            String actionEvidence = String.join(" ",
-                    fixture.locators().actionSequences(owner.detail()).allInnerTexts());
-            if (!actionEvidence.contains("Wait for visible")
-                    || !actionEvidence.contains("button[data-test='login-submit']")
-                    || !actionEvidence.contains("elapsed=20000 ms")
-                    || !actionEvidence.contains("expected=login submit becomes visible")) {
+            boolean exactAction = fixture.locators().actionSequences(owner.detail()).all().stream()
+                    .flatMap(sequence -> fixture.locators().failedActionRows(sequence).all().stream())
+                    .anyMatch(UiFailureReportInspector::matchesTimeoutAction);
+            if (!exactAction) {
                 violations.add("Tests must retain the failed wait action, locator, measured time and expectation");
             }
             validateTimeoutDiagnostics(owner.detail(), violations);
@@ -80,6 +80,19 @@ public final class UiFailureReportInspector {
         return new Observation(surface, matching, failRows, expandedOnArrival,
                 visibleClosedEvidenceBodies, fabricatedHttpDisclosures, siblingIsolationClean,
                 violations.isEmpty(), List.copyOf(violations));
+    }
+
+    private static boolean matchesTimeoutAction(Locator row) {
+        if (!EVIDENCE.operation(row).textContent().equals("Wait for visible")) return false;
+        var cells = EVIDENCE.cells(row);
+        var observed = cells.nth(3);
+        var full = EVIDENCE.fullValue(observed);
+        String context = full.count() == 0 ? observed.textContent() : full.textContent();
+        return cells.nth(1).textContent().equals("button[data-test='login-submit']")
+                && cells.nth(2).textContent().equals("login submit becomes visible")
+                && cells.nth(4).textContent().equals("20000 ms")
+                && context.contains("elapsed=20000 ms")
+                && context.contains("expected=login submit becomes visible");
     }
 
     private boolean validatePlaywrightFailureIsolation(Locator ownerDetail,

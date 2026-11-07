@@ -33,6 +33,8 @@ public final class UiFailureContext {
         return failure.getClass().getSimpleName() + "; failed UI action not recorded; diagnostic: " + message(failure);
     }
 
+    Optional<AtfUiEvidenceSource> terminalSource() { return Optional.ofNullable(failed).map(AtfUiActionRecord::source); }
+
     /** Replaces only the selected row's technical preview; original records and the Throwable are untouched. */
     public List<AtfUiActionRecord> projectedActions() {
         return actions.stream().map(action -> action != failed ? action : new AtfUiActionRecord(

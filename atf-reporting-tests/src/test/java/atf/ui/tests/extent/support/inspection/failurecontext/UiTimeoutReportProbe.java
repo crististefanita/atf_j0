@@ -83,7 +83,11 @@ public final class UiTimeoutReportProbe {
         assertEquals("Wait for visible", CONTEXT.operation(action).innerText());
         assertEquals("#1", CONTEXT.sequence(action).innerText());
         assertEquals(UiTimeoutReportFixture.TARGET, cells.nth(1).innerText());
-        checkContext(cells.nth(3).innerText(), limit);
+        checkContext(CONTEXT.preview(cells.nth(3)).innerText(), limit);
+        if (limit < 240) {
+            assertThat(CONTEXT.fullValue(cells.nth(3))).isVisible();
+            checkContext(CONTEXT.fullValue(cells.nth(3)).innerText(), 240);
+        }
         assertEquals("137 ms", cells.nth(4).innerText(), "measured time is independent of the native timeout deadline");
         assertEquals("Fail", CONTEXT.result(action).getAttribute("aria-label"));
         var assertion = CONTEXT.assertionRows(page).filter(new Locator.FilterOptions().setHasText("Failure cause")).first();
@@ -108,14 +112,18 @@ public final class UiTimeoutReportProbe {
             var row = CONTEXT.diagnostic(scenario, diagnostic[0]);
             assertEquals(1, row.count(), diagnostic[0]);
             assertEquals("Info", CONTEXT.result(row).getAttribute("aria-label"), "diagnostics retain their informative role");
-            String value = CONTEXT.cells(row).nth(3).innerText();
-            assertEquals(limit == 240 ? diagnostic[1] : diagnostic[1].substring(0, limit - 1) + "…", value);
-            for (String secret : UiTimeoutReportFixture.SECRETS) assertFalse(value.contains(secret));
+            var cell = CONTEXT.cells(row).nth(3);
+            String value = CONTEXT.preview(cell).innerText();
+            assertEquals(diagnostic[1].length() <= limit ? diagnostic[1] : diagnostic[1].substring(0, limit - 1) + "…", value);
+            if (diagnostic[1].length() > limit) {
+                assertThat(CONTEXT.fullValue(cell)).isVisible();
+                assertEquals(diagnostic[1], CONTEXT.fullValue(cell).innerText());
+            }
         }
     }
 
     private static void proveOracleRejectsMissingTimeoutAndRawCredential(Locator scenario, int limit) {
-        var cell = CONTEXT.cells(CONTEXT.diagnostic(scenario, "Primary exception")).nth(3);
+        var cell = CONTEXT.preview(CONTEXT.cells(CONTEXT.diagnostic(scenario, "Primary exception")).nth(3));
         String original = cell.innerText();
         try {
             cell.evaluate("e => e.textContent = 'diagnostic removed'");

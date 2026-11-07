@@ -264,7 +264,8 @@ final class ReportTreeLocators {
     }
     AtfLocator nodeHeaderAction(Locator header) {
         String nodeId = ReportLocatorSupport.nodeId(header);
-        return new AtfLocator(header, ReportLocatorSupport.nodeHeaderSelector(nodeId));
+        String selector = ReportLocatorSupport.nodeHeaderSelector(nodeId);
+        return new AtfLocator(header.page().locator(selector), selector);
     }
     AtfLocator nodeCardAction(Locator card) {
         Locator header = nodeHeader(card);

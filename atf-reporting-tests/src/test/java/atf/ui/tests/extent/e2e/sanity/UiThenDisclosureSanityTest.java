@@ -12,7 +12,7 @@ import atf.debugui.DebugUiConfiguration;
 import atf.debugui.DebugUiServer;
 import atf.ui.tests.extent.support.config.ReportingTestResources;
 import atf.ui.tests.extent.support.config.UiConfiguration;
-import atf.ui.playwright.PlaywrightUiSession;
+import atf.ui.playwright.ReportingBrowserSession;
 import atf.ui.tests.extent.support.sanity.UiThenDisclosureReportFixtures;
 import atf.core.config.module.AtfModule;
 import atf.reporting.test.AtfModuleTest;
@@ -36,7 +36,7 @@ class UiThenDisclosureSanityTest {
         Path root = Files.createTempDirectory("atf-ui-then-disclosure-");
         Path report = UiThenDisclosureReportFixtures.publishTeardown(root);
         try (DebugUiServer server = DebugUiServer.start(DebugUiConfiguration.forHtml(report, 0));
-             PlaywrightUiSession browser = BrowserResources.create(() -> PlaywrightUiSession.open(configuration.browser()))) {
+             ReportingBrowserSession browser = BrowserResources.create(() -> ReportingBrowserSession.open(configuration.browser()))) {
             try {
                 browser.navigate(java.net.URI.create(server.uriFor(report) + ReportUiContract.Tab.TESTS.hash()));
                 ThenDisclosureFlow.ThenSnapshot snapshot = new ThenDisclosureFlow().inspectThenDisclosure(browser.page());
@@ -61,7 +61,7 @@ class UiThenDisclosureSanityTest {
         Path root = Files.createTempDirectory("atf-ui-no-teardown-sanity-");
         Path report = UiThenDisclosureReportFixtures.publishWithoutTeardown(root);
         try (DebugUiServer server = DebugUiServer.start(DebugUiConfiguration.forHtml(report, 0));
-             PlaywrightUiSession browser = BrowserResources.create(() -> PlaywrightUiSession.open(configuration.browser()))) {
+             ReportingBrowserSession browser = BrowserResources.create(() -> ReportingBrowserSession.open(configuration.browser()))) {
             try {
                 browser.navigate(java.net.URI.create(server.uriFor(report) + ReportUiContract.Tab.TESTS.hash()));
                 ThenDisclosureFlow.PhaseSnapshot snapshot = new ThenDisclosureFlow().inspectWithoutTeardown(browser.page());

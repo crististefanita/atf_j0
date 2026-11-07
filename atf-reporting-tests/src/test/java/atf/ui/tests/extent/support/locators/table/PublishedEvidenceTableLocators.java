@@ -18,6 +18,10 @@ public final class PublishedEvidenceTableLocators {
     public Locator expandAll(Page page) { return readability.expandAll(page); }
     public Locator details(Page page) { return page.locator("details:visible"); }
     public Locator closedDetails(Page page) { return page.locator("details:not([open]):visible"); }
+    public Locator firstClosedDisclosure(Page page) {
+        Number index = (Number) closedDetails(page).first().evaluate("d => Array.from(document.querySelectorAll('details')).indexOf(d)");
+        return page.locator("details").nth(index.intValue());
+    }
     public Locator summaries(Page page) { return details(page).locator(":scope > summary"); }
     public Locator assertions(Page page) {
         return page.locator("table[class~='helm-validation-table']:visible,table[class~='assertions']:visible");

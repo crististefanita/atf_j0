@@ -22,7 +22,10 @@ public final class BrowserProbeScope implements AutoCloseable {
     public static Path directory() { return directory; }
     public static BrowserProbeScope setup() { return new BrowserProbeScope("SETUP"); }
     public static BrowserProbeScope cleanup() { return new BrowserProbeScope("CLEANUP"); }
+    public static void discoveryStarted() { phase("DISCOVERY"); }
+    public static void discoveryCompleted() { phase("VERIFY"); }
     public static void caseStarted() { phase("VERIFY"); }
+    static String currentPhase() { return current; }
 
     static void phase(String next) {
         try { BrowserProbeDiagnostics.phase(directory, next); current = next; }

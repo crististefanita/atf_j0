@@ -68,9 +68,11 @@ function collectFailureState(item) {
     var setupFailure = failedSetupEvidence(card),
       uiFailure = failedUiEvidence(card);
     if (setupFailure) state.uiFailures.push(setupFailure);
-    if (uiFailure) state.uiFailures.push(uiFailure);
-    var runtimeFailure = failureEvidenceCandidate(card);
-    if (runtimeFailure) state.runtimeFailures.push(runtimeFailure);
+    if (uiFailure) {
+      state.uiFailures.push(uiFailure);
+      if (title.toLowerCase() === 'failure evidence')
+        state.runtimeFailures.push(Object.assign({}, uiFailure, {step: 'Failure evidence'}));
+    }
     failureTransportEvidence(card, state);
     var candidate = failureValidationCandidate(card);
     if (candidate) state.validations.push(candidate);

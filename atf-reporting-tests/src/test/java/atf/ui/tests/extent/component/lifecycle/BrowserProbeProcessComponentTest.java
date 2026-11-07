@@ -6,8 +6,10 @@ import atf.reporting.browser.lifecycle.BrowserProbe;
 import atf.reporting.browser.lifecycle.BrowserProbeBudget;
 import atf.reporting.browser.lifecycle.BrowserProbeFailure;
 import atf.reporting.browser.lifecycle.BrowserProbeProcess;
+import atf.reporting.browser.process.OwnedChromiumProcess;
 
 import atf.testkit.AtfComponentTest;
+import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
 import atf.ui.tests.extent.support.lifecycle.SinglePageBrowserProbe;
 import java.nio.file.Files;
@@ -43,6 +45,16 @@ public class BrowserProbeProcessComponentTest {
         byte[] png = Files.readAllBytes(evidence.resolve("viewport.png"));
         assertArrayEquals(new byte[] {(byte) 137, 80, 78, 71, 13, 10, 26, 10}, java.util.Arrays.copyOf(png, 8));
         assertTrue(Files.isRegularFile(evidence.resolve("phase-DONE")));
+        if (System.getProperty("os.name", "").startsWith("Windows")) {
+            String diagnostics = Files.readString(evidence.resolve("process.log"));
+            assertTrue(diagnostics.contains("ATF_OWNED_EXIT Chromium pid="));
+            assertTrue(diagnostics.contains("ATF_OWNED_EXIT Playwright driver pid="));
+        }
+    }
+
+    @Test void nativeTerminationDoesNotApplyToBrandedOrHeadedBrowsers() {
+        assertFalse(OwnedChromiumProcess.supports(new BrowserType.LaunchOptions().setChannel("chrome")));
+        assertFalse(OwnedChromiumProcess.supports(new BrowserType.LaunchOptions().setHeadless(false)));
     }
 
     @Test void hungSetupFailsAndOnlyItsOwnProcessTreeIsStopped() throws Exception {

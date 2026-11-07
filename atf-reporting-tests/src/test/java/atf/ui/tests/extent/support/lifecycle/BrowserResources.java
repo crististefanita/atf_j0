@@ -2,6 +2,7 @@ package atf.ui.tests.extent.support.lifecycle;
 
 import atf.reporting.browser.lifecycle.BrowserLease;
 import atf.reporting.browser.lifecycle.BrowserProbeScope;
+import atf.reporting.browser.process.OwnedChromiumProcess;
 import com.microsoft.playwright.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,7 +36,28 @@ public final class BrowserResources {
 
     public static Browser launch(Playwright playwright) { return launch(playwright, new BrowserType.LaunchOptions()); }
     public static Browser launch(Playwright playwright, BrowserType.LaunchOptions options) {
-        return acquire(() -> register(playwright.chromium().launch(options), playwright));
+        return launch(playwright, "chromium", options);
+    }
+
+    public static Browser launch(Playwright playwright, String browserName, BrowserType.LaunchOptions options) {
+        return acquire(() -> {
+            BrowserType type = switch (browserName) {
+                case "chromium" -> playwright.chromium();
+                case "firefox" -> playwright.firefox();
+                case "webkit" -> playwright.webkit();
+                default -> throw new IllegalArgumentException("Unsupported browser: " + browserName);
+            };
+            Browser browser = register(type.launch(options), playwright);
+            if (browserName.equals("chromium") && OWNED.containsKey(playwright) && OwnedChromiumProcess.supports(options)) {
+                var process = OwnedChromiumProcess.claim(browser);
+                OWNED.put(browser, new Owned(browser, playwright, process));
+                OWNED.put(playwright, new Owned(playwright, null, () -> {
+                    process.closeDriver();
+                    playwright.close();
+                }));
+            }
+            return browser;
+        });
     }
 
     public static BrowserContext context(Browser browser, Browser.NewContextOptions options) {

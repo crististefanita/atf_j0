@@ -23,7 +23,7 @@ import atf.reporting.ui.UiExtentReportSession;
 import atf.reporting.ui.contract.ReportUiContract;
 import atf.testkit.AtfComponentTest;
 import atf.ui.config.UiBrowserConfiguration;
-import atf.ui.playwright.PlaywrightUiSession;
+import atf.ui.playwright.ReportingBrowserSession;
 import atf.ui.tests.extent.support.locators.ReportUiLocators;
 import atf.ui.tests.extent.support.locators.network.ReportNetworkCaptureLocators;
 import com.microsoft.playwright.Page;
@@ -81,7 +81,7 @@ class NetworkCaptureEvidenceTest {
         assertTrue(html.contains("/cart/add/1"));
 
         try (var server = DebugUiServer.start(DebugUiConfiguration.forHtml(artifact, 0));
-             var browser = BrowserResources.create(() -> PlaywrightUiSession.open(UiBrowserConfiguration.defaults()))) {
+             var browser = BrowserResources.create(() -> ReportingBrowserSession.open(UiBrowserConfiguration.defaults()))) {
             try {
                 var page = browser.page();
                 page.navigate(server.uriFor(artifact) + "#test-view");
@@ -118,7 +118,7 @@ class NetworkCaptureEvidenceTest {
         assertTrue(html.contains("Dropped"));
         assertTrue(html.contains("Limit reached"));
         try (var server = DebugUiServer.start(DebugUiConfiguration.forHtml(artifact, 0));
-             var browser = BrowserResources.create(() -> PlaywrightUiSession.open(UiBrowserConfiguration.defaults()))) {
+             var browser = BrowserResources.create(() -> ReportingBrowserSession.open(UiBrowserConfiguration.defaults()))) {
             try {
                 var page = browser.page();
                 page.navigate(server.uriFor(artifact).toString());

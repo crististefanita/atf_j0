@@ -281,8 +281,9 @@ class ExtentReportRuntimeScriptTest {
                 () -> assertTrue(script.contains("function renderFails(")),
                  () -> assertTrue(script.contains("function collectFailureState(item)")),
                  () -> assertTrue(script.contains("function failureContextFromState(state)")),
-                 () -> assertTrue(script.contains("function failureEvidenceCandidate(card)"),
-                         "Fails must recognize the explicit runtime Failure evidence card"),
+                 () -> assertTrue(script.contains("title.toLowerCase()==='failure evidence'")
+                                 && script.contains("state.runtimeFailures.push(Object.assign({},uiFailure"),
+                         "Fails recognizes the runtime Failure evidence card through the same concrete row projection"),
                  () -> assertTrue(script.contains("runtimeFailures"),
                          "runtime failure evidence must be kept separate from semantic validations"),
                  () -> assertTrue(script.contains("state.runtimeFailures[0]||state.uiFailures[0]"),

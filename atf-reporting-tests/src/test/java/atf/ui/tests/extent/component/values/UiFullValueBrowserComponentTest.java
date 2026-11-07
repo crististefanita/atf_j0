@@ -40,7 +40,11 @@ class UiFullValueBrowserComponentTest {
                     var card = root.locator(".test-contents > .mt-4 > .accordion > .card").first();
                     for (int depth = 0; depth < 5 && !action.isVisible(); depth++) {
                         assertTrue(card.count() > 0, "Captured checkpoint ancestor " + depth);
-                        card.locator(":scope > .card-header").click(); card = card.locator(":scope > .accordion > .card").first();
+                        var header = card.locator(":scope > .card-header[role='button']");
+                        assertEquals("false", header.getAttribute("aria-expanded"));
+                        header.press("Enter");
+                        assertEquals("true", header.getAttribute("aria-expanded"));
+                        card = card.locator(":scope > .accordion > .card").first();
                     }
                 }
                 assertTrue(action.isVisible());

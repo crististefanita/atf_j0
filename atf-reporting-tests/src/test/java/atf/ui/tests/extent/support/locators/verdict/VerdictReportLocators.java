@@ -30,6 +30,10 @@ public final class VerdictReportLocators {
     public Locator expandAll(Page page) {
         return page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Expand all nodes"));
     }
+    public Locator fallbackComparisonDisclosure(Locator scenario) {
+        return scenario.locator("details").filter(new Locator.FilterOptions()
+                .setHas(scenario.page().locator("table.assertions").filter(new Locator.FilterOptions().setHasText("Independent comparison"))));
+    }
     public Locator comparisonTable(Page page, boolean fallback) {
         Locator scope = fallback ? page.locator("#tests") : common.visibleTestDetail(page);
         return scope.locator(fallback ? "table[class~='assertions']:visible"

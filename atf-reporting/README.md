@@ -2466,6 +2466,10 @@ ACTION/OBSERVE/comparison order. Native Fails preserves separate UI and assertio
 ordinals; its source links reveal the original ACTION/OBSERVE row without a
 second user expansion or a synthetic comparison.
 
+- A terminal exception contributes one index entry through its original failed row. Tests also keeps its diagnostic context.
+- If the terminal row is absent or hidden by action summary-only mode, the exception supplies its own navigable cause.
+- Independent comparisons retain their own entries even when their label matches a diagnostic.
+
 - Preview remains 240 characters; publication performs no business evaluation or driver inference.
 - Failure labels and causes share the original evidence redaction boundary.
 - Legacy public constants and contract check keys remain compatible; published headings use neutral wording.

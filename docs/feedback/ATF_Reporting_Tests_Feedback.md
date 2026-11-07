@@ -2,16 +2,15 @@
 
 ## REPORT-BROWSER-LIFECYCLE-154 — acceptanța închiderii native
 
-**P1 · owner Reporting Tests.** [Contractul de izolare](../../atf-reporting-tests/README.md#izolarea-tuturor-intrărilor-browser)
-separă apelurile SDK, păstrează cleanup-ul global legacy și reține cauza anterioară unui blocaj.
+Oracolele de browser separă acum valorile de preview de dovada integrală și
+deschid explicit comparația fallback. Watchdog-ul validează timpul fazei
+înregistrat de worker la tranziție și păstrează deadline-urile existente.
 
-Proba nominală `sameSdkCreatesANewPageAndClosesItsResources` a depășit
-termenul global de 5 s și în baseline-ul recompilat din sursele originale.
-Stack-ul indică așteptarea închiderii native; SDK-ul și limitele rămân fixate.
+[Pornirea la rece](../ATF_Large_Report_Navigation.md#cold-startup-and-readiness)
+are o probă permanentă cu frame-urile amânate și control real prin tastatură.
 
-- [ ] Confirmați cauza opririi native pe hostul Windows și repetabilitatea probei legacy cu SDK-ul fixat, în același buget. Păstrați stack-ul și arborele de procese al eșecului.
-- [ ] Măsurați discovery JUnit separat pe traseul Maven: controlul de `@AfterEach` trebuie să ajungă efectiv în cleanup, înainte ca verdictul lui să califice profilul.
-- [ ] Certificați suita browser completă pe sursă și pe JAR, cu aceleași identități și verdicte, fără skip, retry sau schimbarea termenelor.
+- [ ] Confirmați inventarul și verdictul identic al suitei canonice pe sursă și pe JAR fizic, cu cleanup nativ și fără skip.
+- [ ] Confirmați că handshake-ul rece Playwright finalizează în bugetul existent în suita completă. Selecția focalizată a trecut, iar timeout-ul istoric rămâne criteriu de închidere.
 
 ## Pe scurt
 
@@ -228,9 +227,19 @@ testChanges:
     status: ACTIVE
     base: 2f33813701b47e362b8091c6aca7c1c2b602727d
     expires: 2026-11-25
-    reason: Cerinta explicita 154. Izoleaza selectia JUnit originala si lifecycle-ul SDK concret, cu contexte explicite, cleanup dupa identitate si cauza primara pastrata. Canalul incremental refuza cadrele incomplete fara rescanning ori inlocuirea fisierului deschis pe Windows. Pastreaza assertiile si pragurile originale; transfera exclusiv path-urile suprapuse de la controalele 149 si 153 la aceeasi baza.
+    reason: Izoleaza selectia originala si lifecycle-ul SDK. Executa un singur plan Jupiter si clasifica discovery in bugetul de verificare. Confirma iesirea arborelui Chromium detinut de worker pe Windows. Pastreaza asertiunile si pragurile originale, inclusiv cleanup-ul global legacy.
     proof: mvn -pl atf-reporting-tests -am -Preporting-release -Dsurefire.failIfNoSpecifiedTests=false test; mvn -pl atf-reporting-tests -Preporting-release -Datf.reporting.test.version=1.0.0-j22 test
     paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/runtime/core/ExtentReportRuntimeScriptTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/ReportEvidenceLocators.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/audit/api/ApiReportContractValidation.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/table/PublishedEvidenceTableLocators.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/ReportTreeLocators.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/api/ApiReportUiFlow.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failure/UiFailureReportInspector.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/failurecontext/ReportFailureContextLocators.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/verdict/VerdictReportLocators.java
+      - atf-reporting/src/test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java
       - atf-reporting-tests/pom.xml
       - atf-reporting-tests/src/test/java/atf/reporting/api/request/ObservedBodyAuditComponentTest.java
       - atf-reporting-tests/src/test/java/atf/reporting/api/request/ObservedRequestEvidenceComponentTest.java
@@ -258,6 +267,9 @@ testChanges:
       - atf-reporting-tests/src/test/java/atf/reporting/browser/process/BrowserPhaseChannel.java
       - atf-reporting-tests/src/test/java/atf/reporting/browser/process/BrowserPhaseDeadline.java
       - atf-reporting-tests/src/test/java/atf/reporting/browser/process/BrowserProcessInventory.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/process/OwnedChromiumProcess.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/process/OwnedChromiumProcessContractTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/playwright/ReportingBrowserSession.java
       - atf-reporting-tests/src/test/java/atf/reporting/governance/AtfReportingBrowserSuite.java
       - atf-reporting-tests/src/test/java/atf/reporting/observation/ReportObservationBrowserComponentTest.java
       - atf-reporting-tests/src/test/java/atf/reporting/support/observation/ObservationBrowserProbe.java

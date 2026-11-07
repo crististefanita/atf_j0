@@ -53,33 +53,17 @@ function failedUiEvidence(card) {
 function uiFailureRowContext(row, zone) {
   var cells = failureCells(row), assertion = zone.classList.contains('atf-ui-assertions') || zone.classList.contains('assertion-evidence'),
     label = zone.classList.contains('atf-ui-observations') ? 'Audit observation' : assertion ? 'UI assertion' : 'UI action';
+  var title = nodeTitle(row.closest('.card')), observed = cells[assertion ? 2 : 3],
+    terminal = !assertion && title.toLowerCase() === 'failure evidence';
   return {
-    ui: true, step: label, validation: nodeTitle(row.closest('.card')),
+    ui: true, step: label, validation: title,
     assertion: label + ' · ' + (cells[0] || 'unknown') + ' → ' +
       (cells[1] || '') + ' → ' + (cells[2] || '') + ' → ' + (cells[3] || ''),
-    message: label + ' failed: ' + (cells[3] || 'see the concrete evidence row')
+    message: terminal && observed ? observed : label + ' failed: ' + (observed || 'see the concrete evidence row')
   };
 }
 function failedUiRows(item) {
   return q('.atf-ui-action-table tbody tr', item).filter(failedAssertionRow);
-}
-function failureEvidenceCandidate(card) {
-  var title = nodeTitle(card);
-  if (title.toLowerCase() !== 'failure evidence') return null;
-  var actions = card.querySelector('.atf-ui-action-sequence[data-atf-evidence-status=fail]');
-  var assertions = card.querySelector('.atf-ui-assertions[data-atf-evidence-status=fail]');
-  var action = actions && q('tbody tr', actions).find(failedAssertionRow);
-  var row = action || (assertions && q('tbody tr', assertions).find(failedAssertionRow));
-  if (!row) return null;
-  var cells = failureCells(row);
-  var observed = cells[3] || 'see the concrete action evidence';
-  return {
-    ui: true, step: 'Failure evidence', validation: title,
-    assertion: action ?
-      'UI action · ' + (cells[0] || 'unknown') + ' → ' + (cells[1] || '') + ' → ' + observed :
-      'Failure cause · ' + (cells[0] || 'unknown') + ' → ' + (cells[1] || '') + ' → ' + (cells[2] || '') + ' → ' + (cells[3] || ''),
-    message: 'Failure evidence: ' + (action ? observed : cells[2] || 'see the concrete failure evidence')
-  };
 }
 function failedAssertionRows(item) {
   // Derived summaries never participate in the original evidence ordinal.

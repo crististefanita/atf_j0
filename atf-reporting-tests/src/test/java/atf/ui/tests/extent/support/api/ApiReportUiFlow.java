@@ -231,9 +231,9 @@ public final class ApiReportUiFlow {
         // always contain the effective locator or a semantic observation.
         audit.actions().observation("Card header visible", locators.nodeDescription(header),
                 "structural card header is visible before expansion", "visible=true");
-        audit.actions().focus(locators.nodeHeaderAction(header),
-                "card header is focused before expansion");
-        audit.actions().click(locators.nodeHeaderAction(header),
+        AtfLocator action = locators.nodeHeaderAction(header);
+        audit.actions().focus(action, "card header is focused before expansion");
+        audit.actions().pressKey(ownerPage(card), "Enter", action,
                 "expand " + locators.nodeDescription(header));
         audit.actions().waitForAttribute(ownerPage(card), locators.nodeCardAction(card),
                 locators.nodeOpenAttribute(card), "true",

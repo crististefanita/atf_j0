@@ -14,17 +14,15 @@ public final class BrowserProbeWorker {
         BrowserProbeDiagnostics.startThreadDumpListener(directory);
         BrowserProbe probe = null;
         Throwable failure = null;
-        String executionPhase = "SETUP";
         BrowserProbeScope.phase("SETUP");
         try {
             probe = (BrowserProbe) Class.forName(arguments[1]).getConstructor().newInstance();
             probe.open(directory);
-            executionPhase = "VERIFY";
             BrowserProbeScope.phase("VERIFY");
             probe.verify(Arrays.copyOfRange(arguments, 2, arguments.length));
         } catch (Throwable error) {
             failure = error;
-            Files.writeString(directory.resolve("failure-phase"), executionPhase);
+            Files.writeString(directory.resolve("failure-phase"), BrowserProbeScope.currentPhase());
             BrowserProbeScope.recordFailure(error);
         } finally {
             BrowserProbeScope.phase("CLEANUP");

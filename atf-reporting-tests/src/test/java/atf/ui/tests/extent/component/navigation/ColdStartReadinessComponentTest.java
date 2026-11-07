@@ -78,6 +78,32 @@ class ColdStartReadinessComponentTest {
             }
         }
     }
+    @Test void coldReadinessBindsRealControlsBeforeAnAnimationFrame() throws Exception {
+        try (var playwright = BrowserResources.open(Playwright::create);
+             var browser = BrowserResources.open(() -> BrowserResources.launch(playwright.value()));
+             var lease = BrowserResources.open(() -> BrowserResources.newPage(browser.value()))) {
+            try {
+                var page = lease.value();
+                prepare(page);
+                page.addInitScript("window.deferredFrames = 0; window.requestAnimationFrame = () => ++window.deferredFrames;");
+                page.navigate(fixture.toUri() + "#test-view");
+                page.locator("html[data-atf-test-view-ready='true']").waitFor(new Locator.WaitForOptions()
+                        .setState(com.microsoft.playwright.options.WaitForSelectorState.ATTACHED));
+                assertTrue(((Number) page.evaluate("() => window.deferredFrames")).intValue() > 0);
+                assertEquals(List.of("test-view"), page.evaluate("() => window.__coldActivations"));
+                var owner = page.locator("#test-view .test-list-item > li.test-item[test-id]").first();
+                owner.locator(".test-detail").click();
+                var header = page.locator("#test-view .test-content-detail .test-contents > .mt-4 > .accordion > .card > .card-header").first();
+                assertThat(header).hasAttribute("aria-expanded", "false");
+                header.press("Enter");
+                assertThat(header).hasAttribute("aria-expanded", "true");
+            } catch (Exception | Error reportingBrowserFailure) {
+                BrowserResources.recordFailure(reportingBrowserFailure);
+                throw reportingBrowserFailure;
+            }
+        }
+    }
+
     @Test void preservesStartupDeepLinksWithoutASecondActivation() throws Exception {
         var owner=org.jsoup.Jsoup.parse(Files.readString(fixture)).selectFirst("#test-view .test-list-item>li.test-item[test-id]");
         String id=Objects.requireNonNull(owner).attr("test-id"),name=Objects.requireNonNull(owner.selectFirst(".test-detail .name")).text();

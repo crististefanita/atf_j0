@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Path;
 import java.util.*;
+import org.junit.jupiter.engine.JupiterTestEngine;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.launcher.*;
 import org.junit.platform.launcher.core.*;
@@ -40,9 +41,18 @@ public final class JunitBrowserProbe implements BrowserProbe {
                 if (id.isTest()) cases.add(Map.of("id", Objects.requireNonNull(BrowserSelection.normalize(id.getUniqueId())), "status", "SKIPPED", "failure", reason));
             }
         };
+        BrowserProbeScope.discoveryStarted();
         var request = LauncherDiscoveryRequestBuilder.request().configurationParameter("junit.jupiter.execution.parallel.enabled", "false");
         for (String id : arguments) request.selectors(selectUniqueId(id));
-        LauncherFactory.create().execute(request.build(), witness);
+        var config = LauncherConfig.builder().enableTestEngineAutoRegistration(false).addTestEngines(new JupiterTestEngine())
+                .enableLauncherDiscoveryListenerAutoRegistration(false).enableLauncherSessionListenerAutoRegistration(false)
+                .enableTestExecutionListenerAutoRegistration(false).enablePostDiscoveryFilterAutoRegistration(false).build();
+        try (var session = LauncherFactory.openSession(config)) {
+            var launcher = session.getLauncher();
+            TestPlan selected = launcher.discover(request.build());
+            BrowserProbeScope.discoveryCompleted();
+            launcher.execute(selected, witness);
+        }
         if (!containers.isEmpty()) {
             Throwable original = assertions.isEmpty() ? containers.getFirst() : assertions.getFirst();
             for (Throwable container : containers) if (container != original) original.addSuppressed(container);

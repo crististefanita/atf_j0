@@ -92,7 +92,13 @@ class ReportingVerdictProjectionComponentTest {
                 assertEquals(Integer.toString(passed), UI.metric(page, fallback, fallback ? "Passed" : "Tests Passed").innerText());
                 assertEquals(Integer.toString(failed), UI.metric(page, fallback, fallback ? "Failed" : "Tests Failed").innerText());
                 UI.tests(page, fallback).click();
-                if (!fallback) UI.expandAll(page).click();
+                if (fallback) {
+                    var disclosure = UI.fallbackComparisonDisclosure(UI.scenario(page, true, "negative"));
+                    assertThat(disclosure).hasCount(1);
+                    assertEquals(Boolean.FALSE, disclosure.evaluate("d => d.open"));
+                    disclosure.locator(":scope > summary").press("Enter");
+                    assertEquals(Boolean.TRUE, disclosure.evaluate("d => d.open"));
+                } else UI.expandAll(page).click();
                 var table = UI.comparisonTable(page, fallback);
                 assertEquals(1, table.count(), "Inspect the canonical visible table, excluding source and navigation clones");
                 assertEquals(42, UI.rows(table).count());
@@ -100,6 +106,8 @@ class ReportingVerdictProjectionComponentTest {
                 UI.rows(table).last().scrollIntoViewIfNeeded();
                 assertTrue(UI.rows(table).last().isVisible());
                 for (String value : UI.valueCells(table).allInnerTexts()) assertTrue(value.length() <= 240);
+                if (fallback) UI.fallbackComparisonDisclosure(UI.scenario(page, true, "negative"))
+                        .locator(":scope > summary").press("Enter");
                 UI.fails(page, fallback).click();
                 assertEquals(1, UI.failures(page, fallback).count());
                 if (!fallback) UI.failures(page, false).first().click();

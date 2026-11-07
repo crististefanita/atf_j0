@@ -253,6 +253,11 @@ urmează `${project.version}` și păstrează execuția pe sursa reactorului.
 
 ### Setup browser și verdict terminal
 
+Markerii de fază păstrează timpul monoton al workerului. La cursa dintre
+watchdog și publicarea markerului, o tranziție confirmată în bugetul fazei
+poate avansa observația. Depășirea măsurată în worker rămâne eșec, iar termenul
+de startup și limita totală ale procesului rămân active.
+
 `ReportArtifactProfileComponentTest` păstrează separat inspecția statică și
 proba interactivă. `BrowserProbeProcess` execută fiecare probă într-un JVM propriu;
 un factory blocat înainte de navigare produce FAIL, inclusiv când HTML-ul este conform.
@@ -1399,7 +1404,9 @@ Neutral captured input is verified independently on source and physical JAR, in 
 | Boundary | Contract |
 |---|---|
 | setup / cleanup | `BrowserResources` păstrează obiectele SDK concrete; setup 30 s, cleanup 5 s pe apel SDK efectiv, cu limita globală legacy păstrată separat |
+| Chromium Windows | după închiderea contextelor prin SDK, workerul termină și confirmă ieșirea Chromium headless temporar și a driverului propriu în același buget de cleanup |
 | publicare | închiderea unui server ori publicarea HTML păstrează faza apelantului; numai disposal-ul SDK consumă termenul de cleanup |
+| discovery JUnit | workerul descoperă selecția exactă cu Jupiter și execută același `TestPlan`; `DISCOVERY` are diagnostic propriu, în același buget ca intrarea în `VERIFY` |
 | verificare | 120 s per scope de verificare și 10 min per clasă; pragurile existente pentru acțiuni, navigare și performanță rămân independente |
 | eroare | cauza inițială rămâne primară; excepțiile de disposal păstrează încercarea celorlalte resurse și devin suppressed; un blocaj oprește workerul și procesele proprii |
 | identitate | resurse distincte rămân distincte la disposal; referințele slabe păstrează închiderea idempotentă fără retenția obiectelor SDK |
@@ -1411,6 +1418,19 @@ Neutral captured input is verified independently on source and physical JAR, in 
 | canal de faze | citire incrementală, fără rescanarea jurnalului; numai cadrul complet schimbă faza, iar markerii imuabili păstrează auditul |
 | inventar | guvernanța inspectează apelurile SDK tipizate și traseele indirecte; `AtfReportingBrowserSuite` selectează tagul `report-browser` |
 
-Profilul `reporting-release` selectează suita unitară canonică și suita browser, pe sursă și JAR fizic. Regresiile compilează și un client controlat pentru metoda individuală, iterație și caz dinamic; setup-ul necooperativ și cleanup-ul blocat trebuie refuzate.
+Profilul `reporting-release` selectează suita unitară canonică și suita browser,
+pe sursă și JAR fizic. Clientul controlat exercită selecția pe metodă, iterație
+și caz dinamic. Un blocaj în discovery nu pornește lifecycle-ul clasei;
+un blocaj după corpul testului rămâne cleanup, cu eroarea corpului păstrată.
+
+Pentru Chromium headless din pachetul Playwright pe Windows, workerul corelează
+PID-ul raportat de CDP cu arborele său de procese și cu driverul părinte.
+Termină doar procesele revendicate și așteaptă ieșirea lor înainte de PASS.
+Un PID străin ori un proces rămas activ înseamnă FAIL.
+
+Browserele externe, headed și branded păstrează închiderea SDK.
+
+Sesiunea de audit folosește același owner de resurse și păstrează configurația
+UI pentru viewport, timeout-uri, acțiuni și monitorizarea rețelei.
 
 Logurile, markerii de fază, stack-urile și HTML-urile rămân în TMP. Preview-ul 240, PNG-urile și oracolele originale nu sunt înlocuite de succesul transportului workerului.
