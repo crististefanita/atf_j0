@@ -14,6 +14,7 @@ evidence is published or how a test verdict is evaluated.
 | screenshot dialogs | unrelated appended UI does not rescan every table in the document; original PNG bytes, local captions and return context remain intact |
 | timing | resolve a card's original execution marker once per aggregation pass; reset the cache at the next pass, including absent markers |
 | projected views | capture the source-owner/scenario index once per projection pass and share it across Category, Fails and Overview |
+| view selection | Tests, Category, Fails and Overview keep the visible pane, the sole current navigation link and the URL fragment in sync, including after native Spark rewrites the links |
 | dynamic content | identical class/open writes are ignored; actual mutations are coalesced before content invalidation; real child/text mutations increment a content revision; new/reopened/resized tables receive native column allocation; removed tables retire resize observations |
 | renderer scope | the table allocator is shared by Extent and fallback; duration aggregation belongs to Extent |
 
@@ -28,6 +29,7 @@ for assertion rows.
 | LargeNavigationFixture | four original owners, 600 comparison groups, 12,004 captured comparison rows and four complete synthetic PNG checkpoints |
 | LargeReportNavigationBrowserComponentTest | repeated owner switches, targeted assertion/PNG paths and return; bulk expansion on the neutral fixture or at most two explicitly selected external owners; per-owner SHA-256 inventory of original cells/bodies and canonical PNG payloads/references before/after; a one-character payload mutation is rejected |
 | EvidenceTableVisibilityComponentTest | identical presentation writes do not remeasure; actual cell-style changes do; known hidden views skip geometry; closed evidence remains structurally untouched; opening/reopening and direct text-node mutation receive full measured columns |
+| NavigationSelectionBrowserComponentTest | Chromium checks the four view transitions and the sole accessible current link. The distribution fixture checks the four semantic targets and fragment listener on HTML from the physical JAR. |
 | RecordedPublicationTimingComponentTest | execution and transport stay independent of publication; removed/replaced markers refresh at a subsequent aggregation |
 | adjacent browser families | standard UI/API tables, fallback layout, disclosure state, source labels and whole-frame screenshot viewport/return contracts |
 

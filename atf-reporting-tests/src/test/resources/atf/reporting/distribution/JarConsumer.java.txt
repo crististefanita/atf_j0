@@ -65,9 +65,20 @@ public final class JarConsumer {
             if(content.contains("EXPECTED_TAIL")||content.contains("ACTUAL_TAIL")) throw new AssertionError("Unbounded preview");
             if(!content.contains("Difference beyond preview")) throw new AssertionError("Missing evidence");
             if(!content.contains("Physical JAR observation")) throw new AssertionError("Missing neutral evidence");
+            if(extent) verifyNavigation(content);
             System.out.println("RENDERER="+(extent?"EXTENT":"FALLBACK")+"; statuses=PASS,FAIL,PASS; redaction=PASS; bounded-preview=PASS");
         }
         System.out.println("LOADED_REPORTING_JAR="+loaded+"; SHA256="+hash);
+    }
+    private static void verifyNavigation(String html) {
+        for(String target:List.of(
+                "id=\"nav-test\" class=\"dropdown-toggle\" href=\"#test-view\" data-atf-view=\"test-view\"",
+                "id=\"nav-category\" class=\"dropdown-toggle\" href=\"#category-view\" data-atf-view=\"category-view\"",
+                "id=\"nav-fails\" class=\"dropdown-toggle\" href=\"#atf-fails-view\" data-atf-view=\"atf-fails-view\"",
+                "id=\"nav-overview\" class=\"dropdown-toggle\" href=\"#dashboard-view\" data-atf-view=\"dashboard-view\"",
+                "window.addEventListener('hashchange',activateFromHash)")) {
+            if(!html.contains(target)) throw new AssertionError("Physical JAR navigation contract missing: "+target);
+        }
     }
     private static void publish(AtfReportPorts.Session session,String name,AtfAssertion assertion,AtfReportStatus requested) {
         try(var scenario=session.startScenario("ExternalJar",name,List.of("component"))) {

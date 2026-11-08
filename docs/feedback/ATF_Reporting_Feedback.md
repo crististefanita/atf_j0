@@ -24,6 +24,7 @@ cauzei terminale. Sursa izolată și JAR-ul fizic au gate separat în
 | 1 | porturile declară capabilitățile și compatibilitatea susținută; nicio dovadă cerută nu dispare într-un default fără efect | consumer JAR și contracte neutre |
 | 2 | proiecția recovery și flow-ul păstrează owner, cauze, timing și ordinal înainte/peste faze | comparație semantică, Extent/fallback și controale negative |
 | 3 | distribuția declară API-ul și matricea Java/vendor susținută | gate de release și [Reporting Tests](ATF_Reporting_Tests_Feedback.md) |
+| 4 | profilul poate declara și verifica screenshot-ul UI cu owner și acțiune explicite | source/JAR, Extent/fallback și controale negative |
 
 Constructorul refuzat eliberează publicația, iar lifecycle-ul rendererelor este
 la [contractul sesiunii](../../atf-reporting/README.md#publicare-și-ieșire).
@@ -35,14 +36,36 @@ package mutat nu constituie singure o îmbunătățire de arhitectură.
 
 ## REPORT-OBSERVATION-CONTRACT — domeniul validatorului de artefact
 
-**P2 · responsabil Reporting.** Contractul unui raport de observații trebuie delimitat de un demonstrator care exercită toate canalele. Un consumator care citește PNG-uri de componentă prin `ImageIO` nu trebuie să inventeze acțiuni Playwright, schimburi HTTP sau evenimente Android pentru a califica imaginile și comparațiile publicate.
+**Prioritate: 72/100** = impact 29 + lacună 20 + lucrabil 16 + documentare 7.
+**Owner:** profilul și inspectorul în Reporting; fixture-ul și controalele în Reporting Tests.
 
-- Clarificați domeniul `ReportArtifactInspector`, `UiReportArtifactContract` și alegerea contractului pentru API, acțiuni UI, observații și raster de componentă. Cerințele comune pentru inventar, expected/actual, statut, ownership și resurse autonome rămân obligatorii.
-- Prin JAR-ul fizic, reproduceți publicarea numai cu `AtfUiEvidenceSource.OBSERVE`, setup real de fișier și `uiValidation`, fără browser sau HTTP. În proba curentă, inspectorul generic cere split request/response, iar contractul UI cere tabel Playwright și secțiuni implicite, deși capturile și comparațiile sunt publicate.
-- Folosiți rolurile și modelul tipizat pentru proprietăți, fără ca un titlu care conține o expresie convențională să poată substitui dovada. Absența unui canal nefolosit se distinge de o captură declarată dar lipsă.
-- Controalele negative elimină un PNG inline, schimbă ownerul capturii, alterează rezultatul unei comparații sau injectează în titlu numele secțiunii lipsă. Nu se acceptă relaxări globale sau pași fictivi la consumator.
+`ReportArtifactProfile` și `ReportArtifactProfileComponentTest` acoperă deja
+observations și assertions fără HTTP fictiv în Extent și fallback. Profilul
+independent declară etichetele, verdicturile și inventarul așteptat; testele
+resping rânduri omise, status degradat, dovezi mutate și renderer greșit.
+Acestea închid cererea veche de a face `ReportArtifactInspector.inspect(path)`
+permisiv când request/response nu se aplică. `ReportArtifactResources` și
+`ScreenshotReferenceComponentTest` verifică referințele canonice și octeții PNG;
+aceste contracte nu leagă însă captura de intenția independentă a unui scenariu.
 
-[Reproducătorul public](../../../../whist_back/maintenance/20261106-history-responsive-strike/HistoryRasterReadbackReport.java) și [artefactul UI nemodificat](../../../../whist_back/maintenance/20261106-history-responsive-strike/reports/history-components-canonical.html) păstrează intrarea concretă; manifestul și diagnosticele aparțin auditului extern. Implementarea și împachetarea rămân la producător; consumatorul păstrează explicit calificarea structurală deschisă.
+Rămâne neacoperită validarea unui `uiValidation` cu `AtfUiEvidenceSource.OBSERVE`
+și screenshot: modelul `ReportArtifactProfile` nu poate declara încă acțiunea,
+ownerul/caption-ul capturii și identitatea PNG. Inspectorul nu poate compara
+referința validă cu captura intenționată și pasul declarat. Contractul cerut nu
+trebuie să lanseze browser, HTTP sau Android.
+
+- Extindeți profilul cu o dovadă UI tipizată numai dacă păstrează inventarul
+  independent de HTML și leagă explicit acțiunea, ownerul și caption-ul imaginii.
+- Prin JAR fizic, publicați Extent și fallback dintr-un setup local cu
+  `OBSERVE`, `uiValidation` și PNG controlat; nu inventați request-uri ori pași.
+- Controalele negative elimină imaginea, schimbă referința/caption-ul, înlocuiesc
+  octeții PNG ori leagă captura de alt owner; toate trebuie refuzate separat.
+- Păstrați verificările existente pentru observations generice, comparații,
+  resurse autonome și inventarul exact. O regulă UI nouă nu relaxează contractul
+  generic și nu derivă expected-urile din HTML-ul inspectat.
+
+**Închidere:** intenția PNG este independentă de raport, iar source/JAR
+inspectează aceeași dovadă UI în ambele renderere și refuză fiecare mutant.
 
 ## Ordinea pregătirii
 
@@ -64,9 +87,12 @@ sunt la ownerii lor, iar registrul păstrează numai criteriile încă deschise.
 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) | 80 = 31 + 24 + 18 + 7 | criteriu separat al consumerului: oracol per scenariu și containment fallback |
 | `UI-RECOVERY-AUDIT-01` | 78 = 33 + 22 + 16 + 7 | proiecția typed a încercărilor, bugetelor și corelării rămâne la Reporting |
 | `REPORT-RELEASE-CONTRACT-45` | 73 = 25 + 22 + 17 + 9 | matricea runtime/vendor, operatorul repetabil și metadatele externe nu sunt încă o politică completă |
+| `REPORT-OBSERVATION-CONTRACT` | 72 = 29 + 20 + 16 + 7 | profilul declară observations generice, dar nu UI validation cu screenshot și identitatea PNG |
 | [REPORT-FALLBACK-RESULT-WIDTH-101](#report-fallback-result-width-101--regresie-geometrică-pentru-badge) | 64 = 24 + 19 + 15 + 6 | lipsește un oracol geometric al badge-ului WARNING în celula RESULT |
 | `REPORT-FLOW-PROJECTION-36` | 62 = 24 + 17 + 16 + 5 | calculul proiecției și protocolul publicării rămân amestecate |
 | [REPORT-DISTRIBUTION-METADATA-140](#report-distribution-metadata-140--bind-optional-adoption-paths) | P2; unscored | permanent negative for stale optional consumerDistribution paths; current bytes are already correct |
+| [REPORT-COMPONENT-FRAGMENTS](#report-component-fragments--costul-multor-corpuri-mici) | P2 | măsurare neutră pentru multe corpuri mici, cu inventarul complet al dovezilor |
+| [REPORT-PROFILE-LABELS](#report-profile-labels--convenția-textului-vizibil) | P1 / P2 | titluri redate ca text și convenție explicită pentru etichetele normalizate |
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
@@ -123,8 +149,9 @@ Namespace-ul întreg nu poate deveni automat o promisiune de compatibilitate.
       `UiExtentReportOptions` ca intrare coerentă, cu overload-uri vechi delegante.
       Nu creați clase sau module numai pentru a reduce dimensiunea fișierelor.
 - [ ] Stabiliți capabilități și refuzuri explicite pentru adaptoare: timing,
-      assertion-step, screenshot, aggregate și nested request. Compatibilitatea
-      nu justifică o dovadă cerută și pierdută fără diagnostic.
+      assertion-step, screenshot, UI action, execution, aggregate și nested
+      request. Proba distinge dovada publicată de refuzul explicit al unei
+      capabilități obligatorii.
 - [ ] Automatizați compatibilitatea suprafeței susținute și politica versiunilor.
       Consumerul extern și comparația binară a incrementului există; ele nu
       declară automat suport pentru fiecare clasă Java publică.
@@ -145,8 +172,10 @@ artefactul curent și nu propunem mutarea lor în Java sau într-un modul nou.
   Extent trebuie urmărită; macro-ul refuză expresia vendorului schimbată.
 
 Inventarul bibliotecilor verifică JAR/POM-ul distribuit, hash-ul și proveniența;
-ghidul executabil probează consumerul binar. Restanța este un operator de release
-repetabil și o politică explicită de compatibilitate/metadate, nu inventarul local.
+ghidul executabil probează consumerul binar. Dovada pachetului curent, indicată
+în [proveniența de consum](../../../atf_j1/library-provenance.json), consemnează
+două build-uri curate cu JAR/POM identice. Rămân operatorul automat menținut la
+owner și politica explicită de compatibilitate și metadate.
 
 **Același increment:**
 
@@ -155,7 +184,8 @@ repetabil și o politică explicită de compatibilitate/metadate, nu inventarul 
       pentru fiecare runtime/vendor trebuie să aibă probă proprie.
 - [ ] Automatizați la owner un release gate repetabil: două build-uri curate
       din intrări identice, toolchain declarată, byte identity și proveniență.
-      Gate-urile locale de inventar nu sunt release operator.
+      Operatorul menținut la owner reia probele native și sursă/JAR și verifică
+      POM-ul încorporat și identitatea intrărilor, independent de scripturile TMP.
 - [ ] Decideți distribuția Sources/JavaDoc și metadatele SCM/licență fără a
       deduce o licență; rezolvați POM-ul publicat într-un consumer extern înainte
       de a promova versiunea.
@@ -432,13 +462,6 @@ hashes, Maven loading and binary behavior were already correct.
 The current metadata is corrected; the remaining criterion is guard coverage,
 without a renderer change, new module or new library version.
 
-<details>
-<summary><strong>Delivered contracts and historical compatibility routes</strong></summary>
-
-## REPORT-ARTIFACT-PROFILE-62 — aplicabilitate explicită a inspectorului
-
-[Inspection intent](../../atf-reporting/README.md#inspecția-artifactului-cu-intenție-explicită) own the delivered profile and invariant contracts.
-
 ## REPORT-COMPONENT-FRAGMENTS — costul multor corpuri mici
 
 **P2 · owner Reporting; consumatorul deține partiționarea inputului.** Agregarea completă J4 a produs `OutOfMemoryError` în `StringWriter`/FreeMarker cu heap de 768 MiB, în timp ce publicările mici treceau. Intrările conțin texte complete împărțite în foarte multe corpuri scurte; cauza algoritmică și complexitatea nu sunt încă demonstrate. [Diagnosticul capturat](../../../../whist_back/maintenance/20261106-component-suite-aggregation/qualified-components/run.json) identifică încercarea neacceptată; stiva originală este în staging-ul declarat de aceasta.
@@ -459,53 +482,16 @@ without a renderer change, new module or new library version.
 - [ ] Documentați dacă numele din profil reprezintă textul vizibil normalizat și expuneți, dacă este potrivit, proiecția reutilizabilă în API-ul împachetat. Consumatorii nu trebuie să ghicească independent convenția pentru LF, CRLF, tab, NBSP sau spații de margine.
 - [ ] Calificați convenția în ambele renderere: scenariu, aserțiune și observație cu etichete multiline, plus valori lungi ale căror spații și ultimul caracter rămân originale. Profilul rămâne construit din intenția capturată, fără derivarea așteptărilor din HTML-ul verificat.
 
-## REPORT-RECORDED-TIMING-83 — execuție capturată și cost de publicare
+<details>
+<summary><strong>Rute de compatibilitate către contractele livrate</strong></summary>
 
-[Recorded timing](../../atf-reporting/README.md#originea-duratelor-sub-o-fază-capturată) and [Reporting owner contract](../../atf-reporting/README.md) retain distinct execution, capture and publication axes.
+<a id="report-artifact-profile-62--aplicabilitate-explicită-a-inspectorului"></a>
 
-## Consumer reacceptance — separate remaining criteria
+[Profilul explicit de inspecție](../../atf-reporting/README.md#inspecția-artifactului-cu-intenție-explicită) acoperă rapoarte fără HTTP.
 
-This is a historical J10/J12 consumer witness. [J2 SQL verification](../../../atf_j2/docs/ATF_SQL_Live_Verification.md) owns its original executions; SQL-STEPS-116 above retains the separate open neutral-step and budget criteria.
+<a id="report-screenshot-return-137--png-reutilizat-schimbă-ownerul-și-pierde-expandările"></a>
+<a id="report-screenshot-viewport-138--imagine-integrală-în-spațiul-disponibil"></a>
 
-## REPORT-FALLBACK-ASSERTION-AFFORDANCE-124 — indicator vizual pentru assertions
-
-The [Reporting owner contract](../../atf-reporting/README.md) defines the delivered assertion indicator. Its regression belongs to the [Reporting harness](../../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions).
-
-## Inspector, timing and assertion contracts
-
-The [Reporting owner contract](../../atf-reporting/README.md) defines inspector intent, timing and assertion indicators; dated execution evidence remains with the package. PUBLIC-API-43 remains separately open.
-
-## Contractul rândului UI
-
-[UI row fidelity](../../atf-reporting/README.md#fidelitatea-rândului-ui-și-politica-de-redactare) and the [inline audit contract](../ATF_Inline_Audit_Contract.md) own the delivered redaction and literal-text contracts.
-
-## REPORT-SCREENSHOT-RETURN-137 — PNG reutilizat schimbă ownerul și pierde expandările
-
-[inline audit contract](../ATF_Inline_Audit_Contract.md) owns canonical PNG identity, local captions and return context. The permanent [screenshot family](ATF_Reporting_Tests_Feedback.md#report-test-screenshot-return-137--contextul-viewer-ului-pentru-png-reutilizat) remains a regression obligation.
-
-## REPORT-SCREENSHOT-VIEWPORT-138 — imagine integrală în spațiul disponibil
-
-The [full-image contract](../ATF_Inline_Audit_Contract.md#full-image-viewer-target) owns whole-frame fit, aspect ratio and explicit original-size inspection. Consumer capture and device acceptance remain separate.
-
-## REPORT-LARGE-NAVIGATION-139 — verified retained-evidence navigation
-
-[Large-report navigation](../ATF_Large_Report_Navigation.md) owns retained-evidence navigation and bounded external-owner acceptance.
-
-## REPORT-COLD-READINESS-141 — startup repeats work before readiness
-
-[Cold-start readiness](../ATF_Large_Report_Navigation.md#cold-startup-and-readiness) retains the original deadlines and permanent source/JAR contracts.
-
-## REPORT-TIMELINE-TITLE-142 — native JavaScript key encoding
-
-The [native timeline contract](../ATF_Large_Report_Navigation.md#native-timeline-labels) retains complete caller keys, original durations and executable source/JAR script checks.
+[Contractul de audit inline](../ATF_Inline_Audit_Contract.md#full-image-viewer-target) păstrează imaginea completă și contextul la revenire. [Probele permanente](../ATF_Inline_Audit_Contract.md#acceptanță-permanentă) verifică identitatea capturii și comportamentul viewerului.
 
 </details>
-
-## Maintenance closure sequence
-
-The producer source still exposes optional default methods that silently ignore requested screenshot, UI action, execution and aggregate evidence. This is a capability/compatibility gap under PUBLIC-API-43; legacy adapter compatibility must remain explicit rather than being broken by blanket method changes.
-
-- [ ] Under PUBLIC-API-43, characterize the exact requested-evidence/default-adapter matrix; declare supported capabilities and require an observable refusal when mandatory evidence is unsupported. Decouple the journey aggregate DTO from its inspecting/calculating class only after caller and ABI characterization.
-- [ ] Under RELEASE-CONTRACT-45, retain an owned, repeatable release operator at its maintained owner; reproduce native gates, source/JAR regressions, embedded POM, raw input identity and byte-identical builds without relying on an earlier agent's TMP scripts.
-
-These are refinements of existing library contracts. SQL extensions and application/device acceptance remain separate from maintenance grading.

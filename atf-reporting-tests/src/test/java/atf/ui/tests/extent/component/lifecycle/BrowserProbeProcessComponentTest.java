@@ -6,6 +6,7 @@ import atf.reporting.browser.lifecycle.BrowserProbe;
 import atf.reporting.browser.lifecycle.BrowserProbeBudget;
 import atf.reporting.browser.lifecycle.BrowserProbeFailure;
 import atf.reporting.browser.lifecycle.BrowserProbeProcess;
+import atf.reporting.browser.runtime.BrowserDriverRuntime;
 import atf.reporting.browser.process.OwnedChromiumProcess;
 
 import atf.testkit.AtfComponentTest;
@@ -45,6 +46,12 @@ public class BrowserProbeProcessComponentTest {
         byte[] png = Files.readAllBytes(evidence.resolve("viewport.png"));
         assertArrayEquals(new byte[] {(byte) 137, 80, 78, 71, 13, 10, 26, 10}, java.util.Arrays.copyOf(png, 8));
         assertTrue(Files.isRegularFile(evidence.resolve("phase-DONE")));
+        assertTrue(Files.readString(evidence.resolve("java.args")).contains("-Dplaywright.cli.dir="));
+        var driver = BrowserDriverRuntime.prepare();
+        String runtime = Files.readString(evidence.resolve("driver-runtime.log"));
+        assertTrue(runtime.contains("preparationMillis="));
+        assertTrue(runtime.contains("cliDirectory=" + driver.directory()));
+        assertTrue(Files.isRegularFile(driver.directory().resolve("package/cli.js")));
         if (System.getProperty("os.name", "").startsWith("Windows")) {
             String diagnostics = Files.readString(evidence.resolve("process.log"));
             assertTrue(diagnostics.contains("ATF_OWNED_EXIT Chromium pid="));

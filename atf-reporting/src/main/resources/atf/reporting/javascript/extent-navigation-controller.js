@@ -1,12 +1,6 @@
 var atfTestViewNormalizationPending = false;
 var atfTestViewReadinessTimers = {};
 var atfNavEpoch = 0;
-var atfNavigationTargets = {
-  'nav-test': 'test-view',
-  'nav-category': 'category-view',
-  'nav-fails': 'atf-fails-view',
-  'nav-overview': 'dashboard-view'
-};
 document.addEventListener('pointerdown', function (e) {
   if (e.target.closest('#test-view')) atfNavEpoch++;
 }, true);
@@ -53,7 +47,7 @@ window.atfOpenTest = function (id, scenarioIndex, expansion, failureOrdinal, fai
   if (expansion) hash += '&expand=' + expansion;
   if (failureOrdinal !== undefined) hash += '&failure-ordinal=' + encodeURIComponent(failureOrdinal);
   if (failureKind) hash += '&failure-kind=' + encodeURIComponent(failureKind);
-  window.location.hash = hash;
+  location.hash = hash;
   atfActivate('test-view');
   var item = document.querySelector('.test-item[test-id="' + id + '"]');
   if (item) {
@@ -83,22 +77,15 @@ function synchronizeNavigationSelection(id) {
     v.classList.toggle('hide', !active);
     v.classList.toggle('d-none', !active);
   });
-  q('.side-nav .nav-item').forEach(function (v) {
-    v.classList.remove('active');
-    q('a', v).forEach(function (link) {
-      link.classList.remove('active');
-      link.removeAttribute('aria-current');
-    });
+  q('.side-nav a[id^="nav-"]').forEach(function (link) {
+    var target = link.dataset.atfView;
+    link.href = '#' + target;
+    var active = target === id;
+    link.classList.toggle('active', active);
+    if (active) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+    link.parentElement.classList.toggle('active', active);
   });
-  var nav = Object.keys(atfNavigationTargets).find(function (linkId) {
-      return atfNavigationTargets[linkId] === id;
-    }),
-    navLink = nav && document.getElementById(nav);
-  if (navLink) {
-    navLink.classList.add('active');
-    navLink.setAttribute('aria-current', 'page');
-    if (navLink.parentElement) navLink.parentElement.classList.add('active');
-  }
 }
 window.atfActivate = function (id) {
   synchronizeNavigationSelection(id);
@@ -137,7 +124,7 @@ window.atfActivate = function (id) {
   captureDomContract();
 };
 function activateFromHash() {
-  var hash = String(window.location.hash || '').replace(/^#/, '');
+  var hash = String(location.hash || '').replace(/^#/, '');
   var view = hash.split('&')[0];
   if (view === 'test-view') atfActivate('test-view');
   else if (view === 'category-view') atfActivate('category-view');
@@ -161,47 +148,27 @@ function activateFromHash() {
         failureKind = decodeURIComponent(part.substring(13));
     });
     atfOpenTest(id, scenario, expansion, failureOrdinal, failureKind);
-  }
+  } else atfActivate('dashboard-view');
 }
 function requestedNavigationView() {
-  var view = String(window.location.hash || '').replace(/^#/, '').split('&')[0];
-  if (view.indexOf('test-id=') === 0) return 'test-view';
-  if (view === 'test-view' || view === 'category-view' || view === 'atf-fails-view') return view;
-  return 'dashboard-view';
+  var view = location.hash.slice(1).split('&')[0];
+  return view.indexOf('test-id=') === 0 ? 'test-view'
+    : /^(test|category|atf-fails)-view$/.test(view) ? view : 'dashboard-view';
 }
 function bindNavigationSelectionLinks() {
-  q('.side-nav a[id^="nav-"]').forEach(function (link) {
-    if (link.__atfNavigationSelectionBound) return;
-    link.__atfNavigationSelectionBound = true;
-    link.addEventListener('click', function (event) {
-      event.preventDefault();
-      event.stopPropagation();
-      var target = atfNavigationTargets[link.id];
-      if (!target) return;
-      // Own the tab transition; Extent's delegated handler can leave a stale view.
-      synchronizeNavigationSelection(target);
-      setTimeout(function () {
-        link.setAttribute('href', '#' + target);
-        if (window.location.hash !== '#' + target) window.location.hash = target;
-        synchronizeNavigationSelection(target);
-      }, 0);
-    }, true);
-  });
+  var nav = document.querySelector('.side-nav');
+  if (!nav) return;
+  nav.addEventListener('click', function (event) {
+    var link = event.target.closest('a[data-atf-view]');
+    if (!link) return;
+    var target = link.dataset.atfView;
+    event.stopPropagation();
+    synchronizeNavigationSelection(target);
+    location.hash = target;
+  }, true);
 }
-window.addEventListener('hashchange', function () {
-  activateFromHash();
-  setTimeout(function () {
-    synchronizeNavigationSelection(requestedNavigationView());
-  }, 0);
-});
-function normalizeNavigationTargets() {
-  Object.keys(atfNavigationTargets).forEach(function (id) {
-    var link = document.getElementById(id);
-    if (link) link.setAttribute('href', '#' + atfNavigationTargets[id]);
-  });
-}
+window.addEventListener('hashchange', activateFromHash);
 function normalizeNavigationLinks() {
-  normalizeNavigationTargets();
   bindNavigationSelectionLinks();
   normalizeTagFilter();
   bindTestFilters();
@@ -225,7 +192,6 @@ function initializeReportNavigation() {
   watchDurationNodes();
   normalizeTestPackageMetadata();
   setTimeout(function () {
-    normalizeNavigationTargets();
     activateFromHash();
   }, 0);
   atfReportNavigationInitialized = true;
@@ -240,11 +206,7 @@ function initializeReportNavigation() {
 document.addEventListener('DOMContentLoaded', initializeReportNavigation);
 window.addEventListener('load', function () {
   initializeReportNavigation();
-  normalizeNavigationTargets();
-  // Extent may run its first-nav click from a queued ready callback after load.
-  // Reconcile once that callback has had its turn; this only touches navigation state.
   setTimeout(function () {
-    normalizeNavigationTargets();
     synchronizeNavigationSelection(requestedNavigationView());
   }, 0);
 });

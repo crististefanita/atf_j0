@@ -31,9 +31,11 @@ public final class UiReportArtifactContract {
                 "data-tab=\"category\"", "data-tab=\"fails\"")
                 || hasAll(source, "id=\"test-view\"", "id=\"dashboard-view\"",
                 "id=\"category-view\"", "id=\"atf-fails-view\"")));
-        checks.put("autonomous navigation", (hasAll(source,
-                "activate('overview')", "activate('tests')", "history.replaceState")
-                || hasAll(source, "window.location.hash", "hashchange")));
+        checks.put("autonomous navigation", hasAll(source,
+                "data-atf-view=\"test-view\"", "data-atf-view=\"category-view\"",
+                "data-atf-view=\"atf-fails-view\"", "data-atf-view=\"dashboard-view\"",
+                "function bindNavigationSelectionLinks()", "function activateFromHash()",
+                "window.addEventListener('hashchange',activateFromHash)", "aria-current", "location.hash"));
         checks.put("semantic phase hierarchy", hasAll(source,
                 "data-atf-node-role=\"phase\"", "data-atf-node-role=\"request\"",
                 "data-atf-node-role=\"validation\""));

@@ -3,7 +3,6 @@
 ## Pe scurt
 
 Cerințele sunt întreținute în [registrul J1](../../../atf_j1/docs/feedback/README_AI_Evaluation.md).
-J0 păstrează numai cerințe Core/Reporting; această rută de compatibilitate nu conține ToDo-uri sau un owner concurent.
 
 Transferul din 2026-11-02 păstrează ID-urile, probele și limitele originale.
 Contractele deja livrate rămân în documentația modulelor; mutarea registrului nu certifică implementarea.

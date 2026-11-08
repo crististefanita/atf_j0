@@ -88,6 +88,8 @@ public final class ExtentReportNavigationView {
                         AtfReportHtmlVocabulary.CssClass.DROPDOWN_TOGGLE),
                 AtfReportHtmlVocabulary.attribute(AtfReportHtmlVocabulary.Attribute.HREF,
                         "#" + view.value()),
+                AtfReportHtmlVocabulary.attribute(AtfReportHtmlVocabulary.Attribute.NAVIGATION_VIEW,
+                        view.value()),
                 AtfReportHtmlVocabulary.attribute(AtfReportHtmlVocabulary.Attribute.TITLE, label),
                 AtfReportHtmlVocabulary.attribute(AtfReportHtmlVocabulary.Attribute.ARIA_LABEL, label));
         return AtfReportHtmlVocabulary.element(AtfReportHtmlVocabulary.Tag.LI, link,
@@ -170,6 +172,8 @@ public final class ExtentReportNavigationView {
                         AtfReportHtmlVocabulary.CssClass.DROPDOWN_TOGGLE) + " "
                 + AtfReportHtmlVocabulary.attribute(
                         AtfReportHtmlVocabulary.Attribute.HREF, "#" + view.value()) + " "
+                + AtfReportHtmlVocabulary.attribute(
+                        AtfReportHtmlVocabulary.Attribute.NAVIGATION_VIEW, view.value()) + " "
                 + AtfReportHtmlVocabulary.attribute(
                         AtfReportHtmlVocabulary.Attribute.TITLE, label) + " "
                 + AtfReportHtmlVocabulary.attribute(

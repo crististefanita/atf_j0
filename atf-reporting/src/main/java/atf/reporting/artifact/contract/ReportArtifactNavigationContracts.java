@@ -10,10 +10,14 @@ final class ReportArtifactNavigationContracts {
                 && html.contains("id=\"nav-category\" class=\"dropdown-toggle\" href=\"#category-view\"")
                 && html.contains("id=\"nav-fails\" class=\"dropdown-toggle\" href=\"#atf-fails-view\"")
                 && html.contains("id=\"nav-overview\" class=\"dropdown-toggle\" href=\"#dashboard-view\"")
+                && html.contains("data-atf-view=\"test-view\"")
+                && html.contains("data-atf-view=\"category-view\"")
+                && html.contains("data-atf-view=\"atf-fails-view\"")
+                && html.contains("data-atf-view=\"dashboard-view\"")
                 && html.contains("data-atf-tab=\"overview\"")
                 && html.contains("data-atf-tab=\"fails\"")
                 && html.contains("function activateFromHash()")
-                && html.contains("window.addEventListener('hashchange',function(){activateFromHash();"));
+                && html.contains("window.addEventListener('hashchange',activateFromHash)"));
         int testsTab = html.indexOf("href=\"#test-view\"");
         int categoryTab = html.indexOf("href=\"#category-view\"");
         int failsTab = html.indexOf("href=\"#atf-fails-view\"");
@@ -21,7 +25,7 @@ final class ReportArtifactNavigationContracts {
         checks.put("tab order contract", testsTab >= 0 && testsTab < categoryTab
                 && categoryTab < failsTab && failsTab < overviewTab);
         checks.put("filter preserves active tab", html.contains("e.preventDefault();e.stopPropagation()")
-                && html.contains("window.location.hash")
+                && html.contains("location.hash")
                 && html.contains("setTestFilter('status',status)")
                 && html.contains("setTestFilter('tag',text(item).toLowerCase())"));
         checks.put("scenario filtering scope", html.contains("function directScenarioCards(root)")
@@ -54,7 +58,7 @@ final class ReportArtifactNavigationContracts {
                 && html.contains("aria-current")
                 && html.contains("function bindNavigationSelectionLinks()"));
         checks.put("hash navigation", html.contains("function activateFromHash()")
-                && html.contains("window.addEventListener('hashchange',function(){activateFromHash();")
+                && html.contains("window.addEventListener('hashchange',activateFromHash)")
                 && html.contains("activateFromHash();},0)"));
         checks.put("offline tab fallback", html.contains("href=\"#test-view\"")
                 && html.contains("href=\"#category-view\"")

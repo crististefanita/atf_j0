@@ -7,7 +7,6 @@ oracol, fixture, classpath, navigare și acceptanța browserului.
 [Implementarea bibliotecii](ATF_Reporting_Feedback.md) păstrează lifecycle-ul,
 API-ul public, publicarea și release-ul; un test reparat nu închide implicit acel criteriu.
 
-**Prioritate: 89/100** = impact 35 + lacună 27 + lucrabil 19 + documentare 8.
 Un candidat de bibliotecă cere și probele canonice afectate, cu ieșirea integrală
 păstrată în staging. O selecție focalizată verde nu certifică inventarul rezidual.
 
@@ -44,10 +43,9 @@ nu relistați acoperirea nominală ca lacună.
 - [ ] Controlul negativ elimină numai captura unui caz, mută dovada la un
       sibling sau inversează numai verdictul lui; oracolul trebuie să refuze
       fiecare variantă fără să fie satisfăcut de script ori de alt scenariu.
-- [ ] Pentru linkurile Fails native verificați activarea cu Enter și starea
-      focusată; Space se cere disclosure-urilor, nu linkurilor. Enter/Space,
-      grupul deschis și reload rămân verificate pentru disclosure-urile existente.
-      Nu acceptați asocierea după titlu.
+- [ ] Verificați explicit focusul linkului Fails la navigarea cu tastatura.
+      Probele existente folosesc deja Enter în Extent și fallback și verifică
+      revenirea la comparația exactă după reload. Space rămâne pentru disclosure.
 - [ ] Păstrați preview-ul implicit 240 și bugetele configurate; comparația
       integrală precede redacția. Un mismatch după limita preview-ului rămâne
       FAIL fără publicarea integrală a valorilor ori expunerea unui secret.
@@ -153,43 +151,14 @@ query/bind-uri/schema efectiv capturate. Acceptanța anterioară J9 rămâne ist
 
 ## Current regression boundaries
 
-- SQL-STEPS-116, exact-row/reload failure identity and RESULT geometry remain separate open criteria.
-- [Unicode and Kit scope](../../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md) belong to J1; Reporting keeps the neutral rendering boundary.
+- SQL-STEPS-116, matricea de mutații per dovadă și geometria RESULT au criterii de închidere distincte.
+- [Test Kit](ATF_Common_Test_Support_Feedback.md) deține capturarea și proiecția comparațiilor. [Coordonarea J1](../../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md) păstrează integrarea în consumeri.
 - [Long UI assertion capture](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) remains separate from the delivered ACTION/OBSERVE and literal TEXT contracts.
 
-<details>
-<summary><strong>Delivered regression families and compatibility routes</strong></summary>
-
-## REPORT-TEST-ARTIFACT-PROFILE-62 — matrice neutră fără HTTP fictiv
-
-[Reporting owner contract](../../atf-reporting/README.md) and the [harness contract](../../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions) retain explicit artifact profiles and degraded-inventory negatives.
-
-## Timing capturat versus publicare — regresie de păstrat
-
-[RecordedPublicationTimingComponentTest](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/timing/RecordedPublicationTimingComponentTest.java) and [Reporting owner contract](../../atf-reporting/README.md) own the permanent barrier-based timing regression.
-
-## REPORT-TEST-SCREENSHOT-RETURN-137 — contextul viewer-ului pentru PNG reutilizat
-
-[Screenshot reference contracts](../../atf-reporting-tests/src/test/java/atf/reporting/observation/ScreenshotReferenceComponentTest.java), the [browser family](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/screenshot/ScreenshotViewerBrowserComponentTest.java) and [inline audit contract](../ATF_Inline_Audit_Contract.md) retain owner, caption, focus and legal scroll restoration.
-
-## REPORT-TEST-SCREENSHOT-VIEWPORT-138 — fit integral fără crop
-
-The [neutral fixture](../../atf-reporting-tests/src/test/java/atf/reporting/support/screenshot/ScreenshotViewerFixture.java) and [inline audit contract](../ATF_Inline_Audit_Contract.md) own full-image geometry, input controls and immutable PNG acceptance on source/JAR.
-
-## REPORT-LARGE-NAVIGATION-139 — permanent retained-evidence regression
-
-The [navigation contract](../ATF_Large_Report_Navigation.md) defines the navigation, hidden-table, semantic-tree and canonical-PNG mutation families. Large external reports use targeted paths or at most two explicitly selected original owners.
-
-## REPORT-COLD-READINESS-141 — permanent startup regression
-
-[navigation contract](../ATF_Large_Report_Navigation.md) owns ColdStartReadinessComponentTest, unchanged-write measurement checks and the original cold-start deadlines. Control 141 remains verified in the [baseline](../ATF_Test_Changes_Baseline.md).
-
-## REPORT-TIMELINE-TITLE-142 — permanent native-script contract
-
-[native timeline contract](../ATF_Large_Report_Navigation.md#native-timeline-labels) retains three full-label script cases, the old-binary negative and unchanged timestamp coverage.
-
-</details>
-
+Probele permanente pentru inspector, timing, PNG, navigare și pornirea la rece
+sunt documentate la [ownerul testelor](../../atf-reporting-tests/README.md),
+în [contractul de audit](../ATF_Inline_Audit_Contract.md#acceptanță-permanentă)
+și în [contractul de navigare](../ATF_Large_Report_Navigation.md#permanent-verification).
 ## Public adapter and API-client boundary
 
 Ghidul din `lib` este deja compilat și executat pe JAR-ul fizic prin

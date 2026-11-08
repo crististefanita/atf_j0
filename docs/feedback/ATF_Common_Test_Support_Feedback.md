@@ -22,7 +22,7 @@ J0 deține codul, API-ul, testele native, împachetarea și feedback-ul Test Kit
 
 ## Retenția comparațiilor — coordonare cu Reporting
 
-RecordedAssertions stochează proiecția limitată și oferă observerul opțional Projection pentru valorile redactate integrale. O eroare de captură păstrează cauza și verdictul pe fază; ValidationTable și politica de retenție a consumerului rămân criterii distincte.
+`RecordedAssertions` stochează proiecția limitată și primește un `AssertionValueDisplay` cu observer opțional pentru valorile `Projection` redactate integral. O eroare de captură păstrează cauza și verdictul pe fază. `ValidationTable` și politica de retenție a consumerului au criterii distincte.
 
 - [ ] Coordonați [dovada integrală Reporting](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview): captură sigură înaintea trunchierii, limite integrale explicite, fără comparație dublă și fără modificarea preview-ului 240. Controlul negativ are preview-uri identice și un sufix diferit.
 

@@ -4390,3 +4390,34 @@ testChanges:
 ```
 
 </details>
+
+<details>
+<summary><strong>Control tehnic — REPORT-NAV-DRIVER-20261108</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-NAV-DRIVER-20261108
+    status: VERIFIED
+    base: 6c6cdc94e6a09951054d12afe403d932df9ecabb
+    expires: 2026-11-30
+    reason: Deleagă selecția celor patru taburi fără handler-e duplicate și pregătește o dată CLI-ul Playwright în host, în afara termenului workerului. Păstrează termenul setup de 30 s și oracolele de randare.
+    proof: >-
+      mvn -B -o -f <TMP>\pom.xml -pl atf-reporting-tests,atf-tests -am
+      -Preporting-release "-Dtest=AtfReportingUnitSuite,TestChangeGovernanceTest,AtfPackageCohesionGovernanceTest,DocumentationAnchorGovernanceTest"
+      "-Datf.governance.testChanges.baseRef=6c6cdc94e6a09951054d12afe403d932df9ecabb"
+      "-Dsurefire.failIfNoSpecifiedTests=false" test; mvn -B -o -f <TMP>\pom.xml
+      -pl atf-reporting-tests -am -Preporting-release
+      "-Dtest=ReportingLibraryDistributionIntegrationTest,ExtentReportNavigationContractTest"
+      "-Dsurefire.failIfNoSpecifiedTests=false" test; mvn -B -o -f <TMP>\pom.xml
+      -pl atf-reporting-tests -am -Preporting-release
+      "-Dtest=NavigationSelectionBrowserComponentTest"
+      "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/lifecycle/BrowserProbeProcess.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/runtime/BrowserDriverRuntime.java
+      - atf-reporting-tests/src/test/java/atf/reporting/extent/session/ExtentReportNavigationContractTest.java
+      - atf-reporting-tests/src/test/resources/atf/reporting/distribution/JarConsumer.java.txt
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/lifecycle/BrowserProbeProcessComponentTest.java
+```
+
+</details>

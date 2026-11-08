@@ -38,12 +38,10 @@ class ExtentReportNavigationContractTest {
 
         String html = Files.readString(report);
         assertAll(
-                () -> assertTrue(html.contains("id=\"nav-test\" class=\"dropdown-toggle\" href=\"#test-view\" title=\"Tests\" aria-label=\"Tests\"")),
-                () -> assertTrue(html.contains("id=\"nav-category\" class=\"dropdown-toggle\" href=\"#category-view\" title=\"Category\" aria-label=\"Category\"")),
-                () -> assertTrue(html.contains("id=\"nav-fails\" class=\"dropdown-toggle\" href=\"#atf-fails-view\"")),
-                () -> assertTrue(html.contains("id=\"nav-overview\" class=\"dropdown-toggle\" href=\"#dashboard-view\"")),
-                () -> assertTrue(html.contains("id=\"nav-fails\" class=\"dropdown-toggle\" href=\"#atf-fails-view\" title=\"Fails\" aria-label=\"Fails\"")),
-                () -> assertTrue(html.contains("id=\"nav-overview\" class=\"dropdown-toggle\" href=\"#dashboard-view\" title=\"Overview\" aria-label=\"Overview\"")),
+                () -> assertTrue(html.contains("id=\"nav-test\" class=\"dropdown-toggle\" href=\"#test-view\" data-atf-view=\"test-view\" title=\"Tests\" aria-label=\"Tests\"")),
+                () -> assertTrue(html.contains("id=\"nav-category\" class=\"dropdown-toggle\" href=\"#category-view\" data-atf-view=\"category-view\" title=\"Category\" aria-label=\"Category\"")),
+                () -> assertTrue(html.contains("id=\"nav-fails\" class=\"dropdown-toggle\" href=\"#atf-fails-view\" data-atf-view=\"atf-fails-view\" title=\"Fails\" aria-label=\"Fails\"")),
+                () -> assertTrue(html.contains("id=\"nav-overview\" class=\"dropdown-toggle\" href=\"#dashboard-view\" data-atf-view=\"dashboard-view\" title=\"Overview\" aria-label=\"Overview\"")),
                 () -> assertTrue(html.contains("data-atf-tab=\"overview\"")),
                 () -> assertTrue(html.contains("data-atf-tab=\"fails\"")),
                 () -> assertTrue(html.contains("var atfFilterState={status:'',tag:''}")),
@@ -58,7 +56,7 @@ class ExtentReportNavigationContractTest {
                 () -> assertTrue(html.contains("aria-pressed")),
                 () -> assertTrue(html.contains("data-atf-tab=\"fails\"")),
                 () -> assertTrue(html.contains("function activateFromHash()")),
-                () -> assertTrue(html.contains("window.addEventListener('hashchange',function(){activateFromHash();")),
+                () -> assertTrue(html.contains("window.addEventListener('hashchange',activateFromHash)")),
                 () -> assertTrue(html.contains("function bindNavigationSelectionLinks()")),
                 () -> assertTrue(html.contains("event.preventDefault();event.stopPropagation()")),
                 () -> assertFalse(html.contains("onclick=\"if(typeof atfActivate"),
@@ -107,7 +105,7 @@ class ExtentReportNavigationContractTest {
                 () -> assertTrue(html.contains("if(!selectedVisible&&firstVisible)"),
                         "filtering must move the detail pane to a visible owner"),
                 () -> assertTrue(html.contains("e.preventDefault();e.stopPropagation()")
-                                && html.contains("window.location.hash"),
+                                && html.contains("location.hash"),
                         "filter clicks must not navigate away from Tests"),
                 () -> assertTrue(html.contains("data-atf-filter-hidden")
                                 && html.contains("aria-pressed"),
@@ -158,8 +156,8 @@ class ExtentReportNavigationContractTest {
                 () -> assertTrue(html.contains("openScenarioCard(card)")),
                 () -> assertTrue(html.contains("title','Open this test in Tests")),
                 () -> assertTrue(html.contains("if(id==='category-view'){ensureCategoryFilters();ensureCategoryDetail();normalizeCategorySummaryLabels();normalizeCategoryLinks();}")),
-                () -> assertTrue(html.contains("'nav-category':'category-view'")),
-                () -> assertTrue(html.contains("window.addEventListener('hashchange',function(){activateFromHash();"))
+                () -> assertTrue(html.contains("data-atf-view=\"category-view\"")),
+                () -> assertTrue(html.contains("window.addEventListener('hashchange',activateFromHash)"))
         );
     }
 }

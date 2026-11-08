@@ -104,6 +104,8 @@ ajunge la dovada ei în scenariul, faza și ordinalul corecte.
   extern, fără a căuta sursa în vecinătate.
 
 Ambele trasee verifică hash-ul, CodeSource-ul și aceleași controale negative.
+Consumerul JAR verifică și țintele celor patru taburi Extent și sincronizarea
+hash-ului cu vederea selectată; componenta Chromium verifică schimbările reale.
 
 Auditul structurii Java este executat de `ReportingSourceArchitectureTest` în
 build-ul nativ al producătorului. Probele runtime de aici consumă clase și resurse
@@ -265,8 +267,9 @@ un factory blocat înainte de navigare produce FAIL, inclusiv când HTML-ul este
 
 | Limită | Contract |
 |---|---|
-| Setup | 30 s, inclusiv pornirea JVM/SDK, launch și `newPage`; fără retry |
-| Verificare | 60 s pentru probă; pragurile originale de acțiune 5 s și navigare 30 s rămân independente |
+| Setup | 30 s pentru pornirea JVM/SDK, launch și `newPage`; fără retry sau prag relaxat |
+| Driver CLI | pregătit o dată per JVM host ori reutilizat din `playwright.cli.dir`; sursa și timpul sunt consemnate separat în `driver-runtime.log` |
+| Verificare | `BrowserProbeBudget.DEFAULT`: 60 s; `BrowserClassRun`: 120 s/clasă și maximum 10 min total; acțiunea 5 s și navigarea 30 s rămân independente |
 | Cleanup | 5 s pentru închiderea normală; la eșec, terminarea forțată are 5 s și vizează numai descendenți cu lanț de părinți verificat și aceeași identitate de start |
 | Diagnostic | fază, PID-uri, log și stack-uri la timeout; matricea eșuată și controalele lifecycle păstrează directorul probei, iar cauza inițială precede erorile de cleanup |
 | TMP nativ | director scurt, unic și marcat cu owner; JVM și SDK primesc aceeași rădăcină, fără profil browser în TMP-ul comun |

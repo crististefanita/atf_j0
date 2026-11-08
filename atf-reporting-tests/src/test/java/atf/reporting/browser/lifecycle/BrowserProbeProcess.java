@@ -1,6 +1,7 @@
 package atf.reporting.browser.lifecycle;
 
 import java.nio.file.Files;
+import atf.reporting.browser.runtime.BrowserDriverRuntime;
 import atf.reporting.browser.process.BrowserProcessInventory;
 import atf.reporting.browser.process.BrowserPhaseDeadline;
 import atf.reporting.browser.process.BrowserPhaseChannel;
@@ -25,6 +26,16 @@ public final class BrowserProbeProcess {
     public static Path run(Path root, Class<? extends BrowserProbe> factory, BrowserProbeBudget budget, List<Path> classpath, String... arguments) throws Exception {
         Files.createDirectories(root);
         Path directory = Files.createTempDirectory(root, "browser-probe-").toAbsolutePath();
+        BrowserDriverRuntime.Installation driver;
+        try {
+            driver = BrowserDriverRuntime.prepare();
+            Files.writeString(directory.resolve("driver-runtime.log"),
+                    "source=" + driver.source() + "\npreparationMillis=" + driver.preparationMillis()
+                            + "\ncliDirectory=" + driver.directory());
+        } catch (Exception error) {
+            Files.writeString(directory.resolve("driver-runtime.log"), "preparation=FAILED\n" + error);
+            throw error;
+        }
         String temporary = System.getenv("TEMP");
         Path scratch = Files.createTempDirectory(Path.of(temporary == null ? System.getProperty("java.io.tmpdir") : temporary), "atf-bp-").toAbsolutePath();
         Files.writeString(scratch.resolve("ATF_OWNER"), directory.toString());
@@ -41,10 +52,7 @@ public final class BrowserProbeProcess {
             command.add("-D" + key + "=" + value);
         }
         if (System.getProperty("atf.test.reportDirectory") == null) command.add("-Datf.test.reportDirectory=" + scratch.resolve("reports"));
-        for (String key : List.of("playwright.cli.dir")) {
-            String value = System.getProperty(key);
-            if (value != null) command.add("-D" + key + "=" + value);
-        }
+        command.add("-Dplaywright.cli.dir=" + driver.directory());
         String extra = classpath.stream().map(Path::toString).collect(java.util.stream.Collectors.joining(java.io.File.pathSeparator));
         String path = System.getProperty("java.class.path") + (extra.isEmpty() ? "" : java.io.File.pathSeparator + extra);
         command.addAll(List.of("-cp", path, BrowserProbeWorker.class.getName(),

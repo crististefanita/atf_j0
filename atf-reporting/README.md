@@ -2435,6 +2435,11 @@ The [inline contract](../docs/ATF_Inline_Audit_Contract.md) separates primary au
 
 [navigation contract](../docs/ATF_Large_Report_Navigation.md) distinguishes browser acceptance from fresh business/device execution; neutral permanent regressions remain in Reporting Tests.
 
+Tests, Category, Fails and Overview share one navigation contract: the selected
+view, the sole accessible current link and the URL fragment identify the same
+pane. `NavigationSelectionBrowserComponentTest` exercises all four transitions
+in Chromium.
+
 ## Cold startup and readiness
 
 The navigation bootstrap honors the requested view once across DOMContentLoaded

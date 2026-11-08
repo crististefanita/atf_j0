@@ -11,7 +11,7 @@ frozen J10/J13 witnesses and from a new device execution.
 |---|---|
 | Long UI comparisons, criterion 133 | capture before caller preview, safe disclosure and source/JAR negatives |
 | Observation routes | explicit media versus empty-comparison THEN, with independent flow-mode characterization |
-| Additional volume witness | neutral captured inputs and measured publication limits before assigning a renderer defect |
+| Additional volume witness | [REPORT-COMPONENT-FRAGMENTS](ATF_Reporting_Feedback.md#report-component-fragments--costul-multor-corpuri-mici) tracks the neutral publication measurements |
 
 ## Proveniența acțiunilor UI
 
@@ -38,7 +38,6 @@ Coordonarea accesului ADB este la [ownerul consumerului J1/J4](../../../atf_j1/d
 ## Observation routes and large-publication follow-up
 
 - [ ] Characterize empty-comparison THEN versus explicit media, including INDIVIDUAL/UNIFIED_FLOW and OBSERVE-only inputs. Document intentional outcome-only behavior or diagnose unsupported capture requests; never recommend invented assertions.
-- [ ] Reproduce the new high-volume consumer witness with neutral captured values before assigning a generic renderer defect. Measure native publication peak heap, HTML bytes and final-row readability separately from input composition.
 
 The [J4 audit contract](../../../atf_j4/docs/reporting/ATF_Audit.md) owns
 producer-specific volume qualification and detached HTML acceptance. The old
@@ -76,9 +75,9 @@ The frozen J13 missing-frame witness is historical. [inline audit contract](../A
 
 ## Full assertion capture — caller and renderer responsibilities
 
-The long-assertion criterion also depends on upstream collection: Kit RecordedAssertions and ValidationTable can retain only pre-truncated expected/actual values. Reporting cannot reconstruct a suffix discarded before its input boundary.
+Kit `RecordedAssertions` accepts an `AssertionValueDisplay` with an optional observer of `Projection` values. The observer receives full redacted text, while recorded rows retain bounded previews. The remaining work is to connect that capture to Reporting and define retention where `ValidationTable` or consumer adapters supply bounded values.
 
-- [ ] Reconcile safe full-value retention with the [J1 Kit/Validation owner](../../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md); keep preview 240, compare original values once and sanitize before every display projection.
+- [ ] Coordinate capture with the [J0 Test Kit owner](ATF_Common_Test_Support_Feedback.md#retenția-comparațiilor--coordonare-cu-reporting) and [J1 integration](../../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md). Keep preview 240, evaluate the original comparison once and redact before display.
 - [ ] Add a neutral composition witness whose first mismatch lies after preview and an independent negative that removes only the retained suffix; full ACTION/OBSERVE disclosure does not by itself close assertion capture.
 
 ## REPORT-SETUP-MEDIA-COMPLETENESS — probă setup numai cu media
