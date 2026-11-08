@@ -4,73 +4,74 @@
 
 ## Pe scurt
 
-This workspace is the twelve-module producer. J0 owns Core, Reporting, Console, Mock and Test Kit implementation and native tests. J1–J6 consume exactly one current JAR/POM pair per library directly in `lib`; their application adapters, configuration and acceptance remain local.
+J0 este reactorul producător cu 12 module. Deține implementarea și testele native Core, Reporting, Console, Mock și Test Kit. J1–J6 consumă direct din `lib` câte o singură pereche curentă JAR/POM pentru fiecare bibliotecă; adaptoarele, configurația și acceptanța aplicațiilor rămân locale.
 
-| Workspace | Source modules | Domain |
+| Proiect | Module sursă | Domeniu |
 |---|---|---|
-| J0 | 12 | Producer and native library contracts |
-| J1 | 6 | Shop and AutoEx browser/API journeys |
-| J2 | 5 | SQL, Setup and Eventuate messaging WIP; no browser modules |
-| J3 | 4 | Speech framework and acceptance |
-| J4 | 3 | Android framework and acceptance |
-| J5 | 2 | Rentz WIP and independent library acceptance |
-| J6 | 5 | Hold’em WIP; test-scoped adoption in holdem-app, without producer sources or harness |
+| J0 | 12 | Producător și contracte native ale bibliotecilor |
+| J1 | 6 | Fluxuri browser/API pentru Shop și AutoEx |
+| J2 | 5 | SQL, setup și mesagerie Eventuate WIP; fără module browser |
+| J3 | 4 | Framework de vorbire și acceptanță |
+| J4 | 3 | Framework Android și acceptanță |
+| J5 | 2 | Rentz WIP și acceptanță independentă a bibliotecilor |
+| J6 | 5 | Hold’em WIP; adoptare doar în scope-ul de test al holdem-app, fără surse producătoare sau harness |
 
-## Console and Mock boundaries
+## Limitele Console și Mock
 
-| Library | Production dependencies | Ownership |
+| Bibliotecă | Dependențe de producție | Responsabilitate |
 |---|---|---|
-| Console | Core, Jackson YAML, JUnit API; optional Test Kit for the JUnit bridge | Neutral event formatting, configured stdout and JUnit lifecycle projection |
-| Mock | Core and Jackson YAML; Kit and JUnit are test-only | Deterministic HTTP-port replacement, strict JSON and exact route/query/numeric matching |
-| Reporting | No ATF module dependency | HTML/Extent/fallback, audit projection and rendering |
+| Console | Core, Jackson YAML, JUnit API; Test Kit opțional pentru bridge-ul JUnit | Formatare neutră a evenimentelor, stdout configurat și proiecția ciclului de viață JUnit |
+| Mock | Core și Jackson YAML; Kit și JUnit sunt doar pentru teste | Înlocuitor determinist pentru portul HTTP, JSON strict și potrivire exactă a rutei/query-ului/valorilor numerice |
+| Reporting | Fără dependențe de module ATF | HTML/Extent/fallback, proiecția auditului și randare |
 
-Console retains its existing JUnit bridge. Consumers using that bridge declare Kit themselves; an optional Maven dependency does not provide Kit transitively. 
+Console păstrează bridge-ul JUnit existent. Consumatorii care îl folosesc declară Kit direct; o dependență Maven opțională nu transmite Kit tranzitiv. Versiunile din POM-urile Console și Mock descriu publicațiile curente ale acestor biblioteci, iar POM-ul consumatorului selectează separat versiunea Kit.
 
-Console and Mock do not depend on Reporting, Validation or application modules. Business fixtures and YAML catalogs remain at their consumer.
+Console și Mock nu depind de Reporting, Validation sau modulele aplicațiilor. Fixture-urile business și cataloagele YAML rămân la consumator.
 
-## Source and binary flow
+## Fluxul sursă–binar
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Source["J0<br/>source + native tests"] -->|package| Pair["One candidate<br/>JAR + standalone POM"]
-    Pair -->|adopt| Lib["J1–J6<br/>flat lib"]
-    Lib -->|validate| Acceptance["Per-consumer<br/>contracts + components"]
+    Source["J0<br/>sursă + teste native"] -->|publică| Pair["Un candidat<br/>JAR + POM autonom"]
+    Pair -->|adoptă| Lib["J1–J6<br/>lib plat"]
+    Lib -->|validează| Acceptance["Per consumator<br/>contracte + componente"]
 ```
 
 <details>
-<summary><strong>Legend — one package, independent acceptance</strong></summary>
+<summary><strong>Legendă — o publicație, acceptanță independentă</strong></summary>
 
-- Arrows describe publication and acceptance, not extra Maven modules.
-- J0 keeps all native test classes; binary acceptance reuses them only in an owned TMP harness, with no production source on its classpath.
-- Every consumer retains its own Git base and domain scope; a passing J1 gate is not evidence for J2–J6.
-- Root POM properties select the current coordinates. The publication POM pins the tested Core dependency; its version is independent of the consumer reactor version.
-- Core adoption also republishes dependent Console/Mock pairs when their pinned Core version changes; never rewrite only the adjacent POM of an existing JAR.
+- Săgețile arată publicarea și acceptanța, nu module Maven suplimentare.
+- J0 păstrează toate clasele de teste native; acceptanța binară le reutilizează numai într-un harness TMP deținut, fără surse de producție în classpath.
+- Fiecare consumator își păstrează baza Git și domeniul propriu; un gate verde în J1 nu este dovadă pentru J2–J6.
+- Proprietățile POM-ului rădăcină selectează coordonatele curente. POM-ul publicat fixează dependența Core testată; versiunea sa este independentă de versiunea reactorului consumator.
+- La schimbarea versiunii Core, se republică și perechile Console/Mock dependente; nu rescrieți doar POM-ul alăturat unui JAR existent.
 
 </details>
 
-## Maven and IntelliJ
+## Maven și IntelliJ
 
-Run from the consumer root, in an owned TMP copy:
+Rulați din rădăcina consumatorului, într-o copie TMP deținută:
 
 ```powershell
 mvn -B -ntp -N validate
 mvn -B -ntp -DskipTests test-compile
 ```
 
-The root validate phase installs the five real POM/JAR pairs into the selected Maven local repository. Use the same Maven settings and local repository in IntelliJ, then reload the root POM. Dependencies use `atf.core.version`, `atf.reporting.version`, `atf.console.version`, `atf.mock.version` and `atf.testkit.version`; source modules must not be restored to satisfy imports.
+Faza `validate` din POM-ul rădăcină instalează cele cinci perechi reale POM/JAR în repository-ul Maven selectat. Folosiți aceleași setări și același repository local Maven în IntelliJ, apoi reîncărcați POM-ul rădăcină. Dependențele folosesc `atf.core.version`, `atf.reporting.version`, `atf.console.version`, `atf.mock.version` și `atf.testkit.version`; nu restaurați module sursă pentru a rezolva importurile.
 
-Native library commands run at J0 only. Acceptance against a published JAR compiles the native tests in TMP without copying production classes, verifies the actual CodeSource, and preserves negative oracles. Do not select nested JUnit fixture classes directly: their intentional failures are asserted by their enclosing test.
+Comenzile native ale bibliotecilor rulează numai în J0. Acceptanța pe un JAR publicat compilează testele native în TMP fără să copieze clase de producție, verifică `CodeSource` real și păstrează oracolele negative. Nu selectați direct fixture-urile JUnit imbricate: eșecurile lor intenționate sunt verificate de testul exterior.
 
-## Integrity and maintenance
+## Integritate și mentenanță
 
-- `lib` contains ten binary artifacts plus the index and five per-library usage guides: five JAR/POM pairs, no nested repository, old versions, source or verification notes.
-- Root `library-provenance.json` retains original Core/Reporting provenance and adds `platformLibraries.console`, `platformLibraries.mock` and `platformLibraries.test-kit`: coordinates, binary/POM hashes, producer-input digest, native catalog and current package evidence.
-- The embedded Maven POM must equal the adjacent published POM byte for byte. Consumer governance verifies the physical JAR, source-shadow rejection, dependency boundary and flat inventory.
-- Builds, caches, recovery copies and the latest package verification note stay in the owned producer TMP stage. Official docs describe contracts rather than iterative release history.
-- Changes start at J0, preserve the 240-character default preview and auditable collapsible assertions, then receive separate component acceptance in every affected consumer. No device, external broker or ASR acceptance is inferred from offline checks.
+- `lib` conține zece artifacte binare, indexul și cinci ghiduri de utilizare: cinci perechi JAR/POM, fără repository imbricat, versiuni vechi, surse sau note de verificare.
+- La schimbarea versiunii unei biblioteci, promovați mai întâi noua pereche și proveniența prin guard; apoi retrageți vechiul JAR/POM printr-o curățare explicită a celor două fișiere, după verificarea hash-urilor. Guard-ul nu șterge artifacte.
+- `library-provenance.json` păstrează proveniența Core/Reporting și adaugă `platformLibraries.console`, `platformLibraries.mock` și `platformLibraries.test-kit`: coordonate, hash-uri binar/POM, digest-ul intrărilor producătorului, catalog nativ și dovada pachetului curent.
+- POM-ul încorporat în JAR trebuie să fie identic octet cu octet cu POM-ul publicat alăturat. Guvernanța consumatorului verifică JAR-ul fizic, respingerea surselor paralele, limita dependențelor și inventarul plat.
+- Build-urile, cache-urile, copiile de recuperare și ultima notă de verificare a pachetului rămân în staging-ul TMP al producătorului. Documentația oficială descrie contracte, nu istoricul incrementelor.
+- Schimbările pornesc din J0, păstrează preview-ul implicit de 240 de caractere și assertions colapsabile auditabile, apoi primesc acceptanță componentă separată în fiecare consumator afectat. Verificările offline nu certifică device-uri, broker extern sau ASR.
 
-See [workspace synchronization](ATF_Workspace_Synchronization.md) and [isolated execution](ATF_Build_And_Execution_Safety.md). The source owners are [Console](../atf-console/README.md) and [Mock](../atf-mock/README.md).
+Consultați [sincronizarea workspace-urilor](ATF_Workspace_Synchronization.md) și [execuția izolată](ATF_Build_And_Execution_Safety.md). Ownerii surselor sunt [Console](../atf-console/README.md) și [Mock](../atf-mock/README.md).
 
 ## Ghiduri executabile pe publicația binară
 

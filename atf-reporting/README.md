@@ -523,7 +523,7 @@ TestCase
 | screenshot | link inline cu emoji-ul curent; payload Base64 pentru prima apariție sau referință locală bounded (`screenshot-n`) pentru o stare deduplicată; fingerprint-ul rămâne intern și nu este afișat în locul linkului |
 | action table | acțiunile relevante includ `getText`/text extraction; timpul apare numai pentru acțiuni |
 | failures | `Setup`, `UI action`, `Audit observation` și `Assertion` au cauze distincte și `Open in Tests` |
-| navigation | `Tests`, `Overview`, `Categories`, `Fails` folosesc aceeași identitate semantică și deep-link |
+| navigation | `Tests`, `Category`, `Fails`, `Overview` au nume accesibile; o tranziție păstrează un singur link `active` și `aria-current="page"`, aliniat cu view-ul vizibil |
 
 Această ierarhie API nu trebuie confundată cu raportarea UI: acolo `UI validation`
 și `API validation` sunt copii semantici ai aceluiași checkpoint Gherkin, iar
@@ -1548,6 +1548,9 @@ O eroare I/O de alt tip nu este reîncercată; epuizarea limitei se propagă, ia
 `atfOpenTest` asociază deschiderea amânată cu generația navigării curente.
 Un salt mai nou sau inputul explicit în Tests invalidează callback-ul anterior;
 o închidere prin mouse, Enter sau Space nu este anulată ulterior de acel callback.
+La fiecare tranziție, linkurile taburilor își resetează starea veche; numai
+destinația vizibilă are `active` și `aria-current="page"`. Linkurile cu icon
+expun eticheta în numele accesibil, iar deep-link-ul folosește aceeași cale.
 
 #### Revenirea la comparația eșuată
 

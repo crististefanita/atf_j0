@@ -200,6 +200,7 @@ Proiecția contextului UI este verificată la componentă:
 | `ApiWhitespaceBodyComponentTest` + `UiNetworkBodyFidelityComponentTest` din UI | body prezent numai din whitespace rămâne distinct de absent, necapturat și JSON literal null; captură/sanitizare la ownerul UI, apoi formatare/publicare/replay la Reporting |
 | `ExtentReportUiEvidencePublishingTest` | publisher-ul UI nu adaugă un request HTTP sintetic; exchange-ul nested păstrează request/response/JSON/execution |
 | `ExtentReportDisclosureBrowserComponentTest` | artifact controlat cu PASS/WARNING/FAIL; faza goală nu afișează affordance de expandare, iar API exchange-ul cu evidence mock rămâne expandabil cu mouse/keyboard; niciun tabel introductiv la checkpoint, validări și screenshot disponibile, close fără subarbore vizibil și titluri custom identificate semantic; captură deduplicată deschisă prin click/Enter cu sursa colapsată, fără salt la ancoră |
+| `NavigationSelectionBrowserComponentTest` | Extent real, click succesiv pe cele patru taburi; nume accesibile pentru iconuri, un singur link `active` și `aria-current="page"`, sincron cu view-ul vizibil |
 | `ComponentAssertionStepReportTest` | același nod tipizat și 42 de rânduri în Extent/fallback; pas colapsat implicit, acces la ultimul rând și comutare cu mouse/Enter/Space în Chromium; FAIL în Extent are owner `component`, valori numerice exacte și deep-link redeschis până la tabel, fără request sau durată HTTP |
 | `PublishedEvidenceTableComponentTest` | UI/API/UI+API × Extent/fallback; valori literale în 12/40 de rânduri, inventar exact per owner, geometrie reală, expandări, resize și taburi; controalele negative detectează dovezi lipsă, clipping, plafon eliminat și FAIL schimbat în PASS |
 | `TerminalExecutionProjectionTest` + `TerminalApiExecutionReportTest` | snapshot parțial strict, 503 urmat de status indisponibil, terminare typed în Execution evidence, fără Response details fabricat; Extent/fallback păstrează plafonul 240, bugetul configurat, redactarea, ultimul rând și Enter/Space; zero dispatch-uri nu declară rețea executată |
@@ -266,14 +267,15 @@ un factory blocat înainte de navigare produce FAIL, inclusiv când HTML-ul este
 |---|---|
 | Setup | 30 s, inclusiv pornirea JVM/SDK, launch și `newPage`; fără retry |
 | Verificare | 60 s pentru probă; pragurile originale de acțiune 5 s și navigare 30 s rămân independente |
-| Cleanup | 5 s pentru închiderea normală; la eșec, terminarea forțată are propriul termen de 5 s și vizează numai arborele procesului deținut |
+| Cleanup | 5 s pentru închiderea normală; la eșec, terminarea forțată are 5 s și vizează numai descendenți cu lanț de părinți verificat și aceeași identitate de start |
 | Diagnostic | fază, PID-uri, log și stack-uri la timeout; matricea eșuată și controalele lifecycle păstrează directorul probei, iar cauza inițială precede erorile de cleanup |
 | TMP nativ | director scurt, unic și marcat cu owner; JVM și SDK primesc aceeași rădăcină, fără profil browser în TMP-ul comun |
 | Acceptanță | fază terminală DONE, exit 0 și resurse închise; lipsa verdictului nu este PASS |
 
 `BrowserProbeProcessComponentTest` acoperă factory-ul necooperant, cleanup-ul blocat,
 cauzele suprimate și întreruperea părintelui; un proces independent trebuie să
-supraviețuiască. Același SDK și aceleași probe rulează pe sursa reactorului și pe
+supraviețuiască. `BrowserProcessInventoryContractTest` refuză procese pornite
+înaintea workerului și PID-uri reutilizate. Același SDK și aceleași probe rulează pe sursa reactorului și pe
 JAR-ul fizic prin `reporting-release`. Harness-ul rămâne în J0, fără Playwright
 adăugat în biblioteca standalone ori în consumerii fără browser.
 

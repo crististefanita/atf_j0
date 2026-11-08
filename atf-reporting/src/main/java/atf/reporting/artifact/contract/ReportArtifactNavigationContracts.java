@@ -13,7 +13,7 @@ final class ReportArtifactNavigationContracts {
                 && html.contains("data-atf-tab=\"overview\"")
                 && html.contains("data-atf-tab=\"fails\"")
                 && html.contains("function activateFromHash()")
-                && html.contains("window.addEventListener('hashchange',activateFromHash)"));
+                && html.contains("window.addEventListener('hashchange',function(){activateFromHash();"));
         int testsTab = html.indexOf("href=\"#test-view\"");
         int categoryTab = html.indexOf("href=\"#category-view\"");
         int failsTab = html.indexOf("href=\"#atf-fails-view\"");
@@ -49,9 +49,12 @@ final class ReportArtifactNavigationContracts {
         checks.put("runtime navigation", html.contains("window.atfActivate=function")
                 && (html.contains("function renderFails()") || html.contains("renderFails=function()"))
                 && html.contains(":'0%']")
-                && html.contains("v.classList.toggle('d-none',!active)"));
+                && html.contains("v.classList.toggle('d-none',!active)")
+                && html.contains("function synchronizeNavigationSelection(id)")
+                && html.contains("aria-current")
+                && html.contains("function bindNavigationSelectionLinks()"));
         checks.put("hash navigation", html.contains("function activateFromHash()")
-                && html.contains("window.addEventListener('hashchange',activateFromHash)")
+                && html.contains("window.addEventListener('hashchange',function(){activateFromHash();")
                 && html.contains("activateFromHash();},0)"));
         checks.put("offline tab fallback", html.contains("href=\"#test-view\"")
                 && html.contains("href=\"#category-view\"")

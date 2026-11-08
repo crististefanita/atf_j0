@@ -218,7 +218,10 @@ Eligibilitatea controalelor Git este guvernată de [baseline-ul tehnic](../ATF_T
 Contractul de [setup și verdict terminal](../../atf-reporting-tests/README.md#setup-browser-și-verdict-terminal)
 separă inspecția statică de proba browser. Controalele de factory necooperant,
 cleanup, cauză inițială și ownership rămân permanente în J0; controlul tehnic
-verificat este în [baseline](../ATF_Test_Changes_Baseline.md).
+verificat este în [baseline](../ATF_Test_Changes_Baseline.md). Inventarul
+leagă PID-ul de timpul de start, acceptă numai lanțul de părinți până la worker
+și nu înlocuiește generația capturată când un PID este reutilizat. Terminarea
+verifică din nou identitatea înainte de semnal.
 
 <details>
 <summary><strong>Control tehnic — REPORT-BROWSER-LIFECYCLE-154-CONTROL</strong></summary>

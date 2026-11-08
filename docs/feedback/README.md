@@ -2,7 +2,7 @@
 
 ## Pe scurt
 
-J0 deține implementările Core/Reporting/Console/Mock/Test Kit, toate testele native și regresiile generice ale bibliotecilor; J1 deține scenariile AutoEx/Shop. Contractele livrate sunt la [ownerii documentați](../ATF_Context_Atlas.md), iar aici rămân numai lacunele și traseele de închidere.
+J0 deține implementările Core/Reporting/Console/Mock/Test Kit și runtime-ul generic UI, toate testele native și regresiile comune; J1 deține scenariile AutoEx/Shop. Contractele livrate sunt la [ownerii documentați](../ATF_Context_Atlas.md), iar aici rămân numai lacunele și traseele de închidere.
 
 [Workspace-urile](../ATF_Workspace_Synchronization.md) separă J0 sursă, J1 consumer web și J2 WIP pentru Kafka/mesagerie cu Setup în Podman. Un rezultat sau o prioritate nu se transferă automat între ele.
 
@@ -18,6 +18,12 @@ J0 deține codul, contractele publice, testele native, împachetarea și feedbac
 | Console și Mock | [Console / Mock](ATF_Console_Mock_Feedback.md) |
 | Test Kit | [Test Kit](ATF_Common_Test_Support_Feedback.md) |
 
+## Runtime de platformă
+
+| Modul | Backlog canonic |
+|---|---|
+| UI generic | [ATF UI](ATF_UI_Feedback.md) |
+
 
 ## Priorități de mentenanță activă
 
@@ -26,10 +32,11 @@ Scorurile sunt priorități, nu note de calitate sau procente de acoperire. Form
 | Ordine | Owner și criteriu | Prioritate /100 | Restanță concretă |
 |---:|---|---:|---|
 | 1 | [Valori UI integrale](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) | 88 | captură înaintea preview-ului callerului și disclosure sigur; ACTION/OBSERVE este deja livrat |
-| 2 | [API public susținut](ATF_Reporting_Feedback.md#report-public-api-43--suprafață-susținută-și-ownership) | 81 | delimitarea suprafeței, capabilităților adaptoarelor și compatibilității |
-| 3 | [Oracolul testelor Reporting](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) | 80 | identificarea exactă a dovezii și matricea negativă rămasă |
-| 4 | [Proiecția recovery](ATF_Reporting_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent) | 78 | proiecția typed a încercării, cauzei, timing-ului și bugetului |
-| 5 | [Contractul release-ului](ATF_Reporting_Feedback.md#report-release-contract-45--ce-conține-și-ce-promite-pachetul) | 73 | gate automat cu toolchain declarată și metadate externe de distribuție |
+| 2 | [Stabilitatea suitei UI](ATF_UI_Feedback.md#ui-suite-timing-161--stabilitatea-bugetelor-în-suita-completă) | 82 | cauza variației între execuția completă și subsetul izolat nu este stabilită |
+| 3 | [API public susținut](ATF_Reporting_Feedback.md#report-public-api-43--suprafață-susținută-și-ownership) | 81 | delimitarea suprafeței, capabilităților adaptoarelor și compatibilității |
+| 4 | [Oracolul testelor Reporting](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) | 80 | identificarea exactă a dovezii și matricea negativă rămasă |
+| 5 | [Proiecția recovery](ATF_Reporting_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent) | 78 | proiecția typed a încercării, cauzei, timing-ului și bugetului |
+| 6 | [Contractul release-ului](ATF_Reporting_Feedback.md#report-release-contract-45--ce-conține-și-ce-promite-pachetul) | 73 | gate automat cu toolchain declarată și metadate externe de distribuție |
 
 Extinderea SQL solicitată, [REPORT-SQL-STEPS-116](ATF_Reporting_Feedback.md#report-sql-steps-116--query-uri-și-rezultate-auditabile), rămâne separată de nota de mentenanță a comportamentului livrat.
 

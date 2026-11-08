@@ -1,6 +1,12 @@
 var atfTestViewNormalizationPending = false;
 var atfTestViewReadinessTimers = {};
 var atfNavEpoch = 0;
+var atfNavigationTargets = {
+  'nav-test': 'test-view',
+  'nav-category': 'category-view',
+  'nav-fails': 'atf-fails-view',
+  'nav-overview': 'dashboard-view'
+};
 document.addEventListener('pointerdown', function (e) {
   if (e.target.closest('#test-view')) atfNavEpoch++;
 }, true);
@@ -70,7 +76,7 @@ window.atfOpenTest = function (id, scenarioIndex, expansion, failureOrdinal, fai
     }
   }
 };
-window.atfActivate = function (id) {
+function synchronizeNavigationSelection(id) {
   document.body.classList.remove('atf-overview-default');
   q('.view').forEach(function (v) {
     var active = v.id === id;
@@ -79,18 +85,23 @@ window.atfActivate = function (id) {
   });
   q('.side-nav .nav-item').forEach(function (v) {
     v.classList.remove('active');
+    q('a', v).forEach(function (link) {
+      link.classList.remove('active');
+      link.removeAttribute('aria-current');
+    });
   });
-  var nav = {
-      'test-view': 'nav-test',
-      'category-view': 'nav-category',
-      'atf-fails-view': 'nav-fails',
-      'dashboard-view': 'nav-overview'
-    }[id],
+  var nav = Object.keys(atfNavigationTargets).find(function (linkId) {
+      return atfNavigationTargets[linkId] === id;
+    }),
     navLink = nav && document.getElementById(nav);
   if (navLink) {
     navLink.classList.add('active');
+    navLink.setAttribute('aria-current', 'page');
     if (navLink.parentElement) navLink.parentElement.classList.add('active');
   }
+}
+window.atfActivate = function (id) {
+  synchronizeNavigationSelection(id);
   normalizeDurations();
   assignNodeRoles();
   normalizeEvidenceDisclosures();
@@ -152,21 +163,46 @@ function activateFromHash() {
     atfOpenTest(id, scenario, expansion, failureOrdinal, failureKind);
   }
 }
-window.addEventListener('hashchange', activateFromHash);
+function requestedNavigationView() {
+  var view = String(window.location.hash || '').replace(/^#/, '').split('&')[0];
+  if (view.indexOf('test-id=') === 0) return 'test-view';
+  if (view === 'test-view' || view === 'category-view' || view === 'atf-fails-view') return view;
+  return 'dashboard-view';
+}
+function bindNavigationSelectionLinks() {
+  q('.side-nav a[id^="nav-"]').forEach(function (link) {
+    if (link.__atfNavigationSelectionBound) return;
+    link.__atfNavigationSelectionBound = true;
+    link.addEventListener('click', function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      var target = atfNavigationTargets[link.id];
+      if (!target) return;
+      // Own the tab transition; Extent's delegated handler can leave a stale view.
+      synchronizeNavigationSelection(target);
+      setTimeout(function () {
+        link.setAttribute('href', '#' + target);
+        if (window.location.hash !== '#' + target) window.location.hash = target;
+        synchronizeNavigationSelection(target);
+      }, 0);
+    }, true);
+  });
+}
+window.addEventListener('hashchange', function () {
+  activateFromHash();
+  setTimeout(function () {
+    synchronizeNavigationSelection(requestedNavigationView());
+  }, 0);
+});
 function normalizeNavigationTargets() {
-  var links = {
-    'nav-test': '#test-view',
-    'nav-category': '#category-view',
-    'nav-fails': '#atf-fails-view',
-    'nav-overview': '#dashboard-view'
-  };
-  Object.keys(links).forEach(function (id) {
+  Object.keys(atfNavigationTargets).forEach(function (id) {
     var link = document.getElementById(id);
-    if (link) link.setAttribute('href', links[id]);
+    if (link) link.setAttribute('href', '#' + atfNavigationTargets[id]);
   });
 }
 function normalizeNavigationLinks() {
   normalizeNavigationTargets();
+  bindNavigationSelectionLinks();
   normalizeTagFilter();
   bindTestFilters();
   ensureCategoryFilters();
@@ -204,5 +240,11 @@ function initializeReportNavigation() {
 document.addEventListener('DOMContentLoaded', initializeReportNavigation);
 window.addEventListener('load', function () {
   initializeReportNavigation();
-  setTimeout(normalizeNavigationTargets, 0);
+  normalizeNavigationTargets();
+  // Extent may run its first-nav click from a queued ready callback after load.
+  // Reconcile once that callback has had its turn; this only touches navigation state.
+  setTimeout(function () {
+    normalizeNavigationTargets();
+    synchronizeNavigationSelection(requestedNavigationView());
+  }, 0);
 });

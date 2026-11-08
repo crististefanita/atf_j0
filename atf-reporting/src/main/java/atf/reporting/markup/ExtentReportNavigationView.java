@@ -160,11 +160,20 @@ public final class ExtentReportNavigationView {
 
     private static String navigationTarget(AtfReportHtmlVocabulary.ElementId id,
                                            AtfReportHtmlVocabulary.ViewId view) {
+        String label = switch (id) {
+            case NAV_TEST -> AtfReportLabels.TESTS;
+            case NAV_CATEGORY -> AtfReportLabels.CATEGORY;
+            default -> throw new IllegalArgumentException("Unsupported navigation link: " + id);
+        };
         return AtfReportHtmlVocabulary.idAttribute(id) + " "
                 + AtfReportHtmlVocabulary.classAttribute(
                         AtfReportHtmlVocabulary.CssClass.DROPDOWN_TOGGLE) + " "
                 + AtfReportHtmlVocabulary.attribute(
-                        AtfReportHtmlVocabulary.Attribute.HREF, "#" + view.value());
+                        AtfReportHtmlVocabulary.Attribute.HREF, "#" + view.value()) + " "
+                + AtfReportHtmlVocabulary.attribute(
+                        AtfReportHtmlVocabulary.Attribute.TITLE, label) + " "
+                + AtfReportHtmlVocabulary.attribute(
+                        AtfReportHtmlVocabulary.Attribute.ARIA_LABEL, label);
     }
 
     private static String toggleHandler(AtfReportHtmlVocabulary.ViewId view) {

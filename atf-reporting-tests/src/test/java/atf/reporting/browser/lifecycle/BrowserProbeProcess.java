@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /** A stuck SDK call is contained by process ownership rather than an interrupt on a shared browser thread. */
@@ -93,9 +92,9 @@ public final class BrowserProbeProcess {
                 throw failure(directory, process, owned, read(directory.resolve("failure-phase")).isBlank() ? phase
                         : read(directory.resolve("failure-phase")), "Browser probe did not complete successfully; exit=" + process.exitValue());
             long cleanupStarted = phase.equals("CLEANUP") ? deadline.startedAt() : System.nanoTime();
-            while (owned.handles().values().stream().anyMatch(ProcessHandle::isAlive)
+            while (!owned.aliveHandles().isEmpty()
                     && System.nanoTime() - cleanupStarted < budget.cleanup().toNanos()) Thread.sleep(10);
-            if (owned.handles().values().stream().anyMatch(ProcessHandle::isAlive))
+            if (!owned.aliveHandles().isEmpty())
                 throw failure(directory, process, owned, "CLEANUP", "Browser probe left owned resources alive");
             Files.writeString(directory.resolve("outcome"), "PASS\npid=" + process.pid());
             return directory;
@@ -109,7 +108,7 @@ public final class BrowserProbeProcess {
             throw error;
         } finally {
             owned.captureNow();
-            try { terminate(owned.handles(), Duration.ofSeconds(5)); }
+            try { terminate(owned, Duration.ofSeconds(5)); }
             catch (Exception error) { if (primary == null) throw error; else primary.addSuppressed(error); }
         }
     }
@@ -118,24 +117,29 @@ public final class BrowserProbeProcess {
         owned.captureNow();
         var inventory = new StringBuilder(reason).append("\nphase=").append(phase).append('\n');
         owned.handles().values().forEach(handle -> inventory.append("pid=").append(handle.pid()).append(" alive=")
-                .append(handle.isAlive()).append(" ").append(handle.info()).append('\n'));
+                .append(owned.isSameLiveProcess(handle)).append(" ").append(handle.info()).append('\n'));
         Files.writeString(directory.resolve("processes.log"), inventory);
         Files.writeString(directory.resolve("outcome"), "FAIL\n" + inventory);
         return new BrowserProbeFailure(phase, process.pid(), directory, reason,
                 read(directory.resolve("failure.log")) + read(directory.resolve("process.log")));
     }
 
-    private static void terminate(Map<Long, ProcessHandle> owned, Duration budget) throws Exception {
-        var handles = new ArrayList<>(owned.values());
-        handles.forEach(handle -> { if (handle.isAlive()) handle.destroyForcibly(); });
+    private static void terminate(BrowserProcessInventory owned, Duration budget) throws Exception {
+        var handles = new ArrayList<>(owned.aliveHandles().values());
+        handles.forEach(handle -> {
+            if (owned.isSameLiveProcess(handle)) handle.destroyForcibly();
+        });
         long started = System.nanoTime();
         boolean interrupted = Thread.interrupted();
         try {
-            while (handles.stream().anyMatch(ProcessHandle::isAlive) && System.nanoTime() - started < budget.toNanos()) {
+            while (handles.stream().anyMatch(owned::isSameLiveProcess)
+                    && System.nanoTime() - started < budget.toNanos()) {
                 try { Thread.sleep(10); } catch (InterruptedException error) { interrupted = true; }
             }
         } finally { if (interrupted) Thread.currentThread().interrupt(); }
-        if (handles.stream().anyMatch(ProcessHandle::isAlive)) throw new IllegalStateException("Owned browser probe resources did not terminate: " + owned.keySet());
+        if (handles.stream().anyMatch(owned::isSameLiveProcess))
+            throw new IllegalStateException("Owned browser probe resources did not terminate: " + handles.stream()
+                    .filter(owned::isSameLiveProcess).map(ProcessHandle::pid).toList());
     }
 
     private static String read(Path file) throws Exception { return Files.exists(file) ? new String(Files.readAllBytes(file), java.nio.charset.StandardCharsets.UTF_8) : ""; }

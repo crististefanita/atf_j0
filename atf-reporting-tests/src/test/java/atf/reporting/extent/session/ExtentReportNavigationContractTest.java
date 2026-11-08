@@ -38,10 +38,12 @@ class ExtentReportNavigationContractTest {
 
         String html = Files.readString(report);
         assertAll(
-                () -> assertTrue(html.contains("id=\"nav-test\" class=\"dropdown-toggle\" href=\"#test-view\"")),
-                () -> assertTrue(html.contains("id=\"nav-category\" class=\"dropdown-toggle\" href=\"#category-view\"")),
+                () -> assertTrue(html.contains("id=\"nav-test\" class=\"dropdown-toggle\" href=\"#test-view\" title=\"Tests\" aria-label=\"Tests\"")),
+                () -> assertTrue(html.contains("id=\"nav-category\" class=\"dropdown-toggle\" href=\"#category-view\" title=\"Category\" aria-label=\"Category\"")),
                 () -> assertTrue(html.contains("id=\"nav-fails\" class=\"dropdown-toggle\" href=\"#atf-fails-view\"")),
                 () -> assertTrue(html.contains("id=\"nav-overview\" class=\"dropdown-toggle\" href=\"#dashboard-view\"")),
+                () -> assertTrue(html.contains("id=\"nav-fails\" class=\"dropdown-toggle\" href=\"#atf-fails-view\" title=\"Fails\" aria-label=\"Fails\"")),
+                () -> assertTrue(html.contains("id=\"nav-overview\" class=\"dropdown-toggle\" href=\"#dashboard-view\" title=\"Overview\" aria-label=\"Overview\"")),
                 () -> assertTrue(html.contains("data-atf-tab=\"overview\"")),
                 () -> assertTrue(html.contains("data-atf-tab=\"fails\"")),
                 () -> assertTrue(html.contains("var atfFilterState={status:'',tag:''}")),
@@ -56,7 +58,9 @@ class ExtentReportNavigationContractTest {
                 () -> assertTrue(html.contains("aria-pressed")),
                 () -> assertTrue(html.contains("data-atf-tab=\"fails\"")),
                 () -> assertTrue(html.contains("function activateFromHash()")),
-                () -> assertTrue(html.contains("window.addEventListener('hashchange',activateFromHash)")),
+                () -> assertTrue(html.contains("window.addEventListener('hashchange',function(){activateFromHash();")),
+                () -> assertTrue(html.contains("function bindNavigationSelectionLinks()")),
+                () -> assertTrue(html.contains("event.preventDefault();event.stopPropagation()")),
                 () -> assertFalse(html.contains("onclick=\"if(typeof atfActivate"),
                         "navigation must not embed JavaScript handlers in generated HTML")
         );
@@ -154,8 +158,8 @@ class ExtentReportNavigationContractTest {
                 () -> assertTrue(html.contains("openScenarioCard(card)")),
                 () -> assertTrue(html.contains("title','Open this test in Tests")),
                 () -> assertTrue(html.contains("if(id==='category-view'){ensureCategoryFilters();ensureCategoryDetail();normalizeCategorySummaryLabels();normalizeCategoryLinks();}")),
-                () -> assertTrue(html.contains("'category-view':'nav-category'")),
-                () -> assertTrue(html.contains("window.addEventListener('hashchange',activateFromHash)"))
+                () -> assertTrue(html.contains("'nav-category':'category-view'")),
+                () -> assertTrue(html.contains("window.addEventListener('hashchange',function(){activateFromHash();"))
         );
     }
 }

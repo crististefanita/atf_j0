@@ -9,6 +9,7 @@ package atf.reporting.markup;
  */
 public final class AtfReportLabels {
     public static final String REPORT_TITLE = "ATF Report";
+    public static final String TESTS = "Tests";
     public static final String CATEGORY = "Category";
     public static final String FAILS = "Fails";
     public static final String NO_CATEGORIES_AVAILABLE = "No categories available";

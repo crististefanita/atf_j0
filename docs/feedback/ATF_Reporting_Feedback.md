@@ -17,13 +17,6 @@ cauzei terminale. Sursa izolată și JAR-ul fizic au gate separat în
 
 [Contractul de autonomie](../ATF_Inline_Audit_Contract.md#profilul-fără-referințe-externe) descrie calificarea inspectorului; colectarea și livrarea Android rămân la consumer.
 
-## REPORT-SINGLE-ACTIVE-VIEW — starea unică a navigării
-
-**P2 · responsabil Reporting: starea și accesibilitatea navigării generice.** În [controllerul live](../../atf-reporting/src/main/resources/atf/reporting/javascript/extent-navigation-controller.js), `atfActivate` golește clasa `active` de pe părinții `.nav-item`, dar nu de pe toate legăturile surori înainte de a activa ținta. Nu există o actualizare `aria-current` în acest controller. [Contractul de navigare](../../atf-reporting-tests/src/test/java/atf/reporting/extent/session/ExtentReportNavigationContractTest.java) verifică structura, nu unicitatea clasei active și starea accesibilă după tranziții succesive; vechiul artifact J20 rămâne doar indiciu istoric, nu dovadă pentru binarul curent.
-
-- **Criteriu:** o singură legătură vizibilă este activă și expune selecția curentă după fiecare tranziție; controalele icon-only au nume accesibil. Tests, Category, Fails și Overview păstrează ownerul selectat și revenirea din viewer.
-- **Calificare:** adăugați regresie runtime în Reporting Tests pentru tranziții succesive, unicitatea `active`, `aria-current`/semantica echivalentă și numele accesibile; validați sursa și JAR-ul. Consumatorul nu repară rendererul prin postprocesare locală.
-
 ## Criterii rămase pentru consolidare
 
 | Ordine | Implementare și probă de închidere | Owner al oracolului |
