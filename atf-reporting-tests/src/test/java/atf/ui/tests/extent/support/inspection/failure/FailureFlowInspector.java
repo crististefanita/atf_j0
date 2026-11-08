@@ -64,12 +64,14 @@ public final class FailureFlowInspector {
         Page failsPage = auditFlow.openTab(ReportUiContract.Tab.FAILS.hash());
         Locator fails = locators.failsView(failsPage);
         int failureCount = locators.failureItems(fails).count();
-        int primaryCauseCount = locators.failureCauseValues(fails).count();
+        int primaryCauseCount = 0;
         int openLinkCount = locators.failureOpenLinks(fails).count();
         boolean rootCausePrecedenceVisible = false;
         for (int index = 0; index < failureCount; index++) {
             auditFlow.actions().click(locators.failureItemAction(failsPage, index),
                     "inspect failure cause precedence for row " + (index + 1));
+            // Cause details render only for the selected failure row.
+            primaryCauseCount += locators.failureDetailPrimaryCauses(fails).count();
             boolean primary = locators.failureDetailPrimaryCauses(fails).count() > 0;
             boolean secondary = locators.failureDetailSecondaryCauses(fails).count() > 0;
             if (primary && secondary) {

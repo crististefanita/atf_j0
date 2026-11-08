@@ -10,8 +10,10 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @AtfUnitTest
@@ -56,6 +58,115 @@ class ApiScenarioPhaseExecutorTest {
     }
 
     @Test
+    void detailFailureKeepsTheBusinessCauseAndStillCompletesAndClosesThePhase() {
+        var businessFailure = new IllegalStateException("business failure");
+        var detailFailure = new IllegalStateException("detail publisher failure");
+        var phase = new RecordingPhase();
+        phase.detailFailure = detailFailure;
+
+        var result = executor.execute(new RecordingScenario(phase), "TEST BODY", ignored -> {
+            throw businessFailure;
+        });
+
+        assertAll(
+                () -> assertEquals(AtfReportStatus.FAIL, result.status()),
+                () -> assertSame(businessFailure, result.failure()),
+                () -> assertEquals(List.of(detailFailure), List.of(result.failure().getSuppressed())),
+                () -> assertEquals(AtfReportStatus.FAIL, phase.completedStatus),
+                () -> assertEquals(1, phase.completeCalls),
+                () -> assertEquals(1, phase.closeCalls));
+    }
+
+    @Test
+    void completionAndCloseFailuresAreSuppressedInOrderWithoutSkippingCleanup() {
+        var businessFailure = new IllegalStateException("business failure");
+        var completionFailure = new IllegalStateException("phase completion failure");
+        var closeFailure = new IllegalStateException("phase close failure");
+        var phase = new RecordingPhase();
+        phase.completeFailure = completionFailure;
+        phase.closeFailure = closeFailure;
+
+        var result = executor.execute(new RecordingScenario(phase), "TEST BODY", ignored -> {
+            throw businessFailure;
+        });
+
+        assertAll(
+                () -> assertSame(businessFailure, result.failure()),
+                () -> assertEquals(List.of(completionFailure, closeFailure),
+                        List.of(result.failure().getSuppressed())),
+                () -> assertEquals(1, phase.completeCalls),
+                () -> assertEquals(1, phase.closeCalls));
+    }
+
+    @Test
+    void lifecycleFailureBecomesPrimaryWhenTheBusinessPhasePassed() {
+        var completionFailure = new IllegalStateException("phase completion failure");
+        var phase = new RecordingPhase();
+        phase.completeFailure = completionFailure;
+
+        var result = executor.execute(new RecordingScenario(phase), "TEST BODY", ignored -> { });
+
+        assertAll(
+                () -> assertEquals(AtfReportStatus.FAIL, result.status()),
+                () -> assertSame(completionFailure, result.failure()),
+                () -> assertEquals(1, phase.completeCalls),
+                () -> assertEquals(1, phase.closeCalls));
+    }
+
+    @Test
+    void closeFailureBecomesPrimaryWhenPhaseBodyAndCompletionPassed() {
+        var closeFailure = new IllegalStateException("phase close failure");
+        var phase = new RecordingPhase();
+        phase.closeFailure = closeFailure;
+
+        var result = executor.execute(new RecordingScenario(phase), "TEST BODY", ignored -> { });
+
+        assertAll(
+                () -> assertEquals(AtfReportStatus.FAIL, result.status()),
+                () -> assertSame(closeFailure, result.failure()),
+                () -> assertEquals(1, phase.completeCalls),
+                () -> assertEquals(1, phase.closeCalls));
+    }
+
+    @Test
+    void detailCapabilityFailurePreservesTheBusinessCauseAndClosesThePhase() {
+        var businessFailure = new IllegalStateException("business failure");
+        var capabilityFailure = new IllegalStateException("capability query failed");
+        var phase = new RecordingPhase();
+        phase.detailsCapabilityFailure = capabilityFailure;
+
+        var result = executor.execute(new RecordingScenario(phase), "TEST BODY", ignored -> {
+            throw businessFailure;
+        });
+
+        assertAll(
+                () -> assertSame(businessFailure, result.failure()),
+                () -> assertEquals(List.of(capabilityFailure), List.of(result.failure().getSuppressed())),
+                () -> assertEquals(AtfReportStatus.FAIL, phase.completedStatus),
+                () -> assertEquals(1, phase.completeCalls),
+                () -> assertEquals(1, phase.closeCalls));
+    }
+
+    @Test
+    void unsupportedDetailPortIsVisibleAsSuppressedEvidenceCapabilityFailure() {
+        var businessFailure = new IllegalStateException("business failure");
+        var phase = new RecordingPhase();
+        phase.detailsSupported = false;
+
+        var result = executor.execute(new RecordingScenario(phase), "TEST BODY", ignored -> {
+            throw businessFailure;
+        });
+
+        assertAll(
+                () -> assertSame(businessFailure, result.failure()),
+                () -> assertEquals(1, result.failure().getSuppressed().length),
+                () -> assertTrue(result.failure().getSuppressed()[0] instanceof UnsupportedOperationException),
+                () -> assertTrue(phase.details.isEmpty()),
+                () -> assertEquals(AtfReportStatus.FAIL, phase.completedStatus),
+                () -> assertEquals(1, phase.closeCalls));
+    }
+
+    @Test
     void onlyUnexpectedFailuresCanBecomePrimaryCause() {
         assertFalse(ApiScenarioPhaseExecutor.isPrimaryFailure(
                 new ApiScenarioLifecycleRunner.WarningSignal("warning")));
@@ -83,17 +194,38 @@ class ApiScenarioPhaseExecutorTest {
         private final List<String> details = new java.util.ArrayList<>();
         private AtfReportStatus completedStatus;
         private boolean closed;
+        private int completeCalls;
+        private int closeCalls;
+        private RuntimeException detailFailure;
+        private RuntimeException detailsCapabilityFailure;
+        private RuntimeException completeFailure;
+        private RuntimeException closeFailure;
+        private boolean detailsSupported = true;
 
         @Override public AtfReportPorts.Request startRequest(String title, String method, String path) {
             return new NoOpRequest();
         }
 
-        @Override public void detail(String name, String value) {
-            details.add(name + ": " + value);
+        @Override public boolean supportsDetails() {
+            if (detailsCapabilityFailure != null) throw detailsCapabilityFailure;
+            return detailsSupported;
         }
 
-        @Override public void complete(AtfReportStatus status) { completedStatus = status; }
-        @Override public void close() { closed = true; }
+        @Override public void detail(String name, String value) {
+            details.add(name + ": " + value);
+            if (detailFailure != null) throw detailFailure;
+        }
+
+        @Override public void complete(AtfReportStatus status) {
+            completeCalls++;
+            completedStatus = status;
+            if (completeFailure != null) throw completeFailure;
+        }
+        @Override public void close() {
+            closeCalls++;
+            closed = true;
+            if (closeFailure != null) throw closeFailure;
+        }
     }
 
     private static final class NoOpRequest implements AtfReportPorts.Request {

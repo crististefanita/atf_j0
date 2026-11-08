@@ -12,6 +12,10 @@ function failureLink(id, scenario, ordinal, kind) {
 function failureRecordId(id, scenario, ordinal, kind) {
   return 'failure-' + id + '-' + scenario + '-' + (kind === 'assertion' ? '' : kind + '-') + ordinal;
 }
+function failureRecordKindLabel(kind) {
+  return ({ assertion: 'Assertion', diagnostic: 'Execution diagnostic', ui: 'UI failure',
+    execution: 'Execution failure', scenario: 'Scenario failure' })[kind] || 'Failure evidence';
+}
 function failureIndexMarkup(name, ctx, id, scenario, ordinal, kind) {
   var step = ctx.ui || ctx.evidenceOwner === 'component' || !ctx.request,
     fields = [['TEST', ctx.owner || 'API tests'], ['PHASE', ctx.phase]];
@@ -40,8 +44,11 @@ function selectFailure(index) {
 }
 function failureRecords() {
   return testItems().filter(item => statusOf(item) === 'fail').flatMap(item => {
+    var diagnostics = failedDiagnosticRows(item);
     var records = [
-      ['ui', failedUiRows(item)], ['assertion', failedAssertionRows(item)], ['diagnostic', failedDiagnosticRows(item)],
+      ['ui', failedUiRows(item)], ['assertion', failedAssertionRows(item)],
+      // Keep the ordered diagnostic chain in one Fails entry; Tests retains every source row.
+      ['diagnostic', diagnostics.length ? diagnostics.slice(0, 1) : []],
       ['execution', failedExecutionEvidence(item)]
     ].flatMap(([kind, rows]) => rows.map((assertionRow, ordinal) => ({ item, assertionRow, ordinal: ordinal + 1, kind })));
     return records.length ? records : [{ item, assertionRow: null, ordinal: 1, kind: 'scenario' }];
@@ -95,7 +102,7 @@ function failureRow(record, index) {
     '<div class="test-detail"><p class="name">' +
     esc(name) +
     '</p><p class="text-sm">' +
-    esc(owner) +
+    esc(owner + ' · ' + failureRecordKindLabel(record.kind)) +
     '</p></div><div class="test-status"><span class="badge log badge-danger status status-fail">Fail</span></div>';
   row.addEventListener('click', () => selectFailure(index));
   return row;

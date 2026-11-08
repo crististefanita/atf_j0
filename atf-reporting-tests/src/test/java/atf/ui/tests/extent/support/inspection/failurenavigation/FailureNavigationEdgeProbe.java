@@ -96,24 +96,8 @@ public final class FailureNavigationEdgeProbe {
                 page.setDefaultTimeout(4000);
                 var errors = new ArrayList<String>(); page.onPageError(errors::add);
                 page.navigate(report.toUri().toString());
-                for (int index = 0; index < FailureNavigationFixture.PHASES.size(); index++) {
-                    String phase = FailureNavigationFixture.PHASES.get(index);
-                    if (fallback) LOCATORS.fallbackFails(page).click(); else LOCATORS.fails(page).click();
-                    var failures = fallback ? LOCATORS.fallbackFailures(page) : LOCATORS.failures(page);
-                    assertEquals(3, failures.count(), "Every failed phase retains its own real execution diagnostic");
-                    var link = failures.nth(index);
-                    if (!fallback) {
-                        link.click(); link = LOCATORS.backlink(page);
-                        assertEquals("diagnostic", link.getAttribute("data-atf-failure-kind"));
-                        assertTrue(LOCATORS.cause(page).innerText().length() <= limit, "The selected diagnostic's cause respects the configured preview");
-                    }
-                    link.click();
-                    var diagnostic = LOCATORS.diagnostic(page, fallback, phase);
-                    page.waitForCondition(diagnostic::isVisible);
-                    assertEquals(0, LOCATORS.assertionRows(page, fallback).count(), "Execution failure never manufactures a contract comparison");
-                    assertTrue(LOCATORS.cells(diagnostic).nth(1).innerText().contains("phase=" + phase));
-                    page.reload(); page.waitForCondition(diagnostic::isVisible);
-                }
+                if (fallback) verifyFallbackDiagnostics(page, limit);
+                else verifyExtentDiagnostics(page, limit);
                 assertTrue(errors.isEmpty(), errors::toString);
                 page.screenshot(new Page.ScreenshotOptions().setPath(Path.of(report + "-verified.png")));
         
@@ -122,6 +106,81 @@ public final class FailureNavigationEdgeProbe {
                 throw reportingBrowserFailure;
             }
         }
+    }
+
+    private static void verifyExtentDiagnostics(Page page, int limit) {
+        LOCATORS.fails(page).click();
+        var failures = LOCATORS.failures(page);
+        assertEquals(1, failures.count(), "Extent indexes one ordered diagnostic chain per scenario");
+        var aggregate = failures.first();
+        assertEquals("diagnostic", aggregate.getAttribute("data-atf-failure-kind"));
+        assertEquals("SETUP", aggregate.getAttribute("data-atf-failure-phase"));
+        aggregate.click();
+        assertTrue(LOCATORS.cause(page).innerText().length() <= limit,
+                "The aggregate cause respects the configured preview");
+        var backlink = LOCATORS.backlink(page);
+        assertEquals("diagnostic", backlink.getAttribute("data-atf-failure-kind"));
+        assertEquals("1", backlink.getAttribute("data-atf-failure-ordinal"));
+        backlink.click();
+        var setupDiagnostic = LOCATORS.diagnostic(page, false, "SETUP");
+        page.waitForCondition(setupDiagnostic::isVisible);
+        assertEquals(0, LOCATORS.assertionRows(page, false).count(),
+                "Execution diagnostics never manufacture contract comparisons");
+
+        var scenario = LOCATORS.extentScenario(page);
+        assertTrue(scenario.isVisible());
+        var disclosures = LOCATORS.diagnosticDisclosures(scenario);
+        assertEquals(FailureNavigationFixture.PHASES.size(), disclosures.count(),
+                "Tests retains one independently collapsible disclosure for each source phase");
+        for (int index = 0; index < FailureNavigationFixture.PHASES.size(); index++) {
+            String phase = FailureNavigationFixture.PHASES.get(index);
+            var disclosure = disclosures.nth(index);
+            var phaseBody = disclosure.locator("[data-atf-phase-name]");
+            assertEquals(phase, phaseBody.getAttribute("data-atf-phase-name"));
+            var summary = LOCATORS.diagnosticSummary(disclosure);
+            if (Boolean.TRUE.equals(disclosure.evaluate("node => node.open"))) summary.click();
+            assertEquals(Boolean.FALSE, disclosure.evaluate("node => node.open"),
+                    "Each diagnostic is independently collapsible");
+            summary.click();
+            assertEquals(Boolean.TRUE, disclosure.evaluate("node => node.open"));
+            var diagnostic = LOCATORS.diagnostic(disclosure, phase);
+            assertEquals(1, diagnostic.count());
+            assertTrue(diagnostic.isVisible());
+            assertDiagnosticRow(page, diagnostic, phase, false);
+            summary.click();
+            assertEquals(Boolean.FALSE, disclosure.evaluate("node => node.open"));
+        }
+    }
+
+    private static void verifyFallbackDiagnostics(Page page, int limit) {
+        LOCATORS.fallbackFails(page).click();
+        var failures = LOCATORS.fallbackFailures(page);
+        assertEquals(FailureNavigationFixture.PHASES.size(), failures.count(),
+                "Fallback keeps one independently navigable diagnostic row per phase");
+        for (int index = 0; index < FailureNavigationFixture.PHASES.size(); index++) {
+            String phase = FailureNavigationFixture.PHASES.get(index);
+            LOCATORS.fallbackFails(page).click();
+            assertEquals(FailureNavigationFixture.PHASES.size(), failures.count());
+            var link = failures.nth(index);
+            assertTrue(LOCATORS.fallbackFailurePreview(link).innerText().length() <= limit,
+                    "The fallback Fails preview respects the configured character budget");
+            link.click();
+            var diagnostic = LOCATORS.diagnostic(page, true, phase);
+            page.waitForCondition(diagnostic::isVisible);
+            assertDiagnosticRow(page, diagnostic, phase, true);
+            page.reload();
+            page.waitForCondition(diagnostic::isVisible);
+            assertDiagnosticRow(page, diagnostic, phase, true);
+        }
+    }
+
+    private static void assertDiagnosticRow(Page page, Locator diagnostic, String phase,
+                                           boolean fallback) {
+        assertEquals(2, LOCATORS.cells(diagnostic).count(), "A diagnostic keeps its typed message pair");
+        assertEquals(0, LOCATORS.assertionRows(page, fallback).count(),
+                "Execution diagnostics never manufacture contract comparisons");
+        assertTrue(LOCATORS.cells(diagnostic).nth(1).innerText().contains("phase=" + phase));
+        assertFalse(diagnostic.innerText().contains(FailureNavigationFixture.SECRET));
     }
 
     private static boolean inViewport(Locator row) {

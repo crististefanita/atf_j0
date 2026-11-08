@@ -15,9 +15,15 @@ final class BrowserProbeDiagnostics {
     private BrowserProbeDiagnostics() { }
 
     static void phase(Path directory, String phase) throws Exception {
-        String name = "phase-" + String.format(java.util.Locale.ROOT, "%08d", EVENTS.incrementAndGet()) + "-" + phase;
+        String name = "phase-" + sequence(EVENTS.incrementAndGet()) + "-" + phase;
         BrowserPhaseChannel.publish(directory, name, System.nanoTime());
         if (phase.equals("DONE") || phase.equals("FAILED")) Files.writeString(directory.resolve("phase-" + phase), name);
+    }
+
+    private static String sequence(long value) {
+        String digits = Long.toString(value);
+        if (digits.length() > 8) throw new IllegalStateException("Browser phase sequence exhausted");
+        return "0".repeat(8 - digits.length()) + digits;
     }
 
     static void failure(Path directory, Throwable error) throws Exception {

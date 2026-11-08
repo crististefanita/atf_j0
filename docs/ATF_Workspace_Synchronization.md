@@ -68,7 +68,7 @@ rămân distincte; infrastructura copiată nu le demonstrează.
 | Schimbare în referință | Livrare către fiecare consumer | Dovadă necesară |
 |---|---|---|
 | Reporting Java, assets, API sau POM | versiune nouă, JAR/POM și proveniență; documentele de adopție | native, regresii permanente și gate pe JAR-ul fizic |
-| Core Java, API sau POM | versiune Core nouă, pereche JAR/POM și proveniență; sursa și nativele rămân în J0 | native și contracte pe JAR, guvernanță și acceptanță distinctă J1/J2 |
+| Core Java, API sau POM | versiune Core nouă, pereche JAR/POM și proveniență; sursa și nativele rămân în J0 | native și contracte pe JAR, guvernanță și acceptanță distinctă în fiecare consumer afectat J1–J6 |
 | numai regresii Reporting | testele rămân în J0; se verifică relevanța pentru versiunea consumată | reproducere negativă și acceptanță pe binarul afectat; fără copierea harness-ului în live |
 | Test Kit, Console sau Mock | versiune nouă și pereche JAR/POM în J1–J6; sursa și nativele rămân în J0 | native, contracte pe JAR și acceptanța fiecărui consumer |
 | surse comune Validation/UI sau adaptoare Shop/AutoEx | numai sursele și probele selectate pentru același comportament | comparație cu schimbările locale și testele ownerului; un JAR Reporting nou nu este implicit necesar |
@@ -138,7 +138,7 @@ selectiv, iar backlog-ul Reporting și cel web rămân la ownerii J0/J1.
 ## Core ca bibliotecă — owner și deployment
 
 J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module.
-[Contractul Core](ATF_Core_Consumer.md) separă sursa, publicarea și acceptanțele J1/J2/J3.
+[Contractul Core](ATF_Core_Consumer.md) separă sursa și publicarea de acceptanța independentă a fiecărui consumator J1–J6.
 Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 
 ## Release evidence retention

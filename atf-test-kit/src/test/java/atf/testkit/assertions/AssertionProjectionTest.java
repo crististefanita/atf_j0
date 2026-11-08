@@ -2,6 +2,7 @@ package atf.testkit.assertions;
 
 import atf.testkit.AtfUnitTest;
 import org.junit.jupiter.api.Test;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -50,6 +51,28 @@ class AssertionProjectionTest {
         assertEquals("{\"password\":\"REDACTED\"}", rows.checks().getFirst().actual());
         assertEquals(240, display.display(null, "x".repeat(241)).length());
         assertEquals(1, new AssertionValueDisplay(1, (field, text) -> text).display(null, "long").length());
+    }
+
+    @Test void truncationPreservesSupplementaryCharactersAndTheSanitizedOriginal() {
+        String crossing = "x".repeat(238) + "😀" + "suffix";
+        String fitting = "x".repeat(237) + "😀" + "suffix";
+        var observed = new java.util.ArrayList<AssertionValueDisplay.Projection>();
+        var sanitized = new java.util.ArrayList<String>();
+        var display = new AssertionValueDisplay(240, (field, value) -> {
+            sanitized.add(value);
+            return value;
+        }, observed::add);
+
+        String crossingPreview = display.comparison("crossing", AssertionValueDisplay.Role.ACTUAL, crossing);
+        String fittingPreview = display.comparison("fitting", AssertionValueDisplay.Role.ACTUAL, fitting);
+
+        assertEquals("x".repeat(238) + "…", crossingPreview);
+        assertEquals(239, crossingPreview.length());
+        assertEquals("x".repeat(237) + "😀…", fittingPreview);
+        assertEquals(240, fittingPreview.length());
+        assertEquals(List.of(crossing, fitting), sanitized);
+        assertEquals(List.of(crossing, fitting), observed.stream().map(AssertionValueDisplay.Projection::fullText).toList());
+        assertTrue(observed.stream().allMatch(AssertionValueDisplay.Projection::truncated));
     }
 
     @Test void recordsTheSingleJUnitEvaluationAndKeepsBrokenDisplayOutOfItsVerdict() {

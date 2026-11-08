@@ -4309,3 +4309,84 @@ testChanges:
 ```
 
 </details>
+
+<details>
+<summary><strong>Control tehnic — CORE-API-LIFECYCLE-20261108</strong></summary>
+
+```yaml
+testChanges:
+  - id: CORE-API-LIFECYCLE-20261108
+    status: VERIFIED
+    base: 1dcbd03e0fc02564e565ddeb24c6a60124e3a4ee
+    expires: 2026-11-30
+    reason: Păstrează regresia permanentă pentru ordinea fazelor, cauza originală și verdictul terminal al lifecycle-ului API din Core.
+    proof: 'mvn -B -o -f <TMP>\pom.xml -pl atf-core -am "-Dtest=ApiScenarioPhaseExecutorTest" "-Dsurefire.failIfNoSpecifiedTests=false" test'
+    paths:
+      - atf-core/src/test/java/atf/core/lifecycle/ApiScenarioPhaseExecutorTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control tehnic — REPORT-TEST-LIFECYCLE-20261108</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-TEST-LIFECYCLE-20261108
+    status: VERIFIED
+    base: 1dcbd03e0fc02564e565ddeb24c6a60124e3a4ee
+    expires: 2026-11-30
+    reason: Păstrează lifecycle-ul API, proiecția terminală, izolarea browserului, selecția goală și dovezile Extent/fallback fără relaxarea termenelor ori oracolelor.
+    proof: 'mvn -B -o -f <TMP>\pom.xml -pl atf-reporting-tests -am "-Dtest=ApiScenarioLifecycleRunnerTest,ExtentReportFailureProjectionContractTest,BrowserBoundaryContractTest,PublishedFailureNavigationEdgeComponentTest,ApiScenarioLifecycleReportComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test'
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/api/execution/ApiScenarioLifecycleRunnerTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/contract/BrowserBoundaryContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/lifecycle/BrowserProbeDiagnostics.java
+      - atf-reporting-tests/src/test/java/atf/reporting/browser/lifecycle/BrowserProbeProcess.java
+      - atf-reporting-tests/src/test/java/atf/reporting/extent/session/ExtentReportFailureProjectionContractTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/CoreReportPortsAdapter.java
+      - atf-reporting-tests/src/test/java/atf/reporting/support/failurecorrelation/FailureNavigationFixture.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/api/ApiReportUiFlow.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failure/FailureFlowInspector.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/failurenavigation/FailureNavigationEdgeProbe.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/failurenavigation/FailureNavigationLocators.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/section/extract/ApiReportStructureExtractor.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/lifecycle/ApiScenarioLifecycleReportComponentTest.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control tehnic — LIB-DISTRIBUTION-GUIDE-20261108</strong></summary>
+
+```yaml
+testChanges:
+  - id: LIB-DISTRIBUTION-GUIDE-20261108
+    status: VERIFIED
+    base: 1dcbd03e0fc02564e565ddeb24c6a60124e3a4ee
+    expires: 2026-11-30
+    reason: Păstrează verificarea documentului de distribuție Maven și a exemplului de consum prin JAR publicat, în raport cu guvernanța live.
+    proof: 'mvn -B -o -f <TMP>\pom.xml -pl atf-tests -am "-Dtest=Documentation*Test,LibraryDocumentationInventoryTest" "-Dsurefire.failIfNoSpecifiedTests=false" test'
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/README.md
+```
+
+</details>
+
+<details>
+<summary><strong>Control tehnic — KIT-UNICODE-PREVIEW-20261108</strong></summary>
+
+```yaml
+testChanges:
+  - id: KIT-UNICODE-PREVIEW-20261108
+    status: VERIFIED
+    base: 1dcbd03e0fc02564e565ddeb24c6a60124e3a4ee
+    expires: 2026-11-30
+    reason: Păstrează limita de preview 240 fără să rupă perechile surrogate; oracolele verifică sursa și consumerul compilat contra JAR-ului fizic.
+    proof: 'mvn -B -o -Plibrary-guides -f <TMP>\pom.xml -pl atf-test-kit -am "-Datf.guide.bundle=<TMP>\consumer\lib" "-Dtest=AssertionProjectionTest,KitLibraryGuideIT" "-Dsurefire.failIfNoSpecifiedTests=false" test'
+    paths:
+      - atf-test-kit/src/test/java/atf/testkit/assertions/AssertionProjectionTest.java
+      - atf-test-kit/src/test/resources/atf/testkit/documentation/guides/oracle.java.txt
+```
+
+</details>

@@ -7,7 +7,8 @@ cauzei terminale. Sursa izolată și JAR-ul fizic au gate separat în
 [Reporting Tests](../../atf-reporting-tests/README.md#gate-ul-bibliotecii-distribuite).
 
 - Pregătirea pentru release păstrează criterii distincte: API susținut,
-  distribuție și documentație portabilă. Expected-urile, endpoint-urile,
+  distribuție și compatibilitate declarată. Ghidul livrat în `lib` are probă
+  executabilă pe JAR; expected-urile, endpoint-urile,
   selecția business și captura Playwright rămân la ownerii lor.
 - Reporting Tests rămâne modul intern de verificare. Fiecare increment închide
   împreună codul, ownership-ul, proba și documentația.
@@ -18,11 +19,10 @@ cauzei terminale. Sursa izolată și JAR-ul fizic au gate separat în
 
 ## REPORT-SINGLE-ACTIVE-VIEW — starea unică a navigării
 
-**P2 · responsabil Reporting: starea și accesibilitatea navigării generice.** Pe Reporting `1.0.0-j20`, JAR SHA-256 `8ccb99955095873953ac3234cc1564452994b25dc7ab338d37719201a851f9fa`, selectarea Tests păstrează simultan clasa `active` pe `nav-test` și `nav-overview`. Controalele Tests și Category nu au nume accesibil explicit. Observația provine din HTML-ul J4 calificat prin hash `2acd0a5ea214c27925b1caebb7a2c178e005057ed20e93fdb51a743a98706731`, fără modificarea documentului sau a datelor sale.
+**P2 · responsabil Reporting: starea și accesibilitatea navigării generice.** În [controllerul live](../../atf-reporting/src/main/resources/atf/reporting/javascript/extent-navigation-controller.js), `atfActivate` golește clasa `active` de pe părinții `.nav-item`, dar nu de pe toate legăturile surori înainte de a activa ținta. Nu există o actualizare `aria-current` în acest controller. [Contractul de navigare](../../atf-reporting-tests/src/test/java/atf/reporting/extent/session/ExtentReportNavigationContractTest.java) verifică structura, nu unicitatea clasei active și starea accesibilă după tranziții succesive; vechiul artifact J20 rămâne doar indiciu istoric, nu dovadă pentru binarul curent.
 
-- **Reproducere:** deschideți [raportul compact](../../../atf_j4/artifacts/reports/1.9.2/e2e/compact-api28/responsive-ui-sanity.html), treceți din Overview în Tests și inspectați starea celor două controale. Revizia headless offline păstrează DOM-ul și capturile în depozitul extern de audit, legate de hash-ul HTML; aceasta nu este o acceptanță în TAB MCP.
-- **Criteriu:** exact o destinație vizibilă este activă și curentă după fiecare tranziție; fiecare control cu iconiță are nume accesibil. Tests, Category, Fails și Overview păstrează proprietarul selectat și întoarcerea din viewer.
-- **Calificare:** regresie permanentă la responsabilul bibliotecii, pe sursă și JAR, cu tranziții succesive și verificarea stării DOM; apoi acceptanța interactivă cerută de protocol. Consumatorul nu repară rendererul prin postprocesare locală.
+- **Criteriu:** o singură legătură vizibilă este activă și expune selecția curentă după fiecare tranziție; controalele icon-only au nume accesibil. Tests, Category, Fails și Overview păstrează ownerul selectat și revenirea din viewer.
+- **Calificare:** adăugați regresie runtime în Reporting Tests pentru tranziții succesive, unicitatea `active`, `aria-current`/semantica echivalentă și numele accesibile; validați sursa și JAR-ul. Consumatorul nu repară rendererul prin postprocesare locală.
 
 ## Criterii rămase pentru consolidare
 
@@ -30,7 +30,7 @@ cauzei terminale. Sursa izolată și JAR-ul fizic au gate separat în
 |---:|---|---|
 | 1 | porturile declară capabilitățile și compatibilitatea susținută; nicio dovadă cerută nu dispare într-un default fără efect | consumer JAR și contracte neutre |
 | 2 | proiecția recovery și flow-ul păstrează owner, cauze, timing și ordinal înainte/peste faze | comparație semantică, Extent/fallback și controale negative |
-| 3 | distribuția declară API-ul, matricea vendor și documentele transportabile | gate de release și [Reporting Tests](ATF_Reporting_Tests_Feedback.md) |
+| 3 | distribuția declară API-ul și matricea Java/vendor susținută | gate de release și [Reporting Tests](ATF_Reporting_Tests_Feedback.md) |
 
 Constructorul refuzat eliberează publicația, iar lifecycle-ul rendererelor este
 la [contractul sesiunii](../../atf-reporting/README.md#publicare-și-ieșire).
@@ -70,9 +70,8 @@ sunt la ownerii lor, iar registrul păstrează numai criteriile încă deschise.
 | `REPORT-PUBLIC-API-43` | 81 = 31 + 24 + 17 + 9 | API-ul susținut, compatibilitatea și capabilitățile adaptoarelor nu sunt delimitate suficient |
 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) | 80 = 31 + 24 + 18 + 7 | criteriu separat al consumerului: oracol per scenariu și containment fallback |
 | `UI-RECOVERY-AUDIT-01` | 78 = 33 + 22 + 16 + 7 | proiecția typed a încercărilor, bugetelor și corelării rămâne la Reporting |
-| `REPORT-RELEASE-CONTRACT-45` | 73 = 25 + 22 + 17 + 9 | lipsesc criteriile declarate ale pachetului și versiunii distribuite |
-| `REPORT-PORTABLE-DOCS-46` | 72 = 24 + 22 + 17 + 9 | contractele și linkurile README depind încă de documente din afara modulului |
-| [REPORT-FALLBACK-RESULT-WIDTH-101](#report-fallback-result-width-101--badge-ul-statusului-depășește-coloana) | 64 = 24 + 19 + 15 + 6 | badge-ul Warning depășește RESULT și produce overflow evitabil |
+| `REPORT-RELEASE-CONTRACT-45` | 73 = 25 + 22 + 17 + 9 | matricea runtime/vendor, operatorul repetabil și metadatele externe nu sunt încă o politică completă |
+| [REPORT-FALLBACK-RESULT-WIDTH-101](#report-fallback-result-width-101--regresie-geometrică-pentru-badge) | 64 = 24 + 19 + 15 + 6 | lipsește un oracol geometric al badge-ului WARNING în celula RESULT |
 | `REPORT-FLOW-PROJECTION-36` | 62 = 24 + 17 + 16 + 5 | calculul proiecției și protocolul publicării rămân amestecate |
 | [REPORT-DISTRIBUTION-METADATA-140](#report-distribution-metadata-140--bind-optional-adoption-paths) | P2; unscored | permanent negative for stale optional consumerDistribution paths; current bytes are already correct |
 
@@ -152,58 +151,26 @@ artefactul curent și nu propunem mutarea lor în Java sau într-un modul nou.
 - Adaptorul timestamp citește un template intern Spark. Compatibilitatea
   Extent trebuie urmărită; macro-ul refuză expresia vendorului schimbată.
 
-Două build-uri forțate `clean package` cu aceleași surse și aceeași toolchain
-au produs bytes identici. Restanța privește toolchain-ul declarat și gate-ul
-automat de release, împreună cu metadatele și dependențele efectiv susținute.
+Inventarul bibliotecilor verifică JAR/POM-ul distribuit, hash-ul și proveniența;
+ghidul executabil probează consumerul binar. Restanța este un operator de release
+repetabil și o politică explicită de compatibilitate/metadate, nu inventarul local.
 
 **Același increment:**
 
-- [ ] Declarați matricea runtime/vendor susținută și politica versiunilor.
-      Java 21, JAR thin/POM și dependențele directe sunt deja declarate;
-      compatibilitatea viitoare cere o probă la fiecare versiune susținută.
-- [ ] Automatizați gate-ul de release cu două build-uri forțate și intrări
-      identice, toolchain declarată și provenance verificată. Pluginurile fixate
-      și proba locală repetabilă nu înlocuiesc politica livrării externe.
-- [ ] Verificați conținutul JAR/POM, inventarul assets, lipsa testelor/dependențelor
-      ATF din runtime și rezolvarea externă. Decideți sursele/JavaDoc și metadatele
-      de distribuție înainte de publicare; fără alegere implicită a licenței proiectului.
-- [ ] Folosiți J0 ca owner al candidatului și validați separat J1/J2 după inițializarea fiecărei ținte; aceeași pereche JAR/POM și hash, fără moștenirea rezultatelor altui consumer sau rescrierea provenienței istorice.
-- [ ] Documentați instalarea/consumul real și diagnosticul unei incompatibilități
-      de runtime ori vendor; `mvn package` verde rămâne doar o parte a acceptanței.
+- [ ] Declarați matricea Java/vendor și politica versiunilor susținute. POM-ul
+      curent declară Java 21, JAR thin și dependențe directe; compatibilitatea
+      pentru fiecare runtime/vendor trebuie să aibă probă proprie.
+- [ ] Automatizați la owner un release gate repetabil: două build-uri curate
+      din intrări identice, toolchain declarată, byte identity și proveniență.
+      Gate-urile locale de inventar nu sunt release operator.
+- [ ] Decideți distribuția Sources/JavaDoc și metadatele SCM/licență fără a
+      deduce o licență; rezolvați POM-ul publicat într-un consumer extern înainte
+      de a promova versiunea.
 
-## REPORT-PORTABLE-DOCS-46 — adopție externă și documente transportabile
-
-**Prioritate: 72/100** = impact 24 + lacună 22 + lucrabil 17 + documentare 9.
-**Owner:** README Reporting și contractele de raportare din documentația proiectului.
-
-README-ul are linkuri relative spre directoare părinte, inclusiv contracte
-normative din `../docs`. Copierea numai
-a modulului păstrează codul, dar nu transportă acei owneri documentari.
-
-- Exemplul minim JAR din README este acum compilat și executat extern, cu un
-  control PASS și unul FAIL; nu închide migrarea tuturor contractelor.
-- [Atlasul pachetelor](../../atf-reporting/src/main/java/atf/reporting/README.md)
-  oferă context local pentru UI, API, modele, renderere, evidence și runtime.
-  Linkurile sale către probele interne nu reprezintă încă un pachet documentar de release.
-- [Contextul portabil](../../atf-reporting/docs/README.md) are numai destinații
-  interne modulului și explică separat sursa izolată, JAR-ul thin, POM-ul și
-  autonomia HTML. Această intrare este pregătită; portabilitatea tuturor
-  README-urilor și includerea în distribuție rămân deschise.
-- README-ul separă acum adopția, mentenanța și probele prin trasee explicite
-  și disclosure-uri. Acest lucru îmbunătățește orientarea în ATF; nu transportă
-  automat contractele externe în pachetul distribuit.
-
-**Același increment:**
-
-- [ ] Inventariați ownerii contractelor și destinația lor după extragere.
-      Păstrați o singură definiție normativă, cu linkuri funcționale atât în ATF,
-      cât și în livrarea externă; fără duplicarea a două versiuni divergente.
-- [ ] Includeți traseul de adopție și contractele lui în livrarea declarată.
-      Actualizați exemplele odată cu API-ul și probați-le pe consumerul extern.
-- [ ] Verificați din copia izolată README-ul, linkurile, fragmentele compilabile,
-      configurația și randarea diagramelor; guard-ul structural nu dovedește adevărul.
-- [ ] Mențineți [controlul factual selectiv](../../atf-tests/README.md#documente-și-responsabilități)
-      ca regulă comună; criteriul de aici deține numai portabilitatea documentației Reporting.
+Ghidul consumerului este livrat în `lib` și verificat prin `ReportingLibraryGuideIT`
+pe JAR-ul fizic, într-un classpath fără Core, Kit sau sursa producătorului.
+Instalarea, exemplele și preview-ul 240 au contract în [README-ul de utilizare](../../lib/README.Reporting.md);
+documentația internă detaliată rămâne la owner în J0.
 
 ## REPORT-FLOW-PROJECTION-36 — plan de dovezi separat de publicare
 
@@ -231,10 +198,11 @@ selectarea capturii și deschiderea/închiderea porturilor de publicare.
 - [ ] Publicarea consumă rezultatul typed și reutilizează publisherul API și
       protocolul scope-urilor; nu reface decizia din textul compactat și nu
       schimbă păstrarea cauzelor pentru a simplifica bucla.
-- [ ] Păstrați `UiCrossPhaseCompactFlowComponentTest`,
-      `ExtentUnifiedFlowMultipleScreenshotTest`, `UiPublicationFailureComponentTest`
-      și inventarul independent al tabelelor. Probați FAIL/SKIP într-o fază
-      intermediară și checkpoint-uri cu API fără UI, nu doar flow-ul final PASS.
+- Regresiile `UiCrossPhaseCompactFlowComponentTest`,
+  `ExtentUnifiedFlowMultipleScreenshotTest` și `UiPublicationFailureComponentTest`
+  există deja și rămân protejate; ele nu închid separat extracția proiecției.
+- [ ] Probați FAIL/SKIP într-o fază intermediară și checkpoint-uri cu API fără
+      UI, nu doar flow-ul final PASS, în ambele renderere și pe JAR-ul candidat.
 - [ ] Comparați Extent/fallback și navigarea între taburi pe același snapshot;
       bugetul configurat, timing-ul, un singur artifact și toate expandările accesibile
       rămân criterii, inclusiv [backlink-ul exact](../../atf-reporting/README.md#revenirea-la-comparația-eșuată).
@@ -286,7 +254,7 @@ sau repetarea deciziei la renderer.
 
 | Informație | Owner |
 |---|---|
-| Exchange terminal în Tests/Fails și backlink către execution evidence | [Reporting](../../atf-reporting/README.md#execuție-api-terminată-fără-răspuns) |
+| Exchange terminal în Tests/Fails: un lanț agregat per scenariu, aserțiunea și diagnosticul etichetate distinct, backlink către rândul sursă | [Reporting](../../atf-reporting/README.md#execuție-api-terminată-fără-răspuns) |
 | JSON semantic, canary-uri și degradarea inputului invalid | [Security](../../atf-reporting/src/main/java/atf/reporting/security/README.md) |
 | YAML strict și defaults legitime | [Reporting](../../atf-reporting/README.md#intrări-și-configurare-în-bibliotecă) |
 | Sursa izolată și JAR-ul fizic consumat extern | [Reporting Tests](../../atf-reporting-tests/README.md#gate-ul-bibliotecii-distribuite) |
@@ -310,23 +278,27 @@ Refactorizările păstrează contractele ownerilor de mai sus și urmează
 Reevaluarea folosește [rubrica comună de cod](../README_Atf_CodeBestPractices.md#rubrica-reevaluării-modulelor),
 cu randare inspectată și regresiile ownerului trecute în TMP.
 
-## REPORT-FALLBACK-RESULT-WIDTH-101 — badge-ul statusului depășește coloana
+## REPORT-FALLBACK-RESULT-WIDTH-101 — regresie geometrică pentru badge
 
 **Prioritate: 64/100** = impact 24 + lacună 19 + lucrabil 15 + documentare 6.
 **Owner:** Reporting pentru layout; Reporting Tests pentru componenta neutră.
 
-Pe J7, tabelul API cu trei comparații PASS și un WARNING afișează un scrollbar
-orizontal mic la viewport de 1280 px. Coloana RESULT măsoară aproximativ 56,9 px,
-iar badge-ul Warning 61,8 px; overflow-ul tabelului ajunge la 877 px pentru
-un părinte de 870 px. Valorile și verdictul sunt corecte.
+Raportul J7 a păstrat un martor istoric: coloana RESULT măsura aproximativ
+56,9 px, iar badge-ul Warning 61,8 px, cu un overflow mic la viewport de 1280 px.
+Sursa curentă are alocare dinamică și probe browser pentru geometria altor familii,
+dar fixture-ul permanent de alocare nu publică WARNING în celula RESULT. Martorul
+vechi nu demonstrează că defectul persistă în codul sau JAR-ul curent.
 
-- Calculați minimumul util din footprint-ul stilizat al celulei, inclusiv badge, padding și border; lungimea textului singură nu dovedește că rezultatul încape.
-- Refolosiți politica dinamică existentă pentru toate coloanele și rendererele. Nu impuneți o proporție globală fixă și nu ascundeți overflow-ul sau textul ca să eliminați scrollbarul.
-- Păstrați wrapping, patru coloane, un singur tabel și preview 240; un panou într-adevăr îngust poate avea scroll limitat la tabel, cu ultima comparație accesibilă.
+- [ ] Extindeți fixture-ul existent de geometrie cu PASS/FAIL/WARNING și header
+      sintetic lung; măsurați conținutul stilizat, celula și tabelul în Extent și
+      fallback la lățime normală și îngustă.
+- [ ] Refuzați un mutant care restrânge numai RESULT sub badge, cu verdicturile
+      și valorile neschimbate. Păstrați wrapping, cele patru coloane, preview-ul
+      240 și accesul la ultima comparație; nu mascați overflow-ul.
 
-**Închidere:** fixture-ul neutru PASS/FAIL/WARNING încape la lățimea normală
-fără overflow provocat de badge; panoul îngust rămâne navigabil. Mutația care
-restrânge RESULT sub dimensiunea badge-ului trebuie refuzată separat de verdict.
+**Închidere:** geometria curentă este demonstrată pe ambele renderere, iar mutantul
+este refuzat independent de verdict. Nu se cere o clasă de test nouă dacă fixture-ul
+existent poate deține această probă.
 
 <details>
 <summary><strong>Reproducere consumer — fără schimbarea rendererului</strong></summary>
@@ -541,7 +513,6 @@ The [native timeline contract](../ATF_Large_Report_Navigation.md#native-timeline
 The producer source still exposes optional default methods that silently ignore requested screenshot, UI action, execution and aggregate evidence. This is a capability/compatibility gap under PUBLIC-API-43; legacy adapter compatibility must remain explicit rather than being broken by blanket method changes.
 
 - [ ] Under PUBLIC-API-43, characterize the exact requested-evidence/default-adapter matrix; declare supported capabilities and require an observable refusal when mandatory evidence is unsupported. Decouple the journey aggregate DTO from its inspecting/calculating class only after caller and ABI characterization.
-- [ ] Under PORTABLE-DOCS-46, verify module documentation from a module-only copy and a binary-only consumer; the current project contracts are release-independent, but external source/harness links still require a declared companion-document route.
 - [ ] Under RELEASE-CONTRACT-45, retain an owned, repeatable release operator at its maintained owner; reproduce native gates, source/JAR regressions, embedded POM, raw input identity and byte-identical builds without relying on an earlier agent's TMP scripts.
 
 These are refinements of existing library contracts. SQL extensions and application/device acceptance remain separate from maintenance grading.

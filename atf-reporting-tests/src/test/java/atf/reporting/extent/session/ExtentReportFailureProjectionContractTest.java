@@ -93,8 +93,11 @@ class ExtentReportFailureProjectionContractTest {
                 () -> assertTrue(html.contains("var durationMs=atfDurationValue(rawDuration)")
                                 && html.contains("duration=durationMs===null?rawDuration:atfFormatDuration(durationMs)"),
                         "execution evidence duration must use the shared duration parser and formatter"),
-                () -> assertTrue(html.contains("Scenario diagnostics: ") && html.contains("PRIMARY:"),
-                        "an API assertion must retain the scenario diagnostics alongside its own cause"),
+                () -> assertTrue(html.contains("Scenario diagnostics: ")
+                                && html.contains("failedDiagnosticRows(item).length"),
+                        "assertion details retain only diagnostics that are not separately indexed"),
+                () -> assertTrue(html.contains("message:failureCauseChain(item)||text(anchor.cells[1])"),
+                        "the aggregate diagnostic entry retains the ordered cause chain"),
                 () -> assertTrue(html.contains("PRIMARY: ") && html.contains("SECONDARY: "),
                         "the Fails projection must preserve the ordered cause chain")
         );

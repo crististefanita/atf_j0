@@ -1,17 +1,5 @@
 # ATF Reporting Tests — oracole independente și acceptanță sursă/JAR
 
-## REPORT-BROWSER-LIFECYCLE-154 — acceptanța închiderii native
-
-Oracolele de browser separă acum valorile de preview de dovada integrală și
-deschid explicit comparația fallback. Watchdog-ul validează timpul fazei
-înregistrat de worker la tranziție și păstrează deadline-urile existente.
-
-[Pornirea la rece](../ATF_Large_Report_Navigation.md#cold-startup-and-readiness)
-are o probă permanentă cu frame-urile amânate și control real prin tastatură.
-
-- [ ] Confirmați inventarul și verdictul identic al suitei canonice pe sursă și pe JAR fizic, cu cleanup nativ și fără skip.
-- [ ] Confirmați că handshake-ul rece Playwright finalizează în bugetul existent în suita completă. Selecția focalizată a trecut, iar timeout-ul istoric rămâne criteriu de închidere.
-
 ## Pe scurt
 
 Acest feedback deține corectitudinea probelor din `atf-reporting-tests`:
@@ -46,14 +34,20 @@ scenariului, fazei, ownerului, ordinalului și capturii originale.
   Oracolul trebuie să identifice ownerul activ și comparația originală;
   vizibilitatea singură nu înlocuiește identitatea sau inventarul semantic.
 
-Existing permanent families already cover original ACTION/OBSERVE/comparison ordinals, repeated failure labels, reverse navigation and reload. Preserve [catalog contracts](../../atf-reporting-tests/src/test/java/atf/reporting/ui/contract/UiFailureCatalogueContractTest.java) and [published navigation edges](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationEdgeComponentTest.java); do not relist their nominal coverage as missing.
+Regresiile permanente acoperă ordinalele originale ACTION/OBSERVE/comparison,
+etichetele de eșec repetate, navigarea inversă și reload. Păstrați [contractul
+catalogului](../../atf-reporting-tests/src/test/java/atf/reporting/ui/contract/UiFailureCatalogueContractTest.java)
+și [testele de navigare publicată](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationEdgeComponentTest.java);
+nu relistați acoperirea nominală ca lacună.
 
 - [ ] Reconcile the remaining source/JAR mutation matrix per evidence kind and scenario; identify exactly which capture/owner/value degradation lacks an independent rejection before adding another fixture.
 - [ ] Controlul negativ elimină numai captura unui caz, mută dovada la un
       sibling sau inversează numai verdictul lui; oracolul trebuie să refuze
       fiecare variantă fără să fie satisfăcut de script ori de alt scenariu.
-- [ ] Pentru două diagnostice omonime verificați și ordinea inversă, reload,
-      Enter/Space și grupul efectiv deschis. Nu acceptați asocierea după titlu.
+- [ ] Pentru linkurile Fails native verificați activarea cu Enter și starea
+      focusată; Space se cere disclosure-urilor, nu linkurilor. Enter/Space,
+      grupul deschis și reload rămân verificate pentru disclosure-urile existente.
+      Nu acceptați asocierea după titlu.
 - [ ] Păstrați preview-ul implicit 240 și bugetele configurate; comparația
       integrală precede redacția. Un mismatch după limita preview-ului rămâne
       FAIL fără publicarea integrală a valorilor ori expunerea unui secret.
@@ -78,14 +72,17 @@ documentele normative nu păstrează artifacte sau rezultate datate.
 
 ## REPORT-TEST-FALLBACK-RESULT-WIDTH-101 — geometria celulei RESULT
 
-**Prioritate: 64/100.** [Defectul bibliotecii](ATF_Reporting_Feedback.md#report-fallback-result-width-101--badge-ul-statusului-depășește-coloana)
-retains a historical Warning/RESULT overflow witness. Recheck current source and the physical JAR with a dedicated geometric oracle before describing that historical overflow as a current renderer defect.
+**Prioritate: 64/100.** [Criteriul bibliotecii](ATF_Reporting_Feedback.md#report-fallback-result-width-101--regresie-geometrică-pentru-badge)
+păstrează martorul istoric și cere măsurarea geometrică a codului/JAR-ului actual.
+Testele existente verifică alocarea dinamică și alte familii, dar nu publică
+WARNING ca badge în celula RESULT.
 
-- [ ] Adăugați ApiValidationColumnWidthComponentTest cu AtfComponentTest și fixture neutru partajat cu testul de disclosure; integrați selecția în suita componentă și gate-ul JAR.
-- [ ] Publicați separat PASS, FAIL și WARNING, cu vecini PASS și header sintetic lung; expected-ul verdictului este furnizat direct, fără parser MIME sau dependency către Validation.
-- [ ] Măsurați în browser conținutul stilizat, padding-ul, celula și wrapperul la viewport 1280 px și panou îngust; tolerați doar rotunjirea subpixel, nu badge care depășește celula.
-- [ ] Restrângeți deliberat numai RESULT într-un mutant de artifact; oracolul geometric îl refuză, chiar dacă toate valorile și verdicturile rămân identice.
-- [ ] Păstrați accesul la ultima coloană și ultimul rând, wrapping și preview 240 în Extent/fallback; nu înlocuiți proba DOM cu substring în HTML sau cu un procent fix de coloană.
+- [ ] Extindeți fixture-ul geometric existent cu verdicturile PASS, FAIL și
+      WARNING plus header lung; măsurați lățimea reală a badge-ului, celulei și
+      tabelului la viewport normal și îngust în Extent/fallback.
+- [ ] Refuzați mutantul care restrânge numai RESULT, apoi confirmați ultima
+      coloană/rând, wrapping și preview 240. Reutilizați fixture-ul existent dacă
+      permite un oracol independent; nu impuneți o clasă nouă fără motiv.
 
 **Închidere:** regresia reproduce overflow-ul vechi și refuză mutantul, apoi
 verifică sursa și JAR-ul real. Proba de valori din consumer rămâne acolo;
@@ -193,13 +190,18 @@ The [navigation contract](../ATF_Large_Report_Navigation.md) defines the navigat
 
 </details>
 
-## Public adapter and portable-document negatives
+## Public adapter and API-client boundary
 
-PUBLIC-API-43 and PORTABLE-DOCS-46 need permanent boundary oracles, not more application journeys. Keep existing passing regressions while adding only the missing control.
+Ghidul din `lib` este deja compilat și executat pe JAR-ul fizic prin
+`ReportingLibraryGuideIT`, fără sursa producerului, Core sau Kit în classpath.
+Rămâne deschisă compatibilitatea API susținută și capabilitățile adaptoarelor,
+nu portabilitatea ghidului livrat.
 
 - [ ] Characterize lightweight legacy adapters: requested mandatory screenshots, actions, execution diagnostics and aggregate data either survive publication or receive an explicit capability refusal; a no-op call alone is not auditable evidence.
-- [ ] Exercise a declared supported API client against the physical JAR without producer implementation classes; compare supported signatures and runtime vendor assumptions independently.
-- [ ] Validate distributed adoption documentation with sibling source directories absent; a link that passes inside the full producer checkout does not prove portability.
+- [ ] Exercitați un client declarat susținut contra JAR-ului fizic, fără clase
+      interne ale producerului; comparați separat semnăturile susținute și
+      presupunerile runtime/vendor. Ghidul existent demonstrează numai exemplul
+      documentat și publicarea de bază.
 
 <a id="report-unit-baseline-149--restore-the-complete-existing-unit-gate"></a>
 
@@ -228,7 +230,9 @@ testChanges:
     base: 2f33813701b47e362b8091c6aca7c1c2b602727d
     expires: 2026-11-25
     reason: Izoleaza selectia originala si lifecycle-ul SDK. Executa un singur plan Jupiter si clasifica discovery in bugetul de verificare. Confirma iesirea arborelui Chromium detinut de worker pe Windows. Pastreaza asertiunile si pragurile originale, inclusiv cleanup-ul global legacy.
-    proof: mvn -pl atf-reporting-tests -am -Preporting-release -Dsurefire.failIfNoSpecifiedTests=false test; mvn -pl atf-reporting-tests -Preporting-release -Datf.reporting.test.version=1.0.0-j22 test
+    proof: >-
+      mvn -pl atf-reporting-tests -am -Dsurefire.failIfNoSpecifiedTests=false -Dtest=AtfReportingUnitSuite,AtfReportingBrowserSuite test;
+      mvn -pl atf-reporting-tests -Preporting-release -Datf.reporting.test.version=1.0.0-j23 -Dtest=AtfReportingUnitSuite,AtfReportingBrowserSuite test
     paths:
       - atf-reporting-tests/src/test/java/atf/reporting/runtime/core/ExtentReportRuntimeScriptTest.java
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/ReportEvidenceLocators.java

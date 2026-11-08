@@ -1,6 +1,6 @@
 # Build și execuție sigură pentru ATF
 
-Pentru sursele Core și Reporting din `atf_j0` și țintele J1/J2, aplică [protocolul workspace-ului](ATF_Workspace_Synchronization.md) înaintea sync-ului selectiv.
+Pentru sursele Core și Reporting din `atf_j0` și consumerii afectați J1–J6, aplică [protocolul workspace-ului](ATF_Workspace_Synchronization.md) înaintea sync-ului selectiv.
 
 ## Pe scurt
 

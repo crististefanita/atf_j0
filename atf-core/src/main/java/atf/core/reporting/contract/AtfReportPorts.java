@@ -37,6 +37,14 @@ public final class AtfReportPorts {
 
     public interface Phase extends AutoCloseable {
         Request startRequest(String title, String method, String path);
+
+        /**
+         * Reports whether phase-level diagnostic fields are retained by this
+         * adapter. Legacy ports remain source-compatible but must not imply
+         * that the default no-op detail method published evidence.
+         */
+        default boolean supportsDetails() { return false; }
+
         default void detail(String name, String value) { }
         void complete(AtfReportStatus status);
 

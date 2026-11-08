@@ -2,7 +2,7 @@
 
 ## Pe scurt
 
-J0 deține codul, API-ul, testele native, împachetarea și feedback-ul Test Kit. J1–J5 păstrează integrarea și oracolele lor; consumă perechea verificată din lib, fără surse ori native Kit paralele. [Contractul bibliotecii](../ATF_Test_Kit_Library.md) descrie distribuția și acceptanțele distincte.
+J0 deține codul, API-ul, testele native, împachetarea și feedback-ul Test Kit. J1–J6 păstrează integrarea și oracolele lor; consumă perechea verificată din lib, fără surse ori native Kit paralele. [Contractul bibliotecii](../ATF_Test_Kit_Library.md) descrie distribuția și acceptanțele distincte.
 
 <a id="kit-library-151--distribuție-unică-fără-surse-paralele"></a>
 
@@ -19,13 +19,6 @@ J0 deține codul, API-ul, testele native, împachetarea și feedback-ul Test Kit
 - [ ] Demonstrați două adaptoare concrete înainte de extindere: rezultat neutru cu cauza originală, număr de containere/teste, selecție explicită și referințe diagnostice limitate; restaurare exactă inclusiv la Error, publicare și colectare eșuate.
 - [ ] Păstrați controale pentru zero teste, container eșuat, assertion așteptat, excepție neașteptată și sink diagnostic eșuat. Eroarea primară rămâne aceeași; capturarea și cleanup-ul sunt secundare.
 - [ ] JUnit launching rămâne la adaptor; nu introduceți renderer, Kafka/JDBC, ASR, context global mutabil sau modul nou doar pentru reutilizarea unei bucle. BoundedProcess și CleanupRegistry rămân primitive de producție cu alte contracte.
-
-## KIT-UNICODE-PREVIEW-127 — preserve valid text at the configured boundary
-
-**P1 · AssertionValueDisplay în J0; ValidationTable în J1.** Prefixul ASCII de 238 de unități, un caracter suplimentar și un sufix care declanșează trunchierea produc, la limita 240, un high surrogate izolat; perechea care încape exact este controlul pozitiv. Reporting păstrează text valid; rendererul nu poate repara fidel valoarea deja tăiată de caller.
-
-- [ ] Păstrați ordinea sanitizer → preview și limita implicită 240, exprimată în unități UTF-16; nu separați o pereche surrogate și nu măriți bugetul.
-- [ ] Probați ambele poziții ale perechii, limita unu, măști literale, sanitizer eșuat fără callback repetat și comparația originală JUnit. Aplicați aceeași regulă în Validation prin ownerul J1, cu adopție distinctă în consumeri.
 
 ## Retenția comparațiilor — coordonare cu Reporting
 

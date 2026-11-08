@@ -93,6 +93,6 @@ separate; nu este activată prin absența unui director sau prin această adapta
 directorului nu poate micșora catalogul. Consumerii refuză orice director
 Core shadow, inclusiv fără POM, și orice fișier suplimentar în lib.
 
-J0 verifică în continuare stilul și implementarea sursei Core. J1/J2 verifică
+J0 verifică în continuare stilul și implementarea sursei Core. J1–J6 verifică
 POM-ul și clasele publicate, dependențele bytecode și hash-ul CodeSource;
 [Core contract](../../../../../../../../../docs/ATF_Core_Consumer.md) separă aceste probe.

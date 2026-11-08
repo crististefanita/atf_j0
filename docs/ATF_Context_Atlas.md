@@ -88,8 +88,8 @@ pornește investigația; nu înlocuiește verificarea sursei afectate.
 
 | Decizie inițială | Sursa de adevăr | Limita ei |
 |---|---|---|
-| ce reactor folosesc? | [workspace-uri](ATF_Workspace_Synchronization.md), apoi POM-ul țintei | J0 sursă 12, J1 JAR 9, J2 WIP 8, J3 speech 7, J4 Android 7; profilurile nu se deduc din foldere absente |
-| schimbare Reporting? | [atlasul sursei J0](../../atf_j0/atf-reporting/src/main/java/atf/reporting/README.md) și [regresiile permanente](../../atf_j0/atf-reporting-tests/README.md) | Reporting are acceptanțe distincte în J1/J2/J3/J4; documentația sursei nu certifică automat JAR-ul consumat |
+| ce reactor folosesc? | [workspace-uri](ATF_Workspace_Synchronization.md), apoi POM-ul și README-ul țintei | J0 deține sursa; rolurile și modulele J1–J6 se citesc din proiectul live, nu se deduc din directoare absente |
+| schimbare Reporting? | [atlasul sursei J0](../atf-reporting/src/main/java/atf/reporting/README.md) și [regresiile permanente](../atf-reporting-tests/README.md) | fiecare consumator J1–J6 are acceptanță proprie; documentația sursei nu certifică automat JAR-ul consumat |
 | schimbare de aplicație? | [Shop](../../atf_j1/atf-test-practice-shop/README.md) sau [AutoEx](../../atf_j1/atf-test-auto-ex/README.md) | expected, captură și selecție business rămân în consumer |
 | schimbare Kafka/Podman? | [atlasul J2](../../atf_j2/docs/ATF_Context_Atlas.md), apoi Setup și configurația | trei componente MOCK și scripturi existente; clientul Java/brokerul real sunt WIP |
 
@@ -298,7 +298,7 @@ decide ce se mută sau se elimină după dovadă.
 ## Core ca bibliotecă — owner și deployment
 
 J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module.
-[Contractul Core](ATF_Core_Consumer.md) separă sursa, publicarea și acceptanțele J1/J2/J3.
+[Contractul Core](ATF_Core_Consumer.md) separă sursa și publicarea de acceptanța independentă a fiecărui consumator J1–J6.
 Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 
 ## Inspectorul și sursele de timp Reporting
@@ -322,4 +322,4 @@ the source/JAR boundary and independent consumer checks.
 
 ## Shared platform libraries
 
-The current reactor has 12 source modules. [Platform library consumption](ATF_Platform_Libraries.md) defines the five library owners, flat distribution, Maven/IntelliJ bootstrap and independent consumer acceptance. Console/Mock native tests stay in J0; consumer adapters and catalogs stay local.
+Reactorul J0 are 12 module sursă. [Contractul bibliotecilor](ATF_Platform_Libraries.md) definește cei cinci owneri, distribuția plată, bootstrap-ul Maven/IntelliJ și acceptanța independentă a consumerilor. Testele native Console/Mock rămân în J0; adaptoarele și cataloagele rămân locale.

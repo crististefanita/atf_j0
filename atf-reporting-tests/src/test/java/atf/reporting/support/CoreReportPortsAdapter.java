@@ -44,6 +44,7 @@ public final class CoreReportPortsAdapter implements atf.core.reporting.contract
     private static final class Phase implements atf.core.reporting.contract.AtfReportPorts.Phase {
         private final AtfReportPorts.Phase delegate; Phase(AtfReportPorts.Phase d){delegate=d;}
         public atf.core.reporting.contract.AtfReportPorts.Request startRequest(String title, String method, String path){return new Request(delegate.startRequest(title,method,path));}
+        public boolean supportsDetails(){return true;}
         public void detail(String name,String value){delegate.detail(name,value);} public void complete(atf.core.reporting.contract.AtfReportStatus s){delegate.complete(status(s));} public void close(){delegate.close();}
     }
     private static final class Request implements atf.core.reporting.contract.AtfReportPorts.Request {

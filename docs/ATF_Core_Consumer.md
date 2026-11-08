@@ -86,7 +86,7 @@ flowchart LR
 
 ## Console and transport cancellation
 
-The [Core lifecycle contract](../atf-core/README.md#proiecția-console-și-anularea-transportului) preserves redaction, primary failure and suppressed cleanup diagnostics. `HttpClientTransport` links cancellation to its owned upstream future; cancellation does not prove server-side rollback.
+The [Core lifecycle contract](../atf-core/README.md#ciclu-de-viață-generic-și-reutilizabil) preserves phase precedence, the primary failure and suppressed cleanup diagnostics. `HttpClientTransport` links cancellation to its owned upstream future; cancellation does not prove server-side rollback.
 
 - `UrlConnectionTransport` owns its body subscription, virtual worker and connection. Body collection, connect and reads share the original monotonic deadline; a late body cannot claim a dispatch after cancellation or expiry.
 - Native controlled-publisher and loopback contracts cover cancellation, the original 250 ms deadline, body/cleanup failures and terminal races on source and physical JAR.

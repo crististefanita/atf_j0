@@ -56,6 +56,8 @@ public final class BrowserProbeProcess {
         var builder = new ProcessBuilder(command.get(0), "@" + argfile).redirectErrorStream(true)
                 .redirectOutput(directory.resolve("process.log").toFile());
         for (String key : List.of("TEMP", "TMP", "TMPDIR")) builder.environment().put(key, scratch.toString());
+        // Browser binaries are provisioned before the probe; installation is not measured test setup.
+        builder.environment().put("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", "1");
         Process process = builder.start();
         var owned = new BrowserProcessInventory(process.toHandle());
         String phase = "SETUP";

@@ -69,7 +69,7 @@ public final class FailureNavigationFixture {
             for (String name : PHASES) {
                 var phase = scenario.startPhase(name);
                 if (evidence != Evidence.ASSERTIONS) phase.diagnostic(ReportPhaseDiagnostic.Kind.JUNIT_FAILURE,
-                        "Repeated execution diagnostic " + "x".repeat(280) + "; phase=" + name + "; password=" + SECRET);
+                        "phase=" + name + "; " + "x".repeat(280) + "; password=" + SECRET);
                 for (int checkpoint = 1; evidence != Evidence.DIAGNOSTICS && checkpoint <= 2; checkpoint++) {
                     var assertions = List.of(new AtfAssertion("Passing comparison", "ready", "ready", true),
                             new AtfAssertion("Repeated comparison", "expected", "x".repeat(260) + name + checkpoint, false));

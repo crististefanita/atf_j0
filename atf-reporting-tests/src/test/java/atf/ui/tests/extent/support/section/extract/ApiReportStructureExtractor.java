@@ -84,6 +84,7 @@ public final class ApiReportStructureExtractor {
     public ReportAuditSnapshot.Failures extractFailures(Page page) {
         Locator view = locators.failsView(page);
         int failureCount = locators.failureNames(view).count();
+        int primaryCauseCount = 0;
         var scenarios = new java.util.HashSet<List<String>>();
         Locator rows = locators.failureItems(view);
         for (int index = 0; index < rows.count(); index++) {
@@ -92,9 +93,12 @@ public final class ApiReportStructureExtractor {
             if (owner == null || owner.isBlank() || scenario == null || scenario.isBlank())
                 throw new IllegalStateException("Fails row has no typed owner/scenario identity: " + index);
             scenarios.add(List.of(owner, scenario));
+            auditFlow.actions().click(locators.failureItemAction(page, index),
+                    "inspect primary cause for Fails row " + (index + 1));
+            primaryCauseCount += locators.primaryFailureDetails(view).count();
         }
         return new ReportAuditSnapshot.Failures(failureCount,
-                locators.primaryFailureDetails(view).count(),
+                primaryCauseCount,
                 locators.failureOpenLinks(view).count(),
                 failureCount == 0 && locators.failureEmptyState(view).count() == 1, scenarios.size());
     }

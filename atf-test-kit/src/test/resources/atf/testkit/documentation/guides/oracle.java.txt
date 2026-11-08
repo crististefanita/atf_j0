@@ -19,4 +19,9 @@
     if (check.passed() || check.expected().length() > 240 || check.actual().length() > 240
             || !check.expected().equals(check.actual()) || RecordedAssertions.DEFAULT_MAX_DISPLAYED_CHARACTERS != 240)
         throw new AssertionError("Full comparison must precede bounded preview");
+    String splitPair = "x".repeat(238) + "😀" + "suffix";
+    var unicode = new RecordedAssertions(new atf.testkit.assertions.AssertionValueDisplay(240, (field, value) -> value));
+    unicode.equals("Unicode boundary", splitPair, splitPair);
+    if (!unicode.checks().getFirst().actual().equals("x".repeat(238) + "…"))
+        throw new AssertionError("Binary preview split a supplementary character");
     System.out.println("TESTKIT_GUIDE=PASS");

@@ -1,6 +1,6 @@
 # ATF — platformă modulară pentru testare și rezultate verificabile
 
-[Mentenanța bibliotecilor](lib/README.md) fixează J0 ca owner al codului, testelor, împachetării și feedback-ului; J1–J4 reutilizează livrările verificate.
+[Mentenanța bibliotecilor](lib/README.md) fixează J0 ca owner al codului, testelor, împachetării și feedback-ului; J1–J6 reutilizează livrările verificate.
 
 
 Scenariile AutoEx/Shop au owner în J1; copiile din acest reactor verifică
@@ -12,11 +12,13 @@ consumul Reporting sursă. J2 pregătește separat testarea cozilor și mesajelo
 
 | Workspace | Rol și punct de intrare |
 |---|---|
-| J0 | 12 module, sursa Reporting și regresiile native/mock/browser; [atlasul sursei](../atf_j0/docs/ATF_Context_Atlas.md) |
-| J1 | 7 module sursă, scenarii AutoEx/Shop și Core/Reporting JAR; [atlasul consumerului](../atf_j1/docs/ATF_Context_Atlas.md) |
-| J2 · WIP | 6 module sursă, Core/Reporting JAR, un modul de test Kafka/mesagerie și Setup PowerShell în Podman; [atlasul WIP](../atf_j2/docs/ATF_Context_Atlas.md) |
-| J3 | 5 source modules for English speech; Core/Reporting JARs; [speech architecture](../atf_j3/docs/ATF_Speech_Architecture.md) |
-| J4 | 4 source modules for Android; Core/Reporting JARs; [consumer documentation](../atf_j4/docs/README.md) |
+| J0 | 12 module sursă; owner pentru Core, Reporting, Console, Mock și Test Kit; [atlasul sursei](docs/ATF_Context_Atlas.md) |
+| J1 | 6 module; consumatorul AutoEx/Shop și al bibliotecilor comune; [atlasul consumerului](../atf_j1/docs/ATF_Context_Atlas.md) |
+| J2 · WIP | 5 module; teste de cozi și mesaje Kafka/Eventuate, fără UI/Debug UI; [atlasul WIP](../atf_j2/docs/ATF_Context_Atlas.md) |
+| J3 | 4 module; transcriere audio în engleză; [arhitectura speech](../atf_j3/docs/ATF_Speech_Architecture.md) |
+| J4 | 3 module; Whist Lab și testare Android; [documentația consumerului](../atf_j4/docs/README.md) |
+| J5 | 2 module; Rentz Lab și teste offline; [README-ul proiectului](../atf_j5/README.md) |
+| J6 | 5 module; Hold’em Lab; [README-ul proiectului](../atf_j6/README.md) |
 
 Rolul proiectului și rezultatul verificat sunt distincte: un build sau un MOCK verde nu certifică serviciul extern, brokerul ori întregul ATF.
 
@@ -446,7 +448,7 @@ ownerului și sunt protejate de testele lui.
 ## Core ca bibliotecă — owner și deployment
 
 J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module.
-[Contractul Core](docs/ATF_Core_Consumer.md) separă sursa, publicarea și acceptanțele J1/J2/J3.
+[Contractul Core](docs/ATF_Core_Consumer.md) separă sursa și publicarea de acceptanța independentă a fiecărui consumator J1–J6.
 Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 
 ## Reporting library and audit contracts

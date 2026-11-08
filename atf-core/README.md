@@ -116,6 +116,24 @@ Pachetul `atf.core.lifecycle` deține mecanica neutră a scenariului:
   `PASS/WARNING/SKIP/FAIL`;
 - boundary: fără servicii Users/Posts, rute concrete, YAML, Extent sau JUnit.
 
+Pentru un port de raportare, `Phase.supportsDetails()` declară dacă `detail`
+reține dovezile; defaultul `false` păstrează compatibilitatea adaptorului legacy.
+Acest default nu pretinde că diagnosticul a fost publicat.
+
+- Erorile de `detail`, interogarea capabilității, `complete` și `close` nu
+  întrerup cleanup-ul fazei.
+- Prima cauză de business rămâne primară; erorile ulterioare sunt `suppressed`
+  în ordinea apariției.
+- Dacă faza nu poate fi deschisă, runnerul înregistrează FAIL și continuă
+  teardown-ul.
+- Eșecul de lifecycle devine FAIL când nu există o cauză primară; runnerul
+  încearcă `scenario.close()` și păstrează precedence-ul planului.
+
+Contractul este protejat de [testele Core](src/test/java/atf/core/lifecycle/ApiScenarioPhaseExecutorTest.java)
+și [testele de contract](../atf-reporting-tests/src/test/java/atf/reporting/api/execution/ApiScenarioLifecycleRunnerTest.java).
+Randarea Extent și fallback, inclusiv disclosure-ul colapsat al assertions și
+cauza din Fails, este verificată de [proba browser permanentă](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/lifecycle/ApiScenarioLifecycleReportComponentTest.java).
+
 ```text
 test adapter / library consumer
              ↓
@@ -513,7 +531,7 @@ J0 păstrează sursa și toate testele native. POM-ul Core este parentless, cu
 Java 21 și dependențe runtime Jackson explicite; Test Kit și JUnit sunt doar
 pentru teste și nu intră în tranzitivele de producție.
 
-J1/J2/J3/J4 consume the same Core JAR/POM pair directly in lib, alongside the independently versioned Reporting pair. The [publication and consumption contract](../docs/ATF_Core_Consumer.md) defines Maven/IntelliJ bootstrap, provenance and acceptance without Core source.
+J1–J6 consume the same Core JAR/POM pair directly in lib, alongside the independently versioned Reporting pair. The [publication and consumption contract](../docs/ATF_Core_Consumer.md) defines Maven/IntelliJ bootstrap, provenance and acceptance without Core source.
 
 ### Timeout și ownership în probele native
 

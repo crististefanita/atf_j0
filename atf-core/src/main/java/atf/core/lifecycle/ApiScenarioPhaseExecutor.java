@@ -26,7 +26,12 @@ final class ApiScenarioPhaseExecutor {
 
     PhaseResult execute(AtfReportPorts.Scenario scenario, String name,
                         ApiScenarioPlan.PhaseAction action) {
-        var phase = scenario.startPhase(name);
+        AtfReportPorts.Phase phase;
+        try {
+            phase = scenario.startPhase(name);
+        } catch (Throwable failure) {
+            return new PhaseResult(AtfReportStatus.FAIL, failure);
+        }
         var result = new PhaseResult(AtfReportStatus.PASS, null);
         try {
             action.execute(phase);
@@ -36,28 +41,69 @@ final class ApiScenarioPhaseExecutor {
             result = new PhaseResult(AtfReportStatus.WARNING, warning);
         } catch (Throwable failure) {
             result = new PhaseResult(AtfReportStatus.FAIL, failure);
-        } finally {
-            if (result.status() == AtfReportStatus.FAIL && result.failure() != null) {
-                publishFailureEvidence(phase, name, result.failure());
-            }
-            phase.complete(result.status());
-            phase.close();
         }
-        return result;
+
+        Throwable primaryFailure = isPrimaryFailure(result.failure()) ? result.failure() : null;
+        if (result.status() == AtfReportStatus.FAIL && primaryFailure != null) {
+            primaryFailure = publishFailureEvidence(phase, name, primaryFailure);
+        }
+
+        AtfReportStatus status = primaryFailure == null ? result.status() : AtfReportStatus.FAIL;
+        try {
+            phase.complete(status);
+        } catch (Throwable completionFailure) {
+            primaryFailure = appendFailure(primaryFailure, completionFailure);
+            status = AtfReportStatus.FAIL;
+        }
+        try {
+            phase.close();
+        } catch (Throwable closeFailure) {
+            primaryFailure = appendFailure(primaryFailure, closeFailure);
+            status = AtfReportStatus.FAIL;
+        }
+        return new PhaseResult(status, primaryFailure == null ? result.failure() : primaryFailure);
     }
 
-    private static void publishFailureEvidence(AtfReportPorts.Phase phase,
-                                               String phaseName,
-                                               Throwable failure) {
+    private static Throwable publishFailureEvidence(AtfReportPorts.Phase phase,
+                                                    String phaseName,
+                                                    Throwable failure) {
+        boolean detailsSupported;
+        try {
+            detailsSupported = phase.supportsDetails();
+        } catch (Throwable capabilityFailure) {
+            return appendFailure(failure, capabilityFailure);
+        }
+        if (!detailsSupported) {
+            return appendFailure(failure, new UnsupportedOperationException(
+                    "Phase report port does not retain failure details"));
+        }
         if (failure instanceof ApiScenarioLifecycleRunner.FailureSignal signal) {
-            phase.detail("Failure cause", signal.getMessage());
-            signal.evidence().forEach(phase::detail);
-            return;
+            Throwable result = publishDetail(phase, "Failure cause", signal.getMessage(), failure);
+            for (var item : signal.evidence().entrySet()) {
+                result = publishDetail(phase, item.getKey(), item.getValue(), result);
+            }
+            return result;
         }
         String message = failure.getMessage() == null || failure.getMessage().isBlank()
                 ? failure.getClass().getSimpleName()
                 : failure.getMessage();
-        phase.detail("Failure cause", phaseName + " failure: " + message);
+        return publishDetail(phase, "Failure cause", phaseName + " failure: " + message, failure);
+    }
+
+    private static Throwable publishDetail(AtfReportPorts.Phase phase, String name, String value,
+                                           Throwable primaryFailure) {
+        try {
+            phase.detail(name, value);
+            return primaryFailure;
+        } catch (Throwable publicationFailure) {
+            return appendFailure(primaryFailure, publicationFailure);
+        }
+    }
+
+    static Throwable appendFailure(Throwable primary, Throwable secondary) {
+        if (primary == null) return secondary;
+        if (secondary != null && secondary != primary) primary.addSuppressed(secondary);
+        return primary;
     }
 
     PhaseResult executeTeardown(Consumer<Boolean> teardown) {

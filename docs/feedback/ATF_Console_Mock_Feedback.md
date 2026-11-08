@@ -2,7 +2,7 @@
 
 ## Pe scurt
 
-J0 owns the common Console and Mock implementation and native tests. J1–J5 reutilizează JAR-urile și trimit aici constatările generice; adaptoarele, cataloagele și oracolele domeniului rămân locale.
+J0 owns the common Console and Mock implementation and native tests. J1–J6 reutilizează JAR-urile și trimit aici constatările generice; adaptoarele, cataloagele și oracolele domeniului rămân locale.
 
 ## Delivered ownership contract
 

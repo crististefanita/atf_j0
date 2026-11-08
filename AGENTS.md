@@ -7,9 +7,10 @@
   `docs/ATF_Build_And_Execution_Safety.md` before changing or delivering code.
 - Keep Reporting implementation/native tests in `atf_j0/atf-reporting` and
   permanent mock, contract and browser regressions in `atf_j0/atf-reporting-tests`.
-- After relevant J0 changes, assess `atf_j1`, `atf_j2` and `atf_j3`. Deliver and
-  validate each initialized consumer separately. Inspect J2's current bootstrap
-  and messaging scope; do not infer its acceptance from J1's results.
+- After a library change in J0, assess each affected initialized consumer in
+  `atf_j1`–`atf_j6`; deliver and validate them separately. Inspect each
+  project's current scope before promotion; one consumer's result never implies
+  another's acceptance.
 - J2 keeps its existing Git and messaging scope. Its explicit Eventuate profile includes Setup and excludes Shop, AutoEx, UI and Debug UI; do not restore those modules or Playwright in J2.
 - Keep Core implementation and native tests only in J0. Binary consumers
   retain the latest Core, Reporting, Console, Mock and Test Kit JAR/POM pairs directly in `lib`,
@@ -25,9 +26,7 @@
   tests. Preserve historical build provenance; a directory rename alone does
   not require a new Reporting version or imply a fresh test execution.
 
-- J3 is the four-module speech consumer. Deliver the same latest Core/Reporting flat JAR/POM pairs, preserve its local streaming work, and validate it separately.
-
-- Keep active J0 feedback limited to Core/Reporting/Console/Mock and Test Kit, including generic Reporting tests. J0 owns Test Kit implementation/native governance; J1–J5 consume its flat JAR/POM pair without parallel Kit source. J1 coordinates other shared-module criteria and consumer handoffs; preserve domain ownership and independent acceptance in J2/J3/J4. Compatibility routes may remain in J0 without duplicated TODOs.
+- Keep active J0 feedback limited to Core/Reporting/Console/Mock and Test Kit, including generic Reporting tests. J0 owns Test Kit implementation/native governance; J1–J6 consume its flat JAR/POM pair without parallel Kit source. J1 coordinates other shared-module criteria and consumer handoffs; preserve domain ownership and independent acceptance in every affected consumer. Compatibility routes may remain in J0 without duplicated TODOs.
 
 - Keep project README files and docs focused on current contracts. Retain only the current Reporting verification note beside its producer package in owned TMP; record its location in current consumer provenance. Do not accumulate per-release verification Markdown in docs or consumer lib. Preserve historical build/test provenance.
 

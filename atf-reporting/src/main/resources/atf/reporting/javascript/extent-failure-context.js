@@ -150,7 +150,7 @@ function failureContextFor(item, anchor) {
   if (diagnostic) return Object.assign(ctx, {
     phase: diagnostic.getAttribute('data-atf-phase-name'),
     validation: 'Execution diagnostics', diagnostic: text(anchor.cells[0]),
-    message: text(anchor.cells[1])
+    message: failureCauseChain(item) || text(anchor.cells[1])
   });
   if (terminal) {
     var terminalPhase = ownerCard(anchor, 'phase');
@@ -217,7 +217,9 @@ function failureContextFor(item, anchor) {
   var message = label + ' expected ' + statusDisplay(expected) + ', actual ' + statusDisplay(actual),
     primary = ctx.message && ctx.message.indexOf('PRIMARY:') >= 0;
   if (ctx.evidenceOwner === 'api' && primary)
-    ctx.message = message + ' | Scenario diagnostics: ' + ctx.message;
+    ctx.message = failedDiagnosticRows(item).length
+      ? message
+      : message + ' | Scenario diagnostics: ' + ctx.message;
   if (ctx.ui || !primary)
     ctx.message = ctx.ui && label === 'Failure cause' ? statusDisplay(actual) : message;
   if (ui) Object.assign(ctx, ui, {

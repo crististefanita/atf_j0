@@ -248,7 +248,7 @@ Validitatea linkurilor nu certifică semantica unui contract. Comanda gate-ului
 ## Core ca bibliotecă — owner și deployment
 
 J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module.
-[Contractul Core](ATF_Core_Consumer.md) separă sursa, publicarea și acceptanțele J1/J2.
+[Contractul Core](ATF_Core_Consumer.md) separă sursa și publicarea de acceptanța independentă a fiecărui consumator J1–J6.
 Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 
 ## Library distribution contracts

@@ -47,7 +47,13 @@ public final class AssertionValueDisplay {
             safe = "<display unavailable>";
         }
         if (role != null) observer.accept(new Projection(field, role, safe, safe.length() > limit));
-        return safe.length() <= limit ? safe : safe.substring(0, limit - 1) + "…";
+        return safe.length() <= limit ? safe : preview(safe);
+    }
+
+    private String preview(String value) {
+        int prefixLength = limit - 1;
+        if (prefixLength > 0 && Character.isHighSurrogate(value.charAt(prefixLength - 1))) prefixLength--;
+        return value.substring(0, prefixLength) + "…";
     }
 
     static Object prefix(String prefix, Object value) {

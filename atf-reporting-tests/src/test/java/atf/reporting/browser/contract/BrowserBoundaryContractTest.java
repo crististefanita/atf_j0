@@ -25,6 +25,7 @@ class BrowserBoundaryContractTest {
     @TempDir(cleanup = CleanupMode.NEVER) Path directory;
     private static final String OWNER = "browser.control.OriginalCases";
     private static final String ROOT = "[engine:junit-jupiter]/[class:" + OWNER + "]";
+    private static final String EMPTY_ROOT = "[engine:junit-jupiter]/[class:browser.control.EmptyCases]";
 
     @Test void originalClassLifecycleRunsOnceAndAFailedSiblingCannotBecomePass() throws Exception {
         try (var fixture = fixture()) {
@@ -84,10 +85,34 @@ class BrowserBoundaryContractTest {
         }
     }
 
-    @Test void missingSelectionCannotCertifyAZeroCaseBrowserRun() throws Exception {
+    @Test void theIsolatedWorkerUsesOnlyProvisionedBrowserBinaries() throws Exception {
+        try (var fixture = fixture(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
+             var mode = new Property("atf.browser.control.mode", "browser-download-policy")) {
+            var result = BrowserProbeProcess.run(directory, JunitBrowserProbe.class, BrowserProbeBudget.DEFAULT,
+                    List.of(fixture.classes), ROOT + "/[method:originalPass()]");
+            assertTrue(Files.readString(result.resolve("outcome")).startsWith("PASS"));
+            assertEquals(1, fixture.lines("browser-download=1"));
+        }
+    }
+
+    @Test void anUnresolvableUniqueIdFailsDuringDiscovery() throws Exception {
         try (var fixture = fixture()) {
-            assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
-                    negativeBudget(), List.of(fixture.classes), ROOT + "/[method:missing()]"));
+            var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
+                    phaseProbeBudget(), List.of(fixture.classes), ROOT + "/[method:missing()]"));
+            assertEquals("DISCOVERY", failure.phase());
+            assertTrue(failure.getCause().getMessage().contains("could not be resolved"));
+            assertEquals(0, fixture.lines("pass"));
+        }
+    }
+
+    @Test void anEmptyDynamicSelectionCannotCertifyAZeroCaseBrowserRun() throws Exception {
+        try (var fixture = fixture(); var journal = new Property("atf.browser.control.journal", fixture.log.toString())) {
+            var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
+                    phaseProbeBudget(), List.of(fixture.classes), EMPTY_ROOT + "/[test-factory:emptyDynamic()]"));
+            assertEquals("VERIFY", failure.phase());
+            assertTrue(failure.getCause().getMessage().contains("Selected browser subtree executed no original cases"));
+            assertEquals(1, fixture.lines("emptyFactory"));
+            assertEquals(0, fixture.lines("pass"));
         }
     }
 
@@ -95,7 +120,7 @@ class BrowserBoundaryContractTest {
         try (var fixture = fixture(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
              var mode = new Property("atf.browser.control.mode", "discovery-hang")) {
             var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
-                    negativeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]", ROOT + "/[method:originalFail()]"));
+                    phaseProbeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]", ROOT + "/[method:originalFail()]"));
             assertEquals("DISCOVERY", failure.phase());
             assertEquals(1, fixture.lines("discovery"), "The negative must reach Jupiter's orderer");
             assertEquals(0, fixture.lines("beforeAll"));
@@ -108,7 +133,7 @@ class BrowserBoundaryContractTest {
         try (var fixture = fixture(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
              var property = new Property("atf.browser.control.mode", "setup-hang")) {
             var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
-                    negativeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
+                    phaseProbeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
             assertEquals("SETUP", failure.phase());
             assertEquals(1, fixture.lines("beforeAll"), "The negative must enter the original setup, not merely time out during JVM startup");
             assertFalse(ProcessHandle.of(failure.pid()).map(ProcessHandle::isAlive).orElse(false));
@@ -118,7 +143,7 @@ class BrowserBoundaryContractTest {
     @Test void originalAssertionRemainsAuditableWhenAfterAllCleanupHangs() throws Exception {
         try (var fixture = fixture(); var property = new Property("atf.browser.control.mode", "cleanup-hang")) {
             var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
-                    negativeBudget(), List.of(fixture.classes), ROOT + "/[method:originalFail()]"));
+                    phaseProbeBudget(), List.of(fixture.classes), ROOT + "/[method:originalFail()]"));
             assertEquals("CLEANUP", failure.phase());
             assertTrue(failure.getCause().getMessage().contains("ORIGINAL-SENTINEL"));
             assertFalse(ProcessHandle.of(failure.pid()).map(ProcessHandle::isAlive).orElse(false));
@@ -129,7 +154,7 @@ class BrowserBoundaryContractTest {
         try (var fixture = fixture(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
              var mode = new Property("atf.browser.control.mode", "finish-hang")) {
             var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
-                    negativeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
+                    phaseProbeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
             assertEquals("CLEANUP", failure.phase());
             assertTrue(failure.getCause().getMessage().contains("FINALLY-SENTINEL"));
             assertEquals(1, fixture.lines("pass"));
@@ -140,7 +165,7 @@ class BrowserBoundaryContractTest {
         try (var fixture = fixture(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
              var mode = new Property("atf.browser.control.mode", "twr-hang")) {
             var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
-                    negativeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
+                    phaseProbeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
             assertEquals("CLEANUP", failure.phase());
             assertTrue(failure.getCause().getMessage().contains("TWR-SENTINEL"));
             assertEquals(1, fixture.lines("pass"));
@@ -151,7 +176,7 @@ class BrowserBoundaryContractTest {
         try (var fixture = fixture(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
              var mode = new Property("atf.browser.control.mode", "after-each-hang")) {
             var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
-                    negativeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
+                    phaseProbeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
             assertEquals("CLEANUP", failure.phase());
             assertTrue(failure.getCause().getMessage().contains("AFTER-EACH-SENTINEL"));
             assertEquals(1, fixture.lines("pass"));
@@ -162,7 +187,7 @@ class BrowserBoundaryContractTest {
         try (var fixture = fixture(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
              var mode = new Property("atf.browser.control.mode", "first-cleanup-then-hang")) {
             var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
-                    negativeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
+                    phaseProbeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
             assertEquals("CLEANUP", failure.phase());
             assertTrue(failure.getCause().getMessage().contains("FIRST-CLEANUP-SENTINEL"));
             assertEquals(1, fixture.lines("pass"));
@@ -173,9 +198,10 @@ class BrowserBoundaryContractTest {
         try (var fixture = fixture(); var journal = new Property("atf.browser.control.journal", fixture.log.toString());
              var mode = new Property("atf.browser.control.mode", "handled-cleanup-hang")) {
             var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
-                    negativeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
+                    phaseProbeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
             assertEquals("CLEANUP", failure.phase());
-            assertFalse(failure.getCause().getMessage().contains("HANDLED-SENTINEL"));
+            assertNull(failure.getCause(), "a handled body failure must not become the cleanup timeout's cause");
+            assertFalse(failure.getMessage().contains("HANDLED-SENTINEL"));
             assertEquals(1, fixture.lines("pass"));
         }
     }
@@ -183,7 +209,7 @@ class BrowserBoundaryContractTest {
     @Test void nativeLogBytesCannotReplaceTheOriginalFailureWithADecodingException() throws Exception {
         try (var fixture = fixture(); var mode = new Property("atf.browser.control.mode", "non-utf8-log")) {
             var failure = assertThrows(BrowserProbeFailure.class, () -> BrowserProbeProcess.run(directory, JunitBrowserProbe.class,
-                    negativeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
+                    phaseProbeBudget(), List.of(fixture.classes), ROOT + "/[method:originalPass()]"));
             assertTrue(failure.getCause().getMessage().contains("ORIGINAL-LOG-SENTINEL"));
             byte[] raw = Files.readAllBytes(failure.directory().resolve("process.log"));
             assertTrue(java.util.stream.IntStream.range(0, raw.length).anyMatch(index -> raw[index] == (byte) 0x96),
@@ -193,29 +219,31 @@ class BrowserBoundaryContractTest {
 
     @Test void ownedJavaDiagnosticsAreEncodedAsUtf8IndependentlyOfTheWindowsConsole() throws Exception {
         try (var fixture = fixture(); var mode = new Property("atf.browser.control.mode", "utf8-log")) {
-            Path result = BrowserProbeProcess.run(directory, JunitBrowserProbe.class, negativeBudget(),
+            Path result = BrowserProbeProcess.run(directory, JunitBrowserProbe.class, BrowserProbeBudget.DEFAULT,
                     List.of(fixture.classes), ROOT + "/[method:originalPass()]");
             assertTrue(Files.readString(result.resolve("process.log")).contains("café – săgeată →"));
         }
     }
 
-    private static BrowserProbeBudget negativeBudget() {
-        return new BrowserProbeBudget(Duration.ofSeconds(3), Duration.ofSeconds(15), Duration.ofSeconds(2));
+    private static BrowserProbeBudget phaseProbeBudget() {
+        return new BrowserProbeBudget(Duration.ofSeconds(10), Duration.ofSeconds(15), Duration.ofSeconds(2));
     }
 
     @BeforeAll static void compileFixture() throws Exception {
         Path source = compilation.resolve("OriginalCases.java"); Files.writeString(source, FIXTURE);
+        Path empty = compilation.resolve("EmptyCases.java"); Files.writeString(empty, EMPTY_FIXTURE);
         int exit = ToolProvider.getSystemJavaCompiler().run(null, null, null, "-proc:none", "-encoding", "UTF-8", "-cp",
-                System.getProperty("java.class.path"), "-d", compilation.toString(), source.toString());
+                System.getProperty("java.class.path"), "-d", compilation.toString(), source.toString(), empty.toString());
         assertEquals(0, exit, "The controlled client must compile against the real harness classpath");
     }
 
     private Fixture fixture() throws Exception {
         var loader = new URLClassLoader(new java.net.URL[] {compilation.toUri().toURL()}, getClass().getClassLoader());
-        return new Fixture(compilation, loader, loader.loadClass(OWNER), directory.resolve("calls.log"));
+        return new Fixture(compilation, loader, loader.loadClass(OWNER), loader.loadClass("browser.control.EmptyCases"),
+                directory.resolve("calls.log"));
     }
 
-    private record Fixture(Path classes, URLClassLoader loader, Class<?> type, Path log) implements AutoCloseable {
+    private record Fixture(Path classes, URLClassLoader loader, Class<?> type, Class<?> emptyType, Path log) implements AutoCloseable {
         org.junit.platform.launcher.listeners.TestExecutionSummary run(DiscoverySelector selection) throws Exception {
             var previous = Thread.currentThread().getContextClassLoader();
             try (var property = new Property("atf.browser.control.journal", log.toString())) {
@@ -276,6 +304,8 @@ class BrowserBoundaryContractTest {
               @AfterEach void afterEach() throws Exception {log("afterEach");
                 if(java.util.Set.of("after-each-hang","handled-cleanup-hang").contains(System.getProperty("atf.browser.control.mode",""))) BrowserResources.close(resource);}
               @Test void originalPass() throws Exception {log("pass");assertTrue(BrowserProbeScope.active());
+                if("browser-download-policy".equals(System.getProperty("atf.browser.control.mode")))
+                  log("browser-download="+System.getenv("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD"));
                 if("utf8-log".equals(System.getProperty("atf.browser.control.mode"))) System.out.println("café – săgeată →");
                 if("after-each-hang".equals(System.getProperty("atf.browser.control.mode"))) throw new AssertionError("AFTER-EACH-SENTINEL");
                 if("handled-cleanup-hang".equals(System.getProperty("atf.browser.control.mode")))
@@ -305,6 +335,24 @@ class BrowserBoundaryContractTest {
                 return Stream.of(DynamicContainer.dynamicContainer("Original container",Stream.of(
                   DynamicTest.dynamicTest("Original seven",()->{log("dynamic:7");assertTrue(BrowserProbeScope.active());}),
                   DynamicTest.dynamicTest("Original eleven",()->{log("dynamic:11");assertTrue(BrowserProbeScope.active());}))));
+              }
+            }
+            """;
+    private static final String EMPTY_FIXTURE = """
+            package browser.control;
+            import atf.reporting.browser.junit.ReportBrowserTest;
+            import java.nio.file.*;
+            import java.util.stream.Stream;
+            import org.junit.jupiter.api.*;
+            @ReportBrowserTest
+            public class EmptyCases {
+              private static void log(String value) throws Exception {
+                String file=System.getProperty("atf.browser.control.journal");
+                if(file!=null)Files.writeString(Path.of(file),value+"\\n",StandardOpenOption.CREATE,StandardOpenOption.APPEND);
+              }
+              @TestFactory Stream<DynamicNode> emptyDynamic() throws Exception {
+                log("emptyFactory");
+                return Stream.empty();
               }
             }
             """;

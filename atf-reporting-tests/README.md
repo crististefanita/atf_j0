@@ -498,6 +498,9 @@ vecin PASS sunt probate separat de geometria generală Extent/fallback.
 
 `PublishedFailureNavigationEdgeComponentTest` completează proba de navigare:
 
+- Extent indexează un singur lanț de diagnostic în Fails; Tests păstrează fiecare
+  rând sursă per fază, colapsabil și expandabil independent. Fallback păstrează
+  câte un rând navigabil pentru fiecare fază;
 - diagnostice fără comparații în toate fazele și fallback pentru UI/API/component;
 - dovada originală, bugetul configurat, ruta reîncărcată și diagnostice intercalate;
 - ancestor ascuns care invalidează oracolul, fără expandare asistată.
@@ -772,7 +775,9 @@ Se verifică și lățimea utilă a coloanelor, textul vizibil și accesul la ul
 conform [contractului adaptiv](../atf-reporting/README.md#lizibilitatea-dovezilor-în-panouri-înguste).
 
 `SelectedApiTestsReportUiTest` este entry-point-ul configurabil pentru raportul
-Extent generat. `CategoryCardinalityBrowserFixtureTest` este poarta dinamică de
+Extent generat. Traversarea completă activează disclosure-urile native cu
+focus + Enter; probele componentă păstrează separat activarea prin click și
+verifică dovezile deschise. `CategoryCardinalityBrowserFixtureTest` este poarta dinamică de
 verificare în browser: verifică 0/1/multe categorii și măsoară fixture-uri UI și API
 pentru conținut scurt/lung, la lățimea configurată și la `591px`. Raportul de
 audit se publică prin `ReportAuditContext` / ATF Debug.
@@ -1404,6 +1409,7 @@ Neutral captured input is verified independently on source and physical JAR, in 
 | Boundary | Contract |
 |---|---|
 | setup / cleanup | `BrowserResources` păstrează obiectele SDK concrete; setup 30 s, cleanup 5 s pe apel SDK efectiv, cu limita globală legacy păstrată separat |
+| binare Playwright | workerul dezactivează descărcarea; binarele potrivite se instalează înaintea suitei, în afara deadline-ului de setup |
 | Chromium Windows | după închiderea contextelor prin SDK, workerul termină și confirmă ieșirea Chromium headless temporar și a driverului propriu în același buget de cleanup |
 | publicare | închiderea unui server ori publicarea HTML păstrează faza apelantului; numai disposal-ul SDK consumă termenul de cleanup |
 | discovery JUnit | workerul descoperă selecția exactă cu Jupiter și execută același `TestPlan`; `DISCOVERY` are diagnostic propriu, în același buget ca intrarea în `VERIFY` |
@@ -1420,8 +1426,13 @@ Neutral captured input is verified independently on source and physical JAR, in 
 
 Profilul `reporting-release` selectează suita unitară canonică și suita browser,
 pe sursă și JAR fizic. Clientul controlat exercită selecția pe metodă, iterație
-și caz dinamic. Un blocaj în discovery nu pornește lifecycle-ul clasei;
-un blocaj după corpul testului rămâne cleanup, cu eroarea corpului păstrată.
+și caz dinamic.
+
+- Un blocaj în discovery nu pornește lifecycle-ul clasei.
+- Un Unique ID nerezolvabil eșuează în DISCOVERY.
+- O fabrică dinamică validă fără cazuri eșuează în VERIFY și nu certifică un
+  run gol drept PASS.
+- Un blocaj după corpul testului rămâne cleanup, cu eroarea corpului păstrată.
 
 Pentru Chromium headless din pachetul Playwright pe Windows, workerul corelează
 PID-ul raportat de CDP cu arborele său de procese și cu driverul părinte.

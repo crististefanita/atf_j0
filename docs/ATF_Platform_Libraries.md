@@ -43,7 +43,7 @@ flowchart LR
 
 - Arrows describe publication and acceptance, not extra Maven modules.
 - J0 keeps all native test classes; binary acceptance reuses them only in an owned TMP harness, with no production source on its classpath.
-- Every consumer retains its own Git base and domain scope; a passing J1 gate is not J2/J3/J4 evidence.
+- Every consumer retains its own Git base and domain scope; a passing J1 gate is not evidence for J2–J6.
 - Root POM properties select the current coordinates. The publication POM pins the tested Core dependency; its version is independent of the consumer reactor version.
 - Core adoption also republishes dependent Console/Mock pairs when their pinned Core version changes; never rewrite only the adjacent POM of an existing JAR.
 
@@ -80,7 +80,7 @@ Profilul Maven `library-guides` verifică exemplele Java/YAML direct din cele ci
 
 ```powershell
 mvn -B -ntp -DskipTests -pl atf-test-kit,atf-core,atf-console,atf-mock,atf-reporting-tests -am install
-mvn -B -ntp -Plibrary-guides "-Datf.guide.bundle=C:/cale/TMP/consumer/lib" -pl atf-test-kit,atf-core,atf-console,atf-mock,atf-reporting-tests test
+mvn -B -ntp -Plibrary-guides "-Datf.guide.bundle=$env:ATF_STAGING_ROOT\consumer\lib" -pl atf-test-kit,atf-core,atf-console,atf-mock,atf-reporting-tests test
 ```
 
 Bundle-ul este obligatoriu și conține perechile JAR/POM efectiv distribuite și ghidurile asociate. Prima comandă pregătește runnerul; consumerul generat de a doua declară numai biblioteca testată, fără parent ATF. Folosiți `-Dmaven.repo.local=<cache TMP>` pentru runner și, dacă sunt necesare setări Maven proprii, `-Datf.guide.maven.settings=<settings.xml>` pentru resolverul izolat; fiecare probă are cache-ul său TMP.

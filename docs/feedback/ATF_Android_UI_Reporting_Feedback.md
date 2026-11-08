@@ -40,7 +40,10 @@ Coordonarea accesului ADB este la [ownerul consumerului J1/J4](../../../atf_j1/d
 - [ ] Characterize empty-comparison THEN versus explicit media, including INDIVIDUAL/UNIFIED_FLOW and OBSERVE-only inputs. Document intentional outcome-only behavior or diagnose unsupported capture requests; never recommend invented assertions.
 - [ ] Reproduce the new high-volume consumer witness with neutral captured values before assigning a generic renderer defect. Measure native publication peak heap, HTML bytes and final-row readability separately from input composition.
 
-The [consumer witness](../../../atf_j4/docs/ATF_J4_Report_Audit.md) retains the dated volume, failure attempts and exact acceptance boundary. J13 memory criterion 131 remains closed for its verified fixture; it does not promise unbounded publication capacity.
+The [J4 audit contract](../../../atf_j4/docs/reporting/ATF_Audit.md) owns
+producer-specific volume qualification and detached HTML acceptance. The old
+J13 memory result applies only to its bounded fixture; it does not promise
+unbounded publication capacity.
 
 <details>
 <summary><strong>Delivered contracts and historical handoff routes</strong></summary>
@@ -78,13 +81,21 @@ The long-assertion criterion also depends on upstream collection: Kit RecordedAs
 - [ ] Reconcile safe full-value retention with the [J1 Kit/Validation owner](../../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md); keep preview 240, compare original values once and sanitize before every display projection.
 - [ ] Add a neutral composition witness whose first mismatch lies after preview and an independent negative that removes only the retained suffix; full ACTION/OBSERVE disclosure does not by itself close assertion capture.
 
-## REPORT-SETUP-MEDIA-COMPLETENESS — captura acceptată trebuie păstrată sau refuzată
+## REPORT-SETUP-MEDIA-COMPLETENESS — probă setup numai cu media
 
-**P1 · responsabil Reporting.** Ruta publică `UiPhase.setup` acceptă un `ReportScreenshot` valid cu liste de acțiuni și comparații goale, dar JAR-ul fizic `1.0.0-j22` publică numai «Setup evidence · 0 checks», fără legătură către PNG. Un profil logic și simpla căutare a prefixului base64 nu detectează pierderea: assets-urile raportului conțin propriile PNG-uri.
+**Lacună de regresie · responsabil Reporting.** Codul live transmite captura
+setup nenulă către `request.screenshot(...)`, iar
+`UiSetupFallbackParityComponentTest` verifică setup cu acțiuni și comparații,
+în Extent și fallback. Martorul J22 descrie o versiune veche și nu dovedește o
+pierdere în binarul curent. Lipsește o probă izolată pentru setup cu media, dar
+fără acțiuni și comparații, cu asocierea exactă a PNG-ului la owner.
 
-- [ ] Caracterizați explicit combinațiile setup/observație/media, fără acțiuni ori comparații inventate. Dacă setup nu susține captura, refuzați intrarea la boundary cu diagnostic; nu o acceptați cu pierdere tăcută.
-- [ ] Regresia neutră confruntă payload-ul capturat cu PNG-ul rezolvat din legătura ownerului, inclusiv dimensiuni, pixeli și hash; un logo sau un sibling nu poate satisface proba.
-- [ ] Profilul artefactului trebuie să poată cere o imagine de observație fără HTTP și fără o aserțiune business artificială. Eliminați numai PNG-ul declarat și cereți eșec independent de resursele încorporate ale temei.
-- [ ] Calificați sursă și JAR fizic, Extent/fallback unde ruta este susținută, apoi viewerul detașat cu revenire la același owner. Documentați ruta publică intenționată pentru rastere JVM sintetice.
+- [ ] Adăugați cazul setup media-only fără pași inventați; verificați payload-ul
+      prin legătura ownerului, dimensiuni/pixeli și hash, astfel încât logo-ul sau
+      captura unui sibling să nu satisfacă oracolul.
+- [ ] Calificați sursa și JAR-ul fizic în Extent/fallback pe ruta acceptată și
+      confirmați că viewerul revine la același owner. Nu deduceți suport OBSERVE
+      numai din acceptarea unui screenshot de setup.
 
-[Proba neutră a consumatorului](../../../../whist_back/maintenance/20261107-gradle-release-final/image-probe.html) păstrează ruta setup cu raster controlat; nu este execuție Android. Consumatorul califică separat ruta publică media, fără modificarea JAR-ului sau postprocesarea HTML-ului.
+Un test cu raster sintetizat este probă neutră de raportare, nu execuție Android;
+J4 califică separat capturarea device-ului și payload-ul furnizat de adaptor.

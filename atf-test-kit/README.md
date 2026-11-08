@@ -1,6 +1,6 @@
 # ATF Test Kit
 
-`atf-test-kit` oferă clasificare, lifecycle și comparații JUnit neutre, fără renderer, transport sau business. Codul și feedback-ul au owner în J0; J1–J5 folosesc perechea JAR/POM din lib, fără surse ori native Kit paralele.
+`atf-test-kit` oferă clasificare, lifecycle și comparații JUnit neutre, fără renderer, transport sau business. Codul și feedback-ul au owner în J0; J1–J6 folosesc perechea JAR/POM din lib, fără surse ori native Kit paralele.
 
 Produsul folosește Kit în `test`; suportul de test din main cere `compile` justificat, iar Console păstrează `optional compile`. Consumerul deține oracolul și publicarea. [Contractul bibliotecii](../../atf_j0/docs/ATF_Test_Kit_Library.md) delimitează migrarea și acceptanțele.
 
@@ -495,10 +495,16 @@ adaptorul fiecărui consumer; unit-urile obișnuite nu primesc această cerinț�
 | eșecul controlat al fixture-urilor | Launcher explicit; nested fixtures nu sunt selectate independent prin wildcard |
 | coeziune | cele opt clase generale rămân în assertions, iar cele două probe de requirement au subpachet propriu |
 
-## Display fidelity boundaries
+## Fidelitatea valorilor afișate
 
-RecordedAssertions compares original inputs and records a sanitized preview; the default remains 240 UTF-16 units. Stored expected/actual values are bounded projections rather than complete input snapshots.
+`RecordedAssertions` compară inputurile originale și stochează preview-ul
+redactat, limitat implicit la 240 de unități UTF-16.
 
-- The current boundary can split a supplementary Unicode character; [the shared owner criterion](../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md#kit-unicode-preview-127--preserve-valid-text-at-the-configured-boundary) requires a valid preview without increasing that budget.
-- A suffix-only mismatch retains FAIL even when stored previews coincide; complete safe evidence must be retained upstream of truncation before a renderer can disclose it.
-- Sanitization precedes preview, comparisons run once and original JUnit failures remain owned by the assertion boundary.
+- Trunchierea păstrează perechile surrogate întregi și nu depășește bugetul.
+- Valorile așteptate/actuale stocate sunt proiecții limitate, nu copii integrale.
+- Un mismatch aflat doar după preview păstrează FAIL; dovada sigură integrală
+  trebuie capturată înainte de trunchiere pentru a putea fi publicată ulterior.
+- Sanitizarea precedă preview-ul, comparația se execută o singură dată, iar
+  cauza JUnit rămâne deținută de granița aserțiunii.
+
+Regresia Unicode este în [AssertionProjectionTest](src/test/java/atf/testkit/assertions/AssertionProjectionTest.java).

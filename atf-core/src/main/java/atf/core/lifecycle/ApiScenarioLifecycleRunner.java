@@ -79,7 +79,7 @@ public final class ApiScenarioLifecycleRunner {
                         phaseExecutor.execute(scenario, "TEST BODY", plan.body()));
             } else if (plan.body() != null) {
                 // Preserve the logical outcome without manufacturing a rendered
-                // phase that was never entered. The .NET report exposes only
+                // phase that was never entered. The report exposes only
                 // phases reached by lifecycle execution.
                 execution.skipBody();
             }
@@ -87,11 +87,19 @@ public final class ApiScenarioLifecycleRunner {
                 execution.record(Phase.TEARDOWN,
                         phaseExecutor.execute(scenario, "TEARDOWN", plan.teardown()));
             }
-            scenario.complete(execution.status());
-            return execution.outcome();
+            try {
+                scenario.complete(execution.status());
+            } catch (Throwable completionFailure) {
+                execution.recordFinalizationFailure(completionFailure);
+            }
         } finally {
-            scenario.close();
+            try {
+                scenario.close();
+            } catch (Throwable closeFailure) {
+                execution.recordFinalizationFailure(closeFailure);
+            }
         }
+        return execution.outcome();
     }
 
     /** Keeps precedence, phase order and primary-cause selection identical for both entry points. */
@@ -111,6 +119,12 @@ public final class ApiScenarioLifecycleRunner {
         private void skipBody() {
             phases.put(Phase.TEST_BODY, new ApiScenarioOutcome.PhaseOutcome(AtfReportStatus.SKIP, null));
             status = AtfReportStatus.worst(status, AtfReportStatus.SKIP);
+        }
+
+        private void recordFinalizationFailure(Throwable failure) {
+            status = AtfReportStatus.worst(status, AtfReportStatus.FAIL);
+            if (primaryFailure == null) primaryFailure = failure;
+            else ApiScenarioPhaseExecutor.appendFailure(primaryFailure, failure);
         }
 
         private boolean allowsBody() {

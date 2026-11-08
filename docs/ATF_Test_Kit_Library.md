@@ -67,4 +67,6 @@ Fiecare `lib/README.TestKit.md` este contractul local, suficient fără acces la
 - `GuideBundle.publish` verifică explicit cele cinci biblioteci. KitLibraryGuideIT probează exemplul și controalele de compilare/bootstrap pe perechea selectată.
 - Unitățile pure păstrează politica lor; migrarea nu le impune raportarea de componentă/E2E.
 
-Footerul trimite mentenanța și constatările către [feedback-ul Kit din J0](feedback/ATF_Common_Test_Support_Feedback.md). Cerințele active, inclusiv Unicode și retenția înainte de preview, rămân acolo; acest contract nu le declară rezolvate.
+Footerul trimite mentenanța și constatările către [feedback-ul Kit din J0](feedback/ATF_Common_Test_Support_Feedback.md).
+Retenția sigură a valorilor înainte de preview rămâne criteriu deschis;
+preview-ul respectă limita fără să rupă perechile Unicode și are regresie permanentă.

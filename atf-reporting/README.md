@@ -694,6 +694,10 @@ același execution evidence; vecinii PASS nu furnizează fallback-uri de identit
 - O eroare de transport așteptată și judecată PASS nu este indexată. Cauza
   terminală și o comparație business FAIL rămân dovezi distincte, fiecare o
   singură dată; textul scurtat nu este cheie de deduplicare.
+- În Fails, aserțiunea și diagnosticul de execuție rămân intrări distincte și
+  sunt etichetate în listă. Lanțul ordonat al cauzelor apare într-o singură
+  intrare de diagnostic per scenariu; rândurile originale rămân în Tests, iar
+  backlink-ul deschide rândul sursă al diagnosticului.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
@@ -1590,7 +1594,10 @@ flowchart LR
   verdictul și coloanele comparației originale se păstrează.
 - Un FAIL fără comparații indexează diagnosticele de execuție existente, pe
   faze, cu tip explicit. Fails arată DIAGNOSTIC și EVIDENCE; nu fabrică expected,
-  actual, validări contractuale sau identitate HTTP. Cauza respectă bugetul configurat.
+  actual, validări contractuale sau identitate HTTP. Extent agregă lanțul într-o
+  singură intrare Fails, iar Tests păstrează disclosure-ul fiecărei faze;
+  fallback păstrează câte o intrare Fails navigabilă per fază. Cauza respectă
+  bugetul configurat.
 - Fallback-ul păstrează ordinalul proiecției semantice: diagnosticele fazei, apoi
   comparațiile copiilor în ordinea arborelui. Backlink-ul deschide disclosure-ul
   original și păstrează ruta la reload, inclusiv când diagnosticele sunt intercalate.

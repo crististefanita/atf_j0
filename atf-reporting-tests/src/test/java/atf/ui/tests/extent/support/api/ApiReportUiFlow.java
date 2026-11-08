@@ -253,7 +253,9 @@ public final class ApiReportUiFlow {
         if (!firstControl.isVisible()) return;
         if (!"true".equals(firstControl.getAttribute("aria-expanded"))) {
             audit.actions().focus(firstAction, "disclosure is focused before opening");
-            audit.actions().click(firstAction, expected);
+            // Native <summary> controls are opened by keyboard in the exhaustive
+            // traversal; focused browser components retain direct pointer checks.
+            audit.actions().pressKey(firstAction.locator().page(), "Enter", firstAction, expected);
             audit.actions().waitForDisclosureOpen(firstAction.locator().page(), firstAction,
                     expected + " is ready");
         }
