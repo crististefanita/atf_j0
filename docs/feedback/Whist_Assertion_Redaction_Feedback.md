@@ -2,11 +2,17 @@
 
 ## Martor și stare curentă
 
-Biblioteca Reporting 1.0.0-j18 a publicat un tabel nativ dintr-o componentă JVM. Eticheta capturată era `Safe exit always scores five basic Romanian points`.
+Martorul istoric provine dintr-o componentă JVM publicată prin Reporting J18.
 
-Prima celulă din HTML a devenit `Safe exit always scores five basic ***REDACTED*** points`. Cititorul pierde numele profilului de scor, iar comparația ordonată dintre HTML și receipt refuză publicarea cu `Comparison name/order changed`.
+| Suprafață | Valoare observată |
+|---|---|
+| Etichetă capturată | `Safe exit always scores five basic Romanian points` |
+| Etichetă în HTML | `Safe exit always scores five basic ***REDACTED*** points` |
+| Comparație HTML–receipt | `Comparison name/order changed` |
 
-**P2 · owner Reporting.** În codul live, [regula textuală](../../atf-reporting/src/main/java/atf/reporting/security/SensitiveDataRedactor.java) asociază în continuare `basic` cu următorul cuvânt și în text liber. Extent și fallback aplică redactorul etichetei aserțiunii. Inspecția sursei indică aceeași cale de fals pozitiv ca în martorul J18. Calificarea pe JAR-ul curent rămâne deschisă.
+- **P2 · owner Reporting.** Extent și fallback aplică redactorul etichetei aserțiunii.
+- [Regula textuală](../../atf-reporting/src/main/java/atf/reporting/security/SensitiveDataRedactor.java) asociază `basic` cu următorul cuvânt și în text liber. Aceasta este calea de fals pozitiv observată în martorul J18.
+- Calificarea pe JAR-ul curent rămâne deschisă.
 
 ## Criterii pentru bibliotecă
 

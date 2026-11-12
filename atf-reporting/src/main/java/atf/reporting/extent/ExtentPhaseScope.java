@@ -58,7 +58,7 @@ final class ExtentPhaseScope implements AtfReportPorts.Phase {
         java.util.Objects.requireNonNull(value, "observation");
         String markup = atf.reporting.evidence.markup.ReportObservationMarkup.render(value, tree.settings(), tree.redactor());
         String title = atf.reporting.markup.ExtentReportNodeSupport.display(tree.redactor().redactText(value.title()), tree.settings());
-        var node = phase.createNode(atf.reporting.markup.vocabulary.AtfReportHtmlVocabulary.escapeHtml(title));
+        var node = phase.createNode(title);
         tree.markStarted(node);
         semantic.observation(value);
         node.info(markup);

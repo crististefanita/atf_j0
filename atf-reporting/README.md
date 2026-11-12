@@ -1545,12 +1545,12 @@ O eroare I/O de alt tip nu este reîncercată; epuizarea limitei se propagă, ia
 
 ### Navigare amânată și interacțiune explicită
 
-`atfOpenTest` asociază deschiderea amânată cu generația navigării curente.
-Un salt mai nou sau inputul explicit în Tests invalidează callback-ul anterior;
-o închidere prin mouse, Enter sau Space nu este anulată ulterior de acel callback.
-La fiecare tranziție, linkurile taburilor își resetează starea veche; numai
-destinația vizibilă are `active` și `aria-current="page"`. Linkurile cu icon
-expun eticheta în numele accesibil, iar deep-link-ul folosește aceeași cale.
+- `atfOpenTest` asociază deschiderea amânată cu generația navigării curente.
+- Un salt nou sau o interacțiune explicită în Tests invalidează callback-ul anterior.
+  O închidere prin mouse, Enter sau Space rămâne în vigoare.
+- La fiecare tranziție, taburile își resetează starea, iar destinația vizibilă
+  primește `active` și `aria-current="page"`. Deep-link-ul urmează aceeași cale.
+- Linkurile cu pictogramă includ eticheta în numele accesibil.
 
 #### Revenirea la comparația eșuată
 
@@ -2341,6 +2341,16 @@ Varianta fără profil păstrează contractul strict Extent/HTTP; un raport legi
 - Fără HTTP fictiv; eliminarea unui request obligatoriu este neconformă.
 - Verdicturile și API-ul legacy se păstrează; reconstruirea folosește `ProfileInspection`.
 - Resursele și dovezile operative externe sunt refuzate, cu owner/atribut/referință în diagnostic; căile text și linkurile de documentare rămân valide. PNG-urile deduplicate cer o țintă inline unică.
+
+### Titluri și etichete ale profilului
+
+| Intrare | Contract Extent și fallback |
+|---|---|
+| Titluri și etichete | Text literal în HTML. Spark codifică separat cheile din scriptul Timeline. |
+| Etichete multiline | Profilul acceptă textul original. `ReportArtifactProfile.visibleLabel` proiectează LF, CRLF, tab, NBSP și spațiile repetate la textul comparat în DOM. |
+| Valori și corpuri | Aserțiunile își păstrează verdictul evaluat integral și preview-ul implicit 240. Corpurile urmează bugetul lor și păstrează whitespace-ul capturat. |
+
+[Proba permanentă](../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions) verifică ambele renderere și refuză titlul convertit în marcaj, chiar dacă textul vizibil coincide.
 
 ### Originea duratelor sub o fază capturată
 

@@ -39,20 +39,18 @@ package mutat nu constituie singure o îmbunătățire de arhitectură.
 **Prioritate: 72/100** = impact 29 + lacună 20 + lucrabil 16 + documentare 7.
 **Owner:** profilul și inspectorul în Reporting; fixture-ul și controalele în Reporting Tests.
 
-`ReportArtifactProfile` și `ReportArtifactProfileComponentTest` acoperă deja
-observations și assertions fără HTTP fictiv în Extent și fallback. Profilul
-independent declară etichetele, verdicturile și inventarul așteptat; testele
-resping rânduri omise, status degradat, dovezi mutate și renderer greșit.
-Acestea închid cererea veche de a face `ReportArtifactInspector.inspect(path)`
-permisiv când request/response nu se aplică. `ReportArtifactResources` și
-`ScreenshotReferenceComponentTest` verifică referințele canonice și octeții PNG;
-aceste contracte nu leagă însă captura de intenția independentă a unui scenariu.
-
-Rămâne neacoperită validarea unui `uiValidation` cu `AtfUiEvidenceSource.OBSERVE`
-și screenshot: modelul `ReportArtifactProfile` nu poate declara încă acțiunea,
-ownerul/caption-ul capturii și identitatea PNG. Inspectorul nu poate compara
-referința validă cu captura intenționată și pasul declarat. Contractul cerut nu
-trebuie să lanseze browser, HTTP sau Android.
+- **Acoperire existentă.** `ReportArtifactProfile` declară etichetele, verdicturile
+  și inventarul independent pentru observații și aserțiuni fără HTTP în Extent
+  și fallback. `ReportArtifactProfileComponentTest` respinge rânduri omise,
+  status degradat, dovezi mutate și renderer greșit.
+  [Contractul inspectorului](../../atf-reporting/README.md#inspecția-artifactului-cu-intenție-explicită)
+- **Referințe PNG.** `ReportArtifactResources` și `ScreenshotReferenceComponentTest`
+  verifică referințele canonice și octeții. Legarea capturii de intenția
+  independentă a unui scenariu rămâne deschisă.
+- **Lacună.** Pentru `uiValidation` cu `AtfUiEvidenceSource.OBSERVE`, profilul
+  trebuie să declare acțiunea, ownerul, caption-ul și identitatea PNG.
+  Inspectorul trebuie să confrunte captura cu pasul declarat, într-un test
+  fără browser, HTTP sau Android.
 
 - Extindeți profilul cu o dovadă UI tipizată numai dacă păstrează inventarul
   independent de HTML și leagă explicit acțiunea, ownerul și caption-ul imaginii.
@@ -92,7 +90,6 @@ sunt la ownerii lor, iar registrul păstrează numai criteriile încă deschise.
 | `REPORT-FLOW-PROJECTION-36` | 62 = 24 + 17 + 16 + 5 | calculul proiecției și protocolul publicării rămân amestecate |
 | [REPORT-DISTRIBUTION-METADATA-140](#report-distribution-metadata-140--bind-optional-adoption-paths) | P2; unscored | permanent negative for stale optional consumerDistribution paths; current bytes are already correct |
 | [REPORT-COMPONENT-FRAGMENTS](#report-component-fragments--costul-multor-corpuri-mici) | P2 | măsurare neutră pentru multe corpuri mici, cu inventarul complet al dovezilor |
-| [REPORT-PROFILE-LABELS](#report-profile-labels--convenția-textului-vizibil) | P1 / P2 | titluri redate ca text și convenție explicită pentru etichetele normalizate |
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
@@ -464,7 +461,12 @@ without a renderer change, new module or new library version.
 
 ## REPORT-COMPONENT-FRAGMENTS — costul multor corpuri mici
 
-**P2 · owner Reporting; consumatorul deține partiționarea inputului.** Agregarea completă J4 a produs `OutOfMemoryError` în `StringWriter`/FreeMarker cu heap de 768 MiB, în timp ce publicările mici treceau. Intrările conțin texte complete împărțite în foarte multe corpuri scurte; cauza algoritmică și complexitatea nu sunt încă demonstrate. [Diagnosticul capturat](../../../../whist_back/maintenance/20261106-component-suite-aggregation/qualified-components/run.json) identifică încercarea neacceptată; stiva originală este în staging-ul declarat de aceasta.
+**P2 · owner Reporting.** Consumatorul deține partiționarea inputului.
+
+- **Simptom.** Agregarea completă J4 a produs `OutOfMemoryError` în `StringWriter`/FreeMarker cu heap de 768 MiB. Publicările mici treceau.
+- **Intrare.** Textul complet a fost împărțit în multe corpuri scurte. Cauza algoritmică și complexitatea rămân de demonstrat.
+- **Proveniență.** Receipt istoric indisponibil local la
+  `whist_back/maintenance/20261106-component-suite-aggregation/qualified-components/run.json`.
 
 - [ ] Comparați același text și aceleași invocări cu părți mici și mari, pe input înghețat: caractere, număr de corpuri/noduri, heap, durată și octeții HTML. Controlați separat inventarul tehnic al surselor de datele obligatorii ale comparației.
 - [ ] Calificați un buget sau un refuz explicit înaintea epuizării memoriei, fără eliminarea comparațiilor, schimbarea verdictului ori trunchierea valorilor obligatorii. Nu creșteți preview-ul implicit de 240 pentru a masca problema.
@@ -472,15 +474,8 @@ without a renderer change, new module or new library version.
 
 ## REPORT-PROFILE-LABELS — convenția textului vizibil
 
-**P1 separat · titluri cu text de argument.** În J21, numele parametrizării `Datele sunt în release/<version>/reports/.` ajunge ca `<version>` neescapat în titlul Extent și dispare din textul DOM, deși testul funcțional trece. [Agregatul neacceptat](../../../../whist_back/maintenance/20261106-component-suite-aggregation/final-live-components/atf-tests/component-report.html) păstrează cazul; `execution.json` identifică refuzul profilului la scenariul 80.
-
-- [ ] Calificați titlurile ca text în ambele renderere, cu `<version>`, `&`, ghilimele, închideri de elemente și canar script inofensiv; niciun argument nu devine element DOM sau cod executabil. Profilul trebuie să păstreze identitatea vizibilă și să refuze mutanții care interpretează textul drept marcaj.
-- [ ] Consumatorul transmite temporar metoda și ordinalul drept titlu controlat și păstrează display name-ul original în corp textual sigur. Această adaptare a inputului nu califică titlurile generice ale bibliotecii și nu autorizează un patch local de renderer.
-
-**P2 · owner Reporting: clarificarea contractului public al profilului.** Consumatorul a furnizat etichete brute cu LF/CRLF și spații repetate, iar inspectorul compară `Element.text()`. Agregatele neacceptate păstrează cazurile originale; [controalele locale](../../../../whist_back/maintenance/20261106-component-suite-aggregation/multiline-profile-controls-verified.log) califică proiecția etichetelor așteptate, separat de corpurile și valorile nemodificate. Aceasta este o corecție a inputului profilului, fără modificarea rendererului.
-
-- [ ] Documentați dacă numele din profil reprezintă textul vizibil normalizat și expuneți, dacă este potrivit, proiecția reutilizabilă în API-ul împachetat. Consumatorii nu trebuie să ghicească independent convenția pentru LF, CRLF, tab, NBSP sau spații de margine.
-- [ ] Calificați convenția în ambele renderere: scenariu, aserțiune și observație cu etichete multiline, plus valori lungi ale căror spații și ultimul caracter rămân originale. Profilul rămâne construit din intenția capturată, fără derivarea așteptărilor din HTML-ul verificat.
+Contractul acoperă titlul literal și compararea etichetelor multiline în
+Extent și fallback. [Contractul](../../atf-reporting/README.md#titluri-și-etichete-ale-profilului) · [Proba permanentă](../../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions)
 
 <details>
 <summary><strong>Rute de compatibilitate către contractele livrate</strong></summary>

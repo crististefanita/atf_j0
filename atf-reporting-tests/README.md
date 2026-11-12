@@ -1301,6 +1301,7 @@ HTTP inventat; profilul inspectorului și timing-ul rămân criterii separate.
 | Probă permanentă | Oracol și controale negative |
 |---|---|
 | `ReportArtifactProfileComponentTest` | Extent/fallback, individual/agregat, assertion/observation-only și HTTP obligatoriu; owner, rând final, status, script/theme, request, tabel mutat/eliminat și rezultat reconstruit incomplet |
+| `ReportProfileLabelsComponentTest` | Extent/fallback, titluri literale cu canar script, etichete multiline, corp complet cu CRLF și FAIL după preview 240. Titlul marcat cu același text vizibil este refuzat. |
 | `RecordedPublicationTimingComponentTest` | barieră de publicare după capturare, fără sleep-uri; execuție 11 ms, transport 7 ms și ceas de publicare distinct, fără însumare sau clamp |
 | `AssertionIndicatorComponentTest` | indicator închis/deschis/reînchis, mouse/Enter/Space și ultimul rând vizibil; mutantul ascunde numai glyph-ul și este refuzat |
 | native standalone | rezultat public gol/parțial/contradictoriu, profil imutabil și severitate, transport zero versus absent |

@@ -4421,3 +4421,22 @@ testChanges:
 ```
 
 </details>
+
+<details>
+<summary><strong>Control tehnic — REPORT-PROFILE-LABELS-20261112</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-PROFILE-LABELS-20261112
+    status: VERIFIED
+    base: a47003af3ab3ca57ef0fe38111a95a70ec7dd9b0
+    expires: 2026-11-30
+    reason: Probează titluri literale, profiluri cu etichete multiline, corpul integral și verdictul după preview 240 în Extent și fallback.
+    proof: >-
+      mvn -B -pl atf-reporting-tests -am "-Dtest=ReportProfileLabelsComponentTest"
+      "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/artifact/ReportProfileLabelsComponentTest.java
+```
+
+</details>

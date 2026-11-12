@@ -3,10 +3,16 @@ package atf.reporting.artifact;
 import atf.reporting.contract.AtfReportStatus;
 import java.util.List;
 import java.util.Objects;
+import org.jsoup.nodes.Element;
 
 /** Caller-authored inventory, independent of the delivered HTML and of a business transport. */
 public record ReportArtifactProfile(Renderer renderer, List<Scenario> scenarios) {
     public enum Renderer { EXTENT, FALLBACK }
+
+    /** Projects an authored label to the inspector's visible HTML text, without parsing it as markup. */
+    public static String visibleLabel(String label) {
+        return new Element("span").text(Objects.requireNonNull(label, "label")).text().trim();
+    }
 
     public ReportArtifactProfile {
         Objects.requireNonNull(renderer, "renderer");
@@ -74,7 +80,7 @@ public record ReportArtifactProfile(Renderer renderer, List<Scenario> scenarios)
         if (parent.severity() < child.severity()) throw new IllegalArgumentException("Parent verdict cannot hide a more severe required outcome");
     }
     private static String required(String value, String name) {
-        if (value == null || value.isBlank()) throw new IllegalArgumentException(name + " must not be blank");
+        if (value == null || visibleLabel(value).isBlank()) throw new IllegalArgumentException(name + " must not be blank");
         return value;
     }
 }

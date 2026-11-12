@@ -24,12 +24,12 @@ final class ReportProfileDocument {
             for (var scenario : document.select("#tests .test-content > article.scenario")) {
                 String id = scenario.id();
                 var link = document.select("#tests aside a.test-link").stream().filter(e -> e.attr("href").equals("#" + id)).toList();
-                result.add(new Scenario(scenario, link.size() == 1 ? text(link.getFirst().selectFirst("small")) : "",
-                        text(scenario.selectFirst(".scenario-title > h2"))));
+                result.add(new Scenario(scenario, link.size() == 1 ? literalText(link.getFirst().selectFirst("small")) : "",
+                        literalText(scenario.selectFirst(".scenario-title > h2"))));
             }
         } else {
             for (var item : document.select("#test-view .test-list-wrapper > .test-list-item > .test-item")) {
-                String type = text(item.selectFirst(".test-detail > .name"));
+                String type = literalText(item.selectFirst(".test-detail > .name"));
                 var contents = item.selectFirst(".test-contents");
                 var accordion = contents == null ? null : contents.selectFirst(".mt-4 > .accordion");
                 if (accordion != null) for (var scenario : accordion.children())
@@ -54,10 +54,10 @@ final class ReportProfileDocument {
     }
 
     String title(Element element) {
-        if (!fallback) return text(element.selectFirst(".card-header > .card-title > a.node > span"));
+        if (!fallback) return literalText(element.selectFirst(".card-header > .card-title > a.node > span"));
         if ("phase".equals(element.attr("data-atf-node-role"))) return ownTitle(element.selectFirst("h3"));
-        if (List.of("request", "validation").contains(element.attr("data-atf-node-role"))) return text(element.selectFirst(".node-title > span"));
-        return ownTitle(element.selectFirst("summary"));
+        if (List.of("request", "validation").contains(element.attr("data-atf-node-role"))) return literalText(element.selectFirst(".node-title > span"));
+        return disclosureTitle(element.selectFirst("summary"));
     }
 
     String status(Element element) {
@@ -83,8 +83,18 @@ final class ReportProfileDocument {
                 .flatMap(e -> e.children().stream()).filter(e -> e.hasClass("card")).toList();
     }
     static String text(Element element) { return element == null ? "" : element.text().trim(); }
+    static String literalText(Element element) {
+        return element == null || element.childrenSize() != 0 ? "" : text(element);
+    }
+    static String disclosureTitle(Element summary) {
+        if (summary == null) return "";
+        var labels = summary.children().stream().filter(child -> child.hasClass("se-title")).toList();
+        return labels.size() == 1 ? literalText(labels.getFirst()) : "";
+    }
     private static String ownTitle(Element element) {
         if (element == null) return "";
-        var copy = element.clone(); copy.select(".status,.badge").remove(); return text(copy);
+        var copy = element.clone();
+        copy.select(".status,.badge,[hidden][data-atf-execution-duration-ms]").remove();
+        return literalText(copy);
     }
 }

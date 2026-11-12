@@ -184,13 +184,13 @@ Eligibilitatea controalelor Git este guvernată de [baseline-ul tehnic](../ATF_T
 
 <a id="report-test-setup-153--inițializare-browser-cu-termen-propriu"></a>
 
-Contractul de [setup și verdict terminal](../../atf-reporting-tests/README.md#setup-browser-și-verdict-terminal)
-separă inspecția statică de proba browser. Controalele de factory necooperant,
-cleanup, cauză inițială și ownership rămân permanente în J0; controlul tehnic
-verificat este în [baseline](../ATF_Test_Changes_Baseline.md). Inventarul
-leagă PID-ul de timpul de start, acceptă numai lanțul de părinți până la worker
-și nu înlocuiește generația capturată când un PID este reutilizat. Terminarea
-verifică din nou identitatea înainte de semnal.
+- [Setup-ul și verdictul terminal](../../atf-reporting-tests/README.md#setup-browser-și-verdict-terminal)
+  separă inspecția statică de proba browser.
+- Controalele pentru factory necooperant, cleanup, cauza inițială și ownership
+  rămân permanente. [Controlul tehnic](../ATF_Test_Changes_Baseline.md)
+- Inventarul leagă PID-ul de timpul de start și urmărește lanțul de părinți până
+  la worker. Terminarea confruntă din nou generația capturată înainte de semnal,
+  inclusiv când sistemul reutilizează PID-ul.
 
 <details>
 <summary><strong>Control tehnic — REPORT-BROWSER-LIFECYCLE-154-CONTROL</strong></summary>

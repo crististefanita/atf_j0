@@ -133,7 +133,7 @@ public final class ExtentTransportEvidenceRenderer {
                     .append(AtfReportHtmlVocabulary.openTag(AtfReportHtmlVocabulary.Tag.DIV,
                             AtfReportHtmlVocabulary.classAttribute(
                                     AtfReportHtmlVocabulary.CssClass.HELM_SCROLL_BLOCK_TITLE)))
-                    .append(ReportEvidenceJsonFormatter.label(item))
+                    .append(AtfReportHtmlVocabulary.escapeHtml(ReportEvidenceJsonFormatter.label(item)))
                     .append(AtfReportHtmlVocabulary.closeTag(AtfReportHtmlVocabulary.Tag.DIV))
                     .append(AtfReportHtmlVocabulary.openTag(AtfReportHtmlVocabulary.Tag.DIV,
                             AtfReportHtmlVocabulary.classAttribute(

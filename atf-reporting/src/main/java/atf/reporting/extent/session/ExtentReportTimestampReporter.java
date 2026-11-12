@@ -10,12 +10,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-/** Spark presentation adapter: native clock formats and encoded timeline keys, without changing captured values. */
+/** Spark presentation adapter for clock formats and context-specific title escaping. */
 public final class ExtentReportTimestampReporter extends ExtentSparkReporter {
     public static final String TIME_PATTERN = "HH:mm:ss";
     public static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
     private static final String CATEGORY_TEMPLATE = "spark/macros/attr-common.ftl";
     private static final String TIMELINE_TEMPLATE = "spark/partials/dashboard.ftl";
+    private static final String TEST_TEMPLATE = "spark/partials/test.ftl";
+    private static final String NODE_TEMPLATE = "spark/macros/recurse_nodes.ftl";
     private static final String TIMELINE_KEY = "\"${t.name}\":";
     private static final String VENDOR_CATEGORY_PATTERN = "HH:mm:ss a";
 
@@ -34,6 +36,8 @@ public final class ExtentReportTimestampReporter extends ExtentSparkReporter {
         var override = new StringTemplateLoader();
         override.putTemplate(CATEGORY_TEMPLATE, categoryTemplate());
         override.putTemplate(TIMELINE_TEMPLATE, timelineTemplate());
+        override.putTemplate(TEST_TEMPLATE, htmlText(template(TEST_TEMPLATE), "test.name", "test.description"));
+        override.putTemplate(NODE_TEMPLATE, htmlText(template(NODE_TEMPLATE), "node.name", "node.description"));
         configuration.setTemplateLoader(new MultiTemplateLoader(new TemplateLoader[]{
                 override, configuration.getTemplateLoader()}));
         return configuration;
@@ -44,7 +48,7 @@ public final class ExtentReportTimestampReporter extends ExtentSparkReporter {
         if (!source.contains(VENDOR_CATEGORY_PATTERN)) {
             throw new IllegalStateException("Spark category time expression changed; review the 24-hour adapter");
         }
-        return source.replace(VENDOR_CATEGORY_PATTERN, TIME_PATTERN);
+        return htmlText(source.replace(VENDOR_CATEGORY_PATTERN, TIME_PATTERN), "test.name", "test.getFullName()");
     }
 
     private static String timelineTemplate() {
@@ -52,7 +56,18 @@ public final class ExtentReportTimestampReporter extends ExtentSparkReporter {
         if (!source.contains(TIMELINE_KEY)) {
             throw new IllegalStateException("Spark timeline key expression changed; review the JSON-string adapter");
         }
-        return source.replace(TIMELINE_KEY, "\"${t.name?json_string}\":");
+        return source.replace(TIMELINE_KEY, "\"${t.name?json_string?replace('<', r'\\u003c')}\":");
+    }
+
+    private static String htmlText(String source, String... expressions) {
+        for (String expression : expressions) {
+            String reference = "${" + expression + "}";
+            if (!source.contains(reference)) {
+                throw new IllegalStateException("Spark title expression changed: " + reference);
+            }
+            source = source.replace(reference, "${" + expression + "?html}");
+        }
+        return source;
     }
 
     private static String template(String name) {

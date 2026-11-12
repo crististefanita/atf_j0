@@ -8,6 +8,8 @@ import java.util.Set;
 import org.jsoup.nodes.DocumentType;
 import org.jsoup.nodes.Element;
 
+import static atf.reporting.artifact.ReportArtifactProfile.visibleLabel;
+
 /** Applies a declared inventory to original published owners, never to runtime templates. */
 final class ReportProfileContractChecks {
     static final Set<String> REQUIRED = Set.of("html exists", "doctype", "profile renderer", "profile navigation",
@@ -36,9 +38,9 @@ final class ReportProfileContractChecks {
         var occurrences = new HashMap<List<String>, Integer>();
         for (int index = 0; index < profile.scenarios().size(); index++) {
             var expected = profile.scenarios().get(index);
-            var key = List.of(expected.testClass(), expected.name());
+            var key = List.of(visibleLabel(expected.testClass()), visibleLabel(expected.name()));
             int ordinal = occurrences.merge(key, 1, Integer::sum) - 1;
-            var matches = actual.stream().filter(s -> s.testClass().equals(expected.testClass()) && s.title().equals(expected.name())).toList();
+            var matches = actual.stream().filter(s -> s.testClass().equals(key.getFirst()) && s.title().equals(key.getLast())).toList();
             var scenario = ordinal < matches.size() ? matches.get(ordinal).element() : null;
             String prefix = "scenario[" + index + "]";
             checks.put(prefix + " identity", scenario != null);
@@ -49,7 +51,7 @@ final class ReportProfileContractChecks {
                 var phase = p < phases.size() ? phases.get(p) : null;
                 var required = expected.phases().get(p);
                 String owner = prefix + "/phase[" + p + "]";
-                checks.put(owner + " identity", phase != null && parsed.title(phase).equals(required.name()));
+                checks.put(owner + " identity", phase != null && parsed.title(phase).equals(visibleLabel(required.name())));
                 checks.put(owner + " verdict", phase != null && parsed.status(phase).equals(status(required.status())));
                 var nodes = phase == null ? List.<Element>of() : parsed.evidence(phase);
                 checks.put(owner + " evidence inventory", nodes.size() == required.evidence().size());

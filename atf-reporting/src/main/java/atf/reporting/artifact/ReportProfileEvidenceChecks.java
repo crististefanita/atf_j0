@@ -4,13 +4,16 @@ import java.util.List;
 import java.util.Map;
 import org.jsoup.nodes.Element;
 
+import static atf.reporting.artifact.ReportArtifactProfile.visibleLabel;
+import static atf.reporting.artifact.ReportProfileDocument.literalText;
+
 /** Row/cardinality and containment checks; a sibling or script cannot satisfy another owner's inventory. */
 final class ReportProfileEvidenceChecks {
     private ReportProfileEvidenceChecks() { }
 
     static void evaluate(ReportProfileDocument document, Element owner, ReportArtifactProfile.Evidence expected,
                          String prefix, Map<String, Boolean> checks) {
-        checks.put(prefix + " identity", owner != null && document.title(owner).equals(expected.title()));
+        checks.put(prefix + " identity", owner != null && document.title(owner).equals(visibleLabel(expected.title())));
         if (expected instanceof ReportArtifactProfile.Assertions assertions) {
             assertions(document, owner, assertions, prefix, checks);
         } else if (expected instanceof ReportArtifactProfile.HttpExchange exchange) {
@@ -21,8 +24,8 @@ final class ReportProfileEvidenceChecks {
                     && !document.owned(owner, document.fallback ? ".response-details-content" : ".helm-response-details-content").isEmpty());
             var summaries = owner == null ? List.<Element>of() : document.owned(owner, ".helm-scroll-block-title");
             for (int i = 0; i < exchange.bodyLabels().size(); i++) {
-                String label = exchange.bodyLabels().get(i);
-                checks.put(prefix + " body[" + i + "]", summaries.stream().anyMatch(e -> e.text().trim().equals(label)));
+                String label = visibleLabel(exchange.bodyLabels().get(i));
+                checks.put(prefix + " body[" + i + "]", summaries.stream().anyMatch(e -> literalText(e).equals(label)));
             }
             var validations = owner == null ? List.<Element>of() : document.validations(owner);
             checks.put(prefix + " validations", validations.size() == exchange.validations().size());
@@ -32,11 +35,12 @@ final class ReportProfileEvidenceChecks {
             }
         } else if (expected instanceof ReportArtifactProfile.Observation observation) {
             var tables = owner == null ? List.<Element>of() : document.owned(owner, "table.helm-evidence-table");
-            var fields = tables.stream().flatMap(t -> t.select("tbody > tr").stream()).map(e -> ReportProfileDocument.text(e.selectFirst("td"))).toList();
-            checks.put(prefix + " fields", fields.equals(observation.fieldNames().stream().map(v -> v.toUpperCase(java.util.Locale.ROOT)).toList()));
+            var fields = tables.stream().flatMap(t -> t.select("tbody > tr").stream()).map(e -> literalText(e.selectFirst("td"))).toList();
+            var expectedFields = observation.fieldNames().stream().map(v -> visibleLabel(v.toUpperCase(java.util.Locale.ROOT))).toList();
+            checks.put(prefix + " fields", fields.equals(expectedFields));
             var summaries = owner == null ? List.<Element>of() : document.owned(owner, "details.atf-observation-evidence > summary");
-            var bodies = summaries.stream().skip(1).map(e -> e.text().trim()).toList();
-            checks.put(prefix + " bodies", bodies.equals(observation.bodyLabels()));
+            var bodies = summaries.stream().skip(1).map(ReportProfileDocument::disclosureTitle).toList();
+            checks.put(prefix + " bodies", bodies.equals(observation.bodyLabels().stream().map(ReportArtifactProfile::visibleLabel).toList()));
         }
     }
 
@@ -53,7 +57,7 @@ final class ReportProfileEvidenceChecks {
         for (int i = 0; i < expected.comparisons().size(); i++) {
             var cells = i < rows.size() ? rows.get(i).children().stream().filter(e -> e.tagName().equals("td")).toList() : List.<Element>of();
             var comparison = expected.comparisons().get(i);
-            checks.put(prefix + "/row[" + i + "] identity", cells.size() == 4 && cells.getFirst().text().equals(comparison.name()));
+            checks.put(prefix + "/row[" + i + "] identity", cells.size() == 4 && literalText(cells.getFirst()).equals(visibleLabel(comparison.name())));
             checks.put(prefix + "/row[" + i + "] verdict", cells.size() == 4 && cells.get(3).text().equals(
                     document.fallback ? comparison.status().displayLabel() : comparison.status().marker()));
         }
