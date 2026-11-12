@@ -4440,3 +4440,31 @@ testChanges:
 ```
 
 </details>
+
+<details>
+<summary><strong>Control tehnic — REPORT-EVIDENCE-PORTABILITY-20261112</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-EVIDENCE-PORTABILITY-20261112
+    status: VERIFIED
+    base: 076a8508cf158dfe01ffebeee99367598d566d6e
+    expires: 2026-11-30
+    reason: Leagă dovada Extent și fallback de rulare, SHA-256 al raportului și JAR. Probează mutarea, raportul lipsă, înlocuirea și receipt-ul străin cu verdictul istoric păstrat.
+    proof: >-
+      mvn -B -pl atf-reporting-tests -am
+      "-Dtest=ReportEvidenceReceiptTest,ReportingLibraryDistributionIntegrationTest"
+      "-Dsurefire.failIfNoSpecifiedTests=false" test;
+      mvn -B -pl atf-reporting-tests,atf-tests -am
+      "-Dtest=ReportEvidenceReceiptTest,ReportingLibraryDistributionIntegrationTest,WholeAtfGovernanceSuiteTest"
+      "-Datf.governance.testChanges.baseRef=076a8508cf158dfe01ffebeee99367598d566d6e"
+      "-Dsurefire.failIfNoSpecifiedTests=false" package
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/distribution/ReportEvidenceReceipt.java
+      - atf-reporting-tests/src/test/java/atf/reporting/distribution/ReportEvidenceReceiptTest.java
+      - atf-reporting-tests/src/test/java/atf/reporting/distribution/ReportingDistributionProbe.java
+      - atf-reporting-tests/src/test/java/atf/reporting/distribution/ReportingLibraryDistributionIntegrationTest.java
+      - atf-reporting-tests/src/test/resources/atf/reporting/distribution/JarConsumer.java.txt
+```
+
+</details>

@@ -124,6 +124,32 @@ Copiile, procesele Maven/Java și logurile rămân în TMP. Testul dovedește co
 acestui artifact; contractele de release și compatibilitatea întregului API public
 au [criterii distincte](../docs/feedback/ATF_Reporting_Feedback.md).
 
+### Receipt portabil pentru dovezile publicării
+
+Gate-ul distribuției scrie câte un `.receipt` lângă HTML-ul Extent și fallback,
+după acceptanța consumerului Maven. Receipt-ul fixează UUID-ul rulării,
+coordonata Maven, SHA-256 al JAR-ului și al HTML-ului, plus verdictul publicării.
+
+1. Păstrați HTML-ul și receipt-ul în același director când arhivați sau mutați dovada.
+2. Preluați UUID-ul din `RUN_ID` din logul rulării selectate și identitatea
+   pachetului din intrarea de release. Folosiți aceste așteptări pentru verificare.
+3. Rulați verificatorul cu JDK 21 din rădăcina J0. [Sursa verificatorului](src/test/java/atf/reporting/distribution/ReportEvidenceReceipt.java)
+
+```powershell
+$verifier = 'atf-reporting-tests/src/test/java/atf/reporting/distribution/ReportEvidenceReceipt.java'
+java $verifier $receiptPath $expectedRunId $expectedCoordinate $expectedJarSha256
+```
+
+| Rezultat | Interpretare |
+|---|---|
+| `VERIFIED` | Rularea, pachetul și octeții HTML corespund receipt-ului. |
+| `REPORT_MISSING` / `REPORT_UNREADABLE` | HTML-ul adiacent lipsește sau calea nu este un fișier lizibil. |
+| `REPORT_DIGEST_MISMATCH` | HTML-ul adiacent are alți octeți, inclusiv când a fost înlocuit cu un raport omonim. |
+| `WRONG_RUN` / `WRONG_PACKAGE` | Receipt-ul aparține altei rulări sau altei intrări de pachet. |
+
+Verificatorul afișează separat verdictul istoric din receipt și întoarce cod zero
+pentru `VERIFIED`. [Proba permanentă](src/test/java/atf/reporting/distribution/ReportEvidenceReceiptTest.java)
+
 <details>
 <summary><strong>Harta de lectură</strong></summary>
 

@@ -2,7 +2,6 @@ package atf.reporting.distribution;
 
 import atf.reporting.extent.session.ExtentReportSession;
 import java.nio.file.*;
-import java.security.MessageDigest;
 import java.util.*;
 import java.util.zip.*;
 
@@ -13,7 +12,8 @@ final class ReportingDistributionProbe {
         var input=prepareArtifact(directory);
         var coordinates=input.coordinates();
         Path artifact=input.jar();
-        String hash=hash(artifact);
+        String hash=ReportEvidenceReceipt.sha256(artifact);
+        var run = new ReportEvidenceReceipt.Run(UUID.randomUUID(), coordinates.notation(), hash);
         Path repository=directory.resolve("published").resolve(coordinates.group().replace('.','/'))
                 .resolve(coordinates.artifact()).resolve(coordinates.version());Files.createDirectories(repository);
         Files.copy(artifact,repository.resolve(artifact.getFileName()));
@@ -29,15 +29,24 @@ final class ReportingDistributionProbe {
                 "-DincludeScope=runtime","-Dmdep.outputFile="+consumer.resolve("runtime.cp"));
         String dependencies=Files.readString(consumer.resolve("runtime.cp")).trim();
         String classpath=consumer.resolve("target/classes")+java.io.File.pathSeparator+dependencies;
-        var nominal=DistributionProcesses.run(consumer,"nominal",java(classpath,consumer.resolve("reports"),hash,false));
+        Path reports = consumer.resolve("reports");
+        var nominal=DistributionProcesses.run(consumer,"nominal",java(classpath,reports,hash,run.id(),false));
+        if (nominal.exit() == 0) {
+            for (String name : List.of("extent.html", "fallback.html")) {
+                ReportEvidenceReceipt.capture(reports.resolve(name), run, ReportEvidenceReceipt.Verdict.PASS);
+            }
+        }
         Path broken=directory.resolve("missing-resource.jar");removeAsset(artifact,broken);
         String brokenDependencies=Arrays.stream(dependencies.split(java.util.regex.Pattern.quote(java.io.File.pathSeparator)))
                 .map(value->Path.of(value).getFileName().toString().equals(artifact.getFileName().toString())?broken.toString():value)
                 .collect(java.util.stream.Collectors.joining(java.io.File.pathSeparator));
         String brokenClasspath=consumer.resolve("target/classes")+java.io.File.pathSeparator+brokenDependencies;
-        var extentRefusal=DistributionProcesses.run(consumer,"missing-extent-resource",java(brokenClasspath,consumer.resolve("negative-extent"),hash(broken),false));
-        var fallbackRefusal=DistributionProcesses.run(consumer,"missing-fallback-resource",java(brokenClasspath,consumer.resolve("negative-fallback"),hash(broken),true));
-        return new Result(input.build(),nominal,extentRefusal,fallbackRefusal,hash,input.sourceBuild());
+        String brokenHash = ReportEvidenceReceipt.sha256(broken);
+        var extentRefusal=DistributionProcesses.run(consumer,"missing-extent-resource",
+                java(brokenClasspath,consumer.resolve("negative-extent"),brokenHash,run.id(),false));
+        var fallbackRefusal=DistributionProcesses.run(consumer,"missing-fallback-resource",
+                java(brokenClasspath,consumer.resolve("negative-fallback"),brokenHash,run.id(),true));
+        return new Result(input.build(),nominal,extentRefusal,fallbackRefusal,run,reports,input.sourceBuild());
     }
     private static Artifact prepareArtifact(Path directory) throws Exception {
         Path loaded=Path.of(ExtentReportSession.class.getProtectionDomain().getCodeSource().getLocation().toURI());
@@ -63,10 +72,10 @@ final class ReportingDistributionProbe {
                 extracted.resolve("pom.xml"),coordinates,build,true);
     }
     private record Artifact(Path jar,Path pom,Coordinates coordinates,String build,boolean sourceBuild) { }
-    private static List<String> java(String classpath,Path reports,String hash,boolean fallback) {
+    private static List<String> java(String classpath,Path reports,String hash,UUID runId,boolean fallback) {
         String executable=System.getProperty("os.name").startsWith("Windows")?"java.exe":"java";
         var command=new ArrayList<>(List.of(Path.of(System.getProperty("java.home"),"bin",executable).toString(),
-                "-Xmx384m","-cp",classpath,"JarConsumer",reports.toString(),hash));
+                "-Xmx384m","-Datf.distribution.runId="+runId,"-cp",classpath,"JarConsumer",reports.toString(),hash));
         if(fallback) command.add("FALLBACK");return command;
     }
     private static String pom(Path repository,Coordinates coordinates) {
@@ -109,9 +118,6 @@ final class ReportingDistributionProbe {
         }
         if(!removed) throw new IllegalStateException("Negative control did not remove an existing asset");
     }
-    private static String hash(Path file) throws Exception {
-        return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(file)));
-    }
     private static Coordinates coordinates(Path pom) throws Exception {
         var factory=javax.xml.parsers.DocumentBuilderFactory.newInstance();factory.setNamespaceAware(true);
         factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl",true);
@@ -129,7 +135,8 @@ final class ReportingDistributionProbe {
                 if(value.isBlank()||value.contains("${")) throw new IllegalArgumentException("The standalone module needs explicit Maven coordinates");
         }
         String fileName() { return artifact+"-"+version; }
+        String notation() { return group+":"+artifact+":"+version; }
     }
     record Result(String isolatedBuild,DistributionProcesses.Result nominal,DistributionProcesses.Result extentRefusal,
-                  DistributionProcesses.Result fallbackRefusal,String jarHash,boolean sourceBuild) { }
+                  DistributionProcesses.Result fallbackRefusal,ReportEvidenceReceipt.Run run,Path reports,boolean sourceBuild) { }
 }

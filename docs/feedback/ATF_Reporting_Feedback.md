@@ -192,6 +192,11 @@ pe JAR-ul fizic, într-un classpath fără Core, Kit sau sursa producătorului.
 Instalarea, exemplele și preview-ul 240 au contract în [README-ul de utilizare](../../lib/README.Reporting.md);
 documentația internă detaliată rămâne la owner în J0.
 
+Gate-ul de distribuție verifică dovezile Extent și fallback după mutare și
+refuză raportul absent, HTML-ul înlocuit și receipt-ul din altă rulare.
+Verdictul istoric rămâne separat de starea verificării.
+[Contractul și probele permanente](../../atf-reporting-tests/README.md#receipt-portabil-pentru-dovezile-publicării)
+
 ## REPORT-FLOW-PROJECTION-36 — plan de dovezi separat de publicare
 
 **Prioritate: 62/100** = impact 24 + lacună 17 + lucrabil 16 + documentare 5.
