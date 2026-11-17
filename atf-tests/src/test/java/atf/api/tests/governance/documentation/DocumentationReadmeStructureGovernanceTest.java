@@ -4,6 +4,9 @@ import atf.api.tests.governance.documentation.links.DocumentationLocalLinks;
 
 import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,12 +17,13 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static atf.api.tests.governance.AtfGovernanceTestSupport.locateProjectRoot;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /** Checks the minimum readable shape shared by every owner README. */
 @AtfComponentTest
 public class DocumentationReadmeStructureGovernanceTest {
     private static final Pattern H1 = Pattern.compile("^#\\s+[^#].*$");
-    private static final Pattern H2_ORIENTATION = Pattern.compile("^##\\s+Pe scurt\\b.*$",
+    private static final Pattern H2_ORIENTATION = Pattern.compile("^##\\s+(?:Overview|Pe scurt)\\b.*$",
             Pattern.CASE_INSENSITIVE);
     private static final Pattern DETAILS_OPEN = Pattern.compile("^\\s*<details(?:\\s|>)",
             Pattern.CASE_INSENSITIVE);
@@ -37,6 +41,27 @@ public class DocumentationReadmeStructureGovernanceTest {
                     .forEach(path -> validate(path, root, violations));
         }
         DocumentationGovernanceSupport.assertNoViolations("README structure governance", violations);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Overview", "Pe scurt"})
+    void localizedOrientationPreservesTheSameStructure(String heading, @TempDir Path root) throws Exception {
+        Path file = Files.createDirectories(root.resolve("owner")).resolve("README.md");
+        Files.writeString(file, "# Owner\n\n## " + heading + "\n\nContract.\n");
+        var violations = new ArrayList<DocumentationGovernanceSupport.Violation>();
+        validate(file, root, violations);
+        DocumentationGovernanceSupport.assertNoViolations("Localized orientation", violations);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Summary", "Overviewish", "Pe scurtish"})
+    void unrelatedOrPartialHeadingsStillFail(String heading, @TempDir Path root) throws Exception {
+        Path file = Files.createDirectories(root.resolve("owner")).resolve("README.md");
+        Files.writeString(file, "# Owner\n\n## " + heading + "\n\nContract.\n");
+        var violations = new ArrayList<DocumentationGovernanceSupport.Violation>();
+        validate(file, root, violations);
+        assertEquals(List.of("DOC-README-OVERALL"), violations.stream()
+                .map(DocumentationGovernanceSupport.Violation::code).toList());
     }
 
     static void validate(Path path, Path root,
@@ -69,9 +94,9 @@ public class DocumentationReadmeStructureGovernanceTest {
                 && matchingLines(lines, H2_ORIENTATION).isEmpty()) {
             violations.add(DocumentationGovernanceSupport.violation(
                     "DOC-README-OVERALL", root, path, 1,
-                    "README-ul nu are secțiunea de orientare `## Pe scurt`",
+                    "README-ul nu are secțiunea de orientare `## Overview` sau `## Pe scurt`",
                     "README-urile modulelor și ale documentației prezintă scopul, proprietarul și limitele înaintea detaliilor",
-                    "adaugă o secțiune concisă `## Pe scurt` înaintea diagramelor, tabelelor sau detaliilor de implementare"));
+                    "adaugă `## Overview` în engleză sau `## Pe scurt` în română înaintea detaliilor, conform limbii proiectului"));
         }
     }
 

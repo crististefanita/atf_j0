@@ -196,7 +196,7 @@ Ordinea nu este o explicație despre „cum să citești” proiectul; este o re
 de compoziție pentru ca documentul să poată fi parcurs natural:
 
 1. **Titlu clar** — spune ce boundary sau rezultat descrie documentul;
-2. **Pe scurt** — două-trei idei despre scop, proprietar și limite;
+2. **Orientare** — `Overview` în engleză sau `Pe scurt` în română, conform limbii proiectului, cu două-trei idei despre scop, proprietar și limite;
 3. **Dovada principală** — bullets, o schemă sau un tabel scurt;
 4. **Legendă imediată** — dacă există diagramă, unica legendă aferentă urmează
    imediat după ea;
