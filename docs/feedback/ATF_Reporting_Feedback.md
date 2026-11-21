@@ -86,7 +86,7 @@ sunt la ownerii lor, iar registrul păstrează numai criteriile încă deschise.
 | [REPORT-UI-ASSERTION-FULL-EVIDENCE-133](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) | 88 — existing criterion | full UI values captured before caller preview; source/JAR owner and redaction proof remain separate |
 | `REPORT-PUBLIC-API-43` | 81 = 31 + 24 + 17 + 9 | API-ul susținut, compatibilitatea și capabilitățile adaptoarelor nu sunt delimitate suficient |
 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) | 80 = 31 + 24 + 18 + 7 | criteriu separat al consumerului: oracol per scenariu și containment fallback |
-| `UI-RECOVERY-AUDIT-01` | 78 = 33 + 22 + 16 + 7 | lansarea IntelliJ și acceptanța JAR/consumer la adoptarea explicită |
+| `UI-RECOVERY-AUDIT-01` | 78 = 33 + 22 + 16 + 7 | lansarea IntelliJ și verificarea rădăcinii de output; acceptanța J1 pe J26/K3 este închisă la 2026-11-21 |
 | `REPORT-RELEASE-CONTRACT-45` | 73 = 25 + 22 + 17 + 9 | matricea runtime/vendor, operatorul repetabil și metadatele externe nu sunt încă o politică completă |
 | `REPORT-OBSERVATION-CONTRACT` | 72 = 29 + 20 + 16 + 7 | profilul declară observations generice, dar nu UI validation cu screenshot și identitatea PNG |
 | [REPORT-FALLBACK-RESULT-WIDTH-101](#report-fallback-result-width-101--regresie-geometrică-pentru-badge) | 64 = 24 + 19 + 15 + 6 | lipsește un oracol geometric al badge-ului WARNING în celula RESULT |
