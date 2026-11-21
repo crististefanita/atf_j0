@@ -294,7 +294,7 @@ decizia la renderer.
 ```yaml
 testChanges:
   - id: REPORT-UI-RECOVERY-OBSERVATION-CONTROL
-    status: ACTIVE
+    status: CLOSED
     base: 58177a8c1e04103f1d160f04eca4b466d2da8381
     expires: 2026-12-21
     reason: Păstrează observațiile trace recovery în adaptarea JUnit AutoEx și verifică faptul că artifactul afișează urma fără schimbarea verdictului.

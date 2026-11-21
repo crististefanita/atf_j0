@@ -51,7 +51,7 @@ J1 rămâne pe versiunea publicată curentă, fără actualizare în acest incre
 ```yaml
 testChanges:
   - id: KIT-PHASE-OBSERVATION-COMPONENT-CONTROL
-    status: ACTIVE
+    status: CLOSED
     base: 58177a8c1e04103f1d160f04eca4b466d2da8381
     expires: 2026-12-21
     reason: Verifică păstrarea observațiilor distincte de aserțiuni și coverage în auditul componentelor Test Kit.

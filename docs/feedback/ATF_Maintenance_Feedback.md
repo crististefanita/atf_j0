@@ -10,6 +10,11 @@ colecție verifică boundary-urile, documentația și ordinea porților.
 
 **Owner:** `atf-tests`, pentru regulile de reactor și relațiile de workspace.
 
+Succesiunea porților este fixă și deterministă. Maven/JUnit execută suita, iar
+diagrama Mermaid explică traseul. Un orchestrator extern precum LangGraph ar
+adăuga un runtime fără să introducă acum ramificări dinamice sau aprobări noi;
+reevaluați numai dacă procesul capătă astfel de pași.
+
 - `WholeAtfGovernanceSuiteTest` păstrează porțile locale J0 pentru arhitectură,
   build, surse și documentație.
 - `AtfMaintenanceWorkspacePairGovernanceTest` verifică source/binary ownership,
@@ -21,10 +26,11 @@ colecție verifică boundary-urile, documentația și ordinea porților.
   [protocolul workspace-urilor](../ATF_Workspace_Synchronization.md#protocolul-fiecărui-increment)
   și de [catalogul testelor](../../atf-tests/README.md#mentenanța-perechii-j0j1).
 
-**Închidere:** suita combinată trece pe J0 staging cu J1 live read-only;
-documentele J1 descriu versiunile și fișierele bibliotecilor, iar feedback-ul
-și probele de owner rămân delimitate. O execuție verde nu închide criteriul
-comportamental al altui owner.
+**Verificat în staging J0:** suita combinată a trecut cu 168 verificări,
+zero eșecuri, erori sau teste omise, folosind J1 live read-only. Documentele J1
+descriu versiunile și fișierele bibliotecilor, iar feedback-ul și probele de
+owner rămân delimitate. O execuție verde nu închide criteriul comportamental
+al altui owner.
 
 <details>
 <summary><strong>Control tehnic — ATF-WORKSPACE-MAINTENANCE-COLLECTION-CONTROL</strong></summary>
@@ -32,7 +38,7 @@ comportamental al altui owner.
 ```yaml
 testChanges:
   - id: ATF-WORKSPACE-MAINTENANCE-COLLECTION-CONTROL
-    status: ACTIVE
+    status: CLOSED
     base: 58177a8c1e04103f1d160f04eca4b466d2da8381
     expires: 2026-12-21
     reason: Leagă suita de mentenanță, documentația procesului și inspecția artefactelor consumer de un singur gate reproductibil.

@@ -355,7 +355,7 @@ testChanges:
 ```yaml
 testChanges:
   - id: REPORT-OBSERVATION-DISCLOSURE-COMPONENT-CONTROL
-    status: ACTIVE
+    status: CLOSED
     base: 58177a8c1e04103f1d160f04eca4b466d2da8381
     expires: 2026-12-21
     reason: Păstrează proba de publicare și interacțiune browser pentru observațiile phase-scoped din raportul Extent.
