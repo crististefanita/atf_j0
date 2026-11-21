@@ -5,6 +5,7 @@ import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -42,5 +43,30 @@ public class AtfMaintenanceProcessDocumentationGovernanceTest {
                 "atf-tests/src/test/java/atf/api/tests/governance/maintenance/AtfWorkspaceMaintenanceSuite.java"));
         assertTrue(suite.contains("WholeAtfGovernanceSuiteTest.class"));
         assertTrue(suite.contains("AtfMaintenanceWorkspacePairGovernanceTest.class"));
+    }
+
+    @Test
+    void orchestrationDecisionKeepsLangGraphOptionalAndMavenAuthoritative() throws Exception {
+        Path root = AtfGovernanceTestSupport.locateProjectRoot();
+        String feedback = Files.readString(root.resolve("docs/feedback/ATF_Maintenance_Feedback.md"));
+        String heading = "### Când merită evaluat LangGraph?";
+        int start = feedback.indexOf(heading);
+        assertTrue(start >= 0, "the maintenance feedback documents the orchestration decision");
+
+        int opening = feedback.indexOf("```mermaid", start);
+        int closing = opening < 0 ? -1 : feedback.indexOf("```", opening + "```mermaid".length());
+        assertTrue(opening > start && closing > opening, "the orchestration decision has a closed Mermaid diagram");
+        String diagram = feedback.substring(opening, closing);
+        assertTrue(diagram.contains("flowchart LR"));
+        assertTrue(diagram.contains("RuntimeNeed -->|nu| MavenGates"));
+        assertTrue(diagram.contains("RuntimeNeed -->|da| LangGraph"));
+        assertTrue(diagram.contains("LangGraph -->|lansează porțile| MavenGates"));
+        assertTrue(diagram.contains("Maven/JUnit<br/>sursa verdictului"));
+
+        String rationale = feedback.substring(start, opening).toLowerCase(java.util.Locale.ROOT);
+        assertTrue(rationale.contains("ramurile finite"));
+        assertTrue(rationale.contains("nu justifică un runtime nou"));
+        assertTrue(rationale.contains("stare durabilă"));
+        assertTrue(rationale.contains("aprobare umană"));
     }
 }
