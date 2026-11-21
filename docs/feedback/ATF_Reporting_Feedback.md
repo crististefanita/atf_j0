@@ -259,23 +259,30 @@ adaptoare și aserțiuni business în main la cei doi consumeri.
 Observațiile INFO sunt normate la
 [Reporting](../../atf-reporting/README.md#decizii-be-fără-verdict-de-succes-implicit).
 `UiRecoveryTrace` deține operația, încercarea, decizia, motivul, semnalul BE și
-duratele măsurate; adaptorul consumerului nu parsează mesajele și nu repetă
-decizia la renderer.
+duratele măsurate, iar runtime-ul transmite trace-ul tipizat. Unele proiecții de
+audit deținute de teste parsează descrieri pentru timing și pot confunda
+eticheta evenimentului cu operația semantică; aceasta este o problemă de
+proiecție la consumer, nu a rendererului comun.
 
-**Rezolvat în staging J0.**
+**Comportamentul bibliotecii este livrat în codul J0 curent; acceptanța consumerilor rămâne activă.**
 
 - `ShopBackendRecoveryComponentTest` a trecut cu 6/6, iar
   `AutoExBackendRecoveryComponentTest` cu 5/5. Extensiile JUnit includ acum
   în artifactul real `Backend recovery trace`, separat de `Component assertions`,
   pentru succes UI_ONLY/UI_API, epuizare și captura dezactivată.
 - `AssertionAuditPublicationComponentTest` verifică Extent/fallback, redacția și
-  verdictul stabil; `AssertionAuditObservationDisclosureComponentTest` a trecut
-  pe fixture și pe rapoartele reale Shop și AutoEx. Expandarea globală deschide
-  pașii și aserțiunile, iar fiecare urmă rămâne închisă până la click/Space.
-- Câmpurile păstrează ordinea, policy, observația și rezultat INFO. Durata locală
-  nemăsurată apare `not captured`; probe/backoff/total rămân numai valorile
-  măsurate din trace. Canary-ul corpului și URL-ul local lipsesc; `EXHAUSTED`
-  rămâne rezultat așteptat într-un test PASS.
+  verdictul stabil; `AssertionAuditObservationDisclosureComponentTest` trece
+  1/1 pe fixture-ul intern. O rulare exploratorie pe raportul JUnit real Shop
+  a confirmat navigarea, disclosure-urile nested colapsate după expand-all,
+  tabelul de aserțiuni vizibil și rândurile observației randate, apoi a eșuat la
+  markerul fixture-specific `not captured`. Raportul real AutoEx nu a fost
+  verificat în browser. Detaliile și oracolul lipsă sunt în
+  [feedback-ul Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu).
+- Rapoartele generate păstrează ordinea, policy, observația și rezultatul INFO;
+  verificarea HTML a celor 17 artefacte Shop/AutoEx nu a găsit canary-ul corpului
+  privat sau `127.0.0.1`. Probele consumer-owned verifică disclosure-ul sintetic;
+  redactarea și expandarea în raportul real AutoEx nu au încă acceptanță de
+  browser. `EXHAUSTED` rămâne rezultat așteptat într-un test PASS.
 
 **Rămâne activ.**
 
@@ -283,7 +290,9 @@ decizia la renderer.
   output nu au fost executate.
 - Adopția consumerului Maven pe JAR-urile fizice este verificată: J1 consumă
   Reporting J26 și Test Kit K3; Shop 6/6 și AutoEx 5/5 au trecut în ambele
-  ediții, iar cele patru artifacte reale au trecut inspecția Playwright.
+  ediții. Probele Playwright ale consumerilor folosesc HTML sintetic; raportul
+  real Shop a trecut doar verificările browser de până la markerul fixture-specific,
+  iar raportul real AutoEx nu a fost deschis.
   Perechea publicată și verificările detaliate sunt în
   [`library-provenance.json`](../../../atf_j1/library-provenance.json).
 - Extindeți oracolul neutru existent pentru paritatea `Tests`, `Fails`, `Overview`

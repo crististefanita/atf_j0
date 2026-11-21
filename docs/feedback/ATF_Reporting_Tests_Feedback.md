@@ -40,6 +40,8 @@ catalogului](../../atf-reporting-tests/src/test/java/atf/reporting/ui/contract/U
 nu relistați acoperirea nominală ca lacună.
 
 - [ ] Reconcile the remaining source/JAR mutation matrix per evidence kind and scenario; identify exactly which capture/owner/value degradation lacks an independent rejection before adding another fixture.
+- **Limitare observată a probei externe:** [AssertionAuditObservationDisclosureProbe.verify(Path)](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/assertions/AssertionAuditObservationDisclosureProbe.java) selectează primul owner/disclosure al raportului, apoi cere necondiționat textul fixture-ului `not captured`. Rularea pe raportul JUnit curent al Shop a trecut navigarea în browser, izolarea stării colapsate și deschiderea rândurilor de observație; proba a eșuat ulterior numai la această așteptare de text, fără legătură cu randarea. Modul local cu fixture intern trece 1/1. Nu indică un defect de randare al consumerului, ci faptul că modul pentru rapoarte externe nu selectează ownerul/scenariul intenționat înainte să aplice un oracol specific fixture-ului.
+- [ ] Faceți acceptanța raportului extern să identifice ownerul, faza și observația așteptate înaintea verificării conținutului. Înlocuiți markerul necondiționat din primul disclosure cu un contract explicit, neutru față de fixture; negativele trebuie să mute sau să elimine doar dovada selectată și să fie refuzate pentru motivul respectiv.
 - [ ] Controlul negativ elimină numai captura unui caz, mută dovada la un
       sibling sau inversează numai verdictul lui; oracolul trebuie să refuze
       fiecare variantă fără să fie satisfăcut de script ori de alt scenariu.
