@@ -421,6 +421,6 @@ politica proprie pentru null; nu deține un mapper strict paralel.
 
 ValidationTable stores redacted, bounded expected/actual values after the caller evaluates the complete inputs. Its default 240-character preview does not establish full-value retention or change an independently captured FAIL.
 
-- The current UTF-16 cut can split a supplementary character; the [shared fidelity criterion](../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md#kit-unicode-preview-127--preserve-valid-text-at-the-configured-boundary) includes this boundary and its native tests.
+- `ValidationTable` bounds previews by UTF-16 code units, so a cut can split a supplementary character. The full input still determines the verdict; see the [preview implementation](src/main/java/atf/validation/evaluation/ValidationTable.java).
 - Long safe values needed for audit must be retained before preview, with explicit disclosure budgets; Reporting cannot reconstruct a discarded suffix.
 - This display limitation is separate from strict JSON/MIME decisions, literal redaction and the once-only validation predicate.

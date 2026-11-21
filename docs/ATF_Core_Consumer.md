@@ -56,6 +56,7 @@ flowchart LR
     Binary -->|adopts| J4["J4<br/>Android"]
     Binary -->|adopts| J5["J5 WIP<br/>Rentz"]
     Binary -->|adopts| J6["J6 WIP<br/>Hold’em"]
+    Binary -->|adopts| J7["J7<br/>Chess Lab"]
 ```
 
 <details>

@@ -1,5 +1,9 @@
 # Android UI evidence — current neutral Reporting boundaries
 
+## Pe scurt
+
+Registrul urmărește probele neutre ale bibliotecii Reporting și acceptanța lor pe JAR. Adaptorul Android deține captura și oracolul aplicației.
+
 ## Decizie și boundary
 
 J0 owns neutral publication and permanent source/JAR tests. J1 coordinates
@@ -30,10 +34,9 @@ celulele ACTION/OBSERVE rezolvate nu îl închid.
 - [ ] Păstrați regresie neutră în Reporting Tests: numai ultimul scalar eliminat, sibling omonim, verdict FAIL după 240, Unicode și redacție, Extent/fallback sursă/JAR.
 - [ ] Verificați Escape/colapsare, revenire la aceeași comparație și ultimul rând; un tabel scurt cu ellipsis singur nu reconstruiește dovada.
 
-J4 păstrează temporar corpurile TEXT native cu body limit explicit pentru valorile complete.
-Adopția și proba aplicației rămân în [handoff-ul consumerului](../../../atf_j1/docs/feedback/ATF_Consumer_Reporting_Handoff_Feedback.md), fără assertions PASS artificiale.
+J4 păstrează temporar corpurile TEXT native cu body limit explicit pentru valorile complete. Adopția și proba aplicației rămân în [handoff-ul consumerului](../../../atf_j1/docs/feedback/ATF_Consumer_Reporting_Handoff_Feedback.md), fără assertions PASS artificiale.
 
-Coordonarea accesului ADB este la [ownerul consumerului J1/J4](../../../atf_j1/docs/feedback/ATF_Consumer_Reporting_Handoff_Feedback.md#coordonarea-probei-j4-pe-dispozitiv-partajat--2026-11-02-1533); probele generice Reporting nu folosesc dispozitivul.
+J4 deține calificarea aplicației și a accesului ADB pe dispozitiv; probele neutre Reporting nu folosesc dispozitivul. Consultați [contractul curent de captură și ownership](../../../atf_j4/docs/reporting/ATF_Android.md#capture-and-ownership).
 
 ## Observation routes and large-publication follow-up
 

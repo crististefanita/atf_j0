@@ -1652,6 +1652,11 @@ recovery:
 catalogul întârziat, epuizarea și captura lipsă. Scrierile prin GET și operațiile
 necunoscute sunt refuzate înaintea browserului.
 
+Pentru rezultatul recuperat `UI_ONLY` și epuizare, testul generează un raport
+Extent temporar. Proba Playwright verifică pasul cu verdict, grupul încercărilor
+colapsat după `Expand all nodes`, toate rândurile la deschidere manuală și
+restrângerea grupului; corpul fixture-ului și URL-ul local nu apar în HTML.
+
 Aserțiunile acestor componente rămân în pasul standard `Component assertions`,
 colapsat implicit, cu redactare înaintea plafonului configurat, implicit 240 de caractere.
 Unit și probele renderer din Reporting Tests își păstrează categoriile separate.

@@ -110,6 +110,51 @@ Etichetele scurte păstrează următorul sens:
 ## Controale tehnice verificate
 
 <details>
+<summary><strong>Control tehnic — UI-RECOVERY-REPORT-PROBE-20261121</strong></summary>
+
+```yaml
+testChanges:
+  - id: UI-RECOVERY-REPORT-PROBE-20261121
+    status: VERIFIED
+    base: 97d0968854326bb266be98a80791b49b86008234
+    expires: 2026-11-30
+    reason: Tipizează scenariile AutoEx recovery și verifică raportul Extent pentru UI_ONLY recuperat și epuizare, cu încercări INFO, disclosure și redacție.
+    proof: >-
+      mvn -pl atf-test-auto-ex,atf-test-practice-shop,atf-tests -am
+      "-Dtest=AutoExBackendRecoveryComponentTest,ShopBackendRecoveryComponentTest,WholeAtfGovernanceSuiteTest"
+      "-Datf.governance.testChanges.baseRef=97d0968854326bb266be98a80791b49b86008234"
+      "-Datf.test.heap.max=384m"
+      "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/recovery/AutoExBackendRecoveryComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/support/reporting/AutoExRecoveryExtentReportProbe.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control tehnic — DOC-ROOT-OVERVIEW-20261121</strong></summary>
+
+```yaml
+testChanges:
+  - id: DOC-ROOT-OVERVIEW-20261121
+    status: VERIFIED
+    base: 97d0968854326bb266be98a80791b49b86008234
+    expires: 2026-11-30
+    reason: Guvernează prezentarea executivă și rutele J0–J7 din README-ul rădăcină.
+    proof: >-
+      mvn -pl atf-test-auto-ex,atf-test-practice-shop,atf-tests -am
+      "-Dtest=AutoExBackendRecoveryComponentTest,ShopBackendRecoveryComponentTest,WholeAtfGovernanceSuiteTest"
+      "-Datf.governance.testChanges.baseRef=97d0968854326bb266be98a80791b49b86008234"
+      "-Datf.test.heap.max=384m"
+      "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationReadmeStructureGovernanceTest.java
+```
+
+</details>
+
+<details>
 <summary><strong>Registru YAML — controale VERIFIED și perimetrele lor exacte</strong></summary>
 
 ```yaml
@@ -3638,6 +3683,25 @@ testChanges:
 </details>
 
 <details>
+<summary><strong>Control tehnic — REPORT-PROFILE-LABELS-20261112</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-PROFILE-LABELS-20261112
+    status: VERIFIED
+    base: a47003af3ab3ca57ef0fe38111a95a70ec7dd9b0
+    expires: 2026-11-30
+    reason: Probează titluri literale, profiluri cu etichete multiline, corpul integral și verdictul după preview 240 în Extent și fallback.
+    proof: >-
+      mvn -B -pl atf-reporting-tests -am "-Dtest=ReportProfileLabelsComponentTest"
+      "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/reporting/artifact/ReportProfileLabelsComponentTest.java
+```
+
+</details>
+
+<details>
 <summary><strong>Control tehnic verificat — CONTRACTS-J0-96</strong></summary>
 
 ```yaml
@@ -4418,25 +4482,6 @@ testChanges:
       - atf-reporting-tests/src/test/java/atf/reporting/extent/session/ExtentReportNavigationContractTest.java
       - atf-reporting-tests/src/test/resources/atf/reporting/distribution/JarConsumer.java.txt
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/lifecycle/BrowserProbeProcessComponentTest.java
-```
-
-</details>
-
-<details>
-<summary><strong>Control tehnic — REPORT-PROFILE-LABELS-20261112</strong></summary>
-
-```yaml
-testChanges:
-  - id: REPORT-PROFILE-LABELS-20261112
-    status: VERIFIED
-    base: a47003af3ab3ca57ef0fe38111a95a70ec7dd9b0
-    expires: 2026-11-30
-    reason: Probează titluri literale, profiluri cu etichete multiline, corpul integral și verdictul după preview 240 în Extent și fallback.
-    proof: >-
-      mvn -B -pl atf-reporting-tests -am "-Dtest=ReportProfileLabelsComponentTest"
-      "-Dsurefire.failIfNoSpecifiedTests=false" test
-    paths:
-      - atf-reporting-tests/src/test/java/atf/reporting/artifact/ReportProfileLabelsComponentTest.java
 ```
 
 </details>

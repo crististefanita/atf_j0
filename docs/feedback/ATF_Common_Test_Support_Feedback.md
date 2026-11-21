@@ -2,7 +2,7 @@
 
 ## Pe scurt
 
-J0 deține codul, API-ul, testele native, împachetarea și feedback-ul Test Kit. J1–J6 păstrează integrarea și oracolele lor; consumă perechea verificată din lib, fără surse ori native Kit paralele. [Contractul bibliotecii](../ATF_Test_Kit_Library.md) descrie distribuția și acceptanțele distincte.
+J0 deține codul, API-ul, testele native, împachetarea și feedback-ul Test Kit. J1–J7 păstrează integrarea și oracolele lor; consumă perechea verificată din lib, fără surse ori native Kit paralele. [Contractul bibliotecii](../ATF_Test_Kit_Library.md) descrie distribuția și acceptanțele distincte.
 
 <a id="kit-library-151--distribuție-unică-fără-surse-paralele"></a>
 

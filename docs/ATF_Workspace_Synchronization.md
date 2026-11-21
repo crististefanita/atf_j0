@@ -15,8 +15,9 @@ primește și verifică livrarea potrivită propriului deployment.
 | `atf_j2` | WIP: framework și teste Kafka/mesagerie, fără module browser ori Shop/AutoEx | 5 module sursă, inclusiv SQL; Core/Reporting/Console/Mock/Test Kit JAR; componente Eventuate MOCK; Kafka remote și clientul Java de infrastructură validate în incrementul J2; clientul/observerul framework-ului rămâne WIP |
 | `atf_j4` | consumer Android/ADB, trei module; Core/Reporting/Console/Mock/Test Kit JAR | independent binary adoption, with complete captured PNG evidence; E2E device rămâne la J4 |
 | `atf_j3` | consumer speech, patru module sursă; Core/Reporting/Console/Mock/Test Kit prin JAR | Core/Reporting in lib și acceptanță proprie, fără module web ori mesagerie |
-| `atf_j5` | WIP Rentz: două module Maven, inclusiv motorul local; Kit JAR | cinci perechi în lib; originea copiei inițiale este păstrată, iar acceptanța J5 se califică distinct |
-| `atf_j6` | WIP Hold’em, cinci module de domeniu; consumer al celor cinci biblioteci JAR | bootstrap Maven din lib, comparații offline și acceptanță proprie; fără harness ori surse paralele ale bibliotecilor |
+| `atf_j5` | Rentz Lab, cu motor local și suită Maven | cinci perechi JAR/POM în `lib`. Calificarea motorului și a aplicației Android aparține J5. |
+| `atf_j6` | Hold’em Lab, cu motor, AI, arenă și aplicație Android | bootstrap Maven din `lib`. Evaluarea offline și calificarea APK-ului aparțin J6. |
+| `atf_j7` | Chess Lab, consumator al celor cinci biblioteci | bootstrap Maven din perechile JAR/POM din `lib` și calificare proprie a motorului, a rapoartelor și a APK-ului |
 | `demo2` | historical source workspace | nu mai este destinație activă de mentenanță sau sync |
 
 J1 poate avea schimbări comune în lucru. Referința J0 nu autorizează
@@ -34,6 +35,7 @@ flowchart LR
     Candidate -->|livrează| J4["J4<br/>consumer Android"]
     Candidate -->|livrează| J5["J5 WIP<br/>consumer Rentz"]
     Candidate -->|livrează| J6["J6 WIP<br/>consumer Hold’em"]
+    Candidate -->|livrează| J7["J7<br/>consumer Chess Lab"]
 ```
 
 <details>
@@ -68,9 +70,9 @@ rămân distincte; infrastructura copiată nu le demonstrează.
 | Schimbare în referință | Livrare către fiecare consumer | Dovadă necesară |
 |---|---|---|
 | Reporting Java, assets, API sau POM | versiune nouă, JAR/POM și proveniență; documentele de adopție | native, regresii permanente și gate pe JAR-ul fizic |
-| Core Java, API sau POM | versiune Core nouă, pereche JAR/POM și proveniență; sursa și nativele rămân în J0 | native și contracte pe JAR, guvernanță și acceptanță distinctă în fiecare consumer afectat J1–J6 |
+| Core Java, API sau POM | versiune Core nouă, pereche JAR/POM și proveniență; sursa și nativele rămân în J0 | native și contracte pe JAR, guvernanță și acceptanță distinctă în fiecare consumer afectat J1–J7 |
 | numai regresii Reporting | testele rămân în J0; se verifică relevanța pentru versiunea consumată | reproducere negativă și acceptanță pe binarul afectat; fără copierea harness-ului în live |
-| Test Kit, Console sau Mock | versiune nouă și pereche JAR/POM în J1–J6; sursa și nativele rămân în J0 | native, contracte pe JAR și acceptanța fiecărui consumer |
+| Test Kit, Console sau Mock | versiune nouă și pereche JAR/POM în J1–J7; sursa și nativele rămân în J0 | native, contracte pe JAR și acceptanța fiecărui consumer |
 | surse comune Validation/UI sau adaptoare Shop/AutoEx | numai sursele și probele selectate pentru același comportament | comparație cu schimbările locale și testele ownerului; un JAR Reporting nou nu este implicit necesar |
 | documentație ori mutarea referinței | contracte și linkuri adaptate deployment-ului | guvernanță documentară; fără versiune binară nouă numai pentru redenumirea directorului |
 
@@ -78,7 +80,7 @@ rămân distincte; infrastructura copiată nu le demonstrează.
   Hash-urile și catalogul native sunt în `library-provenance.json`, la rădăcină.
 - POM-urile reactorului, `.git`, bazele `testChanges`, configurațiile locale,
   cache-urile, output-urile și rapoartele nu se copiază prin mirror.
-- Feedback-ul Core/Reporting/Console/Mock/Test Kit are owner în J0; cerințele comune nonbibliotecă sunt coordonate în J1. [Test Kit](ATF_Test_Kit_Library.md) este distribuit ca bibliotecă în J1–J6; sursa și nativele rămân în J0. Feedback-ul unei implementări comune
+- Feedback-ul Core/Reporting/Console/Mock/Test Kit are owner în J0; cerințele comune nonbibliotecă sunt coordonate în J1. [Test Kit](ATF_Test_Kit_Library.md) este distribuit ca bibliotecă în J1–J7; sursa și nativele rămân în J0. Feedback-ul unei implementări comune
   se închide în alt deployment numai după sincronizarea și proba codului său.
 
 ## Protocolul fiecărui increment
@@ -138,7 +140,7 @@ selectiv, iar backlog-ul Reporting și cel web rămân la ownerii J0/J1.
 ## Core ca bibliotecă — owner și deployment
 
 J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module.
-[Contractul Core](ATF_Core_Consumer.md) separă sursa și publicarea de acceptanța independentă a fiecărui consumator J1–J6.
+[Contractul Core](ATF_Core_Consumer.md) separă sursa și publicarea de acceptanța independentă a fiecărui consumator J1–J7.
 Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 
 ## Release evidence retention

@@ -4,7 +4,7 @@
 
 ## Pe scurt
 
-J0 este reactorul producător cu 12 module. Deține implementarea și testele native Core, Reporting, Console, Mock și Test Kit. J1–J6 consumă direct din `lib` câte o singură pereche curentă JAR/POM pentru fiecare bibliotecă; adaptoarele, configurația și acceptanța aplicațiilor rămân locale.
+J0 este reactorul producător cu 12 module. Deține implementarea și testele native Core, Reporting, Console, Mock și Test Kit. J1–J7 consumă direct din `lib` câte o singură pereche curentă JAR/POM pentru fiecare bibliotecă; adaptoarele, configurația și acceptanța aplicațiilor rămân locale.
 
 | Proiect | Module sursă | Domeniu |
 |---|---|---|
@@ -15,6 +15,7 @@ J0 este reactorul producător cu 12 module. Deține implementarea și testele na
 | J4 | 3 | Framework Android și acceptanță |
 | J5 | 2 | Rentz WIP și acceptanță independentă a bibliotecilor |
 | J6 | 5 | Hold’em WIP; adoptare doar în scope-ul de test al holdem-app, fără surse producătoare sau harness |
+| J7 | 1 | Chess Lab. Reactorul Maven califică motorul, rapoartele și perechile din lib prin atf-tests. |
 
 ## Limitele Console și Mock
 
@@ -34,7 +35,7 @@ Console și Mock nu depind de Reporting, Validation sau modulele aplicațiilor. 
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     Source["J0<br/>sursă + teste native"] -->|publică| Pair["Un candidat<br/>JAR + POM autonom"]
-    Pair -->|adoptă| Lib["J1–J6<br/>lib plat"]
+    Pair -->|adoptă| Lib["J1–J7<br/>lib plat"]
     Lib -->|validează| Acceptance["Per consumator<br/>contracte + componente"]
 ```
 
@@ -43,7 +44,7 @@ flowchart LR
 
 - Săgețile arată publicarea și acceptanța, nu module Maven suplimentare.
 - J0 păstrează toate clasele de teste native; acceptanța binară le reutilizează numai într-un harness TMP deținut, fără surse de producție în classpath.
-- Fiecare consumator își păstrează baza Git și domeniul propriu; un gate verde în J1 nu este dovadă pentru J2–J6.
+- Fiecare consumator își păstrează baza Git și domeniul propriu; un gate verde în J1 nu este dovadă pentru J2–J7.
 - Proprietățile POM-ului rădăcină selectează coordonatele curente. POM-ul publicat fixează dependența Core testată; versiunea sa este independentă de versiunea reactorului consumator.
 - La schimbarea versiunii Core, se republică și perechile Console/Mock dependente; nu rescrieți doar POM-ul alăturat unui JAR existent.
 
@@ -101,4 +102,4 @@ Logurile, sursele extrase și HTML-urile rămân în TMP; această verificare nu
 
 ## Test Kit ca bibliotecă
 
-[Test Kit](ATF_Test_Kit_Library.md) are owner de cod, native și feedback în J0. J1–J6 consumă perechea din lib și [ghidul local](../lib/README.TestKit.md); verifică binarul și integrarea, fără surse Kit paralele. Console păstrează bridge-ul opțional, iar produsul declară Kit numai în test scope.
+[Test Kit](ATF_Test_Kit_Library.md) are owner de cod, native și feedback în J0. J1–J7 consumă perechea din lib și [ghidul local](../lib/README.TestKit.md); verifică binarul și integrarea, fără surse Kit paralele. Console păstrează bridge-ul opțional, iar produsul declară Kit numai în test scope.

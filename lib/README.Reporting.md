@@ -59,6 +59,7 @@ public static void publish(AssertionAuditRun run, String actual) {
 - Fails indexează cauza terminală la rândul ACTION sau OBSERVE care a eșuat. Tests păstrează și diagnosticul colapsabil, iar comparațiile independente rămân distincte.
 - PNG-ul păstrează întregul viewport/display; captura și zoom-ul aparțin adaptorului. Capturile identice din același pas păstrează o singură dovadă și primul caption.
 - După close, ReportArtifactInspector.inspect(path, profile) califică inventarul și resursele embedded; diagnosticul localizează dependențele externe. Căile text rămân valide. Inspectorul este static; randarea și interacțiunile se verifică separat în browser.
+- Titlurile se publică drept text literal în Extent și fallback. Profilul acceptă etichetele originale, inclusiv multiline. ReportArtifactProfile.visibleLabel(label) oferă aceeași proiecție de spații ca inspectorul.
 - Browserul aparține callerului: separați diagnosticul de discovery JUnit de execuție, închideți contextul înaintea browserului și păstrați cauza inițială la cleanup.
 
 Durata HTTP provine din `ReportResponse.duration()`; `detail(...)` păstrează textul callerului, fără să îl transforme într-o măsurătoare de transport.

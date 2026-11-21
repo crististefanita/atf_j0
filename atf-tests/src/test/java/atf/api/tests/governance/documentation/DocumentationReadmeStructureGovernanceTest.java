@@ -25,6 +25,8 @@ public class DocumentationReadmeStructureGovernanceTest {
     private static final Pattern H1 = Pattern.compile("^#\\s+[^#].*$");
     private static final Pattern H2_ORIENTATION = Pattern.compile("^##\\s+(?:Overview|Pe scurt)\\b.*$",
             Pattern.CASE_INSENSITIVE);
+    private static final Pattern ROOT_H2_ORIENTATION = Pattern.compile(
+            "^##\\s+ATF Java\\s+—\\s+prezentare executivă\\s*$", Pattern.CASE_INSENSITIVE);
     private static final Pattern DETAILS_OPEN = Pattern.compile("^\\s*<details(?:\\s|>)",
             Pattern.CASE_INSENSITIVE);
     private static final Pattern DETAILS_CLOSE = Pattern.compile("^\\s*</details>\\s*$",
@@ -41,6 +43,34 @@ public class DocumentationReadmeStructureGovernanceTest {
                     .forEach(path -> validate(path, root, violations));
         }
         DocumentationGovernanceSupport.assertNoViolations("README structure governance", violations);
+    }
+
+    @Test
+    void liveRootOverviewRoutesEveryWorkspacePromisedByTheLibraryIndex() throws Exception {
+        Path root = locateProjectRoot();
+        List<String> lines = Files.readAllLines(root.resolve("README.md"));
+        for (int workspace = 0; workspace <= 7; workspace++) {
+            String rowPrefix = "| J" + workspace;
+            assertEquals(1, lines.stream().filter(line -> line.startsWith(rowPrefix + " |")
+                            || line.startsWith(rowPrefix + " ·")).count(),
+                    "The root workspace overview must have one row for J" + workspace);
+        }
+    }
+
+    @Test
+    void rootReadmeRequiresItsOwnExecutiveOrientation(@TempDir Path workspace) throws Exception {
+        Path root = Files.createDirectories(workspace.resolve("project"));
+        Path readme = root.resolve("README.md");
+        Files.writeString(readme, "# ATF\n\n## Module map\n\nDetails.\n");
+        var violations = new ArrayList<DocumentationGovernanceSupport.Violation>();
+        validate(readme, root, violations);
+        assertEquals(List.of("DOC-README-OVERALL"), violations.stream()
+                .map(DocumentationGovernanceSupport.Violation::code).toList());
+
+        Files.writeString(readme, "# ATF\n\n## ATF Java — prezentare executivă\n\nPurpose.\n");
+        violations.clear();
+        validate(readme, root, violations);
+        DocumentationGovernanceSupport.assertNoViolations("Root README orientation", violations);
     }
 
     @ParameterizedTest
@@ -90,13 +120,21 @@ public class DocumentationReadmeStructureGovernanceTest {
                     "an owner README has one stable title before its sections",
                     "keep one `# ...` title and convert additional top-level titles to `## ...`"));
         }
-        if (!path.equals(root.resolve("README.md").toAbsolutePath().normalize())
-                && matchingLines(lines, H2_ORIENTATION).isEmpty()) {
+        boolean rootReadme = path.toAbsolutePath().normalize()
+                .equals(root.resolve("README.md").toAbsolutePath().normalize());
+        Pattern orientation = rootReadme ? ROOT_H2_ORIENTATION : H2_ORIENTATION;
+        if (matchingLines(lines, orientation).isEmpty()) {
             violations.add(DocumentationGovernanceSupport.violation(
                     "DOC-README-OVERALL", root, path, 1,
-                    "README-ul nu are secțiunea de orientare `## Overview` sau `## Pe scurt`",
-                    "README-urile modulelor și ale documentației prezintă scopul, proprietarul și limitele înaintea detaliilor",
-                    "adaugă `## Overview` în engleză sau `## Pe scurt` în română înaintea detaliilor, conform limbii proiectului"));
+                    rootReadme
+                            ? "README-ul rădăcină nu are prezentarea executivă a proiectului"
+                            : "README-ul nu are secțiunea de orientare `## Overview` sau `## Pe scurt`",
+                    rootReadme
+                            ? "pagina rădăcină orientează cititorul asupra proiectului înaintea detaliilor"
+                            : "README-urile modulelor și ale documentației prezintă scopul, proprietarul și limitele înaintea detaliilor",
+                    rootReadme
+                            ? "adaugă `## ATF Java — prezentare executivă` înaintea detaliilor"
+                            : "adaugă `## Overview` în engleză sau `## Pe scurt` în română înaintea detaliilor, conform limbii proiectului"));
         }
     }
 

@@ -58,6 +58,9 @@ package mutat nu constituie singure o îmbunătățire de arhitectură.
   `OBSERVE`, `uiValidation` și PNG controlat; nu inventați request-uri ori pași.
 - Controalele negative elimină imaginea, schimbă referința/caption-ul, înlocuiesc
   octeții PNG ori leagă captura de alt owner; toate trebuie refuzate separat.
+  Folosiți două capturi PNG valide și schimbați-le între două acțiuni `OBSERVE`,
+  păstrând etichetele și inventarul resurselor. Verificați că diagnosticul
+  indică acțiunea afectată și identitatea imaginii așteptate.
 - Păstrați verificările existente pentru observations generice, comparații,
   resurse autonome și inventarul exact. O regulă UI nouă nu relaxează contractul
   generic și nu derivă expected-urile din HTML-ul inspectat.
@@ -152,6 +155,14 @@ Namespace-ul întreg nu poate deveni automat o promisiune de compatibilitate.
 - [ ] Automatizați compatibilitatea suprafeței susținute și politica versiunilor.
       Consumerul extern și comparația binară a incrementului există; ele nu
       declară automat suport pentru fiecare clasă Java publică.
+- [ ] Fixați un contract versionat, citibil automat, pentru simbolurile
+      susținute, punțile de compatibilitate și capabilitățile obligatorii.
+      Pe perechile JAR/POM precedentă și candidată, rulați separat apelantul
+      deja compilat și recompilarea lui. Un overload susținut eliminat și un
+      adaptor care acceptă o capabilitate obligatorie fără să publice dovada
+      trebuie să eșueze explicit. Un simbol intern înlocuit, fără apelant
+      susținut, rămâne controlul pozitiv. Confruntați verdictul cu HTML-ul
+      produs prin porturile publice. [Porturile](../../atf-reporting/src/main/java/atf/reporting/contract/AtfReportPorts.java)
 
 ## REPORT-RELEASE-CONTRACT-45 — ce conține și ce promite pachetul
 
@@ -183,6 +194,10 @@ owner și politica explicită de compatibilitate și metadate.
       din intrări identice, toolchain declarată, byte identity și proveniență.
       Operatorul menținut la owner reia probele native și sursă/JAR și verifică
       POM-ul încorporat și identitatea intrărilor, independent de scripturile TMP.
+- [ ] La reluarea calificării pachetului, verificați identitatea toolchain-ului și
+      classpath-ul probei care a produs dovada. Componentele refuză receipt-ul
+      produs cu alt runtime sau alt classpath și acceptă mutarea aceleiași
+      dovezi între două directoare externe. [Verificarea relocării](../ATF_Build_And_Execution_Safety.md)
 - [ ] Decideți distribuția Sources/JavaDoc și metadatele SCM/licență fără a
       deduce o licență; rezolvați POM-ul publicat într-un consumer extern înainte
       de a promova versiunea.
@@ -248,6 +263,21 @@ Observațiile INFO livrate sunt normate la
 proiecția structurată comună și matricea de acceptanță, fără parsarea mesajelor
 sau repetarea deciziei la renderer.
 
+**Verificare Extent, 2026-11-19.**
+
+- `ShopConfigurationTest` afișează toate cele 22 grupuri colapsabile `Component assertions`, fiecare cu tabelul assertion/expected/actual/result.
+- `Expand all nodes` deschide ierarhia scenariilor și pașilor, dar lasă închise disclosure-urile HTML imbricate. În Shop UI E2E au rămas 31 secțiuni de acțiuni, observații, assertions și capturi; în raportul AutoEx E2E au rămas 14 secțiuni de diagnostic. Fiecare s-a putut deschide separat.
+- API-ul AutoEx a păstrat 9 detalii de request/response/execution închise după extinderea ierarhiei; deschiderea individuală a afișat datele.
+
+**Verificare J0 în staging, 2026-11-21.**
+
+- Fixture-urile sursă Shop și AutoEx produc rapoarte Extent pentru recuperarea `UI_ONLY` și epuizare; rulările au trecut cu Shop 6/6 și AutoEx 5/5.
+- Probele Playwright verifică listarea testului, pasul cu verdict și grupul `atf-ui-observations` închis inițial și după `Expand all nodes`.
+- Deschiderea grupului arată toate încercările în ordine, cu policy, observație și rezultat INFO; restrângerea ascunde din nou toate rândurile.
+- Canary-ul corpului și URL-ul `127.0.0.1` lipsesc din HTML.
+
+Acoperirea este limitată la fixture-urile de integrare ale sursei J0. Scenariul `UI_API` reușit și refuzul cu captura dezactivată nu generează raport prin politica scenariului; rulările acestor două suite nu certifică raport API, matricea completă Reporting ori acceptanța binarului extern.
+
 - [ ] Compuneți faptele typed din trace, policy și signal în proiecția comună:
       operație, încercare, decizie/motiv, sursa politicii, bugete și timpi măsurați.
       Signal-ul păstrează deja scope-ul invocare/operație/frame/document și secvența;
@@ -266,14 +296,19 @@ sau repetarea deciziei la renderer.
       păstrat SKIP. Retry-ul infrastructurii de publicare nu rerulează business-ul.
       Inputul contradictoriu este reconciliat conform
       [contractului comun Reporting](../../atf-reporting/README.md#consistența-statusului-transmis-de-caller).
-- [ ] Probați expand/collapse până la fiecare încercare, acțiune, request și
-      aserțiune; Fails → test/fază/pas exact și Overview trebuie să păstreze
-      cauzele și totalurile coerente. Captura ulterioară nu înlocuiește starea
-      consemnată la eroare.
-- [ ] Verificați câte un caz relevant individual și prin suită în AutoEx și
-      Shop, cu profil UI și UI+API, succes, recuperare/refuz și epuizare. Probele
-      Extent neutre rămân în `atf-reporting-tests`; policy/resolver și adaptoarele
-      au teste la owner, fără cuplarea testelor de business la HTML.
+- [x] Pentru fixture-urile recovery din J0, `Expand all nodes` deschide ierarhia
+      Extent, iar `atf-ui-observations` rămâne un disclosure separat: închis implicit,
+      extins/restrâns individual, cu toate încercările disponibile după deschidere.
+- [ ] Extindeți oracolul neutru din `atf-reporting-tests` la acțiuni, request-uri,
+      aserțiuni, Fails și Overview, păstrând disclosure-urile nested independente;
+      verificați fiecare rând prin expand/collapse și cauza terminală fără a
+      înlocui verdictul ori starea inițială cu o captură ulterioară.
+- [x] Rulați clasele componente de recovery în ambele fixture-uri J0 pentru
+      succes UI_ONLY/UI_API, epuizare și captura dezactivată. Raportul este
+      verificat numai pe succes UI_ONLY și epuizare.
+- [ ] Rulați suitele complete și acceptanța distinctă pe JAR în AutoEx și Shop;
+      probele generice Extent rămân la `atf-reporting-tests`, iar fixture-urile
+      copiate J0 verifică integrarea cu sursa fără să devină acceptanță business J1.
 
 ## Contracte existente
 
@@ -480,7 +515,19 @@ without a renderer change, new module or new library version.
 ## REPORT-PROFILE-LABELS — convenția textului vizibil
 
 Contractul acoperă titlul literal și compararea etichetelor multiline în
-Extent și fallback. [Contractul](../../atf-reporting/README.md#titluri-și-etichete-ale-profilului) · [Proba permanentă](../../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions)
+Extent și fallback. Adopția binară se verifică prin proveniența și acceptanța
+fiecărui consumator. [Contractul](../../atf-reporting/README.md#titluri-și-etichete-ale-profilului) · [Proba permanentă](../../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions)
+
+<details>
+<summary><strong>Proveniență J21 — dovezi istorice indisponibile local</strong></summary>
+
+- `final-live-components/atf-tests/component-report.html` din
+  `whist_back/maintenance/20261106-component-suite-aggregation` a omis
+  `<version>` din titlul DOM. `execution.json` consemna refuzul la scenariul 80.
+- `multiline-profile-controls-verified.log` din același dosar păstra
+  controalele inițiale pentru proiecția etichetelor așteptate.
+
+</details>
 
 <details>
 <summary><strong>Rute de compatibilitate către contractele livrate</strong></summary>

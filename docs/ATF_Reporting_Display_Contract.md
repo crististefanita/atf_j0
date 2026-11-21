@@ -67,9 +67,10 @@ poate rămâne un discriminator intern tipizat, dar nu se afișează ca al doile
   rândurile FAIL ridică statusul fazei și scenariului și urmează aceeași
   proiecție `Fails` și aceeași redacție ca restul raportului; nu se introduce
   un request HTTP sintetic;
-- închiderea unui părinte ascunde întregul subarbore și sincronizează simultan
-  vizibilitatea, `open`, `aria-expanded` și glyph-ul; redeschiderea părintelui nu
-  deschide automat copiii;
+- închiderea unui părinte ascunde întregul subarbore și sincronizează starea
+  părintelui: vizibilitate, `open`, `aria-expanded` și glyph. Copiii își păstrează
+  starea locală; la redeschidere, cei anterior deschiși redevin vizibili, iar cei
+  închiși rămân închiși. Ascunderea printr-un strămoș nu resetează selecția locală;
 - deschiderea unui copil nu închide părintele sau frații; mouse, Enter și Space
   produc aceeași tranziție semantică;
 - o deschidere amânată dintr-un deep-link este invalidată de o navigare mai nouă

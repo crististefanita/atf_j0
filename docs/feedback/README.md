@@ -27,7 +27,7 @@ Scorurile sunt priorități, nu note de calitate sau procente de acoperire. Form
 | 1 | [Valori UI integrale](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) | 88 | captură înaintea preview-ului callerului și disclosure sigur; ACTION/OBSERVE este deja livrat |
 | 2 | [API public susținut](ATF_Reporting_Feedback.md#report-public-api-43--suprafață-susținută-și-ownership) | 81 | delimitarea suprafeței, capabilităților adaptoarelor și compatibilității |
 | 3 | [Oracolul testelor Reporting](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) | 80 | identificarea exactă a dovezii și matricea negativă rămasă |
-| 4 | [Proiecția recovery](ATF_Reporting_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent) | 78 | proiecția typed a încercării, cauzei, timing-ului și bugetului |
+| 4 | [Proiecția recovery](ATF_Reporting_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent) | 78 | proiecția încercării, cauza/timing/bugetul și extinderea completă a dovezilor |
 | 5 | [Contractul release-ului](ATF_Reporting_Feedback.md#report-release-contract-45--ce-conține-și-ce-promite-pachetul) | 73 | gate automat cu toolchain declarată și metadate externe de distribuție |
 | 6 | [Profilul pentru observation UI](ATF_Reporting_Feedback.md#report-observation-contract--domeniul-validatorului-de-artefact) | 72 | intenția PNG și asocierea ei la acțiunea/ownerul declarat |
 
@@ -53,7 +53,7 @@ Nu introduceți funcționalitate doar pentru a atinge o notă; prioritizați cor
 
 ## Cerințe transferate în J1
 
-[Registrul J1](../../../atf_j1/docs/feedback/README.md) deține guvernanța comună, designul AI și coordonarea consumerilor. Test Kit are owner în J0 și este consumat ca JAR în J1–J6, fără surse paralele. ID-urile și probele sunt păstrate; transferul nu închide implementarea.
+[Registrul J1](../../../atf_j1/docs/feedback/README.md) deține guvernanța comună, designul AI și coordonarea consumerilor. Test Kit are owner în J0 și este consumat ca JAR în J1–J7, fără surse paralele. ID-urile și probele sunt păstrate; transferul nu închide implementarea.
 
 ## Păstrare, promovare și verificare
 

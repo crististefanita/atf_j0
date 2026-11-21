@@ -1,5 +1,9 @@
 # Redactarea unui nume de aserțiune de joc
 
+## Pe scurt
+
+Reporting deține verificarea redactării etichetelor publicate. Criteriul acoperă păstrarea textului de joc și mascarea credențialelor reale.
+
 ## Martor și stare curentă
 
 Martorul istoric provine dintr-o componentă JVM publicată prin Reporting J18.

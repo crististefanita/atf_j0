@@ -896,7 +896,7 @@ helper nu autorizează un apel remote și nu transformă un fixture în dovadă 
 ## Core ca bibliotecă — owner și deployment
 
 J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module.
-[Contractul Core](ATF_Core_Consumer.md) separă sursa și publicarea de acceptanța independentă a fiecărui consumator J1–J6.
+[Contractul Core](ATF_Core_Consumer.md) separă sursa și publicarea de acceptanța independentă a fiecărui consumator J1–J7.
 Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 
 

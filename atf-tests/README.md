@@ -151,8 +151,9 @@ testelor de reporting în acest modul:
 - `governance.documentation.DynamicPathDocumentationArchitectureTest` — documentație
   relocabilă, fără căi de mașină sau nume de artifact generate concret;
 - `governance.documentation.DocumentationReadmeStructureGovernanceTest` — un titlu,
-  secțiune de orientare `Pe scurt`, `<details>` echilibrate și linkuri locale rezolvabile în
-  toate README-urile și în `docs/ATF_Architecture.md`;
+  prezentare executivă obligatorie în README-ul rădăcină, `Overview`/`Pe scurt`
+  în documentele locale, `<details>` echilibrate și linkuri locale rezolvabile;
+  verifică și rutele J0–J7 din tabelul de workspace-uri;
 - `governance.documentation.DocumentationStyleGovernanceTest` — stil semantic ATF:
   fence-uri tipizate, headings fără salturi, bullets `-` și fără font/CSS/HTML
   prezentational în README-uri și în documentul arhitectural canonic;

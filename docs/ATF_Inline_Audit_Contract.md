@@ -110,7 +110,7 @@ in feedback; a general step overload is not an implicit media capability.
 
 Whole-context capture and 70% web geometry belong to the
 [J1 UI contract](../../atf_j1/atf-ui/README.md#full-context-screenshots).
-[Full-display Android capture](../../atf_j4/docs/reporting/ATF_Android.md#capturi-și-proprietate)
+[Full-display Android capture](../../atf_j4/docs/reporting/ATF_Android.md#capture-and-ownership)
 retains its independent device acceptance.
 
 ## Composite evidence acceptance
