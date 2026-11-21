@@ -15,13 +15,19 @@ public final class ComponentAssertionAudit {
     public enum Outcome { PASS, FAIL, ABORTED }
     public enum AssertionRequirement { ANY_PHASE, TEST_BODY }
     public record PhaseResult(Phase phase, List<RecordedAssertions.Check> checks,
-                              Outcome outcome, String diagnostic, Optional<InvocationTimer.Snapshot> timing) {
+                              Outcome outcome, String diagnostic, Optional<InvocationTimer.Snapshot> timing,
+                              List<ComponentAuditObservation> observations) {
         public PhaseResult(Phase phase, List<RecordedAssertions.Check> checks, Outcome outcome, String diagnostic) {
-            this(phase, checks, outcome, diagnostic, Optional.empty());
+            this(phase, checks, outcome, diagnostic, Optional.empty(), List.of());
+        }
+        public PhaseResult(Phase phase, List<RecordedAssertions.Check> checks, Outcome outcome, String diagnostic,
+                           Optional<InvocationTimer.Snapshot> timing) {
+            this(phase, checks, outcome, diagnostic, timing, List.of());
         }
         public PhaseResult {
             checks = List.copyOf(checks);
             timing = Objects.requireNonNull(timing, "timing");
+            observations = List.copyOf(observations);
         }
     }
     public record Result(List<PhaseResult> phases, Outcome outcome, Throwable failure,
@@ -100,7 +106,8 @@ public final class ComponentAssertionAudit {
             String diagnostic = phaseFailure == null ? "" : display.display(null,
                     (AssertionValueDisplay.Value) phaseFailure::toString);
             phases.add(new PhaseResult(phase, recorder.checks(), outcome, diagnostic,
-                    timers.containsKey(phase) ? timers.get(phase).snapshot() : Optional.empty()));
+                    timers.containsKey(phase) ? timers.get(phase).snapshot() : Optional.empty(),
+                    recorder.observations()));
         }
         return new Result(List.copyOf(phases), outcome(failure), failure, propagate);
     }

@@ -86,7 +86,7 @@ sunt la ownerii lor, iar registrul păstrează numai criteriile încă deschise.
 | [REPORT-UI-ASSERTION-FULL-EVIDENCE-133](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) | 88 — existing criterion | full UI values captured before caller preview; source/JAR owner and redaction proof remain separate |
 | `REPORT-PUBLIC-API-43` | 81 = 31 + 24 + 17 + 9 | API-ul susținut, compatibilitatea și capabilitățile adaptoarelor nu sunt delimitate suficient |
 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) | 80 = 31 + 24 + 18 + 7 | criteriu separat al consumerului: oracol per scenariu și containment fallback |
-| `UI-RECOVERY-AUDIT-01` | 78 = 33 + 22 + 16 + 7 | proiecția typed a încercărilor, bugetelor și corelării rămâne la Reporting |
+| `UI-RECOVERY-AUDIT-01` | 78 = 33 + 22 + 16 + 7 | lansarea IntelliJ și acceptanța JAR/consumer la adoptarea explicită |
 | `REPORT-RELEASE-CONTRACT-45` | 73 = 25 + 22 + 17 + 9 | matricea runtime/vendor, operatorul repetabil și metadatele externe nu sunt încă o politică completă |
 | `REPORT-OBSERVATION-CONTRACT` | 72 = 29 + 20 + 16 + 7 | profilul declară observations generice, dar nu UI validation cu screenshot și identitatea PNG |
 | [REPORT-FALLBACK-RESULT-WIDTH-101](#report-fallback-result-width-101--regresie-geometrică-pentru-badge) | 64 = 24 + 19 + 15 + 6 | lipsește un oracol geometric al badge-ului WARNING în celula RESULT |
@@ -256,74 +256,57 @@ protocolul porturilor, cu ieșire observabilă identică și fără evaluări re
 **Owner:** model/proiecție la Reporting; probe renderer la Reporting Tests;
 adaptoare și aserțiuni business în main la cei doi consumeri.
 
-Observațiile INFO livrate sunt normate la
+Observațiile INFO sunt normate la
 [Reporting](../../atf-reporting/README.md#decizii-be-fără-verdict-de-succes-implicit).
-`UiRecoveryTrace` deține deja operația, încercarea, decizia, motivul, semnalul BE
-și duratele; adaptoarele AutoEx/Shop le publică în rânduri INFO. Restanța este
-proiecția structurată comună și matricea de acceptanță, fără parsarea mesajelor
-sau repetarea deciziei la renderer.
+`UiRecoveryTrace` deține operația, încercarea, decizia, motivul, semnalul BE și
+duratele măsurate; adaptorul consumerului nu parsează mesajele și nu repetă
+decizia la renderer.
 
-**Verificare Extent, 2026-11-19.**
+**Rezolvat în staging J0.**
 
-- `ShopConfigurationTest` afișează toate cele 22 grupuri colapsabile `Component assertions`, fiecare cu tabelul assertion/expected/actual/result.
-- `Expand all nodes` deschide ierarhia scenariilor și pașilor, dar lasă închise disclosure-urile HTML imbricate. În Shop UI E2E au rămas 31 secțiuni de acțiuni, observații, assertions și capturi; în raportul AutoEx E2E au rămas 14 secțiuni de diagnostic. Fiecare s-a putut deschide separat.
-- API-ul AutoEx a păstrat 9 detalii de request/response/execution închise după extinderea ierarhiei; deschiderea individuală a afișat datele.
+- `ShopBackendRecoveryComponentTest` a trecut cu 6/6, iar
+  `AutoExBackendRecoveryComponentTest` cu 5/5. Extensiile JUnit includ acum
+  în artifactul real `Backend recovery trace`, separat de `Component assertions`,
+  pentru succes UI_ONLY/UI_API, epuizare și captura dezactivată.
+- `AssertionAuditPublicationComponentTest` verifică Extent/fallback, redacția și
+  verdictul stabil; `AssertionAuditObservationDisclosureComponentTest` a trecut
+  pe fixture și pe rapoartele reale Shop și AutoEx. Expandarea globală deschide
+  pașii și aserțiunile, iar fiecare urmă rămâne închisă până la click/Space.
+- Câmpurile păstrează ordinea, policy, observația și rezultat INFO. Durata locală
+  nemăsurată apare `not captured`; probe/backoff/total rămân numai valorile
+  măsurate din trace. Canary-ul corpului și URL-ul local lipsesc; `EXHAUSTED`
+  rămâne rezultat așteptat într-un test PASS.
 
-**Verificare J0 în staging, 2026-11-21.**
+**Rămâne activ.**
 
-- Testele componente Shop și AutoEx au trecut cu 6/6 și 5/5. Extensiile JUnit au publicat artifacte reale în `artifacts/reports/api/component` și `artifacts/reports/component/auto-ex`.
-- Playwright headless a deschis artifactele reale. În Shop, `Expand all nodes` a crescut nodurile vizibile de la 6 la 18; în AutoEx, de la 5 la 15. Fiecare test expune `TEST BODY` și pasul `Component assertions`, cu tabelul assertion/expected/actual/result. Textul `EXHAUSTED` apare ca rezultat așteptat, iar testul corect are status PASS.
-- Artifactele reale au zero `details.atf-ui-observations` și zero `table.atf-ui-action-table`. Urmele ordonate, policy-ul, observația și statusul INFO se găsesc numai în raportul sintetic creat separat de `new ExtentReportSession(...)` și verificat de Playwright. Acest fixture este PASS fiindcă verifică randarea; `EXHAUSTED` este rezultatul de business așteptat, nu un eșec al testului.
-- Canary-ul corpului și URL-ul `127.0.0.1:8123` lipsesc atât din artifactele reale, cât și din cele sintetice verificate. Rularea și inspectarea artifactelor reale au folosit Maven în staging; execuția din IntelliJ nu a fost verificată.
+- Deschiderea raportului dintr-o lansare IntelliJ și verificarea rădăcinii de
+  output nu au fost executate.
+- Suita completă de consumer și acceptanța pe JAR-ul fizic rămân un gate separat.
+  J1 nu a fost modificat; perechea sa curentă rămâne pin-uită până la o adopție
+  explicită a unei versiuni noi, urmată de acceptanța consumerului.
+- Extindeți oracolul neutru existent pentru paritatea `Tests`, `Fails`, `Overview`
+  și a disclosure-urilor tuturor categoriilor; acesta este contract mai larg decât
+  urma recovery și se păstrează ca restanță distinctă.
 
-Extensiile JUnit publică raportul de clasă, metodele executate și pasul colapsabil de aserțiuni. Gap-ul activ este integrarea urmelor recovery în același artifact real. Scenariul `UI_API` reușit și refuzul cu captura dezactivată nu au probă de renderer; nu este acoperită nici acceptanța binarului extern.
+<details>
+<summary><strong>Control tehnic — REPORT-UI-RECOVERY-OBSERVATION-CONTROL</strong></summary>
 
-- [ ] Compuneți faptele typed din trace, policy și signal în proiecția comună:
-      operație, încercare, decizie/motiv, sursa politicii, bugete și timpi măsurați.
-      Signal-ul păstrează deja scope-ul invocare/operație/frame/document și secvența;
-      rendererul primește corelarea neutră de la adaptor, fără parsarea mesajului.
-      Starea DOM apare numai dacă a fost observată; lipsa ei rămâne necapturată,
-      fără acțiuni sau capturi suplimentare pentru completarea tabelului.
-      Distingerea observației de replay trebuie să fie vizibilă în raport.
-      Separați durata încercării, backoff-ul și timpul total măsurat; o durată
-      indisponibilă rămâne explicit necapturată, fără valoare HTTP inventată.
-- [ ] Păstrați toate cauzele intermediare și capturile permise. Recuperarea
-      înaintea eșecului terminal poate avea rânduri INFO explicite, conform
-      recorderului existent; nu rescrieți un FAIL deja publicat în PASS și nu
-      înlocuiți raportul original cu artifactul unei rulări ulterioare.
-- [ ] Definiți verdictul logic și indicatorul de recuperare: un singur test
-      în totaluri, succes inițial distinct de recuperare, epuizare FAIL și abort
-      păstrat SKIP. Retry-ul infrastructurii de publicare nu rerulează business-ul.
-      Inputul contradictoriu este reconciliat conform
-      [contractului comun Reporting](../../atf-reporting/README.md#consistența-statusului-transmis-de-caller).
-- [x] Pentru fixture-urile recovery din J0, `Expand all nodes` deschide ierarhia
-      Extent, iar `atf-ui-observations` rămâne un disclosure separat: închis implicit,
-      extins/restrâns individual, cu toate încercările disponibile după deschidere.
-      Proba folosește un scenariu sintetic separat și nu inspectează raportul real
-      publicat de extensia JUnit.
-- [x] Raportul real al extensiei JUnit include clasa, metodele și câte un pas
-      `Component assertions`; Playwright a verificat ierarhia completă după
-      `Expand all nodes` în ambele componente. Epuizarea așteptată rămâne test PASS.
-- [ ] Integrați trace-ul recovery în raportul real al extensiei JUnit, într-un
-      disclosure separat, închis inițial, cu ordine, policy, observation, timing,
-      rezultat INFO și redactare. Confirmați expand/collapse în același artifact;
-      raportul sintetic existent nu închide criteriul.
-- [ ] Extindeți oracolul neutru din `atf-reporting-tests` la acțiuni, request-uri,
-      aserțiuni, Fails și Overview, păstrând disclosure-urile nested independente;
-      verificați fiecare rând prin expand/collapse și cauza terminală fără a
-      înlocui verdictul ori starea inițială cu o captură ulterioară.
-- [x] Rulați clasele componente de recovery în fixture-urile J0 pentru
-      succes UI_ONLY/UI_API, epuizare și captura dezactivată; proba rendererului
-      sintetic verifică numai succes UI_ONLY și epuizare.
-- [ ] Deschideți și verificați artifactul real publicat de extensia JUnit la
-      rularea selectată în IntelliJ: aceeași rădăcină de output și același raport
-      de clasă observate în Maven, pașii/aserțiunile complete și poziția
-      disclosure-urilor după `Expand all nodes`. Pentru testul de epuizare
-      așteptată, păstrați rezultatul JUnit PASS și dovada `EXHAUSTED` în pasul
-      real; nu tratați epuizarea simulată ca eșec al testului.
-- [ ] Rulați suitele complete și acceptanța distinctă pe JAR în AutoEx și Shop;
-      probele generice Extent rămân la `atf-reporting-tests`, iar probele locale
-      de recovery verifică rendererul fără să devină acceptanță business J1.
+```yaml
+testChanges:
+  - id: REPORT-UI-RECOVERY-OBSERVATION-CONTROL
+    status: ACTIVE
+    base: 58177a8c1e04103f1d160f04eca4b466d2da8381
+    expires: 2026-12-21
+    reason: Păstrează observațiile trace recovery în adaptarea JUnit AutoEx și verifică faptul că artifactul afișează urma fără schimbarea verdictului.
+    proof: >-
+      mvn -B -ntp -pl atf-test-auto-ex -am "-Dtest=AutoExBackendRecoveryComponentTest"
+      "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/recovery/AutoExBackendRecoveryComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/extension/AutoExExtentTestExtension.java
+```
+
+</details>
 
 ## Contracte existente
 

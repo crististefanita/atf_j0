@@ -3,6 +3,7 @@ import atf.api.tests.governance.changes.TestChangeGovernanceTest;
 import atf.api.tests.governance.changes.TestChangePolicyTest;
 import atf.api.tests.governance.changes.GitTestChangesTest;
 import atf.api.tests.governance.console.ConsoleDefaultsGovernanceTest;
+import atf.api.tests.governance.maintenance.AtfMaintenanceProcessDocumentationGovernanceTest;
 
 import atf.testkit.AtfIntegrationTest;
 import atf.api.tests.governance.distribution.GovernanceDeploymentTest;
@@ -49,6 +50,7 @@ import org.junit.platform.suite.api.Suite;
         DocumentationTargetGovernanceTest.class,
         DocumentationLinkGovernanceTest.class,
         DocumentationAnchorGovernanceTest.class,
+        AtfMaintenanceProcessDocumentationGovernanceTest.class,
         DocumentedBuildContractTest.class,
         DocumentedUiGeometryContractTest.class,
         ConsumerModuleArchitectureGovernanceTest.class,

@@ -14,6 +14,7 @@ import atf.reporting.extent.session.ExtentReportSession;
 import atf.reporting.ui.UiExtentReportSession;
 import atf.reporting.ui.validation.UiApiValidationEvidence;
 import atf.testkit.assertions.RecordedAssertions;
+import atf.testkit.assertions.ComponentAuditObservation;
 import atf.testkit.recovery.*;
 import atf.ui.playwright.PlaywrightActionSequence;
 import atf.ui.recovery.*;
@@ -146,11 +147,35 @@ class AutoExBackendRecoveryComponentTest {
                     checks.isTrue("Policy and budget are published", actions.snapshot().stream()
                             .allMatch(row -> row.expected().contains("profile=read-only") && row.expected().contains("totalTimeout=PT3S")));
                 }
+                var observation = recoveryObservation(actions);
+                if (observation != null) {
+                    checks.observe(observation);
+                    checks.isTrue("Unmeasured recovery action durations remain uncaptured",
+                            observation.fields().stream().filter(field -> field.name().endsWith("duration"))
+                                    .allMatch(field -> field.value().equals("not captured")));
+                }
                 if (scenario.renderReport()) {
                     verifyRenderedRecoveryReport(checks, configuration, actions, scenario.outcome().name());
                 }
             }
         }
+    }
+
+    private static ComponentAuditObservation recoveryObservation(PlaywrightActionSequence actions) {
+        var records = actions.snapshot();
+        if (records.isEmpty()) return null;
+        var fields = new java.util.ArrayList<ComponentAuditObservation.Field>(records.size() * 6);
+        for (var record : records) {
+            String attempt = "Attempt " + record.sequence() + " · ";
+            fields.add(new ComponentAuditObservation.Field(attempt + "operation", record.operation()));
+            fields.add(new ComponentAuditObservation.Field(attempt + "target", record.target()));
+            fields.add(new ComponentAuditObservation.Field(attempt + "policy", record.expected()));
+            fields.add(new ComponentAuditObservation.Field(attempt + "observation", record.observed()));
+            fields.add(new ComponentAuditObservation.Field(attempt + "duration",
+                    record.durationMillis() > 0 ? record.durationMillis() + " ms" : "not captured"));
+            fields.add(new ComponentAuditObservation.Field(attempt + "result", record.status().displayLabel()));
+        }
+        return new ComponentAuditObservation("Backend recovery trace", fields);
     }
 
     private void verifyRenderedRecoveryReport(RecordedAssertions checks,

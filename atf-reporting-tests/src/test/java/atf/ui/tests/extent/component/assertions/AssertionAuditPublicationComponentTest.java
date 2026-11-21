@@ -6,11 +6,14 @@ import atf.reporting.contract.AtfReportPorts;
 import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.extent.session.ExtentReportSession;
 import atf.reporting.html.HtmlReportSession;
+import atf.reporting.model.ReportField;
+import atf.reporting.model.ReportObservation;
 import atf.reporting.security.SensitiveDataRedactor;
 import atf.testkit.AtfComponentTest;
 import atf.testkit.assertions.AssertionValueDisplay;
 import atf.testkit.assertions.RecordedAssertions;
 import org.junit.jupiter.api.Test;
+import org.jsoup.Jsoup;
 import java.nio.file.Files;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
@@ -66,6 +69,45 @@ class AssertionAuditPublicationComponentTest {
             assertTrue(html.contains("Component assertions"));
             assertTrue(html.contains("real mismatch"));
             assertTrue(html.contains("expected") && html.contains("actual"));
+        }
+    }
+
+    @Test void phaseObservationsStayCollapsedAndDoNotChangeTheBusinessVerdict() throws Exception {
+        var directory = Files.createTempDirectory("atf-component-observation-audit-");
+        for (boolean extent : List.of(true, false)) {
+            var file = directory.resolve(extent ? "extent.html" : "fallback.html");
+            AtfReportPorts.Session session = extent ? new ExtentReportSession(file) : new HtmlReportSession(file);
+            var observation = new ReportObservation("Backend recovery trace", List.of(
+                    new ReportField("Attempt 1 · decision", "RECOVERED"),
+                    new ReportField("Attempt 1 · result", "INFO"),
+                    new ReportField("password", "OBSERVATION_PRIVATE_CANARY")), List.of(), List.of());
+            try (var report = new AssertionAuditReport(session, new AssertionAuditReport.Identity(
+                    "RecoveryFixture", "fixture", "delayed catalog", "body", List.of("component")),
+                    new SensitiveDataRedactor())) {
+                report.phase("TEST BODY", List.of(new AtfAssertion("Expected outcome", "RECOVERED", "RECOVERED", true)),
+                        AtfReportStatus.PASS, "", null, List.of(observation));
+                report.complete(AtfReportStatus.PASS);
+            }
+
+            var document = Jsoup.parse(Files.readString(file));
+            var disclosure = document.selectFirst("details.atf-observation-evidence");
+            assertNotNull(disclosure);
+            assertFalse(disclosure.hasAttr("open"));
+            assertEquals(1, document.select("details.atf-observation-evidence").size());
+            assertTrue(document.text().contains("Backend recovery trace"));
+            assertTrue(document.text().contains("ATTEMPT 1 · DECISION"));
+            assertTrue(document.text().contains("RECOVERED"));
+            assertTrue(document.text().contains("REDACTED"));
+            assertFalse(document.html().contains("OBSERVATION_PRIVATE_CANARY"));
+            assertTrue(document.text().contains("Component assertions"));
+
+            var snapshot = extent ? ((ExtentReportSession) session).semanticSnapshot()
+                    : ((HtmlReportSession) session).semanticSnapshot();
+            var phase = snapshot.classes().getFirst().scenarios().getFirst().phases().getFirst();
+            assertEquals(AtfReportStatus.PASS, phase.status());
+            assertEquals(1, phase.nodes().stream()
+                    .filter(atf.reporting.semantic.AtfReportSemanticSnapshot.ObservationSnapshot.class::isInstance)
+                    .count());
         }
     }
 }

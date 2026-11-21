@@ -31,6 +31,7 @@ flowchart LR
 | Conține | Nu conține | Gate |
 |---|---|---|
 | adnotări de nivel/canal/console/output/setup/docs/UI evidence, resolvere neutre | renderer, mock, browser | teste Test Kit; clasificarea globală în `atf-tests` |
+| comparații JUnit și fapte de observație scoped pe fază | verdict derivat din facts, reguli business, publicare Extent | teste Test Kit; adaptori la ownerul consumerului |
 | clasificare test | business flow | fiecare clasă are un singur nivel |
 | reguli transversale | business runtime dependency | fail-closed la drift |
 
@@ -163,6 +164,12 @@ exemplele sunt în [ghidul adnotărilor](../docs/ATF_Test_Infrastructure_Annotat
 `AuditedAssertions` și `RecordedAssertions`, în `src/main/java`, deleagă o singură
 dată comparația JUnit. Rândul `Check(name, expected, actual, passed)` este păstrat
 înainte ca eroarea originală să ajungă la apelant; preview-ul nu decide verdictul.
+
+`RecordedAssertions.observe(ComponentAuditObservation)` înregistrează fapte typed
+pentru faza curentă, separat de lista `Check` și de coverage-ul cerut. Un fact
+singur nu satisface cerința de assertion a `ComponentAssertionAudit`; adaptorul
+consumerului decide cum îl mapează în `ReportObservation`, iar Kit-ul nu importă
+Reporting și nu publică un renderer.
 
 - `AssertionValueDisplay` primește politica de redactare a consumerului și o
   aplică pe textul complet, apoi limitează afișarea la 240 de caractere inclusiv

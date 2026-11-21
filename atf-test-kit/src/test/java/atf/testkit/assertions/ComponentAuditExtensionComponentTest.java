@@ -54,6 +54,23 @@ class ComponentAuditExtensionComponentTest {
         AuditedAssertions.assertEquals(1, closed);
     }
 
+    @Test void keepsObservationsPhaseScopedAndOutsideAssertionVerdicts() {
+        AuditedAssertions.assertEquals(1, run(ObservedFixture.class).getTestsSucceededCount());
+        var phases = RESULTS.getFirst().phases();
+        AuditedAssertions.assertEquals(List.of("setup fact", "body fact"), phases.stream()
+                .flatMap(phase -> phase.observations().stream())
+                .map(ComponentAuditObservation::title).toList());
+        AuditedAssertions.assertTrue(phases.stream().filter(phase -> !phase.observations().isEmpty())
+                .allMatch(phase -> phase.observations().size() == 1));
+        AuditedAssertions.assertEquals(ComponentAssertionAudit.Outcome.PASS, RESULTS.getFirst().outcome());
+
+        AuditedAssertions.assertEquals(1, run(ObservationOnlyFixture.class).getTestsFailedCount());
+        var only = RESULTS.getFirst();
+        AuditedAssertions.assertEquals(ComponentAssertionAudit.Outcome.FAIL, only.outcome());
+        AuditedAssertions.assertTrue(only.phases().getFirst().checks().isEmpty());
+        AuditedAssertions.assertEquals("facts only", only.phases().getFirst().observations().getFirst().title());
+    }
+
     @Test void isolatesTemplateInvocationsAndKeepsLifecycleFailuresInTheirPhase() {
         AuditedAssertions.assertEquals(2, run(TemplateFixture.class).getTestsSucceededCount());
         AuditedAssertions.assertEquals(2, RESULTS.size());
@@ -118,6 +135,25 @@ class ComponentAuditExtensionComponentTest {
         @AfterEach void teardown() { AuditedAssertions.assertFalse(false); }
     }
     @AtfUnitTest static class InheritedFixture extends LifecycleFixture { }
+    @AtfUnitTest @ExtendWith(ProbeExtension.class)
+    static class ObservedFixture {
+        @BeforeEach void setup(RecordedAssertions rows) {
+            rows.observe(new ComponentAuditObservation("setup fact",
+                    List.of(new ComponentAuditObservation.Field("owner", "setup"))));
+        }
+        @Test void body(RecordedAssertions rows) {
+            rows.equals("business assertion", 1, 1);
+            rows.observe(new ComponentAuditObservation("body fact",
+                    List.of(new ComponentAuditObservation.Field("decision", "RECOVERED"))));
+        }
+    }
+    @AtfUnitTest @ExtendWith(ProbeExtension.class)
+    static class ObservationOnlyFixture {
+        @Test void body(RecordedAssertions rows) {
+            rows.observe(new ComponentAuditObservation("facts only",
+                    List.of(new ComponentAuditObservation.Field("decision", "EXHAUSTED"))));
+        }
+    }
     @AtfUnitTest @ExtendWith(ProbeExtension.class)
     static class TemplateFixture {
         @RepeatedTest(2)

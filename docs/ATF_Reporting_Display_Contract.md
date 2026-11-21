@@ -44,6 +44,7 @@ flowchart LR
 | checkpoint Gherkin | `UI validation` și `API validation` sunt copii surori ale aceluiași checkpoint; Network Inspector este agregat separat și nu dublează exchange-urile |
 | exchange API | `Request details`, `Response details` și `Execution evidence` sunt disclosures surori; `Contract validation` este copilul exchange-ului care deține contractul |
 | UI validation | acțiunile Playwright, observațiile de audit și aserțiunile aparțin validării UI; acesta este singurul titlu public pentru validarea UI; setup evidence rămâne `Setup evidence` |
+| observație de fază | o urmă non-HTTP poate apărea ca pas INFO separat în `TEST BODY`; rămâne colapsată și nu schimbă statusul fazei sau assertion coverage |
 | setup context | cheile interne `request.action`, `request.target`, `evidence.type` și `evidence.policy` pot rămâne în model, dar nu devin tabel HTTP vizibil fără evidence HTTP real |
 
 Titlurile sunt propoziții scurte și explicative. Structura semantică nu depinde
@@ -67,6 +68,11 @@ poate rămâne un discriminator intern tipizat, dar nu se afișează ca al doile
   rândurile FAIL ridică statusul fazei și scenariului și urmează aceeași
   proiecție `Fails` și aceeași redacție ca restul raportului; nu se introduce
   un request HTTP sintetic;
+- faptele typed publicate prin `Phase.observation(ReportObservation)` sunt
+  pași INFO surori ai `Component assertions`; bulk expansion deschide nodurile
+  testului, dar păstrează disclosure-ul observation închis până la activarea lui
+  proprie. Redacția se aplică înaintea preview-ului, iar observation nu intră în
+  verdict, assertion coverage sau numărul de teste;
 - închiderea unui părinte ascunde întregul subarbore și sincronizează starea
   părintelui: vizibilitate, `open`, `aria-expanded` și glyph. Copiii își păstrează
   starea locală; la redeschidere, cei anterior deschiși redevin vizibili, iar cei

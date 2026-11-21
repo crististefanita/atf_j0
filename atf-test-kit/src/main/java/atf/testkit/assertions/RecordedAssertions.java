@@ -11,6 +11,7 @@ public final class RecordedAssertions {
     public record Check(String name, String expected, String actual, boolean passed) { }
 
     private final List<Check> checks = new ArrayList<>();
+    private final List<ComponentAuditObservation> observations = new ArrayList<>();
     private final AssertionValueDisplay display;
     private Throwable failure;
     private Throwable captureFailure;
@@ -55,6 +56,11 @@ public final class RecordedAssertions {
     }
 
     public List<Check> checks() { return List.copyOf(checks); }
+    /** Records ordered report facts without changing assertion coverage or the JUnit verdict. */
+    public void observe(ComponentAuditObservation observation) {
+        observations.add(java.util.Objects.requireNonNull(observation, "observation"));
+    }
+    public List<ComponentAuditObservation> observations() { return List.copyOf(observations); }
     Throwable failure() { return failure; }
     Throwable captureFailure() { return captureFailure; }
     void captureFailure(Throwable cause) {

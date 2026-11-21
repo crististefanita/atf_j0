@@ -2,7 +2,7 @@
 
 ## Pe scurt
 
-**Trasee rapide:** [Whole-ATF](#suita-whole-atf-și-reziduul-de-compatibilitate) · [Rădăcini Java](#inventarul-comun-al-surselor-java) · [Controale Git](#guvernanța-schimbării-testelor) · [Gate și limite](#verificare-rapidă)
+**Trasee rapide:** [Whole-ATF](#suita-whole-atf-și-reziduul-de-compatibilitate) · [Mentenanță J0/J1](#mentenanța-perechii-j0j1) · [Rădăcini Java](#inventarul-comun-al-surselor-java) · [Controale Git](#guvernanța-schimbării-testelor) · [Gate și limite](#verificare-rapidă)
 
 - `atf-tests` este modulul de control al proiectului ATF;
 - verifică reactorul, boundary-urile Maven/source și gate-urile de arhitectură;
@@ -64,6 +64,43 @@ Pentru IntelliJ și Maven folosește același [staging cu Git real](../docs/ATF_
 Harta de [rădăcini Java](#inventarul-comun-al-surselor-java) explică layout-urile
 consumerilor înaintea oricărei mutări de teste.
 
+## Mentenanța perechii J0/J1
+
+`AtfWorkspaceMaintenanceSuite` este entry point-ul combinat: rulează
+`WholeAtfGovernanceSuiteTest` în J0 și acceptanța read-only a perechii J0/J1.
+Feedback-ul ownerului rămâne sursa criteriului și a probei comportamentale;
+această colecție adaugă verificările whole-reactor și de boundary între
+workspace-uri, fără să marcheze automat feedback-ul ca închis.
+
+| Poartă | Ce verifică | Rol în feedback |
+|---|---|---|
+| `WholeAtfGovernanceSuiteTest` | arhitectură, layere, build și guvernanța tuturor documentelor J0 | protejează regulile structurale; criteriul funcțional cere în continuare proba ownerului |
+| `AtfMaintenanceWorkspacePairGovernanceTest` | ownership sursă/binar, cele cinci perechi JAR/POM și catalogul de biblioteci fără referințe la alte workspaces | verifică boundary-ul declarat pentru workspace-urile selectate |
+| `AtfWorkspaceMaintenanceSuite` | ambele porți de mai sus într-o invocare | gate comun înainte de reconciliere; nu înlocuiește testele native ale consumerului la adoptarea unui JAR nou |
+
+Rădăcinile `ATF_MAINTENANCE_J0` și `ATF_MAINTENANCE_J1` trebuie să indice
+checkout-uri verificate înainte de rulare. Rădăcinile J0 și J1 sunt obligatorii,
+explicite și absolute; suita refuză
+căile lipsă sau relative, nu descoperă proiecte în vecinătate și nu modifică
+niciun workspace. J1 este citit ca sursă de acceptanță; nu este actualizat de
+această suită.
+
+```powershell
+if (-not $env:ATF_MAINTENANCE_J0 -or -not $env:ATF_MAINTENANCE_J1) { throw 'Set both workspace root variables first.' }
+$atfJ0Root = (Resolve-Path $env:ATF_MAINTENANCE_J0).Path
+$atfJ1Root = (Resolve-Path $env:ATF_MAINTENANCE_J1).Path
+mvn -B -pl atf-tests -am "-Dtest=AtfWorkspaceMaintenanceSuite" `
+  "-Datf.maintenance.j0=$atfJ0Root" `
+  "-Datf.maintenance.j1=$atfJ1Root" `
+  "-Dsurefire.failIfNoSpecifiedTests=false" test
+```
+
+Pentru depanarea izolată a relației de workspace, `AtfMaintenanceWorkspacePairSuite`
+rulează numai a doua poartă. La schimbarea unui contract binar, rulează separat
+și suitele native ale consumerului pentru comportamentul efectiv al aplicației.
+Fluxul și limitele porților sunt în
+[protocolul workspace-urilor](../docs/ATF_Workspace_Synchronization.md#protocolul-fiecărui-increment).
+
 ## Guvernanța deployment-ului sursă sau binar
 
 | Deployment | Module live | Cu harness Reporting în TMP |
@@ -105,26 +142,24 @@ această limită.
 
 ```text
 src/test/java/atf/api/tests/governance/
+├── changes/                    change-control, diferență Git și probe negative
+├── console/                    default-uri și composition root-uri UI/API
+├── consumers/                  graph-ul surselor și arhitectura modulelor consumer
+├── distribution/               deployment sursă/binar și ownership-ul harness-ului
+├── documentation/              structură, stil, proză, diagrame și linkuri
+├── layers/                     clasificare și acoperirea suitelor consumer
+├── maintenance/
+│   ├── AtfMaintenanceWorkspacePairGovernanceTest.java
+│   ├── AtfMaintenanceWorkspacePairSuite.java
+│   ├── AtfMaintenanceProcessDocumentationGovernanceTest.java
+│   └── AtfWorkspaceMaintenanceSuite.java
 ├── ArchitectureModuleBoundaryTest.java
 ├── ArchitectureOwnershipBoundaryTest.java
-├── AtfPackageCohesionGovernanceTest.java
 ├── AtfGovernanceRules.java
 ├── AtfGovernanceTestSupport.java
+├── AtfPackageCohesionGovernanceTest.java
 ├── AtfSourceReadabilityGovernanceTest.java
 ├── ConstantsOwnershipGovernanceTest.java
-├── changes/          change-control schema, diferență Git și probe negative
-├── console/          default-uri și composition root-uri UI/API
-├── layers/           clasificare globală și acoperirea disjunctă a suitelor consumer
-├── documentation/
-│   ├── DocumentationDiagramGovernanceTest.java
-│   ├── DocumentationProseGovernanceTest.java
-│   ├── DocumentationReadmeStructureGovernanceTest.java
-│   ├── DocumentationAnchorGovernanceTest.java
-│   ├── links/        indexul heading-urilor și al ancorelor HTML
-│   ├── DocumentationStyleGovernanceTest.java
-│   ├── DocumentationTargetGovernanceTest.java
-│   ├── DocumentationGovernanceSupport.java
-│   └── DynamicPathDocumentationArchitectureTest.java
 └── WholeAtfGovernanceSuiteTest.java
 ```
 

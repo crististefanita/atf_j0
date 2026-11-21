@@ -348,3 +348,25 @@ testChanges:
 ```
 
 </details>
+
+<details>
+<summary><strong>Control tehnic — REPORT-OBSERVATION-DISCLOSURE-COMPONENT-CONTROL</strong></summary>
+
+```yaml
+testChanges:
+  - id: REPORT-OBSERVATION-DISCLOSURE-COMPONENT-CONTROL
+    status: ACTIVE
+    base: 58177a8c1e04103f1d160f04eca4b466d2da8381
+    expires: 2026-12-21
+    reason: Păstrează proba de publicare și interacțiune browser pentru observațiile phase-scoped din raportul Extent.
+    proof: >-
+      mvn -B -ntp -pl atf-reporting-tests -am
+      "-Dtest=AssertionAuditPublicationComponentTest,AssertionAuditObservationDisclosureComponentTest"
+      "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/assertions/AssertionAuditPublicationComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/assertions/AssertionAuditObservationDisclosureComponentTest.java
+      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/assertions/AssertionAuditObservationDisclosureProbe.java
+```
+
+</details>

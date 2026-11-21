@@ -2250,6 +2250,12 @@ Contractele livrate sunt descrise în secțiunile ownerilor. Lacunele rămân î
 
 Typed observations publish non-transport facts through a shared Extent/fallback projection.
 
+`AssertionAuditReport.phase(..., observations)` publică faptele furnizate de
+caller în aceeași fază cu `Component assertions`, ca noduri INFO independente.
+Lista este opțională; o observație nu devine assertion, request sau verdict.
+Un renderer fără capabilitate de observations refuză publicarea, iar statusul
+fazei rămâne cel rezolvat de owner.
+
 | Boundary | Contract |
 |---|---|
 | Port și model | `Phase.supportsObservations()`, `Phase.observation(ReportObservation)`; model imuabil cu titlu, câmpuri, corpuri TEXT/JSON și referințe |

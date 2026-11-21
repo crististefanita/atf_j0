@@ -4,6 +4,8 @@ import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfReportPorts;
 import atf.reporting.contract.AtfReportStatus;
 import atf.reporting.model.diagnostic.ReportPhaseDiagnostic;
+import atf.reporting.model.ReportField;
+import atf.reporting.model.ReportObservation;
 import atf.reporting.security.SensitiveDataRedactor;
 import java.util.List;
 import java.util.Objects;
@@ -62,20 +64,31 @@ public final class AssertionAuditReport implements AutoCloseable {
 
     public void phase(String name, List<AtfAssertion> assertions, AtfReportStatus status, String diagnostic,
                       ReportPhaseTiming timing) {
+        phase(name, assertions, status, diagnostic, timing, List.of());
+    }
+
+    /** Publishes independent, non-verdict observations alongside the phase assertions. */
+    public void phase(String name, List<AtfAssertion> assertions, AtfReportStatus status, String diagnostic,
+                      ReportPhaseTiming timing, List<ReportObservation> observations) {
+        var stableObservations = List.copyOf(Objects.requireNonNull(observations, "observations"));
         executor.run(() -> {
             synchronized (session) {
                 requireOpen();
-                publishPhase(name, assertions, status, diagnostic, timing);
+                publishPhase(name, assertions, status, diagnostic, timing, stableObservations);
             }
         });
     }
 
     private void publishPhase(String name, List<AtfAssertion> assertions, AtfReportStatus status, String diagnostic,
-                              ReportPhaseTiming timing) {
+                              ReportPhaseTiming timing, List<ReportObservation> observations) {
         try (var phase = scenario.startPhase(name)) {
             if (timing != null) phase.executionTiming(timing);
             phase.detail("Test method", identity.method());
             publishStep(phase, "Component assertions", assertions, AtfReportStatus.INFO);
+            if (!observations.isEmpty() && !phase.supportsObservations()) {
+                throw new IllegalStateException("The selected report renderer does not support phase observations");
+            }
+            observations.forEach(phase::observation);
             if (diagnostic != null && !diagnostic.isBlank()) {
                 phase.diagnostic(status == AtfReportStatus.SKIP ? ReportPhaseDiagnostic.Kind.EXECUTION_ABORTED
                         : ReportPhaseDiagnostic.Kind.EXECUTION_FAILURE, redactor.redactText(diagnostic));

@@ -85,6 +85,54 @@ rămân distincte; infrastructura copiată nu le demonstrează.
 
 ## Protocolul fiecărui increment
 
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":32,"padding":8,"diagramPadding":16}}}%%
+flowchart LR
+    Feedback["Feedback<br/>trigger + criterion"] -->|delimitează| Owner["Owner<br/>J0 source"]
+    Owner -->|izolează| Stage["TMP stage"]
+    Stage -->|probează| OwnerTests["Teste native<br/>ale ownerului"]
+    OwnerTests -->|gate local| Gate["Whole J0<br/>guvernanță"]
+    Gate -->|fără JAR| Reconcile["Cod + docs +<br/>feedback reconciliate"]
+    Gate -->|JAR nou| Package["Versiune<br/>JAR + POM"]
+    Package -->|boundary| Pair["Acceptanță pereche<br/>J0/J1"]
+    Pair -->|la adoptare| J1["Teste native<br/>consumer J1"]
+    J1 -->|reconciliere| Reconcile
+    Reconcile -->|promovează| Origin["Origin"]
+    OwnerTests -.->|gap| Feedback
+    Gate -.->|gap| Feedback
+    Pair -.->|gap| Feedback
+    J1 -.->|gap| Feedback
+```
+
+<details>
+<summary><strong>Legendă — un increment trasabil, cu acceptanță separată</strong></summary>
+
+- Feedback-ul păstrează un trigger și un criteriu de închidere; ownerul rămâne
+  la modulul care deține comportamentul.
+- Staging-ul probează schimbarea izolată. Codul, testele și documentația se
+  reconciliază înainte de promovare.
+- Numai o schimbare de bibliotecă produce o pereche nouă JAR/POM. Poarta
+  perechii verifică ownership-ul și artefactele; dacă J1 adoptă binarul, testele
+  native J1 verifică separat comportamentul consumerului.
+- Muchiile punctate întorc eșecul la feedback cu gap-ul concret; nu închid
+  automat cerința la primul gate verde.
+- `Origin` primește numai fișierele aprobate și reconciliate, fără output-uri
+  generate din staging.
+
+Etichetele scurte păstrează următorul sens:
+
+| În schemă | Sens complet |
+|---|---|
+| Teste native ale ownerului | dovada comportamentului și a criteriului din feedback |
+| Whole J0 guvernanță | controale de arhitectură, source ownership și documentație în reactor |
+| Fără JAR | schimbare fără publicare binară, de exemplu teste sau documentație |
+| JAR nou | versiune nouă, cu POM-ul publicat și proveniență verificată |
+| Acceptanță pereche J0/J1 | boundary-ul sursă/binar și perechile JAR/POM; consumerul documentează bibliotecile |
+| Teste native consumer J1 | comportamentul local când o versiune nouă este adoptată |
+| Reconciliere | revizie code/doc/feedback, bazele Git și setul exact de fișiere |
+
+</details>
+
 1. Capturează snapshot-ul J0 și bazele fiecărei destinații; inventariază separat
    schimbările locale. Declarația unei ținte nu dovedește că ea există ca proiect.
 2. Creează staging propriu în TMP. Pentru linkurile între checkout-uri, păstrează

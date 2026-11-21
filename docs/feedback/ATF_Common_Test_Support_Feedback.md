@@ -26,9 +26,40 @@ J0 deține codul, API-ul, testele native, împachetarea și feedback-ul Test Kit
 
 - [ ] Coordonați [dovada integrală Reporting](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview): captură sigură înaintea trunchierii, limite integrale explicite, fără comparație dublă și fără modificarea preview-ului 240. Controlul negativ are preview-uri identice și un sufix diferit.
 
+## KIT-PHASE-OBSERVATION — fapte pe fază, verdict independent
+
+`RecordedAssertions.observe(ComponentAuditObservation)` este implementat în
+sursa J0 și rămâne separat de checks și assertion coverage. `PhaseResult` păstrează
+faptele imuabile pe ownerul fazei, iar adaptorul decide dacă și cum le publică.
+
+`PhaseResult` este record public și forma sa canonică primește componenta
+`observations`; overload-urile istorice de patru și cinci argumente rămân.
+Schimbarea este încă sursă/staging, nu un JAR livrat. Înainte de adopția unui
+JAR nou trebuie rulate verificările compatibilității API și acceptanța binară;
+J1 rămâne pe versiunea publicată curentă, fără actualizare în acest increment.
+
 ## KIT-CONCURRENCY-152 — calificare Jupiter paralelă
 
 **P2 · owner J0; adopție Android la J4.** Proba ScopedComponentAuditExtensionComponentTest dezactivează paralelismul Jupiter; controalele concurente ale primitivelor nu califică singure ciclul real. Criteriul este preluat din J4, fără declararea unei implementări noi.
 
 - [ ] Clase și metode Jupiter concurente: creare/închidere o singură dată per owner, audit distinct per invocare, cauză originală păstrată la pregătire/publicare eșuată. Păstrați separat proprietarii clasă și suită.
 - [ ] ScopedAcceptanceRun serializează numai apelurile sale; proba cu cititor extern concurent și eroare injectată trebuie să arate restaurarea și limita izolării proprietăților globale. Nu promiteți izolare globală printr-un monitor local.
+
+<details>
+<summary><strong>Control tehnic — KIT-PHASE-OBSERVATION-COMPONENT-CONTROL</strong></summary>
+
+```yaml
+testChanges:
+  - id: KIT-PHASE-OBSERVATION-COMPONENT-CONTROL
+    status: ACTIVE
+    base: 58177a8c1e04103f1d160f04eca4b466d2da8381
+    expires: 2026-12-21
+    reason: Verifică păstrarea observațiilor distincte de aserțiuni și coverage în auditul componentelor Test Kit.
+    proof: >-
+      mvn -B -ntp -pl atf-test-kit -am "-Dtest=ComponentAuditExtensionComponentTest"
+      "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-kit/src/test/java/atf/testkit/assertions/ComponentAuditExtensionComponentTest.java
+```
+
+</details>

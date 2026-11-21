@@ -12,6 +12,8 @@ import atf.reporting.audit.AssertionAuditReport;
 import atf.reporting.audit.AssertionAuditRun;
 import atf.reporting.contract.AtfAssertion;
 import atf.reporting.contract.AtfReportStatus;
+import atf.reporting.model.ReportField;
+import atf.reporting.model.ReportObservation;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import atf.autoex.runtime.config.AutoExProjectRoot;
 import atf.testkit.output.ReportOutputDirectory;
@@ -56,7 +58,10 @@ public final class AutoExExtentTestExtension implements ComponentAuditAdapter {
                 for (var phase : result.phases()) report.phase(phase.phase().name().replace('_', ' '),
                         phase.checks().stream().map(check -> new AtfAssertion(check.name(), check.expected(),
                                 check.actual(), check.passed())).toList(), status(phase.outcome()), phase.diagnostic(), phase.timing().map(value -> new atf.reporting.model.timing.ReportPhaseTiming(
-                                value.elapsed(), value.intervals())).orElse(null));
+                                value.elapsed(), value.intervals())).orElse(null), phase.observations().stream()
+                                .map(observation -> new ReportObservation(observation.title(), observation.fields().stream()
+                                        .map(field -> new ReportField(field.name(), field.value())).toList(), List.of(), List.of()))
+                                .toList());
                 report.complete(status(result.outcome()));
             }
             @Override public void close() { report.close(); }
