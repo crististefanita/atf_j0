@@ -581,10 +581,15 @@ recovery:
 catalogul întârziat, epuizarea și captura lipsă. Scrierile prin GET și operațiile
 necunoscute sunt refuzate înaintea browserului.
 
-Pentru rezultatul recuperat `UI_ONLY` și epuizare, testul generează un raport
-Extent temporar. Proba Playwright verifică pasul cu verdict, grupul încercărilor
-colapsat după `Expand all nodes`, toate rândurile la deschidere manuală și
-restrângerea grupului; corpul fixture-ului și URL-ul local nu apar în HTML.
+Pentru rezultatul recuperat `UI_ONLY` și epuizare, componenta verifică separat
+rendererul într-un raport Extent temporar: creează direct un scenariu și un pas
+sintetice prin `ExtentReportSession`, populate cu încercările capturate. Proba
+Playwright verifică acel artifact, disclosure-ul încercărilor și redactarea;
+nu inspectează raportul publicat de extensia JUnit pentru rularea testului.
+Raportul normal al componentei este deținut de `ShopExtentTestExtension`.
+În acel raport real, aserțiunile componentei apar sub `Component assertions`,
+însă tabelul `atf-ui-observations` și încercările recovery nu sunt publicate;
+proba sintetică nu demonstrează această integrare.
 
 Aserțiunile acestor componente rămân în pasul standard `Component assertions`,
 colapsat implicit, cu redactare înaintea plafonului configurat, implicit 240 de caractere.

@@ -271,12 +271,12 @@ sau repetarea deciziei la renderer.
 
 **Verificare J0 în staging, 2026-11-21.**
 
-- Fixture-urile sursă Shop și AutoEx produc rapoarte Extent pentru recuperarea `UI_ONLY` și epuizare; rulările au trecut cu Shop 6/6 și AutoEx 5/5.
-- Probele Playwright verifică listarea testului, pasul cu verdict și grupul `atf-ui-observations` închis inițial și după `Expand all nodes`.
-- Deschiderea grupului arată toate încercările în ordine, cu policy, observație și rezultat INFO; restrângerea ascunde din nou toate rândurile.
-- Canary-ul corpului și URL-ul `127.0.0.1` lipsesc din HTML.
+- Testele componente Shop și AutoEx au trecut cu 6/6 și 5/5. Extensiile JUnit au publicat artifacte reale în `artifacts/reports/api/component` și `artifacts/reports/component/auto-ex`.
+- Playwright headless a deschis artifactele reale. În Shop, `Expand all nodes` a crescut nodurile vizibile de la 6 la 18; în AutoEx, de la 5 la 15. Fiecare test expune `TEST BODY` și pasul `Component assertions`, cu tabelul assertion/expected/actual/result. Textul `EXHAUSTED` apare ca rezultat așteptat, iar testul corect are status PASS.
+- Artifactele reale au zero `details.atf-ui-observations` și zero `table.atf-ui-action-table`. Urmele ordonate, policy-ul, observația și statusul INFO se găsesc numai în raportul sintetic creat separat de `new ExtentReportSession(...)` și verificat de Playwright. Acest fixture este PASS fiindcă verifică randarea; `EXHAUSTED` este rezultatul de business așteptat, nu un eșec al testului.
+- Canary-ul corpului și URL-ul `127.0.0.1:8123` lipsesc atât din artifactele reale, cât și din cele sintetice verificate. Rularea și inspectarea artifactelor reale au folosit Maven în staging; execuția din IntelliJ nu a fost verificată.
 
-Acoperirea este limitată la fixture-urile de integrare ale sursei J0. Scenariul `UI_API` reușit și refuzul cu captura dezactivată nu generează raport prin politica scenariului; rulările acestor două suite nu certifică raport API, matricea completă Reporting ori acceptanța binarului extern.
+Extensiile JUnit publică raportul de clasă, metodele executate și pasul colapsabil de aserțiuni. Gap-ul activ este integrarea urmelor recovery în același artifact real. Scenariul `UI_API` reușit și refuzul cu captura dezactivată nu au probă de renderer; nu este acoperită nici acceptanța binarului extern.
 
 - [ ] Compuneți faptele typed din trace, policy și signal în proiecția comună:
       operație, încercare, decizie/motiv, sursa politicii, bugete și timpi măsurați.
@@ -299,16 +299,31 @@ Acoperirea este limitată la fixture-urile de integrare ale sursei J0. Scenariul
 - [x] Pentru fixture-urile recovery din J0, `Expand all nodes` deschide ierarhia
       Extent, iar `atf-ui-observations` rămâne un disclosure separat: închis implicit,
       extins/restrâns individual, cu toate încercările disponibile după deschidere.
+      Proba folosește un scenariu sintetic separat și nu inspectează raportul real
+      publicat de extensia JUnit.
+- [x] Raportul real al extensiei JUnit include clasa, metodele și câte un pas
+      `Component assertions`; Playwright a verificat ierarhia completă după
+      `Expand all nodes` în ambele componente. Epuizarea așteptată rămâne test PASS.
+- [ ] Integrați trace-ul recovery în raportul real al extensiei JUnit, într-un
+      disclosure separat, închis inițial, cu ordine, policy, observation, timing,
+      rezultat INFO și redactare. Confirmați expand/collapse în același artifact;
+      raportul sintetic existent nu închide criteriul.
 - [ ] Extindeți oracolul neutru din `atf-reporting-tests` la acțiuni, request-uri,
       aserțiuni, Fails și Overview, păstrând disclosure-urile nested independente;
       verificați fiecare rând prin expand/collapse și cauza terminală fără a
       înlocui verdictul ori starea inițială cu o captură ulterioară.
-- [x] Rulați clasele componente de recovery în ambele fixture-uri J0 pentru
-      succes UI_ONLY/UI_API, epuizare și captura dezactivată. Raportul este
-      verificat numai pe succes UI_ONLY și epuizare.
+- [x] Rulați clasele componente de recovery în fixture-urile J0 pentru
+      succes UI_ONLY/UI_API, epuizare și captura dezactivată; proba rendererului
+      sintetic verifică numai succes UI_ONLY și epuizare.
+- [ ] Deschideți și verificați artifactul real publicat de extensia JUnit la
+      rularea selectată în IntelliJ: aceeași rădăcină de output și același raport
+      de clasă observate în Maven, pașii/aserțiunile complete și poziția
+      disclosure-urilor după `Expand all nodes`. Pentru testul de epuizare
+      așteptată, păstrați rezultatul JUnit PASS și dovada `EXHAUSTED` în pasul
+      real; nu tratați epuizarea simulată ca eșec al testului.
 - [ ] Rulați suitele complete și acceptanța distinctă pe JAR în AutoEx și Shop;
-      probele generice Extent rămân la `atf-reporting-tests`, iar fixture-urile
-      copiate J0 verifică integrarea cu sursa fără să devină acceptanță business J1.
+      probele generice Extent rămân la `atf-reporting-tests`, iar probele locale
+      de recovery verifică rendererul fără să devină acceptanță business J1.
 
 ## Contracte existente
 
