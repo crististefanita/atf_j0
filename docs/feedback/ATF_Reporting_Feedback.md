@@ -281,9 +281,11 @@ decizia la renderer.
 
 - Deschiderea raportului dintr-o lansare IntelliJ și verificarea rădăcinii de
   output nu au fost executate.
-- Suita completă de consumer și acceptanța pe JAR-ul fizic rămân un gate separat.
-  J1 nu a fost modificat; perechea sa curentă rămâne pin-uită până la o adopție
-  explicită a unei versiuni noi, urmată de acceptanța consumerului.
+- Adopția consumerului Maven pe JAR-urile fizice este verificată: J1 consumă
+  Reporting J26 și Test Kit K3; Shop 6/6 și AutoEx 5/5 au trecut în ambele
+  ediții, iar cele patru artifacte reale au trecut inspecția Playwright.
+  Perechea publicată și verificările detaliate sunt în
+  [`library-provenance.json`](../../../atf_j1/library-provenance.json).
 - Extindeți oracolul neutru existent pentru paritatea `Tests`, `Fails`, `Overview`
   și a disclosure-urilor tuturor categoriilor; acesta este contract mai larg decât
   urma recovery și se păstrează ca restanță distinctă.

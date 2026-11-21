@@ -28,15 +28,20 @@ J0 deține codul, API-ul, testele native, împachetarea și feedback-ul Test Kit
 
 ## KIT-PHASE-OBSERVATION — fapte pe fază, verdict independent
 
-`RecordedAssertions.observe(ComponentAuditObservation)` este implementat în
-sursa J0 și rămâne separat de checks și assertion coverage. `PhaseResult` păstrează
-faptele imuabile pe ownerul fazei, iar adaptorul decide dacă și cum le publică.
+`RecordedAssertions.observe(ComponentAuditObservation)` păstrează observațiile
+imuabile separate de checks și assertion coverage; adaptorul decide publicarea.
 
-`PhaseResult` este record public și forma sa canonică primește componenta
-`observations`; overload-urile istorice de patru și cinci argumente rămân.
-Schimbarea este încă sursă/staging, nu un JAR livrat. Înainte de adopția unui
-JAR nou trebuie rulate verificările compatibilității API și acceptanța binară;
-J1 rămâne pe versiunea publicată curentă, fără actualizare în acest increment.
+- **API:** `PhaseResult` acceptă canonic `observations`; overload-urile vechi de
+  patru și cinci argumente rămân.
+- **Livrare:** `atf-test-kit:1.0.0-k3`; testele native au trecut 160/160, fără
+  eșecuri, erori sau teste ignorate.
+- **Adopție J1:** Reporting J26 și Test Kit K3 au trecut Shop 6/6 și AutoEx
+  5/5 în `main` și `main_RO`.
+- **Rapoarte:** Playwright a verificat cele patru artifacte Maven reale,
+  disclosure-urile colapsate, ordinea observațiilor, timing-ul și redactarea;
+  hash-urile și manifestele sunt în [proveniența J1](https://github.com/crististefanita/atf_j1/blob/main/library-provenance.json).
+- **Deschis:** paritatea pentru lansarea IntelliJ rămâne activă în feedback-ul
+  consumerului J1.
 
 ## KIT-CONCURRENCY-152 — calificare Jupiter paralelă
 
