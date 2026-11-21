@@ -87,25 +87,3 @@ testChanges:
 ```
 
 </details>
-
-<details>
-<summary><strong>Control tehnic — ATF-WORKSPACE-ORCHESTRATION-DECISION-CONTROL</strong></summary>
-
-```yaml
-testChanges:
-  - id: ATF-WORKSPACE-ORCHESTRATION-DECISION-CONTROL
-    status: ACTIVE
-    base: e8c4443943ee43dd026403d4ea06b0e5d6fc85ec
-    expires: 2026-12-21
-    reason: Guvernează criteriul vizual care păstrează Maven/JUnit ca sursa verdictului și face LangGraph condițional pe nevoi de stare, reluare sau aprobare.
-    proof: >-
-      mvn -B -ntp -pl atf-tests -am "-Dtest=AtfWorkspaceMaintenanceSuite"
-      "-Datf.maintenance.j0=$env:ATF_MAINTENANCE_J0"
-      "-Datf.maintenance.j1=$env:ATF_MAINTENANCE_J1"
-      "-Datf.governance.testChanges.baseRef=e8c4443943ee43dd026403d4ea06b0e5d6fc85ec"
-      "-Dsurefire.failIfNoSpecifiedTests=false" test
-    paths:
-      - atf-tests/src/test/java/atf/api/tests/governance/maintenance/AtfMaintenanceProcessDocumentationGovernanceTest.java
-```
-
-</details>
