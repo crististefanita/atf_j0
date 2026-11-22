@@ -610,8 +610,9 @@ contractul existent de observații Reporting.
 
 Numărul este măsurat la începutul planului, include teste dezactivate și exclude
 înregistrările dinamice ulterioare. Numărul lor la captură este un câmp separat.
-Valorile nu sunt reconstruite din teste terminate sau trecute. Un plan executat
-în altă sesiune păstrează inventarul/numărul și marchează explicit lipsa cererii;
+Valorile nu sunt reconstruite din teste terminate sau trecute.
+
+Un plan executat în altă sesiune păstrează inventarul/numărul și marchează explicit lipsa cererii;
 dezactivarea observerului SPI produce metadate indisponibile.
 
 ```mermaid

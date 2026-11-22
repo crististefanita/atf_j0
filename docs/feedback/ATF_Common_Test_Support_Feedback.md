@@ -76,26 +76,4 @@ sunt în [README-ul Kit](../../atf-test-kit/README.md). Adopția și inspectarea
 rapoartelor aparțin consumerului. Testele nu confundă rezultatul execuției cu
 numărul descoperit, iar lipsa observerului nu autorizează un context străin.
 
-<details>
-<summary><strong>Control tehnic — planul lansării</strong></summary>
-
-```yaml
-testChanges:
-  - id: KIT-LAUNCH-PLAN-20261122
-    status: ACTIVE
-    base: 542661f573688ed890a354ea8e2c751ddbb8c586
-    expires: 2026-12-22
-    reason: Observă selecția și planul JUnit prin contract neutru, cu izolare per lansare și probe native.
-    proof: mvn -B -ntp -f atf-test-kit/pom.xml "-Dtest=KitUnitSuite,KitComponentSuite" test
-    paths:
-      - atf-test-kit/pom.xml
-      - atf-test-kit/src/test/java/atf/testkit/launch/TestLaunchPlanComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/extension/AutoExRunFactory.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/reporting/AutoExE2eReportPathComponentTest.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/support/reporting/AutoExLaunchMetadata.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/support/reporting/AutoExLaunchReportProbe.java
-      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/reporting/AutoExLaunchMetadataComponentTest.java
-      - atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java
-```
-
-</details>
+Controlul verificat rămâne în [baseline](../ATF_Test_Changes_Baseline.md); puntea nu introduce o sarcină de mentenanță duplicată în consumeri.

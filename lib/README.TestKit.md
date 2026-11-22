@@ -60,4 +60,3 @@ imuabil pentru invocarea curentă: selectorii cererii, inventarul filtrat din
 `TestLaunchPlanComponentTest` probează selecții directe și filtrate, scope-uri
 imbricate/concurente, planuri executate ulterior, teste dezactivate, înregistrări
 dinamice și absența punții.
-
