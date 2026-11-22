@@ -1,22 +1,27 @@
 # ATF Debug UI
 
-`atf-debug-ui` este un modul de infrastructură pentru investigarea manuală a
-unui HTML deja generat. Nu generează și nu modifică raportul; testele sale
-verifică boundary-ul loopback, traversal-ul, pornirea paralelă și politica de
-memorie, nu un produs UI. Publică numai pe `127.0.0.1` directorul care conține
-artifactul ales și tipărește URL-ul care trebuie deschis în Playwright/TAB MCP.
+`atf-debug-ui` is an infrastructure module for manually inspecting an
+already-generated HTML report. It does not generate or modify the report; its
+tests verify the loopback boundary, path traversal protection, parallel startup,
+and memory policy rather than a UI product. It serves only the directory
+containing the selected artifact on `127.0.0.1` and prints the URL to open in
+Playwright/TAB MCP.
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-| Pas | Owner | Rezultat |
+| Step | Owner | Result |
 |---:|---|---|
-| 1 | launcher | validează path-ul și root-ul |
-| 2 | loopback server | servește read-only HTML/CSS/JS |
-| 3 | Playwright/TAB MCP | verifică DOM, click, screenshot și consolă |
+| 1 | launcher | validates the path and root |
+| 2 | loopback server | serves HTML/CSS/JS read-only |
+| 3 | Playwright/TAB MCP | verifies the DOM, clicks, screenshots, and console |
 
-Nu este browser de produs și nu înlocuiește gate-ul E2E.
+It is not a product browser and does not replace the E2E gate.
 
-## Diagramă de bază
+<a id="core-diagram"></a>
+<a id="diagramă-de-bază"></a>
+## Core diagram
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px","actorFontSize":"15px","messageFontSize":"12px","noteFontSize":"12px"},"themeCSS":".actor { font-size: 15px !important; } .messageText, .labelText, .loopText, .noteText { font-size: 12px !important; }","sequence":{"actorFontSize":15,"messageFontSize":12,"noteFontSize":12,"width":120,"height":42,"actorMargin":40,"messageMargin":24,"mirrorActors":false,"wrap":true,"wrapPadding":6}}}%%
@@ -26,66 +31,71 @@ sequenceDiagram
     participant P as Browser / MCP
     participant H as HTML artifact
 
-    A->>D: pornește launcher-ul cu --html report.html
-    D->>D: validează fișierul și root-ul
-    D-->>A: afișează URL loopback
-    A->>P: navighează la URL-ul afișat
+    A->>D: starts the launcher with --html report.html
+    D->>D: validates the file and root
+    D-->>A: prints the loopback URL
+    A->>P: navigates to the displayed URL
     P->>H: GET HTML/CSS/JS/read-only
     P-->>A: snapshot, click, screenshot, console, network
 ```
 
 <details>
-<summary><strong>Legendă — investigație read-only</strong></summary>
+<summary><strong>Legend — read-only inspection</strong></summary>
 
-- launcher-ul validează inputul și publică numai loopback;
-- Playwright/TAB MCP observă artifactul, nu îl repară și nu îl rescrie;
-- HTML/CSS/JavaScript-ul aparține artifactului produs de atf-reporting;
-- testul E2E rămâne gate-ul pentru comportamentul observabil, iar debug UI este instrumentul de explorare.
-Etichetele scurte păstrează următorul sens:
+- the launcher validates the input and serves only over loopback;
+- Playwright/TAB MCP inspects the artifact; it does not repair or rewrite it;
+- HTML/CSS/JavaScript belongs to the artifact produced by atf-reporting;
+- the E2E test remains the gate for observable behavior, while Debug UI is an
+  exploration tool.
+The short labels have the following meanings:
 
-| În schemă | Sens complet |
+| In the diagram | Full meaning |
 |---|---|
 | Browser / MCP | Playwright / TAB MCP |
 
 </details>
 
-Responsabilitățile rămân separate:
+Responsibilities remain separate:
 
-| Componentă | Responsabilitate |
+| Component | Responsibility |
 |---|---|
-| `atf-reporting` | generează și publică HTML-ul Extent |
-| `atf-debug-ui` | servește read-only artifactul local pe loopback |
-| `atf-ui` | deține politicile generice și adaptorul Java Playwright |
-| `atf-reporting-tests` / `atf.ui.tests.extent` | verificări automate UI pentru rapoarte Extent |
-| agentul + TAB MCP | investigație manuală interactivă |
+| `atf-reporting` | generates and publishes Extent HTML |
+| `atf-debug-ui` | serves the local artifact read-only over loopback |
+| `atf-ui` | owns generic policies and the Java Playwright adapter |
+| Shop/AutoEx consumer tests | local checks that inspect generated Extent reports |
+| agent + TAB MCP | interactive manual inspection |
 
-## Pornire
+<a id="startup"></a>
+<a id="pornire"></a>
+## Startup
 
-Din IntelliJ rulează `atf.debugui.AtfDebugUiLauncher` cu argumentele:
+From IntelliJ, run `atf.debugui.AtfDebugUiLauncher` with these arguments:
 
 ```text
 --html <configured-report-path>
 --port 0
 ```
 
-Launcher-ul afișează URL-ul efectiv, de exemplu:
+The launcher prints the effective URL, for example:
 
 ```text
 [ATF DEBUG UI] Target for Playwright/TAB MCP: http://127.0.0.1:PORT/report.html
 ```
 
-Agentul deschide exact acel URL cu Playwright MCP și poate investiga manual
-taburile, filtrele, nodurile expandabile, DOM-ul, console errors, network și
-randarea. Serverul rămâne activ până la `Ctrl+C`; `--port 0` alege automat un
-port liber și permite rulări paralele în directoare diferite.
+Open that exact URL with Playwright MCP to manually inspect tabs, filters,
+expandable nodes, the DOM, console errors, network, and rendering. The server
+remains active until `Ctrl+C`; `--port 0` automatically selects an available
+port and supports parallel runs in different directories.
 
-## Verificare pentru raport static sau dinamic
+<a id="verifying-static-or-generated-reports"></a>
+<a id="verificare-pentru-raport-static-sau-dinamic"></a>
+## Verifying static or generated reports
 
-ATF Debug UI este ultima verificare interactivă, nu un simplu server de fișiere.
-Pentru un raport `GENERATED_API`, se deschide mai întâi raportul API generat de
-setup/mock și apoi raportul UI generat de audit. Pentru `STATIC_PATH` sau
-`STATIC_RESOURCE`, se deschide inputul existent read-only și apoi artifactul UI
-derivat. În ambele cazuri se păstrează aceeași dovadă:
+ATF Debug UI is the final interactive check, not a simple file server. For a
+`GENERATED_API` report, first open the API report generated by setup/mock, then
+the UI report generated by the audit. For `STATIC_PATH` or `STATIC_RESOURCE`,
+open the existing input read-only, then the derived UI artifact. In both cases,
+retain the same evidence:
 
 ```text
 source report → ATF Debug UI → browser MCP
@@ -93,53 +103,56 @@ source report → ATF Debug UI → browser MCP
   → UI audit report → ATF Debug UI → browser MCP → verdict
 ```
 
-Checklist-ul obligatoriu pentru închiderea unei schimbări de raport:
+Required checklist before closing a report change:
 
-- se investighează exact artifactul fresh din staging, nu un raport istoric;
-- se verifică taburile și deep-link-urile, un caz pozitiv și unul negativ,
-  expand/collapse, JSON scrollabil și screenshot link;
-- `UI validation` păstrează acțiuni, observații și assertions ca zone-soră
-  fără linii orizontale decorative, iar `📷 base64 img` rămâne inline și
-  aliniat vertical cu statusul;
-- POST/PUT au request și response JSON valid/nevid, iar statusul, headerele,
-  mock expectation-ul și validările sunt vizibile în raport;
-- nu se folosește browser Windows real și nu se opresc procesele sau rulările
-  altui agent.
+- inspect the exact fresh artifact from staging, not a historical report;
+- verify tabs and deep links, one positive and one negative case,
+  expand/collapse, scrollable JSON, and the screenshot link;
+- `UI validation` keeps actions, observations, and assertions as sibling
+  sections without decorative horizontal rules; `📷 base64 img` stays inline
+  and vertically aligned with the status;
+- POST/PUT contain valid, non-empty request and response JSON; the status,
+  headers, mock expectation, and validations are visible in the report;
+- do not use a real Windows browser or stop another agent's process or run.
 
-Build-ul și testele rulează în staging extern, de exemplu
-`${ATF_STAGING_ROOT}/atf-debug-ui-<id>`, nu în staging-ul proiectului. Artifactele aprobate se copiază ulterior în
-`${ATF_REPORT_OUTPUT_DIR}` sau subdirectorul UI configurat al acestuia.
+Run builds and tests in an external staging directory, for example
+`${ATF_STAGING_ROOT}/atf-debug-ui-<id>`, not in the project staging area. Copy approved artifacts later into
+`${ATF_REPORT_OUTPUT_DIR}` or its configured UI subdirectory.
 
-Pentru compilare și testul de contract:
+To compile and run the contract test:
 
 ```text
 mvn -pl atf-debug-ui -am test
 ```
 
-Testul verifică publicarea HTML și blocarea traversal-ului către fișiere din
-afara root-ului. Nu se adaugă un modul separat pentru teste: testele automate
-UI de audit Extent rămân în `atf-reporting-tests/src/test/java/atf/ui/tests/extent`;
-`atf-tests` deține doar testul de guvernanță globală; nu conține teste de browser.
+The test verifies HTML publishing and blocks traversal to files outside the
+root. No separate reporting-test module is added: Practice Shop and AutoEx
+verify their local report scenarios in their own modules; `atf-tests` owns
+reactor and documentation governance, not application report journeys.
 
-### Închiderea conexiunilor deținute
+<a id="closing-owned-connections"></a>
+<a id="închiderea-conexiunilor-deținute"></a>
+### Closing owned connections
 
-Serverul urmărește socketurile acceptate. Close oprește acceptarea, închide
-conexiunile deținute și apoi așteaptă executorul; un request line sau header
-incomplet nu cere cooperarea clientului pentru terminare. Înregistrarea unei
-conexiuni și oprirea au aceeași limită de sincronizare, iar close este idempotent.
+The server tracks accepted sockets. Close stops accepting, closes owned
+connections, and then waits for the executor; an incomplete request line or
+header does not require client cooperation to terminate. Connection
+registration and shutdown share the same synchronization boundary, and close
+is idempotent.
 
 [DebugUiShutdownComponentTest](src/test/java/atf/debugui/DebugUiShutdownComponentTest.java)
-verifică request-uri incomplete, clienți idle și închidere concurentă, folosind
-readiness loopback și un deadline al probei. GET/HEAD, streaming-ul read-only,
-realpath și refuzul traversal-ului păstrează contractele existente.
+verifies incomplete requests, idle clients, and concurrent shutdown using
+loopback readiness and a test deadline. GET/HEAD, read-only streaming,
+realpath, and traversal refusal retain their existing contracts.
 
-### Rulări paralele și memorie
+<a id="parallel-runs-and-memory"></a>
+<a id="rulări-paralele-și-memorie"></a>
+### Parallel runs and memory
 
-Fiecare sesiune Debug UI este un JVM separat. Launcher-ul aplică fail-fast dacă
-JVM-ul are un heap peste limita bounded implicită (512 MB), iar pentru rulări
-paralele se pornește cu o limită explicită de memorie, astfel încât sesiunile
-abandonate sau pornite de alți agenți să nu poată provoca `hs_err_pid` prin
-rezervarea heap-ului implicit al JVM-ului:
+Each Debug UI session is a separate JVM. The launcher fails fast if the JVM has
+a heap larger than the default bounded limit (512 MB). For parallel runs, use
+an explicit memory limit so abandoned sessions or sessions started by other
+agents cannot trigger `hs_err_pid` by reserving the JVM's default heap:
 
 ```text
 java -Xms16m -Xmx128m -XX:MaxMetaspaceSize=64m \
@@ -148,23 +161,24 @@ java -Xms16m -Xmx128m -XX:MaxMetaspaceSize=64m \
   --html <configured-report-path> --port 0
 ```
 
-Classpath-ul rezolvat include clasele `atf-debug-ui`, `atf-console` și
-dependențele lor runtime tranzitive. Numai `atf-debug-ui/target/classes` este
-insuficient: launcher-ul folosește consola, care încarcă și bibliotecile de configurare.
+The resolved classpath includes `atf-debug-ui`, `atf-console`, and their
+transitive runtime dependencies. `atf-debug-ui/target/classes` alone is
+insufficient: the launcher uses the console module, which also loads the
+configuration libraries.
 
-- IntelliJ: selectează classpath-ul modulului `atf-debug-ui`; IDE-ul rezolvă
-  dependențele Maven.
-- Terminal: folosește classpath-ul runtime rezolvat de build/IDE pentru acel
-  modul, cu separatorul platformei.
+- IntelliJ: select the `atf-debug-ui` module classpath; the IDE resolves Maven
+  dependencies.
+- Terminal: use the runtime classpath resolved by the build/IDE for that
+  module, with the platform's path separator.
 
-Nu se opresc procesele altui agent. Dacă hostul este deja saturat, testele
-reporting pot fi rulate izolat cu `-DforkCount=0`; acest mod este o măsură de
-diagnostic/resurse, nu schimbă contractul testelor și nu devine implicit pentru
-execuțiile normale.
+Do not stop another agent's processes. If the host is already saturated,
+report-producing tests can run in-process with `-DforkCount=0`; this is a diagnostic or
+resource measure, does not change the test contract, and does not become the
+default for normal runs.
 
-Classpath-ul launcherului trebuie să includă `atf-console`, `atf-core` și
-dependențele lor runtime. În PowerShell, pregătește-l înainte de o rulare
-independentă; valoarea din `<report-path>` este calea artifactului aprobat:
+The launcher classpath must include `atf-console`, `atf-core`, and their
+runtime dependencies. In PowerShell, prepare it before an independent run; the
+value in `<report-path>` is the path to the approved artifact:
 
 ```powershell
 mvn -pl atf-debug-ui -am -DskipTests package
@@ -175,23 +189,26 @@ $report = '<report-path>'
 java -Xms16m -Xmx128m -XX:MaxMetaspaceSize=64m -cp $launcherClasspath atf.debugui.AtfDebugUiLauncher --html $report --port 0
 ```
 
-În IntelliJ, o configurație `Application` pentru `AtfDebugUiLauncher` include
-automat classpath-ul runtime al modulului; setează aceleași limite în
-`VM options` și `--html <report-path> --port 0` în `Program arguments`.
+In IntelliJ, an `Application` configuration for `AtfDebugUiLauncher` includes
+the module's runtime classpath automatically. Set the same limits in `VM
+options` and `--html <report-path> --port 0` in `Program arguments`.
 
-## Identitatea path-ului URI
+<a id="uri-path-identity"></a>
+<a id="identitatea-path-ului-uri"></a>
+## URI path identity
 
-| Intrare | Rezultat |
+| Input | Result |
 |---|---|
-| plus literal sau `%2B` | același fișier cu plus, distinct de fișierul cu spațiu |
-| `%20` | spațiu în path; nu rezultă din transformarea unui plus literal |
-| `%252B` | un singur nivel de decodare; păstrează `%2B` în numele fișierului |
-| target malformat, authority, schemă ori fragment | refuz înaintea accesului la fișier |
-| traversal după decodare | containment lexical și realpath; nu iese din root |
+| literal plus or `%2B` | same file containing a plus, distinct from a file containing a space |
+| `%20` | space in the path; not produced by transforming a literal plus |
+| `%252B` | one decoding level; retains `%2B` in the filename |
+| malformed target, authority, scheme, or fragment | rejected before file access |
+| traversal after decoding | lexical containment and realpath; cannot escape the root |
 
-GET livrează conținutul fișierului cerut. HEAD păstrează Content-Length și
-Content-Type fără body; query-ul nu schimbă identitatea path-ului. Serverul
-rămâne loopback și read-only, cu închiderea bounded a conexiunilor deținute.
+GET returns the requested file's contents. HEAD retains Content-Length and
+Content-Type without a body; the query does not change path identity. The
+server remains loopback-only and read-only, with bounded closing of owned
+connections.
 
-[DebugUiServerTest](src/test/java/atf/debugui/DebugUiServerTest.java) folosește
-fișiere distincte și corpuri exacte, cu fixture-uri izolate în TMP.
+[DebugUiServerTest](src/test/java/atf/debugui/DebugUiServerTest.java) uses
+distinct files and exact bodies with fixtures isolated in TMP.

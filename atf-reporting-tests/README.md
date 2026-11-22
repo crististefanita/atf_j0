@@ -1,788 +1,652 @@
-# ATF Reporting Tests — compoziție izolată pentru biblioteca de raportare
+<a id="atf-reporting-tests---isolated-composition-for-the-reporting-library"></a>
+<a id="atf-reporting-tests--compoziție-izolată-pentru-biblioteca-de-raportare"></a>
+# ATF Reporting Tests - isolated composition for the reporting library
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-**Diagnostic neutru:** [graf, buget și publicare](#diagnosticul-neutru-al-excepțiilor).
+**Neutral Diagnosis:** [graph, budget and publication](#diagnosticul-neutru-al-excepțiilor).
 
-**Trasee rapide:** [Alege proba](#matricea-de-integrare-și-limitele-verificate) · [Tabele și responsive](#probe-de-lizibilitate-a-panoului) · [Scope-uri](#refuz-recuperabil-al-scope-urilor) · [Browser local și limite](#verificare-rapidă)
+**Quick trails:** [Choose the sample](#matricea-de-integrare-și-limitele-verificate) · [Tables and Respondents](#probe-de-lizibilitate-a-panoului) · [Scope-uri](#refuz-recuperabil-al-scope-urilor) · [Local Browser and Limits](#verificare-rapidă)
 
-`atf-reporting-tests` verifică `atf-reporting` ca librărie reutilizabilă:
+`atf-reporting-tests` checks `atf-reporting` as a reusable library:
 
-- acoperă setup API/mock, renderer, publisher, browser read-only și ATF Debug;
-- nu deține testele de business ale unei aplicații;
-- testele business aparțin modulului consumer, precum `atf-test-practice-shop`;
-- `atf-tests` rămâne dedicat guvernanței whole-ATF.
+- covers API / mock setup, renderer, publisher, read-only browser and ATF Debug;
+- does not have the business tests of an application;
+- business tests belong to the consumer module, such as `atf-test-practice-shop`;
+- `atf-tests` remains dedicated to the governance of the whole- ATF.
 
-Pentru extragere, artefactul candidat este `atf-reporting`; acest modul rămâne
-suport intern de verificare. Compilarea și rularea pe `target/classes` nu
-demonstrează singure consumarea JAR-ului publicat. [Gate-ul distribuției](#gate-ul-bibliotecii-distribuite)
-folosește și un consumer fără surse sau module ATF în classpath.
+For extraction, the candidate artifact is `atf-reporting`; this module remains internal verification support. Compilation and running on `target/classes` does not demonstrate the consumption of JAR published on its own. [Distribution Gateul](#gate-ul-bibliotecii-distribuite) uses a consumer without sources or ATF modules in the classpath.
 
-Schimbarea testelor, suportului sau resurselor din acest modul cere un control
-tehnic `testChanges` eligibil; [guvernanța whole-ATF](../atf-tests/README.md#guvernanța-schimbării-testelor)
-verifică diferența Git și probele negative ale regulii.
+Change of tests, support or resources in this module requires eligible `testChanges` technical control; [whole- ATF governance](../atf-tests/README.md#guvernanța-schimbării-testelor) verifies the Git difference and negative rule samples.
 
-## Regresia permanentă a fiecărui defect Reporting
+<a id="permanent-regression-of-each-reporting-defect"></a>
+<a id="regresia-permanentă-a-fiecărui-defect-reporting"></a>
+## Permanent regression of each Reporting defect
 
-Orice defect observabil în raport, contractul public sau compoziție primește
-mai întâi o regresie în acest modul. Proba reproduce comportamentul anterior,
-are expected independent și rămâne în inventarul canonic după corectare.
+Any observable defect in the report, public contract or composition receives first regression in this module. The sample replicates previous behavior, has independently expected and remains in the canon inventory after correction.
 
-| Boundary | Proba păstrată |
+| Boundary | Sample retained |
 |---|---|
-| API, query, status, ownership și corelare | mock configurat și exchange capturat; nominal și refuz, fără endpoint live necesar |
-| flow și renderer | același input typed prin publisherul real Extent/fallback, cu număr, ordine și verdict exacte |
-| display și navigare | DOM/browser real: tabelul original, geometrie, expand/collapse, tastatură și reload |
-| distribuție | binarul candidat, POM-ul său și tranzitivele reale; CodeSource și hash verificate |
+| API, query, status, ownership and correlation | configured mock and captured exchange; nominally and refuse, without necessary live endpoint |
+| flow and renderer | Same input typed through actual Extent / fallback, with exact number, order and verdict |
+| Display and navigation | DOM / real browser: original table, geometry, expansion / collapse, keyboard and reload |
+| distribution | binary candidates, its POM and real transistors; CodeSource and hash checked |
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Incident["Defect observat"] -->|reproduce| Regression["Regresie stabilă"]
-    Regression -->|protejează| Fix["Corecție Reporting"]
-    Fix -->|validează| Jar["JAR candidat"]
-    Jar -->|acceptă| Consumer["Consumer binar"]
+    Incident["Observed defect"] -->|reproduce| Regression["Stable regression"]
+    Regression -->|protects| Fix["Reporting correction"]
+    Fix -->|validate| Jar["JAR candidate"]
+    Jar -->|accept| Consumer["Binary consumer"]
 ```
 
 <details>
-<summary><strong>Legendă — test păstrat la producător și binar verificat la consum</strong></summary>
+<summary><strong>Legend - test kept at manufacturer and binary checked at consumption</strong></summary>
 
-- Regresia aparține `atf-reporting-tests`: mock-urile, contractele și probele
-  browser rămân întreținute împreună cu implementarea producătorului.
-- Testele native ale bibliotecii completează boundary-ul standalone; acceptarea
-  artifactului cere și compoziția externă, inclusiv failure-path-urile afectate.
-- Consumerul binar poate retrage copia harness-ului din reactorul său. Înaintea
-  fiecărei versiuni noi, probele producătorului rulează pe acel JAR într-un consumer TMP.
-- Un test verde pe `target/classes` sau o captură manuală nu înlocuiește gate-ul
-  binar. Logurile și artifactele rulării rămân în TMP; README-ul păstrează contractul.
+- Regression belongs to `atf-reporting-tests`: mocks, contracts and evidence
+  the browser remains maintained together with the manufacturer's implementation.
+- The library's native tests complement the standalone boundary; acceptance
+  The artifact also requires external composition, including damaged failures-paths.
+- The binary consumer can withdraw the copy of the harness from its reactor.
+  Each new version, the manufacturer's samples run on that JAR in a TMP consumer.
+- A green test on `target/classes` or a manual capture does not replace the neck
+  binary. Running logs and artifacts remain in TMP; README maintains the contract.
 
 </details>
 
-## Alege nivelul dovezii
+<a id="choose-level-of-proof"></a>
+<a id="alege-nivelul-dovezii"></a>
+## Choose level of proof
 
-`UiCrossPhaseCompactFlowComponentTest` probează și un singur TEST BODY, cu
-mock API 200/500, FAIL/SKIP și capturi multiple păstrate separat.
-`BodyOnlyUnifiedFlowComponentTest` verifică rândurile ACTION/OBSERVE/Assertions,
-preview 18/240, disclosure-ul propriu și tastatura în ambele renderere.
+`UiCrossPhaseCompactFlowComponentTest` also verifies one TEST BODY, using a API 200/500 mock, FAIL/SKIP and multiple separately retained captures. `BodyOnlyUnifiedFlowComponentTest` checks ACTION/OBSERVE/Assertions rows, preview 18/240, the owning disclosure and keyboard navigation in both renderers.
 
-| Regresie păstrată | Oracol independent |
+| Returned regression | Independent oracle |
 |---|---|
-| Core → Kit → Reporting | `CoreRedactionPublicationComponentTest`: măști literale `$0` și backslash, comparație originală FAIL cu preview-uri identice, limita 240 și canary absent din Extent/fallback; rendererul nu schimbă verdictul cerut de comparație |
-| context UI per fază | `PhaseUnifiedFlowContextComponentTest`: aceeași proiecție Extent/fallback, UI și mock API 200/500; metadatele flow-ului nu devin răspuns HTTP, iar exchange-ul real își păstrează statusul și expected-ul 200 |
-| expandarea aserțiunilor per fază | `PhaseUnifiedFlowComponentTest`: disclosure propriu, Enter/Space, reload, rânduri ACTION/OBSERVE, captura originală și preview 18/240 |
-| titluri fallback lungi | `FallbackLongTitleComponentTest`: fragmentele de text rămân în sidebar și heading la 1280/760/392 px; sibling, anchor, tastatură și reload păstrează identitatea, iar reintroducerea `nowrap` este refuzată |
+| Core → Kit → Reporting | `CoreRedactionPublicationComponentTest`: `$0` and backslash literal masks, original comparison FAIL with identical previews, 240 limit and absent canary Extent / fallback; renderer does not change the requested comparison verdict |
+| UI context per phase | `PhaseUnifiedFlowContextComponentTest`: same Extent / fallback, UI and mock API 200/500; flow metadata do not become HTTP response, and the actual exchange retains its status and expect 200 |
+| Expansion of assertions per phase | `PhaseUnifiedFlowComponentTest`: own disclosure, Enter / Space, reload, rows ACTION / OBSERVE, original catch and preview 18/240 |
+| long fallback titles | `FallbackLongTitleComponentTest`: text fragments remain in the sidebar and heading at 1280/760/392 px; sibling, anchor, keyboard and reload retain identity and the reintroduction of `nowrap` is denied |
 
-Selecția câmpurilor este probată separat de HTML prin
-`UnifiedFlowProvenanceFieldsTest`, inclusiv context typed fără compactare,
-HTTP/custom păstrate și refuzul reclasificării după un nume de câmp izolat.
-Metadatele contradictorii, inclusiv markerul compact, păstrează request-ul,
-răspunsul mock 500 și execuția capturată, cu expected independent 200.
+The selection of fields is tested separately from HTML via `UnifiedFlowProvenanceFieldsTest`, including the non-compaction typed context, HTTP / preserved custom and the refusal of reclassification by an isolated field name. The conflicting metadata, including the compact marker, retains the quest, the 500 mock response and captured execution, with independent 200 expected.
 
-| Întrebare | Gate | Ce confirmă |
+| Question | Gate | What it confirms |
 |---|---|---|
-| biblioteca compilează singură? | [sursa izolată](#gate-ul-bibliotecii-distribuite) | POM autonom și boundary de producție |
-| aplicația folosește JAR-ul fizic? | [consumer binar](#gate-ul-bibliotecii-distribuite) | CodeSource și classpath fără sursa bibliotecii |
-| contractul semantic este păstrat? | [matricea de integrare](#matricea-de-integrare-și-limitele-verificate) | modele, cauze și proiecții independente de browser |
-| utilizatorul poate audita artifactul? | [tabele și responsive](#tabele-publicate-și-inventar-independent) | comparații, capturi, tastatură și backlink exact |
+| The library compiles itself? | [isolated source](#gate-ul-bibliotecii-distribuite) | POM autonomous and boundary production |
+| Does the app use physical JAR? | [binary consumer](#gate-ul-bibliotecii-distribuite) | CodeSource and classpath without library source |
+| Semantic contract is kept? | [integration matrix](#matricea-de-integrare-și-limitele-verificate) | independent browser models, causes and projections |
+| Can the user audit the artifact? | [tables and responders](#tabele-publicate-și-inventar-independent) | exact comparisons, catches, keyboard and backlink |
 
-Inventarul de mai jos indică probele și boundary-ul lor; acceptanța unei lucrări
-cere executarea gate-urilor afectate și auditul artifactului nou.
-[Restanțele testelor](../docs/feedback/ATF_Reporting_Tests_Feedback.md) separă
-oracolul învechit, fixture-ul binar și defectul reproductibil de randare.
+The inventory below indicates their samples and boundary; the acceptance of a paper requires execution of the affected coats and audit of the new artifact. [Test residues](../docs/feedback/ATF_Reporting_Tests_Feedback.md) separates the obsolete oracle, binary fixture and reproducible rendering defect.
 
-Testele consumerului păstrează expected independent și controale negative.
-Un HTML care conține textul unei reguli nu demonstrează că utilizatorul poate
-ajunge la dovada ei în scenariul, faza și ordinalul corecte.
+Consumer tests keep independent and negative controls. A HTML containing the text of a rule does not demonstrate that the user can reach its proof in the correct scenario, phase and order.
 
-## Gate-ul bibliotecii distribuite
+<a id="the-librarys-gatecraet-distributed"></a>
+<a id="gate-ul-bibliotecii-distribuite"></a>
+## The library's gatecraet distributed
 
-`ReportingLibraryDistributionIntegrationTest` verifică forma efectiv încărcată:
+`ReportingLibraryDistributionIntegrationTest` checks the actual loaded form:
 
-- din reactor copiază numai POM-ul și `src`, rulează `package` cu testele native,
-  apoi creează un consumer Maven extern;
-- dintr-un JAR citește POM-ul Maven inclus și verifică acel binar într-un consumer
-  extern, fără a căuta sursa în vecinătate.
+- POM and `src` only copy from the reactor, running `package` with native tests,
+  then create an external Maven consumer;
+- from a JAR read POM Maven included and check that binary in a consumer
+  external, without searching the source in the vicinity.
 
-Ambele trasee verifică hash-ul, CodeSource-ul și aceleași controale negative.
-Consumerul JAR verifică și țintele celor patru taburi Extent și sincronizarea
-hash-ului cu vederea selectată; componenta Chromium verifică schimbările reale.
+Both routes check hashes, CodeSource and the same negative controls. JAR consumption also checks the targets of the four Extent tables and the timing of the hash with the selected view; Chromium component checks the real changes.
 
-Auditul structurii Java este executat de `ReportingSourceArchitectureTest` în
-build-ul nativ al producătorului. Probele runtime de aici consumă clase și resurse
-încărcate, indiferent dacă provin din reactor sau din JAR; nu au skip-uri pentru
-lipsa sursei. Fixture-urile identifică rădăcina prin propriul POM și resurse.
+Java structure audit is performed by `ReportingSourceArchitectureTest` in the manufacturer's native building. Runtime samples here consume classes and resources loaded, whether they come from the reactor or JAR; do not have skips for lack of source. Fixturees identify the root through their own POM and resources.
 
-| Boundary | Oracol și limită |
+| Boundary | Oracle and limit |
 |---|---|
-| sursă fără reactor | [POM-ul producătorului](../atf-reporting/pom.xml) este parentless; guard-ul nativ pornește de la propriul CodeSource și refuză importurile/dependențele ATF și parent-ul prin probe negative |
-| classpath runtime | numai Reporting și tranzitivele Maven; fără Core, Kit, UI, JUnit, Playwright ori clase Reporting din reactor |
-| Extent și fallback | PASS/FAIL/PASS, diferență după 240, valori proiectate în buget și canary absent din artifact |
-| preview implicit | [ReportingSettings](../atf-reporting/src/main/java/atf/reporting/configuration/ReportingSettings.java) declară 240; `ReportingPreviewConfigurationComponentTest` verifică default-ul și override-urile 18/480, cu elipsa inclusă în plafon |
-| resursă runtime lipsă | o copie JAR fără `table-viewport.css` este refuzată separat de ambele renderere; raportul anterior rămâne intact, fără workspace abandonat |
+| reactor-free source | [POM manufacturer](../atf-reporting/pom.xml) is parentless; native guard starts from its own CodeSource and refuses imports / dependencies ATF and parent through negative evidence |
+| classpath runtime | Reporting only and Maven transistors; without Core, Kit, UI, JUnit, Playwright or Reporting classes in the reactor |
+| Extent and fallback | PASS / FAIL / PASS, difference after 240, budgeted and canary values absent from the artifact |
+| preview implicit | [ReportingSettings](../atf-reporting/src/main/java/atf/reporting/configuration/ReportingSettings.java) declares 240; `ReportingPreviewConfigurationComponentTest` checks the default and overrides 18/480 with the ellipse included in the ceiling |
+| missing runtime resource | a copy of JAR without `table-viewport.css` is refused separately from both renderers; the previous report remains intact without abandoned workspace |
 
-Copiile, procesele Maven/Java și logurile rămân în TMP. Testul dovedește consumul
-acestui artifact; contractele de release și compatibilitatea întregului API public
-au [criterii distincte](../docs/feedback/ATF_Reporting_Feedback.md).
+Copies, Maven / Java processes and lobes remain in TMP. The test proves the consumption of this artifact; the release contracts and the compatibility of the entire API public have [separate criteria](../docs/feedback/ATF_Reporting_Feedback.md).
 
-### Receipt portabil pentru dovezile publicării
+<a id="portable-receipt-for-evidence-of-publication"></a>
+<a id="receipt-portabil-pentru-dovezile-publicării"></a>
+### Portable Receipt for Evidence of Publication
 
-Gate-ul distribuției scrie câte un `.receipt` lângă HTML-ul Extent și fallback,
-după acceptanța consumerului Maven. Receipt-ul fixează UUID-ul rulării,
-coordonata Maven, SHA-256 al JAR-ului și al HTML-ului, plus verdictul publicării.
+After Maven consumer acceptance, the distribution gate writes a `.receipt` beside each HTML Extent and fallback report. The receipt pins the run's UUID-, the Maven coordinate, the SHA-256 of the JAR and HTML, and the publication verdict.
 
-1. Păstrați HTML-ul și receipt-ul în același director când arhivați sau mutați dovada.
-2. Preluați UUID-ul din `RUN_ID` din logul rulării selectate și identitatea
-   pachetului din intrarea de release. Folosiți aceste așteptări pentru verificare.
-3. Rulați verificatorul cu JDK 21 din rădăcina J0. [Sursa verificatorului](src/test/java/atf/reporting/distribution/ReportEvidenceReceipt.java)
+1. Keep HTML and the Receipt in the same directory when you file or move proof.
+2. Take UUID- from `RUN_ID` from the selected running log and identity
+   package from the release entry. Use these expectations for verification.
+3. Run JDK 21 controller from J0 root. [Source of verifier](src/test/java/atf/reporting/distribution/ReportEvidenceReceipt.java)
 
 ```powershell
 $verifier = 'atf-reporting-tests/src/test/java/atf/reporting/distribution/ReportEvidenceReceipt.java'
 java $verifier $receiptPath $expectedRunId $expectedCoordinate $expectedJarSha256
 ```
 
-| Rezultat | Interpretare |
+| Result | Interpretation |
 |---|---|
-| `VERIFIED` | Rularea, pachetul și octeții HTML corespund receipt-ului. |
-| `REPORT_MISSING` / `REPORT_UNREADABLE` | HTML-ul adiacent lipsește sau calea nu este un fișier lizibil. |
-| `REPORT_DIGEST_MISMATCH` | HTML-ul adiacent are alți octeți, inclusiv când a fost înlocuit cu un raport omonim. |
-| `WRONG_RUN` / `WRONG_PACKAGE` | Receipt-ul aparține altei rulări sau altei intrări de pachet. |
+| `VERIFIED` | The running, package and octets of HTML correspond to the Receipt. |
+| `REPORT_MISSING` / `REPORT_UNREADABLE` | HTML adjacent missing or path is not a legible file. |
+| `REPORT_DIGEST_MISMATCH` | HTML adjacent has other bytes, including when replaced by a homonymous ratio. |
+| `WRONG_RUN` / `WRONG_PACKAGE` | The Receipt belongs to another rolling or another package input. |
 
-Verificatorul afișează separat verdictul istoric din receipt și întoarce cod zero
-pentru `VERIFIED`. [Proba permanentă](src/test/java/atf/reporting/distribution/ReportEvidenceReceiptTest.java)
+The verifier shall separately display the historical verdict in the Receipt and return the zero code for `VERIFIED`. [Permanent sample](src/test/java/atf/reporting/distribution/ReportEvidenceReceiptTest.java)
 
 <details>
-<summary><strong>Harta de lectură</strong></summary>
+<summary><strong>Reading map</strong></summary>
 
-- [limitele librăriei](#regula-limitelor-de-responsabilitate) — separarea
-  harness-ului de codul de producție;
-- [consola](#consola-testelor-de-raportare) — diagnosticul implicit din IntelliJ
-  și Maven;
-- [contractul titlurilor API](#contractul-de-titlu-pentru-request-uri-api) și
-  [reconcilierea evidence-ului](#reconcilierea-dovezilor-api-și-navigarea-fazei);
-- [matricea de integrare](#matricea-de-integrare-și-limitele-verificate) —
-  legătura dintre seam, probă și limită;
-- [limitele consumerilor](#limitele-de-responsabilitate-ale-aplicațiilor-consumatoare)
-  — ce rămâne specific aplicațiilor.
+- [library boundaries](#regula-limitelor-de-responsabilitate) - separation
+  the harness of the production code;
+- [console](#consola-testelor-de-raportare) - default diagnosis IntelliJ
+  and Maven;
+- [contract of titles API](#contractul-de-titlu-pentru-request-uri-api) and
+  [reconciliation of the evidence](#reconcilierea-dovezilor-api-și-navigarea-fazei);
+- [integration matrix](#matricea-de-integrare-și-limitele-verificate) —
+  the connection between seam, sample and limit;
+- [limits of consumption](#limitele-de-responsabilitate-ale-aplicațiilor-consumatoare)
+  which remains specific to applications.
 
 </details>
 
 <details>
-<summary><strong>Catalogul probelor de failure și al regresiilor adiacente</strong></summary>
+<summary><strong>Catalogue of fault samples and adjacent regression</strong></summary>
 
-`UiFailureReportContractTest` este proba browser annotation-driven pentru
-failure UI în Extent:
+`UiFailureReportContractTest` is the annotation-driver browser sample for UI failure in Extent:
 
-- SETUP, timeout Playwright, observație și assertion păstrează leaf-ul FAIL sub
-  ownerul semantic; documentul pornește colapsat, iar Fails deschide strict
-  strămoșii dovezii originale și păstrează scenariile surori închise;
-- scenariul Playwright verifică `TimeoutError`, locatorul, durata și redacția;
-  UI failure nu trebuie să creeze disclosure HTTP;
-- `ExtentReportUiFailureEvidenceTest` și `UiFallbackFailureEvidenceTest`
-  verifică fallback-ul și izolarea unui scenariu-frate;
-- renderer-ul redă targetul locatorului prin redactor; fără cauză, publicarea o
-  derivează dintr-o acțiune FAIL sau respinge input-ul fără diagnostic;
-- contractul browser păstrează timeout-ul în scenariul curent și îl exclude din
-  scenariile sibling; regula stabilă este în
-  [contractul de raportare](../docs/ATF_Reporting_Contract.md#fails-și-legături).
+- SETUP, Playwright timeout, observation and assertion keep the FAIL Leaf under
+  Semantic owner; document starts collapsing, and Fails strictly opens the ancestors of original proof and keeps sister scenarios closed;
+- Playwright scenario checks `TimeoutError`, the locator, duration and editorial;
+  UI failure must not create disclosure HTTP;
+- `ExtentReportUiFailureEvidenceTest` and `UiFallbackFailureEvidenceTest`
+  check the fallback and isolation of a brother-screenplay;
+- The renderer gives the locator's target through the editor; without cause, the publication of a
+  derives from FAIL action or rejects the undiagnosed implant;
+- browser contract keeps timeout in current scenario and excludes it from
+  Sibling scenarios; stable rule is in [reporting contract](../docs/ATF_Reporting_Contract.md#fails-și-legături).
 
-Oracolele backlink-urilor păstrează identitatea:
+The backlinks' oracles shall retain the identity:
 
-- `FailureLinkIdentity` compară scenariul și parametrii decodați, inclusiv ordinalul;
-- probele negative refuză scenarii străine și parametri duplicați; parametrii
-  suplimentari și encoding-ul de reload păstrează aceeași destinație.
-- `PublishedFailureNavigationEdgeComponentTest` verifică două grupuri UI
-  omonime cu câte un singur FAIL, astfel încât sumarul derivat să fie creat.
-  Oracolul selectează comparația din ownerul validation, cu cauze literale,
-  reload, ordine inversă și preview 18/240; nu repetă selectorul producției.
+- `FailureLinkIdentity` compares the decoded scenario and parameters, including the ordinal;
+- Negative evidence refuses foreign scenarios and duplicate parameters; parameters
+  additional and reload encoding shall retain the same destination.
+- `PublishedFailureNavigationEdgeComponentTest` checks two UI groups
+  homonymous with a single FAIL, so that the derived summary is created. Oracle selects the comparison in the validation host, with literal causes, reload, reverse orders and preview 18/240; does not repeat the production selector.
 
-Contractul stabil pentru ierarhia vizibilă, layout, responsive viewport,
-disclosure-uri și dovezile browser este
-[ATF Reporting — contract de display și layout](../docs/ATF_Reporting_Display_Contract.md).
-Acest README deține matricea probelor și responsabilitățile suitei; nu
-redefinește regulile vizuale în feedback sau în fixture-uri.
+The stable contract for the visible hierarchy, layout, responsive view, disclosures and browser evidence is [ATF Reporting - Display contract and layout](../docs/ATF_Reporting_Display_Contract.md). This README holds the matrix of evidence and the responsibilities of the suite; does not redefine visual rules in feedback or fixtures.
 
-`ReportUiEnvironmentTest` protejează vocabularul UI comun, politicile rezolvate
-și originile fără credentiale. `ReportGherkinSequenceTest` protejează ancorele,
-continuările și izolarea scenariilor; wiring-ul AutoEx/Shop rămâne probat în
-modulele consumerilor.
+`ReportUiEnvironmentTest` protects the common UI vocabulary, resolved policies and uncredited origins. `ReportGherkinSequenceTest` protects the anchors, sequels and isolations of scenarios; AutoEx / Shop wirings remain proven in the consumption modules.
 
-Helper-ele reutilizate de probele HTML UI stau în
-`atf.reporting.ui.support`, nu în pachetul testelor de renderer. De exemplu,
-`ExtentReportUiEvidenceTestSupport` centralizează fixture-ul și verificările
-comune fără să devină un test sau să mute ownership-ul din
-`atf-reporting-tests`. Limita de coeziune per pachet rămâne verificată de
-`AtfPackageCohesionGovernanceTest`; pragul nu se ajustează pentru a acomoda un
-hotspot.
+Helpers reused by HTML UI probes belong in `atf.reporting.ui.support`, outside renderer test packages. For example, `ExtentReportUiEvidenceTestSupport` centralizes fixtures and shared checks without becoming a test or moving ownership out of `atf-reporting-tests`. `AtfPackageCohesionGovernanceTest` still checks package cohesion; its threshold is not raised to accommodate a hotspot.
 
-Proiecția contextului UI este verificată la componentă:
+The projection of the context UI is checked by the component:
 
-| Probă | Contract protejat |
+| Test | Protected contract |
 |---|---|
-| `UiCheckpointEvidenceProjectionTest` | identitatea checkpoint-ului și `evidence.type`/`evidence.policy` rămân în model; proiecțiile typed/legacy și fallback nu le publică și nu le mută în response |
-| `UiApiValidationContractComponentTest` | interzice intrările cu exchange-uri brute în API, lifecycle, publisher și buffer; verifică verdictele UI/API independente și exchange-urile surori în checkpoint, setup, final și unified, plus markup-ul request/response/execution real |
-| `ReportRequestHeadersTest` | sursa observată/configurată, override case-insensitive, compatibilitatea clientului existent și copiere imutabilă |
-| `ObservedRequestEvidenceComponentTest` | Extent/fallback/UI_API × șase input-uri: absent, necapturat, JSON literal null, headere explicite redactate, default-uri declarate și response fără body; Request details și replay nu inventează headere sau payload |
-| `ObservedBodyAuditComponentTest` | 22 de cazuri: audit browser real în cele trei publishere, body absent/necapturat/null literal, JSON fallback collapsed și comparație cu catalogul fără payload inventat |
-| `LiveClientHeaderProbe` | HTTP loopback real prin clientul ATF; headerele primite pe fir sunt comparate cu proiecția Reporting și replay-ul sanitizat |
-| `UiApiVerdictProjectionComponentTest` | UI PASS/API FAIL, UI FAIL/API PASS, ambele FAIL și corelare API FAIL cu exchange-uri PASS; owner tipizat, request/checkpoint/cauză exacte, ultimul exchange-soră PASS și indicele exact Open in Tests; audit separat cu pași, assertions și capturi pentru cele cinci intrări Fails |
-| `ApiWhitespaceBodyComponentTest` + `UiNetworkBodyFidelityComponentTest` din UI | body prezent numai din whitespace rămâne distinct de absent, necapturat și JSON literal null; captură/sanitizare la ownerul UI, apoi formatare/publicare/replay la Reporting |
-| `ExtentReportUiEvidencePublishingTest` | publisher-ul UI nu adaugă un request HTTP sintetic; exchange-ul nested păstrează request/response/JSON/execution |
-| `ExtentReportDisclosureBrowserComponentTest` | artifact controlat cu PASS/WARNING/FAIL; faza goală nu afișează affordance de expandare, iar API exchange-ul cu evidence mock rămâne expandabil cu mouse/keyboard; niciun tabel introductiv la checkpoint, validări și screenshot disponibile, close fără subarbore vizibil și titluri custom identificate semantic; captură deduplicată deschisă prin click/Enter cu sursa colapsată, fără salt la ancoră |
-| `NavigationSelectionBrowserComponentTest` | Extent real, click succesiv pe cele patru taburi; nume accesibile pentru iconuri, un singur link `active` și `aria-current="page"`, sincron cu view-ul vizibil |
-| `ComponentAssertionStepReportTest` | același nod tipizat și 42 de rânduri în Extent/fallback; pas colapsat implicit, acces la ultimul rând și comutare cu mouse/Enter/Space în Chromium; FAIL în Extent are owner `component`, valori numerice exacte și deep-link redeschis până la tabel, fără request sau durată HTTP |
-| `PublishedEvidenceTableComponentTest` | UI/API/UI+API × Extent/fallback; valori literale în 12/40 de rânduri, inventar exact per owner, geometrie reală, expandări, resize și taburi; controalele negative detectează dovezi lipsă, clipping, plafon eliminat și FAIL schimbat în PASS |
-| `TerminalExecutionProjectionTest` + `TerminalApiExecutionReportTest` | snapshot parțial strict, 503 urmat de status indisponibil, terminare typed în Execution evidence, fără Response details fabricat; Extent/fallback păstrează plafonul 240, bugetul configurat, redactarea, ultimul rând și Enter/Space; zero dispatch-uri nu declară rețea executată |
-| `UiTerminalExchangeReportComponentTest` | checkpoint, setup, final, trace și flow unificat în/peste faze păstrează exchange-ul fără response între doi vecini PASS; diagnostic, attempts, totaluri și tastatură în Extent/fallback, cu buget implicit și personalizat; probele fără verdict sunt deținute de `ReportingStandaloneVerdictComponentTest` în biblioteca standalone |
-| `ReportPhaseTimingComponentTest` | timing typed identic în snapshot-urile Extent/fallback; browserul păstrează 12/345/0 ms pe faze, totalurile scenariu/clasă/Overview fără dublare și sursa execuției după expandare; publicarea rămâne separată |
-| `BodyOnlyUnifiedFlowComponentTest` | un singur TEST BODY UI-only eligibil: un flow, actions/observations/assertions păstrate, preview 18/240 și mouse/Space/reload în Extent/fallback; contractele typed includ API mock PASS/FAIL și capturile multiple |
-| `ComponentExecutionDiagnosticReportTest` | eroare după comparații PASS sau înaintea primei comparații; Fails fără request/durată HTTP inventate ori comparație PASS atribuită erorii; faze măsurate goale și 42 de rânduri în Extent/fallback, cu plafon 240 și tastatură |
-| Regresii adiacente | `ExtentReportRuntimeScriptTest` păstrează sursele duratelor; `ExtentReportSessionContractTest` separă câmpurile API/UI în Fails; `AtfReportEvidenceCssTest` protejează containerul și fontul comun, completat de măsurătorile reale din `NarrowEvidenceReadabilityComponentTest` |
-| `AssertionAuditPublicationComponentTest` | proiecție redactată înaintea plafonului în Extent/fallback; păstrează rândul FAIL fără fragmente din secretul sintetic și SKIP cu `Abort reason`, fără aserțiuni fabricate |
-| `ReportingPreviewBudgetTest` | valoarea integrală afișată include elipsa în limită; null, limita exactă și bugetul JSON independent |
-| `LegacyPreviewBudgetComponentTest` | porturi UI directe în Extent/fallback; limite 240/18, redactare completă, verdict din valorile integrale și aceeași limită în Fails după backlink |
-| `ReportingPreviewConfigurationComponentTest` | YAML implicit 240 și configurat 18/480, valoarea efectivă în System Extent/fallback, metadata contradictorie refuzată și buget nepozitiv respins |
-| `UiFailureContextTest` + `UiFailureContextReportTest` | acțiune FAIL înaintea mesajului tehnic lung, lipsa excepției/acțiunii, acțiuni PASS urmate de eroare, prima secvență FAIL și graf cauze/suppressed cu referințe/cicluri, fără mutarea verdictului sau a dovezilor originale |
-| `UiFailureContextComponentTest` | Tests/Fails și backlink în Extent/fallback, preview 240/18, panou de 392 px, contextul acțiunii și timpul măsurat, relații inspectabile în diagnostice INFO și disclosure Enter/Space fără erori JavaScript |
-| `UiTimeoutReportComponentTest` | deadline nativ separat de timpul capturat și de contextul compact Fails; Extent/fallback la 240/18, primary/cause/suppressed redactate, HTML fără credențiale, owner și backlink, Enter/Space, ultimul rând și oracol negativ pentru diagnostic lipsă ori secret vizibil |
-| `ReportScopeAtomicityComponentTest` | completări repetate, scrieri tardive, close idempotent/FAIL, copii deschiși și sesiune închisă; refuz fără mutație și raport publicabil în Extent/fallback |
-| `UiSetupFallbackParityComponentTest` | setup păstrează comparațiile, acțiunile și captura în Extent/fallback; 240/18, redactare, Enter/Space și FAIL evaluat dincolo de preview, inclusiv cu caller PASS |
-| `UiPhaseExecutionTest` + `UiPhaseTimingLifecycleComponentTest` | execuție/capturi/publicare delimitate, clock controlat, cauza primară, zero/necunoscut, succes/FAIL/SKIP, setup incomplet, teardown eșuat și flow unificat peste faze |
-| `ReportPhaseDiagnosticTest` | conversie explicită, statusul fazei sursă, chei legacy delimitate, context nemodificat și rezultat imutabil; portul diagnostic nu creează HTTP |
-| `ReportPhaseAuditBrowserComponentTest` | Extent/fallback cu zero/unul/mai multe exchange-uri și cu/fără metadata; eșec JUnit, asociere lipsă, redacție și închiderea diagnosticului; Fails exclude notele fazei PASS; probe negative pentru bandă ascunsă, redenumită sau goală |
+| `UiCheckpointEvidenceProjectionTest` | the identity of the checkpoint and `evidence.type` / `evidence.policy` remain in the model; the projections typed / legacy and fallback do not publish and move them to replies |
+| `UiApiValidationContractComponentTest` | prohibit entries with gross exchanges into API, lifecycle, publisher and buffer; check the verdicts UI / API independent and sister exchanges in checkpoint, setup, final and unified, plus mark request / response / actual execution |
+| `ReportRequestHeadersTest` | observed / configured source, cas- insensitive override, existing customer compatibility and immutable copying |
+| `ObservedRequestEvidenceComponentTest` | Extent / fallback / UI_API × six inputs: absent, unpressed, JSON literal null, explicitly redacted heads, declared defaults and replies without body; Request details and replay does not invent headers or payload |
+| `ObservedBodyAuditComponentTest` | 22 cases: actual browser audit in the three publishers, body absent / unclaimed / null literal, JSON fallback collapsed and compared to catalogue without invented payload |
+| `LiveClientHeaderProbe` | HTTP loopback real through ATF client; headers received on the wire are compared to Reporting projection and sanitized replica |
+| `UiApiVerdictProjectionComponentTest` | UI PASS/API FAIL, UI FAIL/API PASS, both FAIL and API FAIL correlation with PASS exchanges; typed owner, exact request/checkpoint/cause, final PASS sibling exchange and exact Open in Tests index; separate audit with steps, assertions and captures for all five Fails entries |
+| `ApiWhitespaceBodyComponentTest` + `UiNetworkBodyFidelityComponentTest` of UI | body present only from whitespace remains distinct from absent, unclaimed and JSON literal null; capture / sanitization to the UI host, then formatting / publishing / replicating to Reporting |
+| `ExtentReportUiEvidencePublishingTest` | UI does not add a synthetic HTTP quest; the unspoken exchange keeps quest / response / JSON / execution |
+| `ExtentReportDisclosureBrowserComponentTest` | PASS / WARNING / FAIL-controlled artifact; empty phase does not display expansion affordance, and API with evidence mock remains expanding with mouse / keyboard; no introduction table for checkpoint, validations and screenshot available, close without visible subshaft and semantic identified customized titles; removable open by click / Enter with the source collapsed without jumping to anchor |
+| `NavigationSelectionBrowserComponentTest` | Extent actual, successively click on the four tables; accessible names for icons, single link `active` and `aria-current="page"`, synchronous with visible view |
+| `ComponentAssertionStepReportTest` | Same typed and 42-line node in Extent / fallback; default collapse step, last row access and switch with mouse / Enter / Space in Chromium; FAIL in Extent has `component` owner, exact numerical values and reopened link to table, without demand or duration HTTP |
+| `PublishedEvidenceTableComponentTest` | UI / API / UI + API × Extent / fallback; literal values in 12/40 rows, exact inventory per owner, real geometry, expansion, resize and tables; negative controls detect missing evidence, clipping, removed ceiling and FAIL changed to PASS |
+| `TerminalExecutionProjectionTest` + `TerminalApiExecutionReportTest` | Snapshot partially strict, 503 followed by status unavailable, end typed in Execution evidence, without manufactured answers details; Extent / fallback keeps 240 ceiling, budget configured, redaction, last row and Enter / Space; zero discounts do not declare executed network |
+| `UiTerminalExchangeReportComponentTest` | checkpoint, setup, final, trace and flow unified in / over phases keep the unresponsive exchange between two neighbours PASS; diagnosis, attempts, totals and keyboard in Extent / fallback, with implicit and personalized budget; the unversed samples are held by `ReportingStandaloneVerdictComponentTest` in the standalone library |
+| `ReportPhaseTimingComponentTest` | Timing typed identical in Extent / fallback snapshots; browser keeps 12/345/0 ms per phase, scenario / class / Overview totals without duplication and the source of execution after expansion; publication remains separate |
+| `BodyOnlyUnifiedFlowComponentTest` | one eligible TEST BODY UI-only body: one flow with retained actions/observations/assertions, preview 18/240 and mouse/Space/reload in Extent/fallback; typed contracts include API mock PASS/FAIL and multiple captures |
+| `ComponentExecutionDiagnosticReportTest` | PASS or before first comparison; Fails without quest / duration HTTP invented or comparison PASS attributed to error; empty measured phases and 42 rows in Extent / fallback, with 240 ceiling and keyboard |
+| Relays | `ExtentReportRuntimeScriptTest` maintains the sources of duration; `ExtentReportSessionContractTest` separates fields API / UI in Fails; `AtfReportEvidenceCssTest` protects the common container and font, supplemented by actual measurements from `NarrowEvidenceReadabilityComponentTest` |
+| `AssertionAuditPublicationComponentTest` | Extent / fallback projection; keep FAIL row without synthetic secrecy fragments and SKIP with `Abort reason` without built assertions |
+| `ReportingPreviewBudgetTest` | the full value displayed includes the ellipse in limit; null, exact limit and budget of JSON independent |
+| `LegacyPreviewBudgetComponentTest` | direct UI ports in Extent / fallback; 240/18 limits, full wording, verdict from full values and same limit in Fails after backlink |
+| `ReportingPreviewConfigurationComponentTest` | YAML default 240 and configured 18/480, effective value in Extent / fallback system, contradictory metadata refused and budget rejected unpositive |
+| `UiFailureContextTest` + `UiFailureContextReportTest` | FAIL action prior to long technical message, lack of exception / action, PASS actions followed by error, first FAIL sequence and graf causes / suppressed with references / cycles, without moving the verdict or original evidence |
+| `UiFailureContextComponentTest` | Tests / Fails and backlinks in Extent / fallback, preview 240/18, 392 panel, context of action and time measured, inspectable relationships in diagnostics INFO and disclosure Enter / Space without JavaScript errors |
+| `UiTimeoutReportComponentTest` | native separate from the time captured and the compact context Fails; Extent / fallback at 240/18, primary / cause / suppressed redacted, HTML without credential, owner and backlink, Enter / Space, last row and negative oracle for diagnosis missing or visible secret |
+| `ReportScopeAtomicityComponentTest` | repeated completions, late writing, closed idempotent / FAIL, open children and closed session; refusal without mutation and publicity in Extent / fallback |
+| `UiSetupFallbackParityComponentTest` | setup keeps comparisons, actions and capture in Extent / fallback; 240/18, redaction, Enter / Space and FAIL evaluated beyond forecast, including with PASS caller |
+| `UiPhaseExecutionTest` + `UiPhaseTimingLifecycleComponentTest` | execution / catches / publication delimited, controlled clock, primary cause, zero / unknown, success / FAIL / SKIP, incomplete setup, failed teardown and unified flow over phases |
+| `ReportPhaseDiagnosticTest` | explicit conversion, source phase status, delimited legacy keys, unaltered context and immutable result; the diagnostic port does not create HTTP |
+| `ReportPhaseAuditBrowserComponentTest` | Extent / fallback with zero / one / more exchanges and with / without metadata; JUnit failure, missing association, editorial and closure of diagnosis; Fails excludes PASS phase notes; negative samples for hidden tape, renamed or empty |
 
-Fixture-ul browser este local și determinist; nu cere o nouă achiziție în
-Practice Shop. Raportul timestamped este dovadă de componentă, iar stările
-FAIL/WARNING sunt date deliberate ale fixture-ului.
+The browser fixture is local and deterministic; does not require a new purchase in Practice Shop. The timed ratio is evidence of component, and the FAIL / WARNING states are deliberate fixture data.
 
-Inventarul numește contractele urmărite; nu certifică automat toate probele.
-Fidelitatea dovezii fiecărui scenariu are un
-[criteriu de audit independent](../docs/feedback/ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu).
-Un gate focalizat trecut nu înlocuiește rezultatul suitei canonice.
+The inventory calls the contracts pursued; it does not automatically certify all the evidence. The reliability of the evidence of each scenario has a [independent audit criterion](../docs/feedback/ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu). A focus gate past does not replace the result of the canon suite.
 
-Profilul Maven `reporting-release` păstrează suita unitară completă ca precondiție
-de livrare, alături de probele browser pentru taburi/hash/tastatură, inițializare
-idempotentă, asocierea request–fază–durată, viewport-uri și capturi originale.
-Cu dependențele reactorului instalate în cache-ul privat al staging-ului:
+Maven `reporting-release` profile maintains the complete unit suite as a precondition for delivery, along with the browser samples for the tables / hash / keyboard, idempotent initialization, the required-phase-duration association, the original viewports and captures. With the reactor dependencies installed in the private cachet of the staging-:
 
 ```text
 mvn -pl atf-reporting-tests -Preporting-release test
 ```
 
-`UnitBaselineBehaviorComponentTest` respinge tabul nelegat, inițializarea duplicată
-și request-ul/durata vecinului PASS. Deschiderea directă în Fails și reload-ul
-păstrează indexul după handlerul nativ Tests; reintroducerea clasei native a
-hostului trebuie respinsă de același oracol. `ScreenshotLinkContract` verifică linkul DOM,
-octeții PNG și caption-ul; duplicatele, captura schimbată și caption-ul străin
-rămân controale negative. Un selector aflat în script nu este un link publicat.
-Aceeași selecție se execută și cu JAR-ul fizic, fără clase Reporting paralele;
-CodeSource și rezultatele se păstrează lângă candidatul din TMP.
-Pentru JAR-ul instalat în cache-ul privat, setează `atf.reporting.test.version`
-la versiunea publicată și rulează profilul fără `-am`. Implicit, proprietatea
-urmează `${project.version}` și păstrează execuția pe sursa reactorului.
+`UnitBaselineBehaviorComponentTest` rejects the unbound table, the duplicate initialization and the / duration of the neighbor PASS. Direct opening in Fails and the relay keeps the index after native handler Tests; the reintroduction of the native class of the host must be rejected by the same oracle. `ScreenshotLinkContract` checks DOM link, PNG octets and caption; The duplicate, the modified catch and the foreign caption remain negative controls. A script selector is not a published link. The same selection is performed with JAR physically without parallel Reporting classes; CodeSource and results are kept near the TMP candidate. JAR installed in the private cachet sets `atf.reporting.test.version` to the published version and `-am` is running the profile. By default, the property follows `${project.version}` and keeps execution on the reactor source.
 
-### Setup browser și verdict terminal
+<a id="browser-setup-and-terminal-verdict"></a>
+<a id="setup-browser-și-verdict-terminal"></a>
+### Browser Setup and Terminal verdict
 
-Markerii de fază păstrează timpul monoton al workerului. La cursa dintre
-watchdog și publicarea markerului, o tranziție confirmată în bugetul fazei
-poate avansa observația. Depășirea măsurată în worker rămâne eșec, iar termenul
-de startup și limita totală ale procesului rămân active.
+Phase markers keep the workshop's monotonous time. At the race between watchdog and the publication of the marker, a transition confirmed in the phase budget may advance the observation. The overcome measured in the worker remains a failure, and the term startup and the total limit of the process remain active.
 
-`ReportArtifactProfileComponentTest` păstrează separat inspecția statică și
-proba interactivă. `BrowserProbeProcess` execută fiecare probă într-un JVM propriu;
-un factory blocat înainte de navigare produce FAIL, inclusiv când HTML-ul este conform.
+`ReportArtifactProfileComponentTest` keeps the static inspection and interactive sample separately. `BrowserProbeProcess` performs each sample in its own JVM; a factory locked before navigation produces FAIL, including when HTML conforms.
 
-| Limită | Contract |
+| Boundary | Contract |
 |---|---|
-| Setup | 30 s pentru pornirea JVM/SDK, launch și `newPage`; fără retry sau prag relaxat |
-| Driver CLI | pregătit o dată per JVM host ori reutilizat din `playwright.cli.dir`; sursa și timpul sunt consemnate separat în `driver-runtime.log` |
-| Verificare | `BrowserProbeBudget.DEFAULT`: 60 s; `BrowserClassRun`: 120 s/clasă și maximum 10 min total; acțiunea 5 s și navigarea 30 s rămân independente |
-| Cleanup | 5 s pentru închiderea normală; la eșec, terminarea forțată are 5 s și vizează numai descendenți cu lanț de părinți verificat și aceeași identitate de start |
-| Diagnostic | fază, PID-uri, log și stack-uri la timeout; matricea eșuată și controalele lifecycle păstrează directorul probei, iar cauza inițială precede erorile de cleanup |
-| TMP nativ | director scurt, unic și marcat cu owner; JVM și SDK primesc aceeași rădăcină, fără profil browser în TMP-ul comun |
-| Acceptanță | fază terminală DONE, exit 0 și resurse închise; lipsa verdictului nu este PASS |
+| Setup | 30 s for JVM / SDK, launch and `newPage` startup; no retry or relaxed threshold |
+| Driver CLI | prepared once per JVM host or reused from `playwright.cli.dir`; source and time are recorded separately in `driver-runtime.log` |
+| Verification | `BrowserProbeBudget.DEFAULT`: 60 s; `BrowserClassRun`: 120 s / class and maximum 10 min total; 5 s action and 30 navigation s remain independent |
+| Cleanup | 5 s for normal closure; at failure, forced termination has 5 s and only targets offspring with verified parent chain and same starting identity |
+| Diagnostic | phase, PID-uri, log and stacks at timeout; failed matrix and lifecycle controls keep the sample directory and initial cause precedes errors of cleanup |
+| TMP native | short, unique and owner- marked directory; JVM and SDK receive the same root without browser profile in the common TMP-ul |
+| Acceptance | DONE terminal phase, exit 0 and resources closed; no verdict is PASS |
 
-`BrowserProbeProcessComponentTest` acoperă factory-ul necooperant, cleanup-ul blocat,
-cauzele suprimate și întreruperea părintelui; un proces independent trebuie să
-supraviețuiască. `BrowserProcessInventoryContractTest` refuză procese pornite
-înaintea workerului și PID-uri reutilizate. Același SDK și aceleași probe rulează pe sursa reactorului și pe
-JAR-ul fizic prin `reporting-release`. Harness-ul rămâne în J0, fără Playwright
-adăugat în biblioteca standalone ori în consumerii fără browser.
+`BrowserProbeProcessComponentTest` covers non-cooperative factory, blocked cleanup, suppressed causes and parent's interruption; an independent process must survive. `BrowserProcessInventoryContractTest` refuses processes started before the workshop and PID-uri reused. Same SDK and the same samples run on the reactor source and JAR physically via `reporting-release`. Harnessul remains in J0, without Playwright added to the standalone library or in the browser-free consumers.
 
-### Tabele publicate și inventar independent
+<a id="published-tables-and-independent-inventory"></a>
+<a id="tabele-publicate-și-inventar-independent"></a>
+### Published tables and independent inventory
 
-`PublishedEvidenceTableComponentTest` publică UI, API și UI+API prin porturile
-reale, în Extent și fallback. Cazul de 12 rânduri păstrează comparațiile scurte;
-cele două cazuri de 40 de rânduri mută textul lung în EXPECTED, respectiv ACTUAL.
+`PublishedEvidenceTableComponentTest` publishes UI, API and UI + API through real ports, Extent and fallback. 12 case keeps short comparisons; the two cases of 40 by rows shift long text to EXPECTED and ACTUAL respectively.
 
-| Probă | Criteriu observabil |
+| Test | Observed criterion |
 |---|---|
-| Inventar | număr exact per formă și owner; setup, ACTION/OBSERVE, request/response, execution/retry și cele trei roluri trace distincte |
-| Geometrie | viewport-uri 1803/1280/991/719/720/721/591/392 px și panouri 591/392 px; lățime completă, font lizibil, coloane aliniate, cap finit, ultimul rând și ultima coloană accesibile; taburile secundare verifică și pragul 760/761 px |
-| Dovezi | valori literale independente, Unicode/escaping, PASS/FAIL păstrate și conținut identic după resize, Enter/Space și revenire în Tests |
-| Taburi | Overview/System/Tags și tabelul Categories; Fails folosește câmpurile/indexul nativ, iar taburile secundare fallback folosesc carduri/linkuri; absența intenționată a unui tabel este explicită |
-| Control negativ | lățime redusă artificial, header/coloană/tabel lipsă, celule verticale, clipping direct/interior, rând ascuns, gutter gol, cap eliminat, valoare modificată ori FAIL schimbat în PASS; Fails ascuns sub navigare și antet tehnic rupt pe litere |
+| Inventory | exact number per form and owner; setup, ACTION / OBSERVE, request / response, execution / retry and three distinct Thracian roles |
+| Geometry | 1803/1280/991/719/720/721/591/392 px and 591/392 px panels; full width, legible font, aligned columns, finite head, last row and last accessible column; secondary tabs also check 760/761 px threshold |
+| Evidence | independent literal values, Unicode / escaping, PASS / FAIL kept and identical content after resize, Enter / Space and return to Tests |
+| Taburi | Overview / System / Tags and table Categories; Fails uses native fields / index, and secondary fallback tags use cards / links; the intentional absence of a table is explicit |
+| Negative control | artificially reduced width, header / column / missing table, vertical cells, direct / inner clipping, hidden row, empty gutter, removed head, modified value times FAIL changed into PASS; Fails hidden under navigation and technically torn header |
 
-Colectarea browser este grupată în `PublishedEvidenceTableMeasurements`;
-`PublishedEvidenceTableOracle` aplică regulile independente. Controalele negative
-restaurează exact tabelul publicat și verifică din nou inventarul și conținutul.
-Proba așteaptă terminarea tranzițiilor finite înaintea măsurării, inclusiv după
-restaurarea unei mutații. Campania browser se rulează separat de achizițiile E2E
-publice; bugetele de interacțiune și timeout-urile business rămân neschimbate.
+The browser collection is grouped in `PublishedEvidenceTableMeasurements`; `PublishedEvidenceTableOracle` applies independent rules. Negative controls restore the exact published table and check the inventory and content again. The sample is waiting for the completion of the finished transitions prior to measurement, including after restoration of a mutation. The browser campaign runs separately from public E2E purchases; interaction budgets and business timeouts remain unchanged.
 
-Conținutul canonic este comparat în aceeași ordine după navigare. Proiecțiile
-derivate `atf-ui-failure-evidence` se verifică separat: câte una pentru fiecare
-owner request/validation eșuat, cu prima comparație originală și fără duplicate
-la navigări repetate; pasul component `assertion-step` nu participă la hook.
+Canon content is compared in the same order after navigation. `atf-ui-failure-evidence` derived projections are checked separately: one for each failed owner / validation, with the first original comparison and no duplicates on repeated browsing; `assertion-step` component step does not participate in the hook.
 
-Lățimea procentuală a primei coloane nu este un oracol estetic. Alocarea după
-conținut rămâne protejată de `EvidenceColumnSizingComponentTest`.
-Bugetul configurabil și redactarea au probele dedicate existente.
+The percentage width of the first column is not an aesthetic oracle. The allocation of content remains protected by `EvidenceColumnSizingComponentTest`. The configurable budget and redaction have existing dedicated evidence.
 
-`ReportingCoverageMatrixTest` cere prezența probei pentru configurare/System
-și categoria ei componentă; verificarea comportamentului rămâne în acea probă.
+`ReportingCoverageMatrixTest` requires the presence of the sample for configuration / System and its component category; the behavior check remains in that sample.
 
-Pentru `ExtentReportDisclosureBrowserComponentTest`, `support/inspection/disclosure` deține fixture-ul
-și proba browser. Auditul reutilizabil folosește facade-ul din `support/locators`:
-identifică validarea UI după rol și acțiunile incluse, nu după titlu, și deschide
-ancestorii scenariu → fază → checkpoint → validare înaintea inspecției.
+For `ExtentReportDisclosureBrowserComponentTest`, `support/inspection/disclosure` holds the fixture and browser sample. The reusable audit uses the `support/locators` facade: identifies the UI validation by role and actions included, not by title, and opens the script ancestors → phase → checkpoint → validation before inspection.
 
 </details>
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-10px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10}}}%%
 flowchart LR
-    Composition["Compoziție"] -->|consumă| Reporting["Reporting"]
-    Reporting -->|produce| Reports["Rapoarte API / UI"]
-    Composition -. test scope .-> Support["Suport teste"]
-    ShopTests[Practice Shop] -. consumă .-> Reporting
-    AppTests["Guvernanță"] -. verifică .-> Reporting
+    Composition["Composition"] -->|consume| Reporting["Reporting"]
+    Reporting -->|produces| Reports["API / UI reports"]
+    Composition -. test scope .-> Support["Test support"]
+    ShopTests[Practice Shop] -. consume .-> Reporting
+    AppTests["Governance"] -. verifies .-> Reporting
 ```
 
 <details>
-<summary><strong>Legendă — composition root pentru reporting</strong></summary>
+<summary><strong>Legend - composition root for reporting</strong></summary>
 
-- atf-reporting este biblioteca verificată, nu un test fixture;
-- suportul grupat în diagramă reprezintă dependențele de test scope;
-- artifactele API/UI sunt rezultate ale compoziției, nu fișiere normative;
-- atf-test-practice-shop și atf-tests sunt consumatori cu responsabilități separate, nu extensii ascunse ale librăriei.
+- atf-reporting is the verified library, not a fixture test;
+- the chart-grouped support represents the scope test dependencies;
+- API / UI artifacts are composition results, not normative files;
+- atf-test-practice-shop and atf-tests are consumers with separate responsibilities, not hidden extensions of the library.
 </details>
 
-| Surface | Owner | Dependențe |
+| Surface | Owner | Dependencies |
 |---|---|---|
 | renderer, model, CSS/JS, publication | `atf-reporting` | zero module ATF |
-| contracte API/mock care produc evidence pentru reporting | `atf-reporting-tests` | core/mock/validation/console |
-| browser E2E și ATF Debug pentru raport | `atf-reporting-tests` | ui/debug-ui/Playwright |
-| testele Practice Shop | `atf-test-practice-shop` | reporting jar, UI și setup-ul aplicației |
-| guvernanță whole-ATF | `atf-tests` | nu deține teste de aplicație |
+| API / mock contracts producing record-keeping for reporting | `atf-reporting-tests` | core/mock/validation/console |
+| E2E and ATF Debug browser for report | `atf-reporting-tests` | ui/debug-ui/Playwright |
+| Shop Practice tests | `atf-test-practice-shop` | reporting jar, UI and application setup |
+| whole governance - ATF | `atf-tests` | does not have application tests |
 
-## Regula limitelor de responsabilitate
+<a id="rule-of-liability-limits"></a>
+<a id="regula-limitelor-de-responsabilitate"></a>
+## Rule of liability limits
 
-`atf-reporting` trebuie să treacă singur:
+`atf-reporting` must pass by itself:
 
 ```text
 mvn -f atf-reporting/pom.xml test
 ```
 
-Fără reactor, fără module ATF locale și fără fixture-uri de business. Testele
-din acest modul verifică numai contractele publice ale reportingului. Testele
-API/UI/E2E de aici sunt vehicule deterministe pentru a demonstra că reportingul
-poate fi consumat; nu sunt suita unei aplicații reale.
+No reactor, no local ATF modules and no business fixtures. The tests in this module check only the reporting public contracts. API / UI / E2E tests here are deterministic vehicles to demonstrate that reporting can be consumed; they are not the suite of a real application.
 
-Înlocuirea modulului cu un jar nu schimbă consumerii: aceștia depind de
-interfețele și contractele publice `atf-reporting`, nu de clasele testului sau
-de directoarele locale ale repository-ului.
+Replacement of the modules with a fire does not change consumption: they depend on public interactions and contracts `atf-reporting`, not on test classes or local reviews of directories.
 
-Locatorii UI sunt centralizați în `src/test/.../support/locators`:
+UI locators are centralized in `src/test/.../support/locators`:
 
-- preferă un selector semantic cu atribut stabil, de exemplu
+- prefer a semantic selector with a stable attribute, for example
   `button[data-atf-action='expand']`;
-- selectorii structurali sau `nth(...)` rămân în ownerul locatorului când
-  markup-ul nu oferă o identitate mai bună;
-- testele, flow-urile și auditorii nu compun direct `page.locator(...)`.
+- structural selector or `nth(...)` remains in the locator's owner when
+  the marker does not provide a better identity;
+- tests, flows and auditors do not directly compose `page.locator(...)`.
 
-## Consola testelor de raportare
+<a id="reporting-test-console"></a>
+<a id="consola-testelor-de-raportare"></a>
+## Reporting test console
 
-UI și API afișează implicit detalii la consolă atât din IntelliJ, cât și din Maven.
+UI and API display the details of the console both from IntelliJ and Maven.
 
-- Auditul UI folosește `ReportingTestConsole` pentru browser și raport.
-- Testele API direct-runnable declară `@AtfConsoleMessages(DETAILS)`; fixture-ul
-  API reutilizează sink-ul lifecycle-ului, astfel încât request/validation apar
-  prin aceeași proiecție `[ATF]`, fără reporter duplicat.
-- API-ul folosește consola configurată și fără lifecycle JUnit curent.
-- `reporting.console.detailsEnabled: false` restrânge detaliile;
-  `enabled: false` oprește proiecția. [ATF Console](../atf-console/README.md)
-  deține politica și output-ul.
+- UI audit uses `ReportingTestConsole` for browser and report.
+- API tests direct- runnable declares `@AtfConsoleMessages(DETAILS)`; fixture
+  API reuses the lifecycle synchronization, so that demand / validation appears by the same `[ATF]` projection without duplicate reporter.
+- API uses the consonant configured without current lifecycle JUnit.
+- `reporting.console.detailsEnabled: false` narrows down details;
+  `enabled: false` stops the projection. [ATF Console](../atf-console/README.md) holds the politics and output.
 
-## Contractul de titlu pentru request-uri API
+<a id="api-title-contract"></a>
+<a id="contractul-de-titlu-pentru-request-uri-api"></a>
+## API Title Contract
 
-Orice request publicat de un consumer trebuie să fie recognoscibil fără
-deschiderea imediată a disclosure-ului:
+Any demand published by a consumer shall be recognizable without the immediate opening of the dislocation:
 
 ```text
 HTTP_METHOD relativePath — very-short business intent
 ```
 
-`relativePath` este ruta observată; valorile dinamice rămân în path-ul runtime,
-nu în enum-uri. Dacă este necesară intenția de business, consumerul poate folosi
-un descriptor typed (`ApiOperationDescriptor`) cu method și route template.
+`relativePath` is the observed route; dynamic values remain in the runtime paths, not in lists. If business intent is required, the consumer may use a typed descriptor (`ApiOperationDescriptor`) with method and piled routs.
 
-Boundary-ul rămâne independent:
+Boundary remains independent:
 
-- `atf-reporting` publică titlul primit și nu parsează semantica din el;
-- consumerul deține vocabularul aplicației și corelarea cu ruta dinamică;
-- example Practice Shop: `SEARCH` → wire `GET` →
+- `atf-reporting` publishes the title received and does not leave the semantics in it;
+- the consumer holds the application vocabulary and correlation with the dynamic route;
+- exemplu Practice Shop: `SEARCH` → wire `GET` →
   `GET /products/search — find configured product`;
-- aliasul browser `QUERY`, dacă apare, rămâne metodă observată la capture
-  boundary și nu înlocuiește metoda/titlul request-ului;
-- `OPERATION KIND` și `ROUTE TEMPLATE` oferă auditorului contextul stabil
-  al execuției Practice Shop.
+- `QUERY` browser alias, if present, remains method observed in capture
+  boundary and does not replace the method / title of the request;
+- `OPERATION KIND` and `ROUTE TEMPLATE` provide the auditor with a stable context
+  of the Shop Practice Execution.
 
-Contractul este verificat pe două seam-uri:
+The contract is checked on two seams:
 
-| Seam | Verificare |
+| Seam | Verification |
 |---|---|
-| core vocabulary | `ApiOperationDescriptorContractTest` validează formatul și input-ul invalid |
-| reporting fallback/Extent | `HtmlReportComponentContractTest` și `ExtentReportSessionContractTest` validează titlul publicat în artifact |
-| consumer Practice Shop | `ShopApiOperationTest`, `ShopStandaloneApiReportTest` și `ShopApiMethodFidelityTest` validează method/path/intent, absența `QUERY`, operation kind și route template |
+| core vocabulary | `ApiOperationDescriptorContractTest` validates invalid format and input |
+| reporting fallback/Extent | `HtmlReportComponentContractTest` and `ExtentReportSessionContractTest` validate the title published in the artifact |
+| consumer Practice Shop | `ShopApiOperationTest`, `ShopStandaloneApiReportTest` and `ShopApiMethodFidelityTest` validate the method / path / intent, absence of `QUERY`, operation kind and route template |
 
-### Corelarea cauzelor UI
+<a id="correlation-of-ui-cases"></a>
+<a id="corelarea-cauzelor-ui"></a>
+### Correlation of UI cases
 
-Corelarea cauzelor UI este verificată separat de
-`UiFailureCorrelationComponentTest`: aceeași instanță de aserțiune publicată
-și excepția sa propagată produc o singură intrare Fails. Fixture-ul neutru
-acoperă nouă scenarii în ambele moduri de flow; cele 16 cauze intenționate
-rămân distincte, inclusiv UI/API cu texte egale și excepții independente.
-Auditul browser verifică fiecare Open in Tests, aserțiunea originală,
-diagnosticul terminal și captura păstrată; testul unitar verifică
-identitatea, propagarea wrapped, cleanup-ul și ciclurile de cauze.
+The correlation of UI cases is checked separately from `UiFailureCorrelationComponentTest`: the same published assertion court and its propagated exception produce a single Fails entry. The neutral fixture covers nine scenarios in both flow modes; the 16 intentional causes remain distinct, including UI / API with equal texts and independent exceptions. Tests, original assertion, terminal diagnosis and retained catch; unitary test checks identity, wrapped propagation, cleanup and cycles of causes.
 
-### Fidelitatea metodei și a timpilor API
+<a id="fitness-of-method-and-times-api"></a>
+<a id="fidelitatea-metodei-și-a-timpilor-api"></a>
+### Fitness of method and times API
 
-- metoda observată rămâne fidelă în snapshot, titlu, semnătură și replay; aliasul
-  operației business rămâne separat;
-- durata necapturată este distinctă de `0 ms`, iar response time, totalul cu retry
-  și durata publicării nu se substituie între ele;
-- corp absent, JSON literal `null` și corp necapturat rămân stări distincte;
-- replay-ul păstrează argumentele shell citate separat; testul de paritate nu
-  presupune ordinea headerelor și nu transformă absența într-un pane JSON;
-- `ReportTransportTimingTest` și `ApiExchangeParityComponentTest` verifică
-  proiecția Reporting, iar `ShopApiMethodFidelityTest` protejează adaptorul
-  consumerului;
-- semantica este în [`ATF_Reporting_Contract.md`](../docs/ATF_Reporting_Contract.md),
-  iar forma vizibilă este în
-  [`ATF_Reporting_Display_Contract.md`](../docs/ATF_Reporting_Display_Contract.md).
+- method observed remains true in snapshot, title, signature and reply; alias
+  the business operation remains separate;
+- unclaimed duration is distinct from `0 ms` and response time, total with retry
+  and the duration of the publication shall not be substituted for each other;
+- Absent body, JSON literal `null` and unattached body remain distinct states;
+- The reply keeps the shell arguments quoted separately; parity test does not
+  entails the order of the headers and does not turn the absence into a JSON flat;
+- `ReportTransportTimingTest` and `ApiExchangeParityComponentTest` check
+  Reporting projection and `ShopApiMethodFidelityTest` protects the consumer adapter;
+- semantics is in [`ATF_Reporting_Contract.md`](../docs/ATF_Reporting_Contract.md),
+  and the visible shape is in [`ATF_Reporting_Display_Contract.md`](../docs/ATF_Reporting_Display_Contract.md).
 
-### Durata comună în Tests și Overview
+<a id="common-duration-in-tests-and-overview"></a>
+<a id="durata-comună-în-tests-și-overview"></a>
+### Common duration in Tests and Overview
 
-| Boundary | Contract și probă |
+| Boundary | Contract and evidence |
 |---|---|
-| Proiecția Timeline | `OverviewDurationProjectionComponentTest` verifică asset-ul real: total, model, bare, zero, fallback, nume duplicate și refresh |
-| Inspecția reutilizabilă | `ApiReportDurationProjectionAuditor.inspectCurrentDom` și readerul DOM folosesc aceeași resursă nativă `inspection/duration-projections.js` |
-| Oracol semantic | totalul, modelul și valorile graficului trebuie să corespundă claselor canonice; markerul numeric singur nu este suficient |
-| Probe negative | componenta corupe separat markerul, modelul și graficul; fiecare inconsistență produce o încălcare explicită |
+| Timeline projection | `OverviewDurationProjectionComponentTest` checks the actual asset: total, model, bars, zero, fallback, duplicate names and refresh |
+| Re-usable inspection | `ApiReportDurationProjectionAuditor.inspectCurrentDom` and DOM Reader use the same native resource `inspection/duration-projections.js` |
+| Semantic oracle | total, model and chart values shall correspond to the canonical classes; the single numeric marker shall not be sufficient |
+| Probe negative | component corrupts the marker, model and chart separately; each inconsistency produces an explicit breach |
 
-## Reconcilierea dovezilor API și navigarea fazei
+<a id="reconciliation-of-api-evidence-and-phase-navigation"></a>
+<a id="reconcilierea-dovezilor-api-și-navigarea-fazei"></a>
+## Reconciliation of API evidence and phase navigation
 
-| Boundary | Contract | Probă |
+| Boundary | Contract | Test |
 |---|---|---|
-| Câmpuri randate | `ApiReportEvidenceField` deține eticheta canonică și aliasurile legacy explicite; aliasurile contradictorii nu ascund o valoare greșită | `ApiReportContractAuditorTest` |
-| Query | se extrage din `URL` al request-ului, nu din path sau din URL-ul răspunsului; un răspuns corect nu repară artificial un request incomplet | `ApiReportRenderedEvidenceComponentTest` — nominal și query lipsă |
-| Ownership tabel | câmpurile response provin numai din disclosure-ul `Response details`, nu din trace-ul tehnic al execuției | aceeași componentă cere exact un tabel pentru fiecare canal de evidence |
-| Fază | binding-ul se verifică pe header, apoi se așteaptă starea open pe card; nu se mărește timeout-ul și nu se face toggle repetat fără citirea stării | aceeași componentă: reselectare, tab round-trip, reîncărcare și TEST BODY absent |
-| Captură de audit | publisherul reutilizează tab-ul deja inspectat fără reload sau resetarea acțiunilor; schimbarea tab-ului pentru evidence păstrează istoricul | aceeași componentă verifică identitatea paginii, trace-ul și disclosure-ul deschis |
-| Compoziție | setup exact → mock → API artifact → toate secțiunile randate și reconciliere | `SelectedApiTestsReportUiTest` |
+| Rated fields | `ApiReportEvidenceField` holds the canonical label and explicit legacy aliases; contradictory aliases do not hide a wrong value | `ApiReportContractAuditorTest` |
+| Query | be withdrawn from the `URL` of the request, not from the patch or URL-ul response; a correct response does not artificially repair an incomplete request | `ApiReportRenderedEvidenceComponentTest` - nominal and query missing |
+| Ownership table | responding fields come only from `Response details` disclosure, not from the technical trackside of execution | Same component requires exactly one table for each evidence channel |
+| Phase | bindings are checked on the header, then waiting for open status on the card; no increase in timeout and repeated toggle without reading status | Same component: re-selection, round-trip tab, reloading and TEST BODY absent |
+| Audit catch | the publisher reuses the already inspected table without reload or resetting the actions; changing the evidence table keeps the history | Same component checks the identity of the page, the tracksuit and the open discoloration |
+| Composition | exact setup → mock → API artifact → all sections rendered and reconciling | `SelectedApiTestsReportUiTest` |
 
-Probele de componentă folosesc o publicație Extent controlată și aceleași
-locatoare/extractoare ca E2E, fără endpoint extern. Scenariile negative sunt
-date ale fixture-ului, nu motive de a dezactiva verificări sau de a inventa PASS.
-`ExtentReportDisclosureBrowserComponentTest` folosește și evidence API mock:
-nodurile cu request/response/validation se extind, în timp ce o fază fără
-conținut copil nu simulează un control interactiv.
+Component samples use a controlled Extent publication and the same locators / extractors as E2E without external endpoint. Negative scenarios are fixture data, not reasons to disable checks or invent PASS. `ExtentReportDisclosureBrowserComponentTest` uses and highlight API mock: nodes with demand / response / validation extend, while a phase without child content does not simulate interactive control.
 
-### Erori simultane la publicare și close
+<a id="simultaneous-errors-in-publication-and-close"></a>
+<a id="erori-simultane-la-publicare-și-close"></a>
+### Simultaneous errors in publication and close
 
-`UiPublicationFailureComponentTest` injectează erori în porturi controlate,
-apelate prin fațada UI publică; nu presupune un incident într-un renderer real.
+`UiPublicationFailureComponentTest` injects errors in controlled ports, called through public UI facade; does not imply an incident in a real renderer.
 
-| Oracol independent | Contract probat |
+| Independent oracle | Proven contract |
 |---|---|
-| Instanța excepției inițiale | achiziție/body/complete rămâne cauza; close distinct devine suppressed |
-| Evenimentele porturilor | fiecare scope achiziționat are un singur close, fără replay |
-| Aceeași excepție la body și close | fără self-suppression sau substituirea cauzei |
-| RuntimeException și Error | aceeași identitate și ordine în toate intrările probate |
-| Outcome, setup, checkpoint/media, API, unified, failure delegat | request, validation și API assertions se închid la owner |
-| Achiziție parțială | se închide părintele deținut, fără close pe copilul neobținut |
-| Erori multiple de cleanup | copilul precedă părintele în suppressed, cu identitățile originale |
+| The original exemption court | purchase / body / complete remains the cause; separate close becomes suppressed |
+| Port events | each scope purchased has a single close without rephrase |
+| Same exception to body and close | without self-pressure or substitution of the case |
+| RuntimeException and Error | Same identity and order in all proven entries |
+| Outcome, setup, checkpoint / media, API, unified, delegated failure | Require, validation and API assertions close to owner |
+| Partial acquisition | close the prisoner parent without close on the child not obtained |
+| Multiple errors of cleanup | child precedes parent in suppressed, with original identities |
 
-Snapshot-urile semantice și probele Extent/fallback verifică separat randarea;
-fault injection nu înlocuiește auditul HTML.
+Semantic snapshots and Extent / fallback samples check the rendering separately; foul injection does not replace the HTML audit.
 
-Matricea publică este completată de `UiFailurePublicationComponentTest`, pentru
-`UiFailureEvidencePublisher` direct și prin fațadă. Porturile nu închid copiii în
-cascadă: lipsa close-ului validării este detectată independent. Achiziția parțială,
-erorile la body/complete/close, `Error` și self-suppression păstrează cauza inițială.
+The public matrix is complemented by `UiFailurePublicationComponentTest`, for `UiFailureEvidencePublisher` directly and through the facade. Ports do not close children in cascade: lack of validation close.Partial acquisition, body / complete / close errors, `Error` and self- pressure keeps the original cause.
 
-`PublishedFailureNavigationComponentTest` publică fixture-uri Extent cu UI/API și
-assertion-step de componentă în toate fazele. Backlink-ul trebuie să deschidă
-comparația exactă fără helper de expandare; tastatura, reload-ul și scenariul
-vecin PASS sunt probate separat de geometria generală Extent/fallback.
+`PublishedFailureNavigationComponentTest` publishes Extent fixtures with UI / API and assertion- step component in all phases. Backlink must open the exact comparison without expansion helper; the keyboard, relay and neighbouring PASS scenario are tested separately from the general Extent / fallback geometry.
 
-`PublishedFailureNavigationEdgeComponentTest` completează proba de navigare:
+`PublishedFailureNavigationEdgeComponentTest` completes the navigation sample:
 
-- Extent indexează un singur lanț de diagnostic în Fails; Tests păstrează fiecare
-  rând sursă per fază, colapsabil și expandabil independent. Fallback păstrează
-  câte un rând navigabil pentru fiecare fază;
-- diagnostice fără comparații în toate fazele și fallback pentru UI/API/component;
-- dovada originală, bugetul configurat, ruta reîncărcată și diagnostice intercalate;
-- ancestor ascuns care invalidează oracolul, fără expandare asistată.
+- Extent indexes a single diagnostic chain in Fails; Tests keep each
+  source row per phase, collapsible and expanding independently. Fallback keeps one navigable row for each phase;
+- Blurred diagnoses in all phases and fallback for UI / API / component;
+- original proof, configured budget, recharged route and intercalated diagnostics;
+- Hidden ancestor that invalidates the oracle, without assisted expansion.
 
-## Ordinea testelor și responsabilitatea protecțiilor
+<a id="order-of-tests-and-responsibility-of-protection"></a>
+<a id="ordinea-testelor-și-responsabilitatea-protecțiilor"></a>
+## Order of tests and responsibility of protection
 
-1. `atf-reporting` — unit/component pentru model, renderer, artifact și CSS/JS;
-2. `atf-reporting-tests` — component pentru compoziția controlată mock →
-   reporting, integration pentru boundary-urile dintre module și E2E numai
-   pentru browser/rendering-ul contractului librăriei `atf-reporting`;
-3. `atf-test-practice-shop` — testele consumer pentru journey-ul Practice Shop.
-4. `atf-tests` — boundary și guvernanță whole-reactor, inclusiv verificările
-   globale de documentație, ownership, coeziune și vocabular.
+1. `atf-reporting` - unit / component for model, renderer, artifact and CSS / JS;
+2. `atf-reporting-tests` - component for the controlled mock composition →
+   reporting, integration for the Boundary Boundary between modules and E2E only for the browser / contract renderings of `atf-reporting` library;
+3. `atf-test-practice-shop` - consumer tests for the Shop practice tour.
+4. `atf-tests` - Boundary and Whole-Reactor Governance, including Checks
+   Global documentation, ownership, cohesion and vocabulary.
 
-`src/test/java/atf/reporting/api` rămâne limitat la
-verificări care au ca subiect compoziția reporting. Nu duplică guard-uri de
-reactor și nu validează README-urile întregului proiect; acestea sunt executate
-central prin [`WholeAtfGovernanceSuiteTest`](../atf-tests/README.md#suita-whole-atf-și-reziduul-de-compatibilitate).
+`src/test/java/atf/reporting/api` remains limited to checks that have as their subject the reforming composition. Do not duplicate reactor guards and do not validate README to the entire project; they are centrally executed by [`WholeAtfGovernanceSuiteTest`](../atf-tests/README.md#suita-whole-atf-și-reziduul-de-compatibilitate).
 
-### Selecția scenariilor pentru un raport API
+<a id="selecting-scenarios-for-api-ratio"></a>
+<a id="selecția-scenariilor-pentru-un-raport-api"></a>
+### Selecting scenarios for API ratio
 
-`@ApiScenarioSetup(tests = ...)` declară metodele exacte; resolver-ul validează
-selecția înaintea colecțiilor mai largi.
+`@ApiScenarioSetup(tests = ...)` declares the exact methods; the resolver validates the selection before wider collections.
 
-Ordinea fallback-ului, când nu sunt declarate metode exacte:
+Fallback order, when no precise methods are declared:
 
-1. proprietatea JVM cu familii API;
-2. proprietatea suitei;
-3. familiile din adnotare;
-4. configurația YAML.
+1. JVM property with API families;
+2. property of the suite;
+3. families in annotation;
+4. YAML configuration.
 
-Ownerii și scenariile așteptate nu sunt deduși din DOM-ul rezultat.
+The expected Owners and scenarios are not deducted from the resulting DOM.
 
-| Contract | Proof component | Limită |
+| Contract | Proof component | Boundary |
 |---|---|---|
-| selecția exactă și proiecția semantică | `ApiScenarioManifestTest` | verifică owner, titluri, statusuri, ordine și respinge scenarii nealese față de fallback-ul YAML |
-| precedence-ul setup-ului și fallback-urilor | `ApiReportAuditSetupTest` | verifică direct că override-ul JVM pentru familii are prioritate față de `tests = ...`, apoi verifică fallback-urile de suite, adnotare și YAML |
-| selecție exactă → mock/lifecycle → publisher | `ApiSelectionMockPublisherComponentTest` | verifică răspunsul JSON al mock-ului, request/response/execution evidence în artifact și excluderea scenariilor nealese; selecția invalidă este respinsă înainte de publicare |
+| exact selection and semantic projection | `ApiScenarioManifestTest` | checks the owner, titles, statuses, orders and rejects unelected scenarios against the YAML fallback |
+| precedent of the setting and fallbacks | `ApiReportAuditSetupTest` | directly verify that the JVM family override takes priority over `tests = ...`, then check the suite, annotation and YAML fallbacks |
+| exact selection → mock / lifecycle → publisher | `ApiSelectionMockPublisherComponentTest` | checks the mock's JSON response, request/response/execution evidence in the artifact and exclusion of unselected scenarios; invalid selection is rejected before publication |
 
-Aceste proof-uri sunt complementare: manifestul verifică proiecția, resolver-ul
-verifică precedence-ul, iar testul compus dovedește verticala până la artifact.
-`SelectedApiTestsReportUiTest` rămâne separat pentru interacțiunea de browser;
-nu este folosit ca substitut pentru contractele lower-level.
+These proofs are complementary: the manifest checks the projection, the resolver checks the precedent, and the composite test proves vertical to the artifact. `SelectedApiTestsReportUiTest` remains separate for browser interaction; it is not used as a substitute for lower- level contracts.
 
 <details>
-<summary><strong>Niveluri de testare și independență</strong></summary>
+<summary><strong>Test levels and independence</strong></summary>
 
-- **`atf-reporting/src/test`** — boundary standalone al librăriei; verifică
-  compilarea independentă și contractele locale fără ATF, mock sau browser,
-  inclusiv componenta `ReportingStandaloneVerdictComponentTest`;
-  `ReportingVerdictProjectionComponentTest` verifică aici numai proiecția browser,
-  totalurile, disclosure-urile, limita 240 și navigarea în ambele renderere;
-- **`atf-reporting-tests`** — composition root pentru component, integration/API
-  și E2E; leagă reporting-ul de mock, execution, validation, Playwright și
-  ATF Debug;
-- **`atf-test-practice-shop`** — consumer de aplicație; nu este parte din
-  verificarea bibliotecii reporting;
-- **`atf-tests`** — governance pentru reactor; nu deține fixture-uri sau flows;
-- **regula de independență** — testul E2E verifică numai comportamentul care
-  depinde de browser; contractele statice, modelul și asset-urile se verifică
-  la nivelurile mai mici;
-- **regula de boundary** — mock-ul și browserul nu intră în production JAR-ul
+- **`atf-reporting/src/test`** - boundary standalone of the library; check
+  independent compilation and local contracts without ATF, mock or browser, including the `ReportingStandaloneVerdictComponentTest` component; `ReportingVerdictProjectionComponentTest` verifies here only the browser projection, totals, disclosures, 240 limit and navigation in both renderings;
+- **`atf-reporting-tests`** - composition root for component, integration / API
+  E2E; links the reporting to mock, execution, validation, Playwright and ATF Debug;
+- **`atf-test-practice-shop`** - application consumer; not part of
+  checking the reporting library;
+- **`atf-tests`** - Government for reactor; does not have fixtures or flows;
+- **Rule of independence** - E2E test only checks behaviour
+  depends on the browser; static contracts, model and assets are checked at lower levels;
+- **Boundary rule** - mock and browser do not enter JAR production
   `atf-reporting`.
 
 </details>
 
-## Capturare generică — suport verificat înaintea modulului consumator
+<a id="generic-capture---support-checked-prior-to-the-consumer-module"></a>
+<a id="capturare-generică--suport-verificat-înaintea-modulului-consumator"></a>
+## Generic capture - support checked prior to the consumer module
 
 <details>
-<summary><strong>Contractele detaliate și probele ownerilor — Capturare generică — suport verificat înaintea modulului consumator</strong></summary>
+<summary><strong>Detailed contracts and evidence of the owners - Generic capture - support checked before the consumer module</strong></summary>
 
-Contractul transversal pentru flow mode, screenshot policy și capture source este
-în [`docs/ATF_Evidence_Capture_Contract.md`](../docs/ATF_Evidence_Capture_Contract.md).
-Acest modul îl probează prin fixture-uri deterministe; nu mută politica într-un
-consumer și nu cere Practice Shop pentru testarea suportului.
+The cross-cutting contract for flow mode, screening policy and capture source is in [`docs/ATF_Evidence_Capture_Contract.md`](../docs/ATF_Evidence_Capture_Contract.md). This module probes it through deterministic fixtures; does not move policy into a consumer and does not require Shop Practice for testing the support.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-10px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10}}}%%
 flowchart LR
-    Fixture["Fixture PNG"] -->|configurează| Session["Sesiune + profil"]
-    Session -->|publică| Html[HTML local]
-    Html -->|verifică| Contract["Component / integration"]
-    Browser["Browser static"] -. auditează .-> Html
+    Fixture["Fixture PNG"] -->|configures| Session["Session + profile"]
+    Session -->|publishes| Html[HTML local]
+    Html -->|verifies| Contract["Component / integration"]
+    Browser["Browser static"] -. audit .-> Html
 ```
 
 <details>
-<summary><strong>Legendă — testare pe niveluri</strong></summary>
+<summary><strong>Legend - testing on levels</strong></summary>
 
-- fixture-ul reunește PNG-ul mock, inputul typed și providerul de captură;
-- sesiunea folosește profilul și policy-ul, aplicat înaintea providerului;
-- unit: policy înainte de provider, target, provenance, PNG și cardinalitate `0/1/N`;
-- component: markup, status, disclosure, referință media și păstrarea acțiunilor;
-- integration: session → model semantic → HTML, fără endpoint sau browser extern;
-- browser opțional: captura reală pe artifact HTML static;
-- E2E consumer: dovedește integrarea, nu reimplementează suportul generic;
-- fixture-ul poate reprezenta `PASS`, `FAIL`, `WARNING` sau `SKIP`.
+- the fixture reunites PNG mock, typed input and catch provider;
+- the session uses the profile and the policy, applied before the provider;
+- units: policy before provider, target, provenance, PNG and cardinal `0/1/N`;
+- component: markup, status, disclosure, media reference and stock retention;
+- integration: session → semantic pattern → HTML, without endpoint or external browser;
+- optional browser: actual capture on the artifact HTML static;
+- E2E consumer: proves integration, does not reimplement generic support;
+- The fixture may represent `PASS`, `FAIL`, `WARNING` or `SKIP`.
 
 </details>
 
-- `ReportEvidenceProfileTest` verifică filtrarea înainte de captură, potrivirea sursei,
-  payload-ul PNG și selecția typed a detaliilor acțiunilor.
-- `ReportScreenshotTest` verifică encoding-ul Base64 și semnătura PNG;
-  contractul nu presupune decodarea completă a imaginii.
-- `ExtentReportUiEvidenceRenderingTest` verifică tabelul implicit și că
-  `SUMMARY_ONLY` păstrează un disclosure colapsat, fără tabelul detaliat sau
-  schimbarea capturii; rendererul nu execută acțiuni UI.
-- `ReportEvidenceProfileIntegrationTest` dovedește provider mock → sesiune → HTML local pentru ambele flow mode-uri.
-- Aceeași clasă verifică profile diferite pentru scenarii-surori dintr-o sesiune partajată și repetă proba cu ordinea inversată; profilul nu se scurge între scenarii.
-- `UNIFIED_FLOW` păstrează un singur request cu propoziția Gherkin finală, fără checkpoint-uri numerotate sau Gherkin duplicat; în proiecția per fază, UI actions și assertions sunt agregate, iar `API validation` este soră cu `UI validation` sub același checkpoint Gherkin și deține exchange-urile sale. Sub `FINAL_ONLY` se publică doar captura `FINAL`.
-- `SCREEN_CHECKPOINTS` păstrează request-urile Gherkin independente.
-- Profilul typed combină flow mode, screenshot policy, capture source și action-details mode.
-  Grouping-ul aparține lifecycle/publisher-ului din `atf-reporting`; alegerea modului
-  pentru o adnotare de consumer rămâne responsabilitatea acelui consumer.
+- `ReportEvidenceProfileTest` checks the filtering before the catch, the source's match,
+  PNG payload and typed selection of action details.
+- `ReportScreenshotTest` checks the Base64 encoding and signature PNG;
+  the contract does not entail full decoding of the image.
+- `ExtentReportUiEvidenceRenderingTest` checks the default table and that
+  `SUMMARY_ONLY` keeps a collapse disclosure without detailed table or change of catch; renderer does not perform UI actions.
+- `ReportEvidenceProfileIntegrationTest` proves the mock provider → session → HTML local for both flow models.
+- The same class checks different profiles for sister-scenarios in a shared session and repeats the sample with reverse order; the profile does not leak between scenarios.
+- `UNIFIED_FLOW` retains one request with the final Gherkin sentence, without numbered checkpoints or duplicated Gherkin. In the phase projection, UI actions and assertions are aggregated; `API validation` is a sibling of `UI validation` under the same Gherkin checkpoint and owns its exchanges. Only the `FINAL` capture is published under `FINAL_ONLY`.
+- `SCREEN_CHECKPOINTS` keeps the Gherkin quests independent.
+- Typed profile combines flow mode, screening policy, capture source and actions-details mode.
+  The Grouping belongs to the lifecycle / publishing house in `atf-reporting`; choosing the mode for a consumer annotation remains the responsibility of that consumer.
 
-Izolarea profilului per scenariu este un contract generic implementat și testat.
-Consumerul trebuie să transmită profilul rezolvat la crearea fiecărui scenariu;
-un profil furnizat doar la deschiderea raportului rămâne valoarea implicită a
-sesiunii. Wiring-ul Practice Shop pentru rapoarte partajate și agregarea fazelor
-`SETUP` + `TEST BODY` sunt implementate la consumer și documentate în
-[contractul raportului](../atf-reporting/README.md#contractul-raportului).
+The profile isolation per scenario is a generic contract implemented and tested. The consumer must transmit the solved profile when creating each scenario; a profile provided only at the opening of the report remains the default value of the session. The Shop Practical Wirings for shared reports and the aggregation of `SETUP` + `TEST BODY` phases are implemented at the consumer and documented in [contract of the report](../atf-reporting/README.md#contractul-raportului).
 
-`ExtentUnifiedFlowMultipleScreenshotTest` verifică regresia generică de
-publicare; mapping-ul local rămâne în probele Shop, fără copierea rendererului.
+`ExtentUnifiedFlowMultipleScreenshotTest` checks the generic regression of publication; local mappings remain in Shop samples without copying the renderer.
 
-- `UiCrossPhaseCompactFlowComponentTest` publică un scenariu UI-only prin
-  lifecycle-ul Extent și verifică proiecția tipizată echivalentă în fallback,
-  cu `SETUP`, două checkpoint-uri `TEST BODY` și `CLEANUP`:
-  verifică un singur tabel per familie, ordinea acțiunilor, captura terminală
-  sub tabel, politica `NONE`, proveniența UI separată de `Response details` și
-  absența unui body inventat după setup eșuat. Regresiile existente pentru
-  UI+API și capturi multiple rămân neschimbate.
-- Același test verifică pregătirea declarată direct în `TEST BODY`, fără
-  `SETUP` sau etichetă `Setup validation` inventate, cu assertions și FAIL
-  păstrate în ambele renderere. Alegerea fazelor guest/autentificate aparține
-  consumerului; proba Shop exercită harness-ul real, separat de fixture-ul neutru.
+- `UiCrossPhaseCompactFlowComponentTest` publishes a UI-only scenario by
+  Extent lifecycle and check the equivalent typed projection in fallback with `SETUP`, two `TEST BODY` and `CLEANUP` checkpoints: check one table per family, order of action, terminal capture under the table, `NONE` policy, UI provenance separated from `Response details` and absence of any Body invented after failed setup. Existing regressions for UI + API and multiple catches remain unchanged.
+- The same test checks the declared training directly in `TEST BODY`, without
+  `SETUP` or invented `Setup validation` label with assertions and FAIL stored in both renderers. The choice of the guest / authenticated phases belongs to the consumer; the Shop sample exercises the actual harness- separate from the neutral fixture.
 
-| Componentă | Contract verificat | Invariantă |
+| Component | Verified contract | Invariant |
 |---|---|---|
-| `UiAuditLifecycleTest` din `AtfReportingComponentSuite` | Extent/fallback: captură validă, absentă, payload invalid sau exclusă de policy | Acțiunea, cauza și FAIL rămân vizibile; observația `Screenshot` explică starea fără aserțiune business artificială ori link Base64 inventat. |
-| `ExtentReportSessionContractTest` | Artifact și stil comun; Client implicit exact `Configured per execution` sau Client explicit păstrat și redactat în System | Un consumer fără transport declarat nu primește implicit identitatea unui client API. |
+| `UiAuditLifecycleTest` of `AtfReportingComponentSuite` | Extent / fallback: valid catch, absence, invalid or excluded payload by policy | The action, cause and FAIL remain visible; the `Screenshot` observation explains the status without artificial business assertion or the Base64 link invented. |
+| `ExtentReportSessionContractTest` | Artifact and common style; `Configured per execution` default client or explicit client kept and written in System | A consumer without declared transport does not by default receive the identity of a API customer. |
 
-- Matricea suplimentară compară snapshot-ul semantic cu HTML-ul public pentru
-  toate politicile, inclusiv payload gol, Base64 incorect, non-PNG și failure
-  fără acțiuni executate.
-- Oracolul Client verifică și unicitatea rândului din System.
-- Fixture-ul inspectabil al capturii conține failure-uri sintetice intenționate
-  și un scenariu-frate PASS; nu reprezintă o rulare business Shop/AutoEx.
-- Componenta verifică modelul și markup-ul; randarea, click-ul capturii și
-  Fails → Open in Tests rămân responsabilitatea
-  [probei browser de failure](src/test/java/atf/ui/tests/extent/e2e/failure/UiFailureReportContractTest.java).
+- The additional matrix compares the semantic snapshots with HTML for public
+  any policies, including empty payload, incorrect Base64, non-PNG and faulty without executed actions.
+- The Client Oracle also checks the uniqueness of the row in the System.
+- The inspection fixture of the catch shall contain intended synthetic failures
+  and a PASS brother screenplay; it is not a Shop / AutoEx business run.
+- The component shall check the model and the marker; the rendering, the catch click and
+  Fails → Open in Tests remain the responsibility of [fault browser sample](src/test/java/atf/ui/tests/extent/e2e/failure/UiFailureReportContractTest.java).
 
 </details>
 
-## Matricea de integrare și limitele verificate
+<a id="integration-matrix-and-verified-limits"></a>
+<a id="matricea-de-integrare-și-limitele-verificate"></a>
+## Integration matrix and verified limits
 
 <details>
-<summary><strong>Detalii — matricea de integrare și limitele verificate</strong></summary>
+<summary><strong>Details - integration matrix and verified limits</strong></summary>
 
-`NetworkCaptureEvidenceTest` aparține pachetului
-`atf.ui.tests.extent.component.inspection.network`; cele cinci cazuri rămân
-selectate de suita componentă. Selectorii sunt deținuți de
-`ReportNetworkCaptureLocators`, fără excepții noi pentru importuri browser
-sau selectori în clasa de intenție.
+`NetworkCaptureEvidenceTest` belongs to the `atf.ui.tests.extent.component.inspection.network` package; the five cases remain selected by the component suite. The selectors are held by `ReportNetworkCaptureLocators`, without new exceptions for browser imports or selectors in the intent class.
 
-Integration tests rămân grupate după boundary-ul observat, nu după numele
-modulului consumat:
+Integration tests remain grouped after observed boundary, not by the name of the module consumed:
 
-| Familie | Clase reprezentative | Boundary verificat |
+| Familie | Representative classes | Boundary verificat |
 |---|---|---|
 | API scenarios | `UsersApiTests`, `PostsApiTests`, `RequestVariantsApiTests`, `ApiHeadersAndEdgeCasesTests`, `ApiNegativeMatrixTests`, `ApiRequestFlowsTests` | mock → core → validation → reporting evidence |
-| reporting API | `MockApiReportIntegrationTest`, `ApiReportArtifactAuditTest`, `ApiManualReplayTest` | fixture API → renderer/publisher → artifact și replay |
+| reporting API | `MockApiReportIntegrationTest`, `ApiReportArtifactAuditTest`, `ApiManualReplayTest` | API → renderer / publisher → artifact and rephrase |
 | UI composition | `SelectedApiTestsReportUiTest`, `StaticUiExtentReportContractTest` | artifact → ATF Debug/Playwright → DOM/CSS/disclosure |
 
-`StaticUiExtentReportContractTest` include verificările `UI_VALIDATION` și
-`INLINE_SCREENSHOT`; inputul trebuie să aibă evidence de screenshot conform
-policy-ului declarat. Un raport cu `Screenshot policy = Disabled` nu este input
-pentru acest screenshot gate și nu se interpretează ca defect al rendererului.
+`StaticUiExtentReportContractTest` includes the `UI_VALIDATION` and `INLINE_SCREENSHOT` checks; the input must have screen-shot records according to the stated policy. A ratio to `Screenshot policy = Disabled` is not input for this screen shot gate and is not interpreted as a defect of the renderer.
 
-Fiecare clasă declară layer-ul prin adnotare; package-ul exprimă domeniul și
-boundary-ul, nu nivelul de testare. Setup-ul, mock-ul și validatorii comuni
-rămân în `support`, ca o clasă nouă să compună scenariul fără copiere.
+Each class declares the layer by annotation; the packager expresses the domain and the boundary, not the test level. The set, the mock and the common validators remain in `support`, so that a new class can write the script without copying.
 
-Boundary-urile suportului rămân mici și verificabile:
+Boundary Boundary Boundarys remain small and verifiable:
 
-- `support.api` ține selecția și publicarea precondiției API;
-- `support.config` ține loader-ele, resursele și configurația UI;
-- `support.config.environment` deține snapshot factory-urile typed pentru Overview/System;
-- `UiReportEnvironmentSnapshotFactoryTest` afirmă valorile configurate și
-  rezolvate prin override în rândul System; nu deschide browserul și nu
-  măsoară viewport-ul CSS ori DPR;
-- geometria nativă este probată la [UI](../atf-ui/README.md#geometria-nativă-a-contextului),
-  separat de snapshot-ul metadata și de pixelii screenshot-ului;
-- Network Inspector aparține `atf.reporting.ui.network`; nu se adaugă excepții de coeziune pentru clase fără legătură;
-- guard-ul whole-ATF limitează fiecare package la maximum opt clase.
+- `support.api` shall keep the selection and publication of the precondition API;
+- `support.config` holds the loaders, resources and configuration UI;
+- `support.config.environment` holds Snapshot factories typed for Overview / System;
+- `UiReportEnvironmentSnapshotFactoryTest` states the configured values and
+  Solved by override among the System; does not open the browser or measure the CSS or DPR viewport;
+- native geometry is tested at [UI](../atf-ui/README.md#geometria-nativă-a-contextului),
+  separate from the snapshot metadata and the pixels of the screenshots;
+- Network Inspector belongs to `atf.reporting.ui.network`; no cohesion exceptions are added for unrelated classes;
+- The whole-ATF guard limits each package to a maximum of eight classes.
 
-`ReportingCoverageMatrixTest` este harta executabilă a seam-urilor publice:
+`ReportingCoverageMatrixTest` is the executable map of public seams:
 
-| Verificare | Dovadă obligatorie | Limită intenționată |
+| Verification | Mandatory proof | Intent limit |
 |---|---|---|
-| coverage | fiecare seam are test `unit`, `component`, `integration` sau `e2e` | un seam nou fără dovadă lower-level e regresie de guvernanță |
-| Network Inspector | `ReportNetworkInspectorTest` (`unit`) pentru proiecție/markup; `NetworkInspectorSummaryRoleTest` (`component`) pentru rolul și ordinea summary-ului; `ExtentReportUiEvidencePublishingTest` (`unit`) pentru publicarea aggregate-ului | matricea cere clasele, metodele executabile și adnotările ATF; publicarea rămâne proof separat |
-| audit semantic | `Overview`, `Categories`, `Fails`, `UI validation` și `ReportExecutionProjections` | `ReportAuditSnapshot` rămâne renderer-neutral; aceleași proiecții typed pot fi verificate fără browser |
-| convergență | JSON și visual sunt verificate împreună | browserul observă; regulile se verifică fără Playwright |
-| browser proof | `E2eSuiteBudgetArchitectureTest` plafonează la 8 clase `@AtfE2eTest` | orice clasă nouă cere justificare în feedback și modificarea bugetului |
+| coverage | Each seam has `unit`, `component`, `integration` or `e2e` test | a new seam without lower- level proof e regression of governance |
+| Network Inspector | `ReportNetworkInspectorTest` (`unit`) for projection / markup; `NetworkInspectorSummaryRoleTest` (`component`) for the role and order of the summary; `ExtentReportUiEvidencePublishingTest` (`unit`) for the publication of the aggregates | The matrix requires classes, executable methods and annotations of ATF; publication remains pro separately |
+| audit semantic | `Overview`, `Categories`, `Fails`, `UI validation` and `ReportExecutionProjections` | `ReportAuditSnapshot` remains renderer-neutral; same typed projections can be checked without browser |
+| Convergence | JSON and visual are checked together | browser notes; rules are checked without Playwright |
+| browser proof | `E2eSuiteBudgetArchitectureTest` cap 8 `@AtfE2eTest` classes | any new class requires justification in feedback and change of budget |
 
-### Publicarea unui raport voluminos — probă de componentă
+<a id="publication-of-a-bulky-report---component-sample"></a>
+<a id="publicarea-unui-raport-voluminos--probă-de-componentă"></a>
+### Publication of a bulky report - component sample
 
-`LargeReportPublicationComponentTest` rulează într-un JVM copil cu heap
-limitat; nu execută journey-uri pe aplicația externă și nu reduce capturile.
-Două profiluri izolează volumul HTML de volumul media.
+`LargeReportPublicationComponentTest` runs in a JVM child with limited head; does not run Journeys on external application and does not reduce catches. Two profiles isolate HTML volume from the average volume.
 
-| Parametru / dovadă | Contractul fixture-ului |
+| Parameter / proof | The fixture contract |
 |---|---|
-| Heap | `-Xms64m -Xmx384m`, separat de fork-ul Surefire |
-| Output | directorul configurabil este creat înaintea logului JVM copil; proba poate porni într-un director nou |
-| Profil text/HTML | Unicode, 1.500 referințe PNG inline și două imagini distincte repetate; artifact >9 MB |
-| Profil media | Patru PNG-uri generate distincte 256×256, fiecare referit de două ori; după deduplicare rămân patru payload-uri inline, totalul lor depășește 900.000 caractere |
-| Integritate | exit code 0, heap total eșantionat la 2 ms, durata publicării, marker final, temă, runtime și referințe screenshot acționabile |
-| Failure-path și publicare | `ExtentReportSessionLifecycleTest` verifică destinație blocată, cleanup failure după promovare atomică, staging privat fără scurgeri și evenimentul `REPORT_PUBLISHED` numai după existența fișierului final; închiderea repetată emite o singură notificare, iar publicarea eșuată nu emite succes. `ExtentReportAssetCleanupTest` probează determinist `AccessDeniedException` și `FileSystemException`: lock tranzitoriu/persistent, retry limitat, eroare I/O nereîncercabilă și păstrarea întreruperii |
-| Timp | Child process-ul are timeout configurabil `atf.test.publication.timeout.seconds` (implicit 60 s); depășirea oprește forțat doar JVM-ul probei |
-| Limită | nu dovedește volume arbitrare sau fotografii de rezoluție foarte mare; timpul este măsurat și limitat doar de timeout-ul probei, nu este SLA |
+| Heap | `-Xms64m -Xmx384m`, separate from the Surefire fork |
+| Output | Configurable directory is created before JVM child log; the sample can start in a new directory |
+| Text profile / HTML | Unicode, 1.500 references PNG inline and two distinct images repeated; artifact > 9 MB |
+| Media profile | Four separate PNG generated 256×256, each referred twice; after the deduction four inline payloads remain, their total exceeds 900.000 characters |
+| Integrity | Exit code 0, total heap sampled at 2 ms, duration of publication, final marker, theme, runtime and actionable screenshot references |
+| Faillure-path and publication | `ExtentReportSessionLifecycleTest` checks for blocked destination, cleanup failure after atomic promotion, private staging without leads and `REPORT_PUBLISHED` event only after the final file; repeated closure only gives one notification and failed publication does not deliver successes. `ExtentReportAssetCleanupTest` proposes `AccessDeniedException` determinist and `FileSystemException`: transition / persistent lock, limited retry, error I / O nonretryable and maintenance of interruption |
+| Time | Child processing has `atf.test.publication.timeout.seconds` configurable timeout (default 60 s); overshoot only JVM sample |
+| Boundary | does not prove arbitrary volumes or very high resolution photos; the time is measured and limited only by the sample timeout, it is not SLA |
 
-Proba este contractuală prin limite repetabile, nu prin rezultatele unui run:
+The test is contractual by repeatable limits, not by the results of a run:
 
-- JVM copil: `-Xms64m -Xmx384m`; heap-ul eșantionat trebuie să rămână sub
+- JVM child: `-Xms64m -Xmx384m`; sampled head should remain below
   `345 MiB`;
 - timeout: `atf.test.publication.timeout.seconds`, implicit `60 s`;
-- profilul `repeated-pixels` păstrează raportul peste `9 MB` și referințe la
-  capturi distincte;
-- profilul `distinct-pngs` păstrează raportul peste `2 MB`, patru payload-uri
-  PNG inline distincte și peste `900.000` de caractere media;
-- durata și heap-ul sunt observate pentru diagnostic, dar nu se copiază ca
-  rezultate permanente în README.
+- `repeated-pixels` profile keeps the ratio above `9 MB` and references to
+  separate catches;
+- `distinct-pngs` profile keeps the ratio above `2 MB`, four payloads
+  PNG distinct inline and above `900.000` media characters;
+- duration and head are observed for diagnosis, but do not copy as
+  permanent results in README.
 
-Cleanup-ul directorului vendor `spark` tratează `FileSystemException`, inclusiv
-`AccessDeniedException`, în maximum patru încercări cu pauze de 50 ms.
-Blocarea persistentă se propagă cu diagnostic; întreruperea oprește cleanup-ul
-și păstrează flag-ul thread-ului, fără să elimine raportul deja publicat.
+The Cleanup of the Director of Vendor `spark` treats `FileSystemException`, including `AccessDeniedException`, in maximum four attestations with 50 ms breaks. Persistent blocking is spreading with diagnosis; the interruption of the cleanup and retains the flag of the thread, without eliminating the report already published.
 
-### Bugetul asset-urilor publicate
+<a id="budget-of-published-assets"></a>
+<a id="bugetul-asset-urilor-publicate"></a>
+### Budget of published assets'
 
-`ReportAssetSizeInventoryTest` măsoară separat sursele native și copiile
-compactate/publicate și le verifică față de bugetele explicite ale consumerului.
-Pragurile sunt contract de regresie; numărul de bytes observat într-un run este
-doar o măsurătoare, nu un nou prag. Orice rebugetare cere motiv și verificarea
-impactului asupra artifactului, nu o relaxare incidentală pentru ca testul să
-treacă.
+`ReportAssetSizeInventoryTest` measures the native sources and compact / published copies separately and verifies them against the explicit consumer budgets. The threshes are regression contract; the number of bytes observed in a run is only a measurement, not a new threesome. Any rebuilding reasons and verification of the impact on the artifact, not an accidental relaxation for the test to pass.
 
-Bugetele de regresie sunt explicite în `ReportAssetSizeInventoryTest`; inventarul
-este măsurat din asset-urile native și publicate la fiecare execuție. Acestea sunt
-plafoane, nu ținte pentru dimensiunea livrată:
+Regression budgets are explicit in `ReportAssetSizeInventoryTest`; the inventory is measured from native assets and published at each execution. These are ceilings, not targets for delivered size:
 
 | Asset budget | Native | Published |
 |---|---:|---:|
@@ -790,235 +654,172 @@ plafoane, nu ținte pentru dimensiunea livrată:
 | CSS | `140.000 B` | `120.000 B` |
 | Total | `265.000 B` | `223.000 B` |
 
-- `ReportAssetSizeBudgetTest` verifică limitele depășite și configurațiile
-  invalide; mărirea unui plafon cere motiv și verificarea impactului asupra
-  artifactului.
-- Pasul tipizat de aserțiuni de componentă folosește disclosure-ul comun în
-  JavaScript. Bugetul sursei de la commitul de bază era deja depășit.
-- Plafoanele revizuite acoperă sursa și copia compactată măsurate, cu mai puțin
-  de 2 KB rezervă în fiecare dimensiune modificată; CSS și totalul nativ
-  rămân neschimbate.
+- `ReportAssetSizeBudgetTest` checks the exceeded limits and configurations
+  invalids; raising a ceiling requires reason and checking the impact on the artifact.
+- The typed step of the component assertions uses the common discoloration in
+  JavaScript. The source budget at the basic commissary was already overrun.
+- The revised ceilings cover the source and the measured compacted copy with less
+  2 KB reserve in each modified dimension; CSS and the native total remain unchanged.
 
-### Verificarea randării responsive
+<a id="answering-of-the-liability"></a>
+<a id="verificarea-randării-responsive"></a>
+### Answering of the liability
 
-Plafonul de scroll și absența overflow-ului nu sunt suficiente pentru lizibilitate.
-Se verifică și lățimea utilă a coloanelor, textul vizibil și accesul la ultimul rând,
-conform [contractului adaptiv](../atf-reporting/README.md#lizibilitatea-dovezilor-în-panouri-înguste).
+The scroll ceiling and the absence of overflow are not sufficient for readability. Check the useful width of the columns, visible text and access to the last row according to [Adaptive contract](../atf-reporting/README.md#lizibilitatea-dovezilor-în-panouri-înguste).
 
-`SelectedApiTestsReportUiTest` este entry-point-ul configurabil pentru raportul
-Extent generat. Traversarea completă activează disclosure-urile native cu
-focus + Enter; probele componentă păstrează separat activarea prin click și
-verifică dovezile deschise. `CategoryCardinalityBrowserFixtureTest` este poarta dinamică de
-verificare în browser: verifică 0/1/multe categorii și măsoară fixture-uri UI și API
-pentru conținut scurt/lung, la lățimea configurată și la `591px`. Raportul de
-audit se publică prin `ReportAuditContext` / ATF Debug.
+`SelectedApiTestsReportUiTest` is the configurable entry point for the Extent ratio generated. Full crossing activates native disclosures with focus + Enter; component samples keep activation by clicking separately and check for open evidence. `CategoryCardinalityBrowserFixtureTest` is the dynamic gateway to verification in the browser: check 0/1 / many categories and measure UI fixtures and API for short / long content, at configured width and `591px`. The audit report shall be published via `ReportAuditContext` / ATF Debug.
 
-Invarianturile de randare sunt:
+Rendation invariants are:
 
-- în cele opt suprafețe măsurate în browser (Overview categories,
-  System/Environment, tag audit, Playwright actions, Audit/Assertions,
-  `TECHNICAL TRACE`, Unique request signatures, Technical diagnostics),
-  `scrollWidth <= clientWidth`,
-  `max-height` folosește plafonul comun `500px`, iar conținutul scurt rămâne
-  natural, fără înălțime goală;
-- `TECHNICAL TRACE` este măsurat în API direct și în schimbul API publicat lângă
-  checkpoint-ul UI, pentru date scurte și lungi; testele de markup și CSS
-  verifică aceeași structură și același token în rendererul fallback;
-- `ExtentReportDisclosureBrowserComponentTest` verifică tabelul lung
-  `Request details`, imbricat în disclosure-ul request-ului, și retry history
-  în Extent: scroll local, ultimul rând accesibil și antet sticky la viewport
-  standard și `760px`;
-- `ReportApiViewportParityComponentTest` completează matricea cu tabele scurte
-  Request details/retry Extent și scurte/lungi în fallback la `1280px` și
-  `760px`: înălțime naturală pentru scurt, scroll local/ultimul rând/sticky
-  pentru lung, fără overflow orizontal al documentului. `HtmlReportViewsTest`
-  păstrează separat contractul structural al wrapperului fallback;
-- pentru conținut lung, ultimul rând rămâne accesibil, antetul tabelului rămâne
-  fix, iar zona scrollabilă nu depășește plafonul comun;
-- `ReportTableViewportComponentTest` verifică wrapperul implicit, inclusiv
-  familii noi, input gol/null și aceeași politică publicată în ambele teme;
-- `TableViewportBrowserComponentTest` măsoară tabelele reale din toate fazele
-  și matricea de densitate/viewport/token, inclusiv celulă unică înaltă,
-  limita de overflow, mouse/tastatură și păstrarea titlurilor/contoarelor;
-- aceeași probă respinge wrapper lipsă/dublu, plafon greșit, overflow ascuns,
-  antet nefixat și ultim rând inaccesibil; inventarul pornește de la tabele,
-  nu numai de la wrapper-ele deja conforme;
-- rândurile Network Inspector `Unique request signatures` și
-  `Technical diagnostics` măsoară `34px` la ambele lățimi și sunt închise
-  implicit, aliniate cu celelalte detalii API/UI;
-- auditul browserului nu observă erori console/page/request când deschide
-  artifactele UI și API selectate; aceasta este dovadă de randare, nu evidence
-  publicată în raport;
-- raportul păstrează secțiunile, disclosure-urile collapsed la sosire,
-  `SETUP → TEST BODY → UI validation`, request/response JSON și glyph-ul
-  `＋/−` inline înaintea propoziției, fără `<hr>` decorativ.
+- in the eight areas measured in the browser (Overview categories,
+  System / Environment, tag audit, Playwright actions, Audit / Assertions, `TECHNICAL TRACE`, Unique request signatures, Technical diagnostics), `scrollWidth <= clientWidth`, `max-height` uses the common `500px` ceiling and the short content remains natural without empty height;
+- `TECHNICAL TRACE` is measured in API directly and in exchange for API published next to
+  UI checkpoint for short and long data; markup and CSS tests check the same structure and token in the fallback renderer;
+- `ExtentReportDisclosureBrowserComponentTest` checks the long table
+  `Request details`, intoxicated in the discoloration of the quest, and retry history in Extent: local scroll, last accessible row and stick header at standard viewport and `760px`;
+- `ReportApiViewportParityComponentTest` completes the matrix with short tables
+  Require details / retry Extent and short / long fallback to `1280px` and `760px`: natural height for short, local / last row / sticky for long, without horizontal overflow of the document. `HtmlReportViewsTest` keeps the structural contract of the fallback wrapper separately;
+- for long content, the last row remains accessible, the table header remains
+  fixed and the scrollable area does not exceed the common ceiling;
+- `ReportTableViewportComponentTest` checks default whipper, including
+  New families, empty input / null and same policy published in both themes;
+- `TableViewportBrowserComponentTest` measures the real tables in all phases
+  and the density / view / token matrix, including the single high cell, the overflow limit, mouse / keyboard and the maintenance of the titles / meters;
+- Same sample rejects missing / double wrapper, wrong ceiling, hidden overflow,
+  unfixed header and last row inaccessible; the inventory starts from tables, not only from already compliant wrappers;
+- `Unique request signatures` Network Inspector, and
+  `Technical diagnostics` measures `34px` in both widths and are closed by default, aligned with the other API / UI details;
+- browser audit does not notice console / page / request errors when opening
+  the selected UI and API artifacts; this is evidence of rendering, not evidence published in the report;
+- the report keeps the sections, the collapsed disclosures upon arrival,
+  `SETUP → TEST BODY → UI validation`, request / response JSON and the glyphs `＋/−` inline prior to the sentence, without the decorative `<hr>`.
 
-Artifactele sunt output de run și nu se copiază în README. Sursa `.js`/`.css`
-rămâne formatată în `atf-reporting/src/main/resources`; numai copia publicată în
-HTML este compactată de `ReportAssetCompactor`. Astfel testele component pot
-verifica fragmentele native, iar browserul verifică efectul compoziției finale.
+Artifacts are routed and do not copy in README. `.js` / `.css` source remains formatted in `atf-reporting/src/main/resources`; only the copy published in HTML is compacted by `ReportAssetCompactor`. Thus, the component tests can check the native fragments and the browser verifies the effect of the final composition.
 
-### Dovezi pentru inspectorul fluxului
+<a id="evidence-for-the-flow-inspector"></a>
+<a id="dovezi-pentru-inspectorul-fluxului"></a>
+### Evidence for the flow inspector
 
-Inspectorul de rețea se verifică în două trepte, fără a transforma E2E în owner
-al modelului:
+The network inspector shall be checked in two steps without transforming E2E into the model owner:
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-10px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10}}}%%
 flowchart LR
-    Evidence["Schimburi HTTP"] -->|component| Aggregate["JourneyAggregate"]
+    Evidence["HTTP exchanges"] -->|component| Aggregate["JourneyAggregate"]
     Aggregate -->|integration| Publisher["Publisher Extent"]
-    Publisher -->|browser proof| Render["HTML colapsat"]
+    Publisher -->|browser proof| Render["HTML collapse"]
 ```
 
 <details>
-<summary><strong>Legendă — ce trebuie să treacă la fiecare nivel</strong></summary>
+<summary><strong>Legend - what must pass at each level</strong></summary>
 
-- `ReportNetworkInspectorTest` verifică ordered facts, authentication,
-  correlation, transport counters, unique signatures și deduplicarea
-  diagnosticelor derivate din exchange-uri HTTP eșuate; testul unit verifică și
-  markup-ul nested, inclusiv aggregate gol/parțial;
-- `NetworkInspectorSummaryRoleTest` este proof-ul component pentru rolul de
-  summary, ordinea în flow și toate mode-urile de evidence;
-- `ExtentReportUiEvidencePublishingTest` rămâne proof separat pentru publicarea
-  aggregate-ului în artifactul Extent; schimbarea lui nu înlocuiește proiecția
-  unit sau contractul component de renderer;
-- component/integration publisher tests verifică faptul că body-urile rămân în
-  disclosures canonical și aggregate-ul nu primește credentiale sau mesaje
-  volatile;
-- `ApiBodyMediaComponentTest` verifică JSON, JSON declarat `text/html`, form,
-  text adversarial, body absent și necapturat în standalone Extent, fallback și
-  UI+API; păstrează MIME-ul, redacția și escaping-ul, fără conversie artificială;
-- aceeași probă verifică direcția request/response independent de eticheta
-  afișată; modelul `ReportJsonBody` și canalul `Request.body(...)` sunt tipizate,
-  iar constructorul cu două argumente și `json(...)` păstrează convenția legacy;
-  [contractul și limita adaptorilor legacy](../atf-reporting/README.md#dovezi-json-și-componentele-de-randare-ui)
-  sunt deținute de Reporting, nu redefinite de fixture-uri;
-- publisher proof trebuie să verifice și shape-ul, nu numai prezența label-urilor:
-  pentru `0..N` exchange-uri, fiecare pereche request/response și execution
-  evidence trebuie să rămână scanabilă ca unitate API; un tabel comun cu prefixe
-  `API 1/API 2` nu este suficient;
-- UI trace proof trebuie să verifice ierarhia `un singur Gherkin checkpoint →
-  UI validation + API validation → disclosures`, cu cele două validation nodes
-  ca frați semantici și fără repetarea propoziției Gherkin;
-- execution disclosure-ul trebuie să fie identificabil pentru exchange-ul lui;
-  două apariții `Execution evidence · 1 attempt` fără context sunt ambigue chiar
-  dacă numărul de attempts este corect;
-- retry-ul aceluiași request trebuie verificat ca un singur exchange logic:
-  attempts/history se păstrează în execution disclosure și nu generează un nou
-  `API n`;
-- contractul de layout trebuie să păstreze URL-ul complet lizibil la viewport
-  îngust, fără break arbitrar în identificator și fără overflow;
-- browser/debug verifică numai structură vizibilă, expand/collapse, ordine și
-  navigare; nu este necesar pentru fiecare variație de method/status;
-- dacă renderer-ul publică fields flat în loc de disclosure-uri nested, modelul
-  semantic poate rămâne verde, dar publisher gate-ul trebuie să rămână roșu până
-  la corectarea proiecției;
-- testele HTML trebuie să selecteze zona semantică a inspectorului și să verifice
-  celule/atribute/ordine, nu să folosească `contains` global sau casing vendor.
+- `ReportNetworkInspectorTest` checks the ordered facts, authentication,
+  correlations, transport counters, unique signatures and the deduction of diagnostics derived from failed HTTP exchanges.The united test also checks the nested marker, including empty / partial aggregates;
+- `NetworkInspectorSummaryRoleTest` is the component proof for the role of
+  summary, order in flow and all evidence patterns;
+- `ExtentReportUiEvidencePublishingTest` remains proof separately for publication
+  the aggregate in the artifact Extent; its change does not replace the design unit or the contract component of the renderer;
+- component / integration publisher tests verify that the bodywork remains in
+  canonical discharges and aggregate do not receive any royalties or volatile messages;
+- `ApiBodyMediaComponentTest` checks JSON, JSON declared `text/html`, form
+  adversarial text, absent body and unclaimed in standalone Extent, fallback and UI + API; keep MIME-ul, the editorial and escaping without artificial conversion;
+- Same sample checks the direction of demand / response independently of the label
+  shown; the `ReportJsonBody` model and `Request.body(...)` channel are typed and the two-argument manufacturer and `json(...)` retain the Legacy convention; [contract and limit of legacy adapters](../atf-reporting/README.md#dovezi-json-și-componentele-de-randare-ui) are owned by Reporting, not redefined by fixtures;
+- publisher proof must also check the shape- not only the presence of the labels:
+  for `0..N` exchanges, each pair required / responded and outright execution shall be stacked as API unit; a common table with `API 1/API 2` prefixes is not sufficient;
+- UI trace proof must check the hierarchy 'one Gherkin checkpoint →
+  UI validation + API validation → discharges', with the two nodes validation as semantic brothers and without repetition of the Gherkin sentence;
+- the execution of the discoloration must be identifiable for its exchange;
+  two `Execution evidence · 1 attempt` appearances without context are ambiguous even if the number of attempts is correct;
+- the retry of the same request shall be checked as a single logical exchange:
+  attempts / history is kept in discrete execution and does not generate a new `API n`;
+- the layout contract must keep URL-ul fully legible at view
+  narrow, no arbitrary break in the identifier and no overflow;
+- browser / debug only checks visible structure, expansion / collapse, orders and
+  navigation; not required for each variation of method / status;
+- if the renderer publishes fields flat instead of the discoloration nested, model
+  Semantic may remain green, but publisher's throat must remain red until the projection is corrected;
+- HTML tests shall select the semantic area of the inspector and verify
+  cells / attributes / orders, not to use `contains` global or casing vendor.
 
 </details>
 
-Entry-point-urile selectabile direct din IntelliJ sunt separate pe layer:
+The selectable Entrypoints directly from IntelliJ are separated by the layer:
 
-| Entry point | Include | Rol |
+| Entry point | Include | Role |
 |---|---|---|
-| `AtfReportingUnitSuite` | `unit` din `atf.reporting` | model, policy, parser, renderer seam și vocabular |
-| `AtfReportingComponentSuite` | `component` din reporting și UI extent | boundary HTML/CSS/JS, contracte și fixture-uri controlate; snapshot-ul de navigation performance este mapat prin `ReportRuntimePerformanceSnapshot`, iar `ReportRuntimePerformanceBudget` verifică fixture-uri configurabile fără verdict business |
-| `AtfReportingIntegrationSuite` | `integration` din `atf.reporting` | session, publication, replay și contracte de integrare ale librăriei |
-| `AtfReportingApiFixtureSuite` | `integration` din `atf.reporting.api.tests.api` | mock API → core → validation → reporting evidence, fără browser |
-| `ExtentReportingE2eSuite` | `e2e` din `atf.ui.tests.extent.e2e` | gate-ul UI canonic, cu `@AtfTestChannel(UI)` |
-| `AtfReportingUiAuditSuite` | aceeași selecție | alias de compatibilitate pentru lansările existente; nu se numără ca al doilea gate |
+| `AtfReportingUnitSuite` | `unit` of `atf.reporting` | model, policy, parser, renderer seam and vocabulary |
+| `AtfReportingComponentSuite` | `component` from reporting and UI from ecstasy | Boundary HTML / CSS / JS, controlled contracts and fixtures; performance navigation snapshots are mapped through `ReportRuntimePerformanceSnapshot` and `ReportRuntimePerformanceBudget` verifies configurable fixtures without a business verdict |
+| `AtfReportingIntegrationSuite` | `integration` of `atf.reporting` | session, publication, reply and integration contracts of the library |
+| `AtfReportingApiFixtureSuite` | `integration` of `atf.reporting.api.tests.api` | mock API → core → validation → reporting evidence without browser |
+| `ExtentReportingE2eSuite` | `e2e` of `atf.ui.tests.extent.e2e` | canonical UI gate with `@AtfTestChannel(UI)` |
+| `AtfReportingUiAuditSuite` | Same selection | A.K.A. compatibility for existing launches; not listed as the second gate |
 
-`ReportingUiLauncherSelectionTest` compară prin discovery JUnit identitățile
-metodelor și template-urilor parametrizate ale ambelor launchere fără a porni
-browserul. Invocările parametrizate apar la execuție; ambele launchere selectează
-aceleași definiții și nu se rulează împreună ca probe disjuncte.
+`ReportingUiLauncherSelectionTest` compares by discourse JUnit the identities of the parametric methods and temples of both lasers without starting the browser. Parametric inventions appear on execution; both lasers select the same definitions and do not run together as disjuncts.
 
-Gate-ul API cross-projection este inclus în `AtfReportingComponentSuite` și
-legat de `ReportingCoverageMatrixTest`: contract API direct, aceeași dovadă prin
-publishers API/fallback/UI, reconciliere browser a query-ului și fazei,
-viewport-ul tabelelor API și ARIA/keyboard pentru disclosures. Rulează gate-ul
-din rădăcina reactorului cu:
+The cross-projection API gate is selected by `AtfReportingComponentSuite` and linked to `ReportingCoverageMatrixTest`: a direct API contract, the same evidence through API/fallback/UI publishers, browser reconciliation of query and phase, API table viewports and ARIA/keyboard disclosures. Run the gate from the reactor root with:
 
 ```text
 mvn -pl atf-reporting-tests -am "-Dtest=AtfReportingComponentSuite" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
-- `-am` construiește modulele de care depinde test harness-ul.
-- `failIfNoSpecifiedTests=false` permite modulelor intermediare să nu aibă clasele selectate.
-- Comanda pornește suita completă, nu doar testul matricii.
-- Probele browser țintite resping Request și Response disclosure absent sau
-  mutate la ownerul scenariului și verifică izolarea ownerilor API din același
-  artifact în `ApiReportRenderedEvidenceComponentTest`. Același test
-  verifică browser collapse/reopen: tabelele Request/Response/Execution dispar
-  și reapar vizibil. `UiApiVerdictProjectionComponentTest` verifică ambele
-  combinații independente UI PASS/API FAIL și UI FAIL/API PASS, cauza corectă în
-  `Fails` și deep-link-ul către scenariul owner. Acesta este contractul stabil
-  protejat de probe; verdicturile concrete și numărul de cazuri rămân în output-ul
-  testelor, nu în README.
-- Surefire poate afișa `0 tests` pe containerul suitei; rezultatele testelor
-  copil sunt raportate separat de platforma JUnit.
-- Rezultatele și numărul de teste aparțin output-ului execuției, nu contractului
-  acestui README. Comanda de mai sus este entry point-ul reproductibil; un
-  eșec se diagnostichează din raportul și logul run-ului curent, nu dintr-un
-  rezumat istoric păstrat aici.
+- `-am` builds the modules on which the harness test depends.
+- `failIfNoSpecifiedTests=false` allows intermediate modules not to have selected classes.
+- The command starts the suite completely, not just the matrix test.
+- Targeted browser probes reject Request/Response disclosures that are missing or moved to the scenario owner. `ApiReportRenderedEvidenceComponentTest` verifies isolation of API owners within the same artifact and browser collapse/reopen: Request/Response/Execution tables visibly disappear and return. `UiApiVerdictProjectionComponentTest` checks UI PASS/API FAIL and UI FAIL/API PASS independently, the correct cause in `Fails` and the deep link to the owner scenario. This README owns the protected stable contract; concrete verdicts and case counts remain in test output.
+- Surefire can display `0 tests` on the suite container; test results
+  child are reported separately from JUnit platform.
+- Results and number of tests belong to the output of execution, not to the contract
+  This README. The above command is the reproducible entry point; a failure is diagnosed from the current run ratio and log, not from a historical summary kept here.
 
-`ExtentReportingE2eSuite` este launcherul canonic; `AtfReportingUiAuditSuite`
-este aliasul deprecated de compatibilitate. Ambele selectează aceleași
-definiții JUnit și nu se execută împreună ca două gate-uri independente.
+`ExtentReportingE2eSuite` is the canonical launcher; `AtfReportingUiAuditSuite` is the depressed compatibility alias. Both select the same JUnit definitions and do not run together as two independent gates.
 
-[ReportingUiLauncherSelectionTest](src/test/java/atf/reporting/governance/ReportingUiLauncherSelectionTest.java)
-compară identitățile metodelor/template-urilor și metadata UI prin discovery.
-Această probă nu pornește browserul; randarea și invocările parametrizate
-se verifică la execuție. [Criteriile încă deschise](../docs/feedback/ATF_Reporting_Tests_Feedback.md)
-privesc oracolele și acceptanța browserului, nu alegerea deja aplicată a launcherului.
+[ReportingUiLauncherSelectionTest](src/test/java/atf/reporting/governance/ReportingUiLauncherSelectionTest.java) compares the methods / temples identities and the UI metadata by discovery. This sample does not start the browser; the rendering and parametric invoicing is checked on execution. [criteria still open](../docs/feedback/ATF_Reporting_Tests_Feedback.md) concerns the oracles and the acceptance of the browser, not the already applied choice of the launcher.
 
-Ancorele de output sunt:
+The output anchors are:
 
-- E2E cu `@ProjectRelativeUiReportDirectory("artifacts/reports/ui/e2e")`:
+- E2E with `@ProjectRelativeUiReportDirectory("artifacts/reports/ui/e2e")`:
   `<reactor>/artifacts/reports/ui/e2e`;
-- celelalte layer-e UI: `<ui-report-base>`;
-- în staging, root-ul proiectului este checkout-ul extern, nu proiectul live.
+- Other layer- e UI: `<ui-report-base>`;
+- In staging, the project's root is the external checkout, not the live project.
 
-| Politica de output | Responsabilitate |
+| Output policy | Responsibility |
 |---|---|
-| `atf.testkit.output` | Adnotări și resolver neutru; baza UI și rădăcina proiectului sunt primite explicit |
-| `ReportingTestResources` | Deleagă alegerea directorului după încărcarea configurației |
-| Probe unitare | Director implicit și E2E păstrate; valori goale, absolute sau cu traversare respinse |
+| `atf.testkit.output` | NOTES AND Neutral Resolver; UI base and project root are explicitly received |
+| `ReportingTestResources` | Delegation the choice of the Director after loading configuration |
+| Unit samples | Default Director and E2E Kept; empty, absolute or rejected crossing values |
 
-- API-ul implementat, precedence-ul și limitele sunt în
-  [documentația adnotărilor](../docs/ATF_Test_Infrastructure_Annotations.md);
-- verificarea IntelliJ a output-ului project-relative, când se schimbă resolverul
-  sau compoziția IDE, este documentată în
-  [ghidul suitei Extent](src/test/java/atf/ui/tests/extent/README.md#rulare-directă-din-intellij);
-- importă root `pom.xml` ca proiect Maven și folosește **Reload All Maven Projects** înainte de prima rulare sau după schimbări de module;
-- run configuration-ul suitei reporting folosește modulul `atf-reporting-tests`, nu modulul legacy `atf-tests`;
-- pentru `NoClassDefFoundError` în IntelliJ, verifică modulele `atf-reporting` și `atf-reporting-tests` și dependency graph-ul testului; nu duplica sau muta clasa pentru a compensa un model IDE stale;
-- reproduce întâi cu testul forked `ReportStagingWorkspaceTest` în reactorul Maven.
+- API implemented, precedent and limits are in
+  [documentation of annotations](../docs/ATF_Test_Infrastructure_Annotations.md);
+- checking IntelliJ of the project-relative output when the resolver changes
+  or the composition IDE is documented in [Extent Suite Guide](src/test/java/atf/ui/tests/extent/README.md#rulare-directă-din-intellij);
+- import `pom.xml` root as Maven project and use **Reload all Maven projects** before the first run or after changes in modules;
+- run the reporting suite configuration uses the `atf-reporting-tests` module, not the `atf-tests` legacy module;
+- for `NoClassDefFoundError` in IntelliJ, check the `atf-reporting` and `atf-reporting-tests` modules and the dependence of the test graph; do not duplicate or move the class to compensate for a IDE stale model;
+- reproduces first with the `ReportStagingWorkspaceTest` Forked Test in the Maven reactor.
 
 </details>
 
-## Limitele de responsabilitate ale aplicațiilor consumatoare
+<a id="liability-limits-of-consumer-applications"></a>
+<a id="limitele-de-responsabilitate-ale-aplicațiilor-consumatoare"></a>
+## Liability limits of consumer applications
 
 <details>
-<summary><strong>Contractele detaliate și probele ownerilor — Limitele de responsabilitate ale aplicațiilor consumatoare</strong></summary>
+<summary><strong>Detailed contracts and evidence of owners - Liability limits of consumer applications</strong></summary>
 
 <details>
-<summary><strong>Detalii — limitele de responsabilitate ale aplicațiilor consumatoare</strong></summary>
+<summary><strong>Details - liability limits of consumer applications</strong></summary>
 
-Se aplică [regula comună de ownership](../docs/ATF_Testing_Guide.md#owner-ul-testului-business-adaptor-sau-infrastructură):
-acest README descrie boundary-ul Reporting, fără să mute testele consumerilor.
+[common rule of ownership](../docs/ATF_Testing_Guide.md#owner-ul-testului-business-adaptor-sau-infrastructură) applies: this README describes the Reporting boundary without moving the consumer tests.
 
-`atf-reporting-tests` deține probe reutilizabile ale bibliotecii, nu adaptoare de
-aplicație:
+`atf-reporting-tests` has reusable samples of the library, not application adapters:
 
-- model, publisher și fixtures API neutre;
-- paritate între renderere și artifact HTML;
-- DOM/CSS și interacțiuni browser, verificate cu mock/fake determinist;
-- fără dependențe de endpoint-uri sau reguli business ale aplicației testate.
+- neutral API model, publisher and fixtures;
+- parity between renderere and artifact HTML;
+- DOM / CSS and browser interactions, checked with mock / fake determinist;
+- no dependent on endpoints or business rules of the tested application.
 
-Practice Shop este izolat în modulul dedicat:
+Shop practice is isolated in the dedicated module:
 
 ```text
 atf-test-practice-shop/src/test/resources/atf-practice-shop.yaml
@@ -1037,355 +838,313 @@ atf-test-practice-shop/src/test/atf/shop/tests/
 └── e2e/             journey complet
 ```
 
-- `atf-tests` nu mai conține YAML, page objects sau flow-uri Practice Shop.
-- Testele consumerului rămân în Shop pentru configurație, binding de checkpoint,
-  redactare specifică, flow sau adaptarea publică spre Reporting.
-- `ShopE2eFailureReportComponentTest` verifică wiring-ul `ShopE2eContext`;
-  contractele generice de failure și redactare sunt probate separat aici.
-- Dacă un test consumer verifică un invariant Reporting independent de consumer,
-  mută proba neutră aici și păstrează în Shop/AutoEx doar integrarea îngustă.
-- Un test consumer care produce HTML poate rămâne local numai dacă verifică
-  traducerea contractului propriu (de exemplu titlu/rută/intenție business,
-  asocierea unei așteptări cu exchange-ul capturat sau politica proprie de
-  redactare). Nu verifica în consumer coloanele, nesting-ul, clasele CSS,
-  disclosure-urile generice ori semantica generică de retry/failure.
+- `atf-tests` no longer contains YAML, page objects or practical Shop flows.
+- Consumer tests remain in Shop for configuration, checkpoint binding,
+  specific redaction, flow or public adaptation to Reporting.
+- `ShopE2eFailureReportComponentTest` checks `ShopE2eContext`;
+  generic construction and redaction contracts are tested separately here.
+- If a consumer test checks an independent consumer Reporting invariant,
+  Move the neutral sample here and keep in Shop / AutoEx only narrow integration.
+- A consumer test that produces HTML can only stay local if it checks
+  translation of own contract (e.g. title / route / business intent, association of an expectation with the captured exchange or own redaction policy). Do not check the columns, non-contact, CSS classes, generic disclosures or generic retry / failure semantics.
 - `AtfReportSemanticSnapshotTest.sameRequestInIndependentScenariosRemainsOwnedByBothScenarios`
-  protejează acum în acest modul izolarea generică a request-urilor identice
-  între scenarii; copia consumerului Shop a fost eliminată. Shop păstrează
-  separat probele asocierii și publicării auditului său API.
-- La testele API Shop, separați transportul de owner: probele cu
-  `ShopApiComponentFixture` sunt mock-backed, dar validează clientul și
-  contractele Practice Shop, deci rămân în consumer. Mutați aici numai
-  invariants de model/publicare/rendering care nu importă tipuri sau reguli Shop;
-  nu adăugați dependență de `atf-reporting-tests` în modulul consumer.
+  now protects generic isolation of identical requests across scenarios in this module; the Shop consumer copy was removed. Shop separately retains checks for association and publication of its API audit.
+- In API Shop tests, separate transport from the owner: samples with
+  `ShopApiComponentFixture` are mock- backed, but it validates the client and the Practical contracts Shop, so they stay in the consumer. Only model / publication / rendering invariants that do not import Shop types or rules; do not add dependence on `atf-reporting-tests` to the consumer module.
 
 <details>
-<summary><strong>Probe neutre pentru simplificarea testelor Shop și AutoEx</strong></summary>
+<summary><strong>Neutral samples to simplify Shop and AutoEx tests</strong></summary>
 
-| Invariant reutilizabil | Probă existentă aici | Rămâne de verificat în consumer |
+| Reusable invariant | Sample existing here | Remaining to be checked in consumer |
 |---|---|---|
-| `AUTH PROFILE` separat de `AUTH TYPE`, paritate standalone/UI+API | `ApiAuthenticationSchemaContractTest` | maparea profilului și mecanismului capturat de adaptorul aplicației |
-| replay form-encoded fără expunerea credentialelor | `ApiManualReplayProjectionTest` | artifactul publicat de adaptorul AutoEx nu expune parola |
-| request/response/execution unic, cu/fără retry și retry epuizat | `ApiRetryProjectionContractTest`: standalone Extent, fallback și UI+API | mapperul păstrează attempts/history/provenance și publisherul transmite istoricul |
-| captura interzisă nu apelează providerul, indiferent de sursă sau punctul capturii | `ReportEvidenceProfileTest`, inclusiv controlul permis și cazurile negative PNG/provenance | maparea politicii din YAML/adnotare și mascarea câmpurilor aplicației |
-| flow consolidat și politici de captură | `ReportEvidenceProfileIntegrationTest`, `UiScreenshotPolicyIntegrationTest` | adnotare și YAML aplicate sesiunii locale, inclusiv failure |
-| diagnostice fără schimbarea verdictului | `ReportPhaseDiagnosticTest` și `ReportPhaseDiagnosticPublicationComponentTest`: Extent/fallback, PASS/FAIL, fără exchange inventat sau secrete | apelarea portului potrivit cu diagnosticul și cauza consumerului |
+| `AUTH PROFILE` separate from `AUTH TYPE`, standalone parity / UI + API | `ApiAuthenticationSchemaContractTest` | profile and mechanism mapping captured by application adapter |
+| form-encoded rephrase without exposure of the credential | `ApiManualReplayProjectionTest` | the artifact published by the AutoEx adapter does not expose the password |
+| Require / response / single execution with / without retry and depleted retry | `ApiRetryProjectionContractTest`: standalone Extent, fallback and UI + API | The mapper keeps attempts / history / provenance and the publisher transmits the history |
+| the prohibited catch does not call the provider, regardless of source or point of capture | `ReportEvidenceProfileTest`, including permitted control and negative cases PNG / provenance | YAML policy mapping / annotation and masking of application fields |
+| reinforced flow and catch policies | `ReportEvidenceProfileIntegrationTest`, `UiScreenshotPolicyIntegrationTest` | annotation and YAML applied to local session, including failure |
+| diagnoses without change of verdict | `ReportPhaseDiagnosticTest` and `ReportPhaseDiagnosticPublicationComponentTest`: Extent / fallback, PASS / FAIL, without invented or secret exchange | calling the port according to the diagnosis and cause of the consumption |
 
-- Cardinalitatea și ordinea Request/Response/Execution sunt verificate în DOM-ul
-  nodului API din Tests prin locatorii comuni, nu prin numărarea tuturor copiilor
-  din Category/Fails sau a datelor serializate.
-- `ApiRetryProjectionContractTest` aparține pachetului component UI
-  `atf.ui.tests.extent.component.inspection.retry`; păstrează `@AtfComponentTest`
-  și selecția existentă din `AtfReportingComponentSuite`.
-- Probe neutre consolidate: formatul auth, filtrarea providerului și retry pe
-  cele trei proiecții. Niciuna nu substituie forwarding-ul mapperului sau siguranța
-  artifactului produs de adaptorul local.
-- Înaintea unei ștergeri, comparați inputul, calea publică, verdictul și
-  cazul negativ; completați aici lipsa neutră, fără importuri Shop/AutoEx.
-- Înlocuiți verificările locale de markup cu rezultate typed/snapshot numai
-  dacă rămâne probată invocarea efectivă a adaptorului și politica sa de date.
-- Reducerea suplimentară a rulărilor live pentru profile de evidence are
-  [criterii separate](../docs/ATF_Testing_Guide.md#acceptanța-business-individual-și-prin-suită);
-  aceste probe neutre nu justifică singure schimbarea selecției E2E.
+- The Cardinality and Order Request / Response / Execution are checked in DOM
+  API node in tests by common locations, not by counting all children in Category / Fails or serialized data.
+- `ApiRetryProjectionContractTest` belongs to the UI component package
+  `atf.ui.tests.extent.component.inspection.retry`; keeps `@AtfComponentTest` and existing `AtfReportingComponentSuite` selection.
+- Reinforced neutral samples: auth format, filter of the provider and retry on
+  The three projections. None substitute the forwarding of the mapper or the safety of the artifact produced by the local adapter.
+- Before a deletion, compare the input, public path, verdict and
+  negative case; fill in here the neutral lack, without imports Shop / AutoEx.
+- Replace local markup checks with typed / snapshot results only
+  if the actual invoicing of the adapter and its data policy remains proven.
+- Additional reduction of live runs for evidence profiles
+  [separate criteria](../docs/ATF_Testing_Guide.md#acceptanța-business-individual-și-prin-suită); these neutral samples do not justify changing the E2E selection on their own.
 
 </details>
-- Hook-urile JUnit generice sunt testate în modulul owner (`atf-test-kit`);
-  testele de sesiune și publicare Reporting aparțin `atf-reporting-tests`.
-- `ApiResourceTestBase` activează explicit `@AtfReportPath`; compoziția JUnit
-  transmite evenimentul terminal către consola ATF numai după publicarea
-  raportului. Resolverul/adnotarea și politica de output rămân testate în
-  `atf-test-kit`/`atf-console`, nu sunt reimplementate aici.
+- Generic JUnit Hookies are tested in the Osner module (`atf-test-kit`);
+  Reporting Session and Publication Tests belong to `atf-reporting-tests`.
+- `ApiResourceTestBase` explicitly activates `@AtfReportPath`; JUnit composition
+  transmit the terminal event to ATF console only after the report has been published. Resolver / annotation and output policy remain tested in `atf-test-kit` / `atf-console`, are not reimplemented here.
 
-### Fidelitatea query-ului și asocierea Mock
+<a id="query-fidelity-and-mock-combination"></a>
+<a id="fidelitatea-query-ului-și-asocierea-mock"></a>
+### Query fidelity and Mock combination
 
-`MockReportContractAuditor` reține asocierea dintre fiecare contract convertit
-și instanța exactă `MockRoute`. Ruta selectată de auditor este reasociată prin
-acest mapping, fără căutare după eticheta `key()` ori alegerea primei rute.
-Numele prefix și delimitatorii din valori pot produce etichete ambigue;
-titlul lizibil nu este identitate de catalog.
+`MockReportContractAuditor` retains the association between each converted contract and the exact `MockRoute` court. The route selected by the auditor is reassociated with this mapping, without search after the `key()` label or the choice of the first route. Prefix name and the delimiters in the values may produce ambiguous labels; the legible title is not a catalogue identity.
 
-| Boundary | Probă nominală și negativă |
+| Boundary | Nominal and negative sample |
 |---|---|
-| conversie și subset cu multiplicitate | [ReportQueryContractComponentTest](src/test/java/atf/reporting/api/query/ReportQueryContractComponentTest.java): perechi duplicate, valori codificate, query incomplet și metadate absente |
-| reasociere cu sursa | [MockQueryAssociationComponentTest](src/test/java/atf/reporting/api/query/MockQueryAssociationComponentTest.java): nume prefix, coliziuni de etichetă, ambele ordini de catalog și rută necunoscută |
-| proiecție Extent/fallback | [QueryFailureReportComponentTest](src/test/java/atf/ui/tests/extent/component/verdict/QueryFailureReportComponentTest.java): FAIL păstrat împotriva unui complete(PASS), sibling pozitiv, Fails → Tests, disclosure și preview redactat 240 |
-| query observat și identitate privată | [ObservedQueryEvidenceComponentTest](src/test/java/atf/reporting/api/query/ObservedQueryEvidenceComponentTest.java): perechi ordonate, copiere imutabilă, amprente distincte în agregat și absente din ambele HTML-uri |
+| multiplication conversion and subset | [ReportQueryContractComponentTest](src/test/java/atf/reporting/api/query/ReportQueryContractComponentTest.java): duplicate pairs, encoded values, incomplete query and missing metadata |
+| re-association with source | [MockQueryAssociationComponentTest](src/test/java/atf/reporting/api/query/MockQueryAssociationComponentTest.java): prefix names, tag collisions, both catalogue orders and unknown route |
+| Extent / fallback projection | [QueryFailureReportComponentTest](src/test/java/atf/ui/tests/extent/component/verdict/QueryFailureReportComponentTest.java): FAIL stored against a complete (PASS), sibling positive, Fails → Tests, Disclosure and Preview redacted 240 |
+| observed query and private identity | [ObservedQueryEvidenceComponentTest](src/test/java/atf/reporting/api/query/ObservedQueryEvidenceComponentTest.java): orderly pairs, implausible copying, distinct fingerprints in aggregate and absent from both HTML |
 
-Expected-urile sunt literale și independente de canonicalizerul producției.
-Fixture-ul de raportare folosește `AssertionStep`, fără request HTTP inventat;
-rulează direct și prin `AtfReportingComponentSuite`, în categoria Reporting.
+The expectations are literal and independent of the production canonicalizer. The reporting device uses `AssertionStep`, without the required HTTP invented; runs directly through `AtfReportingComponentSuite`, in category Reporting.
 
-Traseul inspector → jurnal/mapper este probat în UI și în consumerii reali prin
-`UiObservedQueryFingerprintComponentTest`, `ShopObservedQueryComponentTest` și
-`AutoExObservedQueryComponentTest`. Captura redactată nu poate recupera valorile:
-amprenta păstrează numai identitatea, iar placeholder-ul nu devine un parametru.
+The inspector → log / mapper route is tested in UI and in actual consumers via `UiObservedQueryFingerprintComponentTest`, `ShopObservedQueryComponentTest` and `AutoExObservedQueryComponentTest`. The print cannot recover the values: the print only preserves the identity and the placeholder does not become a parameter.
 
-### Proiecții neutre fără transport fabricat
+<a id="neutral-projections-without-manufactured-transport"></a>
+<a id="proiecții-neutre-fără-transport-fabricat"></a>
+### Neutral projections without manufactured transport
 
-| Contract | Probă la owner |
+| Contract | Test at the owner |
 |---|---|
-| assertion step în faza callerului | `AssertionAuditStepComponentTest`: FAIL păstrat din valorile complete, redacție și același nod non-HTTP în ambele renderere |
-| sumar diagnostic comun | `ReportAssertionSummaryTest`: redacție înaintea plafonului 240, fără schimbarea rândurilor ori verdictului business |
-| JSON semantic | `JsonEvidenceRedactionComponentTest` și `JsonEvidenceRedactorTest`: chei Unicode, nesting, non-string, duplicate și canary absent din întregul artifact |
-| YAML strict | `ReportingNumericConfigurationTest`: tip integral, interval, formele secțiunilor, chei deținute și defaults legitime |
-| cauza terminală în Fails | `TerminalFailureIndexComponentTest` și `TerminalFailureNavigationComponentTest`: request exact, assertions simultane, PASS terminal exclus inclusiv într-un scenariu FAIL, breakpoint îngust și reload până la dovada originală |
+| Assertion step in the caller phase | `AssertionAuditStepComponentTest`: FAIL kept from complete values, editorial and same non-HTTP node in both renderers |
+| common diagnostic summary | `ReportAssertionSummaryTest`: before 240 ceiling, without changing rows or business verdict |
+| JSON semantic | `JsonEvidenceRedactionComponentTest` and `JsonEvidenceRedactorTest`: Unicode keys, non-linking, non-string, duplicated and canary absent from the entire artifact |
+| YAML strict | `ReportingNumericConfigurationTest`: full type, range, section forms, keys held and legitimate defaults |
+| terminal cause in Fails | `TerminalFailureIndexComponentTest` and `TerminalFailureNavigationComponentTest`: exact request, simultaneous assertions, PASS excluded terminal including in a FAIL scenario, narrow breakpoint and reload up to original proof |
 
-Controlul fazei ascunse folosește `content-visibility`, separat de `display`-ul
-deținut de navigare. Oracolul verifică vizibilitatea reală, nu numai geometria;
-backlink-ul trebuie să deschidă dovada fără clickuri suplimentare care ar colapsa faza.
+Hidden phase control uses `content-visibility`, separated from `display`ul owned by navigation. Oracle checks the real visibility, not only geometry; backlink must open the proof without additional clicks that would collapse the phase.
 
-### Reutilizare neutră între module
+<a id="neutral-reuse-between-modules"></a>
+<a id="reutilizare-neutră-între-module"></a>
+### Neutral reuse between modules
 
-- Compatibilitatea consolelor Core/Reporting este verificată aici prin
-  `AtfConsoleBridgeTest` și `AtfConsoleBridgeVocabularyTest`: scope-uri,
-  statusuri, detalii, durată și notificarea căii publicate. Compoziția transmite
-  câmpurile către fabrica neutră Core `AtfConsoleEvent.fromExternalEnums(...)`;
-  Console și Reporting nu depind unul de celălalt.
-- `ReportModelAdapters` convertește modelele core (`ApiExecutionResult`,
-  retry/provenance, assertions și UI actions) fără ca `atf-reporting` să depindă
-  la compilare de `atf-core`; vocabularul necunoscut eșuează explicit, nu este
-  ghicit sau transformat în `INFO`;
-- `ReportQueryParameters.fromUri(...)` este decodorul comun al query-urilor.
-  Practice Shop îl folosește în mapper și în assertions, păstrând doar
-  semantica de business în jurul lui;
-- `AtfPathLocator.locateSourceFile(...)` și `locateModuleRoot(...)` centralizează
-  descoperirea generică folosită de testele component; rădăcinile candidate și
-  fișierul cerut rămân inputuri explicite, relative și validate;
-- capturarea pe host, alegerea endpoint-urilor, recovery-ul login-ului,
-  corelarea checkpoint-urilor și redactarea datelor de identitate rămân în
-  consumerul Shop. Nu sunt promovate în reporting/core fiindcă depind de
-  aplicația testată;
-- `ReportModelAdaptersTest` verifică modelul real core și compatibilitatea
-  strictă; `ReportQueryParameters` este verificat pentru decoding și duplicate,
-  iar testele Shop dovedesc că integrarea folosește același contract.
+- The compatibility of Core / Reporting consoles is verified here by
+  `AtfConsoleBridgeTest` and `AtfConsoleBridgeVocabularyTest`: scoops, statuses, details, duration and notification of the published path. The composition transmits fields to the neutral Core `AtfConsoleEvent.fromExternalEnums(...)`; Console and Reporting do not depend on each other.
+- `ReportModelAdapters` converts the core models (`ApiExecutionResult`,
+  Retry / provenance, assertions and UI actions) without `atf-reporting` depending on `atf-core` compilation; unknown vocabulary fails explicitly, is not guessed or transformed into `INFO`;
+- `ReportQueryParameters.fromUri(...)` is the common decoder of queries.
+  Practical Shop uses it in mapper and assertions, keeping only business semantics around it;
+- `AtfPathLocator.locateSourceFile(...)` and `locateModuleRoot(...)` centralize
+  generic discovery used by component tests; candidate roots and requested file remain explicit, relative and validated inputs;
+- the capture of the host, the choice of endpoints, the recovery of the login,
+  the matching of checkpoints and the redaction of identity data remains in the Shop consumer. They are not promoted in reporting / core because they depend on the tested application;
+- `ReportModelAdaptersTest` checks the real core model and compatibility
+  strict; `ReportQueryParameters` is checked for decoding and duplicates, and Shop tests prove that integration uses the same contract.
 
-Rapoartele sunt output de run, nu fixtures păstrate în documentație.
+Reports are output of run, not fixtures kept in documentation.
 
-Browser proof-ul folosește un singur seam generic, `StaticHtmlScreenshotAdapter`:
+Browser the proofer uses one generic seam, `StaticHtmlScreenshotAdapter`:
 
-- input: HTML local generat de reporting;
-- output: PNG capturat headless prin Playwright;
-- integration test: verifică semnătura PNG și viewport-ul;
-- limită: nu pornește endpoint, nu cunoaște Practice Shop și nu intră în
+- input: HTML local generated by reporting;
+- Output: PNG captured headless by Playwright;
+- integration test: check the signature of PNG and the Viewporter;
+- limit: does not start endpoint, does not know Shop Practice and does not enter
   production JAR;
-- contractele DOM/CSS rămân în component validators și ATF Debug.
+- DOM / CSS contracts remain in validators and ATF Debug.
 
-Detaliul normativ al normalizării evidence este în
-[`atf-reporting/README.md`](../atf-reporting/README.md#normalizarea-dovezilor-în-artefact).
-Aici rămâne numai dovada de consumer: `ExtentReportRuntimeEvidenceComponentTest`
-și browser proof-ul verifică faptul că request/response JSON supraviețuiesc
-împreună cu execution trace în DOM-ul raportului deschis.
+The regulatory detail of the obvious normalization is in [`atf-reporting/README.md`](../atf-reporting/README.md#normalizarea-dovezilor-în-artefact). Here remains only proof of the consumer: `ExtentReportRuntimeEvidenceComponentTest` and the browser the proofer checks that the request / response JSON survive along with execution trace in DOM the open report.
 
-### Probe neutre promovate din consumeri
+<a id="neutral-samples-promoted-from-consumption"></a>
+<a id="probe-neutre-promovate-din-consumeri"></a>
+### Neutral samples promoted from consumption
 
-| Contract | Probă la owner | Ce rămâne în consumer |
+| Contract | Test at the owner | What remains in the consumer |
 |---|---|---|
-| Failure evidence din setup, durată, locator și redactare | `UiSetupFailureEvidenceComponentTest` | faza, eticheta setup-ului și siguranța artifactului aplicației |
-| Metodă HTTP capturată, body și replay, inclusiv `QUERY` | `ApiManualReplayProjectionTest` | fidelitatea mapperului și asocierea operației business |
-| Flow unificat peste setup/body | `ReportEvidenceProfileIntegrationTest` | aplicarea profilului prin composition root-ul propriu |
+| Proven failure from setting, duration, locator and redaction | `UiSetupFailureEvidenceComponentTest` | phase, setup label and application artifact safety |
+| Captured HTTP method, body and replay, including `QUERY` | `ApiManualReplayProjectionTest` | the loyalty of the mapper and the association of the business operation |
+| Flow unified over setup / body | `ReportEvidenceProfileIntegrationTest` | application of profile by composition your own robot |
 
-Probele neutre nu importă Shop/AutoEx. Auditul PNG și secvențele Playwright
-aparțin `atf-ui`; primitivele fără UI/Reporting aparțin Kit-ului existent.
+Neutral samples do not import Shop / AutoEx. PNG audit and Playwright sequences belong to `atf-ui`; primates without UI / Reporting belong to the existing Kiti.
 
-- `ReportingTimestampComponentTest` verifică formatul 24h și conservarea
-  instantelor la ownerul componentelor Reporting; nu extinde excepția finită
-  a testelor de independență din modulul standalone.
+- `ReportingTimestampComponentTest` checks format 24h and conservation
+  the courts at the owner of the components Reporting; do not extend the finite exception of the independence tests in the standby module.
 
-### Probe de lizibilitate a panoului
+<a id="the-test-shall-be-carried-out-in-accordance-with-the-requirements-of-paragraph-51312-of-this-regulation"></a>
+<a id="probe-de-lizibilitate-a-panoului"></a>
+### The test shall be carried out in accordance with the requirements of paragraph 5.1.3.1.2 of this Regulation.
 
-`NarrowEvidenceReadabilityComponentTest` folosește porturile publice Reporting
-și fixture-uri neutre Extent/fallback. Matricea include viewport 1280/591/392 px
-și panouri 591/392 px într-o fereastră desktop.
+`NarrowEvidenceReadabilityComponentTest` uses Reporting public ports and neutral Extent / fallback fixtures. The matrix includes 1280/591/392 px viewport and 591/392 px panels in a desktop window.
 
-| Probă | Contract măsurat |
+| Test | Measure contract |
 |---|---|
-| Lățime utilă | font comun, antet lizibil, celule fără clipping; datele scurte nu primesc cote procentuale artificiale |
-| Coloane | antet vizibil și celule aliniate pe întreaga lățime; scroll orizontal local când spațiul este insuficient, fără overflow al paginii |
-| Fixture negativ | UI/API frați, comparație independentă eșuată și `Failure evidence` real prin `UiExtentReportSession`, fără clonarea rândurilor DOM |
-| Acces | ultimul rând și ultima coloană, Enter/Space și redeschiderea părintelui după Fails → Tests |
-| Probe de refuz | `TableViewportBrowserComponentTest` respinge antetul ascuns, celulele verticale și scroll-ul orizontal blocat, alături de cap, clipping și wrapper dublu |
-| Gate-uri independente | politica de înălțime și bugetele asset-urilor; navigare locală cu săgețile în Extent/fallback |
+| Useful width | Common font, legible header, cells without clipping; short data do not receive artificial percentage rates |
+| Column | visible header and cells lined up across the width; local horizontal scroll when the space is insufficient, without overflow of the page |
+| Negative fixture | UI/API siblings, an independently failed comparison and real `Failure evidence` through `UiExtentReportSession`, without cloning DOM rows |
+| Access | Last row and last column, Enter / Space and parent reopening after Fails → Tests |
+| Refusal evidence | `TableViewportBrowserComponentTest` rejects hidden header, vertical cells and horizontal scroller blocked alongside head, clipping and double wrapper |
+| Independent cooking | height policy and the budgets of assets.Local arrow navigation in Extent / fallback |
 
-### Refuz recuperabil al scope-urilor
+<a id="recoverable-refusal-of-the-scope"></a>
+<a id="refuz-recuperabil-al-scope-urilor"></a>
+### Recoverable refusal of the scope
 
-`ReportScopeAtomicityComponentTest` și `ReportingScopeAtomicityComponentTest`
-folosesc porturile publice Extent/fallback pentru completări repetate, copii
-deschiși, input invalid, close FAIL, consolă best-effort și publicare eșuată.
-Snapshot-ul anterior rămâne intact după refuz; colecția callerului este capturată
-o singură dată, iar agregatul înlocuit nu produce drift la flush. Fixture-urile
-sunt neutre; selecția order și clickul unic aparțin testelor Shop.
+`ReportScopeAtomicityComponentTest` and `ReportingScopeAtomicityComponentTest` use public ports Extent / fallback for repeated additions, open copies, invalid input, close FAIL, best- effort console and failed publication. The previous snack remains intact after refusal; the caller captured once, and the replaced aggregate does not produce drift to flush. The fixtures are neutral; the order selection and the single click belong to Shop tests.
 
-Suitele Reporting păstrează categoria lor de contracte și artifactele fixture;
-regula unui HTML agregat per suită business rămâne la adaptoarele Shop/AutoEx.
+Reporting Suites retain their contract category and fixture artifacts; the rule of an aggregated HTML per suite business remains with Shop / AutoEx adapters.
 
 </details>
 
 </details>
 
-## Diagnosticul neutru al excepțiilor
+<a id="neutral-diagnosis-of-exceptions"></a>
+<a id="diagnosticul-neutru-al-excepțiilor"></a>
+## Neutral diagnosis of exceptions
 
-| Probă sau politică | Intrare | Ce confirmă |
+| Test or policy | Input | What it confirms |
 |---|---|---|
-| sumar diagnostic | [ReportFailureDescriptionTest](src/test/java/atf/reporting/evidence/diagnostic/ReportFailureDescriptionTest.java) | graf ciclic, ordinea cauză/suppressed, redactare înaintea plafonului propriu de 240 |
-| dovadă publicată | [ReportFailureDescriptionComponentTest](src/test/java/atf/reporting/evidence/diagnostic/ReportFailureDescriptionComponentTest.java) | aceeași fază, cauză, cleanup și FAIL în Extent/fallback |
-| configurare versus helper | [harta politicilor](../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor) | bugetul sesiunii pentru rânduri este separat de plafonul helperului; fără dependență de endpoint ori checkout |
+| diagnostic summary | [ReportFailureDescriptionTest](src/test/java/atf/reporting/evidence/diagnostic/ReportFailureDescriptionTest.java) | Cyclic graph, order / suppressed, redaction before the 240 ceiling |
+| published evidence | [ReportFailureDescriptionComponentTest](src/test/java/atf/reporting/evidence/diagnostic/ReportFailureDescriptionComponentTest.java) | Same phase, cause, cleanup and FAIL in Extent / fallback |
+| configuration versus helper | [policy map](../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor) | the line-session budget is separated from the ceiling of the helper; without dependence on endpoint or checkout |
 
-Probele consumerilor păstrează wiring-ul real: configurație, contract API,
-raport unic individual/prin suită și aserțiuni auditabile. Un test care verifică
-acest adaptor rămâne la aplicație chiar când citește HTML-ul rezultat; nu se
-adaugă dependențe ale compoziției Reporting către modulele business.
+Consular samples keep the actual wirling: configuration, API contract, individual / suite unique ratio and auditable assertions. A test that checks this adapter stays on the application even when reading the resulting HTML; no dependence of the Reporting composition to business modules is added.
 
-## Verificare rapidă
+<a id="quick-check"></a>
+<a id="verificare-rapidă"></a>
+## Quick check
 
-| Decizie | Sursă și limită |
+| Decision | Source and limit |
 |---|---|
-| Paritate Extent/fallback pe fixture locală | [sursa ownerului](src/test/java/atf/ui/tests/extent/support/inspection/table/TableViewportReportFixture.java); probă: [NarrowEvidenceReadabilityComponentTest](src/test/java/atf/ui/tests/extent/component/readability/NarrowEvidenceReadabilityComponentTest.java) |
-| Dependențe și source-set-uri | [POM](pom.xml); scope-ul declarat este autoritatea pentru integrare |
-| Ce nu demonstrează această probă | Fixture-ul local nu certifică o suită business completă. |
+| Extent / fallback parity on local fixture | [source of the host](src/test/java/atf/ui/tests/extent/support/inspection/table/TableViewportReportFixture.java); sample [NarrowEvidenceReadabilityComponentTest](src/test/java/atf/ui/tests/extent/component/readability/NarrowEvidenceReadabilityComponentTest.java) |
+| Dependencies and source- sets | [POM](pom.xml); declared scope authority for integration |
+| What this probe does not prove | The local fixture doesn't certify a complete business suite. |
 
 <details>
-<summary><strong>Comandă pentru proba locală</strong></summary>
+<summary><strong>Command for local sample</strong></summary>
 
-Rulați din rădăcina unui [staging extern](../docs/ATF_Build_And_Execution_Safety.md), cu JDK 21 și Maven.
-Chromium Playwright trebuie să fie disponibil local; fixture-ul nu navighează pe Shop sau AutoEx.
+Run from the root of a [external staging](../docs/ATF_Build_And_Execution_Safety.md), with JDK 21 and Maven. Chromium Playwright must be available locally; the fixture does not navigate Shop or AutoEx.
 
 ```powershell
 mvn -B -pl atf-reporting-tests -am "-Dtest=NarrowEvidenceReadabilityComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
-Comanda selectează proba numită și construiește dependențele; nu declară
-trecerea întregului modul. Fixture-ul local nu certifică o suită business completă.
+The command selects the sample called and builds the dependencies; does not declare the passage of the entire module. The local fixture does not certify a complete business suite.
 
 </details>
-## Observații neutre și disclosure imbricat
+<a id="neutral-observations-and-intoxicated-discorsure"></a>
+<a id="observații-neutre-și-disclosure-imbricat"></a>
+<a id="neutral-observations-and-intoxicated-disclosure"></a>
+## Neutral observations and intoxicated disclosure
 
-`ReportObservationComponentTest` protejează INFO neutru, absența HTTP fabricat,
-FAIL nemascat, preview 240, corp complet și URI. `ObservationBrowserProbe`
-verifică două invocări distincte, glyph local, Enter/Space, End și ultimul rând
-în Extent/fallback; fallback păstrează markerul nativ al browserului.
-Fixture-ul distribuției publică aceeași observație pe JAR-ul fizic, cu zero
-pachete Core/Kit/JUnit/Playwright în runtime-ul consumerului extern.
+`ReportObservationComponentTest` protects neutral INFO, the absence of HTTP manufactured, FAIL unmasked, preview 240, complete body and URI. `ObservationBrowserProbe` checks two distinct invokes, local glyph, Enter / Space, End and last row in Extent / fallback; Fallback keeps the browser's native marker. The distribution fixture publishes the same observation on physical JAR, with zero Core / Kit / JUnit / Playwright packages in the external consumer runtime.
 
-## Validarea API colapsabilă în fiecare renderer
+<a id="validation-of-api-collapsible-in-each-renderer"></a>
+<a id="validarea-api-colapsabilă-în-fiecare-renderer"></a>
+## Validation of API collapsible in each renderer
 
-Fixture-ul neutru `ApiValidationDisclosureFixture` publică snapshot-uri mock prin
-porturile publice, fără Eventuate sau servicii externe. Testul
-`ApiValidationDisclosureComponentTest` este descoperit de suita de componentă.
+`ApiValidationDisclosureFixture` neutral fixture publishes mock snapshots through public ports without Eventuate or external services. `ApiValidationDisclosureComponentTest` test is discovered by the suite of components.
 
-| Probă | Contract |
+| Test | Contract |
 |---|---|
-| 12 nominale | Extent/fallback × individual/agregat × PASS/FAIL/WARNING; tabel unic la owner, patru coloane și trei comparații exacte |
-| 4 cazuri media | HTTP status PASS, media FAIL/WARNING și null PASS; schimbul verdicturilor între rânduri este refuzat fără schimbarea totalului negativ |
-| navigare | închis la sosire; click, Enter/Space, ultimul rând, backlink Fails, reload și panou de 392 px |
-| valori | object/array/null, redactare înainte de preview 240 și mismatch după limită care rămâne FAIL |
-| 6 mutanți | control eliminat, deschis implicit ori ultimul rând mutat la un sibling; fiecare este refuzat |
-| assets | creșterea ARIA este măsurată separat; limita ownerului fallback refuză un byte peste baseline chiar când formatul are headroom |
-| standalone | `ReportingStandaloneValidationDisclosureTest`: shell nevid și validare goală; fără browser sau alte module ATF |
+| 12 nominal | Extent / fallback × individual / aggregate × PASS / FAIL / WARNING; single table for owner, four columns and three exact comparisons |
+| 4 media cases | HTTP status PASS, mean FAIL / WARNING and null PASS; exchange of verdicts between rows is refused without change of total negative |
+| navigation | closed on arrival; click, Enter / Space, last row, backlink Fails, reload and panel 392 px |
+| values | Object / array / null, pre-preview 240 and miss by limit remaining FAIL |
+| 6 mutants | removed control, default open or last row moved to a sibling; each is refused |
+| assets | ARIA growth is measured separately; the limit of the fallback owner refuses a byte over baseline even when the format has headroom |
+| standalone | `ReportingStandaloneValidationDisclosureTest`: empty shell and validation; no browser or other ATF modules |
 
-Extent deține colapsarea prin cardul validation; fallback prin `details`
-nativ. Diagnosticul duplicat și DOM-ul Extent ascuns nu pot substitui tabelul
-original. Aceeași matrice se execută și pe JAR-ul fizic, fără surse Reporting.
+Extent holds the collapse by validation card; the fallback by native `details`. The duplicate diagnosis and DOM Extent can not replace the original table. The same matrices are performed on the physical JAR without Reporting sources.
 
-## Regresii JSON pe sursă și JAR
+<a id="json-regressions-per-source-and-jar"></a>
+<a id="regresii-json-pe-sursă-și-jar"></a>
+## JSON regressions per source and JAR
 
-Nativele ReportingStandaloneJsonFidelityTest verifică separat redacția și
-formatterul. JsonEvidenceFidelityComponentTest publică mock-uri prin porturile
-publice în Extent/fallback, individual și agregat, cu vecini PASS.
+ReportingStandaloneJsonFidelityTest natives check the editorial and formatter separately. JsonEvidenceFidelityComponentTest publishes mocks through public ports in Extent / fallback, individually and aggregate, with PASS neighbours.
 
-- Oracolul citește tokenurile corpului de la ownerul activ și refuză rotunjirea ori eliminarea unei apariții duplicate.
-- Comparațiile păstrează FAIL-ul JSON scurt, FAIL-ul după preview 240 și rândul final null PASS.
-- Mouse, Enter și Space verifică disclosure-ul colapsat și accesul la ultimul rând.
-- Fixture-ul declară body preview 240; default-ul standalone pentru body rămâne 100, iar assertions păstrează implicit 240.
+- The Oracle reads the body tokens from the active host and refuses rounding up or eliminating a duplicate appearance.
+- Comparison keeps FAIL-ul JSON short, FAIL- after preview 240 and final row PASS.
+- Mouse, Enter and Space check out the collapsed discoloration and access to the last row.
+- The fixture declares body preview 240; the standalone body default remains 100, and the assertions maintain 240 by default.
 
-Regresia pe JAR rulează într-un harness TMP fără implementare Reporting.
-Consumerii live păstrează numai JAR/POM și probele propriei aplicații.
+JAR regression is running in a TMP harness without Reporting implementation. Live consumers keep only JAR / POM and their own application samples.
 
+<a id="disclosure-and-binary-compatibility-regressions"></a>
+<a id="regresii-pentru-disclosure-și-compatibilitatea-binară"></a>
 ## Disclosure and binary compatibility regressions
 
-| Probă | Dovadă |
+| Test | Proof |
 |---|---|
-| SiblingDisclosureStateComponentTest | Extent/fallback, individual/agregat, mouse/Enter/Space; vecinii păstrează starea și ultimul rând |
-| control de vizibilitate | oracolul refuză corpul ascuns chiar când toate valorile și atributele expanded rămân în DOM |
-| ReportingTagBinaryCompatibilityTest | client compilat față de ABI vechi, fără stub în classloaderul runtime |
-| observation | cele două componente sunt în atf.reporting.observation; assertions și fixture-urile rămân aceleași |
+| SiblingDisclosureStateComponentTest | Extent / fallback, individual / aggregate, mouse / Enter / Space; neighbours keep status and last row |
+| Visibility check | oracle refuses the hidden body even when all expanded values and attributes remain in DOM |
+| ReportingTagBinaryCompatibilityTest | customer compiled against old ABI without steeple in runtime classloader |
+| observation | the two components are in atf.reporting.observation; assertions and fixtures remain the same |
 
 The same independent disclosure oracles run against source and the physical JAR. Visibility corruption must fail without changing captured values or expanded attributes; generic regressions remain in J0.
 
+<a id="system-metadata-and-fallback-index-contracts"></a>
+<a id="contractele-metadatelor-system-și-ale-indexului-fallback"></a>
 ## System metadata and fallback index contracts
 
-ReportSystemMetadataComponentTest citește șase facts exacte la ownerul Overview,
-în Extent/fallback și individual/agregat. FallbackIndexPresentationComponentTest
-verifică vecini Pass/Fail/Skip, titluri/clase integrale, contrast, geometrie, Enter
-și un mutant care colorează linkul întreg. Nativele verifică overrides typed,
-unknown explicit, redacție, preview calculat și refuz fără mutație după close.
+ReportSystemMetadataComponentTest reads six exact facts at the Overview Owner, Extent / fallback and individual / aggregate. FallbackIndexPresentationComponentTest checks the neighbors Pass / Fail / Skip, full titles / classes, contrast, geometry, Enter and a mutant that colors the whole link. Natives check the overrides typed, unknown explicit, editorial, calculated preview and refusal without mutation after close.
 
-Același fixture neutru rulează pe JAR-ul fizic. Nu folosește Android, ASR ori
-HTTP inventat; profilul inspectorului și timing-ul rămân criterii separate.
+Same neutral fixture runs on physical JAR. Do not use Android, ASR or invented HTTP; the inspector's profile and the timing remain separate criteria.
 
-## Probe inspector, timing și indicator assertions
+<a id="inspector-timing-and-indicator-assertions"></a>
+<a id="probe-inspector-timing-și-indicator-assertions"></a>
+## Inspector, timing and indicator assertions
 
-| Probă permanentă | Oracol și controale negative |
+| Permanent sample | Oracle and negative controls |
 |---|---|
-| `ReportArtifactProfileComponentTest` | Extent/fallback, individual/agregat, assertion/observation-only și HTTP obligatoriu; owner, rând final, status, script/theme, request, tabel mutat/eliminat și rezultat reconstruit incomplet |
-| `ReportProfileLabelsComponentTest` | Extent/fallback, titluri literale cu canar script, etichete multiline, corp complet cu CRLF și FAIL după preview 240. Titlul marcat cu același text vizibil este refuzat. |
-| `RecordedPublicationTimingComponentTest` | barieră de publicare după capturare, fără sleep-uri; execuție 11 ms, transport 7 ms și ceas de publicare distinct, fără însumare sau clamp |
-| `AssertionIndicatorComponentTest` | indicator închis/deschis/reînchis, mouse/Enter/Space și ultimul rând vizibil; mutantul ascunde numai glyph-ul și este refuzat |
-| native standalone | rezultat public gol/parțial/contradictoriu, profil imutabil și severitate, transport zero versus absent |
+| `ReportArtifactProfileComponentTest` | Extent / fallback, individual / aggregate, assertion / observation-only and HTTP mandatory; owner, final row, status, script / theme, request, moved / removed table and incomplete reconstructed result |
+| `ReportProfileLabelsComponentTest` | Extent / fallback, literal titles with script canary, multi-line labels, full body with CRLF and FAIL after preview 240. The title marked with the same visible text is refused. |
+| `RecordedPublicationTimingComponentTest` | post-capture publication barrier without slaps; 11 ms execution, 7 ms transport and separate publishing clock without summation or clamp |
+| `AssertionIndicatorComponentTest` | closed / open / reclosed indicator, mouse / Enter / Space and last visible row; mutant only hides glyphs and is refused |
+| native standalone | Public result empty / partial / contradictory, immutable profile and severity, zero versus absent transport |
 
-Fixture-ul `support/inspection/ArtifactProfileFixture` furnizează independent numele și statusurile așteptate.
-Un mismatch numeric și unul după caracterul 240 păstrează FAIL chiar când preview-urile afișate coincid.
-Inspecția statică nu substituie navigarea la rândul original; proba source și proba JAR au classpath-uri și rezultate distincte.
+`support/inspection/ArtifactProfileFixture` has independently provided the names and statuses expected. A numerical mismatch and one after the character 240 keep FAIL even when the displayed previews coincide. Static inspection does not substitute original navigation; source and JAR sample have different classifications and results.
 
 ## Core projection in reports
 
-[CoreConsoleProjectionComponentTest](src/test/java/atf/reporting/security/CoreConsoleProjectionComponentTest.java) compară politica string-urilor JSON publice la boundary-ul Core CODE și în artifactul Extent/fallback. Inputul original rămâne intact; canary-ul trebuie să lipsească din întregul HTML, iar tokenul numeric precis și vecinul public rămân vizibile.
+[CoreConsoleProjectionComponentTest](src/test/java/atf/reporting/security/CoreConsoleProjectionComponentTest.java) compares the policy of JSON public strings to Core CODE boundary and to the Extent / fallback artifact. The original input remains intact; the canary must be missing from the entire HTML, and the precise numerical tokens and the public neighbor remain visible.
 
-- Proba este selectată prin pachetul componentă existent și rulează identic pe sursă și JAR fizic.
-- [CoreRedactionPublicationComponentTest](src/test/java/atf/reporting/security/CoreRedactionPublicationComponentTest.java) păstrează FAIL-ul original când preview-urile mascate devin identice.
-- Anularea HTTP și nativele adaptorului aparțin Core; harness-ul Reporting nu preia ownership-ul transportului.
+- The sample is selected by the existing component package and runs identical on source and physical JAR.
+- [CoreRedactionPublicationComponentTest](src/test/java/atf/reporting/security/CoreRedactionPublicationComponentTest.java) keeps the original FAIL- when the masked previews become identical.
+- HTTP cancellation and adaptor natives belong to Core; Reporting harness does not take over the transport ownerships.
 
-## Regresii de volum și celule complete
+<a id="volume-regression-and-complete-cells"></a>
+<a id="regresii-de-volum-și-celule-complete"></a>
+## Volume regression and complete cells
 
-| Probă permanentă | Oracol independent | Refuz controlat |
+| Permanent sample | Independent oracle | Controlled refusal |
 |---|---|---|
-| CapturedVolumePublicationComponentTest | model real: 321 checkpoint-uri, 6.634 comparații, 577 ACTION/OBSERVE, 321 PNG distincte; child JVM 1 GiB | checksum per PNG, owner original și ultima comparație eliminată |
-| UiFullValueComponentTest | Extent/fallback, două scenarii cu preview identic și suffix distinct, valori 239/240/241 | ultimul scalar eliminat; secret absent în întregul artifact |
-| UiFullValueBrowserComponentTest | Enter/Space, End, panou îngust, celule independente, geometrie fără suprapunere | summary-ul ori conținutul care iese peste vecin nu trece oracolul |
-| UiPhaseObservationComponentTest | profil authored pentru SETUP/TEST BODY/TEARDOWN, corp integral, zero request-uri și assertions | null și publicare după completare refuzate |
-| ReportingStandaloneInlinePayloadTest în bibliotecă | round-trip exact, Unicode, duplicate, marginea bufferului și fișier privat eliminat | writer failure și spool trunchiat păstrează IOException/EOF |
+| CapturedVolumePublicationComponentTest | actual model: 321 checkpoints, 6.634 comparisons, 577 ACTION/OBSERVE and 321 distinct PNG; child JVM 1 GiB | checksum per PNG, original owner and last comparison removed |
+| UiFullValueComponentTest | Extent / fallback, two scenarios with identical preview and distinct suffix, 239/240/241 values | the last scalar removed; secret missing in the entire artifact |
+| UiFullValueBrowserComponentTest | Enter / Space, End, narrow panel, independent cells, geometry without overlap | The summary the content that comes out of the neighbor does not pass the oracle |
+| UiPhaseObservationComponentTest | authored profile for SETUP / TEST BODY / TEARDOWN, full body, zero requests and assertions | null and publication after completion refused |
+| ReportingStandaloneInlinePayloadTest in the library | exact round-trip, Unicode, duplicates, buffer edge and private file removed | failure writer and truncated spool keep IOexception / EOF |
 
-- Proba de volum folosește PNG-uri sintetice valide, fără dispozitiv sau aplicație.
-- Hash-urile originale preced publicarea; favicon-urile nu intră în populația capturilor.
-- Sursa și JAR-ul fizic execută aceleași fixture-uri; probele existente la 384 MiB și bugetele assets rămân neschimbate.
+- The volume sample uses valid synthetic PNG without device or application.
+- Original hashes predate publication; favicons do not enter the catch population.
+- The source and JAR physically perform the same fixtures; the existing 384 MiB samples and the budgets of the assets remain unchanged.
 
-[Reporting owner contract](../atf-reporting/README.md)
-păstrează selecțiile, măsurătorile și limitele.
+[Reporting owner contract](../atf-reporting/README.md) shall maintain the selections, measurements and limits.
 
-## Fidelitate UI și redacție comună
+<a id="ui-fidelity-and-joint-editorial"></a>
+<a id="fidelitate-ui-și-redacție-comună"></a>
+## UI fidelity and joint editorial
 
-| Probă | Oracol |
+| Test | Oracle |
 |---|---|
-| ReportingStandaloneContractTest | payload cu whitespace și CRLF păstrat byte cu byte în model; metadate normalizate și null compatibil |
-| UiRowProjectionComponentTest | Extent/fallback, ACTION/OBSERVE, ordinal/status, valoare completă, titlu PNG redactat și bytes PNG originali |
-| politica custom | HtmlReportEvidenceView și rendererul Extent consumă același replacement ne-idempotent, exact o dată la boundary-ul rândului |
-| UiRowProjectionBrowserComponentTest | LF/CRLF inițiale și whitespace final identice în textContent, Enter/Space, End și colapsare/redeschidere |
+| ReportingStandaloneContractTest | payload with whitespace and CRLF stored byte with byte in the model; normalized metadata and compatible null |
+| UiRowProjectionComponentTest | Extent / fallback, ACTION / OBSERVE, ordinal / status, full value, PNG title and original PNG bytes |
+| Custom policy | HtmlReportEvidenceView and Extent renderer consume the same non-idempotent replacement, exactly once at the row boundary |
+| UiRowProjectionBrowserComponentTest | LF / CRLF initial and identical final whitespace in textContent, Enter / Space, End and collapse / reopening |
 
-Canarul sintetic este refuzat în întregul HTML, inclusiv atribute și canale ascunse.
-Regresiile păstrează profilurile existente și limita 240; acestea nu închid
-criteriul separat pentru valorile lungi ale assertions.
+The synthetic canary is rejected throughout HTML, including hidden attributes and channels. Regression retains the existing profiles and limit 240; they do not close the criterion separately for long values of assertions.
 
-## Dovezi inline fără artifacte externe
+<a id="inline-evidence-without-external-artifacts"></a>
+<a id="dovezi-inline-fără-artifacte-externe"></a>
+## Inline evidence without external artifacts
 
-[Contractul generic](../docs/ATF_Inline_Audit_Contract.md) are fixture neutru, cu date sintetice și oracol independent de renderer.
+[Generic contract](../docs/ATF_Inline_Audit_Contract.md) has neutral fixture, with synthetic data and oracle independent of the renderer.
 
-| Probă | Acoperire |
+| Test | Cover |
 |---|---|
-| SelfContainedAuditComponentTest / SelfContainedArtifactInspectionComponentTest | matrice individual/combinat și Extent/fallback; mutanți de dovezi și resurse la inspectorul public |
-| SelfContainedAuditBrowserComponentTest / SelfContainedArtifactOfflineComponentTest | valori exacte, tastatură, vecin colapsat; HTML detașat offline cu PNG original |
-| ReportingStandaloneObservationTest | PRE păstrează LF/CR și entități literale, fără markup executabil |
+| SelfContainedAuditComponentTest / SelfContainedArtifactInspectionComponentTest | individual / combined matrix and Extent / fallback; evidence and resources mutants to the public inspector |
+| SelfContainedAuditBrowserComponentTest / SelfContainedArtifactOfflineComponentTest | exact values, keyboard, collapse neighbor; HTML detached offline with original PNG |
+| ReportingStandaloneObservationTest | PRE keeps LF / CR and literal entities without executable markup |
 
-Acestea nu execută Android și nu închid oracolul business J4. Capturile sunt
-PNG sintetice distincte pentru verificarea ownerului și a transportului.
+They do not execute Android and do not close the business oracle J4. The catches are PNG synthetic distinct for checking the host and transport.
 
 ## Screenshot viewer contracts
 
@@ -1401,79 +1160,78 @@ PNG sintetice distincte pentru verificarea ownerului și a transportului.
 
 The [inline audit contract](../docs/ATF_Inline_Audit_Contract.md) defines source/JAR regression boundaries; dated acceptance remains with the package. These neutral regressions do not certify Android rules or capture dimensions.
 
+<a id="large-report-navigation"></a>
+<a id="navigarea-rapoartelor-mari"></a>
 ## Large-report navigation
 
-[The incremental navigation contract](../docs/ATF_Large_Report_Navigation.md) preserves all supplied assertions and original PNGs with preview 240. Hidden-table work is deferred, DOM updates are coalesced and execution-marker lookup is cached only for one aggregation pass.
+[The incremental navigation contract](../docs/ATF_Large_Report_Navigation.md) keeps all assertions and original PNG with preview 240. The processing of hidden tables is delayed, DOM updates are aggregated, and the search for execution markers is cache- only for a aggregation pass.
 
 [navigation contract](../docs/ATF_Large_Report_Navigation.md) distinguishes browser acceptance from fresh business/device execution; neutral permanent regressions remain in Reporting Tests.
 
+<a id="cold-startup-and-readiness"></a>
+<a id="pornire-la-rece-și-readiness"></a>
 ## Cold startup and readiness
 
-Bootstrap-ul aplică view-ul cerut o dată, independent de load timing. Normalizarea reușită publică readiness; eroarea nu produce ready. Observatorii și navigarea explicită rămân active.
+Bootstrep applies the requested view once, independently of load timing. The successful normalization publicly represents; the error does not produce ready. Observers and explicit navigation remain active.
 
-[The cold-start contract](../docs/ATF_Large_Report_Navigation.md) retains fresh-browser
-10 s readiness/action and 45 s navigation bounds, canonical PNG payloads,
-comparisons and preview 240. Bulk acceptance selects at most two source owners.
+[The cold-start contract](../docs/ATF_Large_Report_Navigation.md) retains fresh-browser 10 s readiness/action and 45 s navigation bounds, canonical PNG payloads, comparisons and preview 240. Bulk acceptance selects at most two source owners.
 
+<a id="native-timeline-label-fidelity"></a>
+<a id="fidelitatea-etichetelor-native-ale-cronologiei"></a>
 ## Native timeline label fidelity
 
-TimelineTitleEncodingComponentTest publishes neutral reports with quoted,
-multiline, backslash and Unicode owner names. It executes the actual native
-timeline script, compares complete keys and rejects browser errors at the
-original readiness/action and navigation deadlines.
+TimelineTitleEncodingComponentTest publishes neutral reports with quoted, multiline, backslash and Unicode owner names. It executes the actual native timeline script, compares complete keys and rejects browser errors at the original readiness/action and navigation deadlines.
 
+<a id="neutral-ui-attribution-and-captured-failure-catalogue"></a>
+<a id="atribuire-ui-neutră-și-catalogul-eșecurilor-capturate"></a>
 ## Neutral UI attribution and captured failure catalogue
 
 Neutral captured input is verified independently on source and physical JAR, in Extent and fallback.
 
 | Permanent contract | Independent oracle |
 |---|---|
-| `UiActionAttributionContractTest` | identical web/Android inputs; PASS, second-action FAIL and OBSERVE-only; title-only false-driver mutation; legitimate tool names retained |
+| `UiActionAttributionContractTest` | identical web entries / Android; PASS, FAIL at second action and only OBSERVE-; false driver mutation only in title; legitimate tool names are kept |
 | `UiFailureCatalogueContractTest` | interleaved request/validation ACTION and OBSERVE; separate comparison counts, causes, original ordinals and passing sibling |
 | `UiActionAttributionComponentTest` | actual keyboard expansion and Fails backlinks; no helper repairs after navigation; original 10 s action/readiness and 45 s navigation bounds |
 | `UiActionAttributionComponentSuite` | focused Maven/IDE discovery on source and physical JAR |
 | screenshot population | actual DOM anchors and multiplicity; script-only, one-frame, duplicate-anchor and missing-attribute controls |
 
-## Izolarea tuturor intrărilor browser
+<a id="isolation-of-all-browser-inputs"></a>
+<a id="izolarea-tuturor-intrărilor-browser"></a>
+## Isolation of all browser inputs
 
-`@ReportBrowserTest` execută o singură dată selecția clasei într-un worker deținut exclusiv. Metodele, iterațiile și cazurile dinamice păstrează identitatea JUnit; fiecare rezultat părinte cere verdictul terminal al cazului original. `@BeforeAll` și `@AfterAll` rămân comune selecției.
+`@ReportBrowserTest` performs the class selection once in an exclusive-owned workshop. Methods, iterations and dynamic cases retain the identity of JUnit; each parent result requires the final verdict of the original case. `@BeforeAll` and `@AfterAll` remain common to the selection.
 
 | Boundary | Contract |
 |---|---|
-| setup / cleanup | `BrowserResources` păstrează obiectele SDK concrete; setup 30 s, cleanup 5 s pe apel SDK efectiv, cu limita globală legacy păstrată separat |
-| binare Playwright | workerul dezactivează descărcarea; binarele potrivite se instalează înaintea suitei, în afara deadline-ului de setup |
-| Chromium Windows | după închiderea contextelor prin SDK, workerul termină și confirmă ieșirea Chromium headless temporar și a driverului propriu în același buget de cleanup |
-| publicare | închiderea unui server ori publicarea HTML păstrează faza apelantului; numai disposal-ul SDK consumă termenul de cleanup |
-| discovery JUnit | workerul descoperă selecția exactă cu Jupiter și execută același `TestPlan`; `DISCOVERY` are diagnostic propriu, în același buget ca intrarea în `VERIFY` |
-| verificare | 120 s per scope de verificare și 10 min per clasă; pragurile existente pentru acțiuni, navigare și performanță rămân independente |
-| eroare | cauza inițială rămâne primară; excepțiile de disposal păstrează încercarea celorlalte resurse și devin suppressed; un blocaj oprește workerul și procesele proprii |
-| identitate | resurse distincte rămân distincte la disposal; referințele slabe păstrează închiderea idempotentă fără retenția obiectelor SDK |
-| selecție | rezultat absent, străin, duplicat, zero cazuri, skip/abort sau container eșuat refuză PASS |
-| cauză inițială | corpul testului este capturat înainte de disposal; erorile prinse intenționat sunt eliminate din diagnosticul provizoriu după finalizarea corpului |
-| diagnostic | stdout/stderr Java sunt UTF-8; octeții nativi invalizi nu înlocuiesc eroarea originală, iar fișierul brut rămâne păstrat |
-| output | rapoartele workerului folosesc scratch-ul scurt deținut exclusiv; scratch.path și ATF_OWNER leagă output-ul de folderul de diagnostic |
-| procese | sampling-ul descendenților este separat de deadline; eșecul recitește imediat inventarul, iar un PID reutilizat înlocuiește numai handle-ul propriu deja mort |
-| canal de faze | citire incrementală, fără rescanarea jurnalului; numai cadrul complet schimbă faza, iar markerii imuabili păstrează auditul |
-| inventar | guvernanța inspectează apelurile SDK tipizate și traseele indirecte; `AtfReportingBrowserSuite` selectează tagul `report-browser` |
+| setup / cleanup | `BrowserResources` keeps the SDK objects concrete; 30 s setup, cleanup 5 s per call SDK effective with the overall legacy limit kept separately |
+| Playwright binary | the workman disables the download; the right binaries are installed before the suite, outside the setup deadline |
+| Chromium Windows | After closing the contexts through SDK, the workshop finishes and confirms the exit of Chromium headless temporarily and its driver in the same budget of cleanup |
+| publication | closing a server or publishing HTML keeps calling phase; only SDK display consumes the term cleanup |
+| discovery JUnit | The workshop discovers the exact selection with Jupiter and performs the same `TestPlan`; `DISCOVERY` has its own diagnosis, in the same budget as the entry into `VERIFY` |
+| verification | 120 s per verification scope and 10 min per class; existing thresholds for actions, navigation and performance remain independent |
+| error | initial cause remains primary; the disposal exceptions keep trying the other resources and become suppressed; a blockage stops the workshop and its own processes |
+| identity | Distinguishing resources remain distinct from the disposal; poor references keep the idempotent closure without retention of SDK objects |
+| selection | absent, foreign, duplicate, zero cases, skip / abort or failed container refutes PASS |
+| initial cause | The test body is captured prior to the disposal; intentionally caught errors are removed from the provisional diagnosis after completion of the body |
+| diagnostic | stdout / stderr Java are UTF-8; invalid native bytes do not replace the original error and the raw file remains preserved |
+| output | The workshop reports use the exclusive short-handed scratch.path and ATF_OWNER to link the output to the diagnostic folder |
+| processes | The sampling of the descendants is separated from the deadline; failure immediately restores the inventory, and a reused PID replaces only the already dead handler itself |
+| Phase channel | incremental reading without log rescan; only the complete frame changes phase, and immutable markers keep the audit |
+| inventory | governance inspects typed SDK calls and indirect routes; `AtfReportingBrowserSuite` selects `report-browser` tag |
 
-Profilul `reporting-release` selectează suita unitară canonică și suita browser,
-pe sursă și JAR fizic. Clientul controlat exercită selecția pe metodă, iterație
-și caz dinamic.
+`reporting-release` profile selects the canon unit suite and browser suite, on source and JAR physical. Controlled customer exercises selection by method, iteration and dynamic case.
 
-- Un blocaj în discovery nu pornește lifecycle-ul clasei.
-- Un Unique ID nerezolvabil eșuează în DISCOVERY.
-- O fabrică dinamică validă fără cazuri eșuează în VERIFY și nu certifică un
-  run gol drept PASS.
-- Un blocaj după corpul testului rămâne cleanup, cu eroarea corpului păstrată.
+- A block in the discovery does not start the class lifecycle.
+- An unsolvable ID Unique fails in DISCOVERY.
+- A valid dynamic factory without cases fails in VERIFY and does not certify a
+  Run naked as PASS.
+- A blockage to the test body remains cleanup, with the body's error preserved.
 
-Pentru Chromium headless din pachetul Playwright pe Windows, workerul corelează
-PID-ul raportat de CDP cu arborele său de procese și cu driverul părinte.
-Termină doar procesele revendicate și așteaptă ieșirea lor înainte de PASS.
-Un PID străin ori un proces rămas activ înseamnă FAIL.
+For Chromium headless from Playwright package on Windows, the workshop correlates PID-ul reported by CDP with its process shaft and parent driver. Finish only the claimed processes and wait for their exit before PASS. A foreign PID or a remaining active process means FAIL.
 
-Browserele externe, headed și branded păstrează închiderea SDK.
+External browsers, headed and branded, keep the SDK closed.
 
-Sesiunea de audit folosește același owner de resurse și păstrează configurația
-UI pentru viewport, timeout-uri, acțiuni și monitorizarea rețelei.
+The audit session uses the same resource owner and keeps UI configuration for view, timeouts, actions and network monitoring.
 
-Logurile, markerii de fază, stack-urile și HTML-urile rămân în TMP. Preview-ul 240, PNG-urile și oracolele originale nu sunt înlocuite de succesul transportului workerului.
+Logs, phase markers, stacks and HTML remain in TMP. 240, PNG and original oracles are not replaced by the success of the workshop transport.

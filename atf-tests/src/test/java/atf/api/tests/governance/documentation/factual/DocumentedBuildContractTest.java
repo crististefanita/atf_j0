@@ -8,7 +8,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.regex.Pattern;
 import static atf.api.tests.governance.AtfGovernanceTestSupport.locateProjectRoot;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -21,10 +20,11 @@ public class DocumentedBuildContractTest {
     @Test void aWrongDocumentedModuleCountFailsWithoutChangingThePom() throws Exception {
         Path root = locateProjectRoot(); byte[] pom = Files.readAllBytes(root.resolve("pom.xml"));
         String source = architecture(root);
-        var declaration = Pattern.compile("exact cele (\\d+) module existente").matcher(source);
+        var declaration = DocumentedBuildContracts.MODULES.matcher(source);
         assertTrue(declaration.find(), "The source must expose one module declaration");
-        int observed = Integer.parseInt(declaration.group(1));
-        String changed = source.substring(0, declaration.start(1)) + (observed + 1) + source.substring(declaration.end(1));
+        String group = declaration.group("romanian") == null ? "english" : "romanian";
+        int observed = Integer.parseInt(declaration.group(group));
+        String changed = source.substring(0, declaration.start(group)) + (observed + 1) + source.substring(declaration.end(group));
         assertNotEquals(source, changed);
         var failures = DocumentedBuildContracts.inspect(root, changed);
         assertEquals(1, failures.size()); assertTrue(failures.getFirst().contains("declared=" + (observed + 1) + "; observed=" + observed + "; source=pom.xml"));
@@ -48,7 +48,8 @@ public class DocumentedBuildContractTest {
         String row = source.lines().filter(line -> line.startsWith("| Shop |") && line.split("\\|", -1).length == 5).findFirst().orElseThrow();
         assertFalse(DocumentedBuildContracts.inspect(root, source.replace(row, "")).isEmpty());
         assertFalse(DocumentedBuildContracts.inspect(root, source.replace(row, row + "\n" + row)).isEmpty());
-        assertFalse(DocumentedBuildContracts.inspect(root, source.replace("Reactorul păstrează exact cele", "Reactorul are")).isEmpty());
+        assertFalse(DocumentedBuildContracts.inspect(root,
+                DocumentedBuildContracts.MODULES.matcher(source).replaceFirst("The reactor declares")).isEmpty());
     }
     @ParameterizedTest @ValueSource(ints={8, 9, 10, 11, 12})
     void moduleCountMutantIsIndependentOfTheDeploymentSize(int count, @TempDir Path root) throws Exception {
@@ -58,12 +59,22 @@ public class DocumentedBuildContractTest {
             Files.createDirectory(root.resolve(module));
             Files.writeString(root.resolve(module).resolve("pom.xml"), "<project><dependencies><dependency><artifactId>atf-test-kit</artifactId><scope>test</scope></dependency></dependencies></project>");
         }
-        String document = "Reactorul păstrează exact cele " + count + " module existente.\n"
-                + "| Consumer | `compile` | `test` |\n|---|---|---|\n| Shop | Core | Test Kit |\n| AutoEx | Core | Test Kit |\n";
-        assertEquals(List.of(), DocumentedBuildContracts.inspect(root, document));
-        var failures = DocumentedBuildContracts.inspect(root, document.replace("cele " + count, "cele " + (count + 1)));
-        assertEquals(1, failures.size());
-        assertTrue(failures.getFirst().contains("declared=" + (count + 1) + "; observed=" + count + "; source=pom.xml"));
+        for (String declaration : List.of(
+                "Reactorul păstrează exact cele " + count + " module existente.",
+                "The reactor retains exactly " + count + " existing modules.")) {
+            String moduleClaim = declaration.contains("Reactorul")
+                    ? "Reactorul păstrează exact cele " + count + " module existente."
+                    : "The reactor retains exactly " + count + " existing modules.";
+            String document = moduleClaim + "\n"
+                    + "| Consumer | `compile` | `test` |\n|---|---|---|\n| Shop | Core | Test Kit |\n| AutoEx | Core | Test Kit |\n";
+            assertEquals(List.of(), DocumentedBuildContracts.inspect(root, document));
+            String changed = DocumentedBuildContracts.MODULES.matcher(document)
+                    .replaceFirst(matcher -> matcher.group().replace(Integer.toString(count), Integer.toString(count + 1)));
+            var failures = DocumentedBuildContracts.inspect(root, changed);
+            assertEquals(1, failures.size());
+            assertTrue(failures.getFirst().contains(
+                    "declared=" + (count + 1) + "; observed=" + count + "; source=pom.xml"));
+        }
     }
     private static String architecture(Path root) throws Exception { return Files.readString(root.resolve("docs/ATF_Architecture.md")); }
 }

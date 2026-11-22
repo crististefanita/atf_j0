@@ -1,13 +1,21 @@
+<a id="console-and-mock--library-ownership"></a>
+<a id="console-și-mock--ownership-ul-bibliotecilor"></a>
 # Console and Mock — library ownership
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-J0 owns the common Console and Mock implementation and native tests. J1–J7 reutilizează JAR-urile și trimit aici constatările generice; adaptoarele, cataloagele și oracolele domeniului rămân locale.
+J0 owns the common Console and Mock implementation and native tests. J1 -J7 reuses JAR and send here generic findings; adapters, catalogues and oracles of the domain remain local.
 
+<a id="delivered-ownership-contract"></a>
+<a id="contractul-de-ownership-livrat"></a>
 ## Delivered ownership contract
 
 [Platform library consumption](../ATF_Platform_Libraries.md) defines standalone publication, physical-JAR integrity, native-test retention and independent consumer acceptance. Closed extraction requirements are removed from the active backlog; the current package retains detailed execution evidence in owned TMP. Existing Core/Reporting and J1 UI findings remain separate.
 
+<a id="mock-fault-script-111--compare-the-two-existing-failure-fixtures-before-extracting"></a>
+<a id="mock-fault-script-111--comparați-cele-două-fixture-uri-de-eșec-existente-înaintea-extracției"></a>
 ## MOCK-FAULT-SCRIPT-111 — compare the two existing failure fixtures before extracting
 
 Priority: 78/100. J2's TerminalFailureFixtures and ConvergenceFailureFixtures repeat finite transport sequencing, dispatch counting and exceptional completion. J0 now owns the Mock library; J2 retains the domain oracles and independent acceptance.

@@ -37,9 +37,12 @@ public final class AtfGovernanceTestSupport {
             "atf.reporting.evidence",
             "typed evidence table normalization and HTML evidence rendering share one stable reporting boundary",
             "atf.reporting.html",
-            "HTML shell, semantic snapshot, overview, tests and fails views share one artifact projection boundary");
+            "HTML shell, semantic snapshot, overview, tests and fails views share one artifact projection boundary",
+            "atf.ui.playwright",
+            "Public Playwright entry points, action owners, session and evidence recorder form one stable browser boundary; splitting them would add cross-package APIs without reducing behavioral coupling. Revisit if unrelated types enter or a boundary becomes independently replaceable; remove the exception when a split needs no new cross-package API");
     /** The whole-reactor suite is intentionally kept together as one readable gate. */
-    static final Map<String, String> REVIEWED_TEST_COHESION_EXCEPTIONS = Map.of();
+    static final Map<String, String> REVIEWED_TEST_COHESION_EXCEPTIONS = Map.of(
+            "atf-ui:atf.ui.playwright", "Native lifecycle and browser action proofs share package-private Playwright seams and the same action/readiness boundary; keep the single-clock test with its clock seam rather than exposing test-only APIs. Revisit on a new boundary; remove the exception if tests no longer need these package-private seams");
     private AtfGovernanceTestSupport() {
     }
 

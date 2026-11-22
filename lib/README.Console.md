@@ -1,12 +1,18 @@
-# Console — diagnostic pentru execuție
+<a id="console--execution-diagnostics"></a>
+<a id="console--diagnostic-pentru-execuție"></a>
+# Console — execution diagnostics
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-`atf-console` proiectează evenimentele ATF în stdout/stderr: lifecycle, durate și detalii configurabile. Este util pentru urmărirea unei rulări Maven sau IntelliJ; artifactul HTML este produs de [Reporting](README.Reporting.md).
+`atf-console` projects ATF events to stdout/stderr: lifecycle events, durations, and configurable details. It is useful for monitoring a Maven or IntelliJ run; the HTML artifact is produced by [Reporting](README.Reporting.md).
 
-## Exemplu minim
+<a id="minimal-example"></a>
+<a id="exemplu-minim"></a>
+## Minimal example
 
-Fragment într-o metodă; politica este explicită, iar stream-ul rămâne în adaptor:
+Snippet inside a method; the policy is explicit, and the stream remains in the adapter:
 
 ```java
 import atf.console.AtfConsoleReporter;
@@ -17,7 +23,7 @@ var console = AtfConsoleReporter.configuredStdout(
 console.info("Catalogul de scenarii a fost încărcat");
 ```
 
-`configuredStdout()` citește `atf.report.config` → `ATF_REPORT_CONFIG` → `atf.yaml/yml`; opțiunile sunt:
+`configuredStdout()` reads `atf.report.config` → `ATF_REPORT_CONFIG` → `atf.yaml/yml`; the options are:
 
 ```yaml
 reporting:
@@ -26,20 +32,22 @@ reporting:
     detailsEnabled: false
 ```
 
-## Integrare și opțiuni
+<a id="integration-and-options"></a>
+<a id="integrare-și-opțiuni"></a>
+## Integration and options
 
-| Intenție | Alegere |
+| Intent | Choice |
 |---|---|
-| Mesaj independent de detalii | `info(...)` |
-| Evenimente typed, cu lifecycle și durată | `publish(AtfConsoleEvent)` prin portul Core `AtfConsoleSink` |
-| Consolă complet oprită | `enabled: false` sau `ConsoleSettings.disabled()` |
-| Calea raportului final în consolă | Constructorul cu `reportPathEnabled: true` și evenimentul `REPORT_PUBLISHED` |
-| Politică JUnit per clasă | Adaptorul JUnit Console și adnotările Test Kit; declarați Kit explicit |
+| Message independent of details | `info(...)` |
+| Typed events with lifecycle and duration | `publish(AtfConsoleEvent)` through the Core `AtfConsoleSink` port |
+| Console fully disabled | `enabled: false` or `ConsoleSettings.disabled()` |
+| Final report path in the console | Constructor with `reportPathEnabled: true` and the `REPORT_PUBLISHED` event |
+| Per-class JUnit policy | JUnit Console adapter and Test Kit annotations; declare Kit explicitly |
 
-Calea cere opt-in, consolă activă și eveniment cu artifact confirmat; `detailsEnabled` controlează doar detaliile.
+The path requires opt-in, an enabled console, and an event with a confirmed artifact; `detailsEnabled` controls details only.
 
-Console depinde de Core; Kit este opțional pentru legătura JUnit. Proiecția rămâne diagnostică: comparația și verdictul aparțin testului.
+Console depends on Core; Kit is optional for JUnit integration. The projection is diagnostic: the comparison and verdict belong to the test.
 
 ---
 
-Mentenanța codului și testelor Console aparține proiectului separat `atf_j0/atf-console`; [feedback-ul și sincronizarea](README.md#mentenanță-și-feedback) pornesc de la J0.
+The maintenance of Console code and tests belongs to the separate `atf_j0/atf-console` project; [feedback and synchronization](README.md#mentenanță-și-feedback) starts from J0.

@@ -23,10 +23,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @AtfComponentTest
 public class DocumentationReadmeStructureGovernanceTest {
     private static final Pattern H1 = Pattern.compile("^#\\s+[^#].*$");
-    private static final Pattern H2_ORIENTATION = Pattern.compile("^##\\s+(?:Overview|Pe scurt)\\b.*$",
+    private static final Pattern H2_ORIENTATION = Pattern.compile("^##\\s+(?:Overview|At a glance|Pe scurt)\\b.*$",
             Pattern.CASE_INSENSITIVE);
     private static final Pattern ROOT_H2_ORIENTATION = Pattern.compile(
-            "^##\\s+ATF Java\\s+—\\s+prezentare executivă\\s*$", Pattern.CASE_INSENSITIVE);
+            "^##\\s+ATF Java\\s+—\\s+(?:prezentare executivă|executive overview)\\s*$", Pattern.CASE_INSENSITIVE);
     private static final Pattern DETAILS_OPEN = Pattern.compile("^\\s*<details(?:\\s|>)",
             Pattern.CASE_INSENSITIVE);
     private static final Pattern DETAILS_CLOSE = Pattern.compile("^\\s*</details>\\s*$",
@@ -57,8 +57,9 @@ public class DocumentationReadmeStructureGovernanceTest {
         }
     }
 
-    @Test
-    void rootReadmeRequiresItsOwnExecutiveOrientation(@TempDir Path workspace) throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = {"prezentare executivă", "executive overview"})
+    void rootReadmeRequiresItsOwnExecutiveOrientation(String heading, @TempDir Path workspace) throws Exception {
         Path root = Files.createDirectories(workspace.resolve("project"));
         Path readme = root.resolve("README.md");
         Files.writeString(readme, "# ATF\n\n## Module map\n\nDetails.\n");
@@ -67,14 +68,14 @@ public class DocumentationReadmeStructureGovernanceTest {
         assertEquals(List.of("DOC-README-OVERALL"), violations.stream()
                 .map(DocumentationGovernanceSupport.Violation::code).toList());
 
-        Files.writeString(readme, "# ATF\n\n## ATF Java — prezentare executivă\n\nPurpose.\n");
+        Files.writeString(readme, "# ATF\n\n## ATF Java — " + heading + "\n\nPurpose.\n");
         violations.clear();
         validate(readme, root, violations);
         DocumentationGovernanceSupport.assertNoViolations("Root README orientation", violations);
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"Overview", "Pe scurt"})
+    @ValueSource(strings = {"Overview", "At a glance", "Pe scurt"})
     void localizedOrientationPreservesTheSameStructure(String heading, @TempDir Path root) throws Exception {
         Path file = Files.createDirectories(root.resolve("owner")).resolve("README.md");
         Files.writeString(file, "# Owner\n\n## " + heading + "\n\nContract.\n");

@@ -1,6 +1,10 @@
+<a id="atf-core--source-ownership-and-binary-consumption"></a>
+<a id="atf-core--ownership-ul-sursei-și-consumul-binar"></a>
 # ATF Core — source ownership and binary consumption
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
 J0 owns Core implementation and native tests. Binary consumers keep the latest Core and Reporting JAR/POM pairs directly in `lib`; each library has independent coordinates, provenance and acceptance.
 
@@ -14,9 +18,11 @@ J0 owns Core implementation and native tests. Binary consumers keep the latest C
 
 Provenance schemas are deployment-specific: common consumers use `coreLibrary`, while other consumers identify Core through their library inventory. Read the target's actual POM and metadata instead of inferring its state from a sibling.
 
+<a id="maven-and-intellij"></a>
+<a id="maven-și-intellij"></a>
 ## Maven and IntelliJ
 
-Consumer bootstrap installs the flat pairs into the selected Maven repository. IntelliJ reloads the root POM against that repository; manually attached JARs and `systemPath` are outside the supported consumption route.
+The consumer's bootstrap sets flat pairs in the selected Maven repository. IntelliJ reloads POM root on that repository; JAR manually attached and `systemPath` are outside the supported route.
 
 ```powershell
 mvn -B "-Dmaven.repo.local=${ATF_STAGING_ROOT}/m2" validate
@@ -27,6 +33,8 @@ mvn -B "-Dmaven.repo.local=${ATF_STAGING_ROOT}/m2" -pl atf-tests -am "-Dtest=${A
 - A module-only launch that omits root bootstrap requires the same pair to be installed first.
 - Run `-pl atf-core` only in J0; consumers select their Core version through their POM property.
 
+<a id="publication-and-independent-verification"></a>
+<a id="publicare-și-verificare-independentă"></a>
 ## Publication and independent verification
 
 1. Reconcile source, tests and consumer differences at J0 without overwriting local work.
@@ -69,6 +77,8 @@ flowchart LR
 
 </details>
 
+<a id="json-and-evidence-fidelity"></a>
+<a id="json-și-fidelitatea-dovezilor"></a>
 ## JSON and evidence fidelity
 
 | Boundary | Contract |
@@ -83,8 +93,10 @@ flowchart LR
 
 - Strict parsing rejects ambiguity for decisions; evidence projection retains duplicate occurrences for audit.
 - Mock accepts literal null as syntax independently of the write-factory restriction; invalid diagnostic JSON never becomes a valid dispatched payload.
-- Native tests stay at their source owner; temporary harnesses verify physical JARs without implementation shadow classes.
+- The native tests remain at the source's owner; temporary harness check physical JAR without parallel implementation classes.
 
+<a id="console-and-transport-cancellation"></a>
+<a id="consolă-și-anularea-transportului"></a>
 ## Console and transport cancellation
 
 The [Core lifecycle contract](../atf-core/README.md#ciclu-de-viață-generic-și-reutilizabil) preserves phase precedence, the primary failure and suppressed cleanup diagnostics. `HttpClientTransport` links cancellation to its owned upstream future; cancellation does not prove server-side rollback.
@@ -94,6 +106,8 @@ The [Core lifecycle contract](../atf-core/README.md#ciclu-de-viață-generic-și
 - Consumer acceptance remains distinct; an uncertain mutation is not eligible for automatic replay.
 
 
+<a id="shared-platform-libraries"></a>
+<a id="bibliotecile-comune-ale-platformei"></a>
 ## Shared platform libraries
 
 The current reactor has 12 source modules. [Platform library consumption](ATF_Platform_Libraries.md) defines the five library owners, flat distribution, Maven/IntelliJ bootstrap and independent consumer acceptance. Console/Mock native tests stay in J0; consumer adapters and catalogs stay local.

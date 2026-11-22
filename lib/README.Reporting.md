@@ -1,20 +1,26 @@
-# Reporting — dovezi și rapoarte auditabile
+<a id="reporting--auditable-evidence-and-reports"></a>
+<a id="reporting--dovezi-și-rapoarte-auditabile"></a>
+# Reporting — auditable evidence and reports
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-Reporting publică datele, comparațiile și verdictul callerului în Extent/fallback, fără Core ori Kit.
+Reporting publishes the caller's data, comparisons, and verdict to Extent/fallback, without Core or Kit.
 
-| Nevoie | API |
+| Need | API |
 |---|---|
-| Rulare individuală/clasă/suită | `AssertionAuditRun` |
-| Invocare | `run.open(Identity)` → `AssertionAuditReport` |
+| Individual/class/suite run | `AssertionAuditRun` |
+| Invocation | `run.open(Identity)` → `AssertionAuditReport` |
 | Ports / fallback | `AtfReportPorts` / `HtmlReportSession` |
-| HTTP observat | `request.execution(ReportExecutionEvidence)`, cu `ReportResponse` |
-| Capturi | `UiExtentReportSession`; PNG integral |
+| Observed HTTP | `request.execution(ReportExecutionEvidence)`, with `ReportResponse` |
+| Screenshots | `UiExtentReportSession`; full PNG |
 
-## Exemplu minim
+<a id="minimal-example"></a>
+<a id="exemplu-minim"></a>
+## Minimal example
 
-Individual: `try (var run = open(output)) { publish(run, actual); }`. Suita păstrează run-ul și deschide un scenariu per invocare:
+Individual run: `try (var run = open(output)) { publish(run, actual); }`. A suite keeps the run open and opens one scenario per invocation:
 
 ```java
 import atf.reporting.audit.AssertionAuditRun;
@@ -45,25 +51,27 @@ public static void publish(AssertionAuditRun run, String actual) {
 }
 ```
 
-## Scope și integrare
+<a id="scope-and-integration"></a>
+<a id="scope-și-integrare"></a>
+## Scope and integration
 
-| Owner | Închidere și limită |
+| Owner | Closing and limit |
 |---|---|
-| AssertionAuditRun | Deține sesiunea; close publică HTML-ul final. |
-| run.open(identity) | Împrumută sesiunea; close închide scenariul invocării. |
-| Constructorul AssertionAuditReport(session, ...) | Deține și închide sesiunea proprie. |
+| AssertionAuditRun | Owns the session; close publishes the final HTML. |
+| run.open(identity) | Borrows the session; close closes the invocation's scenario. |
+| AssertionAuditReport(session, ...) constructor | Owns and closes its own session. |
 
-- Aceleași settings/redactor în run și renderer; preview implicit **240**, citit prin assertionMaxDisplayCharacters(). Valorile complete preced preview-ul.
-- Exemplul urmează thread-ul sesiunii; AssertionAuditRun.extent(...) serializează publicarea pentru apelanți concurenți.
-- Kit colectează comparația JUnit evaluată o dată; Reporting publică. Callerul păstrează verdictul, cauza și timing-ul prin phase(..., timing).
-- Fails indexează cauza terminală la rândul ACTION sau OBSERVE care a eșuat. Tests păstrează și diagnosticul colapsabil, iar comparațiile independente rămân distincte.
-- PNG-ul păstrează întregul viewport/display; captura și zoom-ul aparțin adaptorului. Capturile identice din același pas păstrează o singură dovadă și primul caption.
-- După close, ReportArtifactInspector.inspect(path, profile) califică inventarul și resursele embedded; diagnosticul localizează dependențele externe. Căile text rămân valide. Inspectorul este static; randarea și interacțiunile se verifică separat în browser.
-- Titlurile se publică drept text literal în Extent și fallback. Profilul acceptă etichetele originale, inclusiv multiline. ReportArtifactProfile.visibleLabel(label) oferă aceeași proiecție de spații ca inspectorul.
-- Browserul aparține callerului: separați diagnosticul de discovery JUnit de execuție, închideți contextul înaintea browserului și păstrați cauza inițială la cleanup.
+- Use the same settings/redactor in the run and renderer; the default preview is **240**, read through assertionMaxDisplayCharacters(). Full values precede the preview.
+- The example follows the session thread; AssertionAuditRun.extent(...) serializes publication for concurrent callers.
+- Kit collects the JUnit comparison, evaluated once; Reporting publishes it. The caller preserves the verdict, cause, and timing through phase(..., timing).
+- Fails indexes the terminal cause on the failed ACTION or OBSERVE row. Tests also retains the collapsible diagnostic, while independent comparisons remain distinct.
+- The PNG retains the full viewport/display; capture and zoom belong to the adapter. Identical screenshots from the same step retain one piece of evidence and the first caption.
+- After close, ReportArtifactInspector.inspect(path, profile) qualifies the inventory and embedded resources; diagnostics identify external dependencies. Text paths remain valid. The inspector is static; rendering and interactions are verified separately in a browser.
+- Titles are published as literal text in Extent and fallback. The profile accepts the original labels, including multiline labels. ReportArtifactProfile.visibleLabel(label) provides the same whitespace projection as the inspector.
+- The browser belongs to the caller: separate JUnit discovery diagnostics from execution, close the context before the browser, and preserve the original cause during cleanup.
 
-Durata HTTP provine din `ReportResponse.duration()`; `detail(...)` păstrează textul callerului, fără să îl transforme într-o măsurătoare de transport.
+HTTP duration comes from `ReportResponse.duration()`; `detail(...)` preserves the caller's text without turning it into a transport measurement.
 
 ---
 
-J0: [cod, teste și feedback](README.md#mentenanță-și-feedback).
+J0: [code, tests and feedback](README.md#mentenanță-și-feedback).

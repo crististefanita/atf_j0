@@ -50,6 +50,7 @@ import org.junit.platform.suite.api.Suite;
         DocumentationTargetGovernanceTest.class,
         DocumentationLinkGovernanceTest.class,
         DocumentationAnchorGovernanceTest.class,
+        atf.api.tests.governance.documentation.language.DocumentationLanguageGovernanceTest.class,
         AtfMaintenanceProcessDocumentationGovernanceTest.class,
         DocumentedBuildContractTest.class,
         DocumentedUiGeometryContractTest.class,

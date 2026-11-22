@@ -1,246 +1,203 @@
-# ATF Reporting — contract de display și layout
+<a id="atf-reporting--display-and-layout-contract"></a>
+<a id="atf-reporting--contract-de-display-și-layout"></a>
+# ATF Reporting — display and layout contract
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-Acest document este sursa normativă pentru forma vizibilă și interacțiunile
-raportului Extent și ale fallback-ului HTML. El completează
-[Contractul de raportare ATF](ATF_Reporting_Contract.md), care deține semantica
-evidence-ului, ownership-ul verdictelor și schema API.
+This document is the normative source for the visible form and interactions of the Extent report and HTML fallback. It complements the [ATF Reporting Contract](ATF_Reporting_Contract.md), which owns evidence semantics, verdict ownership, and the API schema.
 
-`atf-reporting` deține markup-ul, token-urile, CSS-ul și JavaScript-ul publicat;
-`atf-reporting-tests` deține probele unit/component/integration/browser;
-consumerii verifică doar integrarea propriilor adaptoare. Documentul nu descrie
-un artifact concret, un URL sau o captură istorică.
+`atf-reporting` holds the markup, tokens, CSS-ul and JavaScriptul published; `atf-reporting-tests` holds the unit / component / integration / browser samples; the consumers check only the integration of their adapters. The document does not describe a concrete artifact, a URL or a historical capture.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Model[Model semantic] -->|proiectează| Markup[Markup typed]
-    Markup -->|stilizează| Assets["CSS + JavaScript"]
-    Assets -->|publică| Artifact["Extent / HTML"]
-    Artifact -->|verifică| Proof["Verificări"]
+    Model[Semantic model] -->|projects| Markup[Typed markup]
+    Markup -->|styles| Assets["CSS + JavaScript"]
+    Assets -->|publishes| Artifact["Extent / HTML"]
+    Artifact -->|verifies| Proof["Checks"]
 ```
 
 <details>
-<summary><strong>Legendă — boundary și ownership</strong></summary>
+<summary><strong>Legend — boundary and ownership</strong></summary>
 
-- **Model semantic**: decide rolul, ordinea, statusul și evidence-ul; nu decide
-  CSS sau interacțiunea browserului.
-- **Markup typed**: proiectează structura HTML și atributele de accesibilitate;
-  nu deduce roluri din titluri sau din string-uri de business.
-- **CSS + JavaScript native**: dețin layout-ul și interacțiunile; sursele rămân
-  fișiere `.css`/`.js` lizibile, iar Java este doar composition/facade seam.
-- **Artifact**: este autonom și inspectabil fără rețea.
-- **Proof**: verifică mai întâi contractul semantic, apoi DOM-ul, stilul efectiv
-  și interacțiunea; un `contains` global nu înlocuiește acest traseu.
+- **Semantic model**: decides role, order, status, and evidence; it does not decide
+  CSS or browser interaction.
+- **Typed markup**: projects the HTML structure and accessibility attributes;
+  it does not infer roles from titles or business strings.
+- **Native CSS + JavaScript**: own layout and interactions; sources remain
+  readable `.css`/`.js` files, while Java is only the composition/facade seam.
+- **Artifact**: is self-contained and inspectable offline.
+- **Proof**: checks the semantic contract first, then the DOM, computed style,
+  and interaction; a global `contains` check does not replace this path.
 
 </details>
 
-## Ierarhia vizibilă obligatorie
+<a id="required-visible-hierarchy"></a>
+<a id="ierarhia-vizibilă-obligatorie"></a>
+## Required visible hierarchy
 
-| Zonă | Regulă stabilă |
+| Area | Stable rule |
 |---|---|
-| test case | `SETUP` este opțional și rămâne setup; `TEST BODY` conține acțiunea și validarea; `TEARDOWN` este cleanup/read-back când există |
-| checkpoint Gherkin | `UI validation` și `API validation` sunt copii surori ale aceluiași checkpoint; Network Inspector este agregat separat și nu dublează exchange-urile |
-| exchange API | `Request details`, `Response details` și `Execution evidence` sunt disclosures surori; `Contract validation` este copilul exchange-ului care deține contractul |
-| UI validation | acțiunile Playwright, observațiile de audit și aserțiunile aparțin validării UI; acesta este singurul titlu public pentru validarea UI; setup evidence rămâne `Setup evidence` |
-| observație de fază | o urmă non-HTTP poate apărea ca pas INFO separat în `TEST BODY`; rămâne colapsată și nu schimbă statusul fazei sau assertion coverage |
-| setup context | cheile interne `request.action`, `request.target`, `evidence.type` și `evidence.policy` pot rămâne în model, dar nu devin tabel HTTP vizibil fără evidence HTTP real |
+| test case | `SETUP` is optional and remains setup; `TEST BODY` contains the action and validation; `TEARDOWN` is cleanup/read-back when present |
+| Gherkin checkpoint | `UI validation` and `API validation` are sibling children of the same checkpoint; Network Inspector is a separate aggregate and does not duplicate exchanges |
+| API exchange | `Request details`, `Response details`, and `Execution evidence` are sibling disclosures; `Contract validation` is a child of the exchange that owns the contract |
+| UI validation | Playwright actions, audit observations, and assertions belong to UI validation; this is the only public title for UI validation; setup evidence remains `Setup evidence` |
+| phase observation | a non-HTTP trace may appear as a step INFO separately in `TEST BODY`; remains collapsed and does not change phase status or assignment coverage |
+| setup context | internal keys `request.action`, `request.target`, `evidence.type`, and `evidence.policy` may remain in the model, but do not become a visible HTTP table without real HTTP evidence |
 
-Titlurile sunt propoziții scurte și explicative. Structura semantică nu depinde
-de textul `Contract validation`, de metoda HTTP sau de numărul de câmpuri.
-`UI validation` este singurul titlu public pentru evidence UI; `ui-validation`
-poate rămâne un discriminator intern tipizat, dar nu se afișează ca al doilea nume.
+Titles are short, explanatory phrases. Semantic structure does not depend on the text `Contract validation`, the HTTP method, or the number of fields. `UI validation` is the only public title for UI evidence; `ui-validation` may remain a typed internal discriminator, but is not displayed as a second name.
 
-## Invariante de interacțiune
+<a id="interaction-invariants"></a>
+<a id="invariante-de-interacțiune"></a>
+## Interaction invariants
 
-- glyph-ul `＋/−` este inline, pe aceeași primă linie și imediat înaintea
-  propoziției; nu este împins pe o linie separată de wrapping artificial;
-- disclosure-urile sunt collapsed implicit, cu excepția suprafețelor declarate
-  explicit ca deschise implicit, precum Overview;
-- un scenariu/fază fără conținut copil publicat este nod terminal, nu disclosure:
-  nu afișează glyph `＋/−`, nu primește rol/focus de buton și nu anunță
-  `aria-expanded`; aserțiunile JUnit fără pași/evidence nu generează conținut
-  fictiv;
-- un test de componentă care publică rânduri `AtfAssertion` are un copil tipizat
-  `AssertionStep` sub `TEST BODY`; nodul și tabelul sunt colapsate implicit în
-  Extent și fallback, iar `Expand all nodes` poate deschide pasul. Statusul și
-  rândurile FAIL ridică statusul fazei și scenariului și urmează aceeași
-  proiecție `Fails` și aceeași redacție ca restul raportului; nu se introduce
-  un request HTTP sintetic;
-- faptele typed publicate prin `Phase.observation(ReportObservation)` sunt
-  pași INFO surori ai `Component assertions`; bulk expansion deschide nodurile
-  testului, dar păstrează disclosure-ul observation închis până la activarea lui
-  proprie. Redacția se aplică înaintea preview-ului, iar observation nu intră în
-  verdict, assertion coverage sau numărul de teste;
-- închiderea unui părinte ascunde întregul subarbore și sincronizează starea
-  părintelui: vizibilitate, `open`, `aria-expanded` și glyph. Copiii își păstrează
-  starea locală; la redeschidere, cei anterior deschiși redevin vizibili, iar cei
-  închiși rămân închiși. Ascunderea printr-un strămoș nu resetează selecția locală;
-- deschiderea unui copil nu închide părintele sau frații; mouse, Enter și Space
-  produc aceeași tranziție semantică;
-- o deschidere amânată dintr-un deep-link este invalidată de o navigare mai nouă
-  sau de interacțiunea explicită în Tests; callback-ul vechi nu redeschide
-  disclosure-ul pe care utilizatorul tocmai l-a închis;
-- nu se folosesc linii orizontale decorative între acțiuni, observații și
-  aserțiuni din interiorul unui test body; separarea este dată de disclosures,
-  spațiere și ierarhia semantică;
-- screenshot-ul este un link inline cu emoji-ul curent; fingerprint-ul sau
-  digest-ul deduplicării rămâne intern și nu înlocuiește linkul uman;
-- o captură deduplicată deschide aceeași imagine prin click sau Enter, inclusiv
-  când sursa este într-un scenariu colapsat; nu face doar salt la o ancoră ascunsă;
-- controalele de navigare și deep-link-urile păstrează aceeași identitate în
-  `Tests`, `Overview`, `Categories` și `Fails`.
+- the `＋/−` glyph is inline, on the same first line and immediately before
+  the phrase; artificial wrapping does not push it onto a separate line;
+- disclosures are collapsed by default, except for surfaces explicitly
+  declared open by default, such as Overview;
+- a scenario/phase with no published child content is a terminal node, not a disclosure: it does not show the `＋/−` glyph, receive a button role/focus, or announce `aria-expanded`; JUnit assertions without steps/evidence do not generate fictitious content;
+- a component test that publishes `AtfAssertion` rows has a typed child `AssertionStep` under `TEST BODY`; the node and table are collapsed by default in Extent and fallback, while `Expand all nodes` can open the step. Status and FAIL rows raise the phase and scenario status and follow the same `Fails` projection and redaction as the rest of the report; no synthetic HTTP request is introduced;
+- Typed facts published by `Phase.observation(ReportObservation)` are
+  INFO steps sisters of `Component assertions`; bulk expansion opens the nodes of the test, but keeps the observation dislocator closed until its own activation. The editorial applies before the preview, and observation does not enter the verdict, assertion coverage or number of tests;
+- closing a parent hides the entire subtree and synchronizes the status
+  of the parent: visibility, `open`, `aria-expanded` and glyph. Children retain their local state; reopening the parent reveals previously open children while closed children stay closed. An ancestor hiding them does not reset local selection;
+- opening a child does not close its parent or siblings; mouse, Enter, and Space
+  produce the same semantic transition;
+- a deferred opening from a deep link is invalidated by newer navigation or explicit interaction in Tests; an old callback does not reopen a disclosure the user just closed;
+- decorative horizontal rules are not used between actions, observations, and assertions inside a test body; disclosures, spacing, and semantic hierarchy provide the separation;
+- a screenshot is an inline link with the current emoji; its fingerprint or
+  deduplication digest remains internal and does not replace the human-readable link;
+- a deduplicated capture opens the same image on click or Enter, including
+  when its source is in a collapsed scenario; it does not merely jump to a hidden anchor;
+- navigation controls and deep links preserve the same identity across
+  `Tests`, `Overview`, `Categories`, and `Fails`.
 
-În `Categories`, aplicarea unui filtru fără rezultate elimină selecția și
-detaliul categoriei precedente; nu este permis ca panoul să afișeze conținut
-care nu aparține rezultatului curent. `Clear` restaurează lista și selectează
-din nou o categorie cu detaliul ei. Filtrele modifică numai proiecția de
-navigare, nu statusul sau evidence-ul testelor.
+In `Categories`, applying a filter with no results clears the previous category selection and detail; the panel must not display content that does not belong to the current result. `Clear` restores the list and selects a category with its details again. Filters change only the navigation projection, not test status or evidence.
 
-## Contractul API, UI și UI+API
+<a id="api-ui-and-uiapi-contract"></a>
+<a id="contractul-api-ui-și-uiapi"></a>
+## API, UI, and UI+API contract
 
-| Canal | Ce trebuie să fie vizibil | Ce nu se inventează |
+| Channel | What must be visible | What must not be invented |
 |---|---|---|
-| API | method/path, request/response details, body capturat sau explicația disponibilității, execution attempts și validarea contractului când aceasta există | request sintetic pentru un pas UI, payload inventat, verdict din status HTTP fără contract, durată `0 ms` pentru o durată necapturată |
-| UI | acțiunile relevante inclusiv `getText`/text extraction, audit observations, assertions și capturi relevante | request/response HTTP pentru setup intern, duplicate de propoziție Gherkin sau verdict business dedus din screenshot |
-| UI+API | cei doi copii de validare, corelarea explicită și un Network Inspector care referă exchange-urile publicate | republicarea aceluiași exchange ca apel nou sau mutarea tuturor aserțiunilor în `UI validation` |
+| API | method/path, request/response details, captured body or availability explanation, execution attempts, and contract validation when present | synthetic request for a UI step, invented payload, verdict from HTTP status without a contract, `0 ms` duration for an uncaptured duration |
+| UI | relevant actions including `getText`/text extraction, audit observations, assertions, and relevant captures | HTTP request/response for internal setup, duplicate Gherkin statement, or business verdict inferred from a screenshot |
+| UI+API | the two validation children, explicit correlation, and a Network Inspector that references published exchanges | republishing the same exchange as a new call or moving all assertions into `UI validation` |
 
-Pentru `POST` și `PUT`, request-ul și response-ul publicate trebuie să păstreze
-body JSON parseable și non-empty atunci când contractul endpointului îl cere.
+For `POST` and `PUT`, the published request and response must retain a parseable, non-empty JSON body when required by the endpoint contract.
 
-| Disponibilitatea body-ului | Afișare |
+| Body availability | Display |
 |---|---|
-| `AVAILABLE` | payload-ul capturat, după redacție; numai textul JSON literal `null` devine document JSON `null` |
-| `ABSENT` | explicație în details că nu a existat body, fără pane JSON |
-| `NOT_CAPTURED` | explicație că dovada lipsește, fără payload presupus |
+| `AVAILABLE` | captured payload after redaction; only the literal JSON text `null` becomes a JSON `null` document |
+| `ABSENT` | explanation in details that no body existed, without a JSON pane |
+| `NOT_CAPTURED` | explanation that evidence is missing, without an assumed payload |
 
-Request details și replay folosesc aceeași proiecție sanitizată a headerelor;
-observația browser nu primește default-uri de la client sau din response.
-Etichetele de cardinalitate sunt produse de vocabularul comun, nu de publisheri locali.
+Request details and replay use the same sanitized projection of headers; browser observations do not receive defaults from the client or response. Cardinality labels are produced by the shared vocabulary, not by local publishers.
 
-## Cerințe de layout și responsive
+<a id="layout-and-responsive-requirements"></a>
+<a id="cerințe-de-layout-și-responsive"></a>
+## Layout and responsive requirements
 
-| Suprafață | Cerință |
+| Surface | Requirement |
 |---|---|
-| document | fără overflow orizontal; wrapping-ul păstrează identificatorii și URL-urile lizibile, fără crop sau break arbitrar |
-| tabel de date | wrapper comun, focusabil, `height: auto`, `max-height: var(--atf-table-scroll-height)`; conținutul scurt rămâne natural, iar conținutul lung derulează local |
-| Request details | tabelul metadatelor request-ului respectă același viewport, inclusiv când este imbricat în disclosure-ul request-ului; JSON-ul și disclosure-ul exterior nu devin containere de scroll ale tabelului |
-| tabel lung | header sticky, ultimul rând accesibil prin mouse și tastatură; titlul și contoarele nu se schimbă când apare scroll-ul; nu se creează viewport-uri imbricate pentru aceeași tabelă |
-| payload JSON/code | este pane de payload, nu tabel; nu intră în wrapper-ul de viewport al tabelului |
-| Response details / `TECHNICAL TRACE` | tabelul trace derulează în viewport-ul său local, separat de disclosure-ul exterior și de pane-urile JSON |
-| viewport îngust | la `≤991px`, Overview începe după rail-ul fix de navigare de `70px`; padding-ul și coloanele se adaptează prin token-uri/media queries, fără overflow ascuns care maschează geometria |
-| summary | bază de `34px`; textul curge natural; `Unique request signatures` și `Technical diagnostics` au token dedicat de `68px` și sunt collapsed implicit |
-| delimitare | nu se adaugă `<hr>` sau linii decorative pentru a separa zonele unui test; border-ul structural al cardului rămâne doar la boundary-ul semantic necesar |
+| document | no horizontal overflow; wrapping keeps identifiers and URLs readable, without cropping or arbitrary breaks |
+| data table | shared, focusable wrapper, `height: auto`, `max-height: var(--atf-table-scroll-height)`; short content remains natural and long content scrolls locally |
+| Request details | the request metadata table uses the same viewport, including when nested in the request disclosure; JSON and the outer disclosure do not become scroll containers for the table |
+| long table | sticky header, final row reachable by mouse and keyboard; title and counters do not change when scrolling appears; no nested viewports for the same table |
+| JSON/code payload | a payload pane, not a table; it does not go inside the table viewport wrapper |
+| Response details / `TECHNICAL TRACE` | the trace table scrolls in its local viewport, separate from the outer disclosure and JSON panes |
+| narrow viewport | at `≤991px`, Overview starts after the fixed `70px` navigation rail; padding and columns adapt through tokens/media queries, without hidden overflow masking the geometry |
+| summary | `34px` base; text flows naturally; `Unique request signatures` and `Technical diagnostics` use a dedicated `68px` token and are collapsed by default |
+| separation | do not add `<hr>` or decorative lines between areas of a test; the card's structural border remains only at the required semantic boundary |
 
-`--atf-table-scroll-height` este tokenul comun al temei, derivat din
-`AtfReportThemeTokens.TABLE_SCROLL_HEIGHT` (profilul curent: `500px`). Se aplică
-tabelelor de date din Overview, evidence API/UI, audit, action sequence,
-assertions, setup și execution, inclusiv Category, tag audit și
-`TECHNICAL TRACE` din Response details.
+`--atf-table-scroll-height` is the shared theme token, derived from `AtfReportThemeTokens.TABLE_SCROLL_HEIGHT` (current profile: `500px`). It applies to data tables in Overview, API/UI evidence, audit, action sequence, assertions, setup, and execution, including Category, tag audit, and `TECHNICAL TRACE` in Response details.
 
-Nu duplicați pragul în renderer-e sau ca valoare locală de test.
+Do not duplicate the threshold in renderers or as a local test value.
 
-### Restabilirea prezentării tabelare a dovezilor
+<a id="restoring-tabular-evidence-presentation"></a>
+<a id="restabilirea-prezentării-tabelare-a-dovezilor"></a>
+### Restoring tabular evidence presentation
 
-Cerința aprobată pentru Actions, Audit observations și Assert este revenirea
-la tabele cu antet vizibil și coloane aliniate, inclusiv în panouri desktop
-imbricate. Lățimile se adaptează dinamic după conținut și spațiul real;
-valorile complete și verdictul nu sunt reconstruite din preview-ul de 240.
+The approved requirement for Actions, Audit observations, and Assert is to restore tables with visible headers and aligned columns, including in nested desktop panels. Widths adapt dynamically to the content and available space; full values and verdicts are not reconstructed from the 240-character preview.
 
-Politica comună păstrează coloanele și măsoară antetul, valorile și fontul;
-coloanele scurte nu consumă cote procentuale fixe. Detaliile allocatorului și
-probele de geometrie sunt la [owner](../atf-reporting/README.md#lizibilitatea-dovezilor-în-panouri-înguste).
+The common policy keeps the columns and measures the header, values and font; the short columns do not consume fixed percentage rates. The allocator details and geometry samples are at [owner](../atf-reporting/README.md#lizibilitatea-dovezilor-în-panouri-înguste).
 
-- Tabelul ocupă întreaga lățime disponibilă, inclusiv când valorile sunt scurte;
-  spațiul suplimentar revine proporțional coloanelor de conținut, cu statusul și
-  timpul compacte, fără margine artificială la dreapta.
-- Aceeași regulă se aplică setup-ului și tabelelor Overview/Category/System;
-  maximele reale ale textului concurează pentru spațiu, fără plafon în pixeli
-  sau gutter rezervat când scrollbar-ul nu este necesar.
-- Păstrați wrapping-ul lizibil și înălțimea naturală; plafonul vertical și
-  antetul sticky rămân comune Extent/fallback.
-- Când coloanele nu încap lizibil, derularea orizontală este locală tabelului;
-  nu se extinde la document, screenshot sau disclosure-ul exterior.
-- Probe de acceptanță: antet/coloane vizibile, valori și ultimul rând accesibile,
-  expandare și redimensionare în ambele renderere, componente și E2E consumer.
+- The table uses the full available width, including when values are short; extra space is distributed proportionally to content columns, while status and time remain compact, without an artificial right margin.
+- The same rule applies to setup and Overview/Category/System tables; actual text maxima compete for space, without a pixel cap or reserved gutter when no scrollbar is needed.
+- Keep wrapping readable and height natural; the vertical limit and sticky header remain shared by Extent and fallback.
+- When columns do not fit readably, horizontal scrolling stays local to the table; it does not extend to the document, screenshot, or outer disclosure.
+- Acceptance checks: visible headers/columns, accessible values and final row, expansion and resizing in both renderers, component tests, and consumer E2E.
 
-### Tokens vizuale
+<a id="visual-tokens"></a>
+<a id="tokens-vizuale"></a>
+### Visual tokens
 
-`AtfReportThemeTokens` și `AtfReportColors` sunt sursa valorilor; tabelul
-documentează contractul vizibil, nu introduce constante paralele.
+`AtfReportThemeTokens` and `AtfReportColors` are the source of values; the table documents the visible contract and does not introduce parallel constants.
 
-| Element | Valoare stabilă |
+| Element | Stable value |
 |---|---|
-| badge `Pass` / `Warning` / `Fail` | înălțime `18.2px`, padding `0 5px`, radius `4px`, font `9.52px`, line-height `18.2px`, weight `400`, fără border |
-| badge neutru de durată/metadata | înălțime `22.4px`, padding `5px 7px`, radius `4px`, font `9.52px`, line-height `10.6624px` |
-| culori status | `Pass #9ccc65`, `Warning #ffc107`, `Fail #e57373`; text Pass/Fail `#fff`, text Warning `#f6f7f6` |
-| tabel scrollabil | plafon comun `500px`, transmis prin `--atf-table-scroll-height` |
-| summary aggregate | bază `34px`; semnături și diagnostic tehnic `68px` |
+| badge `Pass` / `Warning` / `Fail` | height `18.2px`, padding `0 5px`, radius `4px`, font `9.52px`, line-height `18.2px`, weight `400`, no border |
+| neutral duration/metadata badge | height `22.4px`, padding `5px 7px`, radius `4px`, font `9.52px`, line-height `10.6624px` |
+| status colors | `Pass #9ccc65`, `Warning #ffc107`, `Fail #e57373`; Pass/Fail text `#fff`, Warning text `#f6f7f6` |
+| scrollable table | shared `500px` limit, passed through `--atf-table-scroll-height` |
+| aggregate summary | `34px` base; signatures and technical diagnostics `68px` |
 
-Tab-urile nu suprascriu aceste valori pentru a imita Extent, iar fallback-ul nu
-introduce o a doua geometrie. Orice abatere se verifică la nivel de token și
-computed style, nu prin copierea unei reguli locale.
+Tabs do not override these values to imitate Extent, and the fallback does not introduce a second geometry. Verify any deviation at the token and computed-style level, not by copying a local rule.
 
-## Assets și responsabilitate Java/CSS/JavaScript
+<a id="assets-and-javacssjavascript-ownership"></a>
+<a id="assets-și-responsabilitate-javacssjavascript"></a>
+## Assets and Java/CSS/JavaScript ownership
 
-- fișierele native `.css` și `.js` din `atf-reporting/src/main/resources` sunt
-  formatate multiline și organizate pe responsabilități mici: vocabulary,
-  layout, disclosure, navigation, evidence, duration și failure;
-- clasele Java compun asset-uri și expun seams typed; nu reconstruiesc corpuri
-  mari de funcții JavaScript sau blocuri CSS prin concatenări fragile;
-- copia injectată în HTML poate fi compactată de `ReportAssetCompactor`, dar
-  sursa formatată rămâne accesibilă pentru review și testare component;
-- JavaScript-ul publicat nu folosește `onclick` inline; hash-ul și atributele
-  semantice sunt contractul static, iar controllerul nativ activează
-  interacțiunea;
-- Extent și fallback consumă aceeași semantică, aceleași token-uri și aceleași
-  politici de viewport; adaptorul de publicare este singura diferență legitimă.
+- native `.css` and `.js` files in `atf-reporting/src/main/resources` are formatted across multiple lines and organized around small responsibilities: vocabulary, layout, disclosure, navigation, evidence, duration, and failure;
+- Java classes compose assets and expose typed seams; they do not reconstruct large JavaScript function bodies or CSS blocks through fragile concatenation;
+- the copy injected into HTML may be compacted by `ReportAssetCompactor`, but formatted source remains available for review and component testing;
+- published JavaScript does not use inline `onclick`; the hash and semantic attributes form the static contract, and the native controller enables interaction;
+- Extent and fallback consume the same semantics, tokens, and viewport policies; the publication adapter is the only legitimate difference.
 
-## Matricea minimă de verificare
+<a id="minimum-verification-matrix"></a>
+<a id="matricea-minimă-de-verificare"></a>
+## Minimum verification matrix
 
-| Nivel | Verifică | Owner |
+| Level | Check | Owner |
 |---|---|---|
-| unit | vocabular, modele, token-uri, policy și funcții JS/CSS publicate | `atf-reporting` |
-| component | markup real, ordine, ownership, disclosure, JSON, viewport și asset manifest | `atf-reporting-tests` |
-| integration | Extent/fallback, publication, input mock și paritatea proiecțiilor | `atf-reporting-tests` |
-| E2E/browser | click, Enter/Space, expand/collapse, computed style, scroll, deep-link și page errors pe artifact fresh | `atf-reporting-tests`, prin ATF Debug + Playwright/Chromium headless |
-| consumer | intenția business și adaptorul aplicației, fără renderer paralel | modulul consumer |
+| unit | vocabulary, models, tokens, policy, and published JS/CSS functions | `atf-reporting` |
+| component | actual markup, order, ownership, disclosure, JSON, view port and asset manifest | `atf-reporting-tests` |
+| integration | Extent / fallback, publication, input mock and projection parity | `atf-reporting-tests` |
+| E2E/browser | click, Enter / Space, Extend / Collapse, Computer style, scroll, Deeplink and Page Errors on the fresh artifact | `atf-reporting-tests`, by ATF Debug + Playwright / Chromium headless |
+| consumer | business intent and application adapter, without a parallel renderer | consumer module |
 
-Verificarea vizuală nu folosește browser Windows real și nu oprește rulările
-active. Se construiește în staging extern, se generează un artifact fresh,
-apoi se inspectează prin ATF Debug/TAB MCP sau Playwright MCP. Artifactele și
-capturile de rulare nu se copiază în README-uri.
+Visual verification does not use a real Windows browser or stop active runs. Build in external staging, generate a fresh artifact, then inspect it through ATF Debug/TAB MCP or Playwright MCP. Do not copy run artifacts or screenshots into READMEs.
 
-## Promovarea și redeschiderea contractului
+<a id="promoting-and-reopening-the-contract"></a>
+<a id="promovarea-și-redeschiderea-contractului"></a>
+## Promoting and reopening the contract
 
-O regulă trece din feedback în acest document numai după ce codul live și proba
-potrivită o demonstrează. Feedback-ul păstrează gap-urile active și criteriul
-lor de închidere; controalele tehnice `VERIFIED` necesare baseline-ului stau în
-[`ATF_Test_Changes_Baseline.md`](ATF_Test_Changes_Baseline.md), nu în
-feedback-ul funcțional sau în backlog.
+Move a rule from feedback into this document only after live code and the right check demonstrate it. Feedback retains active gaps and their closure criteria; technical `VERIFIED` checks required for the baseline belong in [`ATF_Test_Changes_Baseline.md`](ATF_Test_Changes_Baseline.md), not in functional feedback or the backlog.
 
-Dacă un artifact istoric contrazice acest contract, este marcat stale și nu
-redeschide singur un ToDo. Redeschiderea cere o abatere reproductibilă în codul
-și testele live sau o schimbare explicită de cerință.
+If a historical artifact contradicts this contract, mark it stale; it does not reopen a ToDo on its own. Reopening requires a reproducible deviation in live code and tests, or an explicit requirements change.
 
-## Referințe
+<a id="references"></a>
+<a id="referințe"></a>
+## References
 
-- [Contractul semantic de raportare](ATF_Reporting_Contract.md)
-- [Contractul de captură a evidence-ului](ATF_Evidence_Capture_Contract.md)
+- [Semantic Reporting Contract](ATF_Reporting_Contract.md)
+- [Evidence Capture Contract](ATF_Evidence_Capture_Contract.md)
 - [README `atf-reporting`](../atf-reporting/README.md)
 - [README `atf-reporting-tests`](../atf-reporting-tests/README.md)
-- [Registrul feedback-ului activ](feedback/README.md)
+- [Active feedback register](feedback/README.md)
 
-## Celule ACTION/OBSERVE complete
+<a id="action--observe-cells-complete"></a>
+<a id="celule-actionobserve-complete"></a>
+## ACTION / OBSERVE cells complete
 
-| Proiecție | Contract conservat |
+| Projection | Contract preserved |
 |---|---|
-| preview | implicit 240, summary compact și redactat |
-| expected/observed lungi | text integral redactat și cu escaping HTML, în disclosure-ul celulei originale |
-| interacțiune | inițial închis; Enter/Space, viewport focusabil End/Home, vecini independenți și fără suprapunere |
-| configurație | body display limit separat; SUMMARY_ONLY continuă să omită detaliile ACTION |
-| verdict | rezultatul capturat rămâne integral, fără comparație pe preview |
+| preview | 240, summary compact and redacted |
+| Expected / observed long | full text redacted and with HTML escaping, in the disclosure of the original cell |
+| interaction | initial closed; Enter / Space, view port focus End / Home, independent neighbours and no overlap |
+| configuration | body display limit separately; SUMMARY_ONLY continues to omit ACTION details |
+| verdict | the captured result remains in full, without comparison on preview |
 
-[Ownerul proiecției](../atf-reporting/README.md#actionobserve--preview-și-valori-complete)
-și [Reporting owner contract](../atf-reporting/README.md) delimitează valorile assertions separat.
+[Projection Owner](../atf-reporting/README.md#actionobserve--preview-și-valori-complete) and [Reporting owner contract](../atf-reporting/README.md) delimit the values of assertions separately.

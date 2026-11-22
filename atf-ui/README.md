@@ -1,137 +1,151 @@
-# ATF UI — browser, context și sesiune Playwright
+<a id="atf-ui--browser-context-and-playwright-session"></a>
+<a id="atf-ui--browser-context-și-sesiune-playwright"></a>
+# ATF UI — Browser, Context, and Playwright Session
 
-`atf-ui` este infrastructura runtime pentru browserul Playwright. Configurează
-browserul, contextul, pagina, timeout-urile, viewport-ul, screenshot-ul și
-recorderul de acțiuni. Nu conține testele UI ale raportului, rendererul HTML,
-publisherul Extent sau page objects de produs.
+`atf-ui` is the runtime infrastructure for the Playwright browser. It configures
+the browser, context, page, timeouts, viewport, screenshots, and action recorder.
+It does not contain report UI tests, the HTML renderer, the Extent publisher, or
+product page objects.
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-**Context local:** [playwright](src/main/java/atf/ui/playwright/README.md) · [network](src/main/java/atf/ui/network/README.md) · [atlas ATF](../docs/ATF_Context_Atlas.md).
+**Local guides:** [Playwright](src/main/java/atf/ui/playwright/README.md) · [network](src/main/java/atf/ui/network/README.md).
 
-**Trasee rapide:** [Acțiuni](#acțiuni-și-locatori) · [Politica BE](#recuperare-be-prin-observație-pasivă) · [Captură și limite](#inspectorul-de-rețea--limită-generică-de-responsabilitate) · [Probă locală](#verificare-rapidă)
+**Quick links:** [Actions](#actions-and-locators) · [Backend policy](#backend-recovery-through-passive-observation) · [Capture and boundaries](#network-inspector--generic-responsibility-boundary) · [Local proof](#quick-verification)
 
 | Input | Output | Boundary |
 |---|---|---|
-| YAML browser policy | browser/context/page | runtime generic |
-| Playwright actions | neutral action records | fără Extent |
-| captură și geometrie nativă | dovezi UI și dimensiuni măsurabile | adaptate către Reporting de consumer |
+| YAML browser policy | browser/context/page | generic runtime |
+| Playwright actions | neutral action records | no Extent |
+| capture and native geometry | UI evidence and measurable dimensions | adapted for consumer Reporting |
 
-## Diagramă de bază
+<a id="core-diagram"></a>
+<a id="diagramă-de-bază"></a>
+## Core diagram
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Tests["Teste"] -->|selectează| Config["Policy"]
-    Config -->|configurează| Session["Sesiune"]
-    Session -->|deschide| Browser["Browser"]
-    Browser -->|produce| Evidence["Dovezi"]
-    Evidence -->|alimentează| Reporting["Reporting"]
+    Tests["Tests"] -->|select| Config["Policy"]
+    Config -->|configures| Session["Session"]
+    Session -->|opens| Browser["Browser"]
+    Browser -->|produces| Evidence["Evidence"]
+    Evidence -->|feeds| Reporting["Reporting"]
 ```
 
 <details>
-<summary><strong>Legendă — runtime browser fără reporting</strong></summary>
+<summary><strong>Legend — browser runtime without reporting</strong></summary>
 
-- configurația descrie browserul și evidence-ul generic;
-- sesiunea compune browser, context și page, apoi înregistrează acțiuni;
-- atf-ui livrează payload-ul către consumer, nu decide verdictul și nu construiește HTML/CSS/Extent;
-- publisherul HTML aparține Reporting; `UiScreenAudit` deține observația generică
-  a ecranului în UI, iar probele browser ale artifactului aparțin Reporting Tests;
-- scenariul concret și verdictul business rămân la consumer.
-Etichetele scurte păstrează următorul sens:
+- configuration describes the browser and generic evidence;
+- the session composes browser, context, and page, then records actions;
+- atf-ui delivers payloads to the consumer; it does not decide verdicts or build HTML/CSS/Extent;
+- the HTML publisher belongs to the selected Reporting library; `UiScreenAudit`
+  owns generic screen observation in UI, while local consumer tests verify the
+  artifacts their scenarios publish;
+- the concrete scenario and business verdict stay with the consumer.
+Short labels carry the following meanings:
 
-| În schemă | Sens complet |
+| In the diagram | Full meaning |
 |---|---|
-| Teste | consumer tests |
+| Tests | consumer tests |
 | Policy | browser policy |
-| Sesiune | Playwright session |
+| Session | Playwright session |
 | Browser | browser / page |
-| Dovezi | action + screenshot |
+| Evidence | action + screenshot |
 
 </details>
 
 <details>
-<summary><strong>Harta de lectură</strong></summary>
+<summary><strong>Reading map</strong></summary>
 
-- [runtime](#componentele-runtime) și [configurație](#configurație-generică-fără-flag-redundant);
-- [acțiuni și locatori](#acțiuni-și-locatori), inclusiv regula CSS;
-- [screen validation și capturi](#validarea-ecranului-și-capturi-de-ecran);
-- [network inspector](#inspectorul-de-rețea--limită-generică-de-responsabilitate),
-  limite și [verificare](#verificare).
+- [runtime components](#runtime-components) and [configuration](#generic-configuration-without-a-redundant-flag);
+- [actions and locators](#actions-and-locators), including CSS policy;
+- [screen validation and screenshots](#screen-validation-and-screenshots);
+- [network inspector](#network-inspector--generic-responsibility-boundary),
+  boundaries, and [verification](#verification).
 
 </details>
 
-| Responsabilitate | Owner |
+| Responsibility | Owner |
 |---|---|
 | browser, context, page, viewport, timeout | `atf-ui` |
-| acțiuni Playwright primitive și recorder neutru | `atf-ui` |
-| page objects, flows și testele declarative | modulul consumer; `atf-reporting-tests` pentru propriul audit al rapoartelor |
-| snapshot contract și validatori de browser | `atf-reporting` production + `atf-reporting-tests` test scope |
-| HTML, CSS, Extent lifecycle și publisher | `atf-reporting` |
-| mock, API scenarios și contract validation | `atf-reporting-tests` test scope + modulele API |
+| primitive Playwright actions and neutral recorder | `atf-ui` |
+| page objects, flows, and declarative tests | Shop or AutoEx consumer module |
+| selected Reporting contract and rendered output | Reporting library guide; consumer tests verify local integration |
+| HTML, CSS, Extent lifecycle, and publisher | `atf-reporting` |
+| mock-backed API scenarios and application contracts | Shop or AutoEx consumer tests |
 
-`atf-ui` nu importă executorul de audit și publisherul de secțiune: validarea
-statică și proiecția raportului aparțin `atf-reporting`, iar scenariile E2E sunt
-în [README-ul auditului browser](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/README.md).
-Modulul UI nu publică Extent și nu emite assertions de secțiune.
+`atf-ui` does not import the audit executor or section publisher: static
+validation and report projection belong to `atf-reporting`, while E2E scenarios
+are in the [Reporting library contract](../atf-reporting/README.md).
+The UI module does not publish Extent or emit section assertions.
 
-## Traseul de integrare
+<a id="integration-path"></a>
+<a id="traseul-de-integrare"></a>
+## Integration path
 
-| Intenție | Owner și intrare | Dovadă |
+| Intent | Owner and entry point | Evidence |
 |---|---|---|
-| deschide browserul și contextul | [PlaywrightUiSession](src/main/java/atf/ui/playwright/PlaywrightUiSession.java) | [lifecycle, scală nativă și configurare](src/test/java/atf/ui/playwright/PlaywrightUiSessionTest.java) |
-| activează un control o dată | [click cu postcondiție](#click-unic-cu-postcondiție-explicită) | deadline comun și refuzul replay-ului |
-| verifică deadline-ul fără wall-clock fragil | [buget determinist](#deadline-determinist-al-clickului-cu-postcondiție) | [ObservationBudgetComponentTest](src/test/java/atf/ui/playwright/ObservationBudgetComponentTest.java) |
-| observă backend-ul fără mutație | [recuperare BE](#recuperare-be-prin-observație-pasivă) | trace typed și operație read-only declarată |
-| colectează trafic sau capturi | [inspector](#inspectorul-de-rețea--limită-generică-de-responsabilitate) / [audit ecran](#audit-comun-al-ecranului) | observație bounded, fără verdict business |
+| open the browser and context | [PlaywrightUiSession](src/main/java/atf/ui/playwright/PlaywrightUiSession.java) | [native scale and configuration](src/test/java/atf/ui/playwright/PlaywrightUiSessionTest.java) |
+| activate a control once | [single click with postcondition](#single-click-with-explicit-postcondition) | shared deadline and rejection of replay |
+| observe the backend without mutation | [BE recovery](#backend-recovery-through-passive-observation) | typed trace and declared read-only operation |
+| collect traffic or screenshots | [inspector](#network-inspector--generic-responsibility-boundary) / [screen audit](#shared-screen-audit) | bounded observation, no business verdict |
 
-Rezultatul aplicației aparține consumerului, iar HTML-ul aparține Reporting.
-Proba de scală verifică viewport-ul CSS și DPR native; snapshot-ul de metadata
-descrie configurația și nu substituie măsurătoarea browserului.
+The application result belongs to the consumer, and HTML belongs to Reporting.
+The scale check verifies the native CSS viewport and DPR; the metadata snapshot
+describes the configuration and does not replace browser measurement.
 
-### Lifecycle-ul sesiunii și limita probei
+<a id="session-lifecycle-and-evidence-boundary"></a>
+<a id="lifecycle-ul-sesiunii-și-limita-probei"></a>
+### Session lifecycle and evidence boundary
 
-`PlaywrightUiSession` deține Playwright, browser, context, pagină și inspector.
-Înregistrează release-ul imediat după dobândirea fiecărui owner. Pagina este
-închisă de context; nu primește un al doilea close independent.
+`PlaywrightUiSession` owns Playwright, browser, context, page, and inspector.
+It records each release immediately after acquiring an owner. The context
+closes the page; the page does not receive an independent second close.
 
-| Boundary | Contract verificat |
+| Boundary | Verified contract |
 |---|---|
-| achiziție parțială | `RuntimeException` și `Error` păstrează aceeași instanță; rollback-ul atinge numai resursele returnate cu succes |
-| release | inspector → context → browser → driver; fiecare etapă este încercată, chiar dacă cea anterioară eșuează |
-| cauze simultane | prima cauză rămâne primară; cauzele distincte urmează în `suppressed`, fără self-suppression |
-| close repetat | ownership-ul este consumat inclusiv când primul close eșuează; secvența nu se reexecută |
+| partial acquisition | `RuntimeException` and `Error` preserve the same instance; rollback touches only resources returned successfully |
+| release | inspector → context → browser → driver; every stage is attempted even if the previous one fails |
+| concurrent causes | the first cause remains primary; distinct causes follow in `suppressed`, without self-suppression |
+| repeated close | ownership is consumed even when the first close fails; the sequence is not rerun |
 
-[Proba lifecycle](src/test/java/atf/ui/playwright/PlaywrightUiSessionTest.java)
-folosește dubluri ale interfețelor driverului și o seamă package-private, fără
-hook public de fault. [Componenta nativă](src/test/java/atf/ui/playwright/PlaywrightUiSessionTest.java)
-verifică separat browserul, scala și pointerul. Probele listener-elor rămân
-distincte: ele nu substituie ownership-ul sesiunii ori politica contului consumer.
+The [lifecycle check](src/test/java/atf/ui/playwright/PlaywrightUiSessionTest.java)
+uses driver-interface doubles and a package-private seam, without a public fault
+hook. The [native component check](src/test/java/atf/ui/playwright/PlaywrightUiSessionTest.java)
+separately verifies the browser, scale, and pointer. Listener checks remain
+distinct: they do not replace session ownership or the consumer's account policy.
 
-## Componentele runtime
+<a id="runtime-components"></a>
+<a id="componentele-runtime"></a>
+## Runtime components
 
-- `UiBrowserConfiguration` — browser, headless, timeout, navigation timeout și
+- `UiBrowserConfiguration` — browser, headless, timeout, navigation timeout, and
   viewport;
-- `UiScreenValidationConfiguration` — politica generică de captură, fără
-  cunoașterea raportului, a Extent sau a outputului;
-- `PlaywrightUiSession` — lifecycle scoped al unui browser context și page;
-- `PlaywrightBrowserActions` / `PlaywrightLocatorActions` — operații primitive;
-- `PlaywrightActionSequence` / `UiActionRecorder` — model neutru al operațiilor;
-- `UiScreenValidation` — capturează payload-ul PNG Base64 din page.
+- `UiScreenValidationConfiguration` — generic capture policy, without knowledge
+  of the report, Extent, or output;
+- `PlaywrightUiSession` — scoped lifecycle for a browser context and page;
+- `PlaywrightBrowserActions` / `PlaywrightLocatorActions` — primitive operations;
+- `PlaywrightActionSequence` / `UiActionRecorder` — neutral operation model;
+- `UiScreenValidation` — captures the Base64 PNG payload from the page.
 
-Sesiunea este idempotentă la close și nu deține serverul Debug UI. `atf-ui` nu
-descoperă YAML de proiect, nu rezolvă outputuri și nu primește decizii de audit;
-consumerul compune politicile generice și publică artifactul prin
+The session is idempotent on close and does not own the Debug UI server. `atf-ui`
+does not discover project YAML, resolve outputs, or receive audit decisions;
+the consumer composes generic policies and publishes the artifact through
 `atf-reporting`.
 
-## Configurație generică, fără flag redundant
+<a id="generic-configuration-without-a-redundant-flag"></a>
+<a id="configurație-generică-fără-flag-redundant"></a>
+## Generic configuration without a redundant flag
 
-`atf-ui` expune doar valori care descriu execuția browserului și capturarea
-generică. Nu este owner pentru `report.directory`, `apiSetup`, `audit` sau
-`filePrefix`; aceste valori sunt test-only și aparțin configurației interne a
-modulului `atf-reporting`:
+`atf-ui` exposes only values that describe browser execution and generic
+capture. It does not own `report.directory`, `apiSetup`, `audit`, or
+`filePrefix`; these settings are selected by the consumer and consumed by the
+Reporting library. `atf-ui` does not read them:
 
-[`atf-reporting-tests/src/test/resources/atf-reporting-ui.yaml`](../atf-reporting-tests/src/test/resources/atf-reporting-ui.yaml)
+[Reporting library contract](../atf-reporting/README.md)
 
 ```yaml
 ui:
@@ -149,146 +163,149 @@ ui:
     fullPage: false
 ```
 
-- nu există și nu se adaugă `ui.enabled`;
-- runtime-ul se construiește când consumerul selectează un test;
-- opțiunile concrete descriu browserul și evidence-ul;
-- `ui.screenValidation.enabled` controlează numai capturarea screenshot-ului;
-- cheia nu activează testele și nu publică raportul;
-- `ui.zoomPercent` configurează geometria nativă a contextului; nu injectează
-  `zoom`, `transform` sau un script în documente;
-- `viewport.width` și `viewport.height` exprimă dimensiunea cerută a capturii;
-  viewport-ul CSS efectiv se calculează separat;
-- valoarea este validată în intervalul `25..200`, iar lipsa cheii păstrează `100`;
-- YAML-ul auditului Extent, override-urile `-Datf.ui.config`/`-Datf.ui.report`
-  și rezoluția raportului inspectat aparțin harness-ului din
-  `atf-reporting-tests`, nu bibliotecii `atf-reporting` sau adaptorului `atf-ui`.
-  Fiecare consumer deține separat configurația aplicației sale.
+- `ui.enabled` does not exist and must not be added;
+- the runtime is built when the consumer selects a test;
+- concrete options describe the browser and evidence;
+- `ui.screenValidation.enabled` controls screenshot capture only;
+- the key does not activate tests or publish the report;
+- `ui.zoomPercent` configures native context geometry; it does not inject
+  `zoom`, `transform`, or a script into documents;
+- `viewport.width` and `viewport.height` express the requested capture size;
+  the effective CSS viewport is calculated separately;
+- the value is validated in the `25..200` range, and an absent key preserves `100`;
+- consumers own their report configuration, output resolution, and application-specific settings; atf-ui does not load report configuration or publish Extent output.
 
-### Geometria nativă a contextului
+<a id="native-context-geometry"></a>
+<a id="geometria-nativă-a-contextului"></a>
+### Native context geometry
 
-Implicitul generic al `zoomPercent` este `100`; valorile configurate ale
-consumerilor sunt citite separat din YAML. Exemplul de mai jos nu schimbă acest implicit.
+The generic default for `zoomPercent` is `100`; consumers' configured values
+are read separately from YAML. The example below does not change this default.
 
 [`UiViewportScale`](src/main/java/atf/ui/config/geometry/UiViewportScale.java)
-deține calculul pur, fără Playwright sau Reporting. Sesiunea aplică viewport-ul
-CSS și DPR înaintea primei pagini. Consumerii folosesc aceeași valoare pentru
-rândul `Viewport` din Overview/System, fără să declare o captură nemăsurată.
+owns the pure calculation, without Playwright or Reporting. The session applies
+the CSS viewport and DPR before the first page. Consumers use the same value for
+the `Viewport` row in Overview/System, without declaring an unmeasured capture.
 
-| Configurație | Geometrie efectivă |
+| Configuration | Effective geometry |
 |---|---|
-| ieșire cerută `1440 × 1000`, zoom `70` | viewport CSS `2057 × 1429`, DPR `0.70` |
-| regulă generală | DPR = zoom / 100; fiecare dimensiune CSS = round(ieșire / DPR), minimum 1 |
-| zoom `100` | viewport CSS egal cu dimensiunea cerută, DPR `1` |
-| captură de viewport | dimensiunea nativă poate diferi cu un pixel prin rotunjirea motorului |
+| requested output `1440 × 1000`, zoom `70` | CSS viewport `2057 × 1429`, DPR `0.70` |
+| general rule | DPR = zoom / 100; each CSS dimension = round(output / DPR), minimum 1 |
+| zoom `100` | CSS viewport equals requested dimensions, DPR `1` |
+| viewport capture | native dimensions may differ by one pixel due to engine rounding |
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Intent["Ieșire + zoom"] -->|calculează| Geometry["Viewport CSS + DPR"]
-    Geometry -->|configurează| Context["BrowserContext"]
-    Geometry -->|descrie| System["Overview / System"]
-    Context -->|moștenesc| Documents["Pagini + iframe-uri"]
+    Intent["Output + zoom"] -->|calculates| Geometry["CSS viewport + DPR"]
+    Geometry -->|configures| Context["BrowserContext"]
+    Geometry -->|describes| System["Overview / System"]
+    Context -->|inherited by| Documents["Pages + iframes"]
 ```
 
 <details>
-<summary><strong>Legendă — un calcul, două proiecții</strong></summary>
+<summary><strong>Legend — one calculation, two projections</strong></summary>
 
-- Consumerul furnizează configurația; `UiViewportScale` rezolvă geometria.
-- `PlaywrightUiSession` aplică valorile la context, înaintea paginilor.
-- Adaptoarele Shop/AutoEx publică descrierea aceleiași geometrii în System;
-  Reporting păstrează ownership-ul randării.
-- Pagina și iframe-ul primesc input nativ în spațiul lor CSS; nu există un
-  al doilea zoom aplicat copilului și nici o corecție manuală a coordonatelor.
+- The consumer supplies the configuration; `UiViewportScale` resolves the geometry.
+- `PlaywrightUiSession` applies the values to the context before pages are created.
+- Shop/AutoEx adapters publish a description of the same geometry in System;
+  Reporting retains ownership of rendering.
+- The page and iframe receive native input in their CSS space; there is no
+  second zoom applied to the child and no manual coordinate correction.
 
 </details>
 
 <details>
-<summary><strong>Contract și probe — pointer, layout și evidence</strong></summary>
+<summary><strong>Contract and checks — pointer, layout, and evidence</strong></summary>
 
-- Aceeași geometrie se aplică paginilor noi, navigărilor și iframe-urilor;
-  documentele copil nu primesc o a doua scalare.
-- Este emulare a contextului, nu comanda de zoom din meniul browserului.
-  Media queries și layout-ul folosesc viewport-ul CSS efectiv; DPR este vizibil
-  aplicației. CSS-ul propriu al paginii rămâne nemodificat.
-- `fullPage` păstrează semantica unei capturi a întregului document, iar măștile
-  sunt rezolvate în aceeași geometrie. Dimensiunea de ieșire nu limitează o
-  captură full-page la înălțimea viewport-ului.
-- Overflow-ul dimensiunii CSS este refuzat înaintea achiziției browserului.
-  Nu există `force`, coordonate corectate manual sau replay pentru a obține PASS.
+- The same geometry applies to new pages, navigations, and iframes; child
+  documents are not scaled a second time.
+- This emulates the context; it is not the browser menu's zoom command.
+  Media queries and layout use the effective CSS viewport; DPR is visible to
+  the application. The page's own CSS remains unchanged.
+- `fullPage` retains whole-document capture semantics, and masks resolve in the
+  same geometry. Output size does not limit full-page capture to viewport height.
+- CSS dimension overflow is rejected before browser acquisition. No `force`,
+  manually corrected coordinates, or replay is used to obtain PASS.
 - [UiViewportScaleTest](src/test/java/atf/ui/config/geometry/UiViewportScaleTest.java)
-  protejează calculul la 25/70/100/125/200 și overflow-ul.
+  protects calculations at 25/70/100/125/200 and overflow.
 - [PlaywrightPointerGeometryComponentTest](src/test/java/atf/ui/playwright/geometry/PlaywrightPointerGeometryComponentTest.java)
-  verifică iframe-uri HTTP same/cross-origin și imbricate, trusted pointer,
-  focus/tastatură, scroll/fixed, navigări/popup, pixeli și măști. Overlay-ul,
-  controlul disabled și frame-ul eliminat păstrează refuzul, fără activare.
-- Proba cross-origin la 70% rulează în Chromium, Firefox și WebKit;
-  fixture-ul neutru nu certifică un journey extern sau CSS zoom introdus de site.
-- Activarea JavaScript explicită rămâne un contract separat; nu este fallback
-  pentru geometrie și nu produce un eveniment trusted.
+  checks same/cross-origin and nested HTTP iframes, trusted pointer,
+  focus/keyboard, scroll/fixed, navigation/popup, pixels, and masks. An overlay,
+  disabled control, or removed frame remains rejected, without activation.
+- The 70% cross-origin check runs in Chromium, Firefox, and WebKit; the neutral
+  fixture does not certify an external journey or CSS zoom introduced by a site.
+- Explicit JavaScript activation remains a separate contract; it is not a
+  geometry fallback and does not produce a trusted event.
 
 </details>
 
-### Gate-ul fixture-ului de geometrie
+<a id="geometry-fixture-gate"></a>
+<a id="gate-ul-fixture-ului-de-geometrie"></a>
+### Geometry fixture gate
 
-Fixture-ul UI pregătește cele cinci documente, layout-ul și captura nativă
-în bugetul existent de navigare, apoi testează pointerul cu limita nativă de
-850 ms. Această pregătire aparține `src/test`, separat de runtime-ul aplicațiilor.
+The UI fixture prepares the five documents, layout, and native capture within
+the existing navigation budget, then tests the pointer with its native limit of
+850 ms. This preparation belongs in `src/test`, separate from application runtime.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Load["Navigare"] -->|același buget 5 s| Ready["Documente inițializate"]
-    Ready -->|observă layout-ul| Layout["Cadre stabile"]
-    Layout -->|fără input| Paint["Captură nativă"]
-    Paint -->|o singură activare| Click["Pointer · 850 ms"]
-    Click -->|observă| Facts["Contor + trusted"]
+    Load["Navigation"] -->|same 5 s budget| Ready["Initialized documents"]
+    Ready -->|observes layout| Layout["Stable frames"]
+    Layout -->|without input| Paint["Native capture"]
+    Paint -->|single activation| Click["Pointer · 850 ms"]
+    Click -->|observes| Facts["Count + trusted"]
 ```
 
 <details>
-<summary><strong>Legendă — pregătire, deadline și oracole independente</strong></summary>
+<summary><strong>Legend — preparation, deadline, and independent oracles</strong></summary>
 
 - [PointerGeometryFixture.openReady](src/test/java/atf/ui/tests/support/geometry/PointerGeometryFixture.java)
-  consumă restul aceluiași buget monoton de 5 s pentru navigare, inițializarea
-  documentelor, trei observații egale ale dreptunghiurilor iframe în ritmul
-  `requestAnimationFrame` și captura PNG; fiecare etapă nu primește încă 5 s.
-- Inițializarea fixture-ului este explicită și verificabilă. Pregătirea nu
-  activează, nu focalizează și nu pre-derulează ținta; contorul browserului
-  rămâne zero înaintea singurului click nativ.
-- Clickul păstrează actionability, hit testing și auto-scroll native la 850 ms.
-  Overlay-ul, controlul disabled și frame-ul eliminat rămân refuzuri; nu se
-  folosesc trial click, activare DOM, force ori reluarea mutației pentru pregătire.
+  consumes the remainder of the same monotonic 5 s budget for navigation,
+  document initialization, three equal observations of iframe rectangles at
+  `requestAnimationFrame` cadence, and PNG capture; no stage gets another 5 s.
+- Fixture initialization is explicit and verifiable. Preparation does not
+  activate, focus, or pre-scroll the target; the browser counter remains zero
+  before the single native click.
+- The click retains native actionability, hit testing, and auto-scroll at 850 ms.
+  An overlay, disabled control, or removed frame remains a rejection; no trial
+  click, DOM activation, `force`, or mutation replay is used for preparation.
 - [PointerGeometryPreparationComponentTest](src/test/java/atf/ui/playwright/geometry/PointerGeometryPreparationComponentTest.java)
-  verifică inițializarea mai lungă decât plafonul pointerului la 70/100% și
-  epuizarea comună a bugetului de navigare și layout-ul continuu în mișcare,
-  cu zero activări la eșec, chiar dacă markerii documentelor sunt ready.
-- Matricea existentă păstrează toate frame-urile, scalele și motoarele, pixelii
-  independenți, măștile, tastatura și scroll-ul. PNG-ul pregătirii este dovadă
-  a viewport-ului capturat, nu dovadă că un iframe în afara lui a fost deja afișat.
-  Documentele originale standards/quirks mode sunt păstrate și verificate în browser.
-- Un timeout nativ ulterior rămâne FAIL și nu autorizează replay. Investigația
-  păstrează trace-ul primei activări și contoarele reale; o repetare verde nu
-  stabilește singură cauza unui eșec anterior.
+  checks initialization longer than the pointer limit at 70/100% and shared
+  navigation-budget exhaustion while layout is still moving, with zero
+  activations on failure even when document markers are ready.
+- The existing matrix retains all frames, scales, and engines, independent
+  pixels, masks, keyboard, and scrolling. The preparation PNG is evidence of
+  the captured viewport, not proof that an iframe outside it was already shown.
+  Original standards/quirks-mode documents are retained and checked in a browser.
+- A later native timeout remains FAIL and does not authorize replay. The
+  investigation retains the first activation's trace and real counters; a green
+  retry alone does not establish the cause of an earlier failure.
 
 </details>
 
-## Acțiuni și locatori
+<a id="actions-and-locators"></a>
+<a id="acțiuni-și-locatori"></a>
+## Actions and locators
 
-`atf-ui` poate executa o operație pe un `AtfLocator`, dar nu decide selectorul
-și nu știe intenția business. Locator facade-urile sunt în `atf-reporting-tests`
-test scope:
+`atf-ui` can perform an operation on an `AtfLocator`, but it does not choose the
+selector or know the business intent. Locators, page objects, and business
+intent belong to the consumer; `atf-ui` supplies generic browser and locator
+operations.
 
-Vocabularul DOM reutilizabil este însă deținut aici, aproape de runtime-ul UI:
+Reusable DOM vocabulary is owned here, close to the UI runtime:
 
-- `HtmlElement` definește tag-urile canonice (`input`, `textarea`, `select`,
-  `option`, `button`, `a`, `img` și elementele structurale folosite frecvent);
-- `HtmlAttribute` definește atribute HTML/automation stabile și compune selectori
-  exacți ori prefixați cu escaping centralizat;
-- `CssStringEscaper` escapează valori dinamice pentru contexte CSS între ghilimele;
-- `CssPseudoClass` compune pseudo-clasele reutilizabile, de exemplu `:checked`;
-- modulele consumatoare păstrează local doar valorile și semantica produsului,
-  nu copii ale vocabularului fizic DOM.
+- `HtmlElement` defines canonical tags (`input`, `textarea`, `select`,
+  `option`, `button`, `a`, `img`, and frequently used structural elements);
+- `HtmlAttribute` defines stable HTML/automation attributes and composes exact
+  or prefix selectors using centralized escaping;
+- `CssStringEscaper` escapes dynamic values for quoted CSS contexts;
+- `CssPseudoClass` composes reusable pseudo-classes, such as `:checked`;
+- consumer modules keep only product values and semantics locally, not copies of
+  the physical DOM vocabulary.
 
-Exemplu:
+Example:
 
 ```java
 HtmlElement.INPUT.attributeEquals(HtmlAttribute.ID, "email");
@@ -301,708 +318,781 @@ Report*Locators
     → AtfLocator(selector + Locator)
     → PlaywrightLocatorActions
     → PlaywrightActionSequence
-    → flow / extractor / validator din atf-reporting
+    → flow / extractor / validator in atf-reporting
 ```
 
-- testele nu scriu direct `page.locator(...)`, `getByRole(...)` sau
+- tests do not call `page.locator(...)`, `getByRole(...)`, or
   `getByText(...)`;
-- în `TARGET` se publică selectorul efectiv folosit, nu descrieri precum
-  `"selected owner"` sau `"collapse node"`;
-- operațiile suportate sunt `Navigate`, `Click`, `Get text`, `Find element`,
-  `Expect text`, `Focus`, `Wait for visible`, `Expect visible` și `Wait`;
-- `Get text` returnează textul observat apelantului pentru aserțiuni în memorie;
-  pentru locatorii sensibili, action record-ul și trace-ul publică numai
-  `[REDACTED]`. `Expect text` compară în runtime valoarea reală și păstrează
-  aceeași redacție în evidence;
-- stările asincrone folosesc așteptări Playwright cu timeout:
+- `TARGET` publishes the actual selector used, not descriptions such as
+  `"selected owner"` or `"collapse node"`;
+- supported operations are `Navigate`, `Click`, `Get text`, `Find element`,
+  `Expect text`, `Focus`, `Wait for visible`, `Expect visible`, and `Wait`;
+- `Get text` returns the observed text to the caller for in-memory assertions;
+  for sensitive locators, the action record and trace publish only
+  `[REDACTED]`. `Expect text` compares the actual value at runtime and retains
+  the same redaction in evidence;
+- asynchronous states use Playwright waits with timeouts:
   `waitFor`, `waitForCondition`, `waitForURL`;
-- `waitForTimeout` nu este API de stabilizare acceptat.
+- `waitForTimeout` is not an accepted stabilization API.
 
-### Așteptare nativă și unicitate
+<a id="native-waiting-and-uniqueness"></a>
+<a id="așteptare-nativă-și-unicitate"></a>
+### Native waiting and uniqueness
 
-`Click`, `Fill` și `Select option` păstrează operația strictă Playwright.
-Selecția adaugă observație read-only înaintea primei activări native: locatorul
-este rezolvat din nou la fiecare observație, iar controlul trebuie să fie vizibil,
-enabled și să conțină opțiunea după proprietatea nativă `option.label`.
-Recorderul publică o singură acțiune; `UiRetryPolicy` nu reia mutația.
+`Click`, `Fill`, and `Select option` retain strict Playwright operations.
+Selection adds read-only observation before the first native activation: the
+locator is resolved again for each observation, and the control must be visible,
+enabled, and contain the option according to the native `option.label` property.
+The recorder publishes one action; `UiRetryPolicy` does not retry the mutation.
 
-O țintă absentă temporar poate deveni disponibilă; ambiguitatea rămâne eroare.
-`Select option` cere și confirmarea unei valori selectate: un rezultat nativ
-gol produce FAIL, cu selectorul păstrat, fără încercare suplimentară.
+A temporarily absent target can become available; ambiguity remains an error.
+`Select option` also requires confirmation of a selected value: an empty native
+result produces FAIL, retaining the selector, with no additional attempt.
 
-| Owner | Responsabilitate |
+| Owner | Responsibility |
 |---|---|
-| `PlaywrightSelectAction` | pregătire read-only și unicul apel `selectOption`; `fieldset`, ARIA și frame/document prin locatorul strict |
-| `PlaywrightLocatorActions` | redacție, record unic și context; cauza nativă pentru ținte nesensibile |
-| `ObservationBudget` | un deadline din timeout-ul secvenței; observația consumă buget, selecția primește numai restul |
+| `PlaywrightSelectAction` | read-only preparation and the single `selectOption` call; `fieldset`, ARIA, and frame/document through the strict locator |
+| `PlaywrightLocatorActions` | redaction, single record, and context; native cause for non-sensitive targets |
+| `ObservationBudget` | one deadline from the sequence timeout; observation consumes budget, and selection gets only the remainder |
 
-Adaptorul nu folosește sleep, force sau evenimente de selecție generate prin script.
+The adapter does not use sleep, `force`, or selection events generated by script.
 
-| Situație | Rezultat cerut |
+| Situation | Required result |
 |---|---|
-| select înlocuit înaintea activării | observă ținta curentă și selectează nativ o singură dată |
-| țintă ambiguă, absentă sau nepregătită până la deadline | FAIL fără apel nativ de selecție |
-| valoare nativă neconfirmată după apel | FAIL; nu reia apelul și nu deduce succesul numai din valoarea DOM |
-| excepție după un eveniment deja produs | păstrează FAIL și diagnosticul permis de redacție; fără altă activare sau rollback |
+| select replaced before activation | observe the current target and select natively once |
+| ambiguous, absent, or unready target at the deadline | FAIL without a native selection call |
+| native value not confirmed after the call | FAIL; do not retry the call or infer success from the DOM value alone |
+| exception after an event has occurred | preserve FAIL and the diagnostic allowed by redaction; no further activation or rollback |
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
     Record["Recorder"] -->|click / fill| Native["Locator strict"]
-    Record -->|select| Observe["Observație read-only"]
-    Observe -->|pregătit în buget| Native
-    Observe -->|ambiguitate sau deadline| Fail["FAIL"]
-    Native -->|țintă pregătită| Activate["Activare unică"]
-    Native -->|ambiguitate sau timeout| Fail
-    Activate -->|rezultat confirmat| Pass["PASS"]
-    Activate -->|select fără confirmare| Fail
+    Record -->|select| Observe["Read-only observation"]
+    Observe -->|ready within budget| Native
+    Observe -->|ambiguous or deadline| Fail["FAIL"]
+    Native -->|target ready| Activate["Single activation"]
+    Native -->|ambiguous or timeout| Fail
+    Activate -->|result confirmed| Pass["PASS"]
+    Activate -->|select not confirmed| Fail
 ```
 
 <details>
-<summary><strong>Legendă — rezolvare înaintea activării</strong></summary>
+<summary><strong>Legend — resolution before activation</strong></summary>
 
-- Contractul delegat este [actionability Playwright](https://playwright.dev/java/docs/actionability),
-  cu unicitate și verificările specifice fiecărei operații.
-- `PlaywrightLocatorReadinessComponentTest` folosește browser și documente locale:
-  țintă întârziată, lipsă permanentă, ambiguitate, document nou și țintă înlocuită.
-- `PlaywrightSelectContinuityComponentTest` numără separat apelurile native,
-  evenimentele input/change și activările controlului vechi. Acoperă înlocuire,
-  opțiune întârziată, lipsă, ambiguitate, frame same-origin/cross-origin, document,
-  label/multiple select, buget consumat, rezultat necunoscut și date sensibile.
-- Browserul fixture-ului aparține clasei de test, iar fiecare caz primește context
-  și pagină noi; startup-ul nu intră în deadline-ul selecției. Probele nu măresc
-  bugetul când browserul sau aplicația răspund lent.
-- Nicio observație nu schimbă valoarea ori dispatch-uiește evenimente. Driverul
-  fixat rămâne același; o înlocuire în cursul apelului nativ poate rămâne FAIL
-  neconfirmat, fără replay. Precondițiile business rămân la consumer.
-- Acțiunile sensibile păstrează diagnosticul sigur al recorderului, fără cauza
-  brută care ar putea divulga label-ul. Proba nesensibilă verifică identitatea
-  cauzei native.
-Etichetele scurte păstrează următorul sens:
+- The delegated contract is [Playwright actionability](https://playwright.dev/java/docs/actionability),
+  with uniqueness and checks specific to each operation.
+- `PlaywrightLocatorReadinessComponentTest` uses a browser and local documents:
+  delayed target, permanently missing target, ambiguity, new document, and
+  replaced target.
+- `PlaywrightSelectContinuityComponentTest` separately counts native calls,
+  input/change events, and activations of the old control. It covers replacement,
+  delayed/missing options, ambiguity, same/cross-origin frame, document,
+  label/multiple select, consumed budget, unknown result, and sensitive data.
+- The fixture browser belongs to the test class, and each case receives a new
+  context and page; startup is outside the selection deadline. Checks do not
+  increase the budget when the browser or application is slow.
+- No observation changes the value or dispatches events. The pinned driver
+  remains the same; a replacement during the native call can remain an
+  unconfirmed FAIL, without replay. Business preconditions stay with the consumer.
+- Sensitive actions preserve the recorder's safe diagnostic without the raw
+  cause that could reveal the label. The non-sensitive check verifies the
+  identity of the native cause.
+The short labels have the following meanings:
 
-| În schemă | Sens complet |
+| In diagram | Full meaning |
 |---|---|
-| Recorder | Recorder · o operație |
-| Observație read-only | țintă și opțiune observate înaintea primei activări, în același deadline |
-| Locator strict | Locator strict · un buget de așteptare |
-| Activare unică | o activare |
-| FAIL | FAIL auditabil |
+| Recorder | recorder · one operation |
+| Read-only observation | target and option observed before the first activation, within the same deadline |
+| Strict locator | strict locator · one wait budget |
+| Single activation | one activation |
+| FAIL | auditable FAIL |
 
 </details>
 
-### Click unic cu postcondiție explicită
+<a id="single-click-with-explicit-postcondition"></a>
+<a id="click-unic-cu-postcondiție-explicită"></a>
+### Single click with explicit postcondition
 
-`PlaywrightActionSequence.clickAndAwait` confirmă o postcondiție read-only
-aleasă de consumer, în locul așteptării implicite a navigărilor pornite de click.
+`PlaywrightActionSequence.clickAndAwait` confirms a consumer-selected read-only
+postcondition instead of implicitly waiting for navigations triggered by a click.
 
-- Operația folosește pointerul nativ strict; nu activează prin JavaScript și nu folosește `force`.
-- Clickul și postcondiția împart bugetul capturat al acțiunii, măsurat monotonic.
-- Callback-ul folosește numai confirmări read-only. Fiecare așteptare nativă
-  primește `ObservationBudget.remainingMilliseconds()`, fără buget nou sau replay.
-- Așteptările native urmăresc înlocuirea documentului; un predicat Java care
-  interoghează DOM-ul în timpul navigării nu este folosit ca mecanism de polling.
-- Un eșec înaintea clickului păstrează eroarea nativă; după click, eroarea spune
-  că activarea s-a încheiat și postcondiția nu a fost confirmată, păstrând cauza.
+- The operation uses the strict native pointer; it does not activate through JavaScript or use `force`.
+- The click and postcondition share the action's captured, monotonically measured budget.
+- The callback uses read-only confirmations only. Each native wait receives
+  `ObservationBudget.remainingMilliseconds()`, with no new budget or replay.
+- Native waits track document replacement; a Java predicate that queries the
+  DOM during navigation is not used as a polling mechanism.
+- A failure before the click preserves the native error; after the click, the
+  error states that activation completed but the postcondition was not confirmed,
+  preserving the cause.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
-    Budget["Buget unic"] -->|așteaptă| Click["Click unic"]
-    Click -->|buget rămas| Observe["Confirmări"]
-    Observe -->|confirmată| Pass["PASS"]
-    Observe -->|eroare sau expirare| Fail["FAIL"]
+    Budget["Single budget"] -->|waits| Click["Single click"]
+    Click -->|remaining budget| Observe["Confirmations"]
+    Observe -->|confirmed| Pass["PASS"]
+    Observe -->|error or expiry| Fail["FAIL"]
 ```
 
 <details>
-<summary><strong>Legendă — activare versus confirmarea stării</strong></summary>
+<summary><strong>Legend — activation versus state confirmation</strong></summary>
 
-Compoziția este explicită și nu schimbă `click` pentru celelalte acțiuni.
-Adaptorul folosește opțiunea de navigare a driverului fixat, conform
-[contractului Playwright](https://playwright.dev/java/docs/api/class-locator#locator-click-option-no-wait-after).
-Nu interpretează loguri native ca dovadă de succes și nu acordă un al doilea
-buget complet postcondiției. `PlaywrightClickPostconditionComponentTest`
-probează un subframe necomis, postcondiția lipsă și ținte absente/ambigue.
-Etichetele scurte păstrează următorul sens:
+The composition is explicit and does not change `click` for other actions.
+The adapter uses the pinned driver's navigation option, according to the
+[Playwright contract](https://playwright.dev/java/docs/api/class-locator#locator-click-option-no-wait-after).
+It does not interpret native logs as proof of success or grant the postcondition
+a second full budget. `PlaywrightClickPostconditionComponentTest` checks an
+uncommitted subframe, a missing postcondition, and absent/ambiguous targets.
+The short labels have the following meanings:
 
-| În schemă | Sens complet |
+| In diagram | Full meaning |
 |---|---|
-| Buget unic | Un buget |
-| Click unic | Pointer strict · o activare |
-| Confirmări | Confirmări native read-only |
-| PASS | PASS auditabil |
-| FAIL | FAIL · fără replay |
-| așteaptă | așteaptă actionability |
+| Single budget | One budget |
+| Single click | Strict pointer · one activation |
+| Confirmations | Native read-only confirmations |
+| PASS | auditable PASS |
+| FAIL | FAIL · no replay |
+| waits | waits for actionability |
 
 </details>
 
-### Convenții pentru locatori UI
+<a id="ui-locator-conventions"></a>
+<a id="convenții-pentru-locatori-ui"></a>
+### UI locator conventions
 
-CSS este alegerea implicită pentru contractele DOM stabile. Preferă un selector
-exact, ancorat pe element și atribut, de forma `element[atribut='valoare']`, de
-exemplu `a[href='/products']` sau `input[data-qa='signup-email']`. Pentru
-hook-uri stabile, folosește `data-qa`, `id` ori `name`; pentru navigare, un
-`href` exact exprimă mai bine destinația decât poziția sau aspectul vizual.
+CSS is the default choice for stable DOM contracts. Prefer an exact selector
+anchored on an element and attribute, in the form `element[attribute='value']`,
+for example `a[href='/products']` or `input[data-qa='signup-email']`. Use
+`data-qa`, `id`, or `name` for stable hooks; for navigation, an exact `href`
+expresses the destination better than position or visual appearance.
 
-- Refolosește `HtmlElement` și `HtmlAttribute` pentru tag-uri, atribute și
-  escaping când rezultatul rămâne lizibil. `HtmlElement.attributeEquals(String
-  name, String value)` acoperă și atribute valide fără enum dedicat, precum
-  `data-qa`.
-- Păstrează selectori compuși sau specifici aplicației expliciți și numiți în
-  consumer; nu extinde vocabularul generic pentru o singură pagină.
-- Evită selectori fragili de poziție (`nth`/`first` fără context unic demonstrat),
-  clase pur vizuale și XPath. Folosește pseudo-selectori Playwright precum
-  `:visible` sau `:has-text(...)` numai când vizibilitatea/textul este o
-  precondiție reală și CSS-ul stabil nu poate exprima contractul.
-- Nu extrage fiecare literal într-o constantă: centralizează valorile repetate
-  sau contractuale și evită constante generice cu un singur consumator.
-- Locator wrappers din test scope nu trebuie să ascundă ținta: secvența de
-  acțiuni raportează selectorul efectiv folosit, nu o descriere precum
-  `"selected owner"` sau `"collapse node"`.
+- Reuse `HtmlElement` and `HtmlAttribute` for tags, attributes, and escaping
+  when the result remains readable. `HtmlElement.attributeEquals(String
+  name, String value)` also covers valid attributes without a dedicated enum,
+  such as `data-qa`.
+- Keep compound or application-specific selectors explicit and named in the
+  consumer; do not expand the generic vocabulary for one page.
+- Avoid fragile positional selectors (`nth`/`first` without demonstrated unique
+  context), purely visual classes, and XPath. Use Playwright pseudo-selectors
+  such as `:visible` or `:has-text(...)` only when visibility/text is a real
+  precondition and stable CSS cannot express the contract.
+- Do not extract every literal into a constant: centralize repeated or
+  contractual values, and avoid generic constants with one consumer.
+- Test-scope locator wrappers must not hide the target: the action sequence
+  reports the actual selector used, not a description such as
+  `"selected owner"` or `"collapse node"`.
 
-Compoziția selectorilor și escaping-ul generic (`CssStringEscaper`) sunt verificate de testele
-componente `atf-ui`; testele consumer verifică apoi selectorii față de markup-ul
-aplicației reale.
+Selector composition and generic escaping (`CssStringEscaper`) are checked by
+`atf-ui` component tests; consumer tests then verify selectors against the
+real application's markup.
 
-În CI/ATF Debug, browserul headless provisionat poate fi selectat numai ca
-override de bootstrap:
+In CI/ATF Debug, the provisioned headless browser can be selected only as a
+bootstrap override:
 
 - JVM: `-Datf.ui.playwright.executablePath=<chromium-executable>`;
 - environment: `ATF_UI_PLAYWRIGHT_EXECUTABLE_PATH`;
-- nu este o cheie de business YAML;
-- fără override, launcherul păstrează provisioning-ul Playwright standard și
-  fail-closed dacă browserul nu este disponibil.
+- this is not a business YAML key;
+- without an override, the launcher retains standard Playwright provisioning
+  and fails closed if the browser is unavailable.
 
-`PlaywrightActionSequence` este recorderul, nu auditorul:
+`PlaywrightActionSequence` is the recorder, not the auditor:
 
-- înregistrează ordinea, target-ul, expected, observed, durata și statusul;
-- redactează valorile sensibile înainte să intre în records sau în trace-ul
-  diagnostic. Selectorii uzuali pentru parole, date personale (inclusiv
-  `mobile_number`, `postal_code` și `zipcode`) și card/CVC sunt recunoscuți
-  automat; pentru un control cu nume opac, consumerul folosește
-  `new AtfLocator(locator, selector).withSensitiveData()`. Acțiunea reală
-  primește valoarea originală, însă report/replay/trace nu o păstrează, iar
-  mesajele de eșec ale locatorului nu sunt propagate cu textul brut;
-- ordinalul acțiunii este monoton pentru o secvență și continuă peste `drain()`;
-  în E2E, aceeași secvență păstrează identificarea între setup și checkpoint-urile
-  body-ului;
-- validatorul pur din `atf-reporting` decide dacă snapshot-ul DOM corespunde
-  proiecției așteptate.
+- records order, target, expected, observed, duration, and status;
+- redacts sensitive values before they enter records or the diagnostic trace;
+  common selectors for passwords, personal data (including
+  `mobile_number`, `postal_code`, and `zipcode`), and card/CVC data are
+  recognized automatically; for an opaque control name, the consumer uses
+  `new AtfLocator(locator, selector).withSensitiveData()`. The actual action
+  receives the original value, but report/replay/trace do not retain it, and
+  locator failure messages do not propagate raw text;
+- action ordinals are monotonic within a sequence and continue across `drain()`;
+  in E2E, the same sequence retains identity across setup and body checkpoints;
+- the pure validator in `atf-reporting` decides whether the DOM snapshot matches
+  the expected projection.
 
-### Readiness cu deadline comun
+<a id="readiness-with-a-shared-deadline"></a>
+<a id="readiness-cu-deadline-comun"></a>
+### Readiness with a shared deadline
 
-`awaitVisible(AtfLocator, Consumer<ObservationBudget>)` compune pregătirea
-explicită a consumerului cu verificarea nativă finală a vizibilității. Ownerul
-`PlaywrightBrowserActions` folosește același recorder și timeout al secvenței;
-callback-ul primește numai restul bugetului, nu o metodă de resetare a lui.
+`awaitVisible(AtfLocator, Consumer<ObservationBudget>)` composes explicit
+consumer preparation with the final native visibility check. The
+`PlaywrightBrowserActions` owner uses the same recorder and sequence timeout;
+the callback receives only the remaining budget, not a way to reset it.
 
-- Consumerul limitează fiecare apel nativ cu `remainingMilliseconds()`.
-  Un callback care termină după deadline este refuzat chiar dacă elementul este vizibil.
-- Un callback reușit nu înlocuiește verificarea nativă. Eroarea originală este
-  propagată, iar acțiunea finală rămâne FAIL dacă pregătirea sau vizibilitatea eșuează.
-- `Await visible` nu intră în allowlist-ul retry-ului global; întregul callback
-  nu este reluat automat. Politica unei citiri business rămâne la consumer.
-- Datele sensibile folosesc aceeași clasificare și redactare a locatorului ca
-  acțiunile existente; UI nu cunoaște rutele sau statusurile aplicației Shop.
+- The consumer limits every native call with `remainingMilliseconds()`.
+  A callback that finishes after the deadline is rejected even if the element is visible.
+- A successful callback does not replace the native check. The original error
+  propagates, and the final action remains FAIL if preparation or visibility fails.
+- `Await visible` is not in the global retry allowlist; the entire callback is
+  not retried automatically. Policy for a business read remains with the consumer.
+- Sensitive data uses the same locator classification and redaction as existing
+  actions; UI does not know Shop routes or statuses.
 
-`PlaywrightReadinessBudgetComponentTest` verifică deadline-ul unic, cauza
-originală, lipsa replay-ului și obligația verificării native. Contractele
-`clickAndAwait`, pointer/JavaScript și retry read-only își păstrează probele separate.
+`PlaywrightReadinessBudgetComponentTest` checks the single deadline, original
+cause, absence of replay, and required native check. The `clickAndAwait`,
+pointer/JavaScript, and read-only retry contracts retain separate checks.
 
-### Activare JavaScript explicită
+<a id="explicit-javascript-activation"></a>
+<a id="activare-javascript-explicită"></a>
+### Explicit JavaScript activation
 
-`clickWithJavaScript(AtfLocator, String, Runnable)` este opt-in pentru un control
-care permite activare DOM. Nu este fallback pentru `click(...)` și nu simulează
-un eveniment de pointer trusted. Consumerul justifică alegerea și furnizează
-o postcondiție read-only care aruncă eroare dacă efectul așteptat lipsește.
+`clickWithJavaScript(AtfLocator, String, Runnable)` is opt-in for a control that
+allows DOM activation. It is not a fallback for `click(...)` and does not
+simulate a trusted pointer event. The consumer justifies the choice and supplies
+a read-only postcondition that throws if the expected effect is missing.
 
-| Contract | Comportament |
+| Contract | Behavior |
 |---|---|
-| Precondiții | țintă unică, vizibilă și activă; postcondiție obligatorie |
-| Execuție | `HTMLElement.click()` o singură dată, apoi postcondiția |
-| Evidence | un singur rând `JavaScript click`; PASS numai după postcondiție, cu durată comună |
-| Eșec | FAIL la activare sau postcondiție; eroarea propagată, datele sensibile redactate |
-| Retry | fără reluare automată a mutației, inclusiv când sunt activate retry-uri read-only |
-| Click normal | rămâne pointer Playwright, cu hit testing; nu trece automat pe JavaScript |
+| Preconditions | unique, visible, and enabled target; postcondition required |
+| Execution | call `HTMLElement.click()` once, then run the postcondition |
+| Evidence | one `JavaScript click` row; PASS only after the postcondition, with shared duration |
+| Failure | FAIL on activation or postcondition; propagate the error and redact sensitive data |
+| Retry | no automatic mutation retry, even when read-only retries are enabled |
+| Normal click | remains a Playwright pointer operation with hit testing; it does not switch to JavaScript automatically |
 
-`PlaywrightJavaScriptClickComponentTest` verifică aceste reguli la 70%, în
-documentul principal și în iframe-uri same-origin/izolate. Fixture-ul este HTML
-neutru deținut de `atf-ui`, nu o reclamă sau o pagină business simulată.
+`PlaywrightJavaScriptClickComponentTest` checks these rules at 70%, in the main
+document and same-origin/isolated iframes. The fixture is neutral HTML owned by
+`atf-ui`, not an advertisement or simulated business page.
 
-### Download instrumentat fără replay
+<a id="instrumented-download-without-replay"></a>
+<a id="download-instrumentat-fără-replay"></a>
+### Instrumented download without replay
 
-`PlaywrightActionSequence.download(...)` armează listener-ul înaintea clickului,
-transmite bugetul rămas observației callerului și cere evenimentul Download real.
-Întreaga operație are un singur record ACTION, cu status și timp măsurat.
+`PlaywrightActionSequence.download(...)` arms the listener before the click,
+passes the remaining budget to the caller's observation, and requires a real
+Download event. The entire operation has one ACTION record with measured status
+and duration.
 
-- Callback-ul consumerului poate observa ori relua un GET deținut explicit;
-  politica aplicației rămâne la consumer, fără endpoint-uri în UI.
-- Operația Download nu este eligibilă pentru retry-ul automat al recorderului.
-  Listener-ul se elimină și când înscrierea ori callback-ul eșuează.
-- Cauza originală și cleanup-ul distinct rămân inspectabile. Proba generică este
-  `PlaywrightDownloadComponentTest`; fixture-urile aplicației rămân la consumer.
+- The consumer callback may observe or replay an explicitly owned GET; policy
+  for the application remains with the consumer, with no endpoints in UI.
+- Download is not eligible for the recorder's automatic retry. The listener is
+  removed even if registration or the callback fails.
+- The original cause and distinct cleanup remain inspectable. The generic check
+  is `PlaywrightDownloadComponentTest`; application fixtures stay with the consumer.
 
-## Validarea ecranului și capturi de ecran
+<a id="screen-validation-and-screenshots"></a>
+<a id="validarea-ecranului-și-capturi-de-ecran"></a>
+## Screen validation and screenshots
 
-`UiScreenValidation.capture(page, configuration, title)` returnează un payload
-PNG Base64 și nu scrie fișier PNG extern. Publisherul din `atf-reporting` îl
-expune o singură dată ca link inline `📷 base64 img` cu `data:image/png;base64,...`.
-Alinierea pill-ului, separarea tabelului și disclosure-urile sunt contract de
-reporting, nu CSS în `atf-ui`.
+`UiScreenValidation.capture(page, configuration, title)` returns a Base64 PNG
+payload and does not write an external PNG file. The publisher in
+`atf-reporting` exposes it once as an inline `📷 base64 img` link with
+`data:image/png;base64,...`. Pill alignment, table separation, and disclosures
+are reporting contracts, not CSS in `atf-ui`.
 
-Separarea generică dintre flow mode, screenshot policy și capture source este
-documentată în
+The generic separation of flow mode, screenshot policy, and capture source is
+documented in
 [`docs/ATF_Evidence_Capture_Contract.md`](../docs/ATF_Evidence_Capture_Contract.md).
-`atf-ui` este providerul browser, nu owner-ul policy-ului, al YAML-ului consumerului
-sau al publisherului HTML.
+`atf-ui` is the browser provider, not the owner of the policy, consumer YAML,
+or HTML publisher.
 
-Un pas `UI validation` trebuie să păstreze în aceeași stare vizuală:
+A `UI validation` step must keep the following in the same visual state:
 
 ```text
-acțiuni reale Playwright
-  → screenshotul acelei stări
-  → observații
+real Playwright actions
+  → screenshot of that state
+  → observations
   → assertions
 ```
 
-Nu se atașează aceeași imagine la fiecare assertion și nu se folosește un
-assert Java care ascunde acțiunea din raport. Contractul complet de cardinalitate,
-markup și randare este în
-[`atf-reporting/README.md`](../atf-reporting/README.md).
+Do not attach the same image to every assertion or use a Java assertion that
+hides the action from the report. The full contract for cardinality, markup,
+and rendering is in the [Reporting JAR atlas](../atf-reporting/README.md).
 
-### Audit comun al ecranului
+<a id="shared-screen-audit"></a>
+<a id="audit-comun-al-ecranului"></a>
+### Shared screen audit
 
-- `atf.ui.audit.UiScreenAudit` înregistrează observația de ecran și poate
-  transfera secvența de acțiuni printr-un singur `drain`.
-- Primește numărul aserțiunilor și verdictul consumerului; nu cunoaște Shop,
-  AutoEx, JUnit sau Reporting și nu calculează verdictul business.
-- Reutilizează `UiScreenValidation.Evidence.hasScreenshotPayload()`; o captură
-  cerută, dar absentă sau invalidă, nu consumă dovezile anterioare.
+- `atf.ui.audit.UiScreenAudit` records the screen observation and can
+  transfer the action sequence with one `drain`.
+- It receives the assertion count and consumer verdict; it does not know Shop,
+  AutoEx, JUnit, or Reporting and does not calculate the business verdict.
+- It reuses `UiScreenValidation.Evidence.hasScreenshotPayload()`; a requested
+  but missing or invalid screenshot does not consume prior evidence.
 
-## Recuperare BE prin observație pasivă
+<a id="backend-recovery-through-passive-observation"></a>
+<a id="recuperare-be-prin-observație-pasivă"></a>
+## Backend recovery through passive observation
 
-`UiBackendRecovery` coordonează o singură operație semantică în documentul curent.
-Scope-ul se deschide înaintea acțiunii; aplicația execută acțiunea o dată, iar
-`await` primește numai proba DOM fără efecte laterale.
+`UiBackendRecovery` coordinates one semantic operation in the current document.
+The scope opens before the action; the application executes the action once,
+and `await` receives only a side-effect-free DOM observation.
 
-Proba trebuie să fie bounded: controllerul verifică termenul înainte și după
-apel, dar nu întrerupe un callback blocant. Așteptările subordonate folosesc
-`remaining()`, fără deadline nou.
+The observation must be bounded: the controller checks the deadline before and
+after the call, but does not interrupt a blocking callback. Nested waits use
+`remaining()`, with no new deadline.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; } .edgeLabel [data-id=\"L_Observe_Gate_0\"] foreignObject { transform: translate(0px, 38px); } .edgeLabel [data-id=\"L_Gate_Stop_0\"] foreignObject { transform: translate(0px, -38px); }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
-    Config["Configurație"] -->|fixează| Scope["Scope"]
-    Scope -->|delimitează| Action["Activare unică"]
-    Action -->|produce| Gate["Semnale"]
-    Gate -->|tranzitoriu| Observe["Reobservare"]
-    Observe -->|reevaluează| Gate
-    Gate -->|confirmă| Ready["Ready"]
-    Gate -->|refuz / limită| Stop["Eșec"]
+    Config["Configuration"] -->|pins| Scope["Scope"]
+    Scope -->|bounds| Action["Single activation"]
+    Action -->|produces| Gate["Signals"]
+    Gate -->|transient| Observe["Reobserve"]
+    Observe -->|reevaluates| Gate
+    Gate -->|confirms| Ready["Ready"]
+    Gate -->|rejects / expires| Stop["Failure"]
 ```
 
 <details>
-<summary><strong>Legendă — deadline comun și limitele observației</strong></summary>
+<summary><strong>Legend — shared deadline and observation limits</strong></summary>
 
-- `UiRecoveryConfiguration` este imutabilă; `enabled=false` și captura OFF sunt
-  implicite, iar profilul acceptat este `read-only`.
-- `begin(operation)` pornește deadline-ul monoton înaintea acțiunii.
-  `remaining()` permite limitarea așteptării originale la restul acestui buget.
-- Prima evaluare consumă o încercare; probele și backoff-ul consumă același
-  deadline. Succesul venit după termen rămâne epuizare.
-- Reobservarea nu primește callback de click, request sau journey; nu trimite
-  apeluri BE. Nu adaugă retry global pentru setup, cleanup sau componente.
-- `UiRetryPolicy` și settlement-ul existent păstrează contractele lor;
-  nu se înlănțuie automat bugete noi sau replay prin acest controller.
+- `UiRecoveryConfiguration` is immutable; `enabled=false` and capture OFF are
+  defaults, and the accepted profile is `read-only`.
+- `begin(operation)` starts the monotonic deadline before the action.
+  `remaining()` lets the original wait be limited to the budget remaining.
+- The first evaluation consumes one attempt; observations and backoff consume
+  the same deadline. Success after the deadline counts as exhaustion.
+- Reobservation does not receive a click, request, or journey callback; it does
+  not send BE calls. It adds no global retry for setup, cleanup, or components.
+- `UiRetryPolicy` and existing settlement retain their contracts; this
+  controller does not chain new budgets or replay automatically.
 
-Observația INFO are durata de rând zero; probe/backoff/total sunt măsurători
-explicite în metadata, iar totalul cumulativ nu se însumează peste fiecare rând.
-Durata explicită a fazei E2E rămâne distinctă de totalul scope-ului BE, conform
-[contractului timing typed](../atf-reporting/README.md#timing-e2e-la-ownerul-runtime).
-Etichetele scurte păstrează următorul sens:
+The INFO observation has zero row duration; observation/backoff/total are
+explicit measurements in metadata, and cumulative total is not summed across
+each row. Explicit E2E phase duration remains separate from total BE scope
+duration, according to the [typed timing contract](../atf-reporting/README.md#timing-măsurat-înaintea-publicării).
+The short labels have the following meanings:
 
-| În schemă | Sens complet |
+| In diagram | Full meaning |
 |---|---|
-| Configurație | YAML + restricție neutră |
-| Scope | Scope înaintea acțiunii |
-| Activare unică | O singură activare |
-| Semnale | Document + semnal BE + DOM |
-| Reobservare | Reobservare în același buget |
+| Configuration | YAML + neutral restriction |
+| Scope | scope opened before the action |
+| Single activation | one activation only |
+| Signals | document + BE signal + DOM |
+| Reobserve | reobserve within the same budget |
 | Ready | INITIAL_READY / RECOVERED |
-| Eșec | Eșec cu motiv explicit |
-| confirmă | 2xx corelat + stare validă |
-| tranzitoriu | tranzitoriu permis |
-| refuz / limită | refuz sau epuizare |
+| Failure | failure with an explicit reason |
+| confirms | correlated 2xx + valid state |
+| transient | permitted transient response |
+| rejects / expires | rejection or exhaustion |
 
 </details>
 
 <details>
-<summary><strong>Corelare, refuzuri și date capturate</strong></summary>
+<summary><strong>Correlation, rejections, and captured data</strong></summary>
 
-| Condiție | Decizie |
+| Condition | Decision |
 |---|---|
-| Inițial READY, politica ori captura OFF | succes inițial; nicio recuperare |
-| Operație READ_ONLY explicită, allowlist și captură opt-in | poate reobserva |
-| 2xx corelat + DOM încă pending | așteaptă în buget; 2xx singur nu certifică business-ul |
-| 429/502/503/504 corelat | reobservă fără retransmisie; Retry-After valid rămâne în deadline |
-| Redirect, HTTP refuzat, request-failed, semnal absent | refuz distinct; fără status HTTP inventat |
-| Document schimbat, alt frame, query schimbat, request concurent incompatibil | nu poate împrumuta semnalul |
-| Business invalid, sesiune greșită, ambiguitate | refuz; expected-ul nu se normalizează |
-| Eroare de probă/captură/publicare ori întrerupere | propagă/oprește; nu reexecută business-ul |
+| Initially READY, policy or capture OFF | initial success; no recovery |
+| Explicit READ_ONLY operation, allowlist, and capture opt-in | may reobserve |
+| Correlated 2xx + DOM still pending | wait within budget; 2xx alone does not certify the business outcome |
+| Correlated 429/502/503/504 | reobserve without retransmission; valid Retry-After stays within the deadline |
+| Redirect, rejected HTTP status, request-failed, or missing signal | distinct rejection; no invented HTTP status |
+| Changed document, different frame, changed query, or incompatible concurrent request | cannot borrow the signal |
+| Invalid business state, wrong session, or ambiguity | reject; do not normalize the expected value |
+| Observation/capture/publication error or interruption | propagate/stop; do not rerun the business action |
 
-Observerul ascultă numai metadata pentru cereri începute după deschiderea
-scope-ului, din main frame-ul deținut, pentru origin-ul paginii sau endpoint-ul
-backend declarat explicit. Nu citește body, cookie ori autorizare.
+The observer listens only for metadata from requests started after the scope
+opens, in the owned main frame, for the page origin or explicitly declared
+backend endpoint. It does not read bodies, cookies, or authorization.
 
-Receipt-ul păstrează invocarea, operația, frame/document, sequence și
-`capturedAt`; două URL-uri complete diferite nu sunt aceeași cerere.
-Query-ul complet se compară numai privat în memorie și nu se publică.
+The receipt retains invocation, operation, frame/document, sequence, and
+`capturedAt`; two different complete URLs are not the same request. The full
+query is compared privately in memory and is not published.
 
-Captura are opt-in `captureBackendSignals`, separat de prezentarea UI/UI_API.
-Limita de 64 de cereri și scope-urile suprapuse sunt refuzate; răspunsurile
-cererilor anterioare scope-ului nu îl pot autoriza.
+Capture is opt-in through `captureBackendSignals`, separately from UI/UI_API
+presentation. The 64-request limit and overlapping scopes are rejected;
+responses to requests from before the scope cannot authorize it.
 
-În acest increment sunt clasificate numai GET/HEAD explicit read-only,
-în același document. Un GET de mutație rămâne exclus, iar navigarea de recuperare
-și idempotency pentru scrieri cer contracte separate.
+This increment classifies only explicitly read-only GET/HEAD requests in the
+same document. A mutating GET remains excluded; recovery navigation and
+idempotency for writes require separate contracts.
 
 </details>
 
-`UiRecoveryConfigurationTest`, `UiRecoveryLoopTest` și
-`UiBackendRecoveryComponentTest` verifică politica, deadline-ul și browserul.
-Operațiile aplicației sunt în main la consumeri; declarația neutră este în
-[Kit](../atf-test-kit/README.md#declarația-neutră-pentru-recuperare-be).
+`UiRecoveryConfigurationTest`, `UiRecoveryLoopTest`, and
+`UiBackendRecoveryComponentTest` check the policy, deadline, and browser.
+Application operations are in consumer main sources; the neutral declaration is in
+[Kit](../lib/README.TestKit.md#scope-and-integration).
 
-## Scope-ul listener-elor de observație
+<a id="observation-listener-scope"></a>
+<a id="scope-ul-listener-elor-de-observație"></a>
+## Observation listener scope
 
-Contabilitatea `ObservationBudget` are [probă cu ticks controlați](src/test/java/atf/ui/playwright/ObservationBudgetComponentTest.java):
-confirmările consumă același deadline, expirarea exactă este refuzată și o
-fracțiune de milisecundă nu devine timeout nativ zero. [Integrarea browserului](src/test/java/atf/ui/playwright/PlaywrightReadinessBudgetComponentTest.java)
-verifică separat observația nativă, cauza inițială și absența replay-ului.
+`ObservationBudget` accounting has a [controlled-tick check](src/test/java/atf/ui/playwright/ObservationBudgetComponentTest.java):
+confirmations consume the same deadline, exact expiry is rejected, and a
+fraction of a millisecond does not become a zero native timeout. [Browser integration](src/test/java/atf/ui/playwright/PlaywrightReadinessBudgetComponentTest.java)
+separately checks native observation, the original cause, and absence of replay.
 
-`UiBackendRecovery.recording` compune controllerul și rândurile INFO folosite
-de Shop și AutoEx, cu policy, operații și recorder explicite. Endpoint-ul,
-metoda și clasificarea read-only rămân la consumer; nu se activează implicit BE.
+`UiBackendRecovery.recording` composes the controller and INFO rows used by
+Shop and AutoEx, with explicit policy, operations, and recorder. The endpoint,
+method, and read-only classification remain with the consumer; BE is not enabled
+by default.
 
-| Protocol | Observație și decizie păstrate |
+| Protocol | Preserved observation and decision |
 |---|---|
-| BE pasiv UI | GET/HEAD allowlisted, stamp invocare/operație/document, conflicte și maximum 64 de semnale; nicio retrimitere |
-| catalog Shop | ultimul GET/QUERY eligibil, request/frame/document curent; cel mult un GET home după tranzitoriu confirmat, în bugetul inițial |
-| navigare AutoEx | document GET și rută/origine de aplicație; queue-full ori 520/525 observat, cu politica proprie |
+| passive UI BE | allowlisted GET/HEAD, invocation/operation/document stamp, conflicts, and at most 64 signals; no retransmission |
+| Shop catalog | latest eligible GET/QUERY, current request/frame/document; at most one home GET after a confirmed transient response, within the initial budget |
+| AutoEx navigation | document GET and application route/origin; observed queue-full or 520/525, with its own policy |
 
-Aceste protocoale nu se substituie. Shop separă observația de decizia de
-refresh în main; observerul pasiv UI nu devine permisiv pentru QUERY ori cereri concurente.
+These protocols are not interchangeable. Shop separates observation from the
+refresh decision in main; the passive UI observer does not become permissive for
+QUERY or concurrent requests.
 
-- `Retry-After` în loop-ul pasiv ancorează delta la recepția semnalului și
-  refuză inputul invalid.
-- Parserul Core primește clock și fallback explicit; înlocuirea mecanică ar
-  schimba gramatica ori bugetul rămas.
+- In the passive loop, `Retry-After` anchors the delta to signal receipt and
+  rejects invalid input.
+- The Core parser receives an explicit clock and fallback; a mechanical
+  replacement would change the grammar or remaining budget.
 
-`UiListenerScope` deține atașarea și retragerea callback-urilor browserului.
-Observerul pasiv UI, catalogul Shop și lookup-ul adresei îl compun în main;
-politicile business și runnerul JUnit rămân la ownerii lor.
+`UiListenerScope` owns attachment and removal of browser callbacks. The passive
+UI observer, Shop catalog, and address lookup compose it in main; business
+policies and the JUnit runner remain with their owners.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":32,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Declarations["Declarații"] -->|atașează| Attach["Atașare"]
-    Attach -->|confirmă tot| Active["Activ"]
-    Attach -->|eșuează| Rollback["Rollback"]
-    Active -->|închide| Withdraw["Retragere"]
-    Rollback -->|retrage| Withdraw
-    Withdraw -->|păstrează| Causes["Cauze"]
+    Declarations["Declarations"] -->|attach| Attach["Attach"]
+    Attach -->|all confirmed| Active["Active"]
+    Attach -->|fails| Rollback["Rollback"]
+    Active -->|closes| Withdraw["Withdraw"]
+    Rollback -->|withdraws| Withdraw
+    Withdraw -->|retains| Causes["Causes"]
 ```
 
 <details>
-<summary><strong>Legendă — activare și retragere indivizibile pentru callback</strong></summary>
+<summary><strong>Legend — atomic callback attachment and withdrawal</strong></summary>
 
-- Declarațiile fixează perechile attach/detach înaintea efectelor browserului.
-- Atașarea incompletă nu este activă; rollback-ul și close-ul retrag toate
-  perechile declarate, cu callback-urile deja inactive.
-- Prima cauză rămâne primară, cauzele distincte ulterioare sunt suppressed;
-  repetarea aceleiași instanțe nu produce self-suppression.
+- Declarations pin attach/detach pairs before browser effects.
+- Partial attachment is not active; rollback and close withdraw every declared
+  pair, with callbacks already inactive.
+- The first cause remains primary, and later distinct causes are suppressed;
+  reusing the same instance does not cause self-suppression.
 
 </details>
 
-| Moment | Contract |
+| Stage | Contract |
 |---|---|
-| Declarare | toate perechile attach/detach sunt înregistrate înaintea primei atașări |
-| Atașare | `active()` devine true numai după succesul tuturor atașărilor; callback-urile verifică acest guard înaintea obiectelor driver |
-| Rollback | prima cauză a achiziției rămâne primară; fiecare eroare distinctă de cleanup devine suppressed, inclusiv `Error` |
-| Close | scope-ul devine inactiv înaintea retragerilor; toate sunt încercate în ordinea declarată, exact o dată |
-| Erori identice | identitatea obiectului exclude self-suppression și repetarea aceleiași cauze; cleanup-ul continuă |
+| Declaration | all attach/detach pairs are registered before the first attachment |
+| Attachment | `active()` becomes true only after every attachment succeeds; callbacks check this guard before using driver objects |
+| Rollback | the first acquisition cause remains primary; each distinct cleanup error is suppressed, including `Error` |
+| Close | the scope becomes inactive before withdrawal; all pairs are attempted once, in declared order |
+| Identical errors | object identity prevents self-suppression and duplicate causes; cleanup continues |
 
-Un close eșuat consumă ownership-ul: toate retragerile au fost deja încercate,
-iar un al doilea close este inert. Scope-ul respectă thread-ul Playwright al
-callerului; nu introduce transport, replay ori un timeout nou.
+Even if close fails, ownership is consumed: all withdrawals have already been
+attempted, and a second close is inert. The scope uses the caller's Playwright
+thread; it does not introduce transport, replay, or a new timeout.
 
-`UiListenerScopeComponentTest`, `UiRecoveryObserverLifecycleComponentTest` și
-`ShopCatalogLifecycleComponentTest` probează nominalul, atașarea parțială,
-cauzele identice/distincte și callback-urile reținute.
+`UiListenerScopeComponentTest`, `UiRecoveryObserverLifecycleComponentTest`, and
+`ShopCatalogLifecycleComponentTest` check normal behavior, partial attachment,
+identical/distinct causes, and retained callbacks.
 
-## Inspectorul de rețea — limită generică de responsabilitate
+<a id="network-inspector--generic-responsibility-boundary"></a>
+<a id="inspectorul-de-rețea--limită-generică-de-responsabilitate"></a>
+## Network inspector — generic responsibility boundary
 
-Fluxul cross-module și baseline-ul setup/causal au un singur owner în
-[diagrama arhitecturii](../docs/ATF_Architecture.md#capturarea-și-selecția-traficului-ui).
+The cross-module flow and setup/causal baseline have one owner in the
+[architecture diagram](../docs/ATF_Architecture.md#ui-traffic-capture-and-selection).
 
-`UiNetworkInspector` este opt-in și restrâns la host-urile configurate:
+`UiNetworkInspector` is opt-in and restricted to configured hosts:
 
-- listenerii observă începutul, `request-finished` și `request-failed`; nu execută replay și nu
-  decid verdictul testului;
-- observațiile devin date typed, cu URL/query, headers și body redacted/bounded;
-- failure-ul fără response are status `Unavailable` și motiv explicit;
-- nu se fabrică un response pentru un request eșuat.
+- listeners observe request start, `request-finished`, and `request-failed`; they
+  do not replay requests or decide the test verdict;
+- observations become typed data, with URL/query, headers, and body redacted/bounded;
+- a failure without a response has status `Unavailable` and an explicit reason;
+- no response is fabricated for a failed request.
 
 | Contract | Owner |
 |---|---|
-| stream-ul raw și colapsarea doar a semnăturilor consecutive pentru prezentare | `atf-ui` |
-| așteptarea bounded printr-o settlement policy explicită, fără retry/replay de acțiune | `atf-ui` |
-| aliasul de serviciu, corelarea cu checkpoint-ul și verdictul business | consumerul |
-| cardurile HTML și sumarul agregat | `atf-reporting` |
+| raw stream and presentation-only collapse of consecutive signatures | `atf-ui` |
+| bounded waiting through an explicit settlement policy, without action retry/replay | `atf-ui` |
+| service alias, checkpoint correlation, and business verdict | consumer |
+| HTML cards and aggregate summary | `atf-reporting` |
 
-Selecția precedă citirea body-ului și rezervarea bugetului:
+Selection precedes body reading and budget reservation:
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Event["Eveniment"] -->|filtrează| Host["Host"]
-    Host -->|selectează| Policy["Policy"]
-    Policy -->|rezervă| Budget["Journal"]
-    Budget -->|redactează| Body["Observație"]
-    Body -->|publică| Consumer["Adaptor"]
+    Event["Event"] -->|filters| Host["Host"]
+    Host -->|selects| Policy["Policy"]
+    Policy -->|reserves| Budget["Journal"]
+    Budget -->|redacts| Body["Observation"]
+    Body -->|publishes| Consumer["Adapter"]
 ```
 
 <details>
-<summary><strong>Legendă — scope, buget și cursor</strong></summary>
+<summary><strong>Legend — scope, budget, and cursor</strong></summary>
 
-- `UiNetworkCapturePolicy.asynchronous()` selectează XHR/fetch indiferent de
-  prefixul rutei sau Content-Type; resursele statice nu consumă jurnalul.
-- `includingDocuments()` include explicit navigări și formulare;
-  `forPaths(...)` restrânge opțional scope-ul consumerului. Allowlist-ul de
-  host rămâne obligatoriu. Constructorii anteriori păstrează `allResources()`
-  pentru compatibilitate; consumerul API configurează explicit politica async.
-- `UiNetworkObservation.resourceKind()` păstrează clasificarea Playwright;
-  `OTHER` menține compatibilitatea fixture-urilor typed anterioare,
-  fără să transforme resursele browser cunoscute în trafic API.
-- `statistics()` separă accepted, retained, excluded și dropped; inFlight
-  numără rezervările de captură în curs, nu toate request-urile browserului.
-  `limitReached` indică respingerea la plafon, nu simpla umplere exactă.
-- `captureSummary()` păstrează proiecția compatibilă a contorilor anteriori;
-  `statistics()` este snapshot-ul extins.
-- Captura este completă în scope la snapshot numai dacă nu are observații
-  pierdute sau capturi în curs; nu certifică traficul viitor.
-- `observationsSince(cursor)` păstrează ordinea append-only și delimitează
-  ferestrele de captură. Colapsarea pentru prezentare nu mută cursorul;
-  momentul recepției nu dovedește momentul pornirii request-ului.
-- Cookie/Set-Cookie, headerele auth și credentialele cu chei/path-uri cunoscute
-  sunt redactate înainte de subscribers; redirecturile și Referer nu publică
-  query-uri sau fragmente. Pseudo-headerele HTTP/2 nu dublează URL-ul brut în
-  headers/replay. Politica PII specifică aplicației rămâne la consumer.
+- `UiNetworkCapturePolicy.asynchronous()` selects XHR/fetch regardless of route
+  prefix or Content-Type; static resources do not consume the journal.
+- `includingDocuments()` explicitly includes navigations and forms;
+  `forPaths(...)` optionally narrows the consumer's scope. The host allowlist
+  remains mandatory. Earlier constructors retain `allResources()` for
+  compatibility; API consumers configure the async policy explicitly.
+- `UiNetworkObservation.resourceKind()` retains Playwright classification;
+  `OTHER` preserves compatibility with earlier typed fixtures without
+  reclassifying known browser resources as API traffic.
+- `statistics()` separates accepted, retained, excluded, and dropped;
+  `inFlight` counts capture reservations in progress, not all browser requests.
+  `limitReached` indicates rejection at the limit, not merely reaching capacity.
+- `captureSummary()` retains the compatible projection of earlier counters;
+  `statistics()` is the extended snapshot.
+- Capture is complete within the scope at snapshot time only if there are no
+  lost observations or in-progress captures; it does not certify future traffic.
+- `observationsSince(cursor)` preserves append-only order and delimits capture
+  windows. Presentation collapse does not move the cursor; receipt time does
+  not prove when a request started.
+- Cookie/Set-Cookie, auth headers, and credentials with known keys/paths are
+  redacted before subscribers; redirects and Referer do not publish queries or
+  fragments. HTTP/2 pseudo-headers do not duplicate the raw URL in
+  headers/replay. Application-specific PII policy remains with the consumer.
 
-`UiNetworkInspectorComponentTest` probează și în browser local, cu trafic
-interceptat controlat, filtrarea asset-urilor, fetch-ul reușit/eșuat și overflow-ul.
-Probele nu depind de un magazin public sau de Reporting.
-Etichetele scurte păstrează următorul sens:
+`UiNetworkInspectorComponentTest` also checks, in a local browser with controlled
+intercepted traffic, asset filtering, successful/failed fetches, and overflow.
+The checks do not depend on a public store or Reporting.
+The short labels have the following meanings:
 
-| În schemă | Sens complet |
+| In diagram | Full meaning |
 |---|---|
-| Eveniment | Request finished / failed |
+| Event | Request finished / failed |
 | Host | Host allowlist |
 | Policy | Resource type + path policy |
 | Journal | Bounded journal |
-| Observație | Typed observation |
-| Adaptor | Subscriber / reporting adapter |
-| redactează | citește și redactează |
+| Observation | Typed observation |
+| Adapter | Subscriber / reporting adapter |
+| redacts | reads and redacts |
 
 </details>
 
-`capture(UiNetworkObservation)` acceptă și fixture-uri/adaptoare. Înainte de
-storage și notificarea subscriberilor, inspectorul reconstruiește sau limitează
-URL/path, headers, body, auth/source, failure, service și signature. Testul
-negativ pentru input creat de caller protejează acest boundary.
+`capture(UiNetworkObservation)` also accepts fixtures/adapters. Before storage
+and subscriber notification, the inspector reconstructs or bounds URL/path,
+headers, body, auth/source, failure, service, and signature. The negative test
+for caller-created input protects this boundary.
 
-Identitatea începutului și ordinea recepției au contracte distincte:
+Request-start identity and receipt order have distinct contracts:
 
-| Limită | Contract |
+| Boundary | Contract |
 |---|---|
-| Început | `UiRequestTimeline` produce `UiRequestIdentity`: UUID al scope-ului și secvență locală, fără payload. |
-| Marcaj | `requestMarker()` citește pasiv browserul pentru a procesa evenimentele anterioare delimitării acțiunii. |
-| Selecție | `isAfter(...)` cere același scope și un început strict ulterior; secvența recepției rămâne separată. |
-| Compatibilitate | Observația legacy fără identitate rămâne necunoscută; redacția păstrează identitatea explicită. |
-| Adaptor propriu | Numai după observarea explicită a începutului folosește `requestStarted()` și `withRequestIdentity(...)`. |
+| Start | `UiRequestTimeline` produces `UiRequestIdentity`: scope UUID and local sequence, without payload. |
+| Marker | `requestMarker()` passively reads the browser to process events that preceded the action boundary. |
+| Selection | `isAfter(...)` requires the same scope and a strictly later start; receipt sequence remains separate. |
+| Compatibility | A legacy observation without identity remains unknown; redaction preserves explicit identity. |
+| Custom adapter | Uses `requestStarted()` and `withRequestIdentity(...)` only after explicitly observing the start. |
 
-Completitudinea jurnalului raw și livrarea către subscriberi au limite distincte:
+Raw journal completeness and delivery to subscribers have distinct limits:
 
-- Fiecare notificare folosește același snapshot de subscriberi. Un `RuntimeException`
-  este izolat, iar subscriberii sănătoși primesc aceeași observație redactată,
-  indiferent de ordinea înscrierii sau de închiderea contextului în callback.
-- `deliveryFailures()` oferă un snapshot imuabil cu secvența observației,
-  ordinalul subscriberului, semnătura sigură și cauza originală; nu fabrică
-  erori HTTP și nu schimbă accepted/retained/dropped. Cauza nu se publică implicit în HTML.
-- Un `Error` fatal se propagă; inspectorul nu pretinde livrare completă în acest caz.
-- `UiNetworkDeliveryComponentTest` și `UiRequestIdentityComponentTest` probează
-  aceste limite prin portul public și fetch real în browser local, fără replay.
-- Închiderea logică precede dezabonarea: capturile noi și callback-urile native
-  ulterioare devin inerte, iar dovezile deja reținute rămân inspectabile.
-  Snapshot-ul subscriberilor a cărui livrare a început se termină chiar dacă
-  unul dintre subscriberi închide inspectorul.
-- Toate dezabonările dobândite sunt încercate o singură dată. Prima eroare
-  rămâne primară, inclusiv `Error`; erorile distincte devin suppressed.
-  Un close repetat nu repetă operații cu rezultat nativ necunoscut.
-- `UiRequestTimeline` compensează propria înscriere și când este folosit direct,
-  fără inspector. Captura explicită după close nu dereferențiază un `Response`
-  de browser expirat; jurnalul deja reținut rămâne disponibil pentru audit.
-- Atașarea parțial eșuată este compensată local; cauza achiziției rămâne
-  primară, cu fiecare eroare distinctă de rollback direct în suppressed.
-  Până la ultima înscriere reușită nu se reține și nu se livrează nicio captură.
-  Close-ul reentrant oprește înscrierile următoare; scope-ul închis nu se redeschide.
-  Un refuz nativ de dezabonare nu este prezentat drept retragere reușită.
-- `UiNetworkLifecycleComponentTest` injectează eșecuri în fiecare înscriere și
-  dezabonare, înainte/după efectul înscrierii, cauze multiple/identice, captură
-  în atașarea incompletă și close la înregistrare, captură ori livrare.
-  Regresiile de delivery și start identity rămân separate.
+- Each notification uses the same subscriber snapshot. A `RuntimeException`
+  is isolated, and healthy subscribers receive the same redacted observation,
+  regardless of registration order or context closure during the callback.
+- `deliveryFailures()` provides an immutable snapshot with observation sequence,
+  subscriber ordinal, safe signature, and original cause; it does not fabricate
+  HTTP errors or change accepted/retained/dropped. The cause is not published in
+  HTML by default.
+- A fatal `Error` propagates; in this case the inspector does not claim complete delivery.
+- `UiNetworkDeliveryComponentTest` and `UiRequestIdentityComponentTest` check
+  these limits through the public port and a real fetch in a local browser, without replay.
+- Logical close precedes unsubscribe: new captures and subsequent native
+  callbacks become inert, while already retained evidence remains inspectable.
+  A subscriber snapshot whose delivery has started completes even if a
+  subscriber closes the inspector.
+- Every acquired unsubscribe is attempted once. The first error remains
+  primary, including `Error`; distinct errors are suppressed. A repeated close
+  does not repeat operations with an unknown native result.
+- `UiRequestTimeline` compensates for its own registration even when used
+  directly, without an inspector. An explicit capture after close does not
+  dereference an expired browser `Response`; the retained journal remains
+  available for audit.
+- Partial attachment failure is compensated locally; the acquisition cause
+  remains primary, with each distinct rollback error directly suppressed. No
+  capture is retained or delivered before the last registration succeeds.
+  Reentrant close stops further registrations; a closed scope is not reopened.
+  Native unsubscribe rejection is not presented as successful withdrawal.
+- `UiNetworkLifecycleComponentTest` injects failures in every registration and
+  unsubscribe, before/after the registration effect, with multiple/identical
+  causes, capture during partial attachment, and close during registration,
+  capture, or delivery. Delivery and start-identity regressions remain separate.
 
-Momentul în care scope-ul poate publica:
+When the scope may publish:
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Pending["Atașare"] -->|toate hook-urile| Active["Captură activă"]
-    Active -->|close| Closed["Scope închis"]
-    Pending -->|eșec sau close| Closed
-    Closed -->|încearcă fiecare hook| Release["Retrageri"]
+    Pending["Attaching"] -->|all hooks| Active["Capture active"]
+    Active -->|close| Closed["Scope closed"]
+    Pending -->|failure or close| Closed
+    Closed -->|attempt each hook| Release["Withdrawals"]
 ```
 
 <details>
-<summary><strong>Legendă — atașare și închidere</strong></summary>
+<summary><strong>Legend — attachment and closure</strong></summary>
 
-- Atașarea devine activă numai după ultima înscriere; o captură prematură nu
-  consumă jurnalul și nu ajunge la subscriberi.
-- Scope-ul se închide înaintea retragerilor. O eroare de cleanup nu îl
-  redeschide și nu autorizează repetarea retragerii cu rezultat necunoscut.
-- Snapshot-ul unei livrări deja începute se termină; o captură aflată încă
-  în construcție la close este dropped. Page/context rămân deținute de sesiune.
+- Attachment becomes active only after the final registration; a premature
+  capture does not consume the journal or reach subscribers.
+- The scope closes before withdrawals. A cleanup error does not reopen it or
+  authorize repeating a withdrawal with an unknown result.
+- A delivery snapshot that has already started completes; a capture still being
+  built at close is dropped. The session continues to own the page/context.
 
 </details>
 
-- Body-urile capturate nu folosesc `trim()`; spațiile marginale și payload-ul
-  numai din whitespace rămân date, nu absență.
-- Redacția și plafonul de preview rămân active înainte de storage/subscribers;
-  semnătura consumă același body redactat și limitat, fără eliminarea spațiilor.
-- `UiNetworkBodyFidelityComponentTest` probează capturarea browser locală,
-  sanitizarea typed, notificarea subscriberilor și separarea semnăturilor.
+- Captured bodies do not use `trim()`; leading/trailing whitespace and
+  whitespace-only payloads remain data, not absence.
+- Redaction and the preview limit remain active before storage/subscribers;
+  the signature uses the same redacted, bounded body without removing spaces.
+- `UiNetworkBodyFidelityComponentTest` checks local browser capture, typed
+  sanitization, subscriber notification, and signature separation.
 
-Jurnalul raw păstrează ordinea și statusul fiecărei observații. Compactarea
-prezentării reține prima observație a fiecărei secvențe cu aceeași semnătură;
-repetările neconsecutive și numărul total de apariții rămân inspectabile.
+The raw journal preserves the order and status of each observation. Presentation
+compaction retains the first observation in each sequence with the same
+signature; non-consecutive repetitions and total occurrence counts remain inspectable.
 
-`UiNetworkPresentationStreamComponentTest` verifică independent ordinea,
-`201→500`, politica dezactivată și repetițiile separate de alt request.
-O vedere compactată nu înlocuiește jurnalul folosit pentru selecția business.
+`UiNetworkPresentationStreamComponentTest` independently checks ordering,
+`201→500`, disabled policy, and repetitions separated by another request.
+A compacted view does not replace the journal used for business selection.
 
-Read-back după acțiune:
+Read-back after an action:
 
-- înainte de acțiune: capturează `observationCursor()`;
-- după acțiune: folosește `awaitAfter(cursor, predicate, timeout)`; un GET deja
-  capturat înainte de cursor nu poate satisface settlement-ul curent;
-- limită: cursorul garantează ordinea capturării, nu începutul request-ului,
-  payload identity sau idempotency. Un request anterior încă în zbor poate fi
-  capturat după cursor; asocierea cu acțiunea cere o corelare suplimentară;
-  `await(...)` caută în tot jurnalul, iar nicio metodă nu repetă mutația.
+- before the action: capture `observationCursor()`;
+- after the action: use `awaitAfter(cursor, predicate, timeout)`; a GET captured
+  before the cursor cannot satisfy the current settlement;
+- limit: the cursor guarantees capture order, not request start, payload
+  identity, or idempotency. A previous request still in flight may be captured
+  after the cursor; associating it with the action requires additional
+  correlation. `await(...)` searches the entire journal, and no method retries the mutation.
 
-Contractul de retry Playwright:
+Playwright retry contract:
 
-- `UiRetryOperation` permite numai operații read-only; click, submit și alte
-  mutații nu sunt configurabile și nu primesc al doilea attempt;
-- retry-ul business-specific aparține consumerului și cere identity stabilă,
-  payload complet asociat și garanție server-side de idempotency;
-- `requestSignature` grupează observații și folosește body redacted/bounded; nu
-  reprezintă payload identity pentru replay;
-- request observation și cursor temporal nu dovedesc idempotency.
+- `UiRetryOperation` permits read-only operations only; click, submit, and other
+  mutations are not configurable and do not get a second attempt;
+- business-specific retry belongs to the consumer and requires stable identity,
+  a fully associated payload, and a server-side idempotency guarantee;
+- `requestSignature` groups observations and uses a redacted/bounded body; it
+  does not represent payload identity for replay;
+- request observation and a temporal cursor do not prove idempotency.
 
-Se redeschide contractul numai dacă o observație caller-supplied poate ocoli
-resanitizarea/bounding-ul, un read-back anterior satisface settlement-ul nou,
-request-failed inventează un response/verdict sau o mutație este reluată fără
-contract de idempotency. Orice extindere de retry rămâne o decizie separată a
-consumerului și nu schimbă politica generică fail-closed.
+Reopen the contract only if a caller-supplied observation can bypass
+resanitization/bounding, a previous read-back satisfies a new settlement,
+request-failed fabricates a response/verdict, or a mutation is retried without
+an idempotency contract. Any retry extension remains a separate consumer
+decision and does not change the generic fail-closed policy.
 
-## Ce nu se pune în `atf-ui`
+<a id="what-does-not-belong-in-atf-ui"></a>
+<a id="ce-nu-se-pune-în-atf-ui"></a>
+## What does not belong in `atf-ui`
 
-- teste JUnit sau colecții API;
-- `UiConfiguration`, `UiAuditSuiteConfiguration`, loaderul YAML și contextul
-  pentru `atf.ui.config`/`atf.ui.report` — sunt configurație de test a
-  raportării și stau în `atf-reporting-tests/src/test/java/.../support/config`;
-- `SectionAuditCheckExecutor`, `SectionAuditCheckPolicy` sau
-  `ExtentSectionAuditPublisher`;
-- `ReportProjection`, reguli pentru Tests/Fails/Categories sau contractul static HTML;
-- HTML/CSS/Extent nodes sau finalizarea artifactului;
-- page objects, selectorii produsului și flows de business;
-- fallback la un artifact arbitrar sau modificarea inputului API.
+- JUnit tests or API collections;
+- consumer-specific report configuration, API setup, and audit composition;
+- application-specific report locators, fixtures, and business expectations;
+- HTML/CSS/Extent nodes or artifact finalization;
+- page objects, product selectors, and business flows;
+- fallback to an arbitrary artifact or modification of API input.
 
-Aceste limite sunt intenționate: `atf-ui` rămâne reutilizabil și testabil ca
-runtime Playwright, `atf-reporting` rămâne reutilizabil ca librărie de raportare,
-iar `atf-reporting-tests` deține compoziția testelor librăriei, de la componentă
-și integration până la E2E și adaptoarele browser.
+These boundaries are intentional: `atf-ui` provides the local Playwright adapter, and the versioned Reporting library provides report publication. Practice Shop and AutoEx keep their application scenarios, adapters, and report checks in their own J1 modules.
 
-## Deadline determinist al clickului cu postcondiție
+<a id="verification"></a>
+<a id="verificare"></a>
+## Verification
 
-`ObservationBudgetComponentTest` verifică aritmetica și ownerul real
-`clickAndAwait` cu un ceas monoton controlat: pointerul, observațiile succesive
-și întoarcerea callback-ului consumă același deadline. Constructorii injectabili
-rămân package-private; execuția obișnuită folosește `System.nanoTime`.
-
-Durata raportată de recorder rămâne măsurată real, separat de ceasul probei.
-Probele browser verifică starea și activarea după pregătirea fixture-ului;
-nu deduc propagarea deadline-ului dintr-un prag wall-clock al sistemului.
-
-## Verificare
-
-Teste runtime/config:
+Runtime/configuration tests:
 
 ```text
 mvn -pl atf-ui -am test
 ```
 
-Testele de raport UI se rulează din composition module-ul
-`atf-reporting-tests`, de exemplu:
+Run the local report-producing component check, for example:
 
 ```text
-mvn -pl atf-reporting-tests -am -Dtest=SelectedApiTestsReportUiTest test
+mvn -pl atf-test-auto-ex -am -Dtest=AutoExE2eOverviewNarrativeComponentTest -Dsurefire.failIfNoSpecifiedTests=false test
 ```
 
-Build și audit:
+Build and audit:
 
-- build-ul se face în staging extern (`${ATF_STAGING_ROOT}/atf-ui-<id>`);
-- rulările curente și serverele rămân intacte;
-- raportul UI aprobat se publică numai în directorul configurat al consumerului;
-- artifactul HTML rezultat se verifică prin ATF Debug UI și Playwright/browser
+- build in external staging (`${ATF_STAGING_ROOT}/atf-ui-<id>`);
+- current runs and servers remain intact;
+- publish the approved UI report only to the consumer's configured directory;
+- verify the resulting HTML artifact through ATF Debug UI and Playwright/browser
   MCP;
-- verificarea acoperă click-uri, expand/collapse, accessibility tree,
-  console/network și randare;
-- browserul Windows real nu se folosește.
+- checks cover clicks, expand/collapse, accessibility tree,
+  console/network, and rendering;
+- do not use the real Windows browser.
 
-Pentru procesul de sync și siguranță vezi
+For synchronization and safety, see
 [`docs/ATF_Build_And_Execution_Safety.md`](../docs/ATF_Build_And_Execution_Safety.md);
-pentru contractul vizual vezi
-[`atf-reporting/README.md`](../atf-reporting/README.md).
+for the visual contract, see
+[Reporting JAR atlas](../atf-reporting/README.md).
 
-## Verificare rapidă
+<a id="quick-verification"></a>
+<a id="verificare-rapidă"></a>
+## Quick verification
 
-| Decizie | Sursă și limită |
+| Decision | Source and limit |
 |---|---|
-| Captură bounded, filtrare și retenție | [sursa ownerului](src/main/java/atf/ui/network/UiNetworkInspector.java); probă: [UiNetworkInspectorComponentTest](src/test/java/atf/ui/network/UiNetworkInspectorComponentTest.java) |
-| Dependențe și source-set-uri | [POM](pom.xml); scope-ul declarat este autoritatea pentru integrare |
-| Ce nu demonstrează această probă | Retenția completă nu probează livrarea tuturor subscriberilor ori cauzalitatea unei acțiuni. |
+| bounded capture, filtering, and retention | [owner source](src/main/java/atf/ui/network/UiNetworkInspector.java); check: [UiNetworkInspectorComponentTest](src/test/java/atf/ui/network/UiNetworkInspectorComponentTest.java) |
+| dependencies and source sets | [POM](pom.xml); declared scope is authoritative for integration |
+| What this check does not demonstrate | Complete retention does not prove delivery to all subscribers or causality of an action. |
 
 <details>
-<summary><strong>Comandă pentru proba locală</strong></summary>
+<summary><strong>Command for a local check</strong></summary>
 
-Rulați din rădăcina unui [staging extern](../docs/ATF_Build_And_Execution_Safety.md), cu JDK 21 și Maven.
+Run from the root of [external staging](../docs/ATF_Build_And_Execution_Safety.md), with JDK 21 and Maven.
 
 ```powershell
 mvn -B -pl atf-ui -am "-Dtest=UiNetworkInspectorComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
-Comanda selectează proba numită și construiește dependențele; nu declară
-trecerea întregului modul. Retenția completă nu probează livrarea tuturor subscriberilor ori cauzalitatea unei acțiuni.
+The command selects the named check and builds its dependencies; it does not
+claim that the entire module passed. Complete retention does not prove delivery
+to all subscribers or causality of an action.
 
 </details>
+
+<a id="full-context-screenshots"></a>
+<a id="capturi-de-ecran-cu-context-complet"></a>
+## Full-context screenshots
+
+Every screenshot used as test evidence preserves the surrounding page context.
+Shop and AutoEx journeys use their configured 70% zoom and complete browser
+viewport; Android retains its entire physical display and orientation.
+
+| Boundary | Required behavior |
+|---|---|
+| Capture | Use the complete page viewport; preserve navigation, surrounding content and every frame edge |
+| Zoom | Keep the configured browser-context scale; Shop/AutoEx use 70% to expose more page context |
+| Additional detail | A region or element close-up may supplement the original context image, never replace it |
+| Report viewer | Fit the complete source image to the available screen, preserving aspect ratio and every edge |
+| Full document | Explicit full-page capture preserves document height; the configured output height does not crop it |
+| Test coverage | Pixel oracles verify all four corners at 70/100% and extra lower-page context at 70%; independent geometry-scale tests keep their own scales |
+
+The [native geometry regression](src/test/java/atf/ui/playwright/geometry/PlaywrightPointerGeometryComponentTest.java)
+checks captured PNG pixels rather than configuration alone. This owner
+contract covers capture, viewer geometry and consumer context.
+
+<a id="explicit-fixture-preparation"></a>
+<a id="pregătirea-explicită-a-fixture-ului"></a>
+## Explicit fixture preparation
+
+[`PlaywrightPagePreparation`](src/main/java/atf/ui/playwright/PlaywrightPagePreparation.java)
+prepares a document before a measured native operation. Callers choose it
+explicitly; ordinary runtime actions retain their existing behavior.
+
+| Phase | Native operation | Budget and authority |
+|---|---|---|
+| Document load | `navigate` or `setContent` | existing navigation budget starts once |
+| Current document context | attach `:root` | remaining navigation budget; no target selection or mutation |
+| Rendered viewport | native PNG, animations allowed | same remaining budget; no click, fill or forced action |
+| Native input and postcondition | existing recorder | original action budget; strict visibility/stability/hit testing and no replay |
+
+- The receipt exposes fresh viewport PNG bytes, elapsed preparation time and
+  the document URL. PNG bytes are defensive copies; capture failure or late
+  completion cannot authorize input.
+- A painted document does not certify a disabled, covered, moving or readonly
+  target. Those refusals and a false postcondition keep their original action deadline.
+- Fixture preparation consumes one bounded navigation allowance across all
+  stages; attachment and capture do not receive a renewed timeout.
+
+<a id="deterministic-click-deadline-with-a-postcondition"></a>
+<a id="deadline-determinist-al-clickului-cu-postcondiție"></a>
+## Deterministic click deadline with a postcondition
+
+`ObservationBudgetComponentTest` checks the arithmetic and actual
+`clickAndAwait` owner with a controlled monotonic clock: the pointer, successive
+observations, and callback return consume the same deadline. Injectable
+constructors remain package-private; ordinary execution uses `System.nanoTime`.
+
+The duration reported by the recorder remains measured in real time,
+independently of the check's clock. Browser checks verify state and activation
+after fixture preparation; they do not infer deadline propagation from a
+system wall-clock threshold.

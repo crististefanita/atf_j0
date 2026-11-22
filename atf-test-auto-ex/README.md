@@ -1,373 +1,385 @@
-# ATF Automation Exercise — consumer UI/API și E2E
+<a id="atf-automation-exercise--uiapi-and-e2e-consumer"></a>
+<a id="atf-automation-exercise--consumer-uiapi-și-e2e"></a>
+# ATF Automation Exercise — UI/API and E2E Consumer
 
-`atf-test-auto-ex` verifică Account, Cart și Purchase pe
-[Automation Exercise](https://automationexercise.com/), plus contractele API ale
-aceluiași site. Datele, rutele și regulile business aparțin consumerului;
-browserul și publicarea raportului sunt furnizate de infrastructura ATF.
+`atf-test-auto-ex` verifies Account, Cart, and Purchase on
+[Automation Exercise](https://automationexercise.com/), together with that
+site's API contracts. Data, routes, and business rules belong to the consumer;
+the ATF infrastructure provides the browser and report publication.
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-**Trasee rapide:** [Alege rularea](#rulare) · [Journey](#journey-ul-de-cumpărare) ·
-[API și UI_API](#api-direct-și-limita-evidence-ului-uiapi) ·
-[Acceptanță negativă](#acceptanța-failure-urilor-business) · [Probă locală](#verificare-rapidă).
+**Quick links:** [Choose a run](#run-selection) · [Journey](#purchase-journey) ·
+[API and UI_API](#direct-api-and-the-uiapi-evidence-boundary) ·
+[Negative acceptance](#business-failure-acceptance) · [Local proof](#quick-verification).
 
-| Vreau să verific | Intrare | Boundary |
+| I want to verify | Entry point | Boundary |
 |---|---|---|
-| reguli și adaptoare offline | [componente](#suite-și-variante-de-evidence) | fixture controlat; fără serviciul public |
-| rezultat business pe site | [journey E2E](#journey-ul-de-cumpărare) | UI/UI_API și cont deținut per execuție |
-| contract API direct | [suite API](#cele-trei-suite-principale) | opt-in distinct pentru read-only și cont sintetic |
-| failure, cleanup și vecin sănătos | [acceptanță explicită](#acceptanța-failure-urilor-business) | fixture-uri E2E negative, în afara selecției canonice |
+| application rules and offline adapters | [components](#suites-and-evidence-variants) | controlled fixture; no public service |
+| business outcome on the site | [E2E journey](#purchase-journey) | UI/UI_API and per-run owned account |
+| direct API contract | [API suite](#the-three-main-suites) | separate opt-in for read-only access and a synthetic account |
+| failure, cleanup, and healthy neighbor | [explicit acceptance](#business-failure-acceptance) | negative E2E fixtures, outside canonical selection |
 
-**Context local:** [runtime](src/main/java/atf/autoex/runtime/README.md) ·
-[atlas ATF](../docs/ATF_Context_Atlas.md). Comenzile de mai jos pornesc dintr-un
-[staging extern](../docs/ATF_Build_And_Execution_Safety.md), cu JDK 21 și Maven.
+**Local guide:** [runtime](src/main/java/atf/autoex/runtime/README.md). Run the commands below from an
+[external staging area](../docs/ATF_Build_And_Execution_Safety.md), with JDK 21 and Maven.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Inputs["YAML + selecție"] -->|configurează| Consumer["Consumer AutoEx"]
-    Consumer -->|rulează| Journey["Journey UI / UI_API"]
-    Consumer -->|apelează| Api["Contract API live"]
-    Consumer -->|verifică| Local["Componente offline"]
-    Journey -->|dovezi| Report["Raport Extent"]
-    Api -->|dovezi| Report
-    Local -->|audit| Report
+    Inputs["YAML + selection"] -->|configures| Consumer["AutoEx consumer"]
+    Consumer -->|runs| Journey["UI / UI_API journey"]
+    Consumer -->|calls| Api["Live API contract"]
+    Consumer -->|verifies| Local["Offline components"]
+    Journey -->|evidence| Report["Extent report"]
+    Api -->|evidence| Report
+    Local -->|audits| Report
 ```
 
 <details>
-<summary><strong>Legendă — scope-ul consumerului</strong></summary>
+<summary><strong>Legend — consumer scope</strong></summary>
 
-- `YAML + selecție` fixează configurația și opt-in-ul; API read-only și API cu
-  cont sintetic au selecții distincte.
-- `Consumer AutoEx` deține datele și regulile site-ului; browserul este oferit de
-  UI, iar publicarea este oferită de Reporting.
-- `Journey UI / UI_API` păstrează același business; UI_API adaugă observațiile
-  browserului și precondițiile API declarate explicit de journey.
-- `Contract API live` folosește request factory-ul aplicației și transportul
-  live explicit; `Componente offline` folosește fixture-uri locale.
-- `Raport Extent` este individual ori comun suitei; partajarea raportului nu
-  partajează implicit browserul sau identitatea unui cont.
-
-</details>
-
-<details>
-<summary><strong>Compoziție și diagnostic — limite comune ale rulărilor</strong></summary>
-
-Diagnosticul generic al excepției folosește
-[formatterul Reporting](../atf-reporting/README.md#context-de-fază-și-diagnostic-de-execuție).
-AutoEx păstrează asocierea cu API-ul și faza, plus probele adaptorului real;
-grafurile ciclice, redactarea și randarea neutră au
-[probe la Reporting Tests](../atf-reporting-tests/README.md#diagnosticul-neutru-al-excepțiilor).
-
-- Acest modul deține journey-ul E2E și suportul specific site-ului AutoEx.
-- Gate-ul uzual selectează direct `AutoExPurchaseUiE2eTest` și execută cumpărarea o singură dată.
-  Profilele de evidence sunt opțiuni de execuție ale aceluiași business, nu
-  obiective suplimentare de acoperire.
-- `atf-ui` deține execuția browserului; `atf-reporting` deține modelarea și
-  publicarea evidence-ului.
-- [Profilul de evidence](#configurarea-evidence-ului) separă flow-ul, capturile și
-  detaliile acțiunilor; `Audit screen contract` observă dovada, fără verdict propriu.
+- `YAML + selection` fixes configuration and opt-in; read-only API access and
+  API access with a synthetic account have separate selections.
+- The `AutoEx consumer` owns site data and rules; UI provides the browser and
+  Reporting provides publication.
+- `UI / UI_API journey` preserves the same business behavior; UI_API adds
+  browser observations and API preconditions explicitly declared by the journey.
+- `Live API contract` uses the application's request factory and explicit live
+  transport; `Offline components` use local fixtures.
+- The `Extent report` is individual or shared by a suite; sharing a report does
+  not implicitly share the browser or account identity.
 
 </details>
 
-## Boundary-ul AutoEx
+<details>
+<summary><strong>Composition and diagnostics — shared run boundaries</strong></summary>
+
+Generic exception diagnostics use the
+[Reporting formatter](../atf-reporting/README.md#revenirea-la-comparația-eșuată).
+AutoEx retains API and phase correlation, together with proofs for the real
+adapter. Cyclic-graph handling, redaction, and neutral rendering are described
+by the selected [Reporting library contract](../atf-reporting/README.md);
+local consumer tests verify only the behavior exercised by their scenarios.
+
+- This module owns the E2E journey and support specific to the AutoEx site.
+- The usual gate selects `AutoExPurchaseUiE2eTest` directly and runs the purchase once.
+  Evidence profiles are run options for the same business behavior, not
+  additional coverage objectives.
+- `atf-ui` owns browser execution; `atf-reporting` owns evidence modeling and
+  publication.
+- The [evidence profile](#evidence-configuration) separates the flow, screenshots,
+  and action details; `Audit screen contract` observes evidence without issuing its own verdict.
+
+</details>
+
+<a id="autoex-boundary"></a>
+<a id="boundary-ul-autoex"></a>
+## AutoEx boundary
 
 <details>
-<summary><strong>Contract, owneri și probe — Boundary-ul AutoEx</strong></summary>
+<summary><strong>Contract, owners, and proofs — AutoEx boundary</strong></summary>
 
 <details>
-<summary><strong>Detalii — boundary-ul autoex</strong></summary>
+<summary><strong>Details — AutoEx boundary</strong></summary>
 
-| Zonă | Conținut specific acestui consumer |
+| Area | Content specific to this consumer |
 |---|---|
-| `src/main` | Configurația site-ului, catalogul de rute/selectori, page objects, purchase journey și cleanup-ul contului sintetic |
-| `src/test` | Gate business E2E, selecții manuale de evidence, contracte componente AutoEx și adaptorul JUnit |
-| Rulare | Site-ul public; E2E-ul este opt-in în Maven, iar rularea directă din IntelliJ este suportată |
+| `src/main` | Site configuration, route/selector catalog, page objects, purchase journey, and synthetic-account cleanup |
+| `src/test` | Business E2E gate, manual evidence selections, AutoEx component contracts, and JUnit adapter |
+| Execution | Public site; E2E is opt-in in Maven, and direct IntelliJ runs are supported |
 
-Configurația implicită este [`atf-auto-ex.yaml`](src/test/resources/atf-auto-ex.yaml)
-și aparține profilului de test, nu unei biblioteci publicate:
+The default configuration is [`atf-auto-ex.yaml`](src/test/resources/atf-auto-ex.yaml)
+and belongs to the test profile, not a published library:
 
-- `AutoExConfigurationLoader` o citește din classpath, cu fallback la fișierul
-  modulului pentru lansările IDE;
-- un YAML alternativ se selectează prin `-Datf.autoex.config=<path>`; căile
-  relative se rezolvă față de working directory-ul procesului;
-- URL-ul, browserul, timeout-urile, produsul demo, identitatea sintetică, plata
-  demo și directorul raportului sunt configurate acolo;
-- YAML-ul dezactivează E2E-ul implicit pentru rulările Maven obișnuite; extensia
-  recunoaște markerul IntelliJ și îl poate activa chiar dacă `e2eEnabled: false`.
-- `AutoExE2eExtension` extrage semnalele specifice AutoEx (proprietate JVM,
-  `e2eEnabled` din YAML și marker IntelliJ) și le transmite resolverului neutru
-  `AtfE2eActivationPolicy` din `atf-test-kit`.
-- Precedența comună este override JVM explicit → opt-in configurat → fallback
-  IDE → dezactivat; `false` explicit oprește testul în orice runner, iar valorile
-  invalide eșuează închis. Test Kit probează politica, iar guvernanța whole-ATF
-  protejează wiring-ul consumatorilor.
+- `AutoExConfigurationLoader` reads it from the classpath, falling back to the
+  module file for IDE launches;
+- select an alternate YAML with `-Datf.autoex.config=<path>`; relative paths
+  resolve against the process working directory;
+- configure the URL, browser, timeouts, demo product, synthetic identity, demo
+  payment, and report directory there;
+- YAML disables E2E by default for ordinary Maven runs; the extension recognizes
+  the IntelliJ marker and can enable it even when `e2eEnabled: false`.
+- `AutoExE2eExtension` extracts AutoEx-specific signals (JVM property,
+  `e2eEnabled` from YAML, and IntelliJ marker) and passes them to the neutral resolver
+  `AtfE2eActivationPolicy` from `atf-test-kit`.
+- Shared precedence is explicit JVM override → configured opt-in → IDE fallback
+  → disabled; explicit `false` stops the test in any runner, and invalid values
+  fail closed. Test Kit proves the policy, and whole-ATF governance protects
+  consumer wiring.
 
-Profilul conține numai date sintetice și date de plată demonstrative; nu introduce
-în YAML date personale reale, parole sau instrumente de plată reale. Modelul
-redactează câmpurile de înregistrare și plată din reprezentarea textuală.
+The profile contains only synthetic data and demo payment details; it does not
+put real personal data, passwords, or real payment instruments in YAML. The
+model redacts registration and payment fields from its text representation.
 
-- `AutoExPurchaseJourney` folosește `AutoExPurchaseSession` pentru achiziția care
+- `AutoExPurchaseJourney` uses `AutoExPurchaseSession` for the purchase that
 
-  poate avea precondiție API; aceasta rămâne înaintea căutării UI. `AutoExCartJourney`
+  may have an API precondition; it remains before UI search. `AutoExCartJourney`
 
-  primește `AutoExCartJourneyPort`, fără operații de checkout sau inspector API.
+  receives `AutoExCartJourneyPort`, without checkout operations or an API inspector.
 
-  Catalogul UI comun este expus separat prin `AutoExCatalogSearchPort`.
+  The shared UI catalog is exposed separately through `AutoExCatalogSearchPort`.
 
-- `AutoExAccountJourneyPort` compune numai capabilitățile de cont, Home și
-  captura terminală. Account nu primește catalog, checkout ori inspector API;
-  Cart adaugă explicit căutarea, iar Purchase adaugă checkout-ul.
-- `HomePage`, `CheckoutPage` și `AccountPage` primesc porturile lor de capabilități
+- `AutoExAccountJourneyPort` composes only account, Home, and terminal capture
+  capabilities. Account receives no catalog, checkout, or API inspector;
+  Cart explicitly adds search, and Purchase adds checkout.
+- `HomePage`, `CheckoutPage`, and `AccountPage` receive their capability ports
 
-  (`AutoExHomePagePort`, `AutoExCheckoutPagePort`, `AutoExAccountPagePort`), iar
+  (`AutoExHomePagePort`, `AutoExCheckoutPagePort`, `AutoExAccountPagePort`), while
 
-  căutarea și deschiderea produsului folosesc `AutoExCatalogPagePort` și numele
+  search and product opening use `AutoExCatalogPagePort` and the explicitly
 
-  așteptat explicit. `AutoExPagePortsComponentTest` verifică ordinea checkpoint-urilor,
+  expected name. `AutoExPagePortsComponentTest` checks checkpoint order,
 
-  căutarea UI fără capabilități API și oprirea la eșec fără runtime complet.
+  UI search without API capabilities, and stopping on failure without a full runtime.
 
-- Citirea unui heading absent, un rezultat de căutare care nu apare la timp sau
+- Reading a missing heading, a search result that does not appear in time, or
 
-  identitatea de sesiune ori confirmarea plății absente opresc tranziția înaintea
+  missing session identity or payment confirmation stops the transition before
 
-  acțiunii următoare; page objects nu repetă automat operația. Heading-ul paginii
+  the next action; page objects do not automatically repeat the operation. The
 
-  de plată este verificat înainte de completarea cardului. Dacă heading-ul de
+  payment page heading is checked before filling the card. If the registration
 
-  rezultat al înregistrării lipsește, cauza se propagă, identitatea rămâne marcată
+  result heading is missing, the cause propagates, the identity remains marked
 
-  pentru cleanup și checkpoint-ul/Continue nu rulează. Probele fail-fast sunt în
+  for cleanup, and the checkpoint/Continue does not run. Fail-fast proofs are in
 
-  aceeași componentă.
+  the same component.
 
-- `AutoExE2eRun` îl implementează în pachetul `runtime` din `src/main/java`,
+- `AutoExE2eRun` implements it in the `runtime` package under `src/main/java`,
 
-  fără JUnit sau Test Kit.
+  without JUnit or Test Kit.
 
-- `AutoExRunFactory` și `AutoExE2eExtension` din `src/test/java`, pachetul `extension`, rezolvă
+- `AutoExRunFactory` and `AutoExE2eExtension` in the `extension` package under `src/test/java` resolve
 
-  declarațiile JUnit și dețin achiziția resurselor.
+  JUnit declarations and own resource acquisition.
 
-- `AutoExConsoleBridge` transmite câmpurile Reporting fabricii neutre
+- `AutoExConsoleBridge` maps Reporting fields through
+  `AtfConsoleEvent.fromExternalEnums(...)`; the adapter uses the selected
+  library contracts without adding a source-level library test module here.
 
-  `AtfConsoleEvent.fromExternalEnums(...)` din Core; Console rămâne independent
+- This separation keeps site-specific support testable, without production
 
-  de Reporting, iar compatibilitatea lor este probată în Reporting Tests.
+  sources depending on the runner or Test Kit.
 
-- Separarea păstrează suportul specific site-ului testabil, fără ca sursele de
+- On failure, the inspector and `Failure evidence` capture are published while
 
-  producție să depindă de runner sau de Test Kit.
+  the Playwright page is still available; the browser then closes, and the phase and
 
-- La eșec, inspectorul și captura `Failure evidence` sunt publicate cât pagina
+  scenario are finalized independently.
 
-  Playwright este încă disponibilă; browserul se închide apoi, iar faza și
+- `FailureAwareCleanupTest` checks the generic order of capture, cleanup,
 
-  scenariul se finalizează independent.
+  diagnostics, and close; `AutoExE2eRun` supplies only the consumer's
 
-- `FailureAwareCleanupTest` verifică ordinea generică a capturii, cleanup-ului,
+  business/UI callbacks.
 
-  diagnosticului și close-ului; `AutoExE2eRun` furnizează numai callback-urile
+- If the test failed before teardown, `AutoExE2eRun.finish` captures the
+  viewport and redacts sensitive fields before account cleanup can navigate the page.
+- It then runs cleanup and publishes the network inspector. If the first failure
+  occurs during teardown, capture happens after diagnosis and before browser close.
+- The phase and scenario are finalized independently; the original cause remains
+  primary, and later errors are attached as `suppressed`.
+- `FailureEvidenceCleanup` in Test Kit owns generic orchestration. AutoEx
+  component tests verify the adapter profile and wiring without duplicating
+  generic primitives.
 
-  business/UI ale consumerului.
+`AutoExRunFactory` uses `TestRunInitialization` from Test Kit for acquisition
+with injectable factories. The runtime receives the `AutoExRunLifecycle` port;
+`AutoExRunLifecycleAdapter` connects it in test to neutral cleanup in Kit.
+`TestRunInitializationTest` protects ordering and cause:
 
-- Dacă testul a eșuat înainte de teardown, `AutoExE2eRun.finish` capturează
-  viewport-ul și redactează câmpurile sensibile înainte ca cleanup-ul contului
-  să poată naviga pagina.
-- Apoi rulează cleanup-ul și publică inspectorul de rețea. Dacă primul eșec apare
-  chiar în teardown, captura se face după diagnostic și înainte de browser close.
-- Faza și scenariul se finalizează independent; cauza inițială rămâne primară, iar
-  erorile ulterioare sunt atașate ca `suppressed`.
-- `FailureEvidenceCleanup` din Test Kit deține orchestrarea generică. Testele
-  componente AutoEx verifică profilul și wiring-ul adaptorului, fără să dubleze
-  primitivele generice.
+- failure after each acquired handle: only available phase/scenario nodes are
+  marked FAIL, then the browser is closed;
+- every rollback stage is attempted; setup error remains primary, and rollback
+  failures are `suppressed`;
+- Extent nodes created internally before a factory returns its handle belong to
+  the atomicity of the `atf-reporting` contract, not the consumer.
 
-`AutoExRunFactory` folosește `TestRunInitialization` din Test Kit pentru
-achiziția cu factory-uri injectabile. Runtime-ul primește portul
-`AutoExRunLifecycle`; `AutoExRunLifecycleAdapter` îl leagă în test de cleanup-ul
-neutru din Kit. `TestRunInitializationTest` protejează ordinea și cauza:
-
-- eșec după fiecare handle dobândit: doar faza/scenariul disponibile sunt
-  marcate FAIL, apoi browserul este închis;
-- toate etapele de rollback sunt încercate; eroarea setup rămâne primară, iar
-  eșecurile rollback sunt `suppressed`;
-- nodurile Extent create intern înainte ca un factory să returneze handle-ul
-  țin de atomicitatea contractului `atf-reporting`, nu de consumer.
-
-**Decizie de boundary:** `AutoExPurchaseSession` rămâne în `src/main` ca API
-intern al runtime-ului consumer, deoarece journey-ul de producție îl folosește.
-Nu este API generic ATF; JUnit și rezolvarea adnotărilor rămân în `src/test`,
-iar browserul și publicarea sunt în runtime-ul main. Reevaluați decizia dacă
-se schimbă apelanții runtime sau dacă
-testul de arhitectură nu mai confirmă acest ownership; orice extracție generică
-trebuie demonstrată comportamental în ambii consumatori.
+**Boundary decision:** `AutoExPurchaseSession` remains in `src/main` as an
+internal API for the consumer runtime because the production journey uses it.
+It is not a generic ATF API; JUnit and annotation resolution remain in `src/test`,
+while the browser and publication are in the main runtime. Revisit this decision
+if runtime callers change or if the architecture test no longer confirms this
+ownership; any generic extraction must be behaviorally proven in both consumers.
 
 </details>
 
 </details>
 
-## Contractul testelor AutoEx
+<a id="autoex-test-contract"></a>
+<a id="contractul-testelor-autoex"></a>
+## AutoEx test contract
 
 <details>
-<summary><strong>Contract, owneri și probe — Contractul testelor AutoEx</strong></summary>
+<summary><strong>Contract, owners, and proofs — AutoEx test contract</strong></summary>
 
 <details>
-<summary><strong>Detalii — contractul testelor autoex</strong></summary>
+<summary><strong>Details — AutoEx test contract</strong></summary>
 
-- `@AtfE2eTest` și `@AtfTestChannel(UI/UI_API)` clasifică testele după
-  boundary și canal; varianta UI este selecția uzuală de business.
-- Contractul comun `@AtfUiEvidence` din Test Kit declară separat forma flow-ului
-  și politica de captură; adaptorul AutoEx îl mapează în profilul Reporting.
-  Varianta cu o captură la succes folosește `FINAL_AND_FAILURE`: nu adaugă
-  capturi la checkpoint-uri, dar păstrează captura terminală și una la failure.
-  `CONFIGURED` moștenește axa reală din `reports.evidence`; capturile absente
-  acolo moștenesc politica Reporting. Declarațiile directe și compuse sunt
-  rezolvate înainte de resurse, cu diagnostic de conflict; metadata nu pornește
-  singură browserul sau lifecycle-ul.
-- `@UiReportSubdirectory("auto-ex")` și `@AtfConsoleMessages(DETAILS)` păstrează
-  output-ul și diagnosticul consumerului în locația/politica stabilite.
-- `AutoExE2eExtension` compune sesiunea per test; `AutoExE2eSuite` rulează
-  clasele secvențial și partajează raportul.
+- `@AtfE2eTest` and `@AtfTestChannel(UI/UI_API)` classify tests by boundary and
+  channel; UI is the usual business selection.
+- The shared `@AtfUiEvidence` contract in Test Kit declares flow form and
+  capture policy separately; the AutoEx adapter maps it to a Reporting profile.
+  The variant with one success capture uses `FINAL_AND_FAILURE`: it adds no
+  checkpoint captures but retains the terminal capture and one on failure.
+  `CONFIGURED` inherits the actual axis from `reports.evidence`; missing capture
+  configuration there inherits Reporting policy. Direct and composed
+  declarations are resolved before resources, with a conflict diagnostic;
+  metadata alone does not start the browser or lifecycle.
+- `@UiReportSubdirectory("auto-ex")` and `@AtfConsoleMessages(DETAILS)` keep
+  consumer output and diagnostics in the specified location/policy.
+- `AutoExE2eExtension` composes a per-test session; `AutoExE2eSuite` runs
+  classes sequentially and shares the report.
 
-### Configurarea evidence-ului
+<a id="evidence-configuration"></a>
+<a id="configurarea-evidence-ului"></a>
+### Evidence configuration
 
-| Cheie sub `automationExercise.reports.evidence` | Default | Efect |
+| Key under `automationExercise.reports.evidence` | Default | Effect |
 |---|---|---|
-| `flowMode` | `screen-checkpoints` | `screen-checkpoints` sau `unified-flow` |
-| `screenshotPolicy` | moștenește Reporting | `each-checkpoint`, `final-only`, `failure-only`, `final-and-failure`, `none` |
-| `actionDetailsMode` | `included-collapsed` | `included-collapsed` sau `summary-only` |
+| `flowMode` | `screen-checkpoints` | `screen-checkpoints` or `unified-flow` |
+| `screenshotPolicy` | inherits Reporting | `each-checkpoint`, `final-only`, `failure-only`, `final-and-failure`, `none` |
+| `actionDetailsMode` | `included-collapsed` | `included-collapsed` or `summary-only` |
 
-Precedența este configurație → axă explicită din `@AtfUiEvidence`, directă ori
-compusă. Alegerea canalului rămâne separată; configurația evidence-ului nu
-activează API-ul, nu alege pași business și nu permite replay-ul unei mutații.
-Cheile și valorile necunoscute sunt respinse înaintea browserului.
+Precedence is configuration → explicit axis from `@AtfUiEvidence`, direct or
+composed. Channel selection remains separate; evidence configuration does not
+enable the API, select business steps, or allow mutation replay. Unknown keys
+and values are rejected before the browser starts.
 
-### Gate-ul coșului și ownerul contului
+<a id="cart-gate-and-account-owner"></a>
+<a id="gate-ul-coșului-și-ownerul-contului"></a>
+### Cart gate and account owner
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
     Journey["Journey"] -->|cere checkout| Business["Cart flow"]
-    Business -->|observă| Port["Cart port"]
-    Port -->|implementat de| UI["Adaptor UI"]
-    UI -->|așteaptă bounded| Identity["Identitate vizibilă"]
-    Identity -->|observă| Snapshot
-    UI -->|operează| Page["CartPage"]
-    Page -->|instrumentează| Recorder["Recorder"]
-    Business -->|compară| Snapshot["Expected / observed"]
-    Business -->|publică| Adapter["Assertions"]
+    Business -->|observes| Port["Cart port"]
+    Port -->|implemented by| UI["UI adapter"]
+    UI -->|bounded wait| Identity["Visible identity"]
+    Identity -->|observes| Snapshot
+    UI -->|operates| Page["CartPage"]
+    Page -->|instruments| Recorder["Recorder"]
+    Business -->|compares| Snapshot["Expected / observed"]
+    Business -->|publishes| Adapter["Assertions"]
 ```
 
 <details>
-<summary><strong>Legendă — gate și lifecycle fără ownership în pagini</strong></summary>
+<summary><strong>Legend — gate and lifecycle without page ownership</strong></summary>
 
-- `AutoExCartFlow` nu importă browser, JUnit, configurație sau Reporting.
-  Citește un snapshot, compară produs/preț/cantitate/total și permite checkout-ul
-  numai după gate PASS și publicarea rezultatului. Lipsa observației eșuează.
-- `AutoExCartUiFlow` implementează portul prin `CartPage`; mapperul de evidence
-  păstrează cele patru aserțiuni și checkpoint-ul existent. Timeout-ul ori
-  publicarea eșuată nu autorizează continuarea sau repetarea mutației.
-- `AutoExAccountLifecycle` aparține `AutoExE2eRun`. Toate instanțele
-  `AccountPage` și cleanup-ul văd aceeași identitate și aceeași stare de ștergere.
-  O creare incertă rămâne urmărită; altă identitate sau un cont împrumutat nu
-  primește drept de ștergere. O ștergere începută fără confirmare nu se repetă.
-- După înregistrare, `AutoExCheckoutFlow` recitește identitatea și coșul curent
-  înainte de checkout. Expected-ul identității este `signupName()` al contului
-  creat de acest test; expected-ul coșului vine din configurația produsului.
-  `AutoExCheckoutAccess` publică cinci comparații în `CHECKOUT_PRECONDITIONS`:
-  client, produs, preț, cantitate și total. Un cont absent/străin, o diferență
-  sau publicarea eșuată blochează unica activare; fără refacerea contului/coșului.
-- Gate-ul business nu importă browser, configurație sau Reporting. Adaptorul
-  `AutoExCheckoutUiFlow` observă paginile, iar mapperul păstrează comparațiile
-  complete înaintea preview-ului configurat. Eșecul business rămâne cauza primară
-  chiar dacă publicarea eșuează; cauza publicării devine suppressed.
-- `AutoExCheckoutAccessComponentTest` și `AutoExCheckoutUiGateComponentTest`
-  probează modelul și etapa publică reală de review, inclusiv refuzurile;
-  vocabularul purchase păstrează cele 14 checkpoint-uri distincte.
-- `AccountPage.awaitLoggedInName()` folosește `AutoExCustomerIdentityObservation`:
-  observație read-only, identitate unică, vizibilă și cu text nevid, în bugetul
-  nativ existent. Locatorul așteaptă textul nevid prin Playwright, inclusiv după
-  înlocuirea documentului; nu face polling prin citiri `count()` în tranziție.
-  Expected-ul clientului rămâne exclusiv la gate-ul business.
-- Absența permanentă, textul gol sau selectorul ambiguu opresc observația;
-  diagnosticul păstrează URL-ul, cardinalitatea, vizibilitatea, ultimul text
-  și cauza nativă. Clientul străin vizibil este refuzat de gate, fără checkout.
-- `loggedInNameIfPresent()` rămâne observație imediată pentru callerii săi;
-  review-ul checkout-ului folosește capabilitatea bounded. Proba browser locală
-  `AutoExCustomerIdentityObservationComponentTest` trece prin pagină și adaptor;
-  fixture-urile acoperă identitatea întârziată, străină imediat/întârziat,
-  absentă, goală, ambiguă, textul întârziat și documentul înlocuit. Vizibilitatea
-  după deadline nu prelungește bugetul și nu permite checkout-ul după refuz.
+- `AutoExCartFlow` does not import browser, JUnit, configuration, or Reporting.
+  It reads a snapshot, compares product/price/quantity/total, and allows checkout
+  only after a PASS gate and result publication. Missing observation fails.
+- `AutoExCartUiFlow` implements the port through `CartPage`; the evidence mapper
+  retains the four assertions and existing checkpoint. Timeout or failed
+  publication does not authorize continuation or repeating the mutation.
+- `AutoExAccountLifecycle` belongs to `AutoExE2eRun`. All `AccountPage`
+  instances and cleanup see the same identity and deletion state. Uncertain
+  creation remains tracked; a different identity or borrowed account is not
+  eligible for deletion. A deletion started without confirmation is not repeated.
+- After registration, `AutoExCheckoutFlow` rereads the current identity and
+  cart before checkout. The expected identity is `signupName()` of the account
+  created by this test; the expected cart comes from product configuration.
+  `AutoExCheckoutAccess` publishes five comparisons in `CHECKOUT_PRECONDITIONS`:
+  customer, product, price, quantity, and total. A missing/foreign account, a
+  difference, or failed publication blocks the single activation; the
+  account/cart are not recreated.
+- The business gate does not import browser, configuration, or Reporting. The
+  `AutoExCheckoutUiFlow` adapter observes pages, while the mapper retains full
+  comparisons before the configured preview. Business failure remains the
+  primary cause even if publication fails; the publication cause is suppressed.
+- `AutoExCheckoutAccessComponentTest` and `AutoExCheckoutUiGateComponentTest`
+  probe the model and real public review stage, including rejections; purchase
+  vocabulary retains all 14 distinct checkpoints.
+- `AccountPage.awaitLoggedInName()` uses `AutoExCustomerIdentityObservation`:
+  a read-only observation of one visible identity with non-empty text, within
+  the existing native budget. The locator waits for non-empty text through
+  Playwright, including after document replacement; it does not poll with
+  `count()` reads during the transition. Expected customer identity remains
+  exclusively in the business gate.
+- Permanent absence, empty text, or an ambiguous selector stops observation;
+  diagnostics retain URL, cardinality, visibility, last text, and native cause.
+  A visible foreign customer is rejected by the gate, without checkout.
+- `loggedInNameIfPresent()` remains an immediate observation for its callers;
+  checkout review uses the bounded capability. The local browser proof
+  `AutoExCustomerIdentityObservationComponentTest` goes through the page and
+  adapter; fixtures cover delayed, immediately/eventually foreign, absent,
+  empty, ambiguous identity, delayed text, and replaced document. Visibility
+  after the deadline does not extend the budget or allow checkout after rejection.
 
-Etichetele scurte păstrează următorul sens:
+The short labels retain these meanings:
 
-| În schemă | Sens complet |
+| In diagram | Full meaning |
 |---|---|
 | Journey | Purchase journey |
 | Cart port | AutoExCartPort |
 | Recorder | PlaywrightActionSequence |
 | Expected / observed | Expected + observed order line |
 | Assertions | AutoExCheckoutAssertions |
-| operează | citește și acționează |
-| publică | publică rezultatul |
+| operates | reads and acts |
+| publishes | publishes the result |
 
 </details>
 
-| Probă locală | Ce demonstrează |
+| Local test | What it demonstrates |
 |---|---|
-| `AutoExCartFlowComponentTest` | ordinea observație/gate/publicare/checkout; câmp greșit, lipsă, timeout și cauză primară păstrată |
-| `AutoExCartDomComponentTest` | portul folosește pagina și recorderul real; prețul greșit blochează click-ul și produce un singur failure corelat în Extent |
-| `AutoExRuntimeBoundaryComponentTest` | răspunsul 2xx, 503, `requestFailed` și lipsa schimbului; vecini de rută/metodă/resursă, un click și corelarea transport/modal sub `CART_ADD` |
-| `AutoExAccountLifecycleComponentTest` | owner comun paginilor, create incert, identitate diferită și delete început fără confirmare |
+| `AutoExCartFlowComponentTest` | observation/gate/publication/checkout order; wrong or missing field, timeout, and preserved primary cause |
+| `AutoExCartDomComponentTest` | port uses the real page and recorder; incorrect price blocks the click and produces one correlated failure in Extent |
+| `AutoExRuntimeBoundaryComponentTest` | 2xx response, 503, `requestFailed`, and missing exchange; neighboring route/method/resource, transport/modal correlation, and API assertion ownership |
+| `AutoExAccountLifecycleComponentTest` | shared owner across pages, uncertain creation, different identity, and deletion started without confirmation |
 
-Raportul componentei DOM conține intenționat un scenariu PASS și unul FAIL.
-Testul trece numai dacă ambele rezultate și blocarea checkout-ului sunt corecte;
-aceasta este o probă controlată, distinctă de raportul E2E al magazinului public.
+The DOM component report intentionally contains one PASS and one FAIL scenario.
+The test passes only if both results and checkout blocking are correct; this is
+a controlled proof, distinct from the public shop's E2E report.
 
-### Etapele purchase și adaptorul UI
+<a id="purchase-stages-and-ui-adapter"></a>
+<a id="etapele-purchase-și-adaptorul-ui"></a>
+### Purchase stages and UI adapter
 
-`AutoExPurchaseJourney.execute` este composition root-ul: capturează catalogul,
-profilul, plata demo și destinația cleanup în `AutoExPurchaseInputs`, păstrează
-căutarea și precondiția API, apoi compune coordinatorul cu adaptorul per purchase.
-`AutoExPurchaseFlow` cunoaște nouă etape semantice, fără browser, configurație,
-JUnit sau Reporting. `AutoExPurchaseUiFlow` deține paginile și observațiile UI;
-`AutoExPurchaseAssertions` proiectează regulile existente în rândurile raportului.
+`AutoExPurchaseJourney.execute` is the composition root: it captures catalog,
+profile, demo payment, and cleanup destination in `AutoExPurchaseInputs`, keeps
+search and API precondition, then composes the coordinator with the per-purchase
+adapter. `AutoExPurchaseFlow` knows nine semantic stages, without browser,
+configuration, JUnit, or Reporting. `AutoExPurchaseUiFlow` owns pages and UI
+observations; `AutoExPurchaseAssertions` projects existing rules into report rows.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Root["Compoziție"] -->|capturează| Inputs["Inputs"]
-    Root -->|compune| Flow["Purchase flow"]
-    Inputs -->|alimentează| Adapter["Adaptor UI"]
-    Flow -->|cere o etapă| Adapter
-    Adapter -->|publică verdictul| Gate{"Checkpoint"}
-    Gate -->|PASS| Next["Etapa următoare"]
-    Gate -->|FAIL sau eroare| Stop["Cleanup"]
+    Root["Composition"] -->|captures| Inputs["Inputs"]
+    Root -->|composes| Flow["Purchase flow"]
+    Inputs -->|supplies| Adapter["UI adapter"]
+    Flow -->|requests a stage| Adapter
+    Adapter -->|publishes verdict| Gate{"Checkpoint"}
+    Gate -->|PASS| Next["Next stage"]
+    Gate -->|FAIL or error| Stop["Cleanup"]
 ```
 
 <details>
-<summary><strong>Legendă — gate-uri înaintea mutației următoare</strong></summary>
+<summary><strong>Legend — gates before the next mutation</strong></summary>
 
-- Ordinea rămâne product → add → cart → registration → review → payment → order → invoice → cleanup.
-- Cart păstrează `AutoExCartFlow` și excepția sa business, inclusiv cauza de publicare.
-- UI/API păstrează același checkpoint, observația pasivă după add și confirmarea UI:
-  răspunsul respins/neobservat nu așteaptă modalul de succes; timeout-ul modalului
-  după 2xx produce comparația UI eșuată la checkpoint.
-- `AutoExPurchaseFlowComponentTest` verifică oprirea fără retry la fiecare etapă;
-  `AutoExPurchaseUiAdapterComponentTest` probează paginile/adaptorul reale cu port
-  instrumentat, inclusiv valori absente și transport fără confirmare.
-- Nicio extracție nu demonstrează singură echivalența tuturor profilelor remote.
-Etichetele scurte păstrează următorul sens:
+- Order remains product → add → cart → registration → review → payment → order → invoice → cleanup.
+- Cart retains `AutoExCartFlow` and its business exception, including publication cause.
+- UI/API retain the same checkpoint, passive observation after add, and UI
+  confirmation: a rejected/unobserved response does not wait for the success
+  modal; modal timeout after 2xx produces a failed UI comparison at the checkpoint.
+- `AutoExPurchaseFlowComponentTest` checks stopping without retry at every
+  stage; `AutoExPurchaseUiAdapterComponentTest` probes real pages/adapter with
+  an instrumented port, including missing values and transport without confirmation.
+- No extraction alone proves equivalence of all remote profiles.
+The short labels retain these meanings:
 
-| În schemă | Sens complet |
+| In diagram | Full meaning |
 |---|---|
-| Compoziție | Journey · composition root |
-| Inputs | Purchase inputs · expected independente |
-| Purchase flow | Purchase flow · ordinea etapelor |
-| Adaptor UI | UI adapter · pagini + observații |
-| Etapa următoare | etapa următoare |
-| Cleanup | oprire + lifecycle cleanup |
+| Composition | Journey · composition root |
+| Inputs | Purchase inputs · independent expectations |
+| Purchase flow | Purchase flow · stage order |
+| UI adapter | UI adapter · pages + observations |
+| Next stage | next stage |
+| Cleanup | stop + lifecycle cleanup |
 
 </details>
 
@@ -375,1267 +387,1363 @@ Etichetele scurte păstrează următorul sens:
 
 </details>
 
-## Suite și variante de evidence
+<a id="suites-and-evidence-variants"></a>
+<a id="suite-și-variante-de-evidence"></a>
+## Suites and evidence variants
 
-Rularea uzuală selectează `AutoExPurchaseUiE2eTest`: un cont, o comandă demo,
-o factură și cleanup.
+The usual run selects `AutoExPurchaseUiE2eTest`: one account, one demo order,
+one invoice, and cleanup.
 
-Adnotarea locală `@AutoExE2eTest` compune infrastructura identică a celor opt
-clase: marker E2E, extensiile de consolă și runtime, directorul `auto-ex`,
-publicarea căii raportului și execuția secvențială. Canalul `UI`/`UI_API`,
-`@Order` și orice `@AtfUiEvidence` rămân pe clasa concretă; compoziția nu
-selectează scenariul, nu schimbă activarea IntelliJ și nu ascunde politica
-specifică testului. `AutoExEvidenceProfileComponentTest` verifică adnotarea
-reală și lista exactă a suitei.
+The local `@AutoExE2eTest` annotation composes the same infrastructure for all
+eight classes: E2E marker, console and runtime extensions, `auto-ex` directory,
+report path publication, and sequential execution. The `UI`/`UI_API` channel,
+`@Order`, and any `@AtfUiEvidence` remain on the concrete class; composition
+does not select the scenario, change IntelliJ activation, or hide test-specific
+policy. `AutoExEvidenceProfileComponentTest` checks the real annotation and
+exact suite list.
 
-Celelalte clase se aleg explicit din IntelliJ sau prin `-Dtest=<clasă>` atunci
-când este necesară altă politică de evidence:
+Select the other classes explicitly in IntelliJ or with `-Dtest=<class>` when
+another evidence policy is needed:
 
-| Clasă | Canal și evidence | Contribuție |
+| Class | Channel and evidence | Contribution |
 |---|---|---|
-| `AutoExPurchaseUiE2eTest` | UI; checkpoint-uri și capturi standard | journey business pe UI |
-| `AutoExPurchaseUiApiE2eTest` | UI + trafic first-party observat | precondiție API de catalog și integrarea traficului cu journey-ul real |
-| `AutoExPurchaseUiFinalScreenshotE2eTest` | UI; flow consolidat, captură finală și la failure | profil de evidence pentru același journey UI |
+| `AutoExPurchaseUiE2eTest` | UI; standard checkpoints and captures | UI business journey |
+| `AutoExPurchaseUiApiE2eTest` | UI + observed first-party traffic | catalog API precondition and traffic integration with the real journey |
+| `AutoExPurchaseUiFinalScreenshotE2eTest` | UI; consolidated flow, final capture, and capture on failure | evidence profile for the same UI journey |
 
-Self-service-ul contului poate fi selectat separat, fără plată sau factură:
+Account self-service can be selected separately, without payment or an invoice:
 
-| Clasă | Starea inițială | Business verificat |
+| Class | Initial state | Verified business behavior |
 |---|---|---|
-| `AutoExAccountUiE2eTest` | vizitator neînregistrat | înregistrare UI, ștergerea propriei identități, întoarcere în magazin |
-| `AutoExExistingCustomerUiApiE2eTest` | cont sintetic pregătit prin API-ul real | login UI, ștergerea propriei identități, întoarcere în magazin |
+| `AutoExAccountUiE2eTest` | unregistered visitor | UI registration, delete own identity, return to the store |
+| `AutoExExistingCustomerUiApiE2eTest` | synthetic account prepared through the real API | UI login, delete own identity, return to the store |
 
-Ambele clase sunt incluse în `AutoExE2eSuite` și pot fi lansate individual.
-Nu sunt teste de reclamă: verifică self-service-ul clientului și tratează vignette-ul numai dacă
-site-ul îl afișează natural. Nu îl solicită, nu îl fabrică și nu întârzie flow-ul
-pentru a-l provoca.
+Both classes are included in `AutoExE2eSuite` and can be launched individually.
+They are not promotional tests: they verify customer self-service and handle a
+vignette only if the site displays it naturally. They do not request or fabricate
+one, or delay the flow to provoke it.
 
-- Varianta final-screenshot nu adaugă altă regulă business; reducerea repetării
-  live cere proba locală a adnotării până la publicare.
-- Clasa este folosită de `AutoExEvidenceProfileComponentTest`, iar selecția
-  suitei este protejată de guvernanță; criteriile sunt în
-  [contractul acceptanței business](../docs/ATF_Testing_Guide.md#acceptanța-business-individual-și-prin-suită).
+- The final-screenshot variant adds no business rule; reducing live repetition
+  requires a local proof of the annotation through publication.
+- The class is used by `AutoExEvidenceProfileComponentTest`, and suite selection
+  is protected by governance; criteria are in the
+  [business acceptance contract](../docs/ATF_Testing_Guide.md#individual-and-suite-business-acceptance).
 
-Aceste trei selecții consumă aceeași implementare `AutoExPurchaseJourney`.
-Nu se rulează toate pentru a demonstra mai mult business și nu se adaugă o
-variantă de purchase pentru fiecare combinație de captură sau layout. Testele
-formatării, navigării și redării raportului aparțin `atf-reporting-tests`.
+These three selections use the same `AutoExPurchaseJourney`; adding purchase
+variants for capture or layout combinations would not demonstrate more business.
+The selected Reporting library owns generic formatting, navigation, and
+rendering, while AutoEx report-producing tests verify their local scenario
+evidence.
 
-`AutoExE2eSuite` este unicul gate UI complet: include cele opt clase E2E,
-cu poveștile de cont nou/existent, coș/sesiune și cele trei profile de purchase păstrate.
-Clasele concrete rămân selecția pentru un singur flow, fără suite suprapuse.
+`AutoExE2eSuite` includes:
 
-`AutoExComponentSuite` verifică local fără a deschide site-ul public:
+- the site's eight E2E journeys;
+- [UI audit of the local Extent report](src/test/java/atf/autoex/tests/e2e/reporting/AutoExCatalogReportPresentationE2eTest.java).
 
-Aplică [regula comună de ownership](../docs/ATF_Testing_Guide.md#owner-ul-testului-business-adaptor-sau-infrastructură);
-punctele următoare descriu numai ce afirmă testele specifice Automation Exercise.
+The report test opens only the artifact generated from controlled observations
+and does not navigate to the public site. Stories for new/existing account,
+cart/session, and purchase profiles remain the same. Concrete classes remain
+single-flow selections, without overlapping suites.
 
-- selectează testele componente din `atf.autoex.tests.component`;
-- acestea acoperă decizii și adaptoare specifice consumerului;
-- testele de catalog, contract API, cleanup de cont, răspunsuri și traffic window
-  rămân aici chiar dacă folosesc fixture-uri, fiindcă afirmă reguli Automation
-  Exercise, nu comportament generic ATF;
-- `AutoExApiContractReportPublisherComponentTest` verifică adaptorul AutoEx:
-  contractul `responseCode`/mesaj, titlul API și diagnosticarea eșecului JUnit.
-  Cazurile negative resping JSON invalid, cod/mesaj diferit și HTTP nereușit
-  chiar când body-ul declară succes; DTO-ul păstrează form-encoding și MIME-ul
-  upstream. Artifactele Extent și fallback sunt verificate pentru lipsa parolei,
-  iar formatarea și redactarea comune se probează în
-  [`atf-reporting-tests`](../atf-reporting-tests/README.md);
-- replay-ul form-encoded fără adaptor este probat prin
-  `ApiManualReplayProjectionTest` în Reporting Tests; aici rămâne verificarea
-  că artifactul efectiv AutoEx nu expune parola;
-- directorul default și override-ul raportului API sunt specifice consumerului;
-  validarea reutilizabilă a unui path relativ sub rădăcina proiectului, inclusiv
-  prevenirea ieșirii prin traversal/reparse-point, aparține
-  [`atf-test-kit`](../atf-test-kit/README.md#regula-de-promovare-a-testelor-reutilizabile);
-- `AutoExEvidenceProfileComponentTest` verifică numai cum consumerul aplică
-  adnotarea `@AtfUiEvidence` peste configurația lui. Test Kit deține declarația
-  neutră și Reporting deține profilele/lifecycle-ul generic; nu se introduce o
-  dependență Test Kit → Reporting pentru a elimina un adaptor al consumerului;
-- factory-urile și rollback-ul neutru sunt implementate și probate în Test Kit;
-  AutoEx păstrează alegerea browserului, crearea scenariului și marcarea FAIL.
-  Guvernanța verifică folosirea primitivei comune și absența copiei locale;
-- ownership-ul cross-consumer este definit în [arhitectura ATF](../docs/ATF_Architecture.md)
-  și în [ghidul de testare](../docs/ATF_Testing_Guide.md);
-- limita de opt clase per pachet este definită în
-  [bunele practici de cod](../docs/README_Atf_CodeBestPractices.md#coeziunea-pachetelor--pragul-de-opt-clase).
-Contractele generice pentru browser și renderer sunt descrise în
-[README-ul `atf-ui`](../atf-ui/README.md) și
-[README-ul `atf-reporting`](../atf-reporting/README.md).
+`AutoExComponentSuite` verifies locally without opening the public site:
 
-## Coeziunea suportului AutoEx
+Apply the [shared ownership rule](../docs/ATF_Testing_Guide.md#test-owner-business-adapter-or-infrastructure);
+the points below describe only what Automation Exercise-specific tests assert.
+
+- selects component tests from `atf.autoex.tests.component`;
+- these cover consumer-specific decisions and adapters;
+- catalog, API contract, account cleanup, response, and traffic-window tests
+  remain here even when they use fixtures, because they assert Automation
+  Exercise rules, not generic ATF behavior;
+- `AutoExApiContractReportPublisherComponentTest` checks the AutoEx adapter:
+  `responseCode`/message contract, API title, and JUnit failure diagnostics.
+  Negative cases reject invalid JSON, mismatched code/message, and failed HTTP
+  even when the body declares success; the DTO retains form encoding and the
+  upstream MIME type. Extent and fallback artifacts are checked for password
+  absence; shared formatting and redaction behavior comes from the selected
+  Reporting library;
+- this consumer check is limited to password absence in the actual AutoEx
+  artifact; it does not claim generic replay-projection coverage;
+- the default directory and API report override are consumer-specific; reusable
+  validation of a relative path under the project root, including prevention
+  of traversal/reparse-point escape, belongs to
+  [`atf-test-kit`](../lib/README.TestKit.md#scope-and-integration);
+- `AutoExEvidenceProfileComponentTest` checks only how the consumer applies
+  `@AtfUiEvidence` over its configuration. Test Kit owns the neutral declaration
+  and Reporting owns generic profiles/lifecycle; no Test Kit → Reporting
+  dependency is introduced just to remove a consumer adapter;
+- neutral factories and rollback are implemented and tested in Test Kit;
+  AutoEx retains browser selection, scenario creation, and FAIL marking.
+  Governance checks use of the shared primitive and absence of a local copy;
+- cross-consumer ownership is defined in [ATF architecture](../docs/ATF_Architecture.md#ui-traffic-capture-and-selection)
+  and the [testing guide](../docs/ATF_Testing_Guide.md);
+- the limit of eight classes per package is defined in
+  [code best practices](../docs/README_Atf_CodeBestPractices.md#package-cohesion--eight-class-threshold).
+Generic browser and renderer contracts are described in the
+[`atf-ui` README](../atf-ui/README.md) and the
+[Reporting integration atlas](../atf-reporting/README.md).
+
+<a id="autoex-support-cohesion"></a>
+<a id="coeziunea-suportului-autoex"></a>
+## AutoEx support cohesion
 
 <details>
-<summary><strong>Contract, owneri și probe — Coeziunea suportului AutoEx</strong></summary>
+<summary><strong>Contract, owners, and proofs — AutoEx support cohesion</strong></summary>
 
-Codul din `src/main` este suport de producție specific site-ului, nu cod de
-runner. Suportul este separat pe motive de schimbare, iar fiecare pachet rămâne
-sub pragul comun de opt clase:
+Code in `src/main` is production support specific to the site, not runner code.
+Support is separated by reasons for change, and each package stays below the
+shared threshold of eight classes:
 
-| Pachet | Responsabilitate |
+| Package | Responsibility |
 |---|---|
-| `runtime`, `runtime.config`, `runtime.account` în main | sesiunea raportului, run-ul, maparea observațiilor și capabilitățile specifice aplicației; fără JUnit/Kit |
-| `extension` în test | Store, activare, achiziție prin Kit și adaptarea adnotărilor; nu dublează rendererul sau cleanup-ul generic |
-| `support.journey` | coordonarea purchase-ului, trace și precondiția API read-only a catalogului |
-| `support.account` | cont sintetic și cleanup |
-| `support.catalog` | snapshot și aserțiuni de catalog |
-| `support.checkout` | observații de adresă/comandă și mapping-ul rezultatelor business în aserțiuni |
-| `business.cart` / `business.invoice` / `business.purchase` | snapshot-uri, gate-uri și ordinea purchase, fără UI, Reporting sau JUnit |
-| `flow.cart` / `flow.checkout` / `flow.purchase` | adaptoarele UI, intrările purchase și citirea artifactului facturii |
-| `ui.AutoExUiActions` | port local de operații UI instrumentate |
-| `support.browser` | consimțământ și tratarea vignette-ului |
-| `api` | rute, request factory și cont API typed; folosit de probele API directe |
+| `runtime`, `runtime.config`, `runtime.account` in main | report session, run, observation mapping, and application-specific capabilities; no JUnit/Kit |
+| `extension` in test | Store, activation, acquisition through Kit, and annotation adaptation; does not duplicate renderer or generic cleanup |
+| `support.journey` | purchase coordination, trace, and catalog read-only API precondition |
+| `support.account` | synthetic account and cleanup |
+| `support.catalog` | catalog snapshot and assertions |
+| `support.checkout` | address/order observations and mapping business results to assertions |
+| `business.cart` / `business.invoice` / `business.purchase` | snapshots, gates, and purchase ordering, without UI, Reporting, or JUnit |
+| `flow.cart` / `flow.checkout` / `flow.purchase` | UI adapters, purchase inputs, and invoice artifact reading |
+| `ui.AutoExUiActions` | local port for instrumented UI operations |
+| `support.browser` | consent and vignette handling |
+| `api` | routes, request factory, and typed API account; used by direct API tests |
 
-`ConsumerModuleArchitectureGovernanceTest` din `atf-tests` protejează boundary-ul
-source-set-ului și compoziția entry-point-urilor Shop/AutoEx; nu verifică
-inventory-ul exact al claselor de producție. Inventarul este verificat separat
-de guvernanța whole-ATF, iar
-`AutoExCatalogApiPrecondition` și proba sa sunt acum incluse în package-urile
-owner corespunzătoare. Testele componente sunt împărțite pe subpachete tematice;
-pragul de coeziune este regula ATF comună din
-[bunele practici de cod](../docs/README_Atf_CodeBestPractices.md#coeziunea-pachetelor--pragul-de-opt-clase),
-nu un număr de clase duplicat aici.
+`ConsumerModuleArchitectureGovernanceTest` in `atf-tests` protects the
+source-set boundary and composition of Shop/AutoEx entry points; it does not
+check the exact inventory of production classes. The inventory is checked
+separately by whole-ATF governance, while `AutoExCatalogApiPrecondition` and
+its test are now included in their respective owner packages. Component tests
+are split into thematic subpackages; the cohesion threshold is the shared ATF
+rule in
+[bunele practici de cod](../docs/README_Atf_CodeBestPractices.md#package-cohesion--eight-class-threshold),
+not a class count duplicated here.
 
-Rutele, payload-urile, browser handlers, trace-ul și purchase journey-ul rămân
-specifice AutoEx. Primitivele comune se promovează numai după demonstrarea
-aceluiași contract în consumatorii relevanți și păstrarea unui API neutru;
-boundary-ul Test Kit este descris în [README-ul ownerului](../atf-test-kit/README.md)
-și în [arhitectura ATF](../docs/ATF_Architecture.md).
+Routes, payloads, browser handlers, trace, and purchase journey remain specific
+to AutoEx. Shared primitives are promoted only after proving the same contract
+in relevant consumers and retaining a neutral API; the Test Kit boundary is
+described in the [owner README](../lib/README.TestKit.md#scope-and-integration)
+and in [ATF architecture](../docs/ATF_Architecture.md).
 
-### Limita disponibilității serviciului public
+<a id="public-service-availability-limit"></a>
+<a id="limita-disponibilității-serviciului-public"></a>
+### Public service availability limit
 
-Mesajul vizibil exact `This website is under heavy load (queue full)` indică
-indisponibilitatea documentului, nu schimbarea locatorilor.
+The exact visible message `This website is under heavy load (queue full)`
+indicates that the document is unavailable, not that locators have changed.
 
 | Control | Contract |
 |---|---|
-| Recunoaștere | mesajul queue-full vizibil sau HTTP 520/525 al documentului principal observat; fără catch general de timeout |
-| Document | navigare observată în frame-ul principal: GET, același origin și același path/query |
-| Rute eligibile | Home, Products/search și un detaliu de produs |
-| Excluderi | POST, cont, logout, checkout, adăugare în coș, origin diferit sau metodă necunoscută |
-| Buget YAML | `browser.storeAvailability.maxAttempts` include prima încărcare; modulul configurează 3 și backoff PT2S |
-| Opt-in | secțiune absentă sau `maxAttempts: 1`: diagnostic explicit, fără repetare |
-| Evidence | observație Store availability; în acțiunea bounded, Store GET recovery și durata unică a tranziției; UI-only nu activează inspectorul API |
-| Epuizare | `AutoExStoreUnavailableException`, FAIL și captura reală; fără PASS/SKIP fabricat |
+| Recognition | visible queue-full message or HTTP 520/525 from the observed main document; no general timeout catch |
+| Document | observed navigation in the main frame: GET, same origin and same path/query |
+| Eligible routes | Home, Products/search, and a product detail |
+| Exclusions | POST, account, logout, checkout, add to cart, different origin, or unknown method |
+| YAML budget | `browser.storeAvailability.maxAttempts` includes the first load; the module configures 3 and PT2S backoff |
+| Opt-in | section absent or `maxAttempts: 1`: explicit diagnostic, no retry |
+| Evidence | Store availability observation; within the bounded action, Store GET recovery and the single transition duration; UI-only does not enable the API inspector |
+| Exhaustion | `AutoExStoreUnavailableException`, FAIL, and real capture; no fabricated PASS/SKIP |
+| Search button | Separate one-click contract below: no recovery GET or pointer replay; its own HTTP/DOM result remains authoritative |
 
-- Politica tipizată `UiRetryPolicy` este separată de retry-ul acțiunilor obișnuite;
-  nu reexecută click-uri, căutarea, testul, crearea contului ori plata.
-- Add-to-cart refuzat cu `503` nu confirmă modificarea coșului. În UI+API,
-  inspectorul păstrează răspunsul; o mutație incertă nu se repetă automat.
-- `AutoExStoreAvailabilityComponentTest` folosește documente interceptate în
-  browser: recuperare, epuizare, GET cu efect lateral, POST, origin străin și
-  element absent. Proba live rămâne în suita E2E.
+- Typed `UiRetryPolicy` is separate from retries for ordinary actions; it does
+  not repeat clicks, search, the test, account creation, or payment.
+- An add-to-cart rejected with `503` does not confirm the cart change. In UI+API,
+  the inspector retains the response; an uncertain mutation is not retried automatically.
+- `AutoExStoreAvailabilityComponentTest` uses browser-intercepted documents:
+  recovery, exhaustion, GET with side effects, POST, foreign origin, and absent
+  element. Live proof remains in the E2E suite.
 
 </details>
 
-## Confirmarea tranziției către produs
+<a id="product-transition-confirmation"></a>
+<a id="confirmarea-tranziției-către-produs"></a>
+## Product transition confirmation
 
-`ProductsPage` transmite numele configurat prin `AutoExCatalogPagePort` către
-`AutoExProductTransition`. Consumerul validează ruta numerică same-origin fără
-query/fragment înaintea singurului click nativ.
+`ProductsPage` passes the configured name through `AutoExCatalogPagePort` to
+`AutoExProductTransition`. The consumer validates the numeric same-origin route
+without query/fragment before the single native click.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Click["Un click nativ"] -->|commit| Document["Document GET observat"]
-    Document -->|520, 525 sau queue-full| Recover["GET exact, bounded"]
-    Recover -->|aceleași încercări| Document
-    Document -->|2xx + ruta deținută| Product["Numele configurat"]
-    Product -->|confirmă| Audit["Acțiune + verdict"]
+    Click["One native click"] -->|commit| Document["Observed document GET"]
+    Document -->|520, 525, or queue-full| Recover["Exact bounded GET"]
+    Recover -->|same attempts| Document
+    Document -->|2xx + owned route| Product["Configured name"]
+    Product -->|confirms| Audit["Action + verdict"]
 ```
 
 <details>
-<summary><strong>Legendă — deadline, refuz și dovadă</strong></summary>
+<summary><strong>Legend — deadline, rejection, and evidence</strong></summary>
 
-- **Document** înseamnă metoda, statusul și URL-ul răspunsului principal;
+- **Document** means the method, status, and URL of the main response;
 
-  un heading aparent corect într-un răspuns 403 nu autorizează continuarea.
+  an apparently correct heading in a 403 response does not authorize continuation.
 
-- Dacă reclama apare după pointer, handlerul existent poate activa o singură
+- If the vignette appears after the pointer action, the existing handler can activate
 
-  dată controlul vizibil `Close`, în același buget. Activarea DOM explicită
+  the visible `Close` control once, within the same budget. Explicit DOM activation
 
-  rămâne distinctă de pointer; nu se repetă clickul pe produs și nu se ocolește
+  remains distinct from pointer input; the product click is not repeated, and the
 
-  reclama prin navigare directă. Lipsa ori ambiguitatea Close păstrează FAIL.
+  vignette is not bypassed by direct navigation. Missing or ambiguous Close retains FAIL.
 
-- Faptul child `Google vignette Close` este INFO și include durata observată;
+- The child `Google vignette Close` fact is INFO and includes the observed duration;
 
-  aceasta este deja cuprinsă în `Click` și nu se adună din nou la timing.
+  it is already included in `Click` and is not added to timing again.
 
-- **GET exact** refolosește politica AutoEx și bugetul aceleiași acțiuni;
+- **Exact GET** reuses AutoEx policy and the same action budget;
 
-  scope-ul păstrează numărul încercărilor între observații. Backoff-ul care nu
+  the scope retains the attempt count between observations. A backoff that does not
 
-  încape este refuzat; POST-ul și originea străină nu se recuperează.
+  fit is rejected; POST and a foreign origin are not recovered.
 
-- **Numele configurat** este comparat cu heading-ul vizibil independent. Numele
+- **Configured name** is compared independently with the visible heading. A
 
-  greșit, documentul incomplet ori înlocuit și epuizarea încercărilor păstrează FAIL.
+  wrong name, incomplete or replaced document, and exhausted attempts retain FAIL.
 
-- **Observația bounded** așteaptă nativ heading-ul sau mesajul queue-full și
-  citește identitatea DOM și textul locatorului rezolvat într-un singur snapshot,
-  fără parsarea mesajului ori o citire separată de vizibilitate.
-  URL-ul deja confirmat nu este așteptat din nou; documentul GET este verificat
-  înaintea observației și înaintea acceptării produsului, în același deadline.
-- Dublurile adaptorului Purchase implementează intenția typed
-  `openFirstProduct(expectedProduct)`, nu vechiul click de nivel inferior.
-  Refuzul acestei tranziții păstrează aceeași excepție și oprește atât
-  checkpoint-ul business ulterior, cât și adăugarea în coș.
-- **Deadline determinist** este probat prin ownerul real `clickAndAwait`, cu
-  ceas controlat în `ObservationBudgetComponentTest` la UI: pointerul,
-  observațiile și verificarea finală consumă același buget de 1100 ms.
-  Epuizarea nu publică PASS și nu reexecută pointerul.
-- **Fixture browser** pregătește documentul și captura de randare în bugetul
-  existent de navigare de 3 secunde, fără activări ori request-uri de produs.
-  Acțiunea funcțională păstrează 1100 ms; testul nu mai deduce respectarea
-  deadline-ului din timpul wall-clock al browserului sau din două GET-uri lente.
-Proba `AutoExReadOnlyBudgetBoundaryComponentTest` măsoară timeout-urile trimise
-adaptorului browserului pentru două recuperări GET reale: ambele împrumută
-bugetul rămas, iar a doua primește mai puțin decât prima. Contorul independent
-confirmă un pointer și trei GET-uri totale; un timeout reînnoit este respins.
+- **Bounded observation** natively awaits the heading or queue-full message and
+  reads DOM identity and the resolved locator's text in a single snapshot,
+  without parsing the message or a separate visibility read.
+  the already confirmed URL is not awaited again; the document GET is checked
+  before observation and product acceptance, within the same deadline.
+- Purchase adapter overloads implement the typed intent
+  `openFirstProduct(expectedProduct)`, not the old lower-level click. Rejection
+  of this transition preserves the same exception and stops both the later
+  business checkpoint and add-to-cart.
+- **Deterministic deadline** is tested through the real `clickAndAwait` owner, with
+  a controlled clock in UI's `ObservationBudgetComponentTest`: pointer,
+  observations, and final check consume the same 1100 ms budget.
+  Exhaustion does not publish PASS or repeat the pointer action.
+- **Browser fixture** prepares the document and render capture within the
+  existing 3-second navigation budget, without activations or product requests.
+  The functional action retains 1100 ms; the test no longer infers deadline
+  compliance from browser wall-clock time or two slow GETs.
+`AutoExReadOnlyBudgetBoundaryComponentTest` measures timeouts passed to the
+browser adapter for two real GET recoveries: both borrow the remaining budget,
+and the second receives less than the first. An independent counter confirms
+one pointer and three GETs total; a renewed timeout is rejected.
 
-- **Audit** include durata unică a activării și confirmării, cauza originală și
+- **Audit** includes the single activation and confirmation duration, original cause, and
 
-  metoda/statusul/path-ul observat. Recuperarea GET nu dublează durata printr-o
+  observed method/status/path. GET recovery does not double the duration with a
 
-  a doua acțiune timed și nu repetă clickul, contul, coșul ori plata.
+  second timed action and does not repeat the click, account, cart, or payment.
 
-- `AutoExProductTransitionComponentTest` verifică nominalul, heading întârziat,
+- `AutoExProductTransitionComponentTest` checks the nominal case, delayed heading,
 
-  520/525/queue-full recuperabil, inclusiv queue-full întârziat cu whitespace
-  normalizat de locator, 520/525 persistent, POST 525, 403, produs greșit ori ambiguu, document lipsă,
+  recoverable 520/525/queue-full, including delayed queue-full with whitespace
+  normalized by the locator, persistent 520/525, POST 525, 403, wrong or ambiguous product, missing document,
 
-  țintă nesigură și POST. Probează
+  unsafe target, and POST. It also probes
 
-  și reclama post-click: Close întârziat, lipsă, ambiguu, fără ieșire și
+  the post-click vignette: delayed/missing/ambiguous Close, no dismissal, and
 
-  continuare către 520→200, cu contoare native independente.
+  continuation to 520→200, with independent native counters.
 
 </details>
 
-## Journey-ul de cumpărare
+<a id="purchase-journey"></a>
+<a id="journey-ul-de-cumpărare"></a>
+## Purchase journey
 
 <details>
-<summary><strong>Detalii — journey-ul de cumpărare</strong></summary>
+<summary><strong>Details — purchase journey</strong></summary>
 
-Scenariul combină [Test Case 14 — Place Order: Register while Checkout](https://automationexercise.com/test_cases#collapse14)
-cu [Test Case 24 — Download Invoice after purchase](https://automationexercise.com/test_cases#collapse24):
+The scenario combines [Test Case 14 — Place Order: Register while Checkout](https://automationexercise.com/test_cases#collapse14)
+with [Test Case 24 — Download Invoice after purchase](https://automationexercise.com/test_cases#collapse24):
 
-1. deschide magazinul și caută produsul configurat;
-2. verifică produsul, prețul, disponibilitatea și cantitatea în detalii/coș;
-3. înregistrează un cont sintetic în checkout și verifică adresele și comanda;
-4. finalizează plata demo, verifică confirmarea și descarcă factura;
-5. șterge contul sintetic și verifică starea terminală.
+1. opens the store and searches for the configured product;
+2. checks the product, price, availability, and quantity in details/cart;
+3. registers a synthetic account at checkout and checks addresses and order;
+4. completes demo payment, checks confirmation, and downloads the invoice;
+5. deletes the synthetic account and checks the terminal state.
 
-`CheckoutPage.downloadInvoice()` transmite numele și calea artifactului către
-`AutoExInvoiceReader`, care citește conținutul observat fără browser sau verdict.
-`AutoExInvoiceValidator` compară numele, clientul, suma și disponibilitatea;
-`AutoExInvoiceAssertions` doar convertește rezultatele pentru Reporting.
+`CheckoutPage.downloadInvoice()` passes the artifact name and path to
+`AutoExInvoiceReader`, which reads observed content without a browser or verdict.
+`AutoExInvoiceValidator` compares name, customer, amount, and availability;
+`AutoExInvoiceAssertions` only converts results for Reporting.
 
-| Limită | Probă componentă |
+| Boundary | Component test |
 |---|---|
-| Citire UTF-8, artifact absent și eroare IO păstrată | `AutoExInvoiceComponentTest` |
-| Identitate/sumă/fișier greșit, fără completarea observației din expected | `AutoExInvoiceComponentTest`, `AutoExPurchaseBusinessComponentTest` |
-| Comanda și factura remote | journey-ul E2E; componentele nu certifică serviciul public |
+| UTF-8 reading, missing artifact, and preserved IO error | `AutoExInvoiceComponentTest` |
+| Wrong identity/amount/file, without filling observations from expected values | `AutoExInvoiceComponentTest`, `AutoExPurchaseBusinessComponentTest` |
+| Remote order and invoice | E2E journey; components do not certify the public service |
 
-| Etapă | Așteptare business | Sursa așteptării |
+| Stage | Business expectation | Expectation source |
 |---|---|---|
-| Căutare și produs | identitate, preț exact și disponibilitate | catalogul YAML |
-| Coș | produs, preț unitar, cantitate și total de linie | catalog + calculul cantității |
-| Checkout | destinatar, companie, ambele linii de adresă, localitate/stat/cod poștal, țară și telefon, în ambele adrese | profilul de înregistrare YAML |
-| Review order | aceeași linie din coș și totalul general | catalog + totalul calculat |
-| Plată demo | formular și confirmarea comenzii | contractul UI al site-ului |
-| Factură | fișier descărcat, clientul și suma acestei comenzi | identitatea și totalul curente |
-| Cleanup | cont șters și revenire la magazin | identitatea creată în această execuție |
+| Search and product | identity, exact price, and availability | YAML catalog |
+| Cart | product, unit price, quantity, and line total | catalog + quantity calculation |
+| Checkout | recipient, company, both address lines, city/state/postal code, country, and phone in both addresses | YAML registration profile |
+| Review order | same cart line and grand total | catalog + calculated total |
+| Demo payment | form and order confirmation | site's UI contract |
+| Invoice | downloaded file, customer, and this order's amount | current identity and total |
+| Cleanup | account deleted and return to store | identity created in this run |
 
-`AutoExCheckoutAssertions` compară liniile adreselor după normalizarea
-spațiilor de prezentare și folosește aceeași regulă pentru rândul din coș și
-checkout. Un nume corect nu poate ascunde un cod poștal, telefon, preț sau
-cantitate greșite.
+`AutoExCheckoutAssertions` compares address lines after normalizing
+presentation spaces and applies the same rule to the cart and checkout rows. A
+correct name cannot hide an incorrect postal code, phone, price, or quantity.
 
-### Validarea completă a sumei facturii
+<a id="complete-invoice-amount-validation"></a>
+<a id="validarea-completă-a-sumei-facturii"></a>
+### Complete invoice amount validation
 
-Validatorul extrage clauza de după `total purchase amount is`, cu prefixul
-opțional `Rs.` case-insensitive. Clauza se termină la sfârșitul liniei/artifactului
-sau la punctul de propoziție urmat de spațiu orizontal ori sfârșit; punctele zecimale
-și spațiile interne rămân parte din observație.
+The validator extracts the clause after `total purchase amount is`, with an
+optional case-insensitive `Rs.` prefix. The clause ends at the line/artifact
+end or at a sentence period followed by horizontal whitespace or end of input;
+decimal points and internal spaces remain part of the observation.
 
-| Criteriu | Contract |
+| Criterion | Contract |
 |---|---|
-| Sintaxă | cifre ASCII, opțional punct și cel puțin o cifră fracționară; fără semn, exponent, sufix ori separatori de mii |
-| Valoare | `BigDecimal.compareTo` cu expected-ul independent; `1000`, `1000.0` și `1000.0000` sunt echivalente |
-| Diagnostic | valoarea observată completă, fără prefixul valutar și punctuația propoziției; fără reparare din expected sau dintr-un prefix numeric |
+| Syntax | ASCII digits, optional period and at least one fractional digit; no sign, exponent, suffix, or thousands separators |
+| Value | `BigDecimal.compareTo` against the independent expected value; `1000`, `1000.0`, and `1000.0000` are equivalent |
+| Diagnostic | full observed value, without currency prefix or sentence punctuation; no repair from expected or a numeric prefix |
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Amount["Sumă observată"] -->|extrage| Syntax["Sintaxă"]
-    Syntax -->|validă| Value["BigDecimal"]
-    Syntax -->|invalidă| Check["Invoice amount"]
-    Value -->|compară| Check
+    Amount["Observed amount"] -->|extracts| Syntax["Syntax"]
+    Syntax -->|valid| Value["BigDecimal"]
+    Syntax -->|invalid| Check["Invoice amount"]
+    Value -->|compares| Check
 ```
 
 <details>
-<summary><strong>Legendă — observație, sintaxă și verdict</strong></summary>
+<summary><strong>Legend — observation, syntax, and verdict</strong></summary>
 
-| În schemă | Sens complet |
+| In diagram | Full meaning |
 |---|---|
-| Sumă observată | clauza citită din artifact; nu este completată din expected |
-| Sintaxă | validează întregul token, inclusiv spațiile și sufixele neacceptate |
-| BigDecimal | compară numai observația sintactic validă cu totalul așteptat |
-| Invoice amount | FAIL la sintaxă invalidă sau valoare diferită; PASS numai dacă ambele criterii sunt îndeplinite |
+| Observed amount | clause read from the artifact; not completed from expected |
+| Syntax | validates the entire token, including spaces and unsupported suffixes |
+| BigDecimal | compares only a syntactically valid observation with the expected total |
+| Invoice amount | FAIL for invalid syntax or a different value; PASS only when both criteria are met |
 
 </details>
 
-`1000.00oops`, `1000.00.99`, `1000,99` și `1000 99` rămân FAIL cu actual-ul
-fidel; `1000.00. Thank you.` păstrează forma nominală. Numele fișierului,
-clientul și disponibilitatea au checks independente. Ambele overload-uri
-`AutoExInvoiceAssertions` păstrează verdictul și valorile; adaptorul și preview-ul
-nu reevaluează suma și nu schimbă limita configurată de afișare.
+`1000.00oops`, `1000.00.99`, `1000,99`, and `1000 99` remain FAIL with the
+faithful actual value; `1000.00. Thank you.` retains the nominal form. Filename,
+customer, and availability have independent checks. Both
+`AutoExInvoiceAssertions` overloads retain the verdict and values; the adapter
+and preview do not reevaluate the amount or change the configured display limit.
 
 [AutoExInvoiceComponentTest](src/test/java/atf/autoex/tests/component/journey/AutoExInvoiceComponentTest.java)
-probează fișierul real UTF-8, formele invalide, scalele echivalente și ambii
-adaptori prin aserțiuni auditate. Acceptanța de publicare rulează același
-checkpoint pe artifacte locale, individual și prin suită restrânsă: JUnit și
-Extent păstrează FAIL-ul, iar cazul sănătos rămâne PASS în raportul comun.
-Această probă nu certifică o factură defectă a serviciului public și nu repetă download-ul.
+tests the real UTF-8 file, invalid forms, equivalent scales, and both adapters
+through audited assertions. Publication acceptance runs the same checkpoint on
+local artifacts, individually and through a filtered suite: JUnit and Extent
+retain FAIL, while the healthy case remains PASS in the shared report. This test
+does not certify a faulty invoice from the public service or repeat the download.
 
-### Descărcarea cauzală a facturii
+<a id="causal-invoice-download"></a>
+<a id="descărcarea-cauzală-a-facturii"></a>
+### Causal invoice download
 
-`CheckoutPage` cere download-ul prin portul checkout; `AutoExE2eRun` compune
-`AutoExInvoiceDownload`, iar `PlaywrightActionSequence.download(...)` înregistrează
-activarea și așteptarea evenimentului într-o singură acțiune măsurată.
+`CheckoutPage` requests the download through the checkout port; `AutoExE2eRun` composes
+`AutoExInvoiceDownload`, and `PlaywrightActionSequence.download(...)` records
+activation and event waiting in a single measured action.
 
-| Observație | Decizie în bugetul inițial |
+| Observation | Decision within the initial budget |
 |---|---|
-| Eveniment Download primit | citește artifactul; validatorul compară independent clientul și suma |
-| Document principal queue-full, GET pe exact href-ul invoice same-origin | poate relua numai acel GET, conform `storeAvailability`; clickul nu se repetă |
-| POST, document străin sau altă rută | refuză recuperarea; nu substituie metoda ori ținta |
-| Eveniment absent, încercări epuizate sau backoff care nu încape | FAIL al acțiunii Download, cu durată și cauză; fără deadline nou |
+| Download event received | reads the artifact; validator independently compares customer and amount |
+| Queue-full main document, GET to exact same-origin invoice href | may retry only that GET, according to `storeAvailability`; the click is not repeated |
+| POST, foreign document, or another route | rejects recovery; does not substitute the method or target |
+| Event absent, attempts exhausted, or backoff does not fit | Download action FAIL, with duration and cause; no new deadline |
 
-- Ruta acceptată este `/download_invoice/` urmată de sufixul numeric observat,
-  fără query sau fragment. Nu se deduce o factură din expected ori dintr-un fișier vechi.
-- Listener-ele sunt scoped operației și se elimină la succes sau eșec. Cleanup-ul
-  distinct este suppressed pe cauza inițială, fără self-suppression.
-- `AutoExInvoiceDownloadComponentTest` probează descărcarea, queue-full, refuzurile
-  și clickul unic; `PlaywrightDownloadComponentTest` protejează recorderul generic.
+- Accepted route is `/download_invoice/` followed by the observed numeric suffix,
+  without query or fragment. An invoice is not inferred from expected or an old file.
+- Listeners are scoped to the operation and removed on success or failure. A
+  distinct cleanup error is suppressed on the original cause, without self-suppression.
+- `AutoExInvoiceDownloadComponentTest` probes download, queue-full, rejections,
+  and the single click; `PlaywrightDownloadComponentTest` protects the generic recorder.
 
-`AutoExInvoiceValidator` verifică textul facturii; mapperul păstrează rezultatul.
-Un fișier existent, dar gol ori al altei comenzi, produce FAIL. Aceste reguli sunt probate
-cu date business pozitive și negative în `AutoExPurchaseBusinessComponentTest`.
+`AutoExInvoiceValidator` checks invoice text; the mapper retains the result.
+An existing but empty file, or one for another order, produces FAIL. These rules
+are tested with positive and negative business data in `AutoExPurchaseBusinessComponentTest`.
 
-- Catalogul, identitatea și plata folosesc valori demo din YAML; emailul și
-  parola sunt unice pentru fiecare execuție.
-- Cleanup-ul contului este armat înainte de submit-ul înregistrării, iar o eroare
-  de cleanup nu maschează cauza primară.
-- Capturile redactează câmpurile de formular. Valoarea returnată de `Get text`
-  este folosită numai în aserțiunea din memorie; recorderul `atf-ui` păstrează
-  `[REDACTED]` în raport și trace, fără să împiedice validarea textului real.
+- Catalog, identity, and payment use demo values from YAML; email and password
+  are unique per run.
+- Account cleanup is armed before registration submit, and a cleanup error does
+  not mask the primary cause.
+- Captures redact form fields. The value returned by `Get text` is used only in
+  the in-memory assertion; the `atf-ui` recorder retains `[REDACTED]` in the
+  report and trace without preventing validation of the actual text.
 
-- Înainte de citirea fiecărei adrese, `AccountPage` așteaptă numele sintetic
-  configurat în containerul de delivery, respectiv invoice.
-- Journey-ul validează apoi adresa completă și order review-ul folosind
-  condiția semantică `waitForText`, nu un `sleep` fix.
-- `AutoExCheckoutAddressComponentTest` verifică ordinea așteptare → citire pentru
-  ambii locatori; acțiunea generică rămâne deținută de `atf-ui`.
+- Before reading each address, `AccountPage` waits for the configured synthetic
+  name in the delivery and invoice containers, respectively.
+- The journey then validates the full address and order review using the
+  semantic `waitForText` condition, not a fixed `sleep`.
+- `AutoExCheckoutAddressComponentTest` checks wait → read ordering for both
+  locators; the generic action remains owned by `atf-ui`.
 
-- Dialogul CMP este tratat prin interfața vizibilă, cu alegerea minimă pentru
-  scopurile opționale.
-- Dacă apare vignette-ul Google, handler-ul consumerului activează explicit
-  controlul vizibil „Close” și verifică dispariția fragmentului din URL.
-- Handler-ul nu ascunde/șterge overlay-ul, nu fabrică hash-uri și nu folosește
-  click forțat; mecanismul opt-in este delimitat mai jos.
-- În cleanup, o pagină rămasă pe `#google_vignette` este înlocuită prin navigare
-  explicită la magazin înaintea ștergerii contului. Navigarea este înregistrată
-  de ATF și nu reexecută plata; failure evidence este capturat înainte de
-  recuperare și verdictul inițial rămâne FAIL.
+- The CMP dialog is handled through its visible interface, choosing the
+  minimum for optional purposes.
+- If the Google vignette appears, the consumer handler explicitly activates
+  the visible “Close” control and checks that the URL fragment disappears.
+- The handler does not hide/remove the overlay, fabricate hashes, or use a
+  forced click; the opt-in mechanism is bounded below.
+- During cleanup, a page still on `#google_vignette` is replaced by explicit
+  navigation to the store before account deletion. ATF records the navigation,
+  and it does not rerun payment; failure evidence is captured before recovery,
+  and the initial verdict remains FAIL.
 
-### Vignette și activare JavaScript
+<a id="vignette-and-javascript-activation"></a>
+<a id="vignette-și-activare-javascript"></a>
+### Vignette and JavaScript activation
 
-AutoEx folosește `zoomPercent: 70`. Numai controlul Close al unei vignette reale
-apelează `clickWithJavaScript(..., postcondition)` din `atf-ui`; restul acțiunilor
-business rămân click-uri pointer Playwright. Configurația nu schimbă silențios
-zoom-ul și nu activează fallback JavaScript general.
+AutoEx uses `zoomPercent: 70`. Only the Close control of a real vignette calls
+`clickWithJavaScript(..., postcondition)` from `atf-ui`; other business actions
+remain Playwright pointer clicks. Configuration does not silently change the
+zoom or enable a general JavaScript fallback.
 
-| Responsabilitate | Owner / contract |
+| Responsibility | Owner / contract |
 |---|---|
-| Controlul reclamei | `AutoExVignetteHandler`: fragment vignette prezent și un Close vizibil în frame |
-| Încărcare asincronă | numai după observarea fragmentului, așteaptă read-only un Close vizibil/activ în iframe, în timeout-ul browserului; fără `sleep` sau pauză pentru provocarea reclamei |
-| Reclama lipsește | `dismissIfPresent` întoarce imediat `false`; dacă fragmentul dispare singur în timpul așteptării, nu inventează un click Close |
-| Observație pasivă | înaintea activării, `Observed Google vignette` păstrează URL-ul real și zoom-ul CSS calculat; nu solicită și nu modifică reclama |
-| Activare | `atf-ui`: țintă unică/activă, un singur `HTMLElement.click()`, fără retry automat |
-| Rezultat | callback read-only așteaptă eliminarea fragmentului; acțiunea trece numai după acesta |
-| Raport | rând distinct `JavaScript click`, selector real, durată și observație explicită „not a trusted pointer click” |
-| Limită | activarea DOM nu certifică geometria pointerului la 70% sau succesul pasului business următor |
+| Ad handling | `AutoExVignetteHandler`: vignette fragment present and one visible Close control in the frame |
+| Asynchronous loading | only after observing the fragment, read-only wait for a visible/active Close in the iframe within the browser timeout; no `sleep` or pause to provoke an ad |
+| Ad absent | `dismissIfPresent` immediately returns `false`; if the fragment disappears on its own during the wait, it does not invent a Close click |
+| Passive observation | before activation, `Observed Google vignette` retains the real URL and calculated CSS zoom; it does not request or modify the ad |
+| Activation | `atf-ui`: one unique/active target, one `HTMLElement.click()`, no automatic retry |
+| Result | read-only callback waits for fragment removal; the action passes only after that |
+| Report | distinct `JavaScript click` row, real selector, duration, and explicit observation “not a trusted pointer click” |
+| Limit | DOM activation does not certify pointer geometry at 70% or success of the next business step |
 
-Probele generice ale API-ului aparțin `atf-ui`; AutoEx verifică reclama apărută
-natural în flow-urile reale UI/UI_API, fără teste artificiale de reclamă.
-Geometria pointerului la 70% are contract și probe neutre la
-[ownerul UI](../atf-ui/README.md#geometria-nativă-a-contextului).
-Contextul folosește viewport CSS și DPR native, fără zoom CSS injectat.
-Observația CSS a vignette-ului descrie pagina, separat de scala contextului;
-politica explicită Close și verificarea fragmentului rămân neschimbate.
+Generic API tests belong to `atf-ui`; AutoEx checks ads that appear naturally
+in real UI/UI_API flows, without artificial ad tests. Pointer geometry at 70%
+has a neutral contract and tests at the
+[UI owner](../atf-ui/README.md#native-context-geometry).
+The context uses native CSS viewport and DPR, without injected CSS zoom. CSS
+observation of the vignette describes the page, separately from context scale;
+the explicit Close policy and fragment check remain unchanged.
 
-- Vignette-ul este opțional și controlat de site/AdSense. Setarea efectivă de
-  eligibilitate/frecvență a acestui magazin nu este cunoscută de ATF.
-- O reclamă în catalog nu demonstrează întreruperea ștergerii. Nu resetăm
-  frecvența prin cookies/storage și nu lungim artificial flow-ul ca să obținem
-  încă o reclamă; acceptanța tranziției rămâne distinctă de regresia nominală.
+- The vignette is optional and controlled by the site/AdSense. ATF does not
+  know this store's effective eligibility/frequency settings.
+- An ad in the catalog does not prove interruption of account deletion. We do
+  not reset frequency through cookies/storage or artificially extend the flow
+  to obtain another ad; transition acceptance remains distinct from the nominal regression.
 
-### Contul creat și cleanup-ul sub vignette
+<a id="created-account-and-cleanup-under-vignette"></a>
+<a id="contul-creat-și-cleanup-ul-sub-vignette"></a>
+### Created account and cleanup under vignette
 
-Cleanup-ul tratează și documentul vizibil `queue full` rămas după payment.
-Păstrează eșecul inițial și revine printr-un GET la Home înaintea verificării identității.
+Cleanup also handles a visible `queue full` document remaining after payment.
+It preserves the initial failure and returns to Home through a GET before
+checking identity.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Failure["Eșec"] -->|păstrează cauza| Evidence["Dovezi"]
-    Evidence -->|document întrerupt| Home[GET Home]
-    Home -->|verifică| Identity["Identitate"]
-    Identity -->|o singură dată| Delete[Delete account]
+    Failure["Failure"] -->|preserves cause| Evidence["Evidence"]
+    Evidence -->|interrupted document| Home[GET Home]
+    Home -->|checks| Identity["Identity"]
+    Identity -->|once only| Delete[Delete account]
 ```
 
 <details>
-<summary><strong>Legendă — recuperare fără replay de payment</strong></summary>
+<summary><strong>Legend — recovery without payment replay</strong></summary>
 
-- Triggerul este documentul din afara hostului configurat sau mesajul vizibil exact
-  `queue full`; ruta POST nu este reîncărcată.
-- Home folosește politica GET bounded existentă. Eșecul recuperării este secundar
-  față de cauza business; nu autorizează o a doua înregistrare sau plată.
-- O altă identitate ori o ștergere deja pornită blochează mutația. Confirmarea cere
-  URL-ul, heading-ul și o singură navigare de ștergere, ca în flow-ul nominal.
-- `AutoExAccountCleanupRecoveryComponentTest` verifică documente reale în browser
-  cu răspunsuri locale controlate; nu certifică disponibilitatea serviciului public.
-Etichetele scurte păstrează următorul sens:
+- The trigger is a document outside the configured host or the exact visible
+  `queue full` message; the POST route is not reloaded.
+- Home uses the existing bounded GET policy. Recovery failure is secondary to
+  the business cause; it does not authorize another registration or payment.
+- A different identity or deletion already started blocks the mutation.
+  Confirmation requires the URL, heading, and one deletion navigation, as in
+  the nominal flow.
+- `AutoExAccountCleanupRecoveryComponentTest` checks real browser documents
+  with controlled local responses; it does not certify public service availability.
+The short labels retain these meanings:
 
-| În schemă | Sens complet |
+| In diagram | Full meaning |
 |---|---|
-| Eșec | Eșec business |
-| Dovezi | Failure evidence |
-| Identitate | Identitate deținută |
-| o singură dată | permite o singură dată |
+| Failure | Business failure |
+| Evidence | Failure evidence |
+| Identity | Owned identity |
+| once only | allows once only |
 
 </details>
 
-| Situație observată | Comportament | Limită de siguranță |
+| Observed situation | Behavior | Safety limit |
 |---|---|---|
-| Crearea este confirmată | `AccountPage` reține confirmarea înaintea checkpoint-ului și a navigării Continue | schimbarea paginii nu transformă contul creat într-un cleanup `NO_OP` |
-| Submit-ul creării este întrerupt | păstrează și faptul că încercarea a început; dacă documentul magazinului s-a pierdut, îl redeschide și încearcă login-ul identității curente | nu presupune că lipsa confirmării înseamnă cont inexistent; eșecul rămâne primar |
-| Cleanup începe sau este întrerupt pe vignette | navighează la Home și publică triggerul și destinația observate | cel mult o reluare după o întrerupere nouă; fără DOM injectat, hash fabricat sau retry de plată |
-| Clientul este delogat | reautentifică numai contul sintetic deja confirmat | numele din header trebuie să coincidă exact cu identitatea rulării înainte de Delete account |
-| Ștergerea este confirmată | dezarmează imediat callback-ul, înaintea capturii și a Continue | o eroare ulterioară nu repetă ștergerea unui cont deja eliminat |
+| Creation confirmed | `AccountPage` retains confirmation before the checkpoint and Continue navigation | page change does not turn the created account into cleanup `NO_OP` |
+| Creation submit interrupted | retains that the attempt started; if the store document was lost, reopens it and attempts login with the current identity | does not assume missing confirmation means no account; failure remains primary |
+| Cleanup starts or is interrupted by vignette | navigates to Home and publishes observed trigger and destination | at most one continuation after a new interruption; no injected DOM, fabricated hash, or payment retry |
+| Customer logged out | reauthenticates only the already confirmed synthetic account | header name must exactly match the run identity before Delete account |
+| Deletion confirmed | immediately disarms the callback, before capture and Continue | a later error does not repeat deletion of an already removed account |
 
-Ordinea generică a capturii, conservarea cauzei primare și a erorilor
-`suppressed` sunt probate în Test Kit. Recuperarea și ștergerea reușite nu
-promovează failure-ul inițial la PASS; eșecul cleanup-ului rămâne secundar.
-Activarea reclamei și recuperarea business sunt mecanisme distincte: închiderea
-overlay-ului nu este acceptată drept confirmare a creării sau ștergerii contului.
+Generic capture ordering and preservation of the primary cause and `suppressed`
+errors are tested in Test Kit. Successful recovery and deletion do not promote
+the initial failure to PASS; cleanup failure remains secondary. Ad activation
+and business recovery are distinct mechanisms: closing the overlay is not
+accepted as confirmation of account creation or deletion.
 
-### Delete account — navigare întreruptă
+<a id="delete-account--interrupted-navigation"></a>
+<a id="delete-account--navigare-întreruptă"></a>
+### Delete account — interrupted navigation
 
-Ștergerea este legată de contul sintetic al rulării, nu de un heading generic.
-`AutoExAccountDeletionAttempt` observă pasiv request-urile către endpoint-ul
-configurat, dinaintea click-ului până la confirmare; nu schimbă traficul și nu
-depinde de activarea inspectorului UI_API.
+Deletion is tied to the run's synthetic account, not a generic heading.
+`AutoExAccountDeletionAttempt` passively observes requests to the configured
+endpoint from before the click through confirmation; it does not change traffic
+or depend on UI_API inspector activation.
 
-| Stare observată | Decizie business |
+| Observed state | Business decision |
 |---|---|
-| Request de ștergere deja pornit | așteaptă destinația; fără replay, inclusiv la failure cleanup |
-| Vignette închisă, zero request-uri, destinație neatinsă | permite cel mult o continuare a navigării, nu retry de ștergere executată |
-| Înaintea continuării | reîncarcă Home; cere aceeași identitate exactă, Delete account vizibil și încă zero request-uri |
-| Altă identitate sau stare ambiguă | FAIL; nu șterge alt cont și nu repetă plata, înregistrarea sau login-ul arbitrar |
-| Confirmare | URL exact `/delete_account`, heading `account-deleted` vizibil și exact o navigare GET de tip document, într-un snapshot complet; apoi dezarmează cleanup-ul |
-| A doua întrerupere fără confirmare | FAIL cu evidence înainte de recuperare; fără buclă de continuări |
-| Trafic suplimentar fără navigare | nu devine o a doua navigare; ACTUAL păstrează numărul total și fiecare observație: metodă, resursă, navigare și calea redirectului, fără query sau credențiale |
-| Zero/două navigări, metodă/resursă neașteptată ori diagnostic incomplet | FAIL; nu relaxează condiția la „cel puțin una” |
+| Deletion request already started | waits for destination; no replay, including during cleanup failure |
+| Vignette closed, zero requests, destination not reached | allows at most one navigation continuation, not a retry of an executed deletion |
+| Before continuing | reloads Home; requires the same exact identity, visible Delete account, and still zero requests |
+| Different identity or ambiguous state | FAIL; does not delete another account or repeat payment, registration, or arbitrary login |
+| Confirmation | exact URL `/delete_account`, visible `account-deleted` heading, and exactly one document-type GET navigation in a complete snapshot; then disarms cleanup |
+| Second interruption without confirmation | FAIL with evidence before recovery; no continuation loop |
+| Additional traffic without navigation | does not become a second navigation; ACTUAL retains the total count and each observation: method, resource, navigation, and redirect path, without query or credentials |
+| Zero/two navigations, unexpected method/resource, or incomplete diagnostic | FAIL; does not relax the condition to “at least one” |
 
-`Traffic.singleDeletionNavigation()` verifică navigarea business, în timp ce
+`Traffic.singleDeletionNavigation()` checks the business navigation, while
 
-`startedRequests()` protejează separat orice request observat împotriva
+`startedRequests()` separately protects every observed request against
 
-replay-ului. Două evenimente browser nu certifică două click-uri sau două
+replay. Two browser events do not certify two clicks or two
 
-execuții HTTP pe server; raportul nu pretinde măsurarea efectelor server-side.
+HTTP executions on the server; the report does not claim to measure server-side effects.
 
-Listenerul și diagnosticul redirectului elimină query-ul și fragmentul înaintea
-parsării adresei, deoarece acestea nu participă la matching. Un URL de font extern
-cu `|` în query nu întrerupe cleanup-ul; request-ul owned păstrează contorul și diagnosticul typed, fără query sau fragment.
-`AutoExBusinessFaultComponentTest` probează ambele cazuri în browser și calea redirectului.
+The listener and redirect diagnostic remove the query and fragment before
+parsing the address because they do not participate in matching. An external
+font URL with `|` in its query does not interrupt cleanup; the owned request
+retains the counter and typed diagnostic, without query or fragment.
+`AutoExBusinessFaultComponentTest` probes both cases in the browser and the redirect path.
 
-- Continuarea observată publică un pas Gherkin separat, numărul de request-uri
-  de dinaintea continuării și identitatea revalidată; două click-uri UI nu sunt
-  prezentate drept două request-uri de ștergere.
-- `AutoExAccountDeletionProgress` este regula pură de siguranță; proba de
-  componentă verifică inclusiv refuzul după orice request pornit și absența
-  permisiunii când nu există întrerupere observată.
-- Probele E2E folosesc numai flow-uri business reale la 70%; nu injectează
-  overlay-uri, hash-uri, răspunsuri sau navigări de reclamă fabricate.
-- Intermitența reclamei se tratează prin `dismissIfPresent`, nu prin retry-ul
-  întregului test. Un Close absent după timeout sau o țintă ambiguă rămân erori;
-  nu există `catch` general care transformă ștergerea neconfirmată în succes.
+- Observed continuation publishes a separate Gherkin step, request count before
+  continuation, and revalidated identity; two UI clicks are not presented as
+  two deletion requests.
+- `AutoExAccountDeletionProgress` is the pure safety rule; the component test
+  also checks rejection after any request has started and absence of permission
+  when no interruption was observed.
+- E2E tests use only real business flows at 70%; they do not inject overlays,
+  hashes, responses, or fabricated ad navigations.
+- Ad intermittency is handled by `dismissIfPresent`, not by retrying the whole
+  test. A missing Close after timeout or an ambiguous target remains an error;
+  there is no general `catch` that turns unconfirmed deletion into success.
 
-`AutoExAccountUiE2eTest` verifică direct self-service-ul contului: deschide
-magazinul, înregistrează un client sintetic, verifică identitatea, șterge contul
-și confirmă revenirea pe Home. Se selectează manual ca regresie focalizată
-sau prin gate-ul UI complet, independent de checkout/plată.
+`AutoExAccountUiE2eTest` directly checks account self-service: opens the store,
+registers a synthetic customer, checks identity, deletes the account, and
+confirms return to Home. Select it manually as a focused regression or through
+the full UI gate, independently of checkout/payment.
 
-`AutoExExistingCustomerUiApiE2eTest` pregătește un client prin API-ul public
-în setup, apoi verifică login-ul și ștergerea prin UI. Setup-ul și traficul
-cauzal al browserului rămân distincte; cele două căi reutilizează transportul
-`AutoExLiveApi`, fără retry automat al mutațiilor.
+`AutoExExistingCustomerUiApiE2eTest` prepares a customer through the public API
+during setup, then checks login and deletion through UI. Setup and causal
+browser traffic remain distinct; both paths reuse the
+`AutoExLiveApi`, without automatic mutation retries.
 
 </details>
 
-## Coș și continuitatea sesiunii
+<a id="cart-and-session-continuity"></a>
+<a id="coș-și-continuitatea-sesiunii"></a>
+## Cart and session continuity
 
-`AutoExCartUiE2eTest` delegă două povești independente către `AutoExCartJourney`.
-Fiecare metodă primește o sesiune de browser izolată prin aceeași extensie ATF.
+`AutoExCartUiE2eTest` delegates two independent stories to `AutoExCartJourney`.
+Each method receives an isolated browser session through the same ATF extension.
 
-| Poveste | Interacțiuni business | Rezultat verificat |
+| Story | Business interactions | Verified result |
 |---|---|---|
-| Recalculare și eliminare | adaugă o unitate, apoi cantitatea configurată a aceluiași produs, apoi elimină rândul | preț unitar, cantitate cumulată, total calculat și mesajul coșului gol |
-| Guest cart după login | creează un cont sintetic, face logout, adaugă produsul ca guest și se autentifică din nou | aceeași identitate și aceeași linie de coș înainte/după login; apoi ștergere explicită |
+| Recalculation and removal | adds one unit, then the configured quantity of the same product, then removes the row | unit price, combined quantity, calculated total, and empty cart message |
+| Guest cart after login | creates a synthetic account, logs out, adds the product as a guest, and logs in again | same identity and cart line before/after login; then explicit deletion |
 
-- Cantitate: site-ul nu permite editarea directă în rând; testul adaugă din nou
-  același produs, fără mutații DOM sau endpoint inventat.
-- Așteptări: `Catalog.withQuantity(...)` calculează totalul; rezultatul
-  căutării este așteptat înainte de deschiderea produsului.
-- Coș gol: se citește `#empty_cart` vizibil, nu elementul omonim ascuns.
-- Vignette: activarea Close este singurul opt-in JavaScript; contractul și
-  limita pointerului sunt descrise [mai sus](#vignette-și-activare-javascript).
-- Audit: Overview/System publică engine-ul, headless și zoom-ul configurat.
-  Rândul `Viewport` separă ieșirea cerută de viewport-ul CSS și DPR efective;
-  închiderea reclamei nu modifică verdictul business.
-- Ownership: `support.cart` deține journey-urile, `support.trace` propozițiile
-  Gherkin și portul `AutoExTraceStep`; purchase rămâne separat, iar Reporting
-  acceptă ambele vocabulare.
+- Quantity: the site does not allow direct editing in a row; the test adds the
+  same product again, without DOM mutations or an invented endpoint.
+- Expectations: `Catalog.withQuantity(...)` calculates the total; the search
+  result is awaited before opening the product.
+- Empty cart: reads visible `#empty_cart`, not the hidden element with the same name.
+- Vignette: Close activation is the only JavaScript opt-in; the contract and
+  pointer limit are described [above](#vignette-and-javascript-activation).
+- Audit: Overview/System publishes the engine, headless setting, and configured
+  zoom. The `Viewport` row separates requested output from effective CSS
+  viewport and DPR; closing the ad does not change the business verdict.
+- Ownership: `support.cart` owns journeys, `support.trace` owns Gherkin
+  statements and the `AutoExTraceStep` port; purchase remains separate, and
+  Reporting accepts both vocabularies.
 
-## Overview și narațiune E2E
+<a id="overview-and-e2e-narrative"></a>
+<a id="overview-și-narațiune-e2e"></a>
+## Overview and E2E narrative
 
-AutoEx și Shop publică același vocabular operațional în Overview/System.
-`AutoExReportSystemMetadata` proiectează configurația efectivă în main, iar
-`ReportUiEnvironment` din Reporting păstrează formatarea comună.
+AutoEx and Shop publish the same operational vocabulary in Overview/System.
+`AutoExReportSystemMetadata` projects effective configuration in main, while
+Reporting's `ReportUiEnvironment` retains shared formatting.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Settings["YAML + adnotări"] -->|rezolvă| Scenario["Snapshot scenariu"]
-    Scenario -->|agregă| Common["Valori comune / Mixed"]
-    Common -->|afișează| System["Overview / System"]
+    Settings["YAML + annotations"] -->|resolves| Scenario["Scenario snapshot"]
+    Scenario -->|aggregates| Common["Common values / Mixed"]
+    Common -->|displays| System["Overview / System"]
 ```
 
 <details>
-<summary><strong>Legendă — configurație efectivă, fără primul scenariu ca implicit</strong></summary>
+<summary><strong>Legend — effective configuration, without treating the first scenario as the default</strong></summary>
 
-- Kit rezolvă canalul și declarația de evidence; adaptorul AutoEx o compune cu
-  YAML-ul înaintea resurselor. Snapshot-ul primește environment-ul explicit.
-- `Client` este `Playwright browser`; `Browser` include engine, headless/headed,
-  viewport și zoom în același format ca Shop.
-- `Viewport` arată separat ieșirea cerută, viewport-ul CSS și DPR, prin calculul
-  comun UI. [AutoExPointerGeometryComponentTest](src/test/java/atf/autoex/tests/component/geometry/AutoExPointerGeometryComponentTest.java)
-  verifică această proiecție și pointerul trusted în browser headless local,
-  fără a declara profilul headed sau un journey extern executat.
-- Sunt publicate host-ul, profilul, timpii UI/navigare, retry-ul și politicile
-  efective pentru captură, layout și detalii de acțiune.
-- UI_API adaugă endpoint-ul, transportul, precondiția, inspectorul, captura body
-  și limita de observare. Browserul gestionează request-ul HTTP; timpul de
-  așteptare al observației nu este prezentat drept timeout al request-ului.
-- UI-only omite câmpurile API. Un raport comun primește snapshot-ul fiecărui
-  scenariu prin `includeScenarioEnvironment`; diferențele și câmpurile absente
-  la un frate devin `Mixed — varies by scenario`.
-- Originile omit user info, path, query și fragment. System păstrează
-  configurație operațională; datele de cont, card, flow și body rămân în afara lui.
-
-</details>
-
-Propozițiile folosesc ancore business și continuări `AND`, ca în Shop.
-`ReportGherkinSequence` este deținut de un singur `AutoExE2eRun`; aceeași formă
-efectivă ajunge la checkpoint și la rândul său din Scenario correlation.
-
-| Grupul purchase | Formă efectivă | Sens |
-|---|---|---|
-| Deschiderea magazinului și precondiția API opțională | `GIVEN`, apoi `AND` | starea inițială |
-| Căutare, detalii, coș, cont, checkout și payment | `WHEN`, apoi `AND` | aceeași acțiune business cu verificări intermediare |
-| Confirmarea comenzii | `THEN` | rezultatul achiziției |
-| Factură, ștergerea contului și ecran terminal | `AND` | continuarea rezultatului și cleanup-ul declarat |
-
-Cart și account își declară propriile ancore; o secvență nouă începe pentru
-fiecare scenariu. `AND`/`BUT` explicite rămân continuări, iar un eșec timpuriu
-nu primește un `THEN` de succes inventat.
-
-- Secvențierea schimbă doar cuvântul de legătură, păstrând titlul, ordinea,
-  gate-ul, aserțiunile, capturile și timpii execuției.
-- Precondițiile API-only își păstrează exchange-ul propriu; baseline-ul cauzal
-  le exclude din traficul UI ulterior, fără dublarea numărului de cereri.
-- `AutoExSystemMetadataComponentTest` verifică politicile rezolvate;
-  `AutoExE2eOverviewNarrativeComponentTest` verifică wiring-ul real JUnit,
-  raportul comun UI/UI_API și propozițiile efective pe HTTP loopback.
-
-## Rute și locatori ai site-ului
-
-<details>
-<summary><strong>Contract, owneri și probe — Rute și locatori ai site-ului</strong></summary>
-
-### Vocabular și adrese
-
-| Valoare | Owner | Utilizare |
-|---|---|---|
-| Identitatea site-ului public | `AutoExSite.PUBLIC_BASE_URI` | referință canonică în Java; endpoint-ul efectiv rămâne `baseUrl` din YAML/override |
-| Endpoint fictiv pentru componente | `AutoExApiFixture.BASE_URI`, numai în `src/test` | transport determinist și evidence offline; fără apel la site-ul public |
-| Rute API | `AutoExApiRoute` | factory-ul API și aliasul `AutoExRoutes.PRODUCTS_API` folosesc aceeași definiție |
-| Câmpuri form/query și JSON | `AutoExApiFormField`, `AutoExApiJsonField` | cont typed, autentificare, căutare și citirea catalogului |
-| Rezultate API business | `AutoExApiOutcome` | perechi `responseCode`/`message`; HTTP transport rămâne un contract distinct |
-| Texte și verdicturi UI | `AutoExUiText`, `AutoExStoreAssertions` | reguli pure comune paginilor și journey-urilor de cont, coș și comandă |
-| Destinația căutării | `AutoExCatalogAssertions.searchLocation` | origin și path configurate, un singur parametru `AutoExRoutes.SEARCH_PARAMETER`, cu valoarea decodată exactă |
-| Faze reporting | `ReportUiContract.Phase` din Reporting | nume de fază comune, fără un catalog AutoEx duplicat |
-| Metode, headers și MIME | `HttpMethod`, `HttpHeader`, `MediaTypes` din Core | protocol comun, inclusiv `APPLICATION_FORM_URLENCODED` |
-
-Vocabularul site-ului rămâne separat de primitivele reutilizabile:
-
-- constanta site-ului nu este fallback ascuns; proba de configurație verifică
-  propagarea altui URL până la browser;
-- fixture-urile wire rămân oracol independent de serializer pentru numele
-  câmpurilor, encoding și omiterea parametrilor lipsă, inclusiv în cazuri negative;
-- componentele verifică mesaje parțiale și lipsă, query-uri duplicate, domenii
-  diferite, encoding și prefixe de configurare; testele nu înlocuiesc expected-ul
-  cu o valoare citită din același rezultat;
-- `AutoExRoutes` deține rutele, `AutoExSelectors` selectorii, iar page objects
-  consumă catalogul fără CSS inline; acestea sunt contracte AutoEx;
-- `atf-ui` deține [regulile CSS reutilizabile](../atf-ui/README.md#convenții-pentru-locatori-ui)
-  pentru `HtmlElement`, `HtmlAttribute` și escaping; AutoEx le exercită pe
-  markup real, fără a dubla probele generice cu DOM sintetic.
-
-Un selector Surefire de metodă (`Clasă#metodă`) se execută separat de clasele
-`@Suite`: filtrul metodei poate ajunge și în discovery-ul suitelor și produce
-`NoTestsDiscoveredException`. Pentru probele de mai sus rulează întâi
-`AutoExComponentSuite`, apoi, separat, metoda business selectată sau suita live.
-
-### Reutilizare după analiza Practice Shop
-
-| Capabilitate deja comună | Owner reutilizat de AutoEx | Date care rămân locale |
-|---|---|---|
-| Clasificare, activare E2E, output, consolă și evidence | `atf-test-kit`: adnotări și `AtfE2eActivationPolicy` | YAML-ul site-ului și semnalele runnerului |
-| Cleanup și conservarea cauzei inițiale | `FailureAwareCleanup`, `FailureEvidenceCleanup` | identificarea și ștergerea contului AutoEx |
-| Browser, acțiuni, captură și redactare | `atf-ui` | rute, selectori, CMP și vignette AutoEx |
-| Profil per scenariu, assertions și network inspector | `atf-reporting` | așteptările checkout-ului și asocierea observațiilor la pași |
-
-- Independență: nu există dependență AutoEx → Practice Shop; validatoarele și
-  jurnalul Shop includ selectorii, identitatea și contractul acelui site.
-- Extracții: se mută doar un API neutru, cu același comportament probat în
-  consumatorii relevanți; business-ul nu se transferă în infrastructură.
-- Increment curent: se refolosesc primitivele comune existente; regulile de
-  adresă rămân în `support.checkout`; coșul și factura au reguli pure în `business`.
+- The kit resolves the channel and evidence declaration; the AutoEx adapter
+  combines them with the YAML before resources are created. The snapshot receives
+  the explicitly declared environment.
+- `Client` is `Playwright browser`; `Browser` includes engine, headless/headed,
+  viewport, and zoom in the same format as Shop.
+- `Viewport` separately shows the requested output, CSS viewport, and DPR through
+  the shared UI calculation. [AutoExPointerGeometryComponentTest](src/test/java/atf/autoex/tests/component/geometry/AutoExPointerGeometryComponentTest.java)
+  verifies this projection and the trusted pointer in a local headless browser,
+  without claiming that a headed profile or external journey was executed.
+- The host, profile, UI/navigation timings, retry, and effective policies for
+  capture, layout, and action details are published.
+- UI_API adds the endpoint, transport, precondition, inspector, body capture,
+  and observation limit. The browser handles the HTTP request; the observation
+  wait is not presented as the request timeout.
+- UI-only omits API fields. A shared report receives each scenario's snapshot
+  through `includeScenarioEnvironment`; differences and fields missing from a
+  sibling scenario become `Mixed — varies by scenario`.
+- Origins omit user info, path, query, and fragment. System retains operational
+  configuration; account, card, flow, and body data remain outside it.
 
 </details>
 
-## API direct și limita evidence-ului UI/API
+Sentences use business anchors and `AND` continuations, as in Shop.
+`ReportGherkinSequence` is owned by a single `AutoExE2eRun`; the same effective
+form reaches the checkpoint and its row in Scenario correlation.
+
+| Purchase group | Effective form | Meaning |
+|---|---|---|
+| Store opening and optional API precondition | `GIVEN`, then `AND` | initial state |
+| Search, details, cart, account, checkout, and payment | `WHEN`, then `AND` | the same business action with intermediate checks |
+| Order confirmation | `THEN` | purchase result |
+| Invoice, account deletion, and terminal screen | `AND` | result continuation and declared cleanup |
+
+Cart and account declare their own anchors; a new sequence starts for each
+scenario. Explicit `AND`/`BUT` remain continuations, and an early failure does
+not receive an invented success `THEN`.
+
+- Sequencing changes only the connective, preserving the title, order, gate,
+  assertions, captures, and execution timings.
+- API-only preconditions keep their own exchange; the causal baseline excludes
+  them from subsequent UI traffic without double-counting requests.
+- `AutoExSystemMetadataComponentTest` verifies the resolved policies;
+  `AutoExE2eOverviewNarrativeComponentTest` verifies the real JUnit wiring,
+  shared UI/UI_API report, and effective sentences over HTTP loopback.
+
+<a id="site-routes-and-locators"></a>
+<a id="rute-și-locatori-ai-site-ului"></a>
+## Site routes and locators
 
 <details>
-<summary><strong>Contract, owneri și probe — API direct și limita evidence-ului UI/API</strong></summary>
+<summary><strong>Contract, owners, and evidence — Site routes and locators</strong></summary>
+
+<a id="vocabulary-and-addresses"></a>
+<a id="vocabular-și-adrese"></a>
+### Vocabulary and addresses
+
+| Value | Owner | Use |
+|---|---|---|
+| Public site identity | `AutoExSite.PUBLIC_BASE_URI` | canonical Java reference; the effective endpoint remains `baseUrl` from YAML/override |
+| Fake component endpoint | `AutoExApiFixture.BASE_URI`, only in `src/test` | deterministic transport and offline evidence; no call to the public site |
+| API routes | `AutoExApiRoute` | the API factory and `AutoExRoutes.PRODUCTS_API` alias use the same definition |
+| Form/query and JSON fields | `AutoExApiFormField`, `AutoExApiJsonField` | typed account, authentication, search, and catalog reads |
+| Business API outcomes | `AutoExApiOutcome` | `responseCode`/`message` pairs; HTTP transport remains a separate contract |
+| UI text and verdicts | `AutoExUiText`, `AutoExStoreAssertions` | shared pure rules for account, cart, and order pages and journeys |
+| Search destination | `AutoExCatalogAssertions.searchLocation` | configured origin and path, a single `AutoExRoutes.SEARCH_PARAMETER`, with its exact decoded value |
+| Reporting phases | `ReportUiContract.Phase` from Reporting | shared phase names, without a duplicate AutoEx catalog |
+| Methods, headers, and MIME | `HttpMethod`, `HttpHeader`, `MediaTypes` from Core | shared protocol, including `APPLICATION_FORM_URLENCODED` |
+
+The site's vocabulary remains separate from reusable primitives:
+
+- the site constant is not a hidden fallback; the configuration test verifies
+  propagation of another URL to the browser;
+- wire fixtures remain an independent oracle from the serializer for field
+  names, encoding, and omission of missing parameters, including negative cases;
+- component tests verify partial and missing messages, duplicate queries,
+  different domains, encoding, and configuration prefixes; tests do not replace
+  the expected value with a value read from the same result;
+- `AutoExRoutes` owns routes, `AutoExSelectors` owns selectors, and page objects
+  consume the catalog without inline CSS; these are AutoEx contracts;
+- `atf-ui` owns the [reusable CSS rules](../atf-ui/README.md#ui-locator-conventions)
+  for `HtmlElement`, `HtmlAttribute`, and escaping; AutoEx exercises them on
+  real markup without duplicating generic evidence with a synthetic DOM.
+
+Run a Surefire method selector (`Class#method`) separately from `@Suite` classes:
+the method filter can also reach suite discovery and produce
+`NoTestsDiscoveredException`. For the evidence above, run `AutoExComponentSuite`
+first, then run the selected business method or live suite separately.
+
+<a id="reuse-after-the-practice-shop-analysis"></a>
+<a id="reutilizare-după-analiza-practice-shop"></a>
+### Reuse after the Practice Shop analysis
+
+| Existing shared capability | Owner reused by AutoEx | Data that remains local |
+|---|---|---|
+| Classification, E2E activation, output, console, and evidence | `atf-test-kit`: annotations and `AtfE2eActivationPolicy` | site YAML and runner signals |
+| Cleanup and preservation of the initial cause | `FailureAwareCleanup`, `FailureEvidenceCleanup` | AutoEx account identification and deletion |
+| Browser, actions, capture, and redaction | `atf-ui` | AutoEx routes, selectors, CMP, and vignette |
+| Per-scenario profile, assertions, and network inspector | `atf-reporting` | checkout expectations and association of observations with steps |
+
+- Independence: there is no AutoEx → Practice Shop dependency; the Shop
+  validators and log include that site's selectors, identity, and contract.
+- Extraction: only a neutral API is moved, with the same behavior verified in
+  relevant consumers; business logic is not transferred into infrastructure.
+- Current increment: existing shared primitives are reused; address rules
+  remain in `support.checkout`; cart and invoice have pure rules in `business`.
+
+</details>
+
+<a id="direct-api-and-the-uiapi-evidence-boundary"></a>
+<a id="api-direct-și-limita-evidence-ului-uiapi"></a>
+## Direct API and the UI/API evidence boundary
 
 <details>
-<summary><strong>Detalii — api direct și limita evidence-ului ui/api</strong></summary>
+<summary><strong>Contract, owners, and evidence — Direct API and the UI/API evidence boundary</strong></summary>
 
-Rutele publice sunt inventariate în [API List](https://automationexercise.com/api_list).
+<details>
+<summary><strong>Details — direct API and the UI/API evidence boundary</strong></summary>
 
-- Varianta purchase `UI_API` observă traficul produs de journey-ul din browser.
-- Self-service-ul clientului existent pregătește separat contul prin
-  `AutoExApiRequestFactory`, înainte de login UI.
+The public routes are listed in [API List](https://automationexercise.com/api_list).
 
-Diagrama
-separă fluxul browserului, contractele componente offline și cele două porți
-API live; ele nu sunt variante ale aceluiași test.
+- The `UI_API` purchase variant observes traffic produced by the browser journey.
+- Existing-client self-service prepares the account separately through
+  `AutoExApiRequestFactory` before UI login.
+
+The diagram separates the browser flow, offline component contracts, and the
+two live API gates; they are not variants of the same test.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; } .edgeLabel [data-id=\"L_Existing_Factory_0\"] foreignObject { transform: translate(0px, -18px); } .edgeLabel [data-id=\"L_ReadOnly_Factory_0\"] foreignObject { transform: translate(0px, -18px); } .edgeLabel [data-id=\"L_AccountApi_Factory_0\"] foreignObject { transform: translate(0px, -18px); } .edgeLabel [data-id=\"L_ReadOnly_ApiReport_0\"] foreignObject { transform: translate(0px, -18px); } .edgeLabel [data-id=\"L_AccountApi_ApiReport_0\"] foreignObject { transform: translate(0px, -18px); }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
-    E2E["Suită E2E"] -->|rulează| Journey["Journey"]
-    Journey -->|conduce| Browser["Browser"]
-    Browser -->|vizitează| Site["Site UI"]
-    Browser -.->|UI_API observă| Inspector["Inspector"]
-    Inspector -->|alimentează| UiReport["Raport E2E"]
-    Components["Componente"] -->|verifică offline| Fixtures["Fixture-uri"]
-    Existing["Client existent"] -->|pregătește| Factory
+    E2E["E2E suite"] -->|runs| Journey["Journey"]
+    Journey -->|drives| Browser["Browser"]
+    Browser -->|visits| Site["Site UI"]
+    Browser -.->|UI_API observes| Inspector["Inspector"]
+    Inspector -->|feeds| UiReport["E2E report"]
+    Components["Components"] -->|verifies offline| Fixtures["Fixtures"]
+    Existing["Existing client"] -->|prepares| Factory
     Existing -->|login + delete| Browser
-    ReadOnly["API read-only"] -->|folosește| Factory["Request factory"]
-    AccountApi["API cont"] -->|folosește| Factory
-    Factory -->|apelează| Api["API live"]
-    ReadOnly -->|publică| ApiReport["Raport API"]
-    AccountApi -->|publică| ApiReport
+    ReadOnly["Read-only API"] -->|uses| Factory["Request factory"]
+    AccountApi["Account API"] -->|uses| Factory
+    Factory -->|calls| Api["Live API"]
+    ReadOnly -->|publishes| ApiReport["API report"]
+    AccountApi -->|publishes| ApiReport
 ```
 
 <details>
-<summary><strong>Legendă — alegerea traseului API/UI</strong></summary>
+<summary><strong>Legend — choosing the API/UI path</strong></summary>
 
-- `UI_API` observă traficul pe care îl produce browserul și îl leagă de
-  checkpoint-uri; pregătirea directă a contului nu este atribuită acelor acțiuni;
-- `AutoExComponentSuite` verifică modele și adaptoare cu fixture-uri locale,
-  fără serviciul public;
-- `AutoExApiReadOnlyLiveContractTest` trimite request-uri directe, inclusiv `POST`
-  pentru căutare, dar nu creează și nu modifică un cont;
-- `AutoExApiLiveSuite` este separat deoarece creează și actualizează un cont
-  sintetic, apoi încearcă cleanup-ul;
-- rapoartele UI și API au sesiuni și directoare distincte.
-Etichetele scurte păstrează următorul sens:
+- `UI_API` observes browser-generated traffic and links it to checkpoints; direct
+  account preparation is not attributed to those actions;
+- `AutoExComponentSuite` verifies models and adapters using local fixtures,
+  without the public service;
+- `AutoExApiReadOnlyLiveContractTest` sends direct requests, including `POST`
+  for search, but does not create or modify an account;
+- `AutoExApiLiveSuite` is separate because it creates and updates a synthetic
+  account, then attempts cleanup;
+- UI and API reports have separate sessions and directories.
+The short labels have the following meanings:
 
-| În schemă | Sens complet |
+| Diagram label | Full meaning |
 |---|---|
-| Suită E2E | AutoExE2eSuite |
+| E2E suite | AutoExE2eSuite |
 | Journey | Purchase journey |
 | Browser | ATF Playwright |
 | Site UI | Automation Exercise UI |
 | Inspector | network inspector |
-| Raport E2E | raport E2E partajat |
-| Fixture-uri | contracte cu fixture |
-| Client existent | Client existent E2E |
+| E2E report | shared E2E report |
+| Fixtures | fixture contracts |
+| Existing client | Existing client E2E |
 | Request factory | request factory |
-| API read-only | API read-only live |
-| API cont | API live cu cont |
+| Read-only API | live read-only API |
+| Account API | live API with account |
 | API live | Automation Exercise API |
-| Raport API | raport API Extent |
-| login + delete | login și ștergere UI |
-| pregătește | pregătește separat |
+| API report | Extent API report |
+| login + delete | UI login and deletion |
+| prepares | prepares separately |
 
 </details>
 
-| Suprafață | Comportament verificat | Limită / efect |
+| Surface | Verified behavior | Limit / effect |
 |---|---|---|
-| Model request | `AutoExApiRoute`, `AutoExApiRequestFactory` și `AutoExApiAccount` descriu rutele și request-urile typed; reprezentarea contului redactează datele sensibile | verifică forma request-ului, nu comportamentul serviciului live |
-| Contract component | fixture-ul verifică metoda, ruta, query/form, răspuns JSON reprezentativ și exchange-ul raportat | offline; nu certifică serviciul public și nici schema lui completă |
-| API live read-only | `AutoExApiReadOnlyLiveContractTest`; `GET` products/brands și `POST` product search | cere `-Datf.autoex.api.readonly.live.enabled=true`; nu creează sau modifică conturi |
-| API live cu cont | `AutoExApiLiveSuite`; contracte positive/negative și lifecycle-ul contului sintetic cu cleanup | cere `-Datf.autoex.api.live.enabled=true`; efect extern, opt-in |
-| Raport API direct | `AutoExApiContractReportExtension` publică exchange-uri și assertions JSON; implicit `artifacts/reports/api/auto-ex`, override `atf.autoex.api.report-directory`; `@AtfReportPath` publică locația | publisher component verifică artifactul offline, dar nu substituie proba live |
-| Traficul E2E `UI_API` | precondiția catalogului este publicată separat de fereastra cauzală | XHR/fetch first-party, inclusiv coșul fără prefix `/api/`; scope și completitudine în inspector |
+| Request model | `AutoExApiRoute`, `AutoExApiRequestFactory`, and `AutoExApiAccount` describe routes and typed requests; the account representation redacts sensitive data | verifies request shape, not live service behavior |
+| Component contract | the fixture verifies method, route, query/form, representative JSON response, and reported exchange | offline; does not certify the public service or its complete schema |
+| Live read-only API | `AutoExApiReadOnlyLiveContractTest`; `GET` products/brands and `POST` product search | requires `-Datf.autoex.api.readonly.live.enabled=true`; does not create or modify accounts |
+| Live API with account | `AutoExApiLiveSuite`; positive/negative contracts and synthetic account lifecycle with cleanup | requires `-Datf.autoex.api.live.enabled=true`; external effect, opt-in |
+| Direct API report | `AutoExApiContractReportExtension` publishes exchanges and JSON assertions; default `artifacts/reports/api/auto-ex`, override `atf.autoex.api.report-directory`; `@AtfReportPath` publishes the location | component publisher verifies the artifact offline but does not replace live evidence |
+| `UI_API` E2E traffic | the catalog precondition is reported separately from the causal window | first-party XHR/fetch, including cart traffic without the `/api/` prefix; scope and completeness are shown in the inspector |
 
-### Eroare API cu istoric parțial
+<a id="api-failure-with-partial-history"></a>
+<a id="eroare-api-cu-istoric-parțial"></a>
+### API failure with partial history
 
-`AutoExApiFailureEvidence` din main convertește snapshot-ul Core în evidence
-Reporting. Extensia JUnit îl cheamă la eșec și păstrează ownership-ul
-clasă/suită, diagnosticul și închiderea raportului.
+`AutoExApiFailureEvidence` in main converts the Core snapshot into Reporting
+evidence. The JUnit extension calls it on failure and preserves class/suite
+ownership, the diagnostic, and report closure.
 
-- Un 503 urmat de eroare de transport rămâne o singură operație cu două
-  încercări în ordine; a doua are status indisponibil.
-- Publicarea nu reexecută request-ul și nu extinde retry-ul API live,
-  care păstrează politica single-attempt existentă.
-- `AutoExTerminalExecutionComponentTest` verifică adaptorul pe transport
-  controlat în Extent/fallback, fără a certifica serviciul public.
-- Aserțiunile componente rămân în pasul standard colapsat; bugetul configurat și
-  redactarea textului complet înaintea plafonului rămân obligatorii.
+- A 503 followed by a transport error remains one operation with two ordered
+  attempts; the second has an unavailable status.
+- Publishing does not retry the request or extend live API retries, which retain
+  the existing single-attempt policy.
+- `AutoExTerminalExecutionComponentTest` verifies the adapter with controlled
+  transport in Extent/fallback, without certifying the public service.
+- Component assertions remain in the standard collapsed step; the configured
+  budget and redaction of the full text before truncation remain required.
 
-Contractul producerului este la [Core](../atf-core/README.md#istoric-la-eroare-terminală),
-iar proiecția la [Reporting](../atf-reporting/README.md#execuție-api-terminată-fără-răspuns).
+The consumed [Core library contract](../lib/README.Core.md) defines the
+request/response types; the [Reporting library contract](../atf-reporting/README.md#dovezi-api-atașate-unui-pas-ui)
+describes their report projection.
 
-### De ce raportul API nu arată ca raportul UI
+<a id="why-the-api-report-differs-from-the-ui-report"></a>
+<a id="de-ce-raportul-api-nu-arată-ca-raportul-ui"></a>
+### Why the API report differs from the UI report
 
-Ambele suite publică Extent HTML și folosesc setările Extent comune; sesiunea și evidence-ul depind de canal:
+Both suites publish Extent HTML and use shared Extent settings; the session and
+evidence depend on the channel:
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; } .edgeLabel [data-id=\"L_UI_UISession_0\"] foreignObject { transform: translate(24px, -18px); } .edgeLabel [data-id=\"L_Config_UISession_0\"] foreignObject { transform: translate(0px, -18px); } .edgeLabel [data-id=\"L_Config_ApiSession_0\"] foreignObject { transform: translate(0px, -18px); }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
-    UI[UI suite] -->|partajează| UISession[Sesiune UI]
-    UISession -->|publică| UIReport[Un raport Extent]
-    API[API live suite] -->|selectează| Classes[Clase API opt-in]
-    Classes -->|partajează în suită| ApiSession[Sesiune API]
-    ApiSession -->|publică| ApiReports[Un raport Extent]
-    Config[Setări comune] -->|configurează| UISession
-    Config -->|configurează| ApiSession
+    UI[UI suite] -->|shares| UISession[UI session]
+    UISession -->|publishes| UIReport[One Extent report]
+    API[Live API suite] -->|selects| Classes[Opt-in API classes]
+    Classes -->|shares within suite| ApiSession[API session]
+    ApiSession -->|publishes| ApiReports[One Extent report]
+    Config[Shared settings] -->|configures| UISession
+    Config -->|configures| ApiSession
 ```
 <details>
-<summary><strong>Legendă — sesiuni și evidence</strong></summary>
+<summary><strong>Legend — sessions and evidence</strong></summary>
 
-- sesiunea UI este partajată pe suită și publică evidence-ul browserului;
-- suita API declară explicit scope `suite`; clasele active publică exchange-urile
-  și aserțiunile JSON într-o singură sesiune, cu ownerii separați;
-- o clasă API lansată individual păstrează scope `class` și raport propriu;
-- ambele sesiuni citesc setările Reporting comune, dar API nu publică pași UI sau
-  capturi de browser.
+- the UI session is shared by the suite and publishes browser evidence;
+- the API suite explicitly declares `suite` scope; active classes publish
+  exchanges and JSON assertions in one session, with separate owners;
+- an individually launched API class retains `class` scope and its own report;
+- both sessions read shared Reporting settings, but the API does not publish UI
+  steps or browser captures.
 
 </details>
 
-- `AutoExRunFactory` deține sesiunea UI; `AutoExApiContractReportExtension`
-  deține raportul API direct;
-- extensia API obține sesiunea în `BeforeAll` prin `TestRunScope`, finalizează
-  faza/scenariul în `AfterEach`, iar Store-ul ownerului închide sesiunea o singură dată;
-- read-only, mutativ și ambele păstrează opt-in-uri independente; un eșec într-o clasă
-  rămâne în artifactul comun, fără să elimine evidence-ul celeilalte clase;
-- agregatorul `AtfReportPathOptIn` include fiecare owner activ; execuțiile succesive
-  nu reutilizează sesiunea închisă. `AutoExApiReportScopeComponentTest` probează
-  selecțiile, lansarea individuală, failure-ul și izolarea între lansări;
-- probele de lifecycle folosesc metadata `COMPONENT` și transport mock declarat;
-  nu prezintă răspunsurile controlate ca execuții HTTP live;
-- diagnosticul API redactează mesajul integral înaintea plafonului său; limita
-  de afișare a aserțiunilor este configurabilă, implicit 240 de caractere;
-- calea implicită este `artifacts/reports/api/auto-ex`, iar `@AtfReportPath`
-  anunță locația.
+- `AutoExRunFactory` owns the UI session; `AutoExApiContractReportExtension`
+  owns the direct API report;
+- the API extension obtains the session in `BeforeAll` through `TestRunScope`,
+  finalizes the phase/scenario in `AfterEach`, and the owner's Store closes the
+  session exactly once;
+- read-only, mutating, and both retain independent opt-ins; a failure in one class
+  remains in the shared artifact without removing the other class's evidence;
+- the `AtfReportPathOptIn` aggregator includes each active owner; successive runs
+  do not reuse a closed session. `AutoExApiReportScopeComponentTest` verifies
+  selection, individual launch, failure, and isolation between launches;
+- lifecycle tests use `COMPONENT` metadata and declared mock transport; they do
+  not present controlled responses as live HTTP executions;
+- the API diagnostic redacts the full message before truncation; the assertion
+  display limit is configurable and defaults to 240 characters;
+- the default path is `artifacts/reports/api/auto-ex`, and `@AtfReportPath`
+  announces the location.
 
-Testele cu `@AutoExComponentTest` publică un raport Extent per owner:
-clasa individuală are un raport, iar `AutoExComponentSuite` declară explicit
-scope `suite` și grupează clasele într-un singur artifact.
+Tests using `@AutoExComponentTest` publish one Extent report per owner:
+an individual class has one report, while `AutoExComponentSuite` explicitly
+declares `suite` scope and groups classes into a single artifact.
 
-- Auditul și scenariul rămân per metodă/invocare parametrizată; sesiunile nu
-  se partajează între lansări și fixture-urile Reporting își păstrează artifactele proprii.
-- Directorul implicit este `artifacts/reports/component/auto-ex`; override-ul
-  `atf.autoex.component.report-directory` acceptă o cale relativă sub reactor,
-  prin validarea comună Kit. Factory-ul de raport este în main la consumer.
-- `@AtfReportPath` pe o clasă participantă poate activa notificarea unică după
-  publicarea sesiunii comune; fără opt-in raportul se generează fără acea notificare.
-- `AutoExComponentReportScopeComponentTest` probează metoda, clasa, suita,
-  parametrizarea, lansările repetate, paralelismul și failure-urile de lifecycle.
+- Audit and scenario remain per method/parameterized invocation; sessions are
+  not shared between launches, and Reporting fixtures retain their own artifacts.
+- The default directory is `artifacts/reports/component/auto-ex`; the
+  `atf.autoex.component.report-directory` override accepts a relative path under
+  the reactor through shared Kit validation. The report factory is in the
+  consumer's main source set.
+- `@AtfReportPath` on a participating class can enable the single notification
+  after the shared session is published; without opt-in, the report is generated
+  without that notification.
+- `AutoExComponentReportScopeComponentTest` verifies method, class, suite,
+  parameterization, repeated launches, parallelism, and lifecycle failures.
 
-Notificarea locației este independentă de generarea HTML.
+Location notification is independent of HTML generation.
 
-| Owner | Politică și publicare |
+| Owner | Policy and publishing |
 |---|---|
-| Clasă componentă | `@AtfReportPath` explicit; `AutoExExtentTestExtension` conectează evenimentul final, inclusiv FAIL/abort și eșec lifecycle |
-| E2E | `@AutoExE2eTest` activează notificarea; declarația directă `@AtfReportPath(AtfReportPath.Policy.DISABLED)` permite opt-out |
-| Raport E2E root | `AutoExRunFactory` include fiecare clasă; oricare owner activ cere o singură notificare, independent de ordine și mesaje lifecycle |
-| YAML | `reporting.console.enabled: false` suprimă mesajul global |
+| Component class | explicit `@AtfReportPath`; `AutoExExtentTestExtension` connects the final event, including FAIL/abort and lifecycle failure |
+| E2E | `@AutoExE2eTest` enables notification; direct declaration `@AtfReportPath(AtfReportPath.Policy.DISABLED)` allows opt-out |
+| Root E2E report | `AutoExRunFactory` includes every class; any active owner requests a single notification, regardless of order and lifecycle messages |
+| YAML | `reporting.console.enabled: false` suppresses the global message |
 
-- `AutoExReportPathComponentTest` probează politica, parametrizările și suita.
-- Fixture-urile publicării folosesc directoare unice sub `target`; nu adaugă
-  rapoarte de diagnostic lângă artifactul principal al suitei.
-- `AutoExE2eReportPathComponentTest` probează resursa reală cu browser pe
-  `about:blank`; această verificare nu certifică serviciul public.
-- Politica rămâne pe clasa Jupiter la lansarea unei metode în IntelliJ;
-  adnotarea pe launcherul `@Suite` nu se propagă claselor selectate.
+- `AutoExReportPathComponentTest` verifies the policy, parameterizations, and suite.
+- Publishing fixtures use unique directories under `target`; they do not add
+  diagnostic reports beside the suite's main artifact.
+- `AutoExE2eReportPathComponentTest` verifies the real resource with a browser on
+  `about:blank`; this check does not certify the public service.
+- The policy remains on the Jupiter class when launching a method in IntelliJ;
+  the annotation on the `@Suite` launcher does not propagate to selected classes.
 
-Contractul comun al pasului colapsat, al fazelor măsurate și al rezultatului
-JUnit este în [ghidul auditului componentelor](../docs/ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
-Aici rămân wiring-ul aplicației și probele adaptorului său.
+| Case | Evidence in the report |
+|---|---|
+| Component method | comparisons evaluated through `AuditedAssertions` or `RecordedAssertions`, with operator/name, source where available, expected, actual, and result |
+| JUnit lifecycle | `Component assertions` in the phase where checks were evaluated: `SETUP`, `TEST BODY`, or `TEARDOWN` |
+| Component timing | the phase badge shows the sum of executed callbacks, measured monotonically; the tooltip separates snapshot publishing; totals do not double-count assertions |
+| Business API and E2E | exchanges and API validations, and browser evidence, in their respective nodes |
 
-`AutoExCheckoutUiGateComponentTest` explică numărul verificărilor, ownerul înregistrat și ordinea checkout-ului.
-Mesajele comparațiilor numerice ori booleene exprimă invariantul în engleză,
-fără schimbarea expected-ului. Un fixture local nu certifică serviciul public.
+- The standard step is initially collapsed; redaction precedes truncation, and
+  text retains the default 240-character limit, including `…`, when expanded.
+- Comparisons that display only numbers or booleans have declarative messages in
+  English. `AutoExCheckoutUiGateComponentTest` explains the number of checks,
+  registered owner, and checkout activation/order without changing the expected value.
+- An expected exception produces the expected-exception check; an unconsumed
+  FAIL cannot remain JUnit PASS. Abort preserves SKIP and its actual reason,
+  without invented rows.
+- The guard rejects a PASS without evaluated checks; a failure before the first
+  comparison preserves its diagnostic. Unit tests are outside the reporting requirement.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Test["Test"] -->|verifică| Kit["Audit Kit"]
-    Kit -->|transportă| Adapter["Adaptor"]
-    Adapter -->|mapează| Report["Assertion report"]
-    Scope["Owner"] -->|deține| Run["Audit run"]
-    Run -->|împrumută| Report
-    Report -->|publică| Step["Assertions"]
+    Test["Test"] -->|verifies| Kit["Audit Kit"]
+    Kit -->|transports| Adapter["Adapter"]
+    Adapter -->|maps| Report["Assertion report"]
+    Scope["Owner"] -->|owns| Run["Audit run"]
+    Run -->|borrows| Report
+    Report -->|publishes| Step["Assertions"]
 ```
 
 <details>
-<summary><strong>Legendă — auditul componentelor AutoEx</strong></summary>
+<summary><strong>Legend — AutoEx component audit</strong></summary>
 
-- Muchiile sunt flux de date și ownership, nu dependențe Maven: Kit nu importă Reporting.
-- Un handler JUnit nu poate ascunde o eroare deja capturată de audit. FAIL/SKIP,
-  cauza și timing-ul rămân aliniate cu raportul, individual și prin suită.
-- Comparațiile PASS nu sunt prezentate drept cauză pentru o excepție ulterioară;
-  diagnosticul fără transport nu fabrică request ori durată HTTP.
-- Durata fazei include callback-urile moștenite și parametrizate ale invocării;
-  achiziția resursei și publicarea sunt excluse. Expandarea păstrează timpul execuției.
-- Sumele fazelor/scenariilor nu sunt wall-clock al suitei; zero măsurat rămâne valid.
-  Fixture-urile de clasă reușite nu sunt distribuite între scenarii.
-- `AssertionAuditRun` închide sesiunea comună la owner; fiecare invocare
-  primește de la acel owner bugetul configurat `reporting.assertionMaxDisplayCharacters`,
-  înaintea colectării, inclusiv peste implicitul 240. Valoarea efectivă apare în
-  `Overview → System`, la `Assertion preview`.
-- Fiecare invocare închide numai scenariul său. Două suite au owneri separați
-  chiar în același launcher.
-- [Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră) deține delegarea,
-  colectarea pe invocare și reconcilierea rezultatului; consumerul injectează redacția și configurația.
-- [Reporting](../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor) deține
-  nodul, lifecycle-ul publicării și randările Extent/fallback.
-- Metodele moștenite, parametrizarea și lifecycle-ul folosesc aceeași politică;
-  scope-ul nu se propagă implicit pe alte thread-uri.
-Etichetele scurte păstrează următorul sens:
+- Edges show data flow and ownership, not Maven dependencies: Kit does not import Reporting.
+- A JUnit handler cannot hide an error already captured by the audit. FAIL/SKIP,
+  cause, and timing stay aligned with the report, both individually and in the suite.
+- PASS comparisons are not presented as the cause of a later exception;
+  diagnostics without transport do not fabricate a request or HTTP duration.
+- Phase duration includes inherited and parameterized callbacks for the
+  invocation; resource acquisition and publishing are excluded. Expansion
+  preserves execution time.
+- Phase/scenario sums are not suite wall-clock time; a measured zero remains
+  valid. Successful class fixtures are not distributed across scenarios.
+- `AssertionAuditRun` closes the shared session at the owner; each invocation
+  receives the configured `reporting.assertionMaxDisplayCharacters` budget from
+  that owner before collection, including values above the default of 240. The effective
+  value appears in `Overview → System`, under `Assertion preview`.
+- Each invocation closes only its own scenario. Two suites have separate owners,
+  even in the same launcher.
+- [Kit](../lib/README.TestKit.md#scope-and-integration) owns delegation,
+  per-invocation collection, and result reconciliation; the consumer injects
+  redaction and configuration.
+- [Reporting](../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor) owns
+  the node, publishing lifecycle, and Extent/fallback rendering.
+- Inherited methods, parameterization, and lifecycle use the same policy; scope
+  is not implicitly propagated to other threads.
+The short labels have the following meanings:
 
-| În schemă | Sens complet |
+| Diagram label | Full meaning |
 |---|---|
-| Test | Test componentă AutoEx |
-| Adaptor | Adaptor AutoEx |
+| Test | AutoEx component test |
+| Adapter | AutoEx adapter |
 | Assertion report | AssertionAuditReport |
 | Owner | Owner class / suite |
 | Assertions | Component assertions |
-| verifică | verifică integral |
-| transportă | rânduri sigure + timing pe faze |
-| împrumută | împrumută sesiunea |
-| publică | publică colapsat |
+| verifies | verifies completely |
+| transports | safe rows + phase timing |
+| borrows | borrows the session |
+| publishes | publishes collapsed |
 
 </details>
 
-`AutoExComponentPhaseTimingComponentTest` verifică legătura reală cu Kit/Reporting,
-callback-urile moștenite, titlurile parametrizate identice și raportul unic,
-atât prin suită, cât și la rularea unei metode individuale.
+`AutoExComponentPhaseTimingComponentTest` verifies the real connection to
+Kit/Reporting, inherited callbacks, identical parameterized titles, and the
+single report, both through the suite and when an individual method is run.
 
-### Confirmarea căutării în catalog
+<a id="catalog-search-confirmation"></a>
+<a id="confirmarea-căutării-în-catalog"></a>
+### Catalog search confirmation
 
-`ProductsPage` cere activarea prin `AutoExCatalogPagePort`; portul nu expune
-browserul sau jurnalul API. Runtime-ul main compune `AutoExCatalogSearch`.
+`ProductsPage` requests activation through `AutoExCatalogPagePort`; the port does
+not expose the browser or API log. The main runtime composes `AutoExCatalogSearch`.
 
-- Căutarea face un singur click nativ și confirmă URL-ul cu query decodat,
-  plus primul produs configurat vizibil, în bugetul comun al acțiunii.
-- Catalogul fără query-ul cerut sau un prim produs greșit nu confirmă căutarea.
-- Eșecul postcondiției păstrează FAIL; nu reia căutarea, coșul, contul ori plata.
-- Confirmarea folosește commit-ul URL-ului și polling-ul nativ al primului
-  produs exact și vizibil. Înlocuirea documentului nu reexecută pointerul.
-- Diagnosticul păstrează gate-ul încă așteptat și ultimul URL confirmat în
-  buget; ieșirea de eroare nu reinteroghează pagina pentru a schimba verdictul.
-- `AutoExSearchReadinessComponentTest` probează documente înlocuite prin HTTP,
-  prima și a doua căutare, produs întârziat, query diferit și produs greșit;
-  probele UI neutre rămân la `atf-ui`.
+- One native click owns one main-frame GET response. Its origin, path and
+  single decoded search parameter must match the configured term; HTTP must be 2xx.
+- A fresh parsed document must show the configured first product, with native
+  polling inside the original shared action budget. URL-only history changes,
+  stale DOM and a separately healthy JSON API cannot certify that click.
+- A visible exact queue-full message or unsuccessful HTTP response fails
+  explicitly, without spending the remaining budget waiting for a product.
+  There is no search replay, recovery GET or timeout increase.
+- `Catalog search response` is an INFO action carrying owned method/status/URL,
+  navigation count, the awaited gate and observed DOM state. The timed Click
+  retains PASS/FAIL; response metadata does not fabricate a business assertion.
+- The passive observer uses `UiListenerScope` and detaches on success or failure.
+  It ignores XHR/subframes and rejects a second main-frame request in its scope.
+- `AutoExSearchReadinessComponentTest` retains delayed product, replaced
+  document, wrong-query/product and one-click oracles at the original 700 ms.
+  `AutoExSearchResponseComponentTest` adds terminal HTTP/DOM, stale-DOM,
+  independent API and transport-failure regressions.
+- Both browser fixtures explicitly prepare their initial native viewport in
+  the existing 5 s navigation budget before starting the 700 ms action. Decoded
+  PNG dimensions, fixture URL and trusted activation remain auditable comparisons.
+- Preparation does not grant time to the document produced by Search; that
+  transition still shares the original action deadline. The runner inherits the
+  SDK-selected Node runtime by default; the [build and execution contract](../docs/ATF_Build_And_Execution_Safety.md)
+  owns runtime selection and explicit override rules.
 
-Aceeași compoziție este folosită în UI și UI+API. Inspectorul rămâne pasiv;
-postcondiția DOM nu inventează un răspuns HTTP și nu rescrie un FAIL deja publicat.
+The same composition is used in UI and UI+API. The inspector remains passive;
+the DOM postcondition does not invent an HTTP response or rewrite a FAIL already published.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Page["ProductsPage"] -->|cere| Port["Page port"]
-    Port -->|deleagă| Search["Search"]
-    Search -->|activează| Click["Click unic"]
-    Click -->|confirmă| Ready["Confirmare"]
+    Page["ProductsPage"] -->|requests| Port["Page port"]
+    Port -->|delegates| Search["Search"]
+    Search -->|activates| Click["Single click"]
+    Click -->|confirms| Ready["Confirmation"]
 ```
 
 <details>
-<summary><strong>Legendă — responsabilitățile căutării</strong></summary>
+<summary><strong>Legend — search responsibilities</strong></summary>
 
-Page object-ul exprimă intenția, runtime-ul deține browserul și semantica
-produsului, iar UI execută acțiunea instrumentată. Profilul UI+API observă
-aceeași operație; nu implementează altă căutare.
-Etichetele scurte păstrează următorul sens:
+The page object expresses intent, the runtime owns the browser and product
+semantics, and UI performs the instrumented action. The UI+API profile observes
+the same operation; it does not implement a different search.
+The short labels have the following meanings:
 
-| În schemă | Sens complet |
+| Diagram label | Full meaning |
 |---|---|
 | Page port | AutoExCatalogPagePort |
 | Search | AutoExCatalogSearch |
-| Click unic | Pointer strict |
-| Confirmare | URL + query + produs vizibil |
-| cere | cere prin port |
-| deleagă | deleagă în main |
-| activează | activează o dată |
-| confirmă | confirmă în bugetul rămas |
+| Single click | Strict pointer |
+| Confirmare | Owned GET 2xx + exact query + fresh DOM + configured first product |
+| requests | requests through the port |
+| delegates | delegates to main |
+| activates | activates once |
+| confirms | confirms within the remaining budget |
 
 </details>
 
-### Boundary-ul cauzal pentru `UI_API`
+<a id="causal-boundary-for-ui_api"></a>
+<a id="boundary-ul-cauzal-pentru-ui_api"></a>
+### Causal boundary for `UI_API`
 
-Diagrama comună pentru captură, baseline și publicare este în
-[arhitectura ATF](../docs/ATF_Architecture.md#capturarea-și-selecția-traficului-ui).
+The shared diagram for capture, baseline, and publishing is in
+[ATF Architecture](../docs/ATF_Architecture.md#ui-traffic-capture-and-selection).
 
-- `AutoExCatalogApiPrecondition` execută și publică o singură precondiție
-  `GET /api/productsList` înainte să marcheze baseline-ul traficului browserului.
-- Inspectorul agregă numai schimburile observate după baseline. Precondiția
-  rămâne în checkpoint-ul ei de precondiție; nu este numărată din nou ca trafic UI/API
-  cauzal.
-- Politica implicită selectează XHR/FETCH first-party înainte de buget și body
-  capture. `includingOtherRequests()` adaugă cererile first-party care nu sunt
-  clasificate drept documente, XHR/FETCH sau asset-uri statice; body-ul `OTHER`
-  rămâne exclus. XHR-ul real `GET /add_to_cart/1`, inclusiv răspunsul `text/html`,
-  rămâne în checkpoint; selecția nu presupune prefixul `/api/`.
-- Validarea API folosește exclusiv `UiApiValidationEvidence`, același contract
-  ca Shop. Precondiția catalogului își publică checks sub exchange-ul propriu,
-  nu în `UI validation`; verdictul UI nu este copiat pe request-uri.
-- Numărul pașilor UI nu este un oracol pentru numărul de request-uri observate.
-  `@AutoExNetworkDocuments({"/"})` selectează toate rutele DOCUMENT first-party
-  pentru un profil UI+API, fără a activa documentele global pentru profilurile
-  UI-only. Aceste profile păstrează separat setup-ul API de traficul browserului
-  cauzal și publică doar observațiile reținute în fereastra fiecărui checkpoint.
-- `UI_API` așteaptă pasiv, cu timeout bounded, schimbul GET XHR/FETCH exact
-  pornit de click-ul unic pentru produs. Statusul 2xx, refuzul HTTP și
-  `requestFailed` sunt atașate la checkpoint-ul `CART_ADD`; absența unui schimb
-  în fereastra bounded este raportată ca lipsă de observație, niciodată ca 503.
-- După 2xx, confirmarea vizibilă „Added!” este așteptată. Dacă transportul a
-  eșuat ori nu s-a stabilizat, starea modalului este citită fără așteptare;
-  absența confirmării este corelată cu verdictul transportului, iar un modal de
-  succes prezentat după refuz rămâne contradicție UI/API. Timeout-ul modalului
-  după 2xx este publicat în același checkpoint. Niciun caz nu reexecută click-ul
-  sau request-ul pentru raport.
-- Resursele statice și host-urile terțe rămân excluse. `Capture coverage` expune
-  scope-ul, accepted/retained/excluded/dropped, plafonul și separarea setup/causal;
-  capturarea este completă numai în acest scope, nu pentru tot traficul posibil
-  al browserului. Un download cu răspuns 2xx și `Content-Disposition: attachment`
-  poate raporta `requestfailed` cu `ERR_ABORTED` după ce serverul a trimis răspunsul;
-  inspectorul păstrează statusul și headerele HTTP fără să citească bytes descărcați.
-- Când există schimburi cauzale, acestea rămân legate de fereastra și
-  checkpoint-ul observat; căutarea UI navighează la `/products?search=...` și
-  nu este confundată cu endpoint-ul direct `POST /api/searchProduct`.
+- `AutoExCatalogApiPrecondition` executes and publishes a single
+  `GET /api/productsList` precondition before marking the browser-traffic baseline.
+- The inspector aggregates only exchanges observed after the baseline. The
+  precondition remains in its own precondition checkpoint; it is not counted
+  again as causal UI/API traffic.
+- The default policy selects first-party XHR/FETCH before applying the budget
+  and body capture. `includingOtherRequests()` adds first-party requests that
+  are not classified as documents, XHR/FETCH, or static assets; `OTHER` bodies
+  remain excluded. The real `GET /add_to_cart/1` XHR, including its `text/html`
+  response, remains in the checkpoint; selection does not assume an `/api/` prefix.
+- API validation uses only `UiApiValidationEvidence`, the same contract as Shop.
+  The catalog precondition publishes its checks under its own exchange, not in
+  `UI validation`; the UI verdict is not copied onto requests.
+- `apiCheckpoint` links assertions to the selected GET exchange by capture
+  sequence, method, and path. A neighboring POST or second GET on the same path
+  does not receive the comparison; if the selected exchange is not captured
+  uniquely, the report publishes a failed correlation check in API validation.
+- In Extent, the AutoEx step contains a collapsible `API validation` node, and
+  the selected GET has its own collapsible `API assertions` group. The component
+  [AutoExRuntimeBoundaryComponentTest](src/test/java/atf/autoex/tests/component/lifecycle/AutoExRuntimeBoundaryComponentTest.java)
+  verifies ownership, cardinality, and the absence of a synthetic exchange.
+  [AutoExCatalogReportPresentationE2eTest](src/test/java/atf/autoex/tests/e2e/reporting/AutoExCatalogReportPresentationE2eTest.java)
+  opens the local HTML in Playwright and verifies expansion of the assertions
+  and the selected request.
+- The number of UI steps is not an oracle for the number of observed requests.
+  `@AutoExNetworkDocuments({"/"})` selects all first-party DOCUMENT routes for
+  a UI+API profile without enabling documents globally for UI-only profiles.
+  These profiles keep API setup separate from causal browser traffic and publish
+  only observations retained in each checkpoint window.
+- `UI_API` passively waits, with a bounded timeout, for the exact GET XHR/FETCH
+  exchange started by the single product click. The 2xx status, HTTP rejection,
+  and `requestFailed` are attached to the `CART_ADD` checkpoint; no exchange in
+  the bounded window is reported as a missing observation, never as a 503.
+- After a 2xx, the visible “Added!” confirmation is awaited. If transport failed
+  or did not stabilize, the modal state is read without waiting; a missing
+  confirmation is correlated with the transport verdict, while a success modal
+  shown after a rejection remains a UI/API contradiction. A modal timeout after
+  2xx is published in the same checkpoint. No case replays the click or request
+  for the report.
+- Static resources and third-party hosts remain excluded. `Capture coverage`
+  exposes scope, accepted/retained/excluded/dropped counts, the limit, and setup/
+  causal separation; capture is complete only within this scope, not for all
+  possible browser traffic. A download with a 2xx response and
+  `Content-Disposition: attachment` may report `requestfailed` with `ERR_ABORTED`
+  after the server has sent the response; the inspector retains HTTP status and
+  headers without reading downloaded bytes.
+- When causal exchanges exist, they remain linked to the observed window and
+  checkpoint; UI search navigates to `/products?search=...` and is not confused
+  with the direct `POST /api/searchProduct` endpoint.
 
-| YAML: `automationExercise.browser.networkInspection` | Implicit | Efect |
+| YAML: `automationExercise.browser.networkInspection` | Default | Effect |
 |---|---|---|
-| `includeDocuments` | `false` | `true` include navigări/formulare, inclusiv checkout/payment; nu le numește automat API |
-| `maxObservations` | `256` | plafon pentru traficul selectat; overflow-ul rămâne vizibil |
-| `maxBodyPreviewCharacters` | `12000` | limita capturii; limita mai mică de afișare Reporting se aplică separat |
+| `includeDocuments` | `false` | `true` includes navigations/forms, including checkout/payment; they are not automatically called API |
+| `maxObservations` | `256` | limit for selected traffic; overflow remains visible |
+| `maxBodyPreviewCharacters` | `12000` | capture limit; the smaller Reporting display limit applies separately |
 
-- Profilul UI-only păstrează inspectorul dezactivat; `UI_API` activează aceeași
-  configurație validată, fără să-i înlocuiască limitele.
-- Selecția adnotată adaugă rutele DOCUMENT declarate și păstrează XHR/FETCH/OTHER
-  first-party pentru origin; asset-urile statice și terțe rămân excluse.
-- Body-urile răspunsurilor DOCUMENT și OTHER nu sunt citite. Metoda, ruta, statusul,
-  headerele și clasificarea auth rămân disponibile; request-urile form-urlencoded
-  păstrează body-ul, cu parolele și tokenul CSRF mascate. Răspunsurile attachment cu
-  `ERR_ABORTED` după un HTTP 2xx sunt înregistrate ca răspunsuri HTTP, fără bytes.
-- Body-urile XHR/FETCH rămân disponibile în limita configurată. Headerele,
-  autentificarea și proveniența observate sunt adaptate typed către Reporting.
-- Capturile terminale pot publica și exchange-urile finale.
-- În `POST /payment`, valorile sintetice `card_number` și `cvc` ale fixture-ului
-  demo rămân vizibile în body/cURL, conform politicii acceptate pentru această
-  probă; acțiunile UI păstrează mascarea existentă.
+- The UI-only profile keeps the inspector disabled; `UI_API` enables the same
+  validated configuration without replacing its limits.
+- Annotated selection adds the declared DOCUMENT routes and retains first-party
+  XHR/FETCH/OTHER for the origin; static and third-party assets remain excluded.
+- DOCUMENT and OTHER response bodies are not read. Method, route, status,
+  headers, and auth classification remain available; form-urlencoded requests
+  retain the body with passwords and the CSRF token masked. Attachment responses
+  with `ERR_ABORTED` after HTTP 2xx are recorded as HTTP responses without bytes.
+- XHR/FETCH bodies remain available within the configured limit. Observed
+  headers, authentication, and provenance are adapted as typed values for Reporting.
+- Terminal captures can also publish final exchanges.
+- In `POST /payment`, the demo fixture's synthetic `card_number` and `cvc`
+  values remain visible in the body/cURL, according to the policy accepted for
+  this evidence; UI actions retain the existing masking.
 
-Probele de selecție/buget/cursor aparțin `atf-ui`; prezentarea și snapshot-ul
-aparțin `atf-reporting-tests`. AutoEx verifică YAML-ul, ruta reală a coșului,
-precondiția catalogului și journey-ul business, fără teste generice de renderer.
+Selection, budget, and cursor evidence belongs to the local `atf-ui` adapter.
+The selected Reporting library supplies report presentation and snapshots;
+AutoEx verifies its YAML, real cart route, catalog precondition, and business
+journey through local consumer tests.
 
-- `awaitCartExchange` așteaptă pasiv un GET XHR/FETCH pentru calea exactă a
-  produsului. Query-ul de cantitate nu intră în egalitatea căii; produsul
-  prefixat, altă metodă sau un document nu corespund.
-- `cartAddCheckpoint` leagă acel status sau `requestFailed` de confirmarea UI în
-  aceeași acțiune. Lipsa schimbului la expirarea așteptării rămâne explicit
-  „neobservată”; nu se deduce un status HTTP și nu se repetă click-ul.
+- `awaitCartExchange` passively waits for a GET XHR/FETCH on the product's exact
+  path. The quantity query is not part of path equality; a prefixed product,
+  another method, or a document does not match.
+- `cartAddCheckpoint` links that status or `requestFailed` to the UI confirmation
+  in the same action. If the wait expires without an exchange, it remains
+  explicitly “unobserved”; no HTTP status is inferred and the click is not repeated.
 
-#### Profile UI+API și acoperirea Network Inspector
+<a id="uiapi-profiles-and-network-inspector-coverage"></a>
+<a id="profile-uiapi-și-acoperirea-network-inspector"></a>
+#### UI+API profiles and Network Inspector coverage
 
-Izolarea adaptorului este verificată de [proba de componentă cu browser real](src/test/java/atf/autoex/tests/component/reporting/AutoExEvidenceProfileIsolationComponentTest.java).
-Un GET loopback răspunde 500 pentru failure și 200 pentru scenariul următor;
-extensia E2E reală păstrează cauza, captura și un HTML per lansare.
+Adapter isolation is verified by the [component test with a real browser](src/test/java/atf/autoex/tests/component/reporting/AutoExEvidenceProfileIsolationComponentTest.java).
+A loopback GET returns 500 for failure and 200 for the next scenario; the real
+E2E extension preserves the cause, capture, and one HTML report per launch.
 
-Markerii verdictului se verifică în markup, fără scripturi/stiluri, conform
-[regulii comune a probelor](../docs/ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
-Prezența selectorului FAIL în runtime nu substituie dovada publicată.
+Verdict markers are checked in markup, without scripts/styles, according to the
+[shared testing rule](../docs/ATF_Testing_Guide.md#consumer-component-audit).
+The presence of the FAIL selector at runtime does not replace published evidence.
 
-| Probă | Contract și limită |
+| Evidence | Contract and limit |
 |---|---|
-| failure individual UI și UI_API | rezultatul original rămâne FAIL; UI_API publică inspectorul, UI nu îl moștenește |
-| failure → succes în profil opus, ambele ordini | browser/context și localStorage proaspete; System agregă configurațiile efective, fără contaminarea verdictului |
-| contor HTTP independent | un GET observat per invocare, fără retransmisia operației eșuate |
-| suite business live | conturile, comenzile și factura se verifică separat; loopback-ul nu certifică disponibilitatea ori stabilitatea site-ului public |
+| Individual UI and UI_API failure | the original result remains FAIL; UI_API publishes the inspector, UI does not inherit it |
+| failure → success in the opposite profile, both orders | fresh browser/context and localStorage; System aggregates effective configurations without verdict contamination |
+| independent HTTP counter | one observed GET per invocation, with no retransmission of the failed operation |
+| live business suites | accounts, orders, and invoices are verified separately; loopback does not certify public site availability or stability |
 
-- `AutoExE2eSuite` include variante UI+API pentru Account, Cart, Existing
-  customer și Purchase; acestea selectează documentele first-party cu
+- `AutoExE2eSuite` includes UI+API variants for Account, Cart, Existing
+  customer, and Purchase; these select first-party documents with
   `@AutoExNetworkDocuments({"/"})`.
-- Profilele UI+API păstrează capturarea XHR/FETCH și includ request-urile
-  first-party OTHER fără body.
-- Variantele UI-only nu pornesc Network Inspector; asset-urile statice și
-  host-urile terțe sunt excluse explicit.
+- UI+API profiles retain XHR/FETCH capture and include first-party OTHER
+  requests without bodies.
+- UI-only variants do not start the Network Inspector; static assets and
+  third-party hosts are explicitly excluded.
 
-| Poveste / prezentare | Intrare comună | Diferența dintre profile |
+| Story / presentation | Shared entry point | Difference between profiles |
 |---|---|---|
-| Account UI și UI+API | `AutoExAccountJourney.registersAndDeletesOwnAccount` | canalul adaugă observațiile browserului în UI+API |
-| Cart UI și UI+API | aceleași două metode `AutoExCartJourney` | canalul adaugă observațiile browserului în UI+API |
-| Purchase UI, UI+API și final screenshot | `AutoExPurchaseJourney.execute` | canalul sau politica de screenshot schimbă evidence-ul, nu acțiunile business |
-| Existing customer UI+API | `AutoExExistingCustomerUiApiE2eTest` | precondiția API creează clientul existent; nu este echivalentă cu înregistrarea UI |
+| Account UI and UI+API | `AutoExAccountJourney.registersAndDeletesOwnAccount` | the channel adds browser observations in UI+API |
+| Cart UI and UI+API | the same two `AutoExCartJourney` methods | the channel adds browser observations in UI+API |
+| Purchase UI, UI+API, and final screenshot | `AutoExPurchaseJourney.execute` | the channel or screenshot policy changes evidence, not business actions |
+| Existing customer UI+API | `AutoExExistingCustomerUiApiE2eTest` | the API precondition creates the existing customer; this is not equivalent to UI registration |
 
-Wrapper-ele E2E aleg canalul și evidence-ul; journey-urile comune de Account,
-Cart și Purchase păstrează același traseu business. Scenariul Existing customer
-rămâne separat deoarece începe cu o identitate creată prin API.
+E2E wrappers choose the channel and evidence; shared Account, Cart, and Purchase
+journeys retain the same business path. The Existing customer scenario remains
+separate because it starts with an identity created through the API.
 
-Completitudinea capturii se interpretează în scope-ul declarat și cu contoarele
-efective ale execuției. `OTHER` nu promite captură globală: se aplică limita
-first-party și bugetele configurate; un run reușit nu dovedește echivalența tuturor profilelor.
+Capture completeness is interpreted within the declared scope and using the
+execution's effective counters. `OTHER` does not promise global capture: the
+first-party limit and configured budgets apply; a successful run does not prove
+that all profiles are equivalent.
 
-### Acceptanța failure-urilor business
+<a id="business-failure-acceptance"></a>
+<a id="acceptanța-failure-urilor-business"></a>
+### Business failure acceptance
 
 [AutoExBusinessFailureAcceptance](src/test/java/atf/autoex/tests/e2e/failures/AutoExBusinessFailureAcceptance.java)
-este o intrare CLI explicită, cu fixture-uri JUnit E2E nested. Nu face parte din
-gate-ul canonic și nu transformă intenționat suitele business în suite roșii.
+is an explicit CLI entry point with nested JUnit E2E fixtures. It is not part of
+the canonical gate and does not intentionally turn the business suites red.
 
-| Punct | Observație alterată în fixture | Expected și cleanup reale |
+| Area | Observation altered by the fixture | Real expected result and cleanup |
 |---|---|---|
-| Account | numele citit după înregistrare | identitatea sintetică independentă; ștergere numai după reconfirmarea ownerului |
-| Cart | cantitatea citită după relogare | cantitatea configurată; un singur add și aceeași identitate de cont |
-| Purchase | heading-ul comenzii după plată | confirmarea business existentă; un singur payment și cleanup al contului deținut |
-| Recalculation | cantitatea citită după a doua adăugare, în `recalculatesAndRemovesProduct` | expected `1 + configured quantity`; două add-uri, fără cont și fără removal după mismatch |
-| Removal | textul citit după confirmarea nativă a ștergerii | expected-ul coșului gol rămâne independent; un singur removal, fără cont ori payment |
-| AfterSetup | eroare generică după întoarcerea checkpoint-ului `ACCOUNT_CREATED` | checkpoint-ul rămâne PASS; diagnosticul FAIL precede cleanup-ul contului owned |
+| Account | name read after registration | independent synthetic identity; deletion only after re-confirming ownership |
+| Cart | quantity read after relogin | configured quantity; one add and the same account identity |
+| Purchase | order heading after payment | existing business confirmation; one payment and cleanup of the owned account |
 
-Modurile care execută journey-uri, inclusiv `boundaries*`, cer separat
-`-Datf.business.failures.live.enabled=true` și `-Datf.autoex.e2e.enabled=true`.
-Flagurile API read-only/mutativ aparțin suitelor API directe; nu sunt un al
-treilea gate al acestui CLI. Request-ul API explicit al journey-ului folosește
-politica programatică `ApiTransportPolicy.explicitLive()` din `AutoExLiveApi`.
-`-Datf.business.probe.root=<reactor TMP>` fixează directorul dovezilor; un caz
-individual poate fi selectat prin `-Datf.business.probe.case=AccountUi` sau
+The `individual`, `suite`, and `all` modes separately require
+`-Datf.business.failures.live.enabled=true` and `-Datf.autoex.e2e.enabled=true`.
+The read-only/mutating API flags belong to the direct API suites; they are not a
+third gate for this CLI. The journey's explicit API request uses the
+`ApiTransportPolicy.explicitLive()` programmatic policy from `AutoExLiveApi`.
+`-Datf.business.probe.root=<reactor TMP>` sets the evidence directory; an
+individual case can be selected with `-Datf.business.probe.case=AccountUi` or
 `AccountApi`, `CartUi`, `CartApi`, `PurchaseUi`, `PurchaseApi`.
 
-| Selecție CLI | Matrice completă: negative / sănătoase | Scope |
-|---|---:|---|
-| `all`, `individual`, `suite` | 6 / 6 | Account, Cart cu relogare, Purchase; matricea inițială rămâne completă |
-| `boundaries`, `boundaries-individual`, `boundaries-suite` | 6 / 6 | Recalculation, Removal, AfterSetup în UI și UI_API |
+- Each UI/UI_API fault retains FAIL in JUnit and Extent; the CLI accepts only the
+  exact checkpoint cause, counted mutations, and confirmed cleanup.
+- For an individual run, the fault is followed by the same healthy story in the
+  opposite profile. The fixture suite retains a fresh browser per invocation
+  and one shared HTML report.
+- The original capture contains the fixture's visual marker before cleanup.
+  DOM restoration precedes the original deletion callback, without its own navigation.
+- The creation counter distinguishes the full form from the initial name/email
+  submit, although both use `POST /signup`. Deletion requires exactly one GET
+  DOCUMENT navigation; additional OTHER events remain separate diagnostics,
+  without an invented replay verdict.
+- The acceptance result does not measure stability across many repetitions and
+  does not automatically authorize removing protected business selections.
 
-`boundaries` lansează individual și prin suită; sufixul restrânge forma rulării.
-La `individual`, fiecare negativ și vecinul său sănătos au lansări și HTML-uri
-separate; `suite` pune matricea într-un singur HTML. `all` execută ambele forme.
-Filtrul individual acceptă `RecalculationUi/Api`, `RemovalUi/Api` și
-`AfterSetupUi/Api`; el nu reduce suita fixture.
+The CLI verifies each invocation in Tests/Fails/Overview: exact owner and
+scenario, phase, verdict, checkpoint, original cause, and capture with its own
+color marker. `UiCheckpointFailure` preserves the comparison already
+published; the evidence requires an original capture, including for the final
+empty-cart failure. The healthy neighbor does not inherit the cause or FAIL evidence.
 
-- Fiecare fault UI/UI_API păstrează FAIL în JUnit și Extent; CLI-ul acceptă
-  numai cauza exactă a checkpoint-ului, mutațiile numărate și cleanup-ul confirmat.
-- Individual, fault-ul este urmat de aceeași poveste sănătoasă în profil opus.
-  Suita fixture păstrează browser proaspăt per invocare și un singur HTML comun.
-- Captura originală conține marcajul vizual al fixture-ului înaintea cleanup-ului.
-  Restaurarea DOM precede callback-ul original de ștergere, fără navigare proprie.
-  `restore()` închide și fereastra unui fault neatins; citirile de ownership din
-  cleanup nu pot fabrica ulterior injecția sau o identitate străină.
-- Contorul creării separă formularul complet de submit-ul inițial nume/email,
-  deși ambele folosesc `POST /signup`. Ștergerea cere exact o navigare GET DOCUMENT;
-  evenimentele suplimentare OTHER rămân diagnostice distincte, fără verdict de replay inventat.
-- Rezultatul acceptanței nu măsoară stabilitatea în multe repetări și nu
-  autorizează automat eliminarea selecțiilor business protejate.
+The oracle mutates only the report DOM loaded in the audit browser: it removes a
+capture, reassigns one, changes the verdict, removes the cause, and inserts a
+foreign cause in the healthy neighbor. Each rejection identifies the invocation
+and field; the saved artifact and application are not changed. HTML is served
+through a locally intercepted route, without the Windows path-length limit and
+without an external request.
 
-CLI-ul verifică fiecare invocare în Tests/Fails/Overview: owner și scenariu
-exacte, fază, verdict, checkpoint, cauza originală și captura cu marcaj cromatic
-propriu. `UiCheckpointFailure` păstrează comparația deja publicată; proba cere
-o captură originală, inclusiv la failure-ul final al coșului gol. Vecinul sănătos
-nu moștenește cauza ori evidence-ul FAIL.
+`artifact-expectations.json` is written from execution observations before HTML
+verification. `audit <artifact-expectations.json>` rechecks that report and its
+mutants without live opt-in, a new account, or replay. Neutral launch and
+collection use [ScopedAcceptanceRun](../lib/README.TestKit.md#scope-and-integration);
+the launcher, account policy, and AutoEx oracle remain in the consumer's test
+scope. TAB audit and local components remain separate evidence.
 
-Oracolul degradează numai DOM-ul raportului încărcat în browserul de audit:
-elimină o captură, o reasociază, schimbă verdictul, elimină cauza și introduce
-o cauză străină în vecinul sănătos. Fiecare refuz indică invocarea și câmpul;
-artifactul salvat și aplicația nu se modifică. HTML-ul este servit printr-o
-rută interceptată local, fără limita căii Windows și fără request extern.
+Local components verify only injection and restoration without the public
+service. The browser fixture remains in test support; the journey port is in main.
 
-`artifact-expectations.json` este scris din observațiile execuției înaintea
-verificării HTML. Modul `audit <artifact-expectations.json>` reverifică acel
-raport și mutanții fără opt-in live, cont nou sau replay. Lansarea și colectarea
-neutre folosesc [ScopedAcceptanceRun](../atf-test-kit/README.md#lansarea-scoped-a-acceptanței);
-launcherul, politica contului și oracolul AutoEx rămân în test scope la consumer.
-Auditul TAB și componentele locale rămân dovezi distincte.
+<a id="existing-customer-setup"></a>
+<a id="pregătirea-clientului-existent"></a>
+### Existing customer setup
 
-Componentele locale verifică numai injecția și restaurarea fără serviciu public.
-Fixture-ul de browser rămâne în suportul testelor; portul journey-ului este în main.
+`AutoExCustomerApiSetup` creates a single synthetic identity through the public
+API before Home/UI login. `AutoExLiveApi` provides the LIVE transport shared with
+the API suites, with one attempt; there is no hidden creation retry. Setup uses
+exactly the same configured origin as the browser.
 
-### Pregătirea clientului existent
+- `AccountPage.trackDisposableAccountCreation` arms cleanup before the request,
+  including when the creation result is uncertain; cleanup retains the identity
+  check and rejects replay of a deletion already started.
+- `GIVEN` is an API-only checkpoint: HTTP 200, JSON `responseCode: 201`, and the
+  message are verified under the real exchange; it does not publish UI
+  validation or a `Setup evidence` disclosure without checks.
+- Reporting redacts the form-encoded password. The body is form-urlencoded,
+  according to the public API, not artificially converted to JSON; the JSON
+  response is validated independently of the received MIME header.
+- The inspector baseline is marked after setup. Login and Delete account are
+  DOCUMENT requests, not `/api/*` endpoints or XHR/FETCH. The class declares
+  `@AutoExNetworkDocuments({"/login", "/delete_account"})`, so the report links
+  them to the login and deletion checkpoints; the Home page, assets, and other
+  documents remain excluded. HTML responses are not read. The form-urlencoded
+  login keeps the password and `csrfmiddlewaretoken` redacted.
+  `POST /api/createAccount` remains the explicit API exchange in GIVEN, separate
+  from the browser-traffic baseline and causal summary.
+- UI confirmation requires the exact identity, deletion route, dedicated heading,
+  and a single request; successful API creation does not certify UI deletion.
 
-`AutoExCustomerApiSetup` creează o singură identitate sintetică prin API-ul
-public, înainte de Home/login UI. `AutoExLiveApi` furnizează transportul LIVE
-comun cu suitele API, cu o singură încercare; nu există retry de creare ascuns.
-Setup-ul folosește exact același origin configurat ca browserul.
+<a id="coverage-of-the-14-cases-listed-in-api-list"></a>
+<a id="acoperirea-celor-14-cazuri-publicate-în-api-list"></a>
+### Coverage of the 14 cases listed in API List
 
-- `AccountPage.trackDisposableAccountCreation` armează cleanup-ul înainte de
-  request, inclusiv pentru rezultatul de creare incert; cleanup-ul păstrează
-  verificarea identității și refuzul replay-ului unei ștergeri deja începute.
-- `GIVEN` este un checkpoint API-only: HTTP 200, JSON `responseCode: 201` și
-  mesajul sunt verificate sub exchange-ul real; nu publică validare UI sau
-  un disclosure `Setup evidence` fără checks.
-- Parola form-encoded este redactată de Reporting. Body-ul este form-urlencoded,
-  conform API-ului public, nu convertit artificial în JSON; răspunsul JSON este
-  validat independent de headerul MIME primit.
-- Baseline-ul inspectorului este marcat după setup. Login și Delete account
-  sunt request-uri DOCUMENT, nu endpoint-uri `/api/*` sau XHR/FETCH. Clasa
-  declară `@AutoExNetworkDocuments({"/login", "/delete_account"})`, astfel
-  raportul le leagă de checkpoint-urile de login și ștergere; pagina Home,
-  asset-urile și celelalte documente rămân excluse. Răspunsurile HTML nu sunt
-  citite. Login-ul form-urlencoded păstrează parola și `csrfmiddlewaretoken`
-  redactate. `POST /api/createAccount` rămâne schimbul API explicit din GIVEN,
-  separat de baseline-ul traficului browserului și de summary-ul cauzal.
-- Confirmarea UI cere identitatea exactă, ruta de ștergere, heading-ul dedicat
-  și un singur request; succesul API de creare nu certifică ștergerea UI.
+`AutoExApiContractComponentTest` models the cases below offline. The values in
+the third column are the JSON `responseCode` field published by API List, not
+the transport's HTTP status. The component verifies these two dimensions
+separately and uses fixture bodies; the table is not evidence about the live service.
 
-### Acoperirea celor 14 cazuri publicate în API List
-
-`AutoExApiContractComponentTest` modelează offline cazurile de mai jos. Valorile
-din coloana a treia sunt câmpul JSON `responseCode` publicat de API List, nu
-statusul HTTP al transportului. Componenta verifică aceste două dimensiuni
-separat și folosește corpuri fixture; tabelul nu este dovadă a serviciului live.
-
-| Caz | Request / condiție | `responseCode` publicat | Efect / izolare |
+| Case | Request / condition | Published `responseCode` | Effect / isolation |
 |---|---|---:|---|
 | API 1 | `GET /api/productsList` | 200 | read-only |
-| API 2 | `POST /api/productsList` | 405 | metodă neacceptată |
+| API 2 | `POST /api/productsList` | 405 | method not allowed |
 | API 3 | `GET /api/brandsList` | 200 | read-only |
-| API 4 | `PUT /api/brandsList` | 405 | metodă neacceptată |
-| API 5 | `POST /api/searchProduct`, `search_product` prezent | 200 | căutare fără mutație |
-| API 6 | `POST /api/searchProduct`, parametru lipsă | 400 | validare input |
-| API 7 | `POST /api/verifyLogin`, credențiale valide | 200 | cont sintetic creat de test |
-| API 8 | `POST /api/verifyLogin`, email lipsă | 400 | validare input |
-| API 9 | `DELETE /api/verifyLogin` | 405 | metodă neacceptată |
-| API 10 | `POST /api/verifyLogin`, credențiale invalide | 404 | folosește contul sintetic al testului |
-| API 11 | `POST /api/createAccount` | 201 | creează un cont sintetic unic |
-| API 12 | `DELETE /api/deleteAccount` | 200 | cleanup numai pentru contul testului |
-| API 13 | `PUT /api/updateAccount` | 200 | actualizează numai contul testului |
-| API 14 | `GET /api/getUserDetailByEmail` | 200 | citește identitatea sintetică a testului |
+| API 4 | `PUT /api/brandsList` | 405 | method not allowed |
+| API 5 | `POST /api/searchProduct`, `search_product` present | 200 | non-mutating search |
+| API 6 | `POST /api/searchProduct`, missing parameter | 400 | input validation |
+| API 7 | `POST /api/verifyLogin`, valid credentials | 200 | synthetic account created by the test |
+| API 8 | `POST /api/verifyLogin`, missing email | 400 | input validation |
+| API 9 | `DELETE /api/verifyLogin` | 405 | method not allowed |
+| API 10 | `POST /api/verifyLogin`, invalid credentials | 404 | uses the test's synthetic account |
+| API 11 | `POST /api/createAccount` | 201 | creates a unique synthetic account |
+| API 12 | `DELETE /api/deleteAccount` | 200 | cleanup only for the test account |
+| API 13 | `PUT /api/updateAccount` | 200 | updates only the test account |
+| API 14 | `GET /api/getUserDetailByEmail` | 200 | reads the test's synthetic identity |
 
-- API 11 armează cleanup-ul înaintea încercării de creare; API 7, 13 și 14
-  folosesc aceeași identitate sintetică în suita live mutabilă.
-- Testele componente nu creează conturi și nu accesează serviciul public.
-- `responseCode` din API List este un rezultat JSON al aplicației, nu statusul
-  HTTP. Suitele live asertează separat ambele valori.
-- Serviciul observat a răspuns cu HTTP 200 și pentru rezultate precum
-  `responseCode: 405` sau `201`. Este comportamentul probat în execuția curentă,
-  nu o garanție permanentă; rerulează suitele live după schimbări upstream.
-- `AutoExApiLiveContractTest` armează `AutoExApiAccountCleanup` înainte de
-  încercarea de create; scope-ul încearcă ștergerea și la eșec. Proba componentă
-  verifică nearmarea, cleanup-ul după failure și păstrarea cauzei inițiale când
-  ștergerea eșuează; suita live confirmă cleanup-ul după succes.
-- Păstrează `Content-Type` ca header de transport în evidence și validează body-ul
-  JSON independent. Upstream-ul observat returnează uneori JSON valid cu
-  `text/html; charset=utf-8`; nu impune `application/json` până când contractul
-  public nu îl cere explicit.
+- API 11 arms cleanup before attempting creation; API 7, 13, and 14 use the
+  same synthetic identity in the mutating live suite.
+- Component tests do not create accounts or access the public service.
+- `responseCode` in API List is an application JSON result, not the HTTP status.
+  Live suites assert both values separately.
+- The observed service also returned HTTP 200 for results such as
+  `responseCode: 405` or `201`. This is the behavior observed in the current
+  run, not a permanent guarantee; rerun live suites after upstream changes.
+- `AutoExApiLiveContractTest` arms `AutoExApiAccountCleanup` before attempting
+  creation; the scope attempts deletion even on failure. The component test
+  verifies the unarmed state, cleanup after failure, and preservation of the
+  initial cause when deletion fails; the live suite confirms cleanup after success.
+- Retain `Content-Type` as a transport header in evidence and validate the JSON
+  body independently. The observed upstream sometimes returns valid JSON with
+  `text/html; charset=utf-8`; do not require `application/json` unless the public
+  contract explicitly requires it.
 
-Precondiția E2E citește `/api/productsList` și este publicată în checkpoint-ul
-propriu. După acel checkpoint, journey-ul marchează baseline-ul; căutarea din
-pagina UI folosește `/products?search=...`, nu endpoint-ul direct
-`POST /api/searchProduct`. Astfel raportul nu amestecă setup-ul API cu traficul
-cauzal al interacțiunilor browserului.
-
-</details>
+The E2E precondition reads `/api/productsList` and is published in its own
+checkpoint. After that checkpoint, the journey marks the baseline; search on
+the UI page uses `/products?search=...`, not the direct
+`POST /api/searchProduct` endpoint. This keeps API setup separate from causal
+traffic generated by browser interactions in the report.
 
 </details>
 
-### Credentiale în aserțiunile componente API
+</details>
 
-Oracolul formularului compară integral map-urile originale, inclusiv valoarea,
-prezența și casing-ul cheii `password`. Raportul primește proiecția câmpurilor
-nesensibile și rezultatul boolean al egalității complete; nu primește parola
-fixture-ului, nici când comparația eșuează.
+<a id="credentials-in-api-component-assertions"></a>
+<a id="credentiale-în-aserțiunile-componente-api"></a>
+### Credentials in API component assertions
+
+The form oracle compares the original maps in full, including the value,
+presence, and casing of the `password` key. The report receives a projection of
+non-sensitive fields and the boolean result of the full equality check; it does
+not receive the fixture password, even when the comparison fails.
 
 [AutoExApiContractComponentTest](src/test/java/atf/autoex/tests/component/api/AutoExApiContractComponentTest.java)
-păstrează round-trip-ul pentru caractere rezervate și Unicode. Negativele
-refuză mismatch-ul, câmpul lipsă, câmpul gol neașteptat și cheia cu casing greșit;
-diagnosticul JUnit și pasul standard colapsabil rămân fără credentiale brute.
+retains the round trip for reserved characters and Unicode. Negative cases
+reject mismatches, a missing field, an unexpected empty field, and a key with
+incorrect casing; the JUnit diagnostic and standard collapsed step remain free
+of raw credentials.
 
-## Politica BE a catalogului
+<a id="catalog-be-policy"></a>
+<a id="politica-be-a-catalogului"></a>
+## Catalog BE policy
 
-`automationExercise.browser.recovery` este OFF implicit, cu allowlist gol și captură pasivă OFF.
-Operația semantică inițială este numai `catalog-readiness`, mapată de
-`AutoExBackendRecovery` din main la GET `/api/productsList`.
+`automationExercise.browser.recovery` is OFF by default, with an empty allowlist
+and passive capture OFF. The only initial semantic operation is
+`catalog-readiness`, mapped by `AutoExBackendRecovery` in main to GET
+`/api/productsList`.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Yaml["YAML + adnotare"] -->|restrânge| Adapter["Adaptor"]
-    Adapter -->|clasifică| Scope["Scope UI"]
-    Scope -->|publică| Evidence["Decizie INFO"]
+    Yaml["YAML + annotation"] -->|constrains| Adapter["Adapter"]
+    Adapter -->|classifies| Scope["UI scope"]
+    Scope -->|publishes| Evidence["INFO decision"]
 ```
 
 <details>
-<summary><strong>Legendă — opt-in și folosire explicită</strong></summary>
+<summary><strong>Legend — opt-in and explicit use</strong></summary>
 
-- Blocul recovery aparține browserului AutoEx; politica storeAvailability rămâne separată.
-- Extensia JUnit aplică `AtfUiRecoveryResolver` înaintea resurselor.
-  Adnotarea poate restrânge, fără a activa YAML OFF sau a adăuga rute.
-- `run.backendRecovery()` oferă controllerul;
-  `begin(CATALOG_READINESS)` precedă acțiunea unică, apoi `await` primește numai
-  o probă DOM read-only. Deschiderea run-ului nu introduce retry în journey-uri.
-- Scope-ul și listener-ele se închid înaintea browserului, inclusiv pe eșec.
-  Nu sunt reluate signup, cont, coș, checkout, payment sau cleanup.
-- Semnalul BE este metadata-only, independent de prezentarea UI/UI_API;
-  UI-only nu activează apeluri API suplimentare sau precondiții API.
-- Deciziile publicate sunt INFO: politică, sursă, buget, încercare, motiv,
-  receipt și timpi separați. Un FAIL deja publicat nu devine PASS.
-Etichetele scurte păstrează următorul sens:
+- The recovery block belongs to the AutoEx browser; the storeAvailability policy
+  remains separate.
+- The JUnit extension applies `AtfUiRecoveryResolver` before resources are
+  created. The annotation can narrow the policy without enabling YAML OFF or
+  adding routes.
+- `run.backendRecovery()` provides the controller;
+  `begin(CATALOG_READINESS)` precedes the single action, then `await` receives
+  only read-only DOM evidence. Opening the run does not add retries to journeys.
+- Scope and listeners close before the browser, including on failure. Signup,
+  account, cart, checkout, payment, and cleanup are not replayed.
+- The BE signal is metadata-only and independent of UI/UI_API presentation;
+  UI-only does not activate extra API calls or API preconditions.
+- Published decisions are INFO: policy, source, budget, attempt, reason,
+  receipt, and separate timings. A published FAIL does not become PASS.
+The short labels have the following meanings:
 
-| În schemă | Sens complet |
+| Diagram label | Full meaning |
 |---|---|
-| Adaptor | Adaptor AutoEx din main |
-| Scope UI | Scope UI înaintea acțiunii |
-| Decizie INFO | Observații INFO în secvența UI |
-| clasifică | clasifică citirea |
-| publică | înregistrează decizia |
+| Adapter | AutoEx adapter in main |
+| UI scope | UI scope before the action |
+| INFO decision | INFO observations in the UI sequence |
+| classifies | classifies the read |
+| publishes | records the decision |
 
 </details>
 
 <details>
-<summary><strong>Exemplu de bloc recovery și verificare</strong></summary>
+<summary><strong>Example recovery block and verification</strong></summary>
 
-Exemplul se inserează la `automationExercise.browser.recovery`, fără schimbarea engine-ului.
-Valorile de mai jos sunt un opt-in explicit pentru catalog în documentul curent.
+Insert the example under `automationExercise.browser.recovery`, without changing
+the engine. The values below are an explicit opt-in for the catalog in this document.
 
 ```yaml
 recovery:
@@ -1648,279 +1756,343 @@ recovery:
   captureBackendSignals: true
 ```
 
-`AutoExBackendRecoveryComponentTest` verifică încărcarea, restricția adnotării,
-catalogul întârziat, epuizarea și captura lipsă. Scrierile prin GET și operațiile
-necunoscute sunt refuzate înaintea browserului.
+`AutoExBackendRecoveryComponentTest` verifies loading, annotation restriction,
+delayed catalog readiness, exhaustion, and missing capture. Writes through GET
+and unknown operations are rejected before the browser starts.
 
-Pentru rezultatul recuperat `UI_ONLY` și epuizare, componenta verifică separat
-rendererul într-un raport Extent temporar: creează direct un scenariu și un pas
-sintetice prin `ExtentReportSession`, populate cu încercările capturate. Proba
-Playwright verifică acel artifact, disclosure-ul încercărilor și redactarea;
-nu inspectează raportul publicat de extensia JUnit pentru rularea testului.
-Raportul normal al componentei este deținut de `AutoExExtentTestExtension`.
-În acel raport real, aserțiunile componentei apar sub `Component assertions`,
-însă tabelul `atf-ui-observations` și încercările recovery nu sunt publicate;
-proba sintetică nu demonstrează această integrare.
+Assertions from these components remain in the standard `Component assertions`
+step, collapsed by default, with redaction before the configured limit, which
+defaults to 240 characters. The consumer-owned
+[AutoExRecoveryReportObservation](src/test/java/atf/autoex/tests/support/reporting/AutoExRecoveryReportObservation.java)
+projects each typed `UiRecoveryTrace` beside its matching INFO action record.
+`Operation` shows `catalog-readiness`; `Event` separately shows
+`Backend observation #N`. Decision, reason, signal, three measured `Duration`
+values, policy, and INFO result stay in attempt order. Timing uses the typed
+values and does not parse the action's display text.
 
-Aserțiunile acestor componente rămân în pasul standard `Component assertions`,
-colapsat implicit, cu redactare înaintea plafonului configurat, implicit 240 de caractere.
-Unit și probele renderer din Reporting Tests își păstrează categoriile separate.
-
-</details>
-
-Deadline-ul, refuzurile și limitele sunt în [UI](../atf-ui/README.md#recuperare-be-prin-observație-pasivă);
-indicatorul agregat de recuperare rămâne în [feedback-ul auditului](../docs/feedback/ATF_Reporting_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent).
-
-## Identitatea lansării JUnit
-
-O fază INFO colapsată `Launch context` păstrează clasa/metoda canonică și suita
-exterioară expusă de ascendența JUnit. `AutoExLaunchMetadata` proiectează snapshot-ul
-imuabil `TestLaunchContext.capture(context)` furnizat de Test Kit K4. Publică
-selectorii reali, inventarul filtrat și numărul exact de teste descoperite prin
-contractul existent de observații Reporting.
-
-Numărul este măsurat la începutul planului, include teste dezactivate și exclude
-înregistrările dinamice ulterioare. Numărul lor la captură este un câmp separat.
-Valorile nu sunt reconstruite din teste terminate sau trecute.
-
-Un plan executat în altă sesiune păstrează inventarul/numărul și marchează explicit lipsa cererii;
-dezactivarea observerului SPI produce metadate indisponibile.
+`AutoExExtentTestExtension` publishes this observation through Test Kit K3
+phase observations and Reporting J26. In the rendered component result,
+`TEST BODY` contains separate expandable `Component assertions` and INFO
+recovery-trace steps. The normal assertions, verdict, and test count remain
+intact.
+The synthetic Playwright probe checks the action-table target and its
+collapsed local disclosure. The opt-in
+`AutoExRecoveryActualReportAcceptanceTest` opens an actual suite report and
+checks its owner, expands the component result and `TEST BODY`, expands the
+standard assertion step, and independently checks the recovery disclosure
+after `Expand all nodes`. It verifies complete recovered and exhausted traces,
+semantic operation, event label, ISO-8601 timings, INFO results, and body/URL
+redaction. It saves a viewport capture under `target`. The acceptance contract is in
+[AutoExRecoveryActualReportAcceptanceTest](src/test/java/atf/autoex/tests/component/recovery/AutoExRecoveryActualReportAcceptanceTest.java).
 
 ```mermaid
 flowchart LR
-    Request["Cererea lansării"] -->|descoperă| Plan["TestPlan filtrat"]
-    Plan -->|capturează| Kit["Test Kit K4"]
-    Kit -->|furnizează| Adapter["Adapter AutoEx"]
-    Adapter -->|publică| Reporting["Reporting J26"]
-    Reporting -->|randează| Tests["Tests · Launch context"]
+    Trace["UiRecoveryTrace + matching INFO action"] -->|maps| Projection["AutoExRecoveryReportObservation"]
+    Projection -->|publishes| Phase["AutoExExtentTestExtension · Test Kit K3"]
+    Assertions["Component assertions"] -->|joins| Phase
+    Phase -->|renders| Html["Reporting J26 · Extent HTML"]
+    Acceptance["AutoExRecoveryActualReportAcceptanceTest"] -->|opens| Html
 ```
-
 <details>
-<summary><strong>Legendă — interacțiunea modulelor și semantica numărării</strong></summary>
+<summary><strong>Legend — recovery-report flow</strong></summary>
 
-- Kit observă callback-urile publice; nu pornește teste, browser sau raport.
-- Consumerul deține proiecția imuabilă în raport și fațada selectorilor săi.
-- Selectorii păstrează sursa reală; titlurile și numele fișierelor nu definesc selecția.
-- `AutoExLaunchMetadataComponentTest` verifică lansări de clasă/metodă și suite
-  canonice sau filtrate prin tag, titluri identice, lansări repetate, numere exacte,
-  selectorii originali, sursele selectate și expandarea în browser a fiecărui câmp.
+The consumer maps typed attempts locally; K3 publishes the separate assertion
+and trace steps in `TEST BODY`, Reporting renders HTML, and opt-in acceptance
+opens that artifact.
 
 </details>
 
-## Rulare
+Generate a suite report and run actual-report acceptance in separate fresh
+staging areas, as required by the [build procedure](../docs/ATF_Build_And_Execution_Safety.md):
+
+```powershell
+mvn -B -ntp -pl atf-test-auto-ex -am "-Dtest=AutoExBackendRecoveryComponentTest" "-Datf.autoex.component.report-directory=target/recovery-suite-report" "-Dsurefire.failIfNoSpecifiedTests=false" test
+mvn -B -ntp -pl atf-test-auto-ex -am "-Dtest=AutoExRecoveryActualReportAcceptanceTest" "-Datf.autoex.recovery.actual-report=<configured-report-file>" "-Datf.autoex.component.report-directory=target/recovery-report-acceptance" "-Dsurefire.failIfNoSpecifiedTests=false" test
+```
+
+The acceptance test is inactive when `atf.autoex.recovery.actual-report` is not
+set. This verifies a Maven-generated component report; it does not claim an
+IntelliJ-launched report check or public-site E2E acceptance.
+
+</details>
+
+The deadline, rejections, and limits are in [UI](../atf-ui/README.md#backend-recovery-through-passive-observation).
+
+<a id="junit-launch-identity"></a>
+<a id="identitatea-lansării-junit"></a>
+## JUnit launch identity
+
+A collapsed INFO `Launch context` phase records the canonical class/method and
+outermost suite exposed by JUnit ancestry. `AutoExLaunchMetadata` projects the
+immutable `TestLaunchContext.capture(context)` snapshot supplied by Test Kit K4.
+It publishes the actual launcher selectors, filtered discovered-test inventory,
+and exact discovery count through Reporting's existing observation boundary.
+
+The count is measured at plan start, includes disabled tests, and excludes later
+dynamic registrations. Their count at capture is a separate field. Neither value
+is reconstructed from completed or successful tests.
+
+A plan executed in another session retains its inventory/count and explicitly identifies missing request
+provenance; disabling the SPI observer yields unavailable metadata.
+
+```mermaid
+flowchart LR
+    Request["Launcher request"] -->|discovers| Plan["Filtered TestPlan"]
+    Plan -->|snapshots| Kit["Test Kit K4"]
+    Kit -->|supplies| Adapter["AutoEx adapter"]
+    Adapter -->|publishes| Reporting["Reporting J26"]
+    Reporting -->|renders| Tests["Tests · Launch context"]
+```
 
 <details>
-<summary><strong>Detalii — rulare</strong></summary>
+<summary><strong>Legend — module interaction and count semantics</strong></summary>
 
-Din root-ul reactorului, testele componente offline:
+- Kit observes public launcher callbacks; it starts no tests, browser, or report.
+- The consumer owns the immutable report projection and its selector facade.
+- Launcher selectors retain source identity; display titles and filenames do not define selection.
+- `AutoExLaunchMetadataComponentTest` verifies direct class/method and canonical
+  or tag-filtered suites, duplicate titles, repeated launches, exact counts,
+  original selectors, selected sources, and browser expansion of every field.
+
+</details>
+
+<a id="run-selection"></a>
+<a id="rulare"></a>
+## Run selection
+
+<details>
+<summary><strong>Details — running</strong></summary>
+
+From the reactor root, run the offline component tests:
 
 ```powershell
 mvn -pl atf-test-auto-ex -am "-Dtest=AutoExComponentSuite" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
-### Cele trei suite principale
+<a id="the-three-main-suites"></a>
+<a id="cele-trei-suite-principale"></a>
+### The three main suites
 
-| Suită | Nivel și perimetru | Activare / efect extern |
+| Suite | Level and scope | Activation / external effect |
 |---|---|---|
-| `AutoExComponentSuite` | toate contractele locale de business și adaptoare | fără contact cu magazinul public |
-| `AutoExE2eSuite` | povești UI și profilele de evidence păstrate | opt-in E2E; fiecare clasă intră o singură dată |
-| `AutoExApiLiveSuite` | contracte read-only și lifecycle sintetic de cont | opt-in-uri independente; read-only nu activează mutațiile |
+| `AutoExComponentSuite` | all local business contracts and adapters | no contact with the public store |
+| `AutoExE2eSuite` | UI journeys and retained evidence profiles | E2E opt-in; each class is included only once |
+| `AutoExApiLiveSuite` | read-only contracts and synthetic account lifecycle | independent opt-ins; read-only does not enable mutations |
 
-Nu se adaugă o suită unit goală pentru simetrie cu Shop. Componentele API
-existente au acest nivel declarat; o suită unit separată se justifică numai
-când apar teste unit reale. Suitele live nu selectează teste UI/E2E.
+Do not add an empty unit suite for symmetry with Shop. Existing API components
+have this declared level; a separate unit suite is justified only when actual
+unit tests exist. Live suites do not select UI/E2E tests.
 
 ```powershell
 mvn -pl atf-test-auto-ex -am "-Dtest=AutoExComponentSuite" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
-Proba API live read-only este separată și nu creează conturi:
+The live read-only API test is separate and does not create accounts:
 
 ```powershell
 mvn -pl atf-test-auto-ex -am "-Dtest=AutoExApiReadOnlyLiveContractTest" "-Datf.autoex.api.readonly.live.enabled=true" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
-Contractele API live cu lifecycle de cont formează un gate distinct și explicit:
+Live API contracts with an account lifecycle form a separate, explicit gate:
 
 ```powershell
 mvn -pl atf-test-auto-ex -am "-Dtest=AutoExApiLiveSuite" "-Datf.autoex.api.live.enabled=true" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
-Ambele probe API folosesc configurarea `baseUrl` din `atf-auto-ex.yaml`; override-
-urile opționale sunt `-Datf.autoex.api.base-url=<url>` și
-`-Datf.autoex.api.timeout=PT20S`. Proprietățile lor de opt-in sunt independente
-de `e2eEnabled`: read-only folosește
-`atf.autoex.api.readonly.live.enabled`, iar proba cu cont folosește
-`atf.autoex.api.live.enabled`. Numai a doua creează și șterge un cont sintetic
-pe serviciul selectat.
+Both API tests use the `baseUrl` configuration from `atf-auto-ex.yaml`; optional
+overrides are `-Datf.autoex.api.base-url=<url>` and
+`-Datf.autoex.api.timeout=PT20S`. Their opt-in properties are independent of
+`e2eEnabled`: read-only uses
+`atf.autoex.api.readonly.live.enabled`, while the account test uses
+`atf.autoex.api.live.enabled`. Only the second creates and deletes a synthetic
+account on the selected service.
 
-Gate-ul business E2E live, cu o singură cumpărare și un raport:
+The live business E2E gate, with one purchase and one report:
 
 ```powershell
 mvn -pl atf-test-auto-ex -am "-Dtest=AutoExPurchaseUiE2eTest" "-Datf.autoex.e2e.enabled=true" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
-Gate-ul UI complet, cu poveștile business și profilele de evidence păstrate:
+The full UI gate, with business journeys and retained evidence profiles:
 
 ```powershell
 mvn -pl atf-test-auto-ex -am "-Dtest=AutoExE2eSuite" "-Datf.autoex.e2e.enabled=true" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
-Clasele și cele trei suite principale pot fi lansate direct din IntelliJ.
+Classes and the three main suites can be launched directly from IntelliJ.
 
-- În IntelliJ se poate rula direct `AutoExE2eSuite` sau o clasă E2E; markerul
-  runner-ului activează implicit testul când proprietatea JVM lipsește, chiar
-  dacă YAML-ul spune `e2eEnabled: false`. `-Datf.autoex.e2e.enabled=false` are
-  precedență și îl dezactivează.
-- În Maven, rularea obișnuită rămâne dezactivată de YAML-ul implicit. Opt-in-ul se
-  face prin `e2eEnabled: true` sau `-Datf.autoex.e2e.enabled=true`; `false` explicit
-  dezactivează în orice runner. Diagnosticul distinge YAML, proprietate JVM și
-  detectarea IDE; markerul IDE nu este raportat ca opt-in explicit.
-- Rapoartele sunt publicate sub `artifacts/reports/ui/auto-ex/`; execuția suitei
-  finalizează sesiunea de raportare la închiderea root-ului JUnit.
-  Overview/System declară `Client = Playwright browser`; fallback-ul generic
-  Reporting rămâne neutru pentru consumerii care nu furnizează acest context.
-- TEST BODY folosește timing monoton explicit prin `UiPhase.measureExecution()`.
-  Capturile și publicarea dovezilor sunt separate; execuția se oprește înaintea
-  cleanup-ului final și eliberării browserului. Flush-ul sesiunii rămâne separat,
-  conform [contractului Reporting](../atf-reporting/README.md#timing-e2e-la-ownerul-runtime).
+- In IntelliJ, `AutoExE2eSuite` or an E2E class can be run directly; the
+  runner marker enables the test by default when the JVM property is absent,
+  even if YAML sets `e2eEnabled: false`. `-Datf.autoex.e2e.enabled=false` takes
+  precedence and disables it.
+- In Maven, ordinary execution remains disabled by the default YAML. Opt in
+  with `e2eEnabled: true` or `-Datf.autoex.e2e.enabled=true`; explicit `false`
+  disables it in any runner. Diagnostics distinguish YAML, JVM property, and
+  IDE detection; the IDE marker is not reported as an explicit opt-in.
+- Reports are published under `artifacts/reports/ui/auto-ex/`; suite execution
+  finalizes the report session when the JUnit root closes.
+  Overview/System declares `Client = Playwright browser`; the generic Reporting
+  fallback remains neutral for consumers that do not provide this context.
+- TEST BODY uses explicit monotonic timing through `UiPhase.measureExecution()`.
+  Captures and evidence publishing are separate; execution stops before final
+  cleanup and browser release. Session flushing remains separate, according to
+  the [Reporting contract](../atf-reporting/README.md#timing-măsurat-înaintea-publicării).
 
-Contractele API și precondiția pentru `UI_API` sunt normate în acest README.
-`AutoExPurchaseSession` rămâne boundary intern al runtime-ului consumer; nu
-există un TODO activ de extracție generică. Adnotările și lifecycle-ul JUnit
-rămân în adaptorul test-scoped; browserul și publicarea aparțin runtime-ului main.
+API contracts and the `UI_API` precondition are documented in this README.
+`AutoExPurchaseSession` remains an internal boundary of the consumer runtime;
+there is no active TODO for generic extraction. Annotations and JUnit lifecycle
+remain in the test-scoped adapter; the browser and publishing belong to the main runtime.
 
-### Suport partajat și source-set-uri
+<a id="shared-support-and-source-sets"></a>
+<a id="suport-partajat-și-source-set-uri"></a>
+### Shared support and source sets
 
 | Owner | Contract |
 |---|---|
-| AutoEx `src/main/java` | pagini, journey-uri, API și `runtime`: browser, raport, profil rezolvat, mapping network și pregătirea clientului; fără JUnit/Kit |
-| AutoEx `src/test/java` | teste business și suite în `atf.autoex.tests`; adaptoarele JUnit sunt în `atf.autoex.tests.extension`; testele nu apelează alte clase de test |
-| `atf-test-kit.lifecycle` | `TestRunInitialization`, cleanup și compensare; este pachet în Kit-ul existent, nu modul nou |
-| `atf-ui` | `UiNetworkInspector.observationCursor()` / `observationsSince(...)` și `UiScreenAudit`: observație terminală și validare PNG comune; nu calculează verdictul aplicației |
+| AutoEx `src/main/java` | pages, journeys, API, and `runtime`: browser, report, resolved profile, network mapping, and customer setup; no JUnit/Kit |
+| AutoEx `src/test/java` | business tests and suites in `atf.autoex.tests`; JUnit adapters in `atf.autoex.tests.extension`; tests do not call other test classes |
+| `atf-test-kit.lifecycle` | `TestRunInitialization`, cleanup, and compensation; a package in the existing Kit, not a new module |
+| `atf-ui` | `UiNetworkInspector.observationCursor()` / `observationsSince(...)` and `UiScreenAudit`: shared terminal observation and PNG validation; does not calculate the application verdict |
 
-### Runtime în main și granița JUnit
+<a id="runtime-in-main-and-the-junit-boundary"></a>
+<a id="runtime-în-main-și-granița-junit"></a>
+### Runtime in main and the JUnit boundary
 
-`atf.autoex.support` nu mai găzduiește clase în test. Capabilitățile
-reutilizabile au inputuri explicite și sunt publicate în main:
+`atf.autoex.support` no longer hosts classes in test. Reusable capabilities have
+explicit inputs and are published in main:
 
-| Pachet / clasă | Responsabilitate |
+| Package / class | Responsibility |
 |---|---|
-| `runtime.AutoExE2eRun` | fațada browser/checkpoint, fără context de runner |
-| `runtime.AutoExReportSession` | sesiunea de raport și metadata mediului; callerul deține durata ei |
-| `runtime.AutoExObservedExchangeMapper` | bridge explicit UI → Reporting, cu headere observate și disponibilitatea body-ului |
-| `runtime.AutoExRunLifecycle` | port de finalizare cu callback-uri tipizate; păstrează runtime-ul independent de Kit |
-| `runtime.config` | rădăcina proiectului și profilul cu enum-uri Reporting deja rezolvate |
-| `runtime.account.AutoExCustomerApiSetup` | pregătirea API a clientului cu cleanup armat înaintea mutației |
+| `runtime.AutoExE2eRun` | browser/checkpoint facade, without runner context |
+| `runtime.AutoExReportSession` | report session and environment metadata; the caller owns its duration |
+| `runtime.AutoExObservedExchangeMapper` | explicit UI → Reporting bridge, with observed headers and body availability |
+| `runtime.AutoExRunLifecycle` | completion port with typed callbacks; keeps the runtime independent of Kit |
+| `runtime.config` | project root and profile with Reporting enums already resolved |
+| `runtime.account.AutoExCustomerApiSetup` | API customer setup with cleanup armed before mutation |
 
-`extension.AutoExE2eExtension` păstrează condiția, Store-ul și ParameterResolver-ul.
-`AutoExRunFactory` rezolvă adnotările și folosește `TestRunInitialization`;
-`AutoExRunLifecycleAdapter` deleagă ordinea captură/cleanup/close către Kit.
-`AutoExEvidenceProfileAdapter` convertește declarațiile Kit înainte de main.
+`extension.AutoExE2eExtension` retains the condition, Store, and ParameterResolver.
+`AutoExRunFactory` resolves annotations and uses `TestRunInitialization`;
+`AutoExRunLifecycleAdapter` delegates capture/cleanup/close ordering to Kit.
+`AutoExEvidenceProfileAdapter` converts Kit declarations before main.
 
-Dependențele Kit și Console rămân test-scoped; nu există JUnit/Kit în main.
+Kit and Console dependencies remain test-scoped; main has no JUnit/Kit.
 
-`AutoExRunLifecycleAdapterComponentTest` verifică eroarea primară, toate erorile
-suprimate și închiderea după eșec. `AutoExRuntimeBoundaryComponentTest` probează
-mapperul și publică prin runtime un raport cu DOM local, acțiuni și captură reală;
-aceasta nu este o execuție a site-ului remote.
+`AutoExRunLifecycleAdapterComponentTest` verifies the primary error, all
+suppressed errors, and closure after failure. `AutoExRuntimeBoundaryComponentTest`
+tests the mapper and publishes a report through the runtime with local DOM,
+actions, and a real capture; this is not execution of the remote site.
 
-- Journey-ul nu se copiază pentru alt profil; UI+API adaugă dovezi și precondiții
+- The journey is not copied for another profile; UI+API adds evidence and
 
-  explicite, nu înlocuiește confirmarea comenzii/facturii.
+  explicit preconditions; it does not replace order/invoice confirmation.
 
-- `AutoExAccountCleanupRecoveryComponentTest` verifică local confirmarea de
+- `AutoExAccountCleanupRecoveryComponentTest` locally verifies rejected order
 
-  comandă respinsă în UI/UI_API: validatorul și checkpoint-ul reale păstrează
+  confirmation in UI/UI_API: the real validator and checkpoint preserve
 
-  expected-ul, POST-ul unic, captura originală înaintea cleanup-ului și ștergerea
+  the expected value, single POST, original capture before cleanup, and deletion
 
-  contului deținut. Următoarea invocare primește un context browser independent.
+  of the owned account. The next invocation receives an independent browser context.
 
-  Fixture-ul armează proprietatea contului; nu certifică înregistrarea remote
+  The fixture arms account ownership; it does not certify remote registration
 
-  sau failure-urile celorlalte puncte ale journey-ului.
-- [Proba de coș UI/UI_API](src/test/java/atf/autoex/tests/component/navigation/AutoExAccountCleanupRecoveryComponentTest.java)
-  trece prin `CartPage`, `AutoExCartUiFlow` și `AutoExCartFlow.checkout` reale.
-  Un preț DOM greșit păstrează `AutoExCartValidationException` și cauza checkpoint-ului;
-  checkout-ul nu este activat și POST-ul local nu este reluat. Captura coșului
-  precede cleanup-ul owned; următoarea invocare validează un coș corect și intră
-  în checkout o singură dată, într-un context proaspăt. Fixture-ul nu certifică
-  înregistrarea remote, adăugarea publică din catalog sau toate ramurile Cart.
+  or failures at other journey points.
+- [UI/UI_API cart test](src/test/java/atf/autoex/tests/component/navigation/AutoExAccountCleanupRecoveryComponentTest.java)
+  passes through the real `CartPage`, `AutoExCartUiFlow`, and `AutoExCartFlow.checkout`.
+  An incorrect DOM price preserves `AutoExCartValidationException` and the checkpoint cause;
+  checkout is not activated and the local POST is not replayed. The cart capture
+  precedes owned cleanup; the next invocation validates a correct cart and enters
+  checkout once in a fresh context. The fixture does not certify remote
+  registration, public catalog addition, or every Cart branch.
 
-- [Failure după setup-ul contului](src/test/java/atf/autoex/tests/component/navigation/AutoExAccountCleanupRecoveryComponentTest.java)
-  folosește înregistrarea nativă prin `AccountPage`, fără armare manuală în fixture.
-  Aceeași eroare controlată după Continue rămâne primară în UI/UI_API; signup și
-  creare sunt unice. Cleanup-ul șterge numai identitatea deținută; identitatea
-  străină refuză ștergerea și adaugă diagnosticul secundar. Captura inițială,
-  verdictul FAIL și contextul proaspăt al vecinului sănătos se păstrează.
-  Rutele/formularele sunt locale: proba nu certifică înregistrarea remote ori
-  alternarea completă a profilelor E2E. Succesul setup-ului nu implică PASS al scenariului.
-- `AutoExE2eSuite` păstrează selecția completă. Reducerea purchase-urilor
+- [Failure after account setup](src/test/java/atf/autoex/tests/component/navigation/AutoExAccountCleanupRecoveryComponentTest.java)
+  uses native registration through `AccountPage`, without manually arming the fixture.
+  The same controlled error after Continue remains primary in UI/UI_API; signup and
+  creation happen once. Cleanup deletes only the owned identity; a foreign identity
+  rejects deletion and adds a secondary diagnostic. The initial capture, FAIL
+  verdict, and fresh context for the healthy neighbor are preserved.
+  Routes/forms are local: the test does not certify remote registration or the
+  complete alternation of E2E profiles. Successful setup does not imply a PASS scenario.
+- `AutoExE2eSuite` retains the complete selection. Reducing repeated purchases
 
-  repetate pentru evidence cere întâi probe de adaptor pe succes și failure.
+  for evidence first requires adapter tests for success and failure.
 
-Restul migrării urmează [ghidul de testare](../docs/ATF_Testing_Guide.md#separarea-flow-urilor-business-ui-și-a-validărilor),
-păstrând confirmarea comenzii, factura și cleanup-ul contului.
+The rest of the migration follows the [testing guide](../docs/ATF_Testing_Guide.md#separating-business-flows-ui-flows-and-validations),
+preserving order confirmation, invoice, and account cleanup.
 
-### Readiness înainte de checkout
+<a id="readiness-before-checkout"></a>
+<a id="readiness-înainte-de-checkout"></a>
+### Readiness before checkout
 
-`CartPage.proceedToCheckout` așteaptă bounded vizibilitatea controlului prin
-portul instrumentat `AutoExUiActions.waitForVisible`, apoi execută clickul
-normal, cu verificarea de unicitate existentă. Nu condiționează sincronizarea
-de textul butonului și nu repetă mutația. Absența permanentă ori două controale
-opresc tranziția și rămân în secvența raportată.
+`CartPage.proceedToCheckout` waits, with a bounded timeout, for the control to
+become visible through the instrumented `AutoExUiActions.waitForVisible` port,
+then performs the normal click with the existing uniqueness check. It does not
+condition synchronization on button text and does not repeat the mutation.
+Permanent absence or two controls stop the transition and remain in the reported sequence.
 
-- Identitatea/coșul după înregistrare sunt recitite de gate-ul business înaintea
-  acestei acțiuni, conform [contractului explicit](#gate-ul-coșului-și-ownerul-contului).
-  Sincronizarea locatorului și comparațiile business au owneri și probe distincte.
+- The post-registration identity/cart are read again by the business gate before
+  this action, according to the [explicit contract](#cart-gate-and-account-owner).
+  Locator synchronization and business comparisons have separate owners and evidence.
 
-`AutoExCheckoutReadinessComponentTest` probează un control inserat după
-navigare, unul absent și unul ambiguu, prin browser și recorder reale. Oracolele
-coșului rămân independente; această sincronizare locală nu implementează
-[politica BE a catalogului](#politica-be-a-catalogului), care nu reexecută checkout-ul.
+`AutoExCheckoutReadinessComponentTest` tests a control inserted after
+navigation, one that is absent, and an ambiguous one using the real browser and
+recorder. Cart oracles remain independent; this local synchronization does not
+implement the [catalog BE policy](#catalog-be-policy), which does not replay checkout.
 
 </details>
 
-## Geometria YAML livrată
+<a id="shipped-yaml-geometry"></a>
+<a id="geometria-yaml-livrată"></a>
+## Shipped YAML geometry
 
-Tabelul descrie configurația livrată, fără override-uri de proces sau ale probei.
-Sursa este [YAML-ul consumerului](src/test/resources/atf-auto-ex.yaml); calculul pur
-aparține [UI](../atf-ui/README.md#geometria-nativă-a-contextului).
+The table describes the shipped configuration, without process or test overrides.
+The source is the [consumer YAML](src/test/resources/atf-auto-ex.yaml); the pure
+calculation belongs to [UI](../atf-ui/README.md#native-context-geometry).
 
-| Sursă | Ieșire cerută | Zoom | Viewport CSS | DPR |
+| Source | Requested output | Zoom | CSS viewport | DPR |
 |---|---|---|---|---|
-| YAML livrat | `1440 × 1000` | `70` | `2057 × 1429` | `0.70` |
+| Delivered YAML | `1440 × 1000` | `70` | `2057 × 1429` | `0.70` |
 
-`DocumentedUiGeometryContractTest` compară declarația cu YAML-ul live și modelul
-UI executabil; mutanții schimbă numai documentul. Acesta nu măsoară pixeli de
-captură: geometria browserului are proba nativă la ownerul UI, iar System
-publică configurația efectivă a rulării, inclusiv când ea diferă de acest tabel.
+`DocumentedUiGeometryContractTest` compares the declaration with the live YAML
+and executable UI model; mutants change only the document. It does not measure
+capture pixels: browser geometry has its native test in the UI owner, while
+System publishes the run's effective configuration, including when it differs
+from this table.
 
-## Verificare rapidă
+<a id="quick-verification"></a>
+<a id="verificare-rapidă"></a>
+## Quick verification
 
-| Decizie | Sursă și limită |
+| Decision | Source and limit |
 |---|---|
-| Regulile purchase cu expected independent | [sursa ownerului](src/main/java/atf/autoex/flow/purchase/AutoExPurchaseUiFlow.java); probă: [AutoExPurchaseBusinessComponentTest](src/test/java/atf/autoex/tests/component/journey/AutoExPurchaseBusinessComponentTest.java) |
-| Dependențe și source-set-uri | [POM](pom.xml); scope-ul declarat este autoritatea pentru integrare |
-| Ce nu demonstrează această probă | Contractul de componentă nu confirmă site-ul public ori identitatea/coșul după înregistrare. |
+| Purchase rules with an independent expected value | [owner source](src/main/java/atf/autoex/flow/purchase/AutoExPurchaseUiFlow.java); test: [AutoExPurchaseBusinessComponentTest](src/test/java/atf/autoex/tests/component/journey/AutoExPurchaseBusinessComponentTest.java) |
+| Dependencies and source sets | [POM](pom.xml); the declared scope is authoritative for integration |
+| What this test does not demonstrate | The component contract does not confirm the public site or the identity/cart after registration. |
 
 <details>
-<summary><strong>Comandă pentru proba locală</strong></summary>
+<summary><strong>Command for the local test</strong></summary>
 
-Rulați din rădăcina unui [staging extern](../docs/ATF_Build_And_Execution_Safety.md), cu JDK 21 și Maven.
+Run from the root of an [external staging area](../docs/ATF_Build_And_Execution_Safety.md), with JDK 21 and Maven.
 
 ```powershell
 mvn -B -pl atf-test-auto-ex -am "-Dtest=AutoExPurchaseBusinessComponentTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
-Comanda selectează proba numită și construiește dependențele; nu declară
-trecerea întregului modul. Contractul de componentă nu confirmă site-ul public ori identitatea/coșul după înregistrare.
+The command selects the named test and builds its dependencies; it does not
+claim that the whole module passed. The component contract does not confirm the
+public site or the identity/cart after registration.
 
 </details>
 
-## Catalog evidence association boundary
+<a id="screenshot-evidence"></a>
+<a id="dovezile-capturilor-de-ecran"></a>
+<a id="catalog-evidence-association-boundary"></a>
+## Screenshot evidence
 
-The current API checkpoint awaits a catalog GET by method/path, then attaches its comparisons to captured exchanges selected by path. The [consumer correlation criterion](../../atf_j1/docs/feedback/ATF_Consumer_Business_Test_Focus_Feedback.md#autoex-catalog-evidence-146--bind-comparison-evidence-to-its-observed-exchange) requires characterization of mixed methods and repeated catalog requests before claiming unique exchange ownership.
+Screenshot evidence uses the whole browser viewport at the configured 70% zoom,
+retaining the page around the current action. Region close-ups supplement the
+complete frame; the report fits the full image with its aspect ratio and all edges.
 
-Independent expectations and captured verdicts remain application-owned; the renderer does not select the business exchange or fabricate a request.
+The [shared capture contract](../atf-ui/README.md#full-context-screenshots) and
+[native pixel regression](../atf-ui/src/test/java/atf/ui/playwright/geometry/PlaywrightPointerGeometryComponentTest.java)
+protect context independently of the screenshot publication policy.

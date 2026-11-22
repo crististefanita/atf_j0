@@ -1,117 +1,129 @@
-# ATF Validation — contracte independente de motorul de randare
+<a id="atf-validation--contracts-independent-of-the-rendering-engine"></a>
+<a id="atf-validation--contracte-independente-de-motorul-de-randare"></a>
+# ATF Validation — contracts independent of the rendering engine
 
-`atf-validation` este modulul care transformă un `ApiResponse` și un contract
-de response într-o decizie verificabilă și într-un set de assertions publicabil.
-Este un JAR reutilizabil: nu face HTTP, nu cunoaște Extent și nu construiește
-HTML/CSS.
+`atf-validation` turns an `ApiResponse` and response contract into a verifiable
+decision and a publishable set of assertions. It is a reusable JAR: it does not
+make HTTP calls, know about Extent, or build HTML/CSS.
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-**Trasee rapide:** [API public](#responsabilități-publice) · [Audit componentă](#limita-față-de-auditul-testelor-componente) · [Comparator AI](#comparatorul-ai--contract-implementat) · [Probe locale](#verificare-rapidă)
+**Quick links:** [Public API](#public-responsibilities) · [Component audit](#boundary-with-component-test-audits) · [AI comparator](#ai-comparator--implemented-contract) · [Local proofs](#quick-verification)
 
 | Input | Decision | Output |
 |---|---|---|
 | response + rules | contract evaluation | typed validation outcome |
-| outcome + evidence sink | semantic publication | port neutru către reporting |
-| invalid payload | failure evidence | fără renderer în runtime |
+| outcome + evidence sink | semantic publication | neutral port to reporting |
+| invalid payload | failure evidence | no renderer in runtime |
 
-## Diagramă de bază
+<a id="core-diagram"></a>
+<a id="diagramă-de-bază"></a>
+## Core diagram
 
-Diagrama arată fluxul de date și colaborarea runtime; nu este graful de
-dependențe Maven. Graful de module și sensul săgeților sunt în README-ul
-rădăcină și în `docs/ATF_Architecture.md`.
+The diagram shows data flow and runtime collaboration; it is not the Maven
+dependency graph. The module graph and arrow directions are in the root README
+and `docs/ATF_Architecture.md`.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Core["Core"] -->|alimentează| Validation["Validation"]
-    Tests["Reporting tests"] -. fixtures .-> Validation
-    Validation -->|calculează| Decision["Verdict typed"]
-    Decision -->|publică| Sink["Sink"]
-    Sink -->|adaptează| Adapter["Adaptor"]
-    Adapter -->|transmite| Reporting["Reporting"]
+    Core["Core JAR"] -->|feeds| Validation["Validation"]
+    Tests["Local module tests"] -. fixtures .-> Validation
+    Validation -->|calculates| Decision["Typed verdict"]
+    Decision -->|publishes| Sink["Sink"]
+    Sink -->|adapts| Adapter["Adapter"]
+    Adapter -->|passes through| Reporting["Reporting"]
 ```
 
 <details>
-<summary><strong>Legendă — verdict fără renderer</strong></summary>
+<summary><strong>Legend — verdict without a renderer</strong></summary>
 
-- `atf-core` oferă modele și porturi neutre;
-- `atf-validation` evaluează contractul și produce decizia typed;
-- `ValidationSink` este singurul seam către publicare;
-- adapterul consumerului mapează evidence-ul spre `atf-reporting`, fără să schimbe verdictul calculat;
-- `atf-reporting` rămâne standalone și nu devine dependent de `atf-validation`.
-Etichetele scurte păstrează următorul sens:
+- `atf-core` provides neutral models and ports;
+- `atf-validation` evaluates the contract and produces the typed decision;
+- `ValidationSink` is the only seam to publication;
+- the consumer adapter maps evidence to `atf-reporting` without changing the calculated verdict;
+- `atf-reporting` remains standalone and does not become dependent on `atf-validation`.
+Short labels carry the following meanings:
 
-| În schemă | Sens complet |
+| In the diagram | Full meaning |
 |---|---|
 | Core | core models |
-| Reporting tests | reporting tests |
+| Module tests | atf-validation unit and component tests |
 | Verdict typed | typed decision |
 | Sink | validation sink |
 | Adaptor | consumer adapter |
-| publică | publică prin |
-| transmite | trimite către |
+| publishes | publishes through |
+| passes through | sends to |
 
 </details>
 
-Direcția este intenționată:
+The dependency direction is intentional:
 
-- `atf-core` definește modele neutre și porturi mici;
-- `atf-validation` depinde numai de core și de biblioteca JSON necesară evaluării;
-- `atf-core` orchestrează mecanica generică a request-ului și lifecycle-ului, dar
-  nu deține regulile de contract;
-- consumerul mapează decizia către portul reporting folosit de propria compoziție;
-- `atf-reporting` deține exclusiv Extent, HTML, CSS, asset-urile și finalizarea
-  artifactului, fără dependență de acest modul;
-- `atf-reporting-tests` test scope verifică modulele prin fake-uri deterministe și
-  scenarii de integrare; `atf-tests` păstrează numai guvernanța globală a reactorului.
+- `atf-core` defines neutral models and small ports;
+- `atf-validation` depends only on Core and the JSON library required for evaluation;
+- `atf-core` orchestrates generic request and lifecycle mechanics but does not
+  own contract rules;
+- the consumer maps the decision to the reporting port used by its composition;
+- `atf-reporting` exclusively owns Extent, HTML, CSS, assets, and artifact
+  finalization, without depending on this module;
+- local module tests verify the validation module through deterministic fakes;
+  `atf-tests` covers whole-reactor governance without taking ownership of
+  application behavior.
 
-## Alege forma validării
+<a id="choose-the-validation-form"></a>
+<a id="alege-forma-validării"></a>
+## Choose the validation form
 
-| Caz | Intrare și rezultat | Verificarea potrivită |
+| Case | Input and result | Suitable verification |
 |---|---|---|
-| response API și reguli | `ResponseContract` → `ValidationDecision` | [contracte pure](src/test/java/atf/validation/ResponseContractTest.java) |
-| evaluare și publicare prin port | `ResponseContractReporter` + `ValidationSink` | [protocol, refuz și cleanup](src/test/java/atf/validation/protocol/ValidationProtocolTest.java) |
-| comparație JUnit auditabilă | extensia consumerului → Test Kit | [limita auditului componentelor](#limita-față-de-auditul-testelor-componente) |
-| output AI deja furnizat | evaluator pur → snapshot immutable | [contractul implementat](#comparatorul-ai--contract-implementat) |
+| API response and rules | `ResponseContract` → `ValidationDecision` | [pure contracts](src/test/java/atf/validation/ResponseContractTest.java) |
+| evaluation and publication through a port | `ResponseContractReporter` + `ValidationSink` | [protocol, rejection, and cleanup](src/test/java/atf/validation/protocol/ValidationProtocolTest.java) |
+| auditable JUnit comparison | consumer extension → Test Kit | [component-test audit boundary](#boundary-with-component-test-audits) |
+| already supplied AI output | pure evaluator → immutable snapshot | [implemented contract](#ai-comparator--implemented-contract) |
 
-Expected-ul este input independent; evaluarea produce verdictul înaintea
-redactării sau preview-ului. Alegerea profilului de raport și a rendererului
-aparține compoziției, iar publicarea nu reevaluează comparația.
+Expected is independent input; evaluation produces the verdict before
+redaction or preview. The composition chooses the report profile and renderer,
+and publication does not reevaluate the comparison.
 
-Pentru adopție, începe cu un rezultat pur și un sink controlat; adaugă
-integrarea rendererului numai la ownerul adaptorului. [Utilizarea ca JAR](#utilizare-ca-jar)
-și [proba locală](#verificare-rapidă) delimitează dependențele și acceptanța.
+For adoption, start with a pure result and controlled sink; add renderer
+integration only at the adapter owner. [JAR usage](#jar-usage) and
+[local proof](#quick-verification) define dependencies and acceptance.
 
-## Responsabilități publice
+<a id="public-responsibilities"></a>
+<a id="responsabilități-publice"></a>
+## Public responsibilities
 
-| Componentă | Responsabilitate | Nu deține |
+| Component | Responsibility | Does not own |
 |---|---|---|
-| `ResponseContract` | fațadă fluentă pentru compunerea regulilor și lifecycle one-shot | transport sau UI |
-| `ResponseContractRuleSet` | construiește regulile pentru status, headers, JSON path, arrays și schema I/O | duplicate identity sau verdict global |
-| `ResponseValidationRule` | descrie o regulă individuală | lifecycle-ul request-ului |
-| `ValidationEvaluator` | evaluează regulile și calculează statusul | Extent și markup |
-| `ValidationOutcomePolicy` | exprimă politica strictă sau soft-warning fără booleani împrăștiați | transport sau UI |
-| `ValidationDecision` | păstrează verdictul, mesajul, assertions și regula soft/fail | publicarea artifactului |
-| `ValidationTable` | agregă assertions într-o singură colecție | layout-ul tabelului |
-| `ResponseContractReporter` | leagă evaluarea de `ValidationSink` | implementarea sink-ului |
-| `SchemaResourceResolver` | rezolvă schema din rădăcini declarate fără traversal | filesystem global sau raportare |
-| `AiEvaluationCase` + `AiFieldExpectation` | expected versionat, independent de output; fiecare field poate declara o cerință typed de grounding | apelarea unui model, output-ul observat sau decizia consumerului asupra expected-ului business |
-| `AiEvaluationEvaluator` + `AiEvaluationPolicy` | comparații typed, score ponderat, threshold explicit și hard-fail critic | provider AI, renderer sau workflow review |
-| `AiInvocationEvidence` | clasifică real/mock/fallback/unknown și păstrează referințe opace request/response/output | payload, prompt, token, credential sau invocation efectivă |
-| `ai.grounding`: `AiGroundingRequirement`, `AiSourceReference`, `AiGroundingObservation` | allowlist de source IDs și verdict per field fără a copia payload-ul sursei | ambiguitate/run-level ledger sau reporting |
-| `AiEvaluationSnapshot` + `AiFieldComparison` | snapshot immutable `COMPLETE` cu policy, timestamp, invocation, comparații, observații de grounding și hard-fails cu expected/observed/reason/evidence reference | run-level evidence ledger și proiecție raport |
+| `ResponseContract` | fluent facade for composing rules and one-shot lifecycle | transport or UI |
+| `ResponseContractRuleSet` | builds rules for status, headers, JSON paths, arrays, and I/O schema | duplicate identity or global verdict |
+| `ResponseValidationRule` | describes one rule | request lifecycle |
+| `ValidationEvaluator` | evaluates rules and calculates the status | Extent or markup |
+| `ValidationOutcomePolicy` | expresses strict or soft-warning policy without scattered booleans | transport or UI |
+| `ValidationDecision` | retains the verdict, message, assertions, and soft/fail rule | artifact publication |
+| `ValidationTable` | aggregates assertions in one collection | table layout |
+| `ResponseContractReporter` | connects evaluation to `ValidationSink` | sink implementation |
+| `SchemaResourceResolver` | resolves schemas from declared roots without traversal | global filesystem or reporting |
+| `AiEvaluationCase` + `AiFieldExpectation` | versioned expected input, independent of output; each field can declare a typed grounding requirement | invoking a model, observed output, or the consumer's decision about the business expected value |
+| `AiEvaluationEvaluator` + `AiEvaluationPolicy` | typed comparisons, weighted score, explicit threshold, and critical hard-fail | AI provider, renderer, or review workflow |
+| `AiInvocationEvidence` | classifies real/mock/fallback/unknown and retains opaque request/response/output references | payload, prompt, token, credential, or actual invocation |
+| `ai.grounding`: `AiGroundingRequirement`, `AiSourceReference`, `AiGroundingObservation` | allowlisted source IDs and per-field verdict without copying source payload | ambiguity/run-level ledger or reporting |
+| `AiEvaluationSnapshot` + `AiFieldComparison` | immutable `COMPLETE` snapshot with policy, timestamp, invocation, comparisons, grounding observations, and hard-fails with expected/observed/reason/evidence reference | run-level evidence ledger and report projection |
 
-`ResponseContract` nu mai conține mecanica fiecărei reguli. `ResponseContractRuleSet`
-producește definiții compozabile (`identity`, `title`, `ResponseValidationRule`),
-inclusiv adapterul pentru schema I/O. Fațada păstrează compatibilitatea DSL-ului,
-deduplicarea și regula one-shot; `ValidationEvaluator` rămâne singurul owner al
-deciziei aggregate și al politicii strict/warning.
+`ResponseContract` no longer contains the mechanics for each rule.
+`ResponseContractRuleSet` produces composable definitions (`identity`, `title`,
+`ResponseValidationRule`), including the I/O schema adapter. The facade preserves
+DSL compatibility, deduplication, and the one-shot rule; `ValidationEvaluator`
+remains the sole owner of the aggregate decision and strict/warning policy.
 
-## Portul către raportare
+<a id="reporting-port"></a>
+<a id="portul-către-raportare"></a>
+## Reporting port
 
-Validarea nu primește `ExtentTest`, `ExtentReports` sau un tip concret de request.
-Primește doar:
+Validation does not receive `ExtentTest`, `ExtentReports`, or a concrete request
+type. It receives only:
 
 ```java
 ValidationDecision decision = reporter.validate(
@@ -122,57 +134,63 @@ ValidationDecision decision = reporter.validate(
         warningMode);
 ```
 
-`request` trebuie doar să implementeze `ValidationSink`. Portul deschide o
-singură zonă de validation, primește toate rândurile într-un tabel agregat,
-publică statusul calculat și se închide determinist. Consumerul poate adapta
-această evidence către portul reporting pe care îl folosește; `atf-reporting`
-nu importă acest modul și nu primește direct `ValidationDecision`.
+`request` only needs to implement `ValidationSink`. The port opens one validation
+area, receives all rows in an aggregate table, publishes the calculated status,
+and closes deterministically. The consumer can adapt this evidence to its
+reporting port; `atf-reporting` does not import this module or receive
+`ValidationDecision` directly.
 
-### Cauza primară și refuzul înaintea evaluării
+<a id="primary-cause-and-rejection-before-evaluation"></a>
+<a id="cauza-primară-și-refuzul-înaintea-evaluării"></a>
+### Primary cause and rejection before evaluation
 
-`ResponseContractReporter` separă evaluarea, publicarea și închiderea:
+`ResponseContractReporter` separates evaluation, publication, and closure:
 
-- Un FAIL strict păstrează `ApiValidationException`; close-ul defect devine suppressed.
-- Erorile de publicare/completare sunt propagate fără repetarea scrierii în scope.
-- O eroare runtime de evaluare publică o singură dovadă FAIL, dacă sink-ul permite;
-  erorile secundare rămân inspectabile și nu produc self-suppression.
+- A strict FAIL preserves `ApiValidationException`; a close failure becomes suppressed.
+- Publication/completion errors propagate without repeating the write in the scope.
+- A runtime evaluation error publishes one FAIL record if the sink allows it;
+  secondary errors remain inspectable and do not cause self-suppression.
 
-`ValidationTable.check(...)` verifică lifecycle-ul, identitatea și callback-ul
-înainte să execute predicatul. După publicare sau pentru o identitate invalidă,
-numărul evaluărilor este zero.
+`ValidationTable.check(...)` validates the lifecycle, identity, and callback
+before executing the predicate. After publication or with an invalid identity,
+the evaluation count is zero.
 
-- Un predicat eligibil care aruncă se execută o dată și produce dovada FAIL;
-  comparația integrală precede redacția și preview-ul 240.
+- An eligible predicate that throws runs once and produces FAIL evidence;
+  the full comparison precedes redaction and the 240-character preview.
 
-Probele de port sunt în [ValidationProtocolTest](src/test/java/atf/validation/protocol/ValidationProtocolTest.java),
-fără renderer ori fixture-uri business.
+Port checks are in [ValidationProtocolTest](src/test/java/atf/validation/protocol/ValidationProtocolTest.java),
+without a renderer or business fixtures.
 
-Și testele UI folosesc același contract de assertions:
+UI tests use the same assertion contract:
 
 ```text
 Playwright check → AtfAssertion → UiExtentReportSession
                  → ASSERTION | EXPECTED | ACTUAL | RESULT
 ```
 
-API și UI împart forma tabelului; verdictul și ownerul evidence-ului rămân
-specifice verificării. Consumerul alege sesiunea individuală sau partajată de
-suită și păstrează rezultatul fiecărui scenariu.
+API and UI share the table shape; the verdict and evidence owner remain specific
+to the check. The consumer chooses an individual or suite-shared session and
+retains each scenario's result.
 
-### Limita față de auditul testelor componente
+<a id="boundary-with-component-test-audits"></a>
+<a id="limita-față-de-auditul-testelor-componente"></a>
+### Boundary with component-test audits
 
-- `ResponseContract` și `ValidationEvaluator` evaluează contracte API; nu există
-  încă un evaluator general de aserțiuni pentru modele și componente.
-- `ValidationTable` redactează valorile și numele pe context complet prin Core, apoi păstrează un preview, implicit
-  maximum 240 de caractere pe câmp, inclusiv marcajul `…` la trunchiere; constructorul
-  permite o limită pozitivă explicită. O extensie viitoare păstrează plafonul
-  configurat, inclusiv în detaliile expandate. `ValidationPreviewRedactionTest` protejează ordinea redactare → plafon și verdictul calculat pe inputul integral.
-- Comparația se face pe valorile integrale; scurtarea textului raportat nu
-  schimbă verdictul. Mesajul auditabil trebuie să explice diferența în limita
-  configurată, inclusiv când diferența este dincolo de preview.
-- Componentele AutoEx și Shop folosesc
-  [fațada JUnit auditabilă din Test Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră),
-  adaptată de consumer la `AssertionStep` Reporting. Extensia evaluatorului pur
-  este descrisă separat ca [design amânat](#evaluator-general-pentru-modele).
+- `ResponseContract` and `ValidationEvaluator` evaluate API contracts; there is
+  not yet a general assertion evaluator for models and components.
+- `ValidationTable` redacts values and names using the full context through Core,
+  then keeps a preview, 240 characters per field by default, including the `…`
+  truncation marker; the constructor allows an explicit positive limit. A future
+  extension retains the configured limit, including in expanded details.
+  `ValidationPreviewRedactionTest` protects redaction-before-limit ordering and
+  the verdict calculated from the full input.
+- Comparison uses full values; shortening reported text does not change the
+  verdict. The auditable message must explain the difference within the
+  configured limit, including when the difference falls beyond the preview.
+- AutoEx and Shop components use
+  [auditable JUnit facade in Test Kit](../lib/README.TestKit.md#scope-and-integration),
+  adapted by the consumer to Reporting's `AssertionStep`. The pure evaluator
+  extension is described separately as [deferred design](#general-evaluator-for-models).
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px","actorFontSize":"15px","messageFontSize":"12px","noteFontSize":"12px"},"themeCSS":".actor { font-size: 15px !important; } .messageText, .labelText, .loopText, .noteText { font-size: 12px !important; }","sequence":{"actorFontSize":15,"messageFontSize":12,"noteFontSize":12,"width":120,"height":42,"actorMargin":40,"messageMargin":24,"mirrorActors":false,"wrap":true,"wrapPadding":6}}}%%
@@ -194,125 +212,136 @@ sequenceDiagram
 ```
 
 <details>
-<summary><strong>Legendă — secvența unei validări</strong></summary>
+<summary><strong>Legend — validation sequence</strong></summary>
 
-- testul execută operația și trimite response-ul către evaluator;
-- evaluatorul compune un singur tabel de assertions și un verdict agregat;
-- sink-ul primește evidence renderer-neutral, iar reporting-ul doar îl proiectează.
-Etichetele scurte păstrează următorul sens:
+- the test executes the operation and sends the response to the evaluator;
+- the evaluator composes one assertion table and an aggregate verdict;
+- the sink receives renderer-neutral evidence, which reporting only projects.
+The short labels have the following meanings:
 
-| În schemă | Sens complet |
+| In diagram | Full meaning |
 |---|---|
 | Core runtime | atf-core / generic lifecycle |
 
 </details>
 
-### Evaluator general pentru modele
+<a id="general-evaluator-for-models"></a>
+<a id="evaluator-general-pentru-modele"></a>
+### General evaluator for models
 
-Propunerea `CONSUMER-COMPONENT-ASSERTIONS-01` este o extensie amânată.
-`ValidationEvaluator` evaluează astăzi contracte API, iar auditul componentelor
-folosește comparația JUnit din Kit și adaptorul consumerului către Reporting.
-Aceste contracte sunt utilizabile independent de un evaluator general nou.
+The `CONSUMER-COMPONENT-ASSERTIONS-01` proposal is a deferred extension.
+`ValidationEvaluator` currently evaluates API contracts, while component audits
+use Kit's JUnit comparison and the consumer's adapter to Reporting. These
+contracts can be used independently of a new general evaluator.
 
 <details>
-<summary><strong>Criterii pentru o schimbare separată</strong></summary>
+<summary><strong>Criteria for a separate change</strong></summary>
 
-- Testul consumerului furnizează expected independent, observația și regula
-  business. Validation deține evaluarea pură și rezultatul imutabil; adaptorul
-  convertește rezultatul fără a repeta comparația.
-- Un model, un adaptor API și un adaptor UI din ambele module trebuie să
-  demonstreze operatorii necesari înaintea extinderii API-ului.
-- Tipurile, `null`, diferențele dincolo de preview și mesajul concis sunt probe
-  negative obligatorii. Redactarea precedă plafonul, implicit 240 inclusiv `…`.
-- Politica JUnit și excepțiile așteptate rămân în Kit. Extensia nu introduce
-  dependențe Kit către Core, Validation ori Reporting.
+- The consumer test supplies the independent expected value, observation, and
+  business rule. Validation owns pure evaluation and the immutable result; the
+  adapter converts the result without repeating the comparison.
+- A model, API adapter, and UI adapter from both modules must demonstrate the
+  required operators before the API is extended.
+- Types, `null`, differences beyond the preview, and concise messages are
+  required negative checks. Redaction precedes the limit, 240 by default,
+  including `…`.
+- JUnit policy and expected exceptions remain in Kit. The extension does not
+  add Kit dependencies on Core, Validation, or Reporting.
 
 </details>
 
-### Vocabular HTTP independent de locale
+<a id="locale-independent-http-vocabulary"></a>
+<a id="vocabular-http-independent-de-locale"></a>
+### Locale-independent HTTP vocabulary
 
-Comparația case-insensitive Content-Type și identitatea regulii pentru un
-header folosesc `Locale.ROOT`. DSL-ul `contentTypeContains` rămâne o verificare
-de conținut declarată de caller; nu devine clasificator MIME ori parser de body.
+Case-insensitive Content-Type comparison and rule identity for a header use
+`Locale.ROOT`. The `contentTypeContains` DSL remains a caller-declared content
+check; it does not become a MIME classifier or body parser.
 
 [ResponseContractRuleSetTest](src/test/java/atf/validation/contract/ResponseContractRuleSetTest.java)
-verifică aceeași decizie nominală, refuzul unui tip diferit și identitatea regulii
-în `tr-TR`; testul izolează și restaurează starea JVM.
+checks the same nominal decision, rejection of a different type, and rule
+identity in `tr-TR`; the test isolates and restores JVM state.
 
-## Reguli de separare
+<a id="separation-rules"></a>
+<a id="reguli-de-separare"></a>
+## Separation rules
 
-1. Nu se adaugă importuri Extent, HTML, CSS sau JUnit în `src/main` al acestui
-   modul.
-2. Regula de contract este pură și testabilă cu un response construit în memorie.
-3. `warningMode` poate transforma o încălcare într-un soft assertion `WARNING`,
-   dar nu ascunde rândul, mesajul sau actualul din tabel.
-4. O validare publică un singur tabel agregat; nu se creează câte un container
-   pentru fiecare assertion.
-5. Reporterul nu decide business verdictul; folosește rezultatul evaluatorului.
-6. Orice resursă de schema se rezolvă numai din rădăcinile declarate și nu poate
-   traversa în afara lor.
-7. `atf-validation` nu deschide sau închide sesiunea de raportare; lifecycle-ul
-   aparține testului/execution, iar rendererul aparține reporting.
+1. Do not add Extent, HTML, CSS, or JUnit imports to this module's `src/main`.
+2. Contract rules are pure and testable with an in-memory response.
+3. `warningMode` can turn a violation into a `WARNING` soft assertion, but it
+   does not hide the table row, message, or actual value.
+4. A validation publishes one aggregate table; do not create one container per
+   assertion.
+5. The reporter does not decide the business verdict; it uses the evaluator's result.
+6. Resolve schema resources only from declared roots; they must not traverse
+   outside those roots.
+7. `atf-validation` does not open or close the reporting session; the test or
+   execution owns the lifecycle, and reporting owns the renderer.
 
-## Teste de contract
+<a id="contract-tests"></a>
+<a id="teste-de-contract"></a>
+## Contract tests
 
-Testele modulului protejează separat:
+The module tests separately protect:
 
-- compunerea și evaluarea contractelor;
-- statusurile `PASS`, `WARNING` și `FAIL`;
-- agregarea tuturor assertions într-o singură tabelă;
-- publicarea printr-un fake `ValidationSink`, fără Extent;
-- rezolvarea sigură a schemelor și respingerea traversal-ului;
-- închiderea scope-ului și publicarea failure-ului când evaluarea aruncă.
-- evaluatorul AI pur: expected versionat, comparații typed, missing/invented și
-  output nedeclarat, hard-fail critic, threshold configurabil și agregare
-  ponderată; fără provider, browser sau renderer.
+- contract composition and evaluation;
+- `PASS`, `WARNING`, and `FAIL` statuses;
+- aggregation of all assertions into one table;
+- publication through a fake `ValidationSink`, without Extent;
+- safe schema resolution and rejection of traversal;
+- scope closure and failure publication when evaluation throws;
+- pure AI evaluator: versioned expected values, typed comparisons, missing/invented
+  and undeclared output, critical hard-fail, configurable threshold, and weighted
+  aggregation; no provider, browser, or renderer.
 
-Testele sunt ratchet tests: când un contract eșuează, se repară
-implementarea, nu se relaxează assertion-ul pentru a face build-ul verde.
-Validarea vizuală a artifactului rămâne responsabilitatea suitei din
-`atf-reporting-tests`; verificarea manuală finală folosește ATF Debug/TAB MCP.
+The tests are ratchet tests: when a contract fails, fix the implementation;
+do not weaken the assertion to make the build green. Visual validation of the
+consumer report acceptance remains with the local test that publishes it; final manual review uses ATF Debug/TAB MCP.
 
-## Comparatorul AI — contract implementat
+<a id="ai-comparator--implemented-contract"></a>
+<a id="comparatorul-ai--contract-implementat"></a>
+## AI comparator — implemented contract
 
-`atf.validation.ai` evaluează output-ul furnizat de consumer. Expected-ul
-versionat se construiește separat, iar evaluatorul produce un instantaneu
-`COMPLETE` fără să invoce un model sau un renderer.
+`atf.validation.ai` evaluates output supplied by the consumer. The versioned
+expected value is built separately, and the evaluator produces a `COMPLETE`
+snapshot without invoking a model or renderer.
 
-| Contract | Comportament executabil |
+| Contract | Executable behavior |
 |---|---|
-| Comparații | `EXACT`, `NORMALIZED_TEXT`, `SET`, `ORDERED_LIST`, `RANGE`, `ALLOWED_VARIANTS`, `PRESENT`, `ABSENT` |
-| Expected / observed | copii defensive inclusiv pentru valori nested; căile expected duplicate sunt respinse |
-| Prezența informației | lipsa critică, invenția critică și contradicția dintre sursă și expected au motive distincte |
-| Output nedeclarat | hard-fail implicit; când politica permite câmpul extra, mismatch-ul și penalizarea rămân vizibile |
-| Scor și verdict | scor ponderat, prag explicit; eșecul critic prevalează asupra scorului |
-| Invocare | numai `REAL_AI` cu referințe complete poate primi quality score; mock/fallback sunt `NOT_EVALUATED`; output-ul produs cu mod `UNKNOWN` sau dovezile reale incomplete produc `FAIL` |
-| Fundamentare per field | source IDs allowlisted; `SUPPORTED`, `UNSUPPORTED`, `MISSING_REFERENCE`, `NOT_REQUIRED`; fundamentarea obligatorie lipsă/nesuportată produce hard-fail |
-| Instantaneu | policy, timestamp din `Clock`, invocation, comparații, grounding și hard-fails cu field/expected/observed/reason/evidence reference |
+| Comparisons | `EXACT`, `NORMALIZED_TEXT`, `SET`, `ORDERED_LIST`, `RANGE`, `ALLOWED_VARIANTS`, `PRESENT`, `ABSENT` |
+| Expected / observed | defensive copies, including nested values; duplicate expected paths are rejected |
+| Information presence | critical omission, critical invention, and source/expected contradiction have distinct reasons |
+| Undeclared output | hard-fail by default; when policy allows an extra field, the mismatch and penalty remain visible |
+| Score and verdict | weighted score, explicit threshold; a critical failure takes precedence over the score |
+| Invocation | only `REAL_AI` with complete references can receive a quality score; mock/fallback are `NOT_EVALUATED`; output produced in `UNKNOWN` mode or incomplete real evidence produces `FAIL` |
+| Per-field grounding | allowlisted source IDs; `SUPPORTED`, `UNSUPPORTED`, `MISSING_REFERENCE`, `NOT_REQUIRED`; missing/unsupported required grounding produces a hard-fail |
+| Snapshot | policy, timestamp from `Clock`, invocation, comparisons, grounding, and hard-fails with field/expected/observed/reason/evidence reference |
 
-Responsabilitățile sunt separate între pachetul `ai` (comparator și snapshot),
-`ai.grounding` (cerințe și referințe) și `ai.invocation` (proveniența apelului).
-`AiEvaluationValues` păstrează intern mecanica de copiere; guvernanța coeziunii
-protejează inventarul pachetului și limita de opt clase.
+Responsibilities are split among package `ai` (comparator and snapshot),
+`ai.grounding` (requirements and references), and `ai.invocation` (invocation
+provenance). `AiEvaluationValues` keeps copy mechanics internal; cohesion
+governance protects the package inventory and eight-class limit.
 
-| Probă în `AiEvaluationEvaluatorTest` | Ce protejează |
+| Check in `AiEvaluationEvaluatorTest` | What it protects |
 |---|---|
-| comparații, threshold și critical mismatch | evaluare deterministă și precedența hard-fail |
-| missing/invented/undeclared output | diagnostice distincte și referința la output |
-| real/mock/fallback și invocation incompletă | eligibilitatea scorului și refuzul dovezilor incomplete |
-| grounding lipsă sau în afara allowlist-ului | `MISSING_GROUNDING_REFERENCE` / `UNSUPPORTED_GROUNDING` |
-| clock injectat și mutații ale valorilor nested | finalizare `COMPLETE` și imuabilitate |
+| comparisons, threshold, and critical mismatch | deterministic evaluation and hard-fail precedence |
+| missing/invented/undeclared output | distinct diagnostics and output reference |
+| real/mock/fallback and incomplete invocation | score eligibility and rejection of incomplete evidence |
+| missing or non-allowlisted grounding | `MISSING_GROUNDING_REFERENCE` / `UNSUPPORTED_GROUNDING` |
+| injected clock and mutations to nested values | `COMPLETE` finalization and immutability |
 
-Limitele implementării rămân explicite:
+Implementation limits remain explicit:
 
-- `AMBIGUOUS` există în enum, dar evaluatorul nu îl produce.
-- Run ledger, lifecycle, review/state, reporting și regression delta rămân în [feedback-ul AI](../docs/feedback/README_AI_Evaluation.md).
-- Modelele țintă și deciziile de boundary sunt în [designul AI](../docs/ATF_AI_Evaluation_Design.md); schemele propuse nu sunt semnături suplimentare ale API-ului implementat.
-- `REGEX_RESTRICTED` cere un matcher cu execuție limitată; scorul tehnic existent nu este încă o rubrică business configurabilă pe caz.
+- `AMBIGUOUS` exists in the enum, but the evaluator does not produce it.
+- Run ledger, lifecycle, review/state, reporting, and regression delta remain in [AI feedback](../docs/feedback/README_AI_Evaluation.md).
+- Target models and boundary decisions are in the [AI design](../docs/ATF_AI_Evaluation_Design.md); proposed schemas are not additional signatures of the implemented API.
+- `REGEX_RESTRICTED` requires a matcher with bounded execution; the existing technical score is not yet a per-case configurable business rubric.
 
-## Utilizare ca JAR
+<a id="jar-usage"></a>
+<a id="utilizare-ca-jar"></a>
+## JAR usage
 
-Un consumator care are nevoie numai de validare depinde de:
+A consumer that needs only validation depends on:
 
 ```xml
 <dependency>
@@ -322,105 +351,108 @@ Un consumator care are nevoie numai de validare depinde de:
 </dependency>
 ```
 
-Pentru raportare Extent se adaugă separat `atf-reporting` și se furnizează un
-`ValidationSink`. Astfel pachetele pot fi versionate și reutilizate fără ca un
-consumator de contracte să tragă în classpath rendererul sau asset-urile HTML.
+For Extent reporting, add `atf-reporting` separately and provide a
+`ValidationSink`. This allows the packages to be versioned and reused without
+pulling the renderer or HTML assets onto the classpath of a contract consumer.
 
-## Verificare rapidă
+<a id="quick-verification"></a>
+<a id="verificare-rapidă"></a>
+## Quick verification
 
-| Decizie | Sursă și limită |
+| Decision | Source and limit |
 |---|---|
-| Evaluare pură și verdict typed | [sursa ownerului](src/main/java/atf/validation/evaluation/ValidationEvaluator.java); probă: [ResponseContractTest](src/test/java/atf/validation/ResponseContractTest.java) |
-| Dependențe și source-set-uri | [POM](pom.xml); scope-ul declarat este autoritatea pentru integrare |
-| Ce nu demonstrează această probă | Trecerea contractului nu validează transportul, rendererul sau un provider AI. |
+| pure evaluation and typed verdict | [owner source](src/main/java/atf/validation/evaluation/ValidationEvaluator.java); check: [ResponseContractTest](src/test/java/atf/validation/ResponseContractTest.java) |
+| dependencies and source sets | [POM](pom.xml); declared scope is authoritative for integration |
+| What this check does not demonstrate | Passing the contract does not validate transport, the renderer, or an AI provider. |
 
 <details>
-<summary><strong>Comandă pentru proba locală</strong></summary>
+<summary><strong>Command for a local check</strong></summary>
 
-Rulați din rădăcina unui [staging extern](../docs/ATF_Build_And_Execution_Safety.md), cu JDK 21 și Maven.
+Run from the root of [external staging](../docs/ATF_Build_And_Execution_Safety.md), with JDK 21 and Maven.
 
 ```powershell
 mvn -B -pl atf-validation -am "-Dtest=ResponseContractTest,ValidationPreviewRedactionTest,AiEvaluationEvaluatorTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
-Comanda selectează proba numită și construiește dependențele; nu declară
-trecerea întregului modul. Trecerea contractului nu validează transportul, rendererul sau un provider AI.
+The command selects the named check and builds its dependencies; it does not
+claim that the entire module passed. Passing the contract does not validate
+transport, the renderer, or an AI provider.
 
 </details>
 
-## Contract JSON și subset de schemă
+<a id="json-contract-and-schema-subset"></a>
+<a id="contract-json-și-subset-de-schemă"></a>
+## JSON contract and schema subset
 
-Evaluarea parsează cel mult o dată body-ul în contextul apelului. Documentul
-trebuie consumat integral; JSON malformat, chei duplicate și trailing data
-produc comparații negative. Contextul nu supraviețuiește între evaluări; portul public
-`ResponseValidationRule` rămâne compatibil.
+Evaluation parses the body at most once in the call context. The document must
+be consumed in full; malformed JSON, duplicate keys, and trailing data produce
+negative comparisons. The context does not survive between evaluations; the
+public `ResponseValidationRule` port remains compatible.
 
-| Boundary | Contract executabil |
+| Boundary | Executable contract |
 |---|---|
-| Prezență | document invalid, cale invalidă, missing și valoare prezentă sunt distincte; explicit null este prezent |
-| Căi | proprietăți/indexuri `$.item[0].id`, forma simplă `item.id` și JSON Pointer cu escape-uri valide; wildcard/filter/recursive descent sunt refuzate |
-| Egalitate scalară | obiectele/array-urile nu devin șir gol; `jsonPathEquals` și membrii `everyArrayItemEquals` cer scalari |
-| Schema | preflight independent de instanță, inclusiv ramuri neatinse; schemă obiect sau boolean |
-| Tipuri și valori | `type` unic sau listă, `enum`, comparații numerice exacte; integer include valoarea numerică integrală |
-| Obiecte | `required`, `properties`, `additionalProperties` boolean/schemă; false funcționează și fără properties |
-| Array-uri | `items` boolean/schemă, `minItems`, `maxItems` |
-| Șiruri | `minLength`/`maxLength` în codepoints Unicode; `pattern` folosește regex Java valid |
-| Numere | `minimum`/`maximum` inclusiv, cu BigDecimal; fără conversie la double pentru verdict |
-| Metadate | `$schema` acceptă numai URI-ul draft 2020-12; `$comment`, `title`, `description`, `default`, `examples` sunt adnotări |
-| Nesuportat | orice alt keyword, inclusiv `const`, `$ref` și `format`, ori formă invalidă este refuzată; nu pretindem întregul JSON Schema |
+| Presence | invalid document, invalid path, missing value, and present value are distinct; explicit null is present |
+| Paths | properties/indexes `$.item[0].id`, simple form `item.id`, and JSON Pointer with valid escapes; wildcard/filter/recursive descent are rejected |
+| Scalar equality | objects/arrays do not become empty strings; `jsonPathEquals` and `everyArrayItemEquals` members require scalars |
+| Schema | instance-independent preflight, including untouched branches; object or boolean schema |
+| Types and values | one `type` or a list, `enum`, exact numeric comparisons; integer includes integral numeric values |
+| Objects | `required`, `properties`, `additionalProperties` as boolean/schema; false works even without properties |
+| Arrays | `items` as boolean/schema, `minItems`, `maxItems` |
+| Strings | `minLength`/`maxLength` in Unicode code points; `pattern` uses a valid Java regex |
+| Numbers | inclusive `minimum`/`maximum`, using BigDecimal; no conversion to double for the verdict |
+| Metadata | `$schema` accepts only the draft 2020-12 URI; `$comment`, `title`, `description`, `default`, `examples` are annotations |
+| Unsupported | any other keyword, including `const`, `$ref`, and `format`, or an invalid form is rejected; this does not claim full JSON Schema support |
 
-URI-ul acceptat este `https://json-schema.org/draft/2020-12/schema`.
-Un keyword refuzat rămâne refuzat chiar dacă inputul i-ar satisface sensul;
-`const:42` nu este ignorat nici pentru 42, nici pentru 99.
+The accepted URI is `https://json-schema.org/draft/2020-12/schema`.
+A rejected keyword remains rejected even if the input would satisfy its meaning;
+`const:42` is not ignored for either 42 or 99.
 
-Strict produce FAIL, iar politica warning păstrează rândurile negative și
-starea WARNING. Valorile integrale decid verdictul; proiecția auditului
-păstrează preview-ul 240, fără reevaluare în renderer.
+Strict mode produces FAIL, while warning policy preserves negative rows and
+the WARNING status. Full values determine the verdict; the audit projection
+retains the 240-character preview without reevaluation in the renderer.
 
-### Probe și integrare
+<a id="proofs-and-integration"></a>
+<a id="probe-și-integrare"></a>
+### Proofs and integration
 
-Regresii permanente: [prezență și containere](src/test/java/atf/validation/JsonPresenceContractTest.java)
-și [subsetul schemei](src/test/java/atf/validation/JsonSchemaContractTest.java).
-Acceptanța API sintetică în Extent/fallback verifică separat verdictul,
-rândurile și preview-ul; nu demonstrează transport real sau acuratețe speech.
+Permanent regressions: [presence and containers](src/test/java/atf/validation/JsonPresenceContractTest.java)
+and the [schema subset](src/test/java/atf/validation/JsonSchemaContractTest.java).
+Synthetic API acceptance in Extent/fallback separately checks the verdict,
+rows, and preview; it does not demonstrate real transport or speech accuracy.
 
-### Content-Type — clasificare semantică JSON
+<a id="content-type--semantic-json-classification"></a>
+<a id="content-type--clasificare-semantică-json"></a>
+### Content-Type — semantic JSON classification
 
-`contentTypeJson()` delegă tipul/subtipul concret către `MediaTypes.isJson` din
-Core. Parametrii nu pot transforma un tip text/plain în JSON; ACTUAL
-păstrează headerul observat, redactat și limitat după evaluare.
+`contentTypeJson()` delegates concrete type/subtype classification to Core's
+`MediaTypes.isJson`. Parameters cannot turn a `text/plain` type into JSON;
+ACTUAL retains the observed header, redacted and bounded after evaluation.
 
-| Header observat | Verdictul regulii |
+| Observed header | Rule verdict |
 |---|---|
-| application/json, inclusiv cu charset | PASS; tipul și subtipul sunt case-insensitive |
-| application/problem+json sau application/vnd.atf+json | PASS; sufix JSON concret |
-| text/json sau text/vnd.atf+json | PASS conform vocabularului Core, fără restricție implicită la application |
-| text/plain cu profile="application/json" | FAIL; parametrul nu este tipul/subtipul |
-| application/jsonp, tip absent, wildcard ori listă de tipuri | FAIL; cerința este un tip JSON concret |
+| application/json, including with charset | PASS; type and subtype are case-insensitive |
+| application/problem+json or application/vnd.atf+json | PASS; concrete JSON suffix |
+| text/json or text/vnd.atf+json | PASS under Core's vocabulary, with no default restriction to application |
+| text/plain with profile="application/json" | FAIL; the parameter is not the type/subtype |
+| application/jsonp, absent type, wildcard, or list of types | FAIL; the requirement is one concrete JSON type |
 
-- `userItem`, `userCollection`, `postItem`, `postCollection` și
-  `relationshipCollection` folosesc regula semantică, cu statusurile și
-  cerințele de payload păstrate.
-- `contentTypeContains` rămâne operație literală de compatibilitate.
-  Rândul semantic are identitatea Content-Type JSON, distinctă de cel literal,
-  astfel încât ambele reguli pot fi compuse în același contract.
-- Clasificarea nu validează sintaxa integrală a parametrilor sau body-ul.
-  Regulile JSON verifică separat documentul și câmpurile cerute.
+- `userItem`, `userCollection`, `postItem`, `postCollection`, and
+  `relationshipCollection` use the semantic rule, retaining their statuses and
+  payload requirements.
+- `contentTypeContains` remains a literal compatibility operation.
+  The semantic row has a Content-Type JSON identity distinct from the literal
+  row, so both rules can be composed in one contract.
+- Classification does not validate the full parameter syntax or body.
+  JSON rules separately validate the document and required fields.
 
 [JsonMediaTypeContractTest](src/test/java/atf/validation/media/JsonMediaTypeContractTest.java)
-protejează cele cinci contracte, strict/warning, nominale și parametri
-înșelători; acceptanța portului neutru și a artifactului rămâne la consumer.
+protects the five contracts, strict/warning behavior, nominal types, and
+misleading parameters; neutral-port and artifact acceptance remain with the consumer.
 
-### Parser comun și proprietatea datelor
+<a id="shared-parser-and-data-ownership"></a>
+<a id="parser-comun-și-proprietatea-datelor"></a>
+### Shared parser and data ownership
 
-Documentele complete folosesc Core JsonDocuments: fără duplicate ori
-trailing content, cu decimale exacte. Validation păstrează diagnosticele și
-politica proprie pentru null; nu deține un mapper strict paralel.
-
-## Preview and audit boundaries
-
-ValidationTable stores redacted, bounded expected/actual values after the caller evaluates the complete inputs. Its default 240-character preview does not establish full-value retention or change an independently captured FAIL.
-
-- `ValidationTable` bounds previews by UTF-16 code units, so a cut can split a supplementary character. The full input still determines the verdict; see the [preview implementation](src/main/java/atf/validation/evaluation/ValidationTable.java).
-- Long safe values needed for audit must be retained before preview, with explicit disclosure budgets; Reporting cannot reconstruct a discarded suffix.
-- This display limitation is separate from strict JSON/MIME decisions, literal redaction and the once-only validation predicate.
+Complete documents use Core's JsonDocuments: no duplicates or trailing content,
+with exact decimals. Validation retains its own diagnostics and null policy; it
+does not own a parallel strict mapper.

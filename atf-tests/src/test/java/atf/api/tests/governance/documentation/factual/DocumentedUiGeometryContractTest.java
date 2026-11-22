@@ -4,6 +4,7 @@ import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import atf.api.tests.governance.AtfGovernanceTestSupport;
+import atf.api.tests.governance.documentation.language.DocumentationLanguagePolicy;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -33,7 +34,7 @@ public class DocumentedUiGeometryContractTest {
                 + (document.contains("auto-ex") ? "atf-auto-ex.yaml" : "atf-practice-shop.yaml");
         byte[] originalYaml = Files.readAllBytes(root.resolve(yaml));
         String source = read(root, document);
-        String row = source.lines().filter(line -> line.startsWith("| YAML livrat |")).findFirst().orElseThrow();
+        String row = deliveredRow(root, source);
         var numbers = Pattern.compile("[0-9]+(?:\\.[0-9]+)?").matcher(row).results().toList();
         assertEquals(6, numbers.size(), "Width, height, zoom, CSS width, CSS height and DPR remain separate claims");
         for (var number : numbers) {
@@ -51,7 +52,10 @@ public class DocumentedUiGeometryContractTest {
     @Test void aConfiguredSeventyPercentExampleCannotReplaceTheGenericDefault() throws Exception {
         Path root = locateProjectRoot(); String document = DocumentedUiGeometryContracts.UI;
         String source = read(root, document);
-        String changed = source.replace("Implicitul generic al `zoomPercent` este `100`", "Implicitul generic al `zoomPercent` este `70`");
+        String language = DocumentationLanguagePolicy.read(root);
+        var claim = DocumentedUiGeometryContracts.defaultPattern(language).matcher(source);
+        assertTrue(claim.find());
+        String changed = source.substring(0, claim.start(1)) + "70" + source.substring(claim.end(1));
         assertNotEquals(source, changed);
         var failures = inspect(root, document, changed);
         assertEquals(1, failures.size());
@@ -61,7 +65,11 @@ public class DocumentedUiGeometryContractTest {
     @Test void aWrongDerivedCssValueInTheUiExampleIsRefused() throws Exception {
         Path root = locateProjectRoot(); String document = DocumentedUiGeometryContracts.UI;
         String source = read(root, document);
-        String changed = source.replace("viewport CSS `2057 × 1429`", "viewport CSS `2058 × 1429`");
+        String language = DocumentationLanguagePolicy.read(root);
+        var claim = DocumentedUiGeometryContracts.examplePattern(language).matcher(source);
+        assertTrue(claim.find());
+        String wrongWidth = Integer.toString(Integer.parseInt(claim.group(4)) + 1);
+        String changed = source.substring(0, claim.start(4)) + wrongWidth + source.substring(claim.end(4));
         assertNotEquals(source, changed);
         var failures = inspect(root, document, changed);
         assertEquals(1, failures.size());
@@ -72,7 +80,7 @@ public class DocumentedUiGeometryContractTest {
     void missingDuplicateAndFencedClaimsCannotMakeTheGuardSilentlyPass(String fence) throws Exception {
         String document = "atf-test-auto-ex/README.md"; Path root = authority(document);
         String source = read(root, document);
-        String row = source.lines().filter(line -> line.startsWith("| YAML livrat |")).findFirst().orElseThrow();
+        String row = deliveredRow(root, source);
         assertTrue(inspect(root, document, source.replace(row, "")).getFirst().contains("missing or malformed declaration"));
         assertTrue(inspect(root, document, source.replace(row, row + "\n" + row)).getFirst().contains("duplicate declaration"));
         String onlyExample = source.replace(row, fence + "text\n" + row + "\n" + fence);
@@ -80,6 +88,10 @@ public class DocumentedUiGeometryContractTest {
         assertEquals(List.of(), inspect(root, document, source + "\n" + fence + "text\n" + row + "\n" + fence));
     }
 
+    private static String deliveredRow(Path root, String source) throws Exception {
+        var pattern = DocumentedUiGeometryContracts.deliveredPattern(DocumentationLanguagePolicy.read(root));
+        return source.lines().filter(line -> pattern.matcher(line).matches()).findFirst().orElseThrow();
+    }
     private Path authority(String document) throws Exception {
         Path live = locateProjectRoot(); String module = document.substring(0, document.indexOf('/'));
         if (AtfGovernanceTestSupport.consumerDeclared(live, module)) return live;

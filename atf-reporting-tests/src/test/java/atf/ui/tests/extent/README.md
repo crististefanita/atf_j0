@@ -1,78 +1,72 @@
-# Kit de testare UI pentru Extent
+<a id="ui-test-kit-for-extent"></a>
+<a id="kit-de-testare-ui-pentru-extent"></a>
+# UI test kit for Extent
 
-Acest pachet din `atf-reporting-tests` testează rendererul Extent produs de ATF. Nu testează aplicația
-UI și nu introduce teste de API de business. API-ul este folosit aici doar ca
-setup declarativ, atunci când trebuie generat un raport pe care îl inspectăm
-read-only în browser.
+This `atf-reporting-tests` package tests Extent renderer produced by ATF. It does not test UI application and does not introduce API business tests. API is used here only as a declarative setup when a report needs to be generated that we are read- only inspecting in the browser.
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
 | Input | Flow | Evidence |
 |---|---|---|
 | API report + mock contract | setup read-only → UI navigation → validators | actions, audit, assertions, screenshot |
-| UI YAML | selectors, viewport, zoom și output policy | configurabil, fără flag redundant |
-| generated HTML | Chromium/Playwright MCP | DOM/CSS/console și artifact fresh |
+| UI YAML | selectors, viewport, zoom and output policy | Configurable, without redundant flag |
+| generated HTML | Chromium/Playwright MCP | DOM / CSS / consoles and fresh artifact |
 
 <details>
-<summary><strong>Harta de lectură</strong></summary>
+<summary><strong>Reading map</strong></summary>
 
-- [Setup API versus validare UI](#pregătirea-prin-api-față-de-validarea-ui) și
-  [Overview versus pași](#prezentarea-generală-față-de-pașii-de-validare) —
-  separarea semantică a evidence-ului;
-- [contracte E2E](#contracte-e2e-specializate) și
-  [configurație](#configurație-gestionată-de-atf-reporting) — cum se compune
-  raportul verificat;
-- [rulare din IntelliJ](#rulare-directă-din-intellij) — execuție manuală;
-- [contractul de randare](#contractul-e2e-al-randării),
-  [guard-uri](#guard-uri-pentru-contribuții) și
-  [viewport-urile tabelelor](#tabele-de-evidență-cu-resize-content-aware) —
-  dovada vizuală și protecțiile de regresie.
+- [API Setup versus UI validation](#pregătirea-prin-api-față-de-validarea-ui) and
+  [Overview versus steps](#prezentarea-generală-față-de-pașii-de-validare) - semantic separation of the evidence;
+- [E2E contracts](#contracte-e2e-specializate) and
+  [configuration](#configurație-gestionată-de-atf-reporting) - how to compose the verified report;
+- [IntelliJ rolling](#rulare-directă-din-intellij) - manual execution;
+- [the contract of rendering](#contractul-e2e-al-randării),
+  [guard-uri](#guard-uri-pentru-contribuții) and [table view](#tabele-de-evidență-cu-resize-content-aware) - visual evidence and regression protection.
 
 </details>
 
-## Diagramă de bază
+<a id="core-diagram"></a>
+<a id="diagramă-de-bază"></a>
+## Core diagram
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
     Root[Extent test kit]
-    Root -->|conține| Component[component]
-    Root -->|conține| E2E[e2e]
-    E2E -->|folosește| Support[support]
+    Root -->|contains| Component[component]
+    Root -->|contains| E2E[e2e]
+    E2E -->|Use| Support[support]
     Component -. read-only contracts .-> Support
 ```
 
 <details>
-<summary><strong>Legendă — separarea testelor Extent</strong></summary>
+<summary><strong>Legend - Extent test separation</strong></summary>
 
-- `component` verifică inputul, modelul, markup-ul și politicile; componentele browser folosesc fixture-uri locale determinate;
-- `e2e` verifică journey-ul de audit al artifactului și integrarea setup/browser;
-- `support` reutilizează setup, locatori și validatori, dar nu este test root;
-- browserul și locatorii sunt adaptați în `support`; layer-ul se alege după boundary-ul verificat.
+- `component` verifies the input, model, marker and policies; browser components use local fixed fixed devices;
+- `e2e` checks the artifact audit journey and the integration of setup / browser;
+- `support` reuses setup, locators and validators, but is not a root test;
+- The browser and locators are adapted in `support`; the layer is is chosen after the checked boundary.
 </details>
 
-Regula este intenționat strictă:
+The rule is purposely strict:
 
-| Zonă | Responsabilitate | Poate conține Playwright? | Se rulează implicit? |
+| Area | Responsibility | Can Playwright contain? | Is it running by default? |
 |---|---|---:|---:|
-| `component` | contracte, modele, politici, validatori și fixture-uri browser locale | da, prin `support`, numai pentru fixture locală | da |
-| `e2e` | scenarii browser și validarea randării reale | da, prin `support` | numai explicit |
-| `support` | cod reutilizabil pentru testele de mai sus | da, când este adaptor browser | nu ca test root |
+| `component` | contracts, models, policies, validators and local browser fixtures | Yes, via `support`, only for local fixture | yes |
+| `e2e` | browser scenarios and validation of actual rendering | Yes, through `support` | only explicit |
+| `support` | reusable code for the above tests | Yes, when it's browser adapter | not as root test |
 
-Un journey complet de audit aparține lui `e2e`; o componentă browser izolată
-verifică numai fixture-ul local și boundary-ul declarat. Un flow, locator, fixture, inspector sau dynamic engine aparține lui
-`support`. `component` nu are voie să devină un depozit pentru helper-e.
+A complete audit journey belongs to `e2e`; an isolated browser component verifies only the local fixture and declared boundary. A flow, locator, fixture, inspector or dynamic engine belongs to `support`. `component` is not allowed to become a helper-e deposit.
 
-Nivelul, canalul și output-ul se declară prin
-[adnotările TestKit](../../../../../../../../docs/ATF_Test_Infrastructure_Annotations.md).
+The level, channel and output are declared via [TestKit annotations](../../../../../../../../docs/ATF_Test_Infrastructure_Annotations.md).
 
-## Pregătirea prin API față de validarea UI
+<a id="api-preparation-against-ui-validation"></a>
+<a id="pregătirea-prin-api-față-de-validarea-ui"></a>
+## API preparation against UI validation
 
-Un raport API generat din `atf-mock.yaml` este o precondiție read-only pentru
-testele UI, nu o validare de ecran. Înainte de browser se verifică în component
-sau integration: request/response JSON, provenance-ul mock, structura HTML,
-CSS/JavaScript, vocabulary, proiecțiile și contractele dintre secțiuni. În
-E2E rămân numai comportamentele care cer randare reală:
+API ratio generated from `atf-mock.yaml` is a readonly precondition for UI tests, not a screen validation. Before the browser is checked in the component or integration: request / response JSON, provenance mock, structure HTML, CSS / JavaScript, vocabulary, projections and contracts between sections. E2E remains only the behaviors that require real rendering:
 
 ```text
 mock + API setup
@@ -84,47 +78,46 @@ component/integration: contract, JSON, markup, CSS/JS
 E2E: tab, click, collapse, computed-style, wrapping, screenshot, consolă
 ```
 
-`SelectedApiTestsReportUiTest` este composition root-ul configurabil:
+`SelectedApiTestsReportUiTest` is the configuration of the root:
 
-- selectează metodele prin `@ApiTestRef` și construiește fixture-ul;
-- deleagă secțiunile către engine/publisher;
-- nu clonează testul per tab și nu introduce `Page` în `atf.reporting.api.tests.api`;
-- aserțiunile fără efect de browser rămân la component/integration pentru
-  rulare rapidă și deterministă.
+- select the methods through `@ApiTestRef` and build the fixture;
+- delegate the sections to the engine / publisher;
+- do not clone the test per tab and do not insert `Page` into `atf.reporting.api.tests.api`;
+- browser-free assertions remain in the component / integration for
+  Quick and deterministic rolling.
 
-Acesta este singurul README al test-kit-ului Extent. Pachetele
-`e2e/uireport` și `e2e/failure` nu au README-uri locale: contractele lor sunt
-documentate mai jos, împreună cu regulile comune, pentru ca arhitectura să fie
-citită într-un singur loc și să nu apară documentație divergentă.
+This is the only README of Extent test. `e2e/uireport` and `e2e/failure` packages do not have local README: their contracts are documented below, together with common rules, so that architecture can be read in one place and no divergent documentation appears.
 
-## Prezentarea generală față de pașii de validare
+<a id="general-presentation-of-validation-steps"></a>
+<a id="prezentarea-generală-față-de-pașii-de-validare"></a>
+## General presentation of validation steps
 
-Titlul fiecărei secțiuni este produs de `ExtentSectionGherkin` și este folosit
-identic de dynamic test și de Extent. Titlul este un overview normal și concis:
+The title of each section is produced by `ExtentSectionGherkin` and used identical by the dynamic test and Extent. The title is a normal and concise overview:
 
 ```text
 Request evidence includes request JSON, response JSON and execution evidence
 ```
 
-`Overview` și pașii nested au responsabilități distincte:
+`Overview` and nested steps have distinct responsibilities:
 
-- `Overview` numește suprafața verificată și rezultatul observabil;
-- pașii nested publică dovada detaliată;
-- faza fără pași/evidence copil este terminală și nu primește affordance de
-  expandare; aserțiunile JUnit ale unui test de configurație nu devin pași
-  inventați;
-- validatorii păstrează assertions distincte pentru fiecare criteriu relevant;
-- `Tests` publică projection și owners/scenarios;
-- `Categories` publică counts și filters;
-- `Fails` publică causes și deep links;
-- `Evidence` publică request/response JSON și execution evidence;
-- `THEN` poate apărea în pasul nested care publică validarea;
-- GIVEN/WHEN/THEN nu se repetă drept titlu al testului.
+- `Overview` calls the area checked and the observable result;
+- nested steps publish detailed evidence;
+- the phase without steps / obvious child is terminal and does not receive affordance of
+  expansion; the JUnit assertions of a configuration test do not become invented steps;
+- the validators shall keep separate assertions for each relevant criterion;
+- `Tests` publishes the project and owners / scripts;
+- `Categories` publishes counties and filters;
+- `Fails` publishes causes and deep links;
+- `Evidence` publishes request / response JSON and execution evidence;
+- `THEN` may appear in the nested step that publishes validation;
+- GIVEN / WHEN / THEN is not repeated as a test title.
 
-## Structura curentă
+<a id="current-structure"></a>
+<a id="structura-curentă"></a>
+## Current structure
 
 <details>
-<summary><strong>Harta pachetelor și regulile de coeziune</strong></summary>
+<summary><strong>Package map and cohesion rules</strong></summary>
 
 ```text
 component/
@@ -159,59 +152,35 @@ support/
 └── uireport/            fixture, contract input și inspectori de tab-uri
 ```
 
-În `support/section`, runtime-ul de compoziție este separat explicit în
-`runtime/SectionAuditDynamicEngine` și `runtime/SectionAuditFixture`; astfel
-package-ul `support.section` nu devine un container mixt. În mod similar,
-`support/uireport/browser` poate folosi doar facade-ul din
-`support/locators`, nu selectorii Playwright direct.
+`support/section`, the composition runtime is explicitly separated from `runtime/SectionAuditDynamicEngine` and `runtime/SectionAuditFixture`; thus `support.section` packager does not become a mixed container. Similarly, `support/uireport/browser` can only use the `support/locators` facade, not the Playwright direct selector.
 
-`ReportUiLocators` este fațada publică stabilă pentru consumatorii existenți,
-nu owner-ul tuturor selectorilor. Implementarea este împărțită pe boundary-uri
-coezive: `ReportLocatorSupport` pentru compoziție comună,
-`ReportPageLocators` pentru pagină și tab-uri, `ReportTreeLocators` pentru
-disclosure/card tree și `ReportUiValidationLocators` pentru suprafețele
-DOM/CSS de UI validation. `ReportEvidenceLocators`,
-`ReportCategoryLocators` și `ReportFailureLocators` rămân verticale dedicate.
-Astfel testele și flow-urile depind de fațadă/flow, iar schimbarea unei familii
-de selectori nu mai obligă modificarea unei clase monolitice.
+`ReportUiLocators` is the stable public facade for existing consumers, not the owner of all the selectors. The implementation is divided into cohesive boundary: `ReportLocatorSupport` for common composition, `ReportPageLocators` for page and table, `ReportTreeLocators` for discoloration / card tree and `ReportUiValidationLocators` for surfaces DOM / CSS of UI validation. `ReportEvidenceLocators`, `ReportCategoryLocators` and `ReportFailureLocators` remain vertical. Thus, tests and flows depend on façade / flow, and the change of a family of selectors no longer obliges the change of a monolithic class.
 
-Locatorii noi preferă CSS semantic în forma `element[attribute=value]`, de
-exemplu `button[data-atf-action='expand']`, `div[data-atf-node-role='scenario']`
-sau `table[class~='helm-validation-table']`. Pentru clase se folosește
-operatorul `~=` deoarece `class` este o listă de token-uri; pentru identități se
-folosește `[id='...']`. Shorthand-ul `.class` rămâne permis în asset-ul CSS,
-dar nu în locatorii Playwright ai testelor de reporting.
+New locators prefer CSS semantic `element[attribute=value]`, e.g. `button[data-atf-action='expand']`, `div[data-atf-node-role='scenario']` or `table[class~='helm-validation-table']`. `~=` operator is used for classes because `class` is a list of tokens; for identities `[id='...']` is used. Shorthandul `.class` remains allowed in CSS asset, but not in Playwright Reporting test locations.
 
-`nth(...)`, `:scope`, filtrele de text și XPath rămân detalii interne ale
-ownerului din `support/locators`, doar când markup-ul generat nu expune un
-atribut contractual mai bun. Valorile dinamice sunt validate de helper-ul
-comun înainte de compunere, printr-un singur `Pattern` compilat la nivelul
-`ReportLocatorSupport`; nu se recompilă regex-ul la fiecare locator dinamic.
-Nici testul, nici flow-ul, nici auditorul nu repetă selectorul sau politica de
-validare.
+`nth(...)`, `:scope`, text filters and XPath remain internal details of the `support/locators` host, only when the generated marker does not display a better contractual attribute. The dynamic values are validated by the common helper before composition, through a single `Pattern` compiled at `ReportLocatorSupport` level; do not reconstitute the regex at each dynamic locator. Neither test nor flow. nor the auditor repeats the selection or validation policy.
 
-Subpachetele sunt deliberate: limita principală este `component/e2e/support`,
-iar subpachetele separă verticalele fără să reintroducă un pachet rădăcină
-cu responsabilități amestecate. Niciun pachet principal nu trebuie să treacă
-de limita de opt clase; dacă o face, se extrage o responsabilitate coerentă,
-nu se mută arbitrar fișiere.
+Subpackages are deliberate: the main limit is `component/e2e/support`, and the subpackages separate the vertical without reintroducing a root package with mixed responsibilities. No main package must pass the eight-class limit; if it does, a coherent responsibility is extracted, no files are arbitrarily moved.
 
 </details>
 
-## Contracte E2E specializate
+<a id="specialised-e2e-contracts"></a>
+<a id="contracte-e2e-specializate"></a>
+## Specialised E2E contracts
 
-### Raport UI static
+<a id="static-ui-report"></a>
+<a id="raport-ui-static"></a>
+### Static UI Report
 
-`StaticUiExtentReportContractTest` verifică rendererul Extent pe un artifact HTML
-deja produs:
+`StaticUiExtentReportContractTest` checks the Extent renderer on an already produced HTML artifact:
 
-- inputul este read-only;
-- verdictul privește numai contractul raportului: tab-uri, navigare,
-  disclosure-uri, CSS, text, evidence și comportamentul observabil;
-- aplicația de business nu este testată aici;
-- adaptoarele browser sunt în `support/uireport/browser`;
-- inputul este în `support/uireport/contract`;
-- validatorii puri rămân în producția `atf-reporting`.
+- input is readonly;
+- The verdict concerns only the report's contract: taboos, navigation,
+  Displosuries, CSS, text, evidence and observable behaviour;
+- the business application is not tested here;
+- browser adapters are in `support/uireport/browser`;
+- the input is in `support/uireport/contract`;
+- Pure validators remain in the production of `atf-reporting`.
 
 ```text
 previous UI HTML report
@@ -225,31 +194,24 @@ static contract validator
 Extent assertion / evidence
 ```
 
-- Schimbă inputul prin `-Datf.ui.report=<report.html>`; nu este necesară o cale
-  absolută sau un checkout hardcodat.
-- Gate-ul verifică Overview, Tests, Categories și Fails, plus/minus inline,
-  screenshot `📷` ca link inline, acțiunile inclusiv `getText`, lipsa `<hr>` și a
-  overflow-ului, disclosure-uri închise implicit și consola fără erori.
-- `TIME` apare numai în tabelul acțiunilor Playwright; observațiile statice nu
-  primesc o durată artificială.
-- Pentru arborele UI, `UI validation` este singurul titlu public; markerul
-  intern `ui-validation` poate identifica evidence-ul vizual fără să creeze
-  o a doua etichetă în raport.
-- Contractul de densitate este comun: API exchange/aggregate și UI evidence au
-  summary de `34px`, padding `9px 12px` și glyph inline de `18px` în Extent și
-  fallback; `500px` se aplică numai viewport-urilor de tabele lungi.
-- `AtfReportEvidenceCssTest`/`AtfReportThemeTokensTest` verifică tokenii și
-  paritatea CSS; `UiValidationSectionExtractor` măsoară computed height,
-  padding, glyph, badge și gap-ul dintre acțiuni/observații/assertions pe raportul
-  randat. E2E/static contract + Browser MCP confirmă vizual aceeași geometrie
-  la viewport normal și îngust.
+- Change input via `-Datf.ui.report=<report.html>`; no way required
+  absolute or hardcoded checkout.
+- The coat checks Overview, Tests, Categories and Fails, plus / minus inline,
+  `📷` screenshot as a link inline, actions including `getText`, lack of `<hr>` and overflow, default closed disclosures and console without errors.
+- `TIME` is only listed in the Playwright action table; static observations are not available.
+  be given an artificial duration.
+- For UI tree, `UI validation` is the only public title; marker
+  Internal `ui-validation` can identify visual evidence without creating a second label in the report.
+- The density contract is common: API exchange / aggregate and UI evidence
+  `34px` summary, `9px 12px` padding and `18px` glyph inline in Extent and fallback; `500px` applies only to long table viewports.
+- `AtfReportEvidenceCssTest` / `AtfReportThemeTokensTest` checks the tokens and
+  CSS parity; `UiValidationSectionExtractor` measures the computer hold, padding, glyph, badge and the gaping between actions / observations / assertions on the rendered ratio. E2E / static contract + Browser MCP visually confirms the same geometry in the normal and narrow viewport.
 
-### Raport de eșec
+<a id="failed-report"></a>
+<a id="raport-de-eșec"></a>
+### Failed report
 
-`UiFailureReportContractTest` folosește un fixture negativ controlat pentru a
-verifica faptul că un failure este localizabil prin ierarhie, fără dublări și
-fără a marca o fază drept failed atunci când doar un detaliu informativ este
-prezent. Suprafețele obligatorii sunt distincte și auditabile:
+`UiFailureReportContractTest` uses a controlled negative fixture to verify that a failure is localized by hierarchy, without duplication and without marking a phase as failed when only an informative detail is present. The mandatory surfaces are distinct and auditable:
 
 ```text
 SETUP              input / raport / fixture disponibil
@@ -258,47 +220,39 @@ AUDIT_OBSERVATION  ce a fost găsit în DOM și computed-style
 ASSERTION          expected / actual / verdict reutilizabil
 ```
 
-Contractul failure este schematic:
+The failure contract is schematic:
 
-- acțiunea are `TARGET`;
-- cauza este publicată în zona care a produs-o;
-- `Tests` și `Fails` indică aceeași identitate;
-- timeout-ul nativ și redactarea se verifică în Audit observations din Tests;
-  Fails păstrează contextul compact, cu timpul măsurat și backlink;
-- screenshot-ul este evidence inline cu `📷`:
-  - PNG Base64 direct; sau
-  - link inline deduplicat către ancora PNG canonică, cu referință locală bounded
-    (`screenshot-n`), nu cu fingerprint-ul intern;
-- un hash izolat fără link și marker vizibil nu este evidence;
-- `Setup evidence` rămâne setup;
-- `UI validation` apare în `TEST BODY` după acțiunile browser și inspecția
+- the action has `TARGET`;
+- the case is published in the area which produced it;
+- `Tests` and `Fails` indicate the same identity;
+- The native timeout and the redaction shall be checked in Audit Observations in Tests;
+  Fails keep the compact context with measured time and backlink;
+- The screenshot is evidently inline with `📷`:
+  - PNG Base64 directly; or
+  - inline link implicit to the canonical PNG anchor with local bound reference
+    (`screenshot-n`), not with the internal finger print;
+- an isolated hash without link and visible marker is not obvious;
+- `Setup evidence` remains setup;
+- `UI validation` occurs in `TEST BODY` after browser actions and inspection
   DOM/style;
-- disclosure-urile sunt colapsate implicit;
-- rama fiecărei zone își închide marginile indiferent de numărul de rânduri.
+- Disclosuries are collapsed by default;
+- the area frame closes its edges regardless of the number of rows.
 
-Aceste contracte sunt documentate aici deoarece sunt responsabilități distincte
-ale test-kit-ului, nu pentru că ar necesita câte un README de pachet.
+These contracts are documented here because they are distinct responsibilities of the test-kit, not because they would require a README pack.
 
-## Configurație gestionată de `atf-reporting`
+<a id="atf-reporting-managed-configuration"></a>
+<a id="configurație-gestionată-de-atf-reporting"></a>
+## `atf-reporting`-managed configuration
 
-`atf-reporting-tests/src/test/resources/atf-reporting-ui.yaml` este configurația UI
-internă pentru contractele acestui modul. Secțiunea `ui:` a fost scoasă din
-`atf.yaml`; proiectul păstrează acolo doar configurația comună API și
-reporting. Astfel, schimbarea setup-ului UI al raportării nu modifică bootstrap-
-ul proiectului și nu creează o cheie booleană artificială de tip
-`ui.enabled`.
+`atf-reporting-tests/src/test/resources/atf-reporting-ui.yaml` is the internal UI configuration for the contracts of this module. `ui:` section was removed from `atf.yaml`; the project only keeps the API common configuration and reporting. Thus, the change of UI set does not alter the project bootstrap and does not create an artificial Boolean key of type `ui.enabled`.
 
-Pentru screenshot-uri mai încăpătoare, configurația folosește explicit
-`ui.zoomPercent: 70`. `UiViewportScale` păstrează ieșirea cerută și derivă
-viewport-ul CSS și DPR native; nu injectează zoom CSS în document ori iframe.
-În imagine intră mai multe rânduri prin geometria contextului, iar screenshot-ul
-și metadata configurată rămân dovezi distincte.
+For more stubborn screenshots, the configuration explicitly uses `ui.zoomPercent: 70`. `UiViewportScale` maintains the required output and derives the CSS and DPR native Viewer; does not inject CSS zoom into the document or iframe. The image enters several lines through context geometry, and the screenshot and the configuration metadata remain separate evidence.
 
-- Cheia este configurabilă per YAML, acceptă `25..200`, iar lipsa ei înseamnă `100`.
-- [Contractul și proba nativă](../../../../../../../../atf-ui/README.md#geometria-nativă-a-contextului)
-  dețin relația dintre ieșire, layout CSS, DPR și pointer.
+- The key is configurable per YAML, accepts `25..200`, and its absence means `100`.
+- [Contract and native evidence](../../../../../../../../atf-ui/README.md#geometria-nativă-a-contextului)
+  have the relationship between the output, layout CSS, DPR and pointer.
 
-Ownership-ul codului este la fel de strict ca ownership-ul YAML-ului:
+The code's ownership is as strict as the YAML ownership:
 
 ```text
 atf-ui
@@ -314,29 +268,18 @@ atf-reporting-tests composition scope
   ReportingTestResources → Extent output / audit input / API setup
 ```
 
-Clasele din `support/config` nu sunt infrastructură generică de browser: ele
-modelează exclusiv testarea raportului Extent, outputul UI, suitele de audit și
-legătura setup API → raport. De aceea nu se mută în `atf-ui` și nu se publică
-din `src/main` al unui modul generic. Un consumer Playwright fără Extent poate
-folosi politicile runtime din `atf-ui` fără să depindă de aceste clase.
+Classes in `support/config` are dedicated reporting-test support: they model Extent reports, UI output, audit suites and API setup-to-report integration. They therefore remain outside `atf-ui` and a generic module's `src/main` publication. A Playwright consumer without Extent may use `atf-ui` runtime policies independently of these classes.
 
-`atf-reporting-tests/src/test/resources/atf-mock.yaml` este catalogul mock folosit
-de testele autonome ale raportării. Este o copie controlată a catalogului
-proiectului, iar `atf-mock` rămâne proprietarul loader-ului și al schemei.
-Testele raportării nu mai depind implicit de directorul din care a fost pornit
-Maven sau IntelliJ. `ReportingTestResources` aplică următoarea prioritate:
+`atf-reporting-tests/src/test/resources/atf-mock.yaml` is the mock catalogue used by autonomous reporting tests. It is a controlled copy of the project catalogue, and `atf-mock` remains the owner of the loader and the scheme. Reporting tests no longer depend implicitly on the directory from which Maven or IntelliJ was started. `ReportingTestResources` applies the following priority:
 
-1. `-Datf.ui.config=...` pentru o configurație UI explicită;
-2. configurația internă `atf-reporting-ui.yaml`;
-3. artifactele UI în `${ATF_REPORT_OUTPUT_DIR}` sau subdirectorul UI configurat;
-4. `-Datf.ui.report=...` doar pentru inputul unui raport existent.
+1. `-Datf.ui.config=...` for an explicit UI configuration;
+2. `atf-reporting-ui.yaml` internal configuration;
+3. UI artifacts in `${ATF_REPORT_OUTPUT_DIR}` or UI subdirectory configured;
+4. `-Datf.ui.report=...` only for the input of an existing report.
 
-Mock-ul intern este încărcat explicit din classpath-ul modulului. Pentru un
-test API/UI care folosește setup-ul de raportare, se utilizează
-`ReportingTestResources.mockConfiguration()` sau `.mockTransport()`, nu
-`AtfMockTransport.fromProjectConfiguration()`.
+Mock internal is explicitly loaded from the module's top. For a API / UI test using the reporting set, `ReportingTestResources.mockConfiguration()` or `.mockTransport()` are used, not `AtfMockTransport.fromProjectConfiguration()`.
 
-Lanțul este auditabil:
+The chain is audible:
 
 ```text
 atf-reporting-ui.yaml
@@ -352,32 +295,30 @@ e2e Playwright read-only
 validări pe Tests, Overview, Categories, Fails, Evidence și UI validation
 ```
 
-## Rulare directă din IntelliJ
+<a id="direct-run-from-intellij"></a>
+<a id="rulare-directă-din-intellij"></a>
+## Direct run from IntelliJ
 
-Pentru suita browser-backed se rulează clasa:
+For browser-backed suite you run class:
 
 ```text
 atf.ui.tests.extent.e2e.ExtentReportingE2eSuite
 ```
 
-În IntelliJ: Run/Debug pe clasă, cu working directory fie rădăcina
-proiectului `atf`, fie modulul `atf-reporting`. Nu este necesară copierea
-manuală a YAML-ului și nu se oprește niciun server sau proces existent.
+In IntelliJ: Run / Debug on class, with working directory either the root of `atf` project or `atf-reporting` module. No manual copying of YAML is required and no existing server or process is stopped.
 
-La modificări ale resolverului de output, ale compoziției root-ului sau ale
-configurației IDE, execută smoke-testul:
+At changes in the output resolver, the composition of the root or the configuration IDE, perform the smoke- test:
 
-- rulează suita separat cu working directory la root-ul reactorului și la
-  `atf-reporting`; ambele rulări trebuie să treacă;
-- confirmă că fiecare run creează un raport nou în
-  `<reactor>/artifacts/reports/ui/e2e` și că run-ul din `atf-reporting` nu
-  creează o copie sub `atf-reporting/artifacts/reports/ui/e2e`;
-- deschide raportul curent cu ATF Debug / Playwright MCP și verifică proveniența
-  lui; testele automate simulează working directory-ul, dar nu lansează IntelliJ.
+- separate suite running with working directory at reactor root and at
+  `atf-reporting`; both runs must pass;
+- confirms that each run creates a new report in
+  `<reactor>/artifacts/reports/ui/e2e` and that the `atf-reporting` run does not create a copy under `atf-reporting/artifacts/reports/ui/e2e`;
+- Open current ATF Debug / Playwright MCP and check provenance
+  His; automatic tests simulate the director's working, but do not launch IntelliJ.
 
-Acesta este un control operațional la schimbări relevante, nu un ToDo permanent.
+This is an operational control at relevant changes, not a permanent ToDo.
 
-Echivalent Maven, din rădăcina staging-ului extern:
+Maven equivalent, from the root of external staging:
 
 ```text
 mvn -pl atf-reporting-tests -am \
@@ -385,7 +326,7 @@ mvn -pl atf-reporting-tests -am \
   -DforkCount=0 -DreuseForks=false test
 ```
 
-Pentru un artifact UI existent:
+For an existing UI artifact:
 
 ```text
 mvn -pl atf-reporting-tests -am \
@@ -394,131 +335,123 @@ mvn -pl atf-reporting-tests -am \
   -DforkCount=0 -DreuseForks=false test
 ```
 
-În debug, raportul final se verifică prin ATF Debug și Playwright MCP. Nu se
-folosește browserul Windows real. Verdictul nu este complet până când HTML-ul
-nu este deschis, tab-urile sunt inspectate, screenshot-urile sunt vizibile,
-nu există overflow orizontal, iar consola nu raportează erori.
+At the debugging, the final report is checked through ATF Debug and Playwright MCP. No real Windows browser is used. The verdict is not complete until HTML is opened, the tables are inspected, the screenshots are visible, there is no horizontal overflow, and the console does not report errors.
 
-## Contract de randare verificată
+<a id="rating-contract-verified"></a>
+<a id="contract-de-randare-verificată"></a>
+## Rating contract verified
 
-Testele E2E trebuie să publice propoziții scurte, dar explicite: `GIVEN` pentru
-setup/input, `WHEN` pentru acțiunea Playwright și `THEN` pentru verdictul de
-display. `Setup evidence` este setup, nu `UI validation`; validarea UI trebuie
-să apară sub `TEST BODY` și să numească tab-ul/suprafața verificată.
+E2E tests must publish short but explicit sentences: `GIVEN` for setup / input, `WHEN` for Playwright and `THEN` for display verdict. `Setup evidence` is setup, not `UI validation`; UI validation should be shown below `TEST BODY` and name the verified table / surface.
 
-În fiecare raport verificat se păstrează:
+In each report checked, the following shall be kept:
 
-- plus/minus inline, mereu în fața propoziției;
-- screenshot relevant ca link inline cu emoji-ul curent;
-- tabelul Playwright cu acțiunile relevante, inclusiv `getText`/text extraction;
-- numărul fiecărei acțiuni este un badge compact `#n`, cu lățime naturală; nu
-  poate moșteni lățimea zonei colapsabile și nu poate întinde delimitarea pe viewport;
-- request/response JSON pentru API setup când raportul îl expune;
-- fără `<hr>` și fără delimitări artificiale între zonele unei secțiuni;
-- inputul raportului ca evidence auditabil, fără hash-uri SHA-256 afișate ca
-  substitut pentru linkul către artifact.
+- plus / minus inline, always in front of the sentence;
+- relevant screenshot as inline link with current emoji;
+- table Playwright with relevant actions, including `getText` / text extract;
+- the number of each action is a compact `#n` badge, with natural width;
+  be able to inherit the width of the collapsible area and cannot extend the delimitation on the viewport;
+- Require / response JSON for API setup when the ratio is exposed;
+- without `<hr>` and without artificial delimitation between areas of a section;
+- input of the report as auditable evidence without SHA-256 hashes displayed as
+  sub-substitute for the link to the artifact.
 
-## Guard-uri pentru contribuții
+<a id="contributions-guardours"></a>
+<a id="guard-uri-pentru-contribuții"></a>
+<a id="contributions-guards"></a>
+## Contributions guards
 
-- Testele E2E rămân puține și configurabile; nu se clonează un test pentru
-  fiecare familie API. Se aleg scenarii concrete prin adnotări/profiluri.
-- Locatori Playwright se compun numai în `support/locators`; testele și flow-
-  urile folosesc facade-uri semantice.
-- Fixture-urile nu devin clase `*Test`; testele rămân scurte și exprimă doar
-  intenția, setup-ul și verdictul.
-- Validarea DOM/Style se împarte în extractare, snapshot/policy și publicare;
-  partea pură rămâne testabilă fără browser.
-- API POST/PUT din mock trebuie să aibă body JSON și response JSON, iar
-  perechea trebuie să fie vizibilă în raportul Extent.
-- Orice refactor de CSS/JavaScript/HTML cere build extern în `${ATF_STAGING_ROOT}`,
-  sincronizare controlată în codul live și verificare vizuală a unui raport
-  proaspăt.
+- E2E tests remain few and configurable; no cloning test is required for
+  Each API family. Concrete scenarios are chosen through annotations / profiles.
+- Playwright locators are only composed in `support/locators`; tests and flow-
+  Uses use semantic facades.
+- Fixturees do not become `*Test` classes; tests remain short and express only
+  intent, setup and verdict.
+- DOM / Style validation is divided into extraction, snapshot / policy and publication;
+  pure parts remain testable without browser.
+- API POST / PUT in the mock must have the body JSON and the response JSON, and
+  the pair shall be visible in the Extent ratio.
+- Any refactor of CSS / JavaScript / HTML requires external build in `${ATF_STAGING_ROOT}`,
+  controlled timing in live code and visual check of a fresh report.
 
-## Contract E2E pentru etichete
+<a id="e2e-contract-for-labels"></a>
+<a id="contract-e2e-pentru-etichete"></a>
+## E2E contract for labels
 
-`ReportNavigationAggregationFlowTest` este flow-ul configurabil pentru filtrarea
-dinamică a tab-ului `Tests`. El trebuie să dovedească în raport, nu doar în cod,
-următoarea succesiune: owneri baseline → `Pass` → primul tag → al doilea tag →
-`Clear` → `Categories` → `Overview`.
+`ReportNavigationAggregationFlowTest` is the configurable flow for dynamic filtration of the `Tests` table. It must prove in the report, not just in code, the following sequence: baseline owners → `Pass` → the first tag → the second tag → `Clear` → `Categories` → `Overview`.
 
-Pentru fiecare execuție se verifică:
+For each execution check:
 
-- `aria-pressed` și numele opțiunilor;
-- scenariile vizibile și starea restaurată;
-- tranziția `tag1 → tag2`;
-- `active=1` și `replaced=true`;
-- `owners=3, tags=0` după `Clear`;
-- numărul de checkpoint-uri în antetul colapsabil;
-- detaliile complete în tabelul de audit;
-- artifactul final deschis în ATF Debug/browser MCP înainte de promovare.
+- `aria-pressed` and names of options;
+- visible scenarios and restored status;
+- `tag1 → tag2` transition;
+- `active=1` and `replaced=true`;
+- `owners=3, tags=0` after `Clear`;
+- number of checkpoints in the collapsible header;
+- the full details in the audit table;
+- the final artifact opened in ATF Debug / MCP browser prior to the promotion.
 
-## Limitele de responsabilitate pentru dovezile UI și furnizorii de raportare
+<a id="liability-limits-for-ui-evidence-and-reporting-providers"></a>
+<a id="limitele-de-responsabilitate-pentru-dovezile-ui-și-furnizorii-de-raportare"></a>
+## Liability limits for UI evidence and reporting providers
 
-Regula transversală pentru captură configurabilă este în
-[documentul dedicat](../../../../../../../../docs/ATF_Evidence_Capture_Contract.md).
-Acest README deține doar auditul browserului și contractele observabile ale
-artifactului; nu deține flow mode-ul sau mapping-ul YAML al unui consumer.
+The cross-cutting rule for configurable capture belongs in the [dedicated document](../../../../../../../../docs/ATF_Evidence_Capture_Contract.md). This README owns browser audit and observable artifact contracts; it does not own a consumer’s flow mode or YAML mapping.
 
-| Contract | Owner | Ce rămâne în test |
+| Contract | Owner | What's left in the test |
 |---|---|---|
-| vocabular HTML și atribute stabile | `AtfReportHtmlVocabulary` | verificarea contractului DOM public |
-| culori și geometrie | `atf-reporting/.../theme/tokens` | verificarea computed style și a randării |
-| stilul evidence UI | `theme/evidence/AtfUiEvidenceCss` | verificarea capturii, pașilor și tabelului |
-| datele fiecărui run | records/POJO-uri immutable | input runtime; nu string-uri împrăștiate sau enum-uri dinamice |
+| HTML vocabulary and stable attributes | `AtfReportHtmlVocabulary` | checking public DOM contract |
+| Colours and geometry | `atf-reporting/.../theme/tokens` | checking computer style and rendering |
+| UI style | `theme/evidence/AtfUiEvidenceCss` | verification of catch, steps and table |
+| data of each run | records/POJO-uri immutable | input runtime; no scattered strings or dynamic enumerations |
 
-E2E verifică browserul și raportul observabil; nu reimplementează CSS sau HTML
-în clasele de test.
+E2E checks the browser and observable report; does not reimplement CSS or HTML in test classes.
 
-Ordinea de acoperire este:
+The order of coverage is:
 
-- unit — token-uri, markup și provideri;
-- component — secțiuni și contracte de evidence;
-- integrare — asamblarea raportului și asset manifest;
-- E2E — browser, randare, click-uri, expand/collapse, link-uri inline și tab-uri.
+- units - tokens, markups and providers;
+- component - sections and record-keeping contracts;
+- integration - assembly of the report and manifest asset;
+- E2E - browser, rendering, clicks, expansion / collapse, inline links and tabs.
 
-Reguli de execuție:
+Implementing rules:
 
-- orice schimbare se verifică în ATF Debug cu Playwright/Chromium headless;
-- browserul Windows real nu face parte din validare;
-- `＋/−` rămâne inline înaintea propoziției;
-- disclosure-urile sunt închise implicit când nu fac parte din scenariu;
-- nu există separatoare `<hr>` sau overflow orizontal;
-- legăturile inline pentru capturi se păstrează;
-- CSS-ul/JavaScript-ul se separă după responsabilitate semantică;
-- providerii noi primesc identificatori tipizați și token-uri;
-- testul verifică output-ul public rezultat.
+- any change is checked in ATF Debug with Playwright / Chromium headless;
+- actual Windows browser is not part of the validation;
+- `＋/−` remains inline before the sentence;
+- Disclosuries are closed by default when they are not part of the scenario;
+- `<hr>` or horizontal overflow separators are not available;
+- inline catch linkages shall be retained;
+- CSS-ul / JavaScript is separated after semantic responsibility;
+- new providers receive Tiguan identifiers and tokens;
+- The test checks the resulting public output.
 
-## Contractul E2E al randării
+<a id="the-e2e-ranking-contract"></a>
+<a id="contractul-e2e-al-randării"></a>
+## The E2E Ranking Contract
 
-Acesta este gate-ul normativ pentru orice extragere sau schimbare care poate
-modifica raportul. Un gate nu validează un HTML istoric și nu validează doar
-substring-uri în sursă: folosește raportul generat de run-ul curent sau un input
-static ales explicit prin configurație. Numele, timestamp-ul și calea unui
-artifact generat nu se păstrează în README-uri.
+This is the regulatory gear for any extraction or change that can change the ratio. A gate does not validate a historical HTML and does not just validate substrings in the source: uses the ratio generated by the current run or a static input explicitly chosen by configuration. The name, timestamp and path of an generated artifact are not kept in README.
 
-### Reguli care se aplică întotdeauna
+<a id="rules-that-always-apply"></a>
+<a id="reguli-care-se-aplică-întotdeauna"></a>
+### Rules that always apply
 
-- ✅ Raportul este deschis prin ATF Debug/Chromium headless și este verificat în
-  browser MCP; browserul Windows real nu face parte din gate.
-- ✅ E2E-ul verifică efectul observabil: DOM, stil calculat, navigare, click,
-  expand/collapse, link-uri și randare. Nu reimplementează providerul sau
-  regulile de contract deja testate la nivel inferior.
-- ✅ Datele dinamice ale run-ului — nume de teste, locatori, body-uri JSON,
-  durate, asset-uri și rezultate — rămân runtime data în modele/fixture-uri;
-  nu sunt mutate în enum-uri sau constante doar pentru a scurta testul.
-- ✅ Vocabularul stabil — tab-uri, operații, chei de contract și clase publice —
-  poate fi tipizat în constante/enumerări, cu un singur owner.
-- ✅ Promovarea folosește un artifact fresh și un manifest de asset-uri
-  reconciliat; un raport vechi poate servi doar la investigație locală.
-- ✅ Geometria se măsoară în browserul real: viewport CSS, DPR și containment.
-  `ui.viewport.width/height` descriu ieșirea cerută, iar `ui.zoomPercent`
-  determină scala contextului nativ; snapshot-ul System nu substituie măsurătoarea.
+- The report is opened via ATF Debug / Chromium headless and is checked in
+  MCP browser; the actual Windows browser is not part of the gate.
+- E2E- checks the observable effect: DOM, calculated style, navigation, click,
+  Extend / collapse, links and rendering. Do not reimplement the provider or contract rules already tested at the lower level.
+- The dynamic data of the run - test names, locators, JSON bodywork,
+  durations, assets and results - remain runtime data in models / fixtures; not moved in lists or constant just to shorten the test.
+- The stable vocabulary - tables, operations, contract keys and public classes -
+  can be typed in constants / enumerations with one owner.
+- The promotion uses a fresh artifact and a manifesto of assets'
+  reconciled; an old report can only serve to local investigation.
+- The geometry is measured in the real browser: viewport CSS, DPR and container.
+  `ui.viewport.width/height` describes the required output, and `ui.zoomPercent` determines the native context scale; the Snapshots System does not substitute the measurement.
 
-### Contractul auditului secundar din Overview
+<a id="the-secondary-audit-contract-in-overview"></a>
+<a id="contractul-auditului-secundar-din-overview"></a>
+### The secondary audit contract in Overview
 
-Cele două disclosures ATF — `#atf-execution-metadata` și `#atf-tag-audit` —
-se verifică pe același scenariu E2E existent, fără o clasă nouă. Validatorul
-nu se oprește la atributul `open` și nici la un număr generic de elemente:
+The two disks ATF - `#atf-execution-metadata` and `#atf-tag-audit` - are checked on the same existing E2E scenario without a new class. The validator does not stop at the `open` attribute or at a generic number of elements:
 
 ```text
 stare inițială închisă
@@ -532,26 +465,26 @@ assertions semantice
 închidere și verificare fără corp vizibil
 ```
 
-Contractul semantic este:
+The semantic contract is:
 
-- 6 metrici de execuție: clase, scenarii, pass, fail, skipped, warnings;
-- exact 3 tabele de audit: `atf-audit-scenarios`, `atf-audit-packages`,
+- 6 execution metrics: classes, scenarios, pass, fail, skipped, warnings;
+- precisely 3 audit tables: `atf-audit-scenarios`, `atf-audit-packages`,
   `atf-audit-tags`;
-- fiecare tabel are headere nenule, cel puțin un rând și celule populate;
-- ambele corpuri devin vizibile la expandare și dispar efectiv la închidere;
-- valorile dinamice rămân extrase din DOM; doar vocabularul structural este
-  constantizat.
+- Each table has non-zero headers, at least one row and populated cells;
+- both bodies become visible at expansion and effectively disappear at closure;
+- Dynamic values remain extracted from DOM; only the structural vocabulary is
+  constant.
 
-Proof-ul este împărțit pe niveluri:
+The sample is divided by levels:
 
-- `OverviewSecondaryContractValidatorTest` verifică regulile pure;
-- `SelectedApiTestsReportUiTest` le execută pe raportul real;
-- scenariul trebuie să arate `Audit observations · 6` și `Assertions · 7`, cu
-  rânduri verzi și fără overflow;
-- deep-link-ul este `#test-id=48&scenario-index=6&expand=ui-validation`;
-  restul raportului rămâne închis implicit.
+- `OverviewSecondaryContractValidatorTest` checks the rules pure;
+- `SelectedApiTestsReportUiTest` executes them on the actual report;
+- the scenario must show `Audit observations · 6` and `Assertions · 7`, with
+  green rows and no overflow;
+- the Deeplink is `#test-id=48&scenario-index=6&expand=ui-validation`;
+  the rest of the report remains closed by default.
 
-Ordinea evidence-ului este strictă și semantică:
+The order of the evidence is strict and semantic:
 
 ```text
 Playwright actions: navigate → wait → open Overview → expand ATF zones
@@ -561,166 +494,162 @@ Screenshot: capturat cât timp ambele zone sunt deschise
 Assertions: conținut metrici, tabele, vizibilitate și restore closed
 ```
 
-Ordinea din artifact rămâne:
+The order of the artifact shall remain:
 
 - `Playwright action sequence (7 entries)`;
-- `Screenshot` ca ultim checkpoint vizual, imediat după acțiunile care au produs
-  starea verificată;
-- `Assertions · 7` după captură.
+- `Screenshot` as the last visual checkpoint immediately after the actions that produced
+  status check;
+- `Assertions · 7` after the catch.
 
-Click-urile de restore sunt cleanup tehnic: nu se publică drept acțiuni ale
-flow-ului după captură.
+Restore clicks are technical cleanup: they are not published as stock shares after catch.
 
-### Asset-uri native și filtrarea Tests
+<a id="native-assetas-and-filtering-tests"></a>
+<a id="asset-uri-native-și-filtrarea-tests"></a>
+### Native Assetas and Filtering Tests
 
-Asset-urile `.js`/`.css` sunt output public, verificate la ambele limite:
+`.js` / `.css` assets are publicly verified, at both limits:
 
-- `atf-reporting` verifică resource loader-ul și composer-ul;
-- testele UI verifică efectul în DOM și randare;
-- `ExtentReportRuntimeTestFilters` este o fațadă Java peste
-  `extent-tests-filters.js`; vocabularul stabil este typed, algoritmul rămâne
-  JavaScript nativ;
-- orice modificare cere component contract și gate E2E pe raport fresh.
+- `atf-reporting` checks the resource loader and composer;
+- UI tests check the effect in DOM and rendering;
+- `ExtentReportRuntimeTestFilters` is a Java facade over
+  `extent-tests-filters.js`; stable vocabulary is typed, the algorithm remains native JavaScript;
+- any change requires contract component and E2E gate on the fresh report.
 
-### Checklist executabil pentru un gate E2E
+<a id="executable-checklist-for-e2e-gate"></a>
+<a id="checklist-executabil-pentru-un-gate-e2e"></a>
+### Executable checklist for E2E gate
 
-Fiecare bifă de mai jos trebuie să fie `✅` în rezultatul run-ului sau marcată
-explicit `N/A` cu motiv. Un gate nou nu este valid dacă lasă o verificare
-obligatorie neexecutată.
+Each tick below must be `✅` in the result of its run or explicitly marked `N/A` for reason. A new gate is not valid if it leaves a mandatory check unexecuted.
 
-#### 1. Input și navigare
+<a id="1-input-and-navigation"></a>
+<a id="1-input-și-navigare"></a>
+#### 1. Input and navigation
 
-- ☐ inputul este raportul run-ului curent sau inputul static indicat în
-  configurație;
-- ☐ gate-ul rulează la viewport-ul configurat și, pentru responsive, la o lățime
-  cu cel mult 25% mai mică; o lățime sub această limită este exploratorie și
-  trebuie raportată separat ca `known issue`, nu confundată cu verdictul gate-ului;
-- ☐ pagina se încarcă fără erori de navigare, asset-uri lipsă sau resurse
-  externe obligatorii;
-- ☐ `Tests`, `Overview`, `Categories` și `Fails` sunt accesibile, iar deep-link
-  -ul activează view-ul corect;
-- ☐ `Tags` este verificat când este publicat de raportul respectiv;
-- ☐ tab-ul activ, titlul și link-ul de revenire rămân coerente după navigare și
+- ☐ input is the current run ratio or static input indicated in the
+  configuration;
+- ☐ the gear is running at the configured view and, for responders, at a width
+  not more than 25% lower; a width below this limit is exploratory and shall be reported separately as `known issue`, not confused with the gate verdict;
+- ☐ page is loaded without browsing errors, missing assets or resources
+  mandatory external;
+- ☐ `Tests`, `Overview`, `Categories` and `Fails` are accessible and Deeplink
+  The correct view is activated;
+- ☐ `Tags` is verified when published by that report;
+- ☐ the active table, title and return link remain consistent after navigation; and
   refresh.
 
-#### 2. Ierarhia și disclosure-urile din `Tests`
+<a id="2-hierarchy-and-discharsuri-in-tests"></a>
+<a id="2-ierarhia-și-disclosure-urile-din-tests"></a>
+<a id="2-hierarchy-and-disclosures-in-tests"></a>
+#### 2. Hierarchy and disclosures in `Tests`
 
-- ☐ `＋/−` este inline, înaintea titlului, și rămâne aliniat vertical cu titlul;
-- ☐ `SETUP` este distinct de `TEST BODY` și `TEARDOWN` apare numai când există
-  în lifecycle;
-- ☐ scenariul și fazele relevante se pot deschide/închide prin click sau
-  tastatură, fără să schimbe ordinea sau proprietarul conținutului;
-- ☐ după expandare se văd `THEN` și `UI validation` atunci când scenariul
-  este UI-backed;
-- ☐ în `UI validation` se pot urmări acțiunile în ordinea executată,
-  inclusiv target, expected, observed, rezultat și durată;
-- ☐ `Audit observations` și `Assertions` sunt secțiuni distincte, lizibile și
-  raportate după acțiunile pe care le explică;
-- ☐ screenshot-ul sau link-ul inline este vizibil când este parte din contract;
-  un link deduplicat trebuie să aibă markerul `📷 base64 img`,
-  `data-atf-screenshot-ref` și să ducă la un PNG canonic valid care se poate
-  deschide.
+- ☐ `＋/−` is inline before the title and remains vertically aligned with the title;
+- ☐ `SETUP` is distinct from `TEST BODY` and `TEARDOWN` only occurs when there is
+  in lifecycle;
+- ☐ relevant scenario and phases can be opened / closed by clicking, or
+  keyboard without changing the order or owner of the content;
+- ☐ after expansion see `THEN` and `UI validation` when the scenario
+  be supported by UI;
+- ☐ in `UI validation`, follow-up actions in the order executed,
+  including target, expected, observed, result and duration;
+- ☐ `Audit observations` and `Assertions` are distinct, legible and
+  reported according to the actions it explains;
+- ☐ the screenshot or inline link is visible when part of the contract;
+  a removable link shall have the `📷 base64 img`, `data-atf-screenshot-ref` marker and shall result in a valid canonical PNG that can be opened.
 
-#### 3. Contractul API și al dovezilor (când se aplică)
+<a id="3-api-contract-and-evidence-when-applicable"></a>
+<a id="3-contractul-api-și-al-dovezilor-când-se-aplică"></a>
+#### 3. API contract and evidence (when applicable)
 
-- ☐ request-ul și response-ul JSON sunt afișate ca evidence separată, inclusiv
-  body JSON, headers/status și provenance mock;
-- ☐ execution evidence leagă request-ul de testul, ruta și rezultatul care l-au
-  produs;
-- ☐ un failure indică cauza și oferă `Open in Tests` fără să piardă testul
+- ☐ the quest and the JSON response are shown as separate evidence, including
+  body JSON, heads / status and origin mock;
+- ☐ execution evidence linking the quest to the test, route and result
+  product;
+- ☐ a failure indicates the cause and offers `Open in Tests` without losing the test
   original;
-- ☐ raportul UI care folosește setup API poate fi reconciliat cu raportul API
-  selectat de configurația run-ului: mock → API → UI → validare.
+- ☐ UI ratio using API setup can be reconciled with API ratio
+  selected by the run configuration: mock → API → UI → validation.
 
-#### 4. DOM, CSS și consolă
+<a id="4-dom-css-and-console"></a>
+<a id="4-dom-css-și-consolă"></a>
+#### 4. DOM, CSS and console
 
-- ☐ pentru document, root-ul raportului și container-ele declarate
-  non-scrollable, `scrollWidth <= clientWidth` la viewport-ul suportat;
-- ☐ wrapping-ul păstrează vizibile coloanele și acțiunile fără overflow
-  orizontal ascuns;
-- ☐ nu există `<hr>` decorative; delimitările sunt realizate prin componente
-  semantice și CSS-ul lor;
-- ☐ `＋/−`, badge-urile, tabelul, screenshot link-ul și secțiunile colapsabile
-  au computed-style coerent cu tema și contrast lizibil;
-- ☐ nu există console errors, page errors, request failures sau imagini
+- ☐ for document, report root and declared containers
+  non-scrollable, `scrollWidth <= clientWidth` to the supported viewport;
+- ☐ the wrapping keeps visible columns and shares without overflow
+  Hidden horizontally;
+- ☐ no decorative `<hr>`; delimitations are made through components
+  Semantics and their CSS-ul;
+- ☐ `＋/−`, badges, table, screen shot link and collapsible sections
+  b. Computer-style consistent with theme and legible contrast;
+- ☐ no consoles, page errors, request failures or images
   broken;
-- ☐ este capturată o imagine a stării finale pentru audit, dar imaginea este
-  evidence a run-ului, nu nume de fișier hardcodat în documentație.
+- ☐ any other information that may be relevant to the audit process;
+  evidence of the run, not hardcoded file names in documentation.
 
-### Pașii de explorare manuală ATF Debug / browser MCP
+<a id="atf-debug-manual-exploration-steps--mcp-browser"></a>
+<a id="pașii-de-explorare-manuală-atf-debug--browser-mcp"></a>
+### ATF Debug manual exploration steps / MCP browser
 
-Aceștia sunt pașii recomandabili când un gate schimbă structura, layout-ul sau
-flow-ul, nu o listă de assertions care dublează toate testele unitare:
+These are the recommended steps when a gate changes structure, layout or flower, not a list of assertions that doubles all unit tests:
 
-1. Deschide artifactul ales de configurația run-ului și pornește din `Tests`.
-2. Selectează un test care are setup și test body; verifică mai întâi starea
-   colapsată și apoi deschide scenariul, `SETUP`, `TEST BODY`, `THEN` și
-   `UI validation`.
-3. Urmărește acțiunile de la primul `Navigate/Wait` până la ultima validare;
-   pentru fiecare verifică target-ul, expected-ul și observed-ul, nu doar textul
-   operației.
-4. Deschide separat request evidence, response evidence, execution evidence,
-   `Audit observations` și `Assertions`; verifică legătura dintre fiecare
-   disclosure și rândul pe care îl explică.
-5. Repetă navigarea pentru `Overview`, `Categories`, `Fails` și, dacă există,
-   `Tags`. Pentru un raport API perechea UI/API se deschide în tab-uri MCP
-   separate și se reconciliază prin manifestul run-ului, nu printr-un nume scris
-   în README.
-6. Rulează verificarea DOM/CSS/consolă și capturează starea finală numai după
-   ce toate disclosure-urile relevante au fost verificate. Dacă suprafața
-   browser MCP este mai îngustă decât limita suportată, notează observația ca
-   explorare suplimentară; nu o folosi pentru a promova sau respinge run-ul
-   configurat.
+1. Open the artifact chosen by the run configuration and start from `Tests`.
+2. Select a test that has setup and body test; check status first
+   The scenario is then collapsed and then opened, `SETUP`, `TEST BODY`, `THEN` and `UI validation`.
+3. Follow actions from the first `Navigate/Wait` until the last validation;
+   For each check the target, the expectation and the observer, not just the text of the operation.
+4. Open separate request evidence, answer evidence, execution evidence,
+   `Audit observations` and `Assertions`; check the link between each disconnect and the row it explains.
+5. Repeat navigation for `Overview`, `Categories`, `Fails` and, if any,
+   `Tags`. For a API ratio, UI / API pair is opened in separate MCP tables and reconciled through the run manifest, not by a name written in README.
+6. Run DOM / CSS / console check and capture the final status only after
+   If the MCP browser area is narrower than the supported limit, note the observation as additional exploration; do not use it to promote or reject the configured run.
 
-### Implementarea gate-ului și dovada de acoperire
+<a id="implementation-of-the-gate--and-evidence-of-coverage"></a>
+<a id="implementarea-gate-ului-și-dovada-de-acoperire"></a>
+### Implementation of the gate- and evidence of coverage
 
-Contractul este executat pe trei seams, fără duplicarea selectorilor sau a
-regulilor:
+The contract shall be performed on three seasons without duplication of the selects or rules:
 
-| Seam | Owner | Dovadă executabilă |
+| Seam | Owner | Executable proof |
 |---|---|---|
-| raport static ales explicit | `StaticUiExtentReportContractTest` + `UiReportContractDynamicEngine` | toate cele patru tab-uri, click/collapse în Tests, UI validation, screenshot, style/render boundary |
-| raport generat din setup API | `SelectedApiTestsReportUiTest` + `SectionAuditRegistry` | mock → API, POST/PUT request/response JSON, owner/scenario/phase, Categories/Overview/Fails/Evidence și render-health pe toate tab-urile |
-| browser render health | `UiReportStyleValidator` + `ReportAuditContext` | overflow document/body/non-scrollable, zero `<hr>`, imagini, glyph `＋/−`, console/page/request diagnostics |
+| explicit selected static report | `StaticUiExtentReportContractTest` + `UiReportContractDynamicEngine` | all four tables, click / collapse in Tests, UI validation, screenshot, style / render boundary |
+| API Setup ratio | `SelectedApiTestsReportUiTest` + `SectionAuditRegistry` | mock → API, POST / PUT request / response JSON, owner / scenario / phase, Categories / Overview / Fails / Evidence and render- health on all tables |
+| browser render health | `UiReportStyleValidator` + `ReportAuditContext` | overflow document / body / non-scrollable, zero `<hr>`, images, glyph `＋/−`, consoles / page / request diagnostics |
 
-`UiValidationSectionExtractor` verifică explicit:
+`UiValidationSectionExtractor` explicitly verifies:
 
-- zone pentru Playwright actions, Audit observations și Assertions;
-- un link PNG Base64 valid, direct sau deduplicat prin referință;
-- markerul `📷 base64 img` și alinierea verticală a linkului;
-- prezența reală a zonelor, nu doar numărul de carduri;
-- `UI validation` pe artifactul UI care produce evidence; un al doilea titlu
-  vizibil pentru aceeași categorie este respins pe artifactele generate curent;
-- `N/A` pentru UI validation absentă într-un raport API pur, cu render-health API obligatoriu;
-- zoom-ul configurat de `PlaywrightUiSession` fără dereferențiere înaintea
-  existenței `documentElement`;
-- teste component și gate-uri E2E complementare pe artefacte reale.
+- areas for Playwright shares, Audit observations and Assertions;
+- a valid PNG Base64 link, directly or by reference,
+- `📷 base64 img` marker and vertical alignment of the link;
+- actual presence of areas, not just the number of cards;
+- `UI validation` on the artifact UI producing evidence; a second title
+  visible for the same category is rejected on the artifacts generated by the current;
+- `N/A` for UI missing in a API report with mandatory API render- health;
+- `PlaywrightUiSession` zoom without forward dereferencing
+  `documentElement`;
+- E2E complementary component tests and gates on real artifacts.
 
-Disclosure-urile secundare Overview au acest ciclu verificabil:
+Overview secondary discards have this verifiable cycle:
 
-- **fresh:** `#atf-execution-metadata` și `#atf-tag-audit` sunt închise;
-- **expand:** click pe `summary` afișează corpul direct;
-- **collapse:** al doilea click ascunde corpul;
+- **fresh:** `#atf-execution-metadata` and `#atf-tag-audit` are closed;
+- **expand:** click on `summary` displays the body directly;
+- **collapse:** second click hide body;
 - **owner:** `OverviewSecondaryContractValidator.validateExpansion(...)`
-  reutilizează scenariul existent, fără clasă E2E nouă.
+  re-use the existing scenario without new E2E class.
 
-Deep-link-ul pentru dovada completă:
+Deeplink for full proof:
 
 ```text
 #test-id=48&scenario-index=6&expand=ui-validation
 ```
 
-Acesta deschide `TEST BODY → THEN ATF metadata sections expansion → Screen
-validation` și extinde `Playwright action sequence`, `Audit observations` și
-`Assertions`. La închiderea scenariului, disclosure-urile revin colapsate;
-component testele verifică și această tranziție.
+It opens `TEST BODY → THEN ATF metadata sections expansion → Screen validation` and extends `Playwright action sequence`, `Audit observations` and `Assertions`. Upon closure of the scenario, the disclosures return to collapse; the component also checks this transition.
 
-### Reîncercări UI: politică publică, oprire implicită la incertitudine
+<a id="ui-retests-public-policy-default-stop-at-uncertainty"></a>
+<a id="reîncercări-ui-politică-publică-oprire-implicită-la-incertitudine"></a>
+### UI retests: public policy, default stop at uncertainty
 
-Retry-ul Playwright este policy de acțiune, nu replay de test. `UiRetryPolicy`
-are implicit un singur attempt și niciun operation eligibil. YAML poate activa
- doar operații enumerate, disponibile numai în citire (`navigate`, `wait-for-visible`,
-`wait-for-text`, `wait-for-enabled`, `wait-for-state`, `wait-for-disclosure`):
+Playwright is a policy of action, not a test replica. `UiRetryPolicy` has a single attempt and no eligible operation. YAML can only activate listed operations available only in read (`navigate`, `wait-for-visible`, `wait-for-text`, `wait-for-enabled`, `wait-for-state`, `wait-for-disclosure`):
 
 ```yaml
 ui:
@@ -728,21 +657,16 @@ ui:
     maxAttempts: 2
     backoff: PT0S
     eligibleOperations: [wait-for-visible]
-    reason: DOM stabilization
+    reason: "DOM stabilization"
 ```
 
-`click`, `fill` și `select-option` nu sunt eligibile prin design. Fiecare retry
-este rând `Info` în tabelul Playwright cu tentativa și motivul bounded; acțiunea
-finală păstrează verdictul real. Loader-ul, recorder-ul și renderer-ul au
-teste component/unitare, iar E2E verifică numai efectul browser observabil.
+`click`, `fill` and `select-option` are not eligible by design. Each retry is row `Info` in table Playwright with the attempt and reason bounded; the final action retains the actual verdict. The logger, recorder and renderer have component / unit tests, and E2E only verifies the observable browser effect.
 
-### Tabele de evidență cu resize content-aware
+<a id="content-aware-tables"></a>
+<a id="tabele-de-evidență-cu-resize-content-aware"></a>
+### Content-aware tables
 
-Tabelele de evidență din raport nu trebuie să folosească o împărțire uniformă
-când `EXPECTED`, `OBSERVED`, `VALUE` sau `REASON` conțin diagnostice lungi.
-Assetul `extent-evidence-table-layout.js` aplică aceeași politică plug-and-play
-pe UI și API pentru acțiuni Playwright, audit observations, assertions, setup,
-request/response details, execution, retry history și technical trace:
+The record tables in the report must not use a uniform division when `EXPECTED`, `OBSERVED`, `VALUE` or `REASON` contain long diagnostics. `extent-evidence-table-layout.js` asset applies the same plugin-and-play policy to UI and API for Playwright actions, audit observations, Assertions, setup, request / response details, execution, return history and technical trace:
 
 ```text
 maximum rendered text width per column → reserve RESULT/TIME/STATUS
@@ -750,92 +674,85 @@ maximum rendered text width per column → reserve RESULT/TIME/STATUS
                  → render without overflow
 ```
 
-Regulile sunt dinamice și comune Extent/fallback:
+The rules are dynamic and common Extent / fallback:
 
-- măsoară antetele și maximele textului vizibil, cu fontul, padding-ul și
-  bordurile efective; păstrează maximele reale în pixeli, fără plafon artificial;
-- păstrează coloanele scurte, inclusiv status/timp/attempt, la lățimea măsurată;
-  spațiul disponibil se distribuie proporțional cererii rămase a textului lung;
-- tabelul ocupă întreaga lățime disponibilă; surplusul revine proporțional
-  coloanelor de conținut, păstrând compacte coloanele tehnice;
-- scade numai scrollbar-ul necesar conținutului, nu rezervă gutter pentru un
-  tabel scurt; proba compară lățimea fizică a containerului, nu numai `clientWidth`;
-- `VALUE` nu primește o cotă fixă peste un `FIELD` cu text mai lung;
-- păstrează antetul și celulele în coloane; scroll-ul orizontal apare numai în
-  wrapper dacă suma minimelor lizibile nu încape în panou;
-- publică `data-atf-content-column-max-px` și `data-atf-content-column-widths`
-  în aceeași ordine; markerii legacy validation și field/value rămân disponibili;
-- face o normalizare inițială, apoi folosește fingerprint-ul textului/fontului/
-  lățimii și un singur frame pentru tabelele afectate de mutații ori resize;
-- `ResizeObserver`, schimbarea textului, `hidden → visible` și deschiderea
-  părintelui invalidează local; cache-ul este actualizat după noua geometrie;
-- selectorul comun include tabelele din `ReportTableViewport`, inclusiv o
-  familie nouă; nu depinde de titlul cazului, endpoint sau lungimea fixture-ului.
+- measure the lettering and maxim of the visible text with the font, the padding and
+  actual bays; keep real maxim in pixels without artificial ceiling;
+- keep short columns, including status / time / attempt, at the measured width;
+  the space available shall be distributed proportionately to the remaining demand for the long text;
+- table occupies the full width available; the surplus returns proportionally
+  the content columns, keeping the technical columns compact;
+- drop only the scrollbar required content, do not reserve the gutter for a
+  brief table; the sample compares the physical width of the container, not only `clientWidth`;
+- `VALUE` does not receive a fixed quota above a longer text `FIELD`;
+- keep the header and cells in the columns; horizontal scroller appears only in
+  the wrapper if the sum of the legible minima does not fit in the panel;
+- `data-atf-content-column-max-px` and `data-atf-content-column-widths`
+  in the same order; the markers legacy validation and field / value remain available;
+- make an initial normalization, then use text / font fingerprint /
+  width and a single frame for tables affected by mutations or resize;
+- `ResizeObserver`, text change, `hidden → visible` and aperture
+  the parent invalidates locally; the cachet is updated after the new geometry;
+- the common selection includes the tables in `ReportTableViewport`, including a
+  new family; it does not depend on the title of the case, endpoint or length of fixture.
 
-`EvidenceColumnSizingComponentTest` verifică în browser text lung în coloane
-diferite, coloane tehnice scurte, tabel pe întreaga lățime, redimensionare, mutație,
-redeschidere și familie adăugată ulterior. Include setup, texte cu același număr
-de caractere dar lățimi diferite și cereri concurente peste vechiul plafon.
-Familia de failure inserată ulterior este probată și fără wrapper inițial.
+`EvidenceColumnSizingComponentTest` checks in the browser long text in different columns, short technical columns, table across the width, resize, mutation, reopening and family added later. Includes setup, texts with the same number of characters but different widths and competing requests over the old ceiling. The family of faILUREN inserted later is also proven without initial wrapper.
 
-Oracolul măsoară dreptunghiurile reale și respinge lățimi egale artificiale,
-gutter gol ori celule verticale chiar dacă atributele de audit sunt încă prezente.
+Oracle measures real rectangle and rejects artificial equal widths, hollow gutter or vertical cells even if audit attributes are still present.
 
-Tabelele agregate Overview, Category și System folosesc același allocator în
-containerele lor existente, fără viewport imbricat suplimentar. Totalurile
-numerice păstrează lățimea măsurată; coloana de conținut primește surplusul.
-Colgroup-urile existente se sincronizează cu antetul și body-ul; tabelele vendor
-pentru layout/evenimente nu reprezintă tabele de date.
+The aggregate tables Overview, Category and System use the same algorithm in their existing containers without additional nested viewport. Numerical totals retain the measured width; the content column receives the surplus. The existing colgroups synchronize with the header and the body; the vendor tables for layout / events do not represent the data tables.
 
-### Contractul de verificare
+<a id="verification-contract"></a>
+<a id="contractul-de-verificare"></a>
+### Verification contract
 
-- `ValidationTableLayoutComponentTest` — contractul minim pentru politică;
-- `ValidationTableLayoutInspector` — adapter OOP folosit de
-  `UiValidationSectionExtractor` pentru toate familiile UI/API de evidence
-  tables; noua probă de sizing verifică separat geometria fără a avea încredere numai în markeri;
-- metrică — compară `data-atf-content-column-max-px` cu cea mai lată coloană
-  flexibilă și verifică suma lățimilor plus overflow-ul;
-- E2E/MCP — verifică la `1440×900` și `1280×900`:
-  - `data-atf-content-column-widths` este prezent;
-  - fiecare coloană este aliniată cu antetul și ultima coloană este accesibilă;
-  - documentul și body-ul nu au overflow;
-- captura de audit — arată `OBSERVED/EXPECTED` mai largi când valorile sunt mai
-  lungi și păstrează `RESULT` compact.
+- `ValidationTableLayoutComponentTest` - minimum contract for policy;
+- `ValidationTableLayoutInspector` - OOP adapter used by
+  `UiValidationSectionExtractor` for all families UI / API of evidence tables; new sizing sample checks geometry separately without trusting markers only;
+- metric - compare `data-atf-content-column-max-px` with the widest column
+  flexible and check the amount of the widths plus the overflow;
+- E2E / MCP - check `1440×900` and `1280×900`:
+  - `data-atf-content-column-widths` is present;
+  - Each column is aligned with the header and the last column is accessible;
+  - the document and the body do not have overflow;
+- audit catch - shows wider `OBSERVED/EXPECTED` when values are higher
+  long and keeps `RESULT` compact.
 
-### Responsabilitatea pe niveluri
+<a id="liability-by-levels"></a>
+<a id="responsabilitatea-pe-niveluri"></a>
+### Liability by levels
 
-| Nivel | ✅ Verifică | ❌ Nu înlocuiește |
+| Level | ♪ Check ♪ | ❌ Does not replace |
 |---|---|---|
-| unit | modele, parser-e, vocabular, politici și token-uri | browser și randare reală |
-| component | provider, markup public, CSS/JS contract și section module | flow complet și asset publication |
-| integration | raport asamblat, mock → execution → validation, output și asset manifest | click-uri și computed-style |
-| E2E | efectul real în Chromium: tab-uri, click/collapse, evidence, layout, link-uri și consolă | regulile statice ale providerului |
+| unit | models, parser- e, vocabulary, policies and tokens | actual browser and rendering |
+| component | Provider, public markup, CSS / JS contract and section modules | full flow and asset publication |
+| integration | assembled ratio, mock → execution → validation, output and asset manifest | Clicks and computers-style |
+| E2E | actual effect in Chromium: taboos, click / collapse, highlight, layout, links and console | static rules of the provider |
 
-`N/A` este permis numai pentru o suprafață care nu este publicată de acel
-artifact (de exemplu `UI validation` într-un raport API pur). Nu este permis
-pentru o verificare care există în DOM, dar nu a fost explorată.
+`N/A` is only allowed for an area not published by that artifact (e.g. `UI validation` in a pure API report). It is not allowed for a verification that exists in DOM but has not been explored.
 
-### Criteriu de acceptare
+<a id="acceptance-criterion"></a>
+<a id="criteriu-de-acceptare"></a>
+### Acceptance criterion
 
-Un gate este acceptat numai când:
+A gate shall be accepted only when:
 
-- ✅ nivelul corect a verificat contractul său;
-- ✅ checklist-ul E2E aplicabil este complet, inclusiv pașii manuali;
-- ✅ la viewport-ul suportat nu există overflow în document/root/container-ele
-  non-scrollable, `<hr>` decorativ, erori de consolă sau asset-uri rupte;
-- ✅ artifactul, manifestul și sursele staging/live sunt reconciliate;
-- ✅ rezultatul poate fi repetat de altă persoană din raport, fără cunoașterea
-  implementării interne.
+- The correct level has verified its contract;
+- The applicable E2E checklist is complete, including manual steps;
+- The supported view does not exist overflow in document / root / container.
+  non-scrollable, `<hr>` decorative, console errors or broken assets;
+- The artifact, manifesto and staging / live sources are reconciled;
+- The result can be repeated by another person in the report without knowledge
+  internal implementation.
 
-## Verificare rapidă
+<a id="quick-check"></a>
+<a id="verificare-rapidă"></a>
+## Quick check
 
-| Intenție | Probă și configurație | Limită |
+| Intent | Test and configuration | Boundary |
 |---|---|---|
-| Componentă browser locală | [NarrowEvidenceReadabilityComponentTest](component/readability/NarrowEvidenceReadabilityComponentTest.java) | fixture Extent/fallback; fără journey pe site public |
-| E2E al artifactului | [contractele specializate](#contracte-e2e-specializate) și [rularea IntelliJ](#rulare-directă-din-intellij) | validează raportul, nu business-ul Shop/AutoEx |
-| Tabele Actions/Audit/Assert | [contractul de display](../../../../../../../../docs/ATF_Reporting_Display_Contract.md#restabilirea-prezentării-tabelare-a-dovezilor) | coloane măsurate în Extent/fallback, inclusiv resize și valori modificate |
+| Local browser component | [NarrowEvidenceReadabilityComponentTest](component/readability/NarrowEvidenceReadabilityComponentTest.java) | Extent fixture / fallback; no Journey on public website |
+| E2E of the artifact | [specialised contracts](#contracte-e2e-specializate) and [IntelliJ](#rulare-directă-din-intellij) | validate the report, not the Shop / AutoEx business |
+| Actions / Audit / Assert tables | [Display contract](../../../../../../../../docs/ATF_Reporting_Display_Contract.md#restabilirea-prezentării-tabelare-a-dovezilor) | measured columns in Extent / fallback including resize and modified values |
 
-Comanda locală și precondiția Chromium sunt la
-[README-ul modulului](../../../../../../../README.md#verificare-rapidă).
-Politicile native, output-ul și verdictul rămân la ownerii existenți; pachetul
-de suport nu devine modul ori runtime de produs.
+The local command and precondition Chromium are at [README module](../../../../../../../README.md#verificare-rapidă). Native policies, output and verdict remain with existing owners; the support package does not become the mode or runtime of the product.

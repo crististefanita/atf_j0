@@ -1,76 +1,80 @@
-# Bune practici ATF — index și guvernanță
+<a id="atf-best-practices--index-and-governance"></a>
+<a id="bune-practici-atf--index-și-guvernanță"></a>
+# ATF Best Practices — index and governance
 
-Acesta este punctul de intrare pentru regulile transversale ATF. Nu duplică
-reguli de cod sau reguli editoriale; trimite către documentul care deține
-fiecare contract. Contractele stabile sunt protejate de testele și guard-urile
-lor, iar feedback-ul rămâne registrul dinamic al gap-urilor.
+This is the entry point for cross-cutting ATF rules. It does not duplicate coding or editorial rules; it points to the document that owns each contract. Stable contracts are protected by their tests and guards, while feedback remains the dynamic register of gaps.
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-Regulile se împart în trei proprietari: cod și arhitectură, documentație și
-feedback dinamic. Fiecare regulă stabilă are un singur owner și o dovadă
-verificabilă.
+The rules have three owners: code and architecture, documentation, and dynamic feedback. Each stable rule has a single owner and verifiable evidence.
 
-## Cum alegi documentul
+<a id="choosing-a-document"></a>
+<a id="cum-alegi-documentul"></a>
+## Choosing a document
 
-| Întrebarea | Document owner | Conține |
+| Question | Owning document | Contents |
 |---|---|---|
-| Cum proiectez modulele, clasele și testele? | [README_Atf_CodeBestPractices.md](README_Atf_CodeBestPractices.md) | OOP, boundary-uri, modele, constante, CSS/JavaScript, layere de test |
-| Cum aleg layer-ul și dovedesc o schimbare? | [ATF_Testing_Guide.md](ATF_Testing_Guide.md) | matrice module × layer, proof UI/API și selecția testelor |
-| Cum scriu și mențin documentația? | [README_Atf_DocumentationBestPractices.md](README_Atf_DocumentationBestPractices.md) | structură, diagrame, tabele, naming, feedback și linkuri |
-| Ce gap-uri sunt încă active? | [feedback/README.md](feedback/README.md) | ToDo-uri, owneri și criterii de închidere |
-| Care este arhitectura modulelor? | [ATF_Architecture.md](ATF_Architecture.md) | module, dependențe și direcția boundary-urilor |
-| Cum se verifică build-ul și sincronizarea? | [ATF_Build_And_Execution_Safety.md](ATF_Build_And_Execution_Safety.md) | staging, build, browser gate și sync live |
+| How should I design modules, classes, and tests? | [README_Atf_CodeBestPractices.md](README_Atf_CodeBestPractices.md) | OOP, boundaries, models, constants, CSS/JavaScript, test layers |
+| How should I choose a layer and prove a change? | [ATF_Testing_Guide.md](ATF_Testing_Guide.md) | module × layer matrix, UI/API proof, and test selection |
+| How should I write and maintain documentation? | [README_Atf_DocumentationBestPractices.md](README_Atf_DocumentationBestPractices.md) | structure, diagrams, tables, naming, feedback, and links |
+| Which gaps are still active? | [feedback/README.md](feedback/README.md) | ToDos, owners, and closure criteria |
+| What is the module architecture? | [ATF_Architecture.md](ATF_Architecture.md) | modules, dependencies, and boundary direction |
+| How are builds and synchronization verified? | [ATF_Build_And_Execution_Safety.md](ATF_Build_And_Execution_Safety.md) | staging, builds, browser gate, and live synchronization |
 
-## Regula comună: contract stabil, feedback dinamic
+<a id="shared-rule-stable-contract-dynamic-feedback"></a>
+<a id="regula-comună-contract-stabil-feedback-dinamic"></a>
+## Shared rule: stable contract, dynamic feedback
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Live[Cod + POM + teste live] -->|stabilește| Contract[Contract stabil]
-    Contract -->|alimentează| Gate[Test sau guard]
-    Gate -->|documentează| Owner[README owner]
-    Gate -. gap reproductibil .-> Feedback[Feedback activ]
-    Feedback -. dovadă nouă .-> Live
+    Live[Code + POM + live tests] -->|establishes| Contract[Stable contract]
+    Contract -->|feeds| Gate[Test or guard]
+    Gate -->|documents| Owner[Owner README]
+    Gate -. reproducible gap .-> Feedback[Active feedback]
+    Feedback -. new evidence .-> Live
 ```
 
 <details>
-<summary><strong>Legendă — ce rămâne stabil și ce se actualizează</strong></summary>
+<summary><strong>Legend — what stays stable and what gets updated</strong></summary>
 
-- codul și testele live sunt sursa de adevăr;
-- README-ul ownerului descrie comportamentul stabil;
-- testul sau guard-ul protejează afirmația;
-- feedback-ul păstrează numai ce mai trebuie decis sau implementat și se poate
-  actualiza, restrânge sau închide dinamic;
-- README-urile normative și testele-gate existente nu se schimbă incidental;
-  schimbarea lor cere cerință, aprobare, motiv și dovadă nouă;
-- rezultatele unui run nu devin documentație permanentă.
+- live code and tests are the source of truth;
+- the owner's README describes stable behavior;
+- the test or guard protects the claim;
+- feedback records only what remains to be decided or implemented and can be
+  updated, narrowed, or closed dynamically;
+- existing normative READMEs and gate tests are not changed incidentally;
+  changing them requires a requirement, approval, reason, and new evidence;
+- run results do not become permanent documentation.
 
 </details>
 
-## Checklist rapid
+<a id="quick-checklist"></a>
+<a id="checklist-rapid"></a>
+## Quick checklist
 
-- [ ] Am identificat owner-ul înainte să schimb codul sau documentația.
-- [ ] Regula există într-un singur document normativ.
-- [ ] Există test, guard sau criteriu de acceptare verificabil.
-- [ ] Nu am modificat un README normativ sau un gate existent fără scope și
-      aprobare explicită.
-- [ ] Nu am introdus cale absolută, timestamp, nume de artifact sau număr de
-      teste care poate deveni învechit.
-- [ ] Feedback-ul conține doar gap-ul rămas, nu o copie a regulii închise.
-- [ ] Linkurile sunt relative și rezistă mutării checkout-ului.
+- [ ] I identified the owner before changing code or documentation.
+- [ ] The rule appears in exactly one normative document.
+- [ ] A test, guard, or verifiable acceptance criterion exists.
+- [ ] I did not change a normative README or existing gate without explicit
+      scope and approval.
+- [ ] I did not add an absolute path, timestamp, artifact name, or test count
+      that could become stale.
+- [ ] Feedback contains only the remaining gap, not a copy of a closed rule.
+- [ ] Links are relative and survive checkout relocation.
 
-Pentru implementare se citește documentul ownerului, apoi README-ul modulului
-afectat. Acest index trebuie să rămână scurt și stabil.
+For implementation, read the owner's document, then the affected module README. This index should remain short and stable.
 
-## Verificarea regulii la owner
+<a id="verifying-the-rule-at-its-owner"></a>
+<a id="verificarea-regulii-la-owner"></a>
+## Verifying the rule at its owner
 
-| Ce schimbi | Probă de pornire | Limită |
+| What changes | Starting proof | Limitation |
 |---|---|---|
-| Cod și boundary | [WholeAtfGovernanceSuiteTest](../atf-tests/src/test/java/atf/api/tests/governance/WholeAtfGovernanceSuiteTest.java) | verifică regula guvernată, nu toate comportamentele aplicației |
-| README și legende | [Validatorii documentari](README_Atf_DocumentationBestPractices.md#verificarea-editorială-la-owner) | structura validă cere în continuare confruntare cu sursa live |
-| Test protejat | [Politica testChanges](../atf-tests/README.md#guvernanța-schimbării-testelor) | o schimbare editorială nu autorizează relaxarea testului |
+| Code and boundary | [WholeAtfGovernanceSuiteTest](../atf-tests/src/test/java/atf/api/tests/governance/WholeAtfGovernanceSuiteTest.java) | verifies the governed rule, not every application behavior |
+| README and legends | [Documentary validators](README_Atf_DocumentationBestPractices.md#verificarea-editorială-la-owner) | valid structure still requires checking against the live source |
+| Protected test | [testChanges policy](../atf-tests/README.md#test-change-governance) | an editorial change does not authorize weakening the test |
 
-Gate-ul se execută în [TMP](ATF_Build_And_Execution_Safety.md), prin comanda
-[ATF Tests](../atf-tests/README.md#verificare-rapidă). Nu copiați checklist-ul
-în README-ul fiecărui modul; documentați acolo doar aplicarea lui concretă.
+Run the gate in [TMP](ATF_Build_And_Execution_Safety.md), using the command in [ATF Tests](../atf-tests/README.md#quick-verification). Do not copy the checklist into every module README; document only its concrete application there.

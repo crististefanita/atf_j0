@@ -1,687 +1,533 @@
-# Contractul de raportare Extent pentru ATF Java
+<a id="atf-java-extent-reporting-contract"></a>
+<a id="contractul-de-raportare-extent-pentru-atf-java"></a>
+# ATF Java Extent Reporting Contract
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-Statusul transmis de caller este reconciliat cu dovezile evaluate prin
-[politica comună Reporting](../atf-reporting/README.md#consistența-statusului-transmis-de-caller).
-Un rând sau copil FAIL nu poate fi închis PASS, iar SKIP legitim și observațiile
-INFO își păstrează semantica; ownerul evaluării business rămâne consumerul.
+Caller status is reconciled with evaluated evidence through [Reporting common policy](../atf-reporting/README.md#consistența-statusului-transmis-de-caller). A FAIL row or child cannot close as PASS, while legitimate SKIP and INFO observations retain their semantics; the consumer still owns business evaluation.
 
-- raportul reprezintă execuția; nu creează un al doilea verdict;
-- runnerul și evaluatorul de contract rămân autoritățile rezultatului;
-- Extent publică evidence-ul într-o formă lizibilă și navigabilă;
-- fiecare suprafață reutilizează aceeași identitate și aceeași semantică.
+- the report represents execution; it does not create a second verdict;
+- the runner and contract evaluator remain the authorities for the result;
+- Extent publishes evidence in a readable, navigable form;
+- each surface reuses the same identity and semantics.
 
-Forma vizibilă, layout-ul, disclosure-urile și matricea de verificare sunt
-normate separat în [Contractul de display și layout](ATF_Reporting_Display_Contract.md);
-acest document rămâne owner-ul semanticii raportului și al evidence-ului.
+The visible form, layout, disclosures, and verification matrix are specified separately in the [Display and Layout Contract](ATF_Reporting_Display_Contract.md); this document remains the owner of report and evidence semantics.
 
-Pentru componentele AutoEx/Shop, un owner class/suite publică un raport comun,
-iar fiecare invocare auditată își păstrează scenariul, fazele și verdictul.
-Unit rămâne exceptat; artifactele-fixture ale testelor de Reporting au ownership separat.
+For the AutoEx / Shop components, an owner class / suite publishes a common report, and each audited invoicing retains its script, phases and verdict. The unit remains exempt; the fixture-artifacts of the Reporting tests have ownership separately.
 
-### Overview/System — instantaneu semantic
+<a id="overviewsystem--semantic-snapshot"></a>
+<a id="overviewsystem--instantaneu-semantic"></a>
+### Overview/System — semantic snapshot
 
-System răspunde la o singură întrebare: **cu ce setări operaționale a rulat acest
-raport?** Este un rezumat plat, nu un al doilea loc pentru identitatea testului
-sau pentru dovezile execuției.
+System answers one question: **what operational settings did this report run with?** It is a flat summary, not a second location for test identity or execution evidence.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Config["Configurație"] -->|mapează| Snapshot["Snapshot typed"]
-    Snapshot -->|allowlist| Safe["Valori permise"]
-    Safe -->|redactează| System["Overview / System"]
-    Identity["Identitate scenariu"] -->|aparține| Tests[Tests]
-    Exchange["Schimb HTTP"] -->|aparține| Evidence["Dovezi pas"]
+    Config["Configuration"] -->|maps| Snapshot["Typed snapshot"]
+    Snapshot -->|allowlist| Safe["Allowed values"]
+    Safe -->|redacts| System["Overview / System"]
+    Identity["Scenario identity"] -->|belongs to| Tests[Tests]
+    Exchange["HTTP exchange"] -->|belongs to| Evidence["Step evidence"]
 ```
 
 <details>
-<summary><strong>Legendă — ce aparține fiecărei suprafețe</strong></summary>
+<summary><strong>Legend — ownership by surface</strong></summary>
 
-- `Snapshot` păstrează setări typed; allowlist-ul și redaction-ul preced publicarea;
-- `System` este rezumatul operațional, în format plat `label · value`;
-- identitatea și rezultatele scenariilor merg în `Tests`, iar datele transportului
-  rămân lângă exchange-ul care le-a produs.
+- `Snapshot` preserves typed settings; allowlisting and redaction happen before publication;
+- `System` is the operational summary in flat `label · value` format;
+- scenario identity and results belong in `Tests`, while transport data
+  stays with the exchange that produced it.
 
 </details>
 
-| System include — dacă este relevant | System exclude — are deja un owner |
+| System includes — when relevant | System excludes — already owned elsewhere |
 |---|---|
-| Environment, profil și build | Suite, test package și identitatea scenariului → `Tests` |
-| Host-uri și mod de transport | Flow, fixture și precondiție specifică journey-ului → `Tests` |
-| Browser, viewport și timeout-uri lizibile | Checkout și alte date business → pașii de test |
-| Authentication mode, retry/network settings | Request, response, retry history și payload → evidence-ul exchange-ului |
-| Reporting, screenshot policy și limite de preview | Secrete, YAML brut, căi locale și identificatori instabili → nu se publică |
+| Environment, profile, and build | Suite, test package, and scenario identity → `Tests` |
+| Hosts and transport mode | Flow, fixture, and journey-specific precondition → `Tests` |
+| Browser, viewport, and readable timeouts | Checkout and other business data → test steps |
+| Authentication mode, retry/network settings | Request, response, retry history, and payload → exchange evidence |
+| Reporting, screenshot policy, and preview limits | Secrets, raw YAML, local paths, and unstable identifiers → not published |
 
-- `ReportEnvironmentField` definește vocabularul typed și categoriile semantice;
-- `ReportEnvironmentSnapshot` ignoră valorile goale și filtrează câmpurile
-  invizibile în System;
-- `ReportEnvironment` aplică redaction la boundary-ul de publicare;
-- `Client` explicit este metadata operațională păstrată și redactată înainte
-  de publicare; valoarea absentă folosește exact `Configured per execution`;
-- System publică un singur rând `Client`; lipsa metadatei nu autorizează
-  atribuirea unui transport API fictiv;
-- categoriile (`Run`, `Targets`, `Browser`, `Time`, `Flow`, `Auth`, `Network`,
-  `Evidence`, `Reporting`) nu devin grupuri sau headere vizuale în tabel.
+- `ReportEnvironmentField` defines the typed vocabulary and semantic categories;
+- `ReportEnvironmentSnapshot` ignores empty values and filters fields
+  that are not visible in System;
+- `ReportEnvironment` applies redaction at the publication boundary;
+- an explicit `Client` is operational metadata that is retained and redacted before
+  publication; when absent, use exactly `Configured per execution`;
+- System publishes a single `Client` row; missing metadata does not authorize
+  assigning a fictitious API transport;
+- categories (`Run`, `Targets`, `Browser`, `Time`, `Flow`, `Auth`, `Network`,
+  `Evidence`, `Reporting`) do not become groups or visual table headers.
 
 <details>
-<summary><strong>Detalii — boundary, formatare și compatibilitate</strong></summary>
+<summary><strong>Details — boundary, formatting, and compatibility</strong></summary>
 
-- `Precondition` în System descrie numai un setting operațional global; starea
-  pregătită pentru un anumit journey rămâne în `Tests`;
-- `Body preview` afișează limita configurată și locul evidence-ului complet, nu
-  conținutul body-ului. Este distinct de limita JSON-ului Request/Response și de
-  preview-ul observațiilor Network Inspector;
-- duratele sunt afișate în unități umane (`20s`, `45s`), nu ca valori ISO opace;
-- `Map<String,String>` rămâne doar pentru compatibilitatea consumatorilor
-  existenți; codul nou folosește snapshot-ul typed;
-- snapshot-ul System descrie configurația efectivă, nu înlocuiește evidence-ul
-  observat și nu deduce valori din YAML brut, nume de test sau payload business.
+- `Precondition` in System describes only a global operational setting; state prepared for a particular journey remains in `Tests`;
+- `Body preview` shows the configured limit and where full evidence is located, not the body content. It is distinct from the Request/Response JSON limit and the Network Inspector observation preview;
+- durations are shown in human-readable units (`20s`, `45s`), not opaque ISO values;
+- `Map<String,String>` remains only for compatibility with existing consumers; new code uses the typed snapshot;
+- the System snapshot describes effective configuration; it does not replace observed evidence or infer values from raw YAML, test names, or business payloads.
 
 </details>
 
-## Schema auth a dovezilor API
+<a id="api-evidence-auth-schema"></a>
+<a id="schema-auth-a-dovezilor-api"></a>
+## API evidence auth schema
 
-| Câmp din request | Valoare | Regulă comună |
+| Request field | Value | Shared rule |
 |---|---|---|
-| `AUTH PROFILE` | Identitatea profilului configurat, de exemplu `shop-user` | Nu este mecanismul auth; browserul nu inventează un profil |
-| `AUTH TYPE` | Mecanismul observat, de exemplu `bearer`, `basic`, `none`, `other/unknown` | Nu se înlocuiește cu numele profilului |
+| `AUTH PROFILE` | Configured profile identity, for example `shop-user` | This is not the auth mechanism; the browser does not invent a profile |
+| `AUTH TYPE` | Observed mechanism, for example `bearer`, `basic`, `none`, `other/unknown` | Do not replace it with the profile name |
 
-- API standalone, auditul API, API din UI+API și fallback HTML folosesc aceeași
-  pereche de câmpuri, în aceeași ordine, în `Request details`.
-- Headerul sau query-ul observat are prioritate față de un indiciu din numele
-  profilului. Clasificarea profilului rămâne fallback de compatibilitate.
-- Observația typed se păstrează când headerele sunt redactate; mecanismul auth
-  nu se recalculează din credentiale deja mascate.
-- Aliasurile `auth.type` și `Auth type` produc `AUTH TYPE`;
-  aliasurile legacy per exchange păstrează doar calificarea `API n ·`.
-- `auth.mode` rămâne modul operațional, cu eticheta `AUTHENTICATION`; nu este
-  un alias pentru mecanismul observat al request-ului.
-- `Authentication` din System și `Authentication evidence` din inspector sunt
-  alte suprafețe; nu se redenumesc pentru a repara schema unui request.
+- Standalone API, API audit, UI+API, and HTML fallback use the same
+  pair of fields in the same order in `Request details`.
+- An observed header or query takes precedence over a hint from the profile
+  name. Profile classification remains a compatibility fallback.
+- The typed observation is retained when headers are redacted; the auth mechanism
+  is not recalculated from credentials that have already been masked.
+- The `auth.type` and `Auth type` aliases produce `AUTH TYPE`;
+  legacy per-exchange aliases retain only the `API n ·` qualifier.
+- `auth.mode` remains the operational mode, labeled `AUTHENTICATION`; it is not
+  an alias for the request's observed mechanism.
+- `Authentication` in System and `Authentication evidence` in the inspector are
+  other surfaces; do not rename them to fix a request schema.
 
-## Ordinea suprafețelor
+<a id="surface-order"></a>
+<a id="ordinea-suprafețelor"></a>
+## Surface order
 
-Ordinea aprobată și rolul fiecărei suprafețe sunt vizibile într-un singur flux:
-
-```mermaid
-%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
-flowchart LR
-    Tests["Tests"] -->|distribuie| Category["Category"]
-    Category -->|expune| Fails["Fails"]
-    Fails -->|agregă| Overview["Overview"]
-```
-
-<details>
-<summary><strong>Legendă — suprafețe și reguli de navigare</strong></summary>
-
-- `Tests` este sursa autoritativă pentru clase, scenarii, status, durată și
-  evidence selectabilă;
-- `Category` și `Overview` sunt proiecții, nu verdicturi alternative;
-- `Fails` păstrează fiecare failure individual și oferă legătura către `Tests`;
-- `Overview` se deschide implicit la load/refresh, dar nu se mută înaintea lui
-  `Tests` în ordinea semantică;
-- hash-urile și click-urile trebuie să ajungă la aceeași suprafață.
-
-| Suprafață | Conținut |
-|---|---|
-| Tests | clase/scenarii, status, durată și detalii selectabile |
-| Category | distribuții și legături către scenariile relevante |
-| Fails | toate failure-urile, fără grupare care ascunde testele individuale |
-| Overview | totaluri și metadate agregate, fără a crea verdicturi alternative |
-
-</details>
-
-## Arborele unui test
+The approved order and role of each surface are shown in a single flow:
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Scenario["Scenariu"] -->|pregătește| Setup[SETUP]
-    Setup -->|execută| Body[TEST BODY]
-    Body -->|închide| Teardown[TEARDOWN]
-    Setup -. atașează .-> SetupEvidence["Dovezi setup"]
-    Body -. atașează .-> BodyRequest["Schimb HTTP"]
-    BodyRequest -. deține .-> BodyValidation["Contract validation"]
-    Teardown -. atașează .-> Cleanup["Cleanup"]
+    Tests["Tests"] -->|distributes| Category["Category"]
+    Category -->|exposes| Fails["Fails"]
+    Fails -->|Aggregate| Overview["Overview"]
 ```
 
 <details>
-<summary><strong>Legendă — ierarhia vizuală a unui test</strong></summary>
+<summary><strong>Legend — surfaces and navigation rules</strong></summary>
 
-- coloana solidă arată lifecycle-ul; fazele sunt create numai când au conținut
-  real;
-- ramificațiile punctate grupează local evidence-ul și nu introduc pași noi;
-- `SETUP` poate publica setup evidence, iar `TEST BODY` publică request și
-  response-contract validation când există un contract evaluat;
-- în raportul API direct, validation-ul contractului este copilul request-ului
-  care deține schimbul; în raportul UI, UI/API validation rămân copii semantici
-  ai aceluiași checkpoint Gherkin;
-- `TEARDOWN` publică numai cleanup/read-back real;
-- tabelul agregat aparține validation-ului, nu request-ului și nu fazei;
-- failure-ul se afișează o singură dată, în zona care îl produce.
+- `Tests` is the authoritative source for classes, scenarios, status, duration, and
+  selectable evidence;
+- `Category` and `Overview` are projections, not alternative verdicts;
+- `Fails` preserves each individual failure and links to `Tests`;
+- `Overview` opens by default on load/refresh, but does not move ahead of
+  `Tests` in semantic order;
+- hashes and clicks must reach the same surface.
+
+| Surface | Contents |
+|---|---|
+| Tests | classes/scenarios, status, duration, and selectable details |
+| Category | distributions and links to relevant scenarios |
+| Fails | all failures, without grouping that hides individual tests |
+| Overview | totals and aggregated metadata, without creating alternative verdicts |
 
 </details>
 
-În raportul API direct, request-ul și dovezile sale tehnice sunt urmate în același
-card de `Contract validation` nested, când răspunsul a fost evaluat printr-un
-contract. În raportul UI, checkpoint-ul Gherkin deține validările UI și API ca
-evidence soră; exchange-urile aparțin validării API, nu devin pași Gherkin noi.
+<a id="test-tree"></a>
+<a id="arborele-unui-test"></a>
+## Test tree
 
-Auditul consumerului păstrează câte un nod pentru fiecare schimb observat și
-atașează `Contract validation` numai când producătorul a asociat schimbului un
-contract HTTP tipizat. Statusul așteptat este explicit și comparat cu statusul
-observat; statusul observat sau verdictul JUnit nu îl înlocuiește. Completitudinea
-capturii rămâne context intern al fazei; eșecul JUnit și asocierea lipsă sunt
-diagnostice explicite ale scenariului, nu aserțiuni repetate pe fiecare schimb.
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
+flowchart LR
+    Scenario["Scenario"] -->|prepares| Setup[SETUP]
+    Setup -->|runs| Body[TEST BODY]
+    Body -->|closes| Teardown[TEARDOWN]
+    Setup -. attaches .-> SetupEvidence["Setup evidence"]
+    Body -. attaches .-> BodyRequest["HTTP exchange"]
+    BodyRequest -. owns .-> BodyValidation["Contract validation"]
+    Teardown -. attaches .-> Cleanup["Cleanup"]
+```
 
-Reguli de ownership:
+<details>
+<summary><strong>Legend — visual hierarchy of a test</strong></summary>
 
-1. request-ul conține metoda, calea, durata, trace-ul tehnic și JSON-ul;
-2. pentru API direct, validation-ul contractului este nested sub request-ul
-   evaluat; pentru UI, validările UI și API sunt atașate checkpoint-ului Gherkin;
-3. tabelul de assertions aparține validation-ului;
-4. faza nu repetă failure-ul deja detaliat în tabel;
-5. scenariul arată verdictul agregat, nu duplică evidence-ul fiecărei faze.
+- the solid column shows the lifecycle; phases are created only when they contain real content;
+- dotted branches group local evidence and do not introduce new steps;
+- `SETUP` may publish setup evidence, while `TEST BODY` publishes a request and response-contract validation when a contract was evaluated;
+- in a direct API report, contract validation is a child of the request that owns the exchange; in a UI report, UI/API validation remain semantic children of the same Gherkin checkpoint;
+- `TEARDOWN` publishes only real cleanup/read-back;
+- the aggregate table belongs to validation, not the request or phase;
+- a failure is displayed once, in the area that produces it.
 
-### Context intern și diagnostic al scenariului
+</details>
 
-Faza organizează pașii reali, fără o bandă proprie
-`Status / Details → Info → Audit details`. `Phase.detail` păstrează contextul
-intern și numele câmpurilor în snapshot-ul semantic, nu un disclosure public.
-Absența se verifică structural, inclusiv pentru wrapper-e goale sau ascunse.
+In a direct API report, the request and its technical evidence are followed in the same card by nested `Contract validation` when the response was evaluated against a contract. In a UI report, the Gherkin checkpoint owns UI and API validation as sibling evidence; exchanges belong to API validation and do not become new Gherkin steps.
 
-| Canal | Regulă |
+The consumer audit retains one node per observed exchange and attaches `Contract validation` only when the producer associated a typed HTTP contract with the exchange. Expected status is explicit and compared with the observed status; neither the observed status nor the JUnit verdict replaces it. Capture completeness remains internal phase context; JUnit failure and a missing association are explicit scenario diagnostics, not repeated assertions on every exchange.
+
+Ownership rules:
+
+1. the request contains the method, path, duration, technical trace, and JSON;
+2. for direct API, contract validation is nested under the evaluated request; for UI,
+   UI and API validation are attached to the Gherkin checkpoint;
+3. the assertions table belongs to validation;
+4. the phase does not repeat a failure already detailed in the table;
+5. the scenario shows the aggregate verdict; it does not duplicate each phase's evidence.
+
+<a id="internal-context-and-scenario-diagnostics"></a>
+<a id="context-intern-și-diagnostic-al-scenariului"></a>
+### Internal context and scenario diagnostics
+
+The phase organizes real steps without its own `Status / Details → Info → Audit details` band. `Phase.detail` preserves internal context and field names in the semantic snapshot, not as a public disclosure. Absence is checked structurally, including for empty or hidden wrappers.
+
+| Channel | Rule |
 |---|---|
-| Diagnostic explicit | `Phase.diagnostic(Kind, message)` și `ReportPhaseDiagnostic`; conversie delimitată pentru cheile legacy |
-| Scenariu | Deține `Execution diagnostics`, cu redacție; închiderea ascunde blocul, normalizarea nu îl dublează |
-| Fails | Cauza fazei eșuate și legătura către scenariul exact, inclusiv fără exchange; notele din fazele PASS nu contaminează cauza |
-| Verdict | Aparține consumerului; diagnosticul singur nu îl schimbă |
+| Explicit diagnostic | `Phase.diagnostic(Kind, message)` and `ReportPhaseDiagnostic`; bounded conversion for legacy keys |
+| Scenario | Owns `Execution diagnostics`, with redaction; closing hides the block, normalization does not duplicate it |
+| Fails | Cause of the failed phase and link to the exact scenario, including without an exchange; notes from PASS phases do not contaminate the cause |
+| Verdict | Belongs to the consumer; a diagnostic alone does not change it |
 
-- În auditul componentelor, o excepție capturată la ieșirea callback-ului nu
-  dispare dacă un handler JUnit o înghite. Kit reconciliază FAIL/SKIP cu runnerul,
-  păstrând cauza și timing-ul.
-- Comparațiile reușite rămân PASS; în lipsa unei comparații eșuate, Fails arată
-  diagnosticul, fără un request sau o durată HTTP inventată. Fazele goale măsurate
-  nu primesc expandare doar pentru metadate.
+- In component audit, an exception captured when the callback exits does not disappear if a JUnit handler swallows it. Kit reconciles FAIL/SKIP with the runner, preserving cause and timing.
+- Successful comparisons remain PASS; when no comparison has failed, Fails shows the diagnostic without an invented request or HTTP duration. Measured empty phases are not expandable merely because of metadata.
 
-`Setup evidence`, request/response/execution reale, validările de contract și
-inspectorul API rămân intacte. Ownership-ul rendererului și probele sunt în
-[README Reporting](../atf-reporting/README.md#context-de-fază-și-diagnostic-de-execuție).
+`Setup evidence`, demand / response / actual execution, contract validations and API inspector remain intact. The renderer's ownership and the samples are in [README Reporting](../atf-reporting/README.md#context-de-fază-și-diagnostic-de-execuție).
 
-## Dovezile configurării inițiale
+<a id="setup-evidence"></a>
+<a id="dovezile-configurării-inițiale"></a>
+## Setup evidence
 
-`SETUP` deține precondițiile și achiziția/verificarea fixture-ului; nu este
-rezervat doar inputurilor read-only. Un consumer poate selecta explicit o
-operație de pregătire cu efect extern, precum înregistrarea unui cont, înainte
-de `TEST BODY`. Contractul raportului separă rezumatul verificărilor de
-dovezile transportului:
+`SETUP` owns preconditions and fixture acquisition/verification; it is not reserved for read-only inputs. A consumer may explicitly select a setup operation with external effects, such as account registration, before `TEST BODY`. The report contract separates the check summary from transport evidence:
 
-- un singur bloc `Setup evidence`;
+- a single `Setup evidence` block;
 - tabelul `CHECK | EXPECTED | ACTUAL | RESULT`;
-- check-urile rezumă sursa selectată, rezultatul setup-ului și pregătirea pentru
-  faza următoare; tabelul nu dublează request/response sau JSON-ul transportului;
-- acțiunile UI și exchange-urile API reale rămân dovezi distincte ale aceluiași
-  checkpoint `SETUP`; când API evidence este selectată, `API validation` păstrează
-  structura canonică `Exchange → Request → Response → Execution`;
-- setup-ul rămâne separat; `UI validation` aparține `TEST BODY`, după acțiunile
-  și observațiile de business;
-- transportul nu produce un checkpoint Gherkin duplicat și nu schimbă singur
-  verdictul business.
+- checks summarize the selected source, setup result, and readiness for the next phase; the table does not duplicate the request/response or transport JSON;
+- UI actions and real API exchanges remain distinct evidence for the same `SETUP` checkpoint; when API evidence is selected, `API validation` retains the canonical `Exchange → Request → Response → Execution` structure;
+- setup remains separate; `UI validation` belongs to `TEST BODY`, after business actions and observations;
+- transport does not create a duplicate Gherkin checkpoint or by itself change the business verdict.
 
-### Ownership-ul validărilor UI/API
+<a id="uiapi-validation-ownership"></a>
+<a id="ownership-ul-validărilor-uiapi"></a>
+### UI/API validation ownership
 
-Într-un checkpoint UI+API, aserțiunile sunt inputuri tipizate separat, nu o
-singură listă clasificată după prefixe din nume:
+In a UI+API checkpoint, assertions are separate typed inputs, not one list classified by name prefixes:
 
-- `UI validation` primește numai acțiunile, observațiile, aserțiunile UI și
-  verdictul UI; acesta este singurul titlu public pentru evidence UI;
-- `API validation` primește corelările între canale și exchange-uri typed;
-- fiecare exchange deține propriile aserțiuni și status, iar statusul său nu se
-  propagă la exchange-urile frate;
-- statusul checkpoint-ului și al scenariului este agregarea copiilor; agregarea
-  nu rescrie statusul local al validărilor sau exchange-urilor;
-- statusul HTTP nu decide singur verdictul contractual: un răspuns negativ
-  așteptat poate avea assertion PASS, iar un `2xx` cu payload invalid poate avea
-  assertion FAIL;
-- corelarea UI/API rămâne sub `API validation`, nu este duplicată în tabelul UI
-  și nu creează un al doilea pas Gherkin.
+- `UI validation` receives only UI actions, observations, assertions, and verdict; it is the only public title for UI evidence;
+- `API validation` receives cross-channel correlations and typed exchanges;
+- each exchange owns its assertions and status, and its status is not propagated to sibling exchanges;
+- checkpoint and scenario status aggregate child statuses; aggregation does not rewrite the local status of validations or exchanges;
+- HTTP status alone does not decide the contract verdict: an expected negative response may have a PASS assertion, while a `2xx` with an invalid payload may have a FAIL assertion;
+- UI/API correlation remains under `API validation`, is not duplicated in the UI table, and does not create a second Gherkin step.
 
-Contractul public renderer-neutral unic este `UiApiValidationEvidence`.
+The single public renderer-neutral contract is `UiApiValidationEvidence`.
 
-- Consumerii leagă exchange-ul și aserțiunile sale explicit; nu există intrare
-  legacy cu `Collection<ReportExecutionEvidence>` pentru validări.
-- Regula se aplică în checkpoint, setup, trace, captură finală și flow unificat.
-- UI-only transmite `UiApiValidationEvidence.empty()`; un exchange observat
-  fără checks se reprezintă tot typed și nu primește verdictul UI.
-- Ownerul nu este dedus din textul assertion-ului. Inspectorul agregat rămâne
-  diagnostic de transport, nu o cale alternativă pentru validarea API.
+- Consumers explicitly link each exchange and its assertions; there is no
+  legacy validation input using `Collection<ReportExecutionEvidence>`.
+- The rule applies to checkpoints, setup, traces, final captures, and unified flows.
+- UI-only sends `UiApiValidationEvidence.empty()`; an observed exchange
+  with no checks is still represented as typed evidence and does not inherit the UI verdict.
+- Ownership is not inferred from assertion text. The aggregated inspector remains
+  a transport diagnostic, not an alternate route for API validation.
 
-## Dovezile unei cereri
+<a id="request-evidence"></a>
+<a id="dovezile-unei-cereri"></a>
+## Request evidence
 
-### Etichete canonice
+<a id="canonical-labels"></a>
+<a id="etichete-canonice"></a>
+### Canonical labels
 
-Tab-ul `Tests` este sursa vizibilă de adevăr pentru denumirile evidence-ului.
-Aceleași label-uri trebuie păstrate în `Category`, `Fails`, `Overview` și în
-rendererul fallback:
+The `Tests` tab is the visible source of truth for evidence labels. The same labels must be preserved in `Category`, `Fails`, `Overview`, and the fallback renderer:
 
-| Rol | Label |
+| Role | Label |
 |---|---|
 | request context | `Request details · N fields` |
 | disclosure trace | `Response details · N fields` |
-| clasificare internă | `TECHNICAL TRACE` |
-| request payload | `REQUEST JSON`, `REQUEST FORM BODY` sau `REQUEST BODY`, după format |
-| response payload | `RESPONSE JSON`, `RESPONSE FORM BODY` sau `RESPONSE BODY`, după format |
+| internal classification | `TECHNICAL TRACE` |
+| request payload | `REQUEST JSON`, `REQUEST FORM BODY`, or `REQUEST BODY`, depending on format |
+| response payload | `RESPONSE JSON`, `RESPONSE FORM BODY`, or `RESPONSE BODY`, depending on format |
 | transport execution | `Execution evidence · N attempts` |
 | assertions | `Assertions · N` |
 
 <details>
-<summary><strong>Detalii — payload, provenance și replay</strong></summary>
+<summary><strong>Details — payload, provenance, and replay</strong></summary>
 
-- `TECHNICAL TRACE` descrie conținutul din `Response details`; `N` este numărul
-  real de rânduri ale tabelului trace;
-- `Request details` conține method, URL/path, headers, params, auth și request
-  body înainte de transport;
-- `request.action`, `request.target`, `evidence.type` și `evidence.policy` sunt
-  context intern al checkpoint-ului, nu câmpuri HTTP publice. Proiecția Extent/fallback le exclude din ambele
-  tabele request/response, păstrând modelul semantic. Un checkpoint ale cărui
-  singure detalii sunt aceste chei nu publică tabelul `Status / Details / Info`
-  sau un disclosure gol; validările UI/API rămân copiii propoziției;
-- tipul `ui-validation` delimitează filtrarea politicii; contractele
-  `api-trace`/`unified-ui-flow` și diagnosticul capturii `ui-failure` se păstrează;
-- filtrarea exactă a acestor chei nu elimină țintele acțiunilor Playwright și nu
-  suprimă `Request details`, JSON-ul sau execution evidence ale exchange-urilor
-  HTTP din `API validation`;
-- în artefactele noi, fiecare exchange UI+API are propriul nod și cele trei
-  disclosure-uri canonice, fără prefix `API n ·` repetat în fiecare câmp;
-- formatterul recunoaște în continuare cheile flat legacy `request.api.n.*`
-  și `response.api.n.*`; prefixul `API n ·` este compatibilitate de citire,
-  nu formatul implicit sau un nivel diferit de detaliu;
-- pentru `0..N` exchange-uri, prefixul nu este suficient ca structură: fiecare
-  exchange trebuie să păstreze disclosure-ul API canonical
-  `Request details` → `Response details` → `Execution evidence`; metadata precum
-  `TRACE PARENT STEP` și `TRACE POSITION` aparține contextului trace-ului, nu
-  tabelului response;
-- în UI trace, acest spine este copilul semantic `API validation`, poziționat
-  între pasul Gherkin și disclosure-urile collapsed; `API validation` are stilul
-  și statusul unei `UI validation`, dar nu creează un test sau un verdict paralel;
-- nu există un canal generic de captură sau publicare pentru console/page
-  diagnostics; raportul nu pretinde că aceste semnale au fost verificate;
-- `Technical diagnostics` în Network Inspector se derivă numai din exchange-uri
-  HTTP eșuate; nu devine pas Gherkin, validare de business sau exchange nou;
-- inspectorul primește exchange-urile contractuale și checkpoint-urile cauzale;
-  orice verdict rămâne owner-ul validării de checkpoint/scenariu;
-- inspectorul de rețea este un nod synthetic unic, iar `Network aggregate · N
-  exchanges` este copilul său real; copilul deține disclosure-urile typed pentru
-  auth, correlation, transport, unique signatures și diagnostics, fără să
-  repete titlul sau request-urile în părinte;
-- geometria summary-urilor, politica de viewport a tabelelor, responsive-ul și
-  badge-urile sunt definite o singură dată în
-  [ATF Reporting Display Contract](ATF_Reporting_Display_Contract.md); acest
-  contract păstrează ownership-ul semantic și nu duplică reguli CSS;
-- când există mai multe exchange-uri, `Execution evidence` trebuie să păstreze
-  identitatea exchange-ului în disclosure-ul părinte sau în titlu; repetarea
-  unui titlu generic fără context nu este auditabilă;
-- retry-ul aceluiași request nu este exchange nou: request/response rămân o
-  singură unitate API, iar attempts, retry events și outcome rămân în
-  `Execution evidence`;
-- `REQUEST JSON` și `RESPONSE JSON` există numai pentru body JSON capturat
-  (`AVAILABLE`); textul literal `null` este un document JSON real;
-- `ABSENT` confirmă că nu a existat body, iar `NOT_CAPTURED` declară că dovada
-  nu este disponibilă. Ambele publică explicația în details, nu un payload `null`;
-- auditorul primește disponibilitatea capturii separat de document: acceptă
-  absența confirmată fără JSON, respinge captura lipsă ori contradictorie și
-  tratează literalul `null` drept payload. Lipsa unui bloc HTML nu dovedește
-  singură că body-ul HTTP a fost absent;
-- metadata exchange-ului păstrează metoda/ruta și disponibilitatea ambelor body-uri.
-  Fails folosește ownerul validării și identitatea acestui exchange, inclusiv
-  pentru metode HTTP extensibile; un exchange frate nu îi înlocuiește contextul;
-- direcția request/response este typed și independentă de eticheta vizibilă;
-  form/text nu sunt redenumite JSON, iar MIME-ul upstream nu este rescris.
-  `NOT_CAPTURED` este explicit și nu fabrică payload; compatibilitatea legacy
-  JSON și regulile formatului sunt în [README-ul Reporting](../atf-reporting/README.md#dovezi-json-și-componentele-de-randare-ui);
-- `TRANSPORT PROVENANCE` vine din composition root: `ACCEPTANCE / MOCK` nu a
-  executat rețea, `LIVE / HTTP` a contactat endpointul, iar `UNKNOWN` nu dovedește
-  un apel;
-- `MANUAL REPLAY` este safe: acceptance este `NOT EXECUTABLE`, live publică un
-  cURL redacted, iar operatorul completează credentialele din profil.
-- proiecția UI păstrează request headers relevante după filtrarea browser noise
-  și publică response headers numai când rămân stabile/relevante după aceeași
-  redaction policy; response headers volatile nu schimbă nivelul canonical al
-  raportului API direct.
+- `TECHNICAL TRACE` describes the contents of `Response details`; `N` is the
+  actual number of rows in the trace table;
+- `Request details` contains method, URL/path, headers, params, auth, and request
+  body before transport;
+- `request.action`, `request.target`, `evidence.type`, and `evidence.policy` are internal checkpoint context, not public HTTP fields. The Extent/fallback projection excludes them from both request/response tables while preserving the semantic model. A checkpoint whose only details are these keys does not publish the `Status / Details / Info` table or an empty disclosure; UI/API validations remain children of the step;
+- `ui-validation` delimits policy filtering; the `api-trace`/`unified-ui-flow` contracts
+  and `ui-failure` capture diagnostic are preserved;
+- exact filtering of these keys does not remove Playwright action targets or suppress `Request details`, JSON, or HTTP exchange execution evidence from `API validation`;
+- in new artifacts, each UI+API exchange has its own node and the three
+  canonical disclosures, without repeating the `API n ·` prefix in every field;
+- the formatter continues to recognize flat legacy keys `request.api.n.*` and `response.api.n.*`; the `API n ·` prefix is for read compatibility, not the default format or a different detail level;
+- for `0..N` exchanges, the prefix is not sufficient structure: each exchange must retain the canonical API disclosure `Request details` → `Response details` → `Execution evidence`; metadata such as `TRACE PARENT STEP` and `TRACE POSITION` belongs to trace context, not the response table;
+- in a UI trace, this spine is the semantic child `API validation`, positioned between the Gherkin step and collapsed disclosures; `API validation` has the style and status of a `UI validation`, but does not create a parallel test or verdict;
+- there is no generic capture or publication channel for console/page
+  diagnostics; the report does not claim those signals were checked;
+- `Technical diagnostics` in Network Inspector derives only from failed HTTP
+  exchanges; it does not become a Gherkin step, business validation, or new exchange;
+- the inspector receives contractual exchanges and causal checkpoints;
+  any verdict remains owned by checkpoint/scenario validation;
+- the network inspector is a single synthetic node, and `Network aggregate · N exchanges` is its actual child; the child owns typed disclosures for auth, correlation, transport, unique signatures, and diagnostics, without repeating the title or requests in the parent;
+- summary geometry, table viewport policy, responsiveness, and badges are defined once in the [ATF Reporting Display Contract](ATF_Reporting_Display_Contract.md); this contract preserves semantic ownership and does not duplicate CSS rules;
+- when multiple exchanges exist, `Execution evidence` must preserve the exchange identity in its parent disclosure or title; repeating a generic title without context is not auditable;
+- retrying the same request is not a new exchange: request/response remain a single API unit, while attempts, retry events, and outcome remain in `Execution evidence`;
+- `REQUEST JSON` and `RESPONSE JSON` exist only for a captured JSON body
+  (`AVAILABLE`); the literal text `null` is a real JSON document;
+- `ABSENT` confirms that there was no body, while `NOT_CAPTURED` declares that evidence
+  is unavailable. Both publish an explanation in details, not a `null` payload;
+- the auditor receives capture availability separately from the document: it accepts confirmed absence without JSON, rejects missing or contradictory capture, and treats literal `null` as a payload. The absence of an HTML block alone does not prove that the HTTP body was absent;
+- exchange metadata preserves the method/route and availability of both bodies. Fails uses the validation owner and this exchange's identity, including extensible HTTP methods; a sibling exchange does not replace its context;
+- request/response direction is typed and independent of the visible label;
+  form/text are not relabeled JSON, and the upstream MIME- is not rewritten. `NOT_CAPTURED` is explicit and invents no payload; JSON legacy compatibility and format rules belong to [README-ul Reporting](../atf-reporting/README.md#dovezi-json-și-componentele-de-randare-ui);
+- `TRANSPORT PROVENANCE` comes from the composition root: `ACCEPTANCE / MOCK` did not use the network, `LIVE / HTTP` contacted the endpoint, and `UNKNOWN` does not prove a call;
+- `MANUAL REPLAY` is safe: acceptance is `NOT EXECUTABLE`, live mode publishes redacted
+  cURL, and the operator fills in credentials from the profile.
+- the UI projection preserves relevant request headers after filtering browser noise and publishes response headers only when they remain stable/relevant under the same redaction policy; volatile response headers do not change the canonical level of a direct API report.
 
-| Sursa headerelor request | Regulă |
+| Request header source | Rule |
 |---|---|
-| observație browser (`OBSERVED`) | autoritativă; un header absent nu devine header executat |
-| client configurat (`CLIENT_CONFIGURED`) | default-urile sunt declarate la intrare, cu override case-insensitive |
-| Request details și replay | aceeași proiecție sanitizată; nu preiau Content-Type de la response |
+| browser observation (`OBSERVED`) | authoritative; an absent header does not become an executed header |
+| configured client (`CLIENT_CONFIGURED`) | defaults are declared at input, with case-insensitive overrides |
+| Request details and replay | same sanitized projection; do not copy Content-Type from the response |
 
 </details>
 
-Pentru inspectorul journey, corelarea Gherkin și inspectorul de rețea sunt două
-axe distincte, nu două copii ale aceluiași tabel:
+For the journey inspector, Gherkin correlation and the network inspector are two distinct axes, not two copies of the same table:
 
 ```text
 Gherkin checkpoint
 ├── UI validation
 ├── API validation
 └── Network inspector
-    ├── Scenario correlation       → pași Gherkin + count/assertions
-    └── Unique request signatures  → method/route/status/count + metadate
+    ├── Scenario correlation       → Gherkin steps + count/assertions
+    └── Unique request signatures  → method/route/status/count + metadata
 ```
 
-`Response details` din inspector este un index bounded:
+`Response details` in the inspector is a bounded index:
 
-- nu repetă request rows, `NETWORK EXCHANGE n` sau propoziții Gherkin;
-- fiecare fapt apare o singură dată în disclosure-ul semantic potrivit;
-- UI și API rămân sub aceeași propoziție Gherkin, fără pași duplicați;
-- request-urile retry/repetate se grupează după semnătură, iar attempt history
-  rămâne în `Execution evidence`.
+- it does not repeat request rows, `NETWORK EXCHANGE n`, or Gherkin statements;
+- each fact appears once in its appropriate semantic disclosure;
+- UI and API remain under the same Gherkin statement, without duplicate steps;
+- retried/repeated requests are grouped by signature, while attempt history
+  remains in `Execution evidence`.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; } .edgeLabel [data-id=\"L_ResponseDetails_Execution_0\"] foreignObject { transform: translate(0px, -28px); }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Request[HTTP request] -->|descrie| RequestDetails["Request details"]
-    RequestDetails -->|expune| ResponseDetails["Response details"]
-    RequestDetails -->|atașează| RequestBody["Body request"]
-    ResponseDetails -->|produce| ResponseEvidence["Răspuns + trace"]
-    ResponseDetails -->|înregistrează| Execution["Execution evidence"]
-    ResponseEvidence -->|atașează| ResponseBody["Body response"]
-    ResponseEvidence -->|explică| Trace["Technical trace"]
-    Execution -->|păstrează| ExecutionContext["Context execuție"]
+    Request[HTTP request] -->|describes| RequestDetails["Request details"]
+    RequestDetails -->|exposes| ResponseDetails["Response details"]
+    RequestDetails -->|attaches| RequestBody["Request body"]
+    ResponseDetails -->|produces| ResponseEvidence["Response + trace"]
+    ResponseDetails -->|records| Execution["Execution evidence"]
+    ResponseEvidence -->|attaches| ResponseBody["Response body"]
+    ResponseEvidence -->|explain| Trace["Technical trace"]
+    Execution -->|preserves| ExecutionContext["Execution context"]
 ```
 
 <details>
-<summary><strong>Legendă — provenance și evidence</strong></summary>
+<summary><strong>Legend — provenance and evidence</strong></summary>
 
-- coloana principală citește `HTTP request → request details → response details`;
-- `ResponseEvidence` și `ExecutionContext` sunt grupări vizuale locale pentru a
-  evita săgețile lungi și nu introduc disclosure-uri noi;
-- JSON-ul și trace-ul sunt detalii locale ale request/response, iar retry,
-  provenance, replay și assertions sunt detalii locale ale execuției;
-- `Request details`, `Response details` și `Execution evidence` sunt
-  disclosure-uri separate în artifact; schema le leagă printr-un spine compact.
-  Într-un UI trace cu mai multe exchange-uri, același spine se repetă per
-  exchange sub un singur nod Gherkin. Nodul are copii semantici separați pentru
-  `UI validation` și `API validation`; un al doilea card cu aceeași propoziție
-  Gherkin este duplicare de intent și nu este contract canonical. Concatenarea
-  tuturor rândurilor într-un tabel comun `API 1/API 2` nu este contract
-  canonical;
-- `TECHNICAL TRACE` descrie response context, nu înlocuiește response-ul;
-- provenance și replay-ul explică transportul, fără să pretindă că mock-ul a făcut trafic real;
-- assertions rămân legate de request-ul și validation-ul care le-au produs.
+- the main column reads `HTTP request → request details → response details`;
+- `ResponseEvidence` and `ExecutionContext` are local visual groups that avoid long arrows and do not introduce new disclosures;
+- JSON and trace are local request/response details, while retry, provenance, replay, and assertions are local execution details;
+- `Request details`, `Response details`, and `Execution evidence` are separate disclosures in the artifact; the schema connects them with a compact spine. In a UI trace with multiple exchanges, the same spine repeats for each exchange under one Gherkin node. The node has separate semantic children for `UI validation` and `API validation`; a second card with the same Gherkin statement duplicates intent and is not the canonical contract. Concatenating every row into one shared `API 1/API 2` table is not the canonical contract;
+- `TECHNICAL TRACE` describes response context; it does not replace the response;
+- provenance and replay explain transport without claiming that a mock made real traffic;
+- assertions remain linked to the request and validation that produced them.
 
 </details>
 
 <details>
-<summary><strong>Detalii — execution evidence, durată și redacție</strong></summary>
+<summary><strong>Details — execution evidence, duration, and redaction</strong></summary>
 
-Evidence-ul de execuție este renderer-neutral. Înregistrează statusul response-
-ului, URL-ul redacted, durata măsurată, numărul de attempt-uri și istoricul de
-retry/attempt. Motivele retry și URL-urile trec prin aceeași limită de redaction
-ca headers, JSON și valorile assertions; un renderer nu reconstruiește secrete.
+Execution evidence is renderer-neutral. It records the response status, redacted URL, measured duration, number of attempts, and retry/attempt history. Retry reasons and URLs pass through the same redaction boundary as headers, JSON, and assertion values; a renderer does not reconstruct secrets.
 
-Trace-ul tehnic este compact și relevant. El păstrează URL-ul cererii, dar nu
-repetă statusul response-ului sau mecanica execuției:
+The technical trace is compact and relevant. It preserves the request URL but does not repeat the response status or execution mechanics:
 
 ```text
 URL
 CONTENT TYPE
-FAILURE CAUSE (dacă există)
-alte facts HTTP non-duplicative
+FAILURE CAUSE (if present)
+other non-duplicative HTTP facts
 ```
 
-Etichetele randate sunt distincte de numele headerelor HTTP: `CONTENT TYPE`
-este câmpul de raport, iar `Content-Type` este headerul transportului.
-`ApiReportEvidenceField` definește etichetele canonice și aliasurile legacy
-explicite, inclusiv `CONTENT-TYPE`, `response.status` și `response.url`.
-Auditul nu alege tăcut o valoare favorabilă dacă aliasurile se contrazic.
-Query-ul se reconciliază din URL-ul complet al request-ului; URL-ul efectiv
-al răspunsului rămâne dovadă separată. Câmpurile response se citesc numai din
-disclosure-ul lor, fără trace-ul tehnic al execuției.
+Rendered labels are distinct from HTTP header names: `CONTENT TYPE` is the report field, while `Content-Type` is the transport header. `ApiReportEvidenceField` defines canonical labels and explicit legacy aliases, including `CONTENT-TYPE`, `response.status`, and `response.url`. The audit does not silently choose a favorable value if aliases conflict. The query is reconciled from the full request URL; the effective response URL remains separate evidence. Response fields are read only from their disclosure, without the execution technical trace.
 
-`Execution evidence · N attempts` este disclosure-ul separat pentru mecanica
-transportului. El păstrează URL-ul efectiv, durata response-ului, numărul de
-încercări, numărul de retry events și istoricul attempt-urilor. Este închis
-implicit și nu trebuie contopit cu `TECHNICAL TRACE`.
+`Execution evidence · N attempts` is the separate disclosure for transport mechanics. It preserves the effective URL, response duration, number of attempts, number of retry events, and attempt history. It is closed by default and must not be merged with `TECHNICAL TRACE`.
 
-Un `request-failed` înainte de orice răspuns HTTP este un caz diferit de un
-răspuns existent cu body absent:
+A `request-failed` before any HTTP response is different from an existing response with no body:
 
-- sentinelul intern `status=-1` se afișează `Unavailable`, nu ca status HTTP;
-- încercarea are outcome `FAILURE` și motiv bounded; nu se fabrică `RESPONSE JSON`;
-- exchange-ul și inspectorul sunt `Warning`, iar agregarea păstrează scenariul
-  `Warning` chiar dacă un consumer îl închide cu `PASS`. Testul de business
-  decide separat dacă acel failure este `FAIL`.
+- the internal sentinel `status=-1` is displayed as `Unavailable`, not as an HTTP status;
+- the attempt has outcome `FAILURE` and a bounded reason; no `RESPONSE JSON` is fabricated;
+- the exchange and inspector are `Warning`, and aggregation keeps the scenario at `Warning` even if a consumer closes it with `PASS`. The business test separately decides whether that failure is `FAIL`.
 
-Retry-ul Playwright are aceeași regulă de fail-closed, dar este o policy de UI
-separată de retry-ul transportului: `UiRetryPolicy` pornește cu un singur
-attempt și niciun operation eligibil. Configurarea poate enumera numai operații
-read-only (`navigate` și wait-uri), poate seta `maxAttempts`, `backoff` și un
-motiv bounded, iar fiecare reluare este un rând `Info` în secvența Playwright.
-`click`, `fill`, `select-option` și replay-ul întregului test nu sunt eligibile;
-failure-ul final rămâne verdictul acțiunii.
+Playwright retry follows the same fail-closed rule but is a UI policy separate from transport retry: `UiRetryPolicy` starts with one attempt and no eligible operations. Configuration may list only read-only operations (`navigate` and waits), set `maxAttempts`, `backoff`, and a bounded reason, and each retry is an `Info` row in the Playwright sequence. `click`, `fill`, `select-option`, and replaying the entire test are ineligible; the final failure remains the action verdict.
 
-Durata se afișează explicit ca `RESPONSE DURATION` în execution evidence și ca
-`N ms` pentru valori de până la `300 ms`, respectiv `N s` pentru valori peste
-prag, în header-ele navigabile. `1`, `16` sau `25` fără unitate nu sunt forme
-acceptate deoarece pot fi confundate cu număr de pași sau assertions.
-Timestamp-ul nu este identitatea semantică a testului și nu este folosit pentru
-triere sau grupare.
+Duration is displayed explicitly as `RESPONSE DURATION` in execution evidence and as `N ms` for values up to `300 ms`, or `N s` for values above the threshold, in navigable headers. Bare `1`, `16`, or `25` values without units are not accepted because they could be mistaken for a step or assertion count. A timestamp is not the test's semantic identity and is not used for sorting or grouping.
 
-Durata unui nod respectă aceeași regulă în întregul arbore:
+Node duration follows the same rule throughout the tree:
 
 ```text
 leaf      = measured duration
-parent    = exclusive self duration, dacă există
-            + suma totalurilor copiilor structurali direcți
-inclusive = valoare deja calculată de Extent; nu se mai adaugă descendenții
+    parent    = exclusive self duration, if present
+            + sum of direct structural children's totals
+inclusive = value already calculated by Extent; do not add descendants again
 ```
 
-Un total părinte nu însumează toți descendenții și nu amestecă o durată
-inclusivă cu aceiași copii. Durata tehnică proprie, dacă există, trebuie
-marcată distinct de totalul inclusiv.
+A parent total does not sum all descendants or combine an inclusive duration with those same children. Any technical self-duration must be marked separately from the inclusive total.
 
-Pentru fazele cu `ReportPhaseTiming`, durata inclusivă este suma
-intervalelor callback-urilor executate, măsurată monoton înaintea publicării.
-Ea are prioritate față de timestamp-urile publicării Extent. Scenariul adună
-fazele directe o singură dată; badge-ul pasului de aserțiuni descrie publicarea
-și nu se adaugă peste execuția fazei. Zero măsurat rămâne zero, iar timing-ul
-absent rămâne necunoscut. Aceste totaluri cumulative nu reprezintă wall-clock
-al suitei. Contractul și probele sunt la
-[ownerul Reporting](../atf-reporting/README.md#timing-măsurat-înaintea-publicării).
+For `ReportPhaseTiming` phases, the inclusive duration is the sum of the execution call backings, measured monotonically before publication. It takes precedence over the publication timestamps Extent. The scenario gathers the direct phases once only; the Assertion Pass Badge describes the publication and does not add up over the execution of the phase. Zero measured remains zero and the missing timings remain unknown. These cumulative totals do not represent any of any of the following: The contract and the evidence are at [Reporting Owner](../atf-reporting/README.md#timing-măsurat-înaintea-publicării).
 
-- Fațada UI propagă timing-ul explicit; AutoEx și Shop delimitează fazele la
-  runtime prin `measureExecution()`, cu capturi și publicare instrumentate separat.
-- Cleanup-ul final, eliberarea browserului și flush-ul HTML nu măresc TEST BODY;
-  fazele de teardown explicit măsurate își păstrează propriul verdict și timp.
-- Lipsa timing-ului explicit păstrează agregarea legacy și semnificația sa;
-  captura nemăsurată și durata HTTP necapturată rămân necunoscute.
+- The UI facade propagates explicit timing; AutoEx and Shop delimit phases at
+  runtime through `measureExecution()`, with capture and publication instrumented separately.
+- Final cleanup, browser release, and HTML flush do not increase TEST BODY;
+  explicitly measured teardown phases retain their own verdict and duration.
+- Without explicit timing, legacy aggregation and its meaning are preserved;
+  unmeasured capture and uncaptured HTTP duration remain unknown.
 
 
-Pentru navigatorul `Tests`, totalul clasei este suma totalurilor scenariilor
-directe vizibile în panoul clasei. Valoarea din stânga și cea din header-ul
-clasei trebuie să fie aceeași; o durată brută Extent care include deja
-scenariile nu se recopiază peste suma lor.
-Valoarea auth este profilul/modul, niciodată secretul.
+In the `Tests` navigator, the class total is the sum of the direct scenario totals visible in the class panel. The value on the left and in the class header must match; a raw Extent duration that already includes the scenarios is not copied over their sum. The auth value is the profile/mode, never the secret.
 
-- Timeline din Overview folosește aceleași durate canonice ale claselor ca Tests,
-  fiecare clasă o singură dată; nu însumează durate native care includ timpul suitei.
-- Barele graficului, modelul Timeline și atributele accesibile se actualizează
-  împreună. Durata măsurată zero este validă; datele native sunt fallback când
-  totalurile canonice nu sunt încă disponibile.
-- Repetarea proiecției nu reinițializează graficul și nu modifică graficele de
-  status. Numele de clasă identice păstrează intrări distincte prin identitatea rădăcinii.
+- The Overview timeline uses the same canonical class durations as Tests, once per class; it does not sum native durations that include suite time.
+- Chart bars, the Timeline model, and accessible attributes update together. Measured zero duration is valid; native data is the fallback when canonical totals are not yet available.
+- Repeating the projection does not reinitialize the chart or change status charts. Identically named classes retain distinct entries through root identity.
 
-Request JSON și Response JSON sunt blocuri de cod autonome. Liniile se rup sau
-se derulează în interiorul blocului; pagina nu trebuie să dobândească scroll
-orizontal din cauza unui payload. Dacă payload-ul este mic, blocul rămâne
-compact; nu se impune o înălțime mare doar pentru uniformitate.
-Body-urile JSON Request/Response sunt limitate după redaction prin
-`reporting.bodyMaxDisplayCharacters` (implicit `100`); depășirea este marcată
-cu `… [truncated; showing first N of TOTAL chars]`, iar scroll-ul intern rămâne
-activ. Valoarea `0` dezactivează limita numai pentru body preview.
+Request JSON and Response JSON are standalone code blocks. Lines wrap or scroll inside the block; a payload must not cause horizontal page scrolling. If the payload is small, the block remains compact; do not impose a large height just for uniformity. Request/Response JSON bodies are limited after redaction by `reporting.bodyMaxDisplayCharacters` (default `100`); truncation is marked with `… [truncated; showing first N of TOTAL chars]`, and internal scrolling remains enabled. A value of `0` disables the limit only for body preview.
 
-Redacția se aplică la limita de publicare pentru ambele renderere. Detaliile
-request-ului și fazei, JSON-ul, URL-ul, retry history, cauza failure-ului și
-valorile assertions trec prin aceeași politică a redactorului sensibil;
-cheia și parametrii query neconfidențiali rămân vizibili, iar valorile secrete
-sunt înlocuite cu markerul de redacție. Niciun renderer nu poate publica direct
-input-ul primit de la transport sau de la validator.
+Redaction is applied at the publication boundary for both renderers. Request and phase details, JSON, URL, retry history, failure cause, and assertion values pass through the same sensitive-data redaction policy; the key and non-confidential query parameters remain visible, while secret values are replaced with the redaction marker. Neither renderer can publish the input received from transport or the validator directly.
 
 </details>
 
-Contextul unei erori UI pune operația, ținta, timpul măsurat și așteptarea
-înaintea diagnosticului tehnic. Excepția primară, cauzele și suppressed rămân
-observații INFO separate, redactate și limitate prin același plafon. O acțiune
-reușită nu este atribuită unei erori ulterioare; datele necapturate rămân explicit
-necunoscute.
+UI error context places the operation, target, measured time, and expectation before the technical diagnostic. The primary exception, causes, and suppressed exceptions remain separate INFO observations, redacted and limited by the same cap. A successful action is not attributed to a later error; uncaptured data remains explicitly unknown.
 
-- Fails publică rezumatul contextual; mesajul nativ al timeout-ului și markerii
-  redactării se verifică în Tests → Audit observations.
-- Backlink-ul păstrează scenariul și accesul la diagnostice în Extent/fallback,
-  inclusiv când plafonul personalizat trunchiază mesajul înaintea markerului.
+- Fails publishes the contextual summary; the native timeout message and redaction
+  markers are checked in Tests → Audit observations.
+- The backlink preserves the scenario and access to diagnostics in Extent/fallback,
+  including when a custom cap truncates the message before the marker.
 
-Relațiile, verdictul și identitatea erorii originale se păstrează,
-fără replay sau confirmare de dispatch/navigare dedusă dintr-un mesaj.
-Contractul și proiecția aparțin
-[ownerului Reporting](../atf-reporting/README.md#contextul-erorii-înaintea-diagnosticului-tehnic).
+Relations, verdict and identity of the original error shall be maintained, without replica or confirmation of the dispatch / navigation deducted from a message. The contract and projection belong to [Osnere Reporting](../atf-reporting/README.md#contextul-erorii-înaintea-diagnosticului-tehnic).
 
-### Bugetul valorilor de aserțiune
+<a id="assertion-value-budget"></a>
+<a id="bugetul-valorilor-de-aserțiune"></a>
+### Assertion value budget
 
-- `assertionMaxDisplayCharacters` limitează valoarea completă afișată, inclusiv `…`;
-  implicit 240, atât în Tests cât și în Fails, în Extent și fallback.
-- Redactarea valorii integrale precede tăierea; valoarea brută nu revine prin
-  tooltip sau atribut. Verdictul rămâne cel evaluat pe datele integrale.
-- Body-urile JSON își păstrează bugetul și marcajul propriu; calea absolută
-  notificată după publicarea artifactului nu este o valoare de aserțiune.
+- `assertionMaxDisplayCharacters` limits the full displayed value, including `…`;
+  default is 240 in both Tests and Fails, in Extent and fallback.
+- Redact the full value before truncation; the raw value is not reintroduced through
+  a tooltip or attribute. The verdict remains the one evaluated against full data.
+- JSON bodies retain their own budget and marker; the absolute path
+  reported after artifact publication is not an assertion value.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Raw["Valoare integrală"] -->|evaluează| Verdict["Verdict"]
-    Raw -->|redactează| Safe["Text sigur"]
-    Safe -->|limitează| Preview["Preview ≤ limită"]
-    Preview -->|afișează| Views["Tests / Fails / HTML"]
+    Raw["Full value"] -->|evaluates| Verdict["Verdict"]
+    Raw -->|redacts| Safe["Safe text"]
+    Safe -->|limits| Preview["Preview ≤ limit"]
+    Preview -->|displays| Views["Tests / Fails / HTML"]
 ```
 
 <details>
-<summary><strong>Legendă — valoarea publicată și verdictul</strong></summary>
+<summary><strong>Legend — published value and verdict</strong></summary>
 
-Verdictul folosește valoarea integrală. Rendererele și proiecția Fails primesc
-numai text sigur, limitat; expandarea și backlink-ul nu reconstruiesc valoarea
-brută. Diagnosticul typed prioritizează acțiunea eșuată și timpul măsurat.
+The verdict uses the full value. Renderers and the Fails projection receive only safe, limited text; expansion and the backlink do not reconstruct the raw value. The typed diagnostic prioritizes the failed action and measured time.
 
 </details>
 
-## Tabelul agregat de aserțiuni
+<a id="aggregate-assertion-table"></a>
+<a id="tabelul-agregat-de-aserțiuni"></a>
+## Aggregate assertion table
 
-Toate verificările pentru același response apar într-o singură structură:
+All checks for the same response appear in a single structure:
 
 ```text
 ASSERTION | EXPECTED | ACTUAL | RESULT
 ```
 
-RESULT poate fi PASS, FAIL sau WARNING, iar statusul tabelului derivă din
-rândurile sale. În cazul unui failure sunt păstrate toate rândurile deja
-evaluate, nu doar primul mismatch. Nu se publică încă un nod duplicat în
-TEST BODY pentru aceleași assertions.
+RESULT may be PASS, FAIL, or WARNING, and the table status is derived from its rows. On failure, all rows evaluated so far are retained, not just the first mismatch. A duplicate node for the same assertions is not published in TEST BODY.
 
-Precedence-ul unic este:
+The single precedence order is:
 
 ```text
 FAIL > SKIP > WARNING > PASS
 ```
 
-Această regulă se aplică la rând, tabel, validation, phase și scenario. Dacă
-runnerul are o regulă mai strictă, raportul o reflectă și nu o suprascrie.
+This rule applies to rows, tables, validation, phases, and scenarios. If the runner has a stricter rule, the report reflects it and does not override it.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Rows["Comparații"] -->|compune| Aggregate["Tabel unic"]
-    Aggregate -->|aplică| Precedence["FAIL > SKIP > WARNING > PASS"]
-    Precedence -->|determină| Verdict["Verdict agregat"]
+    Rows["Comparisons"] -->|compose| Aggregate["Single table"]
+    Aggregate -->|applies| Precedence["FAIL > SKIP > WARNING > PASS"]
+    Precedence -->|determines| Verdict["Aggregate verdict"]
 ```
 
 <details>
-<summary><strong>Legendă — agregare și precedence</strong></summary>
+<summary><strong>Legend — aggregation and precedence</strong></summary>
 
-- toate rândurile evaluate rămân în același tabel;
-- precedence-ul se propagă în sus, fără a crea un verdict paralel;
-- `TEST BODY` nu repetă assertion table-ul deja publicat în validation.
+- all evaluated rows remain in the same table;
+- precedence propagates upward without creating a parallel verdict;
+- `TEST BODY` does not repeat the assertion table already published in validation.
 
 </details>
 
-### Aranjare adaptivă pentru aserțiuni
+<a id="adaptive-assertion-layout"></a>
+<a id="aranjare-adaptivă-pentru-aserțiuni"></a>
+### Adaptive assertion layout
 
 <details>
-<summary><strong>Detalii — layout adaptiv și payload-uri lungi</strong></summary>
+<summary><strong>Details — adaptive layout and long payloads</strong></summary>
 
-Tabelul își păstrează cele patru coloane în ordinea `ASSERTION`, `EXPECTED`,
-`ACTUAL`, `RESULT`, însă lățimile nu sunt contractate prin pixeli fixați.
-Runtime-ul măsoară textul vizibil din toate rândurile, alocă proporțional mai
-mult spațiu coloanei cu valorile flexibile cele mai lungi și păstrează `RESULT`
-compact. Recalcularea se repetă la redimensionarea viewport-ului. Astfel,
-body-urile, listele și mesajele lungi rămân lizibile fără overflow al documentului,
-iar verificarea browser confirmă atât suma lățimilor, cât și faptul că acea
-coloană dominantă primește lățimea dominantă.
+The table keeps its four columns in `ASSERTION`, `EXPECTED`, `ACTUAL`, `RESULT` order, but widths are not fixed in pixels. The runtime measures visible text across all rows, proportionally assigns more space to the flexible column with the longest values, and keeps `RESULT` compact. It recalculates when the viewport is resized. This keeps bodies, lists, and long messages readable without document overflow, and browser verification confirms both the total width and that the dominant column receives the most width.
 
 </details>
 
-### Aranjare pentru dovezile `FIELD | VALUE`
+<a id="layout-for-field--value-evidence"></a>
+<a id="aranjare-pentru-dovezile-field--value"></a>
+### Layout for `FIELD | VALUE` evidence
 
-În prezentarea pe coloane a tabelelor key/value din trace și din detaliile request/response:
+For the column layout of key/value tables in the trace and request/response details:
 
-- `FIELD` și `VALUE` folosesc aceleași măsurători de text/font ca restul coloanelor;
-- tabelul ocupă întreaga lățime disponibilă; spațiul revine întâi textului lung, apoi surplusul se distribuie proporțional conținutului;
-- nu se rezervă procente de 20–38% ori minimum 62% unei coloane prin numele ei;
-- antetul și celulele rămân pe coloane; când minimele lizibile nu încap, derularea orizontală este locală tabelului;
-- fontul, plafonul comun de scroll și verdictul rămân independente de geometrie.
+- `FIELD` and `VALUE` use the same text/font measurements as other columns;
+- the table uses the full available width; space first goes to long text, then any remainder is distributed in proportion to content;
+- no 20–38% share or 62% minimum is reserved for a column based on its name;
+- headers and cells remain in columns; when readable minimums do not fit, horizontal scrolling stays local to the table;
+- font, shared scroll limit, and verdict remain independent of geometry.
 
-Markerii `data-atf-key-value-layout` și `data-atf-key-column-width` expun
-decizia alocării pe coloane pentru audit. `ValidationTableLayoutComponentTest`
-verifică asset-ul comun, iar `EvidenceColumnSizingComponentTest` măsoară
-geometria, redistribuirea, mutațiile și absența coloanelor verticale în browser.
+The `data-atf-key-value-layout` and `data-atf-key-column-width` markers expose column allocation decisions for audit. `ValidationTableLayoutComponentTest` checks the shared asset, while `EvidenceColumnSizingComponentTest` measures geometry, redistribution, mutations, and the absence of vertical columns in the browser.
 
-Forma vizibilă și delimitarea derulării locale sunt la
-[contractul de display](ATF_Reporting_Display_Contract.md#restabilirea-prezentării-tabelare-a-dovezilor).
-Aceeași politică deservește Actions, Audit, Assert și dovezile API în Extent/fallback.
+The visible form and local scrolling boundary are defined in the [display contract](ATF_Reporting_Display_Contract.md#restoring-tabular-evidence-presentation). The same policy serves Actions, Audit, Assert, and API evidence in Extent/fallback.
 
-## Fails și legături
+<a id="fails-and-links"></a>
+<a id="fails-și-legături"></a>
+## Fails and links
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Tests["Tests"] -->|indexează| Fails["Fails"]
-    Fails -->|rezumă| Detail["Detail pane"]
-    Detail -->|navighează| Open["Open in Tests"]
+    Tests["Tests"] -->|indexes| Fails["Fails"]
+    Fails -->|summarizes| Detail["Detail pane"]
+    Detail -->|navigates| Open["Open in Tests"]
 ```
 
 <details>
-<summary><strong>Legendă — Fails este index, Tests este sursa</strong></summary>
+<summary><strong>Legend — Fails is an index; Tests is the source</strong></summary>
 
-- **Fails**: o intrare pentru fiecare failure, nu o grupare care pierde scenarii.
-- **Conținut minim**: status, test/scenario, phase/request, assertion/cause și durată.
-- **Link**: anchor intern stabil, independent de path-ul Windows sau de numele artifactului.
-- **Detail pane**: proiecție index-only; nu clonează `test-contents` și nu creează alt evidence tree.
-- **Open in Tests**: navighează la nodul original, fără să schimbe verdictul sau ownership-ul evidence-ului.
-- **Owner UI/API**: metadata tipizată a validării, nu titlul sau forma tabelului.
-  Un eșec API păstrează `REQUEST` și checkpoint-ul Gherkin proprietar; unul UI
-  păstrează `STEP`. Un exchange-soră PASS nu înlocuiește request-ul eșuat.
-  Corelarea API invalidă cu exchange-uri PASS apare ca `API correlation`, fără
-  durată de response atribuită artificial.
-- **Evidence complet**: request/response JSON, trace, response details și assertions rămân în `Tests`.
+- **Fails**: one entry for each failure, not a grouping that loses scenarios.
+- **Minimum content**: status, test/scenario, phase/request, assertion/cause, and duration.
+- **Link**: stable internal anchor, independent of the Windows path or artifact name.
+- **Detail pane**: index-only projection; it does not clone `test-contents` or create another evidence tree.
+- **Open in Tests**: navigates to the original node without changing verdict or evidence ownership.
+- **UI/API owner**: typed validation metadata, not the title or table shape. An API failure retains its owning `REQUEST` and Gherkin checkpoint; a UI failure retains `STEP`. A sibling PASS exchange does not replace the failed request. Invalid API correlation with PASS exchanges appears as `API correlation`, without an artificially assigned response duration.
+- **Complete evidence**: request/response JSON, trace, response details, and assertions remain in `Tests`.
 
-### Semantica eșecului în ciclul de viață API
+<a id="failure-semantics-in-the-api-lifecycle"></a>
+<a id="semantica-eșecului-în-ciclul-de-viață-api"></a>
+### Failure semantics in the API lifecycle
 
-Un raport API poate fi `Fail` intenționat atunci când fixture-ul negativ verifică
-vizibilitatea unui contract respins. Acest verdict nu se confundă cu un failure
-al testului UI care inspectează raportul: raportul sursă rămâne roșu, iar auditul
-UI este verde dacă redarea este corectă.
+An API report may intentionally be `Fail` when a negative fixture checks that a rejected contract is visible. This verdict is not confused with a failure in the UI test that inspects the report: the source report remains red, while the UI audit is green if rendering is correct.
 
-Rezumatul semantic al unui failure de contract este:
+The semantic summary of a contract failure is:
 
 ```text
 FAILURE CAUSE | Contract assertion failed: HTTP status
@@ -690,219 +536,205 @@ EXPECTED      | 201
 ACTUAL        | 200
 ```
 
-Pentru mai multe assertion-uri se păstrează perechi `name = value`, iar pentru
-un failure de teardown se publică o cauză lizibilă, fără să expună doar
-`FailureSignal` sau numele clasei Java. Tabelul agregat din request rămâne
-evidence-ul detaliat; faza are numai proiecția compactă necesară navigării și
-tab-ului Fails.
+For multiple assertions, preserve `name = value` pairs; for a teardown failure, publish a readable cause instead of exposing only `FailureSignal` or the Java class name. The aggregate request table remains the detailed evidence; the phase contains only the compact projection needed for navigation and the Fails tab.
 
-Durata din indexul Fails este derivată din `RESPONSE DURATION`, nu din
-timestamp. Dacă failure-ul nu are response măsurat, indexul afișează explicit
-`No response duration recorded`; timpul de execuție rămâne disponibil în
-evidence-ul requestului și în tab-ul Tests.
+Duration in the Fails index is derived from `RESPONSE DURATION`, not a timestamp. If the failure has no measured response, the index explicitly displays `No response duration recorded`; execution time remains available in the request evidence and Tests tab.
 
-Navigarea funcționează prin click pe tab și prin hash direct:
+Navigation works by clicking the tab or using a direct hash:
 
 - `#atf-fails-view`;
 - `#test-view`;
 - `#category-view`;
 - `#dashboard-view`.
 
-Runtime-ul sincronizează hash-ul inițial și evenimentele `hashchange`; altfel un
-artifact offline poate afișa un view gol deși datele există în document.
+The runtime synchronizes the initial hash and `hashchange` events; otherwise an offline artifact may show an empty view even when data is present in the document.
 
 </details>
 
-## Prezentare generală și agregări
+<a id="overview-and-aggregation"></a>
+<a id="prezentare-generală-și-agregări"></a>
+## Overview and aggregation
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Tests["Tests"] -->|agregă| Overview["Overview"]
-    Overview -->|afișează| Counts["Totaluri + status"]
-    Overview -->|alimentează| Navigation["Category / tags"]
-    Tests -->|indexează| Fails["Fails"]
+    Tests["Tests"] -->|Aggregate| Overview["Overview"]
+    Overview -->|displays| Counts["Totals + status"]
+    Overview -->|feeds| Navigation["Category / tags"]
+    Tests -->|indexes| Fails["Fails"]
 ```
 
 <details>
-<summary><strong>Legendă — agregare fără duplicare</strong></summary>
+<summary><strong>Legend — aggregation without duplication</strong></summary>
 
-- **Overview**: agregă exact scenariile publicate în `Tests`.
-- **Counts + status**: un singur total semantic; proiectele unitare nu devin teste API.
-- **Category + tags**: navigare și filtrare; nu schimbă verdictul și nu clonează noduri.
-- **Fails**: index controlat către evidence-ul concret din `Tests`.
-- **Scanare**: lista afișează nume, status și durată; evită pills și metadate decorative.
+- **Overview**: aggregate precisely the scenarios published in `Tests`.
+- **Counts + status**: a single semantic total; unit checks do not become API tests.
+- **Category + tags**: navigation and filtering; they do not change verdicts or clone nodes.
+- **Fails**: a controlled index into concrete evidence in `Tests`.
+- **Scanning**: the list shows names, status, and duration; avoid pills and decorative metadata.
 
-Regulile de randare pentru cardul scenariului sunt:
+Rendering rules for the scenario card:
 
-- titlul și adnotările rămân pe aceeași axă stângă;
-- grupul titlu + adnotări este centrat numai vertical în header;
-- expandarea și toolbar-ul durată/status rămân în coloane separate;
-- regula rămâne valabilă pentru nume lungi, tag-uri multiple și durata în `ms`.
+- the title and annotations stay on the same left axis;
+- the title + annotation group is centered only vertically in the header;
+- expansion and duration/status toolbars remain in separate columns;
+- the rule holds for long names, multiple tags, and durations in `ms`.
 
 </details>
 
-Un scenariu `WARNING` rămâne diagnostic, dar intră în totalurile pass-like din
-Overview:
+A `WARNING` scenario remains diagnostic but is included in the pass-like totals in Overview:
 
-- `Tests Passed`, sumarul `Tests`/`Steps` și procentele: `PASS + WARNING`;
-- graficele, categoriile, badge-urile și linia `warnings` păstrează `WARNING`
-  distinct, fără a-l converti în `PASS`;
-- `Fails` indexează numai failure-uri reale, nu warning-uri.
+- `Tests Passed`, the `Tests`/`Steps` summary, and percentages: `PASS + WARNING`;
+- charts, categories, badges, and the `warnings` line keep `WARNING`
+  distinct; they do not convert it to `PASS`;
+- `Fails` indexes only actual failures, not warnings.
 
-## Paritate de randare
+<a id="rendering-parity"></a>
+<a id="paritate-de-randare"></a>
+## Rendering parity
 
-Extent și fallback-ul publică aceeași semantică, ordine, token-uri și
-interacțiuni; publisherul este singura diferență de integrare. Valorile exacte
-de layout, responsive, badge și viewport sunt deținute de
-[contractul Display](ATF_Reporting_Display_Contract.md), iar această pagină nu
-redefinește CSS-ul sau geometria pe tab-uri.
+Extent and fallback publish the same semantics, order, tokens, and interactions; the publisher is the only integration difference. Exact values for layout, responsiveness, badges, and viewport are owned by the [Display Contract](ATF_Reporting_Display_Contract.md), and this page does not redefine CSS or per-tab geometry.
 
-### Metadatele antetului: durată, link direct și controale
+<a id="header-metadata-duration-direct-link-and-controls"></a>
+<a id="metadatele-antetului-durată-link-direct-și-controale"></a>
+### Header metadata: duration, direct link, and controls
 
 <details>
-<summary><strong>Detalii — metadata și controale</strong></summary>
+<summary><strong>Details — metadata and controls</strong></summary>
 
-În `detail-head .info` există trei tipuri diferite de elemente și nu trebuie
-tratate printr-un selector generic de `badge-default`:
+`detail-head .info` contains three different types of elements; do not handle them with a generic `badge-default` selector:
 
 ```text
-durată                 → badge neutru, normalizat numeric (`9 ms`, `1.2 s`)
-uri-anchor             → deep-link machine-readable, păstrat în DOM, ascuns vizual
-Expand/Collapse        → controale pointer, păstrează iconițele vendor (`fa-expand` / `fa-compress`)
+duration               → neutral badge, numerically normalized (`9 ms`, `1.2 s`)
+uri-anchor             → machine-readable deep link, kept in the DOM, visually hidden
+Expand/Collapse        → pointer controls, preserve vendor icons (`fa-expand` / `fa-compress`)
 ```
 
-Runtime-ul de durate consumă selectorul tipizat `DURATION_MARKERS` și exclude
-explicit `.uri-anchor` și `.pointer`. Astfel nu mai poate transforma accidental
-un anchor sau o iconiță într-un `—`, iar metadata-ul nu concurează vizual cu
-timpul. Deep-link-ul rămâne disponibil pentru navigarea programatică, în timp
-ce acțiunea vizibilă pentru utilizator este `Open in Tests` din Fails. Separatorul
-vendor `·` dintre durata măsurată și ancora ascunsă este eliminat din DOM numai
-când este un text-node izolat, astfel încât headerul să nu rămână cu un simbol
-fără semnificație.
+The duration runtime uses the typed `DURATION_MARKERS` selector and explicitly excludes `.uri-anchor` and `.pointer`. This prevents it from accidentally turning an anchor or icon into `—`, and metadata does not compete visually with the duration. The deep link remains available for programmatic navigation, while the user-visible action is `Open in Tests` in Fails. The vendor `·` separator between measured duration and the hidden anchor is removed from the DOM only when it is an isolated text node, so the header does not retain a meaningless symbol.
 
-Artifactul final trebuie să fie un singur HTML autonom:
+The final artifact must be a single self-contained HTML file:
 
-- CSS și JavaScript incluse;
-- fonturile și iconițele disponibile fără rețea;
-- fără referințe extent/... sau folder auxiliar livrat;
-- noduri de evidence închise implicit;
-- phase shells colapsate implicit;
-- cardurile scenariilor din Tests colapsate implicit, dar expandabile prin click;
-- Overview deschis implicit;
-- fără linii verticale decorative care rup interiorul test body-ului;
-- contraste și fonturi consistente între tabelele de Overview și detaliile testului.
+- CSS and JavaScript included;
+- fonts and icons available offline;
+- no extent/... references or shipped auxiliary folder;
+- evidence nodes closed by default;
+- phase shells collapsed by default;
+- scenario cards in Tests collapsed by default, but expandable on click;
+- Overview open by default;
+- no decorative vertical lines breaking up the test body;
+- consistent contrast and fonts between Overview tables and test details.
 
 </details>
 
-### Stabilitatea secțiunilor expandabile — verificare în browser
+<a id="expandable-section-stability--browser-verification"></a>
+<a id="stabilitatea-secțiunilor-expandabile--verificare-în-browser"></a>
+### Expandable section stability — browser verification
 
-Disclosure-urile formează un arbore de stare, nu controale independente:
+Disclosures form a state tree, not independent controls:
 
-- deschiderea unui copil nu închide părintele sau faza care îl conține;
-- închiderea scenariului închide și ascunde toate fazele, checkpoint-urile și
-  disclosure-urile descendente;
-- redeschiderea scenariului deschide numai containerul scenariului; copiii rămân
-  închiși până la o acțiune explicită;
-- starea vizuală, panelul, `aria-expanded` și glyph-ul se actualizează împreună;
-  normalizarea întârziată nu inversează o tranziție deja stabilită.
+- opening a child does not close its parent or containing phase;
+- closing a scenario closes and hides all descendant phases, checkpoints, and
+  disclosures;
+- reopening a scenario opens only the scenario container; children remain
+  closed until an explicit action;
+- visual state, panel, `aria-expanded`, and glyph update together;
+  delayed normalization does not reverse an established transition.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Scenario[Scenariu] -->|deschide| Phase[Fază]
-    Phase -->|expandează| Child[Evidence]
-    Child -->|păstrează| ParentOpen[Părinți deschiși]
-    Scenario -->|închide| Reset["Descendenți închiși"]
-    Reset -->|redeschide| ScenarioOnly["Doar scenariul"]
-    ScenarioOnly -->|expandează| Child
+    Scenario[Scenario] -->|opens| Phase[Phase]
+    Phase -->|expands| Child[Evidence]
+    Child -->|keeps| ParentOpen[Open parents]
+    Scenario -->|closes| Reset["Descendants closed"]
+    Reset -->|reopens| ScenarioOnly["Scenario only"]
+    ScenarioOnly -->|expands| Child
 ```
 
 <details>
-<summary><strong>Legendă — tranziții stabile ale disclosure-urilor</strong></summary>
+<summary><strong>Legend — stable disclosure transitions</strong></summary>
 
-- proba începe într-un raport nou, cu scenariul colapsat;
-- copilul deschis nu își închide părinții;
-- închiderea scenariului resetează descendenții;
-- redeschiderea scenariului nu extinde automat copiii.
+- the check starts in a new report with the scenario collapsed;
+- opening a child does not close its parents;
+- closing the scenario resets its descendants;
+- reopening the scenario does not automatically expand its children.
 
 </details>
 
-Testele component/interaction verifică tranzițiile și sincronizarea atributelor;
-proba în browser folosește un artifact fresh prin ATF Debug/TAB MCP și verifică
-expandare succesivă, stabilitatea părintelui, resetarea la închiderea scenariului
-și redeschiderea fără expandarea automată a copiilor. Un artifact vechi sau o
-assertion doar pe text nu dovedește acest contract.
+Component/interaction tests verify transitions and attribute synchronization; the browser check uses a fresh artifact through ATF Debug/TAB MCP and verifies sequential expansion, parent stability, reset when the scenario closes, and reopening without automatically expanding children. An old artifact or a text-only assertion does not prove this contract.
 
-## Dovezi obligatorii pentru schimbări
+<a id="required-evidence-for-changes"></a>
+<a id="dovezi-obligatorii-pentru-schimbări"></a>
+## Required evidence for changes
 
-| Schimbare | Dovadă minimă |
+| Change | Minimum evidence |
 |---|---|
-| agregare assertions | test unitar pentru agregare + artifact cu tabel |
-| arbore request/validation | test de componentă + expandare în TAB MCP |
-| tab-uri și deep-link | test de contract + click pe fiecare suprafață |
-| fonturi, culori, linii | token tests + verificare computed style în TAB MCP |
-| durate și totaluri | test pentru pragul `300 ms`/`301 ms` + agregare exclusive/direct children |
-| status badge-uri | token test pentru geometrie și paletă în toate tab-urile |
-| JSON, scroll și overflow | artifact real + payload mic și payload mare |
-| Fails | cazuri fail/warning/skip + verificarea linkului |
+| assertion aggregation | unit test for aggregation + artifact with a table |
+| request/validation tree | component test + expansion in TAB MCP |
+| tabs and deep link | contract test + click on each surface |
+| fonts, colors, lines | token tests + computed-style check in TAB MCP |
+| durations and totals | test for the `300 ms`/`301 ms` threshold + exclusive/direct-child aggregation |
+| status badges | token test for geometry and palette across all tabs |
+| JSON, scrolling, and overflow | real artifact + small and large payloads |
+| Fails | fail/warning/skip cases + link verification |
 
-Un test care verifică doar textul HTML nu înlocuiește verificarea interactivă a
-DOM-ului când problema este de randare, click, collapse sau navigare.
+A test that checks only HTML text does not replace interactive DOM verification when the issue concerns rendering, clicking, collapsing, or navigation.
 
-## Guard de referință vizuală și funcțională
+<a id="visual-and-functional-reference-guard"></a>
+<a id="guard-de-referință-vizuală-și-funcțională"></a>
+## Visual and functional reference guard
 
-Contractul este verificat pe codul și artifactul run-ului curent. Un HTML mai
-vechi poate ajuta la investigație locală, dar nu este baseline permanent și nu
-este referențiat în README-uri.
-
-```mermaid
-%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
-flowchart LR
-    Live["Surse live"] -->|izolează| Stage["Staging + teste"]
-    Stage -->|produce| Artifact["HTML nou"]
-    Artifact -->|verifică| Browser["Audit MCP"]
-    Browser -->|promovează| Sync["Sync selectiv"]
-```
-
-<details>
-<summary><strong>Legendă — ce validează guard-ul</strong></summary>
-
-- `Staging + teste` reunește copia izolată și probele unit/component/integration;
-- `Audit MCP` reunește servirea read-only prin ATF Debug și verificarea în Chromium/Playwright;
-- inputul este raportul generat de run-ul curent sau un fișier static configurat explicit;
-- se verifică tab-uri, deep-link-uri, disclosure-uri, click, computed-style,
-  wrapping, screenshot, consolă și page errors;
-- comparația este semantică: vocabular + model → markup/CSS/JavaScript → DOM + accessibility → interaction;
-- orice abatere devine mai întâi test de componentă/contract sau E2E, nu o relaxare a testului;
-- sincronizarea în live se face numai după reconcilierea surselor și a artifactului.
-
-</details>
-
-## Numele raportului și diferențierea rulărilor
+Verify the contract against the current run's code and artifact. An older HTML file may help with local investigation, but it is not a permanent baseline and is not referenced in READMEs.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Config["Configurație"] -->|deschide| Session["Sesiune"]
-    Session -->|rezolvă| Path["Cale distinctă"]
-    Path -->|scrie| Artifact["Extent HTML"]
+    Live["Live sources"] -->|isolates| Stage["Staging + tests"]
+    Stage -->|produces| Artifact["New HTML"]
+    Artifact -->|verifies| Browser["MCP audit"]
+    Browser -->|promotes| Sync["Selective sync"]
 ```
 
 <details>
-<summary><strong>Legendă — nume determinist și rulări distincte</strong></summary>
+<summary><strong>Legend — what the guard validates</strong></summary>
 
-- **Config**: numele și politica de captură aparțin configurației, nu testului.
-- **Session**: timestamp-ul se rezolvă o singură dată, la deschiderea sesiunii.
-- **Path**: fiecare rulare publicată primește o destinație distinctă.
-- **Artifact**: raportul deschis nu este suprascris.
+- `Staging + tests` combines the isolated copy and unit/component/integration checks;
+- `MCP audit` combines read-only serving through ATF Debug and verification in Chromium/Playwright;
+- input is the report generated by the current run or an explicitly configured static file;
+- verify tabs, deep links, disclosures, clicks, computed style,
+  wrapping, screenshot, console, and page errors;
+- comparison is semantic: vocabulary + model → markup/CSS/JavaScript → DOM + accessibility → interaction;
+- any deviation first becomes a component/contract or E2E test, not a relaxed test;
+- sync to live happens only after reconciling sources and artifact.
+
+</details>
+
+<a id="report-naming-and-run-separation"></a>
+<a id="numele-raportului-și-diferențierea-rulărilor"></a>
+## Report naming and run separation
+
+```mermaid
+%%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
+flowchart LR
+    Config["Configuration"] -->|opens| Session["Session"]
+    Session -->|resolves| Path["Distinct path"]
+    Path -->|writes| Artifact["Extent HTML"]
+```
+
+<details>
+<summary><strong>Legend — deterministic names and separate runs</strong></summary>
+
+- **Config**: the name and capture policy belong to configuration, not the test.
+- **Session**: the timestamp is resolved once, when the session opens.
+- **Path**: each published run receives a distinct destination.
+- **Artifact**: an open report is not overwritten.
 
 </details>
 
 <details>
-<summary><strong>Detalii — configurație și reguli de publicare</strong></summary>
+<summary><strong>Details — configuration and publication rules</strong></summary>
 
-Configurația minimală este:
+The minimal configuration is:
 
 ```yaml
 reporting:
@@ -916,17 +748,17 @@ reporting:
     screenshotPolicy: each-checkpoint
 ```
 
-Regulile runtime sunt:
+Runtime rules:
 
-- `timestampEnabled: true` inserează timestamp-ul înainte de extensie;
-- `timestampPattern` folosește sintaxa Java `DateTimeFormatter`;
-- `timestampZone` acceptă `system` sau un identificator IANA;
-- pattern-urile cu caractere nesigure pentru nume de fișier sunt respinse;
-- testele deterministe pot folosi un `Clock` fix prin `resolveReportPath(Clock)`;
-- `timestampEnabled: false` este rezervat testelor interne cu destinație stabilă;
-- rulările ATF publicate folosesc nume timestamped, inclusiv fără YAML explicit.
+- `timestampEnabled: true` inserts the timestamp before the extension;
+- `timestampPattern` uses Java `DateTimeFormatter` syntax;
+- `timestampZone` accepts `system` or an IANA identifier;
+- patterns containing filename-unsafe characters are rejected;
+- deterministic tests may use a fixed `Clock` through `resolveReportPath(Clock)`;
+- `timestampEnabled: false` is reserved for internal tests with a stable destination;
+- published ATF runs use timestamped names, even without explicit YAML.
 
-Politica de screenshot este typed, nu un boolean duplicat în testele UI:
+Screenshot policy is typed, not a duplicate boolean in UI tests:
 
 - `each-checkpoint`;
 - `final-only`;
@@ -934,53 +766,41 @@ Politica de screenshot este typed, nu un boolean duplicat în testele UI:
 - `final-and-failure`;
 - `none`.
 
-Un flow `final-only` marchează explicit checkpoint-ul prin
-`ReportScreenshotPolicy.CapturePoint.FINAL`; reporting nu ghicește starea finală.
-Când policy-ul acceptă screenshot-ul, target-ul este obligatoriu, iar acțiunile
-și assertions rămân publicate chiar dacă imaginea este dezactivată.
+A `final-only` flow explicitly marks the checkpoint through `ReportScreenshotPolicy.CapturePoint.FINAL`; Reporting does not guess which state is final. When policy allows a screenshot, the target is required, and actions and assertions remain published even if the image is disabled.
 
-Pentru evidence, composition root-ul poate mapa `flowMode`, `screenshotPolicy`,
-`captureSource` și `actionDetailsMode` în `ReportEvidenceProfile`, prin
-`fromConfig(...)` sau builder. `actionDetailsMode` schimbă doar disclosure-ul
-acțiunilor deja capturate. Profilul nu execută Playwright și nu mută mock-ul în
-reporting.
+For evidence, the composition root can map `flowMode`, `screenshotPolicy`, `captureSource`, and `actionDetailsMode` to `ReportEvidenceProfile`, through `fromConfig(...)` or a builder. `actionDetailsMode` changes only the disclosure for actions already captured. The profile does not run Playwright or move the mock into Reporting.
 
-Acest contract descrie politica de publicare și efectul în artifact. Separarea
-generică dintre flow mode, capture source, action-details mode și composition root este în
-[`ATF_Evidence_Capture_Contract.md`](ATF_Evidence_Capture_Contract.md); nu este
-specifică Practice Shop și nu se deduce din `reporting.extent`.
+This contract describes publication policy and its effect in the artifact. The generic separation between flow mode, capture source, action-details mode, and the composition root is in [`ATF_Evidence_Capture_Contract.md`](ATF_Evidence_Capture_Contract.md); it is It is not specific to Practice Shop and is not inferred from `reporting.extent`.
 
-Schimbarea timestamp-ului nu modifică arborele Extent, statusurile, agregările
-sau randarea HTML.
+Changing the timestamp does not change the Extent tree, statuses, aggregation, or HTML rendering.
 
 </details>
 
 
-## Mesagerie — decizie condiționată de contractul real
+<a id="messaging---decision-subject-to-the-actual-contract"></a>
+<a id="mesagerie--decizie-condiționată-de-contractul-real"></a>
+## Messaging - decision subject to the actual contract
 
-Reporting păstrează un model neutru și nu depinde de Kafka/RabbitMQ.
-Observațiile typed și assertions existente rămân punctele de compoziție curente.
+Reporting maintains a neutral pattern and does not depend on Kafka / RabbitMQ. Typed observations and existing assertions remain the current composition points.
 
-| Situație | Decizie de scope |
+| Situation | Purpose decision |
 |---|---|
-| componentele MOCK existente J2 | publică verdicturi independente prin porturile curente; nu cer un tabel MQ nou |
-| contract de mesaj/livrare demonstrat LIVE | evaluați numai atunci dovezile pentru identitate, poziție și tentative, distincte de HTTP |
-| acceptarea unei proiecții noi | fixture neutru în Reporting Tests, Extent/fallback, timing, FAIL, evidence incompletă și navigare; expected-urile și codul Eventuate rămân la consumer |
+| MOCK components in existence J2 | publish independent verdicts through current ports; do not ask for a new MQ table |
+| message / delivery contract demonstrated LIVE | assess only then the evidence for identity, position and attempts, distinct from HTTP |
+| acceptance of a new projection | neutral fixture in Reporting Tests, Extent / fallback, timing, FAIL, incomplete evidence and navigation; expectations and Eventuate code remain at the consumer |
 
-Această decizie păstrează propunerea REPORT-MQ-02 în proiect, fără să o numere
-ca defect curent sau funcționalitate livrată. Ownerul [mesageriei J2](../../atf_j2/docs/ATF_J2_Scope.md)
-furnizează witness-ul real înaintea unei extinderi a bibliotecii.
+This decision keeps the REPORT-MQ-02 proposal in the project, without counting it as current defect or functionality delivered. Owner [messaging J2](../../atf_j2/docs/ATF_J2_Scope.md) provides the actual witness before an extension of the library.
 
-## Inspecție explicită și surse temporale
+<a id="explicit-inspection-and-time-sources"></a>
+<a id="inspecție-explicită-și-surse-temporale"></a>
+## Explicit inspection and time sources
 
-[Contractul inspectorului](../atf-reporting/README.md#inspecția-artifactului-cu-intenție-explicită) cere intenția callerului pentru Extent/fallback și inventarul dovezilor.
+[The inspector's contract](../atf-reporting/README.md#inspecția-artifactului-cu-intenție-explicită) requires the intent of the caller for Extent / fallback and the inventory of evidence.
 
-- Default-ul legacy rămâne Extent/HTTP.
-- Lipsa unei dovezi obligatorii nu selectează automat un profil permisiv.
-- Rezultatele goale, incomplete sau contradictorii sunt neconforme; verdictul business se evaluează înaintea preview-ului implicit 240.
+- The legacy default remains Extent / HTTP.
+- The lack of mandatory evidence does not automatically select a permissive profile.
+- Empty, incomplete or contradictory results are non-compliant; the business verdict is assessed prior to the default 240 preview.
 
-[Originea duratelor](../atf-reporting/README.md#originea-duratelor-sub-o-fază-capturată) distinge Execution, Transport și Publication.
-Copiii publicați ulterior nu schimbă execuția capturată a fazei; timpul necunoscut nu este completat cu zero.
-Indicatorul assertions și controalele mouse/Enter/Space aparțin disclosure-ului comun, păstrând tabelul colapsat implicit.
+[Origin of durations](../atf-reporting/README.md#originea-duratelor-sub-o-fază-capturată) distinguishes Execution, Transport and Publication. The children published subsequently do not change the captured execution of the phase; the unknown time is not completed with zero. The assertions indicator and mouse / Enter / Space controls belong to the common disclosure, keeping the table collapsed by default.
 
-[Profilul inline auditabil](ATF_Inline_Audit_Contract.md) definește compoziția fără artifacte externe și păstrarea identității invocărilor.
+[Auditable inline profile](ATF_Inline_Audit_Contract.md) defines the composition without external artifacts and maintaining the identity of the invoicing.

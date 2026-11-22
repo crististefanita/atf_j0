@@ -19,22 +19,35 @@ class PlaywrightClickPostconditionComponentTest {
     private ExecutorService executor;
     private PlaywrightUiSession browser;
     private final CountDownLatch releaseFrame = new CountDownLatch(1);
+    private final java.util.concurrent.atomic.AtomicInteger frameRequests = new java.util.concurrent.atomic.AtomicInteger();
+    private final java.util.concurrent.atomic.AtomicBoolean frameCommitted = new java.util.concurrent.atomic.AtomicBoolean();
+    private final java.util.concurrent.atomic.AtomicBoolean frameGateExpired = new java.util.concurrent.atomic.AtomicBoolean();
     private String origin;
 
     @BeforeAll void open() throws Exception {
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         executor = Executors.newCachedThreadPool(); server.setExecutor(executor);
         server.createContext("/slow", exchange -> {
+            frameRequests.incrementAndGet();
             try (exchange) {
-                try { releaseFrame.await(5, TimeUnit.SECONDS); }
-                catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); }
+                try {
+                    if (!releaseFrame.await(5, TimeUnit.SECONDS)) {
+                        frameGateExpired.set(true);
+                        throw new java.io.IOException("Uncommitted-frame fixture gate was not released");
+                    }
+                }
+                catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                    throw new java.io.IOException("Uncommitted-frame fixture interrupted", interrupted);
+                }
+                frameCommitted.set(true);
                 exchange.sendResponseHeaders(200, 0);
             }
         });
         server.createContext("/", exchange -> {
             byte[] document = """
                     <script>window.clicks=0;window.ready=false;</script>
-                    <button id="activate" onclick="window.clicks++;const f=document.createElement('iframe');
+                    <button id="activate" onclick="window.clicks++;window.trustedClick=event.isTrusted;const f=document.createElement('iframe');
                     f.src='/slow';document.body.append(f);setTimeout(()=>window.ready=true,80)">Activate</button>
                     """.getBytes(StandardCharsets.UTF_8);
             try (exchange) {
@@ -54,22 +67,28 @@ class PlaywrightClickPostconditionComponentTest {
     }
 
     @Test void explicitReadinessDoesNotWaitForAnUnrelatedUncommittedFrame() {
-        browser.page().navigate(origin + "/start");
-        var actions = browser.newActionSequence();
-        actions.clickAndAwait(target("#activate"), "ready state confirmed",
-                budget -> {
-                    browser.page().waitForFunction("window.ready", null,
-                            new com.microsoft.playwright.Page.WaitForFunctionOptions()
-                                    .setTimeout(budget.remainingMilliseconds())).dispose();
-                });
-        assertEquals(1, clicks());
-        assertEquals(2, browser.page().frames().size());
-        assertEquals(AtfReportStatus.PASS, actions.snapshot().getFirst().status());
-        assertTrue(actions.snapshot().getFirst().observed().contains("explicit postcondition satisfied"));
+        try {
+            preparation().navigate(origin + "/start");
+            var actions = browser.newActionSequence();
+            actions.clickAndAwait(target("#activate"), "ready state confirmed", budget -> {
+                browser.page().waitForFunction("window.ready", null,
+                        new com.microsoft.playwright.Page.WaitForFunctionOptions().setTimeout(budget.remainingMilliseconds())).dispose();
+                browser.page().waitForCondition(() -> frameRequests.get() == 1,
+                        new com.microsoft.playwright.Page.WaitForConditionOptions().setTimeout(budget.remainingMilliseconds()));
+            });
+            assertEquals(1, clicks());
+            assertEquals(true, browser.page().evaluate("window.trustedClick"));
+            assertEquals(2, browser.page().frames().size());
+            assertFalse(frameCommitted.get(), "The child response is actually uncommitted when readiness returns");
+            assertFalse(frameGateExpired.get(), "The fixture cannot silently complete its own negative condition");
+            assertEquals(1, releaseFrame.getCount());
+            assertEquals(AtfReportStatus.PASS, actions.snapshot().getFirst().status());
+            assertTrue(actions.snapshot().getFirst().observed().contains("explicit postcondition satisfied"));
+        } finally { releaseFrame.countDown(); }
     }
 
     @Test void unconfirmedReadinessKeepsFailureAndNeverReplaysTheClick() {
-        browser.page().setContent("<script>window.clicks=0;</script><button id='activate' onclick='window.clicks++'>Activate</button>");
+        preparation().setContent("<script>window.clicks=0;</script><button id='activate' onclick='window.clicks++'>Activate</button>");
         var actions = browser.newActionSequence();
         var failure = assertThrows(IllegalStateException.class,
                 () -> actions.clickAndAwait(target("#activate"), "ready", budget -> {
@@ -86,7 +105,7 @@ class PlaywrightClickPostconditionComponentTest {
 
     @Test void absentOrAmbiguousTargetCannotRunThePostcondition() {
         for (String markup : new String[]{"<p>missing</p>", "<button>one</button><button>two</button>"}) {
-            browser.page().setContent(markup);
+            preparation().setContent(markup);
             var actions = browser.newActionSequence();
             var observations = new java.util.concurrent.atomic.AtomicInteger();
             assertThrows(RuntimeException.class, () -> actions.clickAndAwait(target("button"), "ready",
@@ -97,5 +116,6 @@ class PlaywrightClickPostconditionComponentTest {
     }
 
     private AtfLocator target(String selector) { return new AtfLocator(browser.page().locator(selector), selector); }
+    private PlaywrightPagePreparation preparation() { return new PlaywrightPagePreparation(browser.page(), Duration.ofSeconds(5)); }
     private int clicks() { return ((Number) browser.page().evaluate("window.clicks")).intValue(); }
 }

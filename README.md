@@ -1,41 +1,46 @@
-# ATF — platformă modulară pentru testare și rezultate verificabile
+<a id="atf-java--modular-testing-and-auditable-results"></a>
+<a id="atf--platformă-modulară-pentru-testare-și-rezultate-verificabile"></a>
+# ATF Java — modular testing and auditable results
 
-[Mentenanța bibliotecilor](lib/README.md) fixează J0 ca owner al codului, testelor, împachetării și feedback-ului; J1–J7 reutilizează livrările verificate.
+[Library maintenance](lib/README.md) defines J0 ownership of library code, native tests, packaging and feedback; J1–J7 consume verified deliveries.
 
-Scenariile AutoEx/Shop au owner în J1; copiile din acest reactor verifică
-consumul Reporting sursă. J2 pregătește separat testarea cozilor și mesajelor.
+Shop and AutoEx scenarios are owned by J1; their copies in this reactor verify
+integration with Reporting source. J2 independently owns queue and messaging tests.
 
-`API determinist → validare semantică → raport Extent → audit UI`
+`Deterministic API → semantic validation → Extent report → UI audit`
 
-## ATF Java — prezentare executivă
+<a id="atf-java--executive-overview"></a>
+<a id="atf-java--prezentare-executivă"></a>
+## ATF Java — executive overview
 
-| Workspace | Rol și punct de intrare |
+| Workspace | Role and entry point |
 |---|---|
-| J0 | 12 module sursă; owner pentru Core, Reporting, Console, Mock și Test Kit; [atlasul sursei](docs/ATF_Context_Atlas.md) |
-| J1 | 6 module; consumatorul AutoEx/Shop și al bibliotecilor comune; [documentația consumerului](../atf_j1/docs/README.md) |
-| J2 · WIP | 5 module; teste de cozi și mesaje Kafka/Eventuate, fără UI/Debug UI; [atlasul WIP](../atf_j2/docs/ATF_Context_Atlas.md) |
-| J3 | 4 module; transcriere audio în engleză; [arhitectura speech](../atf_j3/docs/ATF_Speech_Architecture.md) |
-| J4 | 3 module; Whist Lab și testare Android; [documentația consumerului](../atf_j4/docs/README.md) |
-| J5 | 2 module; Rentz Lab și teste offline; [README-ul proiectului](../atf_j5/README.md) |
-| J6 | 5 module; Hold’em Lab; [README-ul proiectului](../atf_j6/README.md) |
-| J7 | 1 modul Maven; Chess Lab și consumul bibliotecilor ATF; [README-ul proiectului](../atf_j7/README.md) |
+| J0 | 12 source modules; owner of Core, Reporting, Console, Mock and Test Kit; [source atlas](docs/ATF_Context_Atlas.md) |
+| J1 | 6 modules; Shop/AutoEx consumer and shared-library integration; [consumer documentation](../atf_j1/docs/README.md) |
+| J2 · WIP | 5 modules; Kafka/Eventuate queue and messaging tests, without UI/Debug UI; [WIP atlas](../atf_j2/docs/ATF_Context_Atlas.md) |
+| J3 | 4 modules; English speech transcription; [speech architecture](../atf_j3/docs/ATF_Speech_Architecture.md) |
+| J4 | 3 modules; Whist Lab and Android testing; [consumer documentation](../atf_j4/docs/README.md) |
+| J5 | 2 modules; Rentz Lab and offline tests; [project README](../atf_j5/README.md) |
+| J6 | 5 modules; Hold’em Lab; [project README](../atf_j6/README.md) |
+| J7 | 1 Maven module; Chess Lab and ATF library consumption; [project README](../atf_j7/README.md) |
 
-Rolul proiectului și rezultatul verificat sunt distincte: un build sau un MOCK verde nu certifică serviciul extern, brokerul ori întregul ATF.
+A project's role and its verified behavior are separate: a successful build or mock does not certify the external service, broker or the entire platform.
 
-ATF Java este platforma care leagă execuția deterministă a testelor API de
-validarea semantică, publicarea artefactului Extent și auditul UI al rezultatului.
-Pentru orientare rapidă, modulele sunt grupate după întrebarea la care răspund,
-nu enumerate ca un inventar Maven:
+ATF Java connects deterministic API execution, semantic validation, Extent
+publication and browser inspection. The groups below explain each module's
+responsibility and guide the reader to the relevant contract.
 
-| Zonă | Module live | Responsabilitate | Întrebarea cititorului |
+| Area | Live modules | Responsibility | Reader's question |
 |---|---|---|---|
-| **Contract & foundation** | `atf-test-kit`, `atf-core` | adnotări de test, resolvere neutre, lifecycle, transport ports | ce poate fi reutilizat fără reporting sau business? |
-| **Execution & verdict** | `atf-mock`, `atf-validation`, `atf-console` | schimb determinist, verdict semantic și diagnostic | cum devine un test reproductibil și explicabil? |
-| **Reporting & UI audit** | `atf-reporting`, `atf-ui`, `atf-debug-ui` | artifact standalone, browser audit și publicare read-only | cum devine rezultatul observabil și verificabil? |
-| **Composition + consumers** | `atf-reporting-tests`, `atf-test-practice-shop`, `atf-test-auto-ex` | harness-ul verifică reporting-ul în test scope; Shop și AutoEx compun journey-uri de aplicație | cine verifică librăriile și cine le folosește într-un produs? |
-| **Governance** | `atf-tests` | graph-ul reactorului și boundary gates | cine protejează separarea modulelor? |
+| **Contract & foundation** | `atf-test-kit`, `atf-core` | test annotations, neutral resolvers, lifecycle and transport ports | What can be reused independently of reporting and business rules? |
+| **Execution & verdict** | `atf-mock`, `atf-validation`, `atf-console` | deterministic exchanges, semantic verdicts and diagnostics | What makes a test reproducible and explainable? |
+| **Reporting & UI audit** | `atf-reporting`, `atf-ui`, `atf-debug-ui` | standalone artifacts, browser inspection and read-only serving | How is the result published and inspected? |
+| **Composition + consumers** | `atf-reporting-tests`, `atf-test-practice-shop`, `atf-test-auto-ex` | the harness verifies Reporting in test scope; Shop and AutoEx compose application journeys | Who verifies libraries and integrates them into applications? |
+| **Governance** | `atf-tests` | reactor graph and module boundaries | Who protects module responsibilities? |
 
-## Diagramă de bază
+<a id="core-diagram"></a>
+<a id="diagramă-de-bază"></a>
+## Core diagram
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
@@ -49,251 +54,244 @@ flowchart LR
     Audit[Browser audit]
     Governance[Governance]
 
-    Consumers -->|declară| Contract
-    Contract -->|configurează| Runtime
-    Runtime -->|alimentează| Reporting
-    Runtime -->|produce| Verdict
-    Verdict -->|alimentează| Reporting
-    Reporting -->|publică| Artifact
-    Artifact -->|expune| Audit
-    Governance -. protejează .-> Contract
-    Governance -. protejează .-> Reporting
+    Consumers -->|declares| Contract
+    Contract -->|configures| Runtime
+    Runtime -->|supplies| Reporting
+    Runtime -->|produces| Verdict
+    Verdict -->|supplies| Reporting
+    Reporting -->|publishes| Artifact
+    Artifact -->|exposes| Audit
+    Governance -. protects .-> Contract
+    Governance -. protects .-> Reporting
 ```
 
 <details>
-<summary><strong>Legendă — flux, ownership și limite</strong></summary>
+<summary><strong>Legend - flow, ownership and limits</strong></summary>
 
-**Fluxul**
+**Flow**
 
-- **Consumers** furnizează intenția, configurația și fixture-urile;
-- **Contract** fixează layer-ul testului și boundary-ul reutilizabil;
-- **Runtime** execută schimbul generic și, când este necesar, transportul fake;
-- **Verdict** evaluează răspunsul și produce diagnostic/evidence;
-- **Reporting** publică artifactul Extent standalone;
-- **Artifact** este rezultatul HTML/CSS/JavaScript inspectabil;
-- **Audit** verifică DOM-ul, tab-urile, filtrele și randarea în browser;
-- **Governance** protejează direcția dependențelor fără să intre în producție.
+- **Consumers** provides the intention, configuration and fixtures;
+- **Contract** fixes the test layer and reusable boundary;
+- **Runtime** shall perform generic exchange and, where necessary, fake transport;
+- **Verdict** assesses the response and produces diagnostic / evidence;
+- **Reporting** publishes the Extent standalone artifact;
+- **Artifact** is the result of HTML / CSS / JavaScript inspectable;
+- **Audit** checks DOM, tables, filters and browser rendering;
+- **Governance** protects the direction of dependency without entering production.
 
-Diagrama răspunde rapid la întrebarea „ce face ATF și unde se oprește fiecare
-modul?”. Detaliile de implementare, contractele claselor și pașii de rulare
-continuă în documentele ownerilor de mai jos.
+The diagram quickly answers the question "What does ATF do and where does each module stop?." The implementation details, class contracts and rolling steps continue in the documents of the hosts below.
 
-**Ownership și verificare**
+**Ownership and verification**
 
-Tabelul de mai jos explică responsabilitatea fiecărui boundary și nivelul de
-verificare asociat. Nu este o a doua hartă de navigare; este partea operațională
-a aceleiași legende.
+The table below explains the responsibility of each boundary and the level of associated verification. It is not a second map of navigation; it is the operational part of the same legend.
 
-| Boundary | Owner | Rol | Verificare |
+| Boundary | Owner | Role | Verification |
 |---|---|---|---|
-| test contract | `atf-test-kit` | adnotări nivel/canal/output/setup/docs și guard transversal | architecture/unit |
-| kernel | `atf-core` | modele neutre, lifecycle, transport și porturi | unit |
-| transport determinist | `atf-mock` | rute și răspunsuri fake configurabile | component |
-| verdict | `atf-validation` | contracte response, evaluare și evidence | unit |
-| diagnostic | `atf-console` | proiecție de consolă și formatter | unit |
-| reporting library | `atf-reporting` | renderer Extent, HTML, CSS/JS și artifact | standalone unit/component |
-| browser runtime | `atf-ui` | sesiune Playwright și politici generice | component |
-| debug inspector | `atf-debug-ui` | servește read-only un HTML pe loopback | component |
-| reporting test harness | `atf-reporting-tests` | component/API mock → publisher și UI/E2E pentru librăria reporting | component/integration/E2E |
-| aplicații consumatoare | `atf-test-practice-shop`, `atf-test-auto-ex` | config, locatori, pages și journey-uri independente | component/E2E |
-| whole-ATF governance | `atf-tests` | module graph și boundary-uri ale reactorului | component/architecture |
-Etichetele scurte păstrează următorul sens:
+| test contract | `atf-test-kit` | level / channel / output / setup / docs and transverse guard annotations | architecture/unit |
+| kernel | `atf-core` | Neutral models, lifecycle, transport and ports | unit |
+| transport determinist | `atf-mock` | Configurable fake transport and routes | component |
+| verdict | `atf-validation` | Answering contracts, valuation and evidence | unit |
+| diagnostic | `atf-console` | Console and formatter projection | unit |
+| reporting library | `atf-reporting` | renderer Extent, HTML, CSS / JS and artifact | standalone unit/component |
+| browser runtime | `atf-ui` | Playwright session and generic policies | component |
+| debug inspector | `atf-debug-ui` | serves read-only a HTML on the loop back | component |
+| reporting test harness | `atf-reporting-tests` | component / API mok → publisher and UI / E2E for reporting library | component/integration/E2E |
+| consumer applications | `atf-test-practice-shop`, `atf-test-auto-ex` | Config, locators, pages and independent journeys | component/E2E |
+| whole-ATF governance | `atf-tests` | reactor graph and boundary modules | component/architecture |
+The short labels shall be kept as follows:
 
-| În schemă | Sens complet |
+| In the scheme | Full meaning |
 |---|---|
 | Runtime | Generic runtime |
 | Verdict | Verdict + diagnostics |
 | Reporting | Standalone reporting |
 | Extent | Extent artifact |
-| expune | expune pentru |
-| protejează | architecture gates |
-| protejează | dependency gates |
+| exposes | exposure for |
+| protects | architecture gates |
+| protects | dependency gates |
 
 </details>
 
-## Harta modulelor
+<a id="module-map"></a>
+<a id="harta-modulelor"></a>
+## Module map
 
-Două perspective ale aceluiași reactor: consumatorii și apoi verificarea cu
-guvernanța. Inventarul cuprinde toate cele 12 module: șapte de platformă,
-librăria reporting, doi consumatori, testele reporting și guvernanța.
+Two perspectives of the same reactor: consumers and then checking with governance. The inventory includes all 12 modules: seven platform, library reporting, two consumers, reporting tests and governance.
 
-### Consum
+<a id="consumption"></a>
+<a id="consum"></a>
+### Consumption
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     Consumers[Shop + AutoEx]
     Reporting[reporting]
-    Platform[platformă comună]
+    Platform[joint platform]
 
-    Consumers -->|consumă| Reporting
-    Consumers -.->|reutilizează| Platform
+    Consumers -->|consume| Reporting
+    Consumers -.->|re-use| Platform
 ```
 
 <details>
-<summary><strong>Legendă — consumatori și module partajate</strong></summary>
+<summary><strong>Legend - shared consumers and modules</strong></summary>
 
-- `Consumers` reunește `atf-test-practice-shop` și `atf-test-auto-ex`; fiecare
-  păstrează configurația, selectorii și journey-ul propriu;
-- `Reporting` este `atf-reporting`, librăria partajată folosită de consumatori;
-- `Platform` reprezintă celelalte șapte module reutilizabile, enumerate în
-  tabel; săgețile diferențiază reporting-ul de contractele comune.
+- `Consumers` brings together `atf-test-practice-shop` and `atf-test-auto-ex`; each
+  keep your configuration, selects and journey;
+- `Reporting` is `atf-reporting`, the shared library used by consumers;
+- `Platform` represents the other seven reusable modules listed in
+  table; arrows differentiate the reporter from the joint contracts.
 
 </details>
 
-### Verificare și guvernanță
+<a id="verification-and-governance"></a>
+<a id="verificare-și-guvernanță"></a>
+### Verification and governance
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    ReportingTests[teste reporting]
-    Governance[guvernanță]
+    ReportingTests[reporting tests]
+    Governance[Governance]
     Reporting[reporting]
-    Platform[platformă comună]
-    Reactor[întreg reactorul]
+    Platform[joint platform]
+    Reactor[reactor]
 
-    ReportingTests -->|verifică| Reporting
-    ReportingTests -.->|testează| Platform
-    Governance -.->|protejează| Reactor
+    ReportingTests -->|verifies| Reporting
+    ReportingTests -.->|test| Platform
+    Governance -.->|protects| Reactor
 ```
 
 <details>
-<summary><strong>Legendă — verificare și boundary-uri</strong></summary>
+<summary><strong>Legend - verification and boundaries</strong></summary>
 
-- `ReportingTests` este `atf-reporting-tests`: verifică `atf-reporting` și
-  folosește celelalte module partajate numai în `test` scope;
-- `Governance` este `atf-tests`; `întreg reactorul` înseamnă toate cele 12 module,
-  nu doar librăriile comune;
-- săgețile sunt drepte pentru a păstra etichetele lizibile; detaliile și
-  ownership-ul fiecărui modul sunt în tabel și în README-ul modulului.
+- `ReportingTests` is `atf-reporting-tests`: check `atf-reporting` and
+  uses other shared modules only in `test` scope;
+- `Governance` is `atf-tests`; `întreg reactorul` means all 12 modules,
+  not just the common libraries;
+- the arrows are straight to keep the labels legible; details and
+  The ownership of each module is in the table and README module.
 
-| Grup | Module | Deține | Nu deține |
+| Group | Module | Owned | Does not own |
 |---|---|---|---|
-| platform | `atf-test-kit` | adnotări, resolvere neutre și guard-uri | runtime sau fixture-uri de business |
-| platform | `atf-core` | request/response, lifecycle, transport și porturi | HTML, Extent, business services |
-| platform | `atf-mock` | fake transport și catalog determinist | HTTP live sau verdicturi |
-| platform | `atf-validation` | response contracts, verdict și evidence | transport sau HTML |
-| platform | `atf-console` | diagnostic output | reporting UI sau transport |
-| reporting library | `atf-reporting` | renderer, document semantic și artifact | module ATF, mock sau browser |
-| platform | `atf-ui` | sesiune Playwright și politici browser | page objects de produs |
-| platform | `atf-debug-ui` | publicare read-only pentru investigație | generare sau modificare de HTML |
-| test harness | `atf-reporting-tests` | testele librăriei reporting și fixture-urile lor, în `test` scope | testarea unei aplicații reale sau runtime de producție |
-| consumer | `atf-test-practice-shop` | testele aplicației Practice Shop | guvernanță whole-ATF |
-| consumer | `atf-test-auto-ex` | testele UI E2E pentru Automation Exercise | testele Practice Shop |
-| governance | `atf-tests` | graph-ul reactorului și boundary gates | YAML, pages, flows sau purchase E2E |
+| platform | `atf-test-kit` | annotations, neutral resistors and guards | Runtime or business fixtures |
+| platform | `atf-core` | demand / response, lifecycle, transport and ports | HTML, Extent, business services |
+| platform | `atf-mock` | fake transport and catalog determinist | HTTP live or verdicts |
+| platform | `atf-validation` | response contracts, verdict and evidence | transport or HTML |
+| platform | `atf-console` | diagnostic output | reporting UI or transport |
+| reporting library | `atf-reporting` | renderer, semantic document and artifact | ATF, mock or browser modules |
+| platform | `atf-ui` | Playwright session and browser policies | page objects product |
+| platform | `atf-debug-ui` | read-only publication for investigation | generation or modification of HTML |
+| test harness | `atf-reporting-tests` | reporting library tests and their fixtures in `test` scope | testing of a real application or production runtime |
+| consumer | `atf-test-practice-shop` | Shop Practice Application tests | whole governance - ATF |
+| consumer | `atf-test-auto-ex` | UI E2E tests for Automation Exercise | Shop Practice tests |
+| governance | `atf-tests` | reactor graph and boundary gates | YAML, pages, flows or purchase E2E |
 
 </details>
 
-Detaliile despre dependențele Maven sunt în
-[`docs/ATF_Architecture.md`](docs/ATF_Architecture.md). Harta de mai sus nu
-înlocuiește POM-ul; ea explică ownership-ul și direcția de citire.
+The details of the Maven dependencies are in [`docs/ATF_Architecture.md`](docs/ATF_Architecture.md). The above map does not replace POM; it explains the ownership and direction of reading.
 
-## Harta straturilor de test
+<a id="test-layer-map"></a>
+<a id="harta-straturilor-de-test"></a>
+## Test layer map
 
-Stratul este ales explicit prin adnotarea din `atf-test-kit`, nu dedus din
-numele folderului. Aceeași regulă se aplică testelor API, UI și reporting:
+The layer is explicitly chosen by annotation from `atf-test-kit`, not deducted from the folder name. Same rule applies to API, UI tests and reporting:
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Question["Întrebare"]
-    Layer["Adnotare"]
+    Question["Question"]
+    Layer["NOTE"]
     Scope["Boundary"]
-    Proof["Dovadă"]
+    Proof["Proof"]
 
-    Question -->|clarifică| Layer
-    Layer -->|delimitează| Scope
-    Scope -->|produce| Proof
+    Question -->|clarify| Layer
+    Layer -->|delimited| Scope
+    Scope -->|produces| Proof
 ```
 
 <details>
-<summary><strong>Legendă — cum alegem stratul</strong></summary>
+<summary><strong>Legend - how to choose the layer</strong></summary>
 
-- alegem cel mai mic strat care poate demonstra contractul;
-- promovăm la component/integration/e2e doar când boundary-ul verificat o cere;
-- `support` furnizează input, locatori, fixture-uri sau helpers, dar nu produce
-  un verdict independent;
-- același raport poate avea teste unitare pentru markup/CSS/JS, teste component
-  pentru contracte și teste E2E pentru comportamentul observabil în browser.
-Etichetele scurte păstrează următorul sens:
+- choose the smallest layer that can demonstrate the contract;
+- promotion to component / integration / e2e only when the boundary checked requires it;
+- `support` provides input, locators, fixtures or helpers, but does not produce
+  independent verdict;
+- Same ratio may have unit tests for markup / CSS / JS, component tests
+  for contracts and E2E tests for observable behavior in the browser. Short labels shall keep the following meaning:
 
-| În schemă | Sens complet |
+| In the scheme | Full meaning |
 |---|---|
-| Întrebare | întrebarea testului |
-| Adnotare | annotation din atf-test-kit |
-| Boundary | boundary și input controlat |
-| Dovadă | evidence și verdict |
+| Question | test question |
+| Annotation | Annotation from atf-test-kit |
+| Boundary | boundary and controlled input |
+| Proof | evidence and verdict |
 
 </details>
 
-| Strat | Adnotare | Boundary verificat | Verdictul trebuie să demonstreze |
+| Layer | Annotation | Boundary verificat | The verdict must demonstrate |
 |---|---|---|---|
-| unit | `@AtfUnitTest` | regulă, model, markup, CSS/JS sau asset pur | comportament determinist, fără boundary extern |
-| component | `@AtfComponentTest` | renderer, loader, auditor, locator sau fixture controlat | contractul componentei și evidence-ul produs |
-| integration | `@AtfIntegrationTest` | două sau mai multe module reale + transport/mock | integrarea și artifactul rezultat |
-| e2e | `@AtfE2eTest` | artifact publicat + browser/Playwright | DOM, tabs, filtre, disclosure și randare observabilă |
-| support | — | fixture-uri, locatori, loaders, flows și assertion helpers | nu are verdict independent și nu devine test implicit |
+| unit | `@AtfUnitTest` | rule, model, markup, CSS / JS or pure asset | deterministic behaviour without external boundary |
+| component | `@AtfComponentTest` | renderer, loader, auditor, locator or fixture controlled | component contract and product record |
+| integration | `@AtfIntegrationTest` | two or more actual modules + transport / mock | integration and the resulting artifact |
+| e2e | `@AtfE2eTest` | published artifact + browser / Playwright | DOM, tabs, filters, discrete and observable rendering |
+| support | — | fixtures, locators, loaders, flows and assertion helpers | does not have independent verdict and does not become the default test |
 
-Compoziția plug-and-play urmează aceeași axă: un test declară stratul și
-scope-ul, suportul îi furnizează inputul, iar modulul verificat rămâne ownerul
-contractului. Testele E2E validează fluxul observabil; nu înlocuiesc testele
-unitare/componentă pentru fiecare combinație internă.
+The plugin-and replay composition follows the same axis: a test declares the layer and scope, the support provides the input, and the verified module remains the contract owner. E2E tests validate the observable flow; do not replace the unit / component tests for each internal combination.
 
-## Model de evoluție și verificare
+<a id="model-of-evolution-and-verification"></a>
+<a id="model-de-evoluție-și-verificare"></a>
+## Model of evolution and verification
 
-ATF-ul se dezvoltă prin întărirea unei platforme existente, nu prin adăugarea
-unui test izolat și a unei abstracții paralele. Fiecare schimbare trebuie să
-poată fi urmărită de la contractul observat până la dovada produsă:
+ATF-ul develops by strengthening an existing platform, not by adding an isolated test and parallel abstraction. Each change must be traceable from the observed contract to the evidence produced:
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Need[Cerință]
+    Need[Requirement]
     Inspect["Cod live"]
-    Layer[Strat minim]
-    Change["Schimbare"]
-    Verify["Dovadă"]
+    Layer[Minimum layer]
+    Change["Change"]
+    Verify["Proof"]
     Harden["Contract"]
 
-    Need -->|clarifică| Inspect
-    Inspect -->|alege| Layer
-    Layer -->|delimitează| Change
-    Change -->|produce| Verify
+    Need -->|clarify| Inspect
+    Inspect -->|choose| Layer
+    Layer -->|delimited| Change
+    Change -->|produces| Verify
     Verify -->|gap real| Change
-    Verify -->|confirmă| Harden
+    Verify -->|confirm| Harden
 ```
 
 <details>
-<summary><strong>Legendă — disciplină de evoluție</strong></summary>
+<summary><strong>Legend - discipline of evolution</strong></summary>
 
-- **inspectare live**: citim implementarea, POM-ul, testele și contractul
-  documentat înainte să presupunem că un TODO mai este activ;
-- **stratul minim**: alegem unit/component/integration/e2e în funcție de
-  boundary-ul demonstrat, nu în funcție de cât de vizibil este testul;
-- **schimbare minimă**: modificăm ownerul responsabil și nu duplicăm
-  vocabulary, configuration, fixture-uri sau renderer logic în consumer;
-- **verificare**: rulăm testul cel mai îngust care poate dovedi schimbarea,
-  apoi verificăm artifactul dacă rezultatul este HTML/UI;
-- **hardening**: promovăm soluția în contract reutilizabil doar după ce
-  dovada rămâne stabilă și poate fi reluată fără contextul run-ului inițial.
+- **live inspection**: read implementation, POM, tests and contract
+  documented before we assume that a TODO is still active;
+- **minimum layer**: choose unit / component / integration / e2e according to
+  boundary demonstrated, not according to how visible the test is;
+- **minimum change**: We modify the responsible owner and do not duplicate
+  vocabulary, configuration, fixtures or logic renderer in the consumer;
+- **verification**: We run the narrowest test that can prove change,
+  then check the artifact if the result is HTML / UI;
+- **hardening**: promotion of the solution in reusable contract only after
+  the evidence remains stable and can be resumed without the context of the initial run.
 
-Un test nou este util chiar și când nu adaugă funcționalitate de business:
-poate demonstra o limită reală a reporting-ului, a unui boundary sau a unei
-proiecții UI. În acest caz, testul devine dovadă pentru întărirea ATF-ului, nu
-un motiv pentru a păstra o clasă duplicată.
-Etichetele scurte păstrează următorul sens:
+A new test is useful even when it does not add business functionality: it can demonstrate a real limit of reporting, a boundary or a UI projection. In this case, the test becomes evidence for strengthening ATF-, not a reason to keep a duplicate class. Short labels keep the following meaning:
 
-| În schemă | Sens complet |
+| In the scheme | Full meaning |
 |---|---|
-| Cod live | Inspectare live |
-| Schimbare | Schimbare locală |
-| Dovadă | Test + evidence |
-| Contract | Contract stabil |
-| confirmă | dovadă suficientă |
+| Live code | Live inspection |
+| Change | Local change |
+| Proof | Test + evidence |
+| Contract | Stable contract |
+| confirms | sufficient evidence |
 
 </details>
 
-## Secvența executivă API → raport → audit
+<a id="api-executive-sequence--report--audit"></a>
+<a id="secvența-executivă-api--raport--audit"></a>
+## API Executive Sequence → Report → Audit
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px","actorFontSize":"15px","messageFontSize":"12px","noteFontSize":"12px"},"themeCSS":".actor { font-size: 15px !important; } .messageText, .labelText, .loopText, .noteText { font-size: 12px !important; }","sequence":{"actorFontSize":15,"messageFontSize":12,"noteFontSize":12,"width":120,"height":42,"actorMargin":40,"messageMargin":24,"mirrorActors":false,"wrap":true,"wrapPadding":6}}}%%
@@ -317,140 +315,130 @@ sequenceDiagram
 ```
 
 <details>
-<summary><strong>Legendă — secvența API → raport → audit</strong></summary>
+<summary><strong>Legend - API sequence → report → audit</strong></summary>
 
-- consumerul compune setup-ul typed și intenția request-ului;
-- `atf-core` execută contractul generic prin transportul ales;
-- `atf-validation` transformă răspunsul în verdict și evidence;
-- `atf-reporting` publică snapshot-ul semantic ca artifact API/UI;
-- browserul verifică DOM-ul, tab-urile, disclosure-urile și evidence-ul vizibil;
-- body-ul, header-ele, secțiunile, screenshot-urile, CSS-ul și tab-urile sunt
-  definite în [ATF_Reporting_Contract.md](docs/ATF_Reporting_Contract.md) și
-  validate de consumerul reporting, nu duplicate aici.
+- the consumption composes the typed setup and the intention of the request;
+- `atf-core` performs the generic contract through the chosen transport;
+- `atf-validation` turns the response into verdict and evidence;
+- `atf-reporting` publishes semantic snapshots as an artifact API / UI;
+- the browser checks DOM, tables, disclosures and visible evidence;
+- The body, headers, sections, screenshots, CSS-ul and tables are
+  defined in [ATF_Reporting_Contract.md](docs/ATF_Reporting_Contract.md) and validated by the reporting consumer, not duplicated here.
 
 </details>
 
-## Coerență și modificări guvernate
+<a id="consistency-and-governance-changes"></a>
+<a id="coerență-și-modificări-guvernate"></a>
+## Consistency and governance changes
 
-Schimbările ATF urmează o decizie controlată, nu o editare izolată. README-urile
-ownerilor, testele și gate-urile rămân contracte stabile; feedback-ul se
-actualizează dinamic când apar dovezi, se închid ToDo-uri sau se schimbă gap-ul.
+ATF changes follow a controlled decision, not an isolated editing. README to the owners, tests and gates remain stable contracts; feedback is dynamically updated when evidence appears, ToDos are closed or the gaping changes.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
-    Request["Cerință"]
+    Request["Requirement"]
     Baseline["Baseline"]
-    Owner["Owner"]
+    Owner["Responsible"]
     Gate["Gate"]
-    Evidence["Dovadă"]
+    Evidence["Proof"]
     Review["Review"]
-    Sync["Documentație"]
+    Sync["Documentation"]
     Feedback["Feedback"]
 
-    Request -->|definește| Baseline
-    Baseline -->|identifică| Owner
-    Owner -->|selectează| Gate
-    Gate -->|declanșează| Evidence
-    Evidence -->|confirmă| Review
-    Review -->|promovează| Sync
+    Request -->|define| Baseline
+    Baseline -->|identify| Owner
+    Owner -->|selects| Gate
+    Gate -->|trigger| Evidence
+    Evidence -->|confirm| Review
+    Review -->|promote| Sync
     Gate -. drift / failure .-> Feedback
-    Feedback -->|redeschide| Owner
+    Feedback -->|reopen| Owner
 ```
 
 <details>
-<summary><strong>Legendă — ce protejează procesul</strong></summary>
+<summary><strong>Legend - protecting the process</strong></summary>
 
-- **Cerința explicită** stabilește ce este autorizat; nu deducem o
-  refactorizare majoră dintr-un failure local și nu schimbăm un gate doar ca să
-  obținem verde;
-- **baseline-ul live** se citește înainte de editare: codul, POM-ul, testele,
-  README-urile și feedback-ul curent au prioritate față de o copie veche sau un
-  raport generat;
-- **ownerul și boundary-ul** decid unde intră soluția: `atf-tests` apără
-  reactorul, `atf-test-kit` clasifică layerele, iar modulele își păstrează
-  contractele locale;
-- **gate-ul existent** nu este material de refactorizare incidentală. Orice
-  schimbare a unui README normativ sau a unui test-gate existent cere cerință
-  explicită, aprobare explicită, motiv documentat și dovadă nouă pentru
-  contractul schimbat;
-- **feedback-ul activ** este registrul dinamic al lucrului: poate fi actualizat,
-  restrâns, reorganizat sau închis când codul și testele confirmă progresul;
-  nu devine însă contract permanent doar pentru că a fost notat acolo;
-- **failure-ul** este semnal de analiză: se repară ownerul sau implementarea,
-  nu se șterge, relaxează ori se maschează assertion-ul ca să dispară problema;
-- **review-ul și sincronizarea** închid incrementul numai după testul relevant,
-  artifactul nou când există UI/reporting și actualizarea selectivă a README-ului
-  ownerului și a feedback-ului.
+- **Explicit requirement** determines what is authorised; we do not deduce a
+  major refactoring from a local failure and we are not changing a gate just to get green;
+- **baseline-ul live** read before editing: code, POM, tests,
+  README and current feedback have priority over an old copy or generated report;
+- **Owner and boundary** decides where the solution enters: `atf-tests` defends
+  The reactor, `atf-test-kit` classifies the layers and the modules retain their local contracts;
+- **existing neck** is not incidental refactoring material. Anything
+  change of a regulatory README or existing test-gate requires explicit requirement, explicit approval, documented reason and new proof for the changed contract;
+- **feedback-ul activ** is the dynamic register of the work: it can be updated,
+  restricted, reorganized or closed when the code and tests confirm progress; however, it does not become a permanent contract just because it was noted there;
+- **failure-ul** is an analysis signal: repair the owner or implementation,
+  do not delete, relax or mask the assertion to make the problem disappear;
+- **review and synchronization** only closes the increment after the relevant test,
+  The new artifact when there is UI / reporting and the selective update of README to the owner and feedback.
 
-Detaliile despre staging, procese active, promovare și anti-undo sunt în
-[`ATF_Build_And_Execution_Safety.md`](docs/ATF_Build_And_Execution_Safety.md),
-nu se repetă în overview.
-Etichetele scurte păstrează următorul sens:
+Details of staging, active processes, promotion and anti-undo are in [`ATF_Build_And_Execution_Safety.md`](docs/ATF_Build_And_Execution_Safety.md), do not repeat in overview. Short labels keep the following meaning:
 
-| În schemă | Sens complet |
+| In the scheme | Full meaning |
 |---|---|
-| Cerință | Cerință explicită |
+| Requirement | Explicit requirement |
 | Baseline | Baseline live |
 | Owner | Owner + boundary |
-| Gate | Gate existent |
-| Dovadă | Test + evidence |
-| Review | Review + aprobare |
-| Documentație | README + feedback |
+| Gate | Existing geese |
+| Proof | Test + evidence |
+| Review | Review + approval |
+| Documentation | README + feedback |
 | Feedback | Feedback activ |
 
 </details>
 
-## Aprofundare pe module și contracte
+<a id="module-and-contract-guides"></a>
+<a id="aprofundare-pe-module-și-contracte"></a>
+## Module and contract guides
 
-Overview-ul fixează fluxul și ownership-ul; documentele de mai jos păstrează
-detaliile locale. Cititorul poate intra direct în ownerul care îl interesează,
-fără să parcurgă aceeași explicație în root și în fiecare modul; indexul documentației este în [`docs/README.md`](docs/README.md).
+Overview sets the flow and ownership.The documents below keep local details. The reader can enter directly into the host that interests him without going through the same explanation in the root and in each module; the documentation index is in [`docs/README.md`](docs/README.md).
 
 <details>
-<summary><strong>Deschide harta README-urilor de modul</strong></summary>
+<summary><strong>Open README plugin map</strong></summary>
 
-| Zonă | Document owner | Întrebarea la care răspunde |
+| Area | Owning document | Question to which he answers |
 |---|---|---|
-| contract transversal | [TestKit](atf-test-kit/README.md), [adnotări implementate](docs/ATF_Test_Infrastructure_Annotations.md) | cum declarăm nivelul, canalul, output-ul și setup-ul unui test? |
-| kernel reutilizabil | [`atf-core/README.md`](atf-core/README.md) | ce modele, lifecycle și porturi sunt neutre? |
-| transport determinist | [`atf-mock/README.md`](atf-mock/README.md) | cum obținem schimburi API reproducibile? |
-| verdict semantic | [`atf-validation/README.md`](atf-validation/README.md) | cum se transformă un response într-un verdict? |
-| diagnostic | [`atf-console/README.md`](atf-console/README.md) | cum ajung evenimentele neutre în consolă? |
-| reporting standalone | [`atf-reporting/README.md`](atf-reporting/README.md) | cum se construiește artifactul fără module ATF? |
-| browser runtime | [`atf-ui/README.md`](atf-ui/README.md) · [convenții pentru locatori](atf-ui/README.md#convenții-pentru-locatori-ui) | cum sunt controlate browserul și convențiile generice pentru locatori, fără logică de produs? |
-| inspector read-only | [`atf-debug-ui/README.md`](atf-debug-ui/README.md) | cum investigăm un HTML deja generat? |
-| reporting test harness | [`atf-reporting-tests/README.md`](atf-reporting-tests/README.md) | cum sunt verificate compoziția API/mock și randarea UI a reportingului? |
-| consumer aplicație | [`atf-test-practice-shop/README.md`](atf-test-practice-shop/README.md) | cum folosește o aplicație reală infrastructura ATF? |
-| consumer Automation Exercise | [`atf-test-auto-ex/README.md`](atf-test-auto-ex/README.md) | cum se compun UI E2E-uri separate folosind adnotările Test Kit? |
-| guvernanță reactor | [`atf-tests/README.md`](atf-tests/README.md) | cine apără modulele și direcția dependențelor? |
+| Transversal contract | [TestKit](atf-test-kit/README.md), [implemented annotations](docs/ATF_Test_Infrastructure_Annotations.md) | how do we declare the level, channel, output and set of a test? |
+| reusable kernel | [`atf-core/README.md`](atf-core/README.md) | What models, lifecycle and ports are neutral? |
+| transport determinist | [`atf-mock/README.md`](atf-mock/README.md) | how do we get reproducible API exchanges? |
+| verdict semantic | [`atf-validation/README.md`](atf-validation/README.md) | How does a response turn into a verdict? |
+| diagnostic | [`atf-console/README.md`](atf-console/README.md) | How do neutral events get into the console? |
+| reporting standalone | [`atf-reporting/README.md`](atf-reporting/README.md) | how to build the artifact without ATF modules? |
+| browser runtime | [`atf-ui/README.md`](atf-ui/README.md) · [convention for locators](atf-ui/README.md#convenții-pentru-locatori-ui) | how are the browser and generic convention for locators controlled without product logic? |
+| inspector read-only | [`atf-debug-ui/README.md`](atf-debug-ui/README.md) | How do we investigate a HTML already generated? |
+| reporting test harness | [`atf-reporting-tests/README.md`](atf-reporting-tests/README.md) | how are the API / mock composition and the UI rendering of the reporting? |
+| application consumer | [`atf-test-practice-shop/README.md`](atf-test-practice-shop/README.md) | how does a real application use ATF infrastructure? |
+| consumer Automation Exercise | [`atf-test-auto-ex/README.md`](atf-test-auto-ex/README.md) | How do UI E2E-uri consist using separate Test Kit annotations? |
+| reactor governance | [`atf-tests/README.md`](atf-tests/README.md) | who defends modules and direction of dependency? |
 
-Contractele transversale, regulile de documentație și protocolul de execuție sunt
-în lista de referințe normative de mai jos; nu se duplică în această hartă.
+Cross-cutting contracts, documentation rules and execution protocol are in the list of regulatory references below; they are not duplicate in this map.
 
 </details>
 
-## Referințe normative
+<a id="regulatory-references"></a>
+<a id="referințe-normative"></a>
+## Regulatory references
 
-| Subiect | Document |
+| Topic | Document |
 |---|---|
-| arhitectură, module și dependențe | [`docs/ATF_Architecture.md`](docs/ATF_Architecture.md) |
-| reporting, evidence și randare | [`docs/ATF_Reporting_Contract.md`](docs/ATF_Reporting_Contract.md) · [`docs/ATF_Reporting_Display_Contract.md`](docs/ATF_Reporting_Display_Contract.md) |
-| build, staging și verificare MCP | [`docs/ATF_Build_And_Execution_Safety.md`](docs/ATF_Build_And_Execution_Safety.md) |
-| reguli OOP, naming și layers | [`docs/README_Atf_BestPractices.md`](docs/README_Atf_BestPractices.md) |
-| scrierea README-urilor și diagramelor | [`docs/README_Atf_DocumentationBestPractices.md`](docs/README_Atf_DocumentationBestPractices.md) |
-| feedback activ, reconciliere live și criterii de închidere | [`docs/feedback/README.md`](docs/feedback/README.md) |
+| architecture, modules and dependencies | [`docs/ATF_Architecture.md`](docs/ATF_Architecture.md) |
+| reporting, record and rendering | [`docs/ATF_Reporting_Contract.md`](docs/ATF_Reporting_Contract.md) · [`docs/ATF_Reporting_Display_Contract.md`](docs/ATF_Reporting_Display_Contract.md) |
+| build, staging and checking MCP | [`docs/ATF_Build_And_Execution_Safety.md`](docs/ATF_Build_And_Execution_Safety.md) |
+| OOP, naming and layers rules | [`docs/README_Atf_BestPractices.md`](docs/README_Atf_BestPractices.md) |
+| README and diagrams | [`docs/README_Atf_DocumentationBestPractices.md`](docs/README_Atf_DocumentationBestPractices.md) |
+| Active feedback, live reconciliation and closure criteria | [`docs/feedback/README.md`](docs/feedback/README.md) |
 
-Root README-ul descrie sistemul de sus în jos. Nu păstrează lifecycle-ul intern,
-schema completă YAML, class contracts, CSS sau jurnalul unui run; acestea aparțin
-ownerului și sunt protejate de testele lui.
+Root README describes the system from top to bottom. It does not keep the internal lifecycle, the complete YAML scheme, class contracts, CSS or the log of a run; they belong to the owner and are protected by its tests.
 
-## Core ca bibliotecă — owner și deployment
+<a id="core-as-library---owner-and-deployment"></a>
+<a id="core-ca-bibliotecă--owner-și-deployment"></a>
+## Core as library - owner and deployment
 
-J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module.
-[Contractul Core](docs/ATF_Core_Consumer.md) separă sursa și publicarea de acceptanța independentă a fiecărui consumator J1–J7.
-Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
+J0 retains Core source and native tests; the source reactor still has 12 modules. [Core contract](docs/ATF_Core_Consumer.md) separates source ownership and publication from each J1–J7 consumer's independent acceptance. Native tests remain in J0; binary acceptance runs in TMP.
 
+<a id="reporting-library-and-audit-contracts"></a>
+<a id="biblioteca-reporting-și-contractele-de-audit"></a>
 ## Reporting library and audit contracts
 
 [Consumer provenance](../atf_j1/library-provenance.json) identifies the distributed Core and Reporting coordinates, hashes and source snapshot. Acceptance remains independently recorded in each consumer. J0 owns Reporting source and permanent mock, contract and browser regressions.
@@ -460,6 +448,6 @@ Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 | neutral ACTION/OBSERVE, failures and assertion ownership | [Reporting API](atf-reporting/README.md#neutral-ui-attribution-and-failure-ownership) |
 | complete PNG, redacted inline evidence and preview 240 | [Inline audit](docs/ATF_Inline_Audit_Contract.md) |
 | incremental navigation, cold readiness and original deadlines | [Navigation](docs/ATF_Large_Report_Navigation.md) |
-| latest verification note beside the producer package | [Evidence retention](docs/ATF_Workspace_Synchronization.md#release-evidence-retention) |
+| latest verification note beside the producer package | [Sampling](docs/ATF_Workspace_Synchronization.md#release-evidence-retention) |
 
 Library publication/rendering acceptance is separate from new business, device, broker or acoustic ASR execution. Release notes are not stored in project documentation or consumer `lib`.

@@ -1,138 +1,145 @@
 # ATF Mock Transport
 
-`atf-mock` este transportul API determinist pentru compoziții de test offline.
-Înlocuiește portul `ApiTransport` fără DNS, TLS, socket sau server local și
-produce un `ApiResponse` reproductibil pentru fiecare request configurat.
+`atf-mock` provides deterministic API transport for offline component tests. It
+replaces the `ApiTransport` port without DNS, TLS, sockets or a local server, and
+produces a reproducible `ApiResponse` for each configured request.
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-**Trasee rapide:** [Catalog YAML](#configurația-yaml) · [Matching](#potrivirea-și-prioritatea-rutelor) · [Probă offline](#verificare-rapidă)
+**Quick links:** [Catalog YAML](#configurația-yaml) · [Matching](#potrivirea-și-prioritatea-rutelor) · [Offline test](#verificare-rapidă)
 
-- **Input**: catalog de rute din `atf-mock.yaml` sau configurație built-in;
-- **Matching**: metodă, path, profil de autentificare, query, headere și body;
-- **Output**: status, headere, body, durată și URL păstrat pentru evidence;
-- **Owner**: modulul de mock deține transportul fake și vocabularul rutelor;
-- **Boundary**: `atf-reporting` nu este dependency de producție;
-- **Scope**: acceptance, component și integration tests offline;
-- **Live HTTP**: se activează separat prin `HttpClientTransport`, explicit.
+- **Input**: `atf-mock.yaml` route catalogue or built-in configuration;
+- **Matching**: method, path, authentication profile, query, heads and body;
+- **Output**: status, heads, body, duration and URL kept for evidence;
+- **Responsible**: mock module holds fake transport and route vocabulary;
+- **Boundary**: `atf-reporting` is not dependent on production;
+- **Domain**: acceptance, component and integration tests offline;
+- **Live HTTP**: is activated separately by `HttpClientTransport`, explicitly.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Source["YAML / defaults"] -->|încarcă| Loader["Loader"]
-    Loader -->|creează| Catalog["Catalog"]
-    Catalog -->|alimentează| Transport["Mock transport"]
-    Transport -->|implementează| Port["ApiTransport"]
-    Port -->|produce| Response["ApiResponse"]
+    Source["YAML / defaults"] -->|load| Loader["Loader"]
+    Loader -->|create| Catalog["Catalog"]
+    Catalog -->|supplies| Transport["Mock transport"]
+    Transport -->|implement| Port["ApiTransport"]
+    Port -->|produces| Response["ApiResponse"]
 ```
 
 <details>
-<summary><strong>Legendă — cum se produce răspunsul fake</strong></summary>
+<summary><strong>Legend - how to produce the fake response</strong></summary>
 
-- `Source` furnizează doar date de test, nu configurație de producție;
-- `Loader` validează schema și construiește modele imutabile;
-- `Catalog` decide ruta câștigătoare sau fallback-ul;
-- `AtfMockTransport` implementează portul neutru din `atf-core`;
-- `ApiResponse` păstrează forma observabilă a schimbului fără trafic HTTP;
-- orice publisher, auditor sau renderer este responsabilitatea consumerului.
-Etichetele scurte păstrează următorul sens:
+- `Source` provides only test data, not production configuration;
+- `Loader` validates the scheme and builds immutable models;
+- `Catalog` decides the winning route or fallback;
+- `AtfMockTransport` implements the neutral port of `atf-core`;
+- `ApiResponse` shall maintain the observable form of HTTP traffic-free exchange;
+- the consumer owns each publisher, auditor and renderer.
+The short labels shall be kept as follows:
 
-| În schemă | Sens complet |
+| In the scheme | Full meaning |
 |---|---|
-| YAML / defaults | YAML catalog sau defaults |
+| YAML / defaults | YAML catalogue or default |
 | Loader | typed loader |
 | Catalog | route catalog |
 | ApiResponse | deterministic ApiResponse |
 
 </details>
 
-## Alegerea și diagnosticul transportului
+<a id="choice-and-diagnosis-of-transport"></a>
+<a id="alegerea-și-diagnosticul-transportului"></a>
+## Choice and diagnosis of transport
 
-| Observație | Verifică la owner | Rezultat cerut |
+| Observation | Check with the owner | Required result |
 |---|---|---|
-| request fără rută eligibilă | [matching și prioritate](#potrivirea-și-prioritatea-rutelor) | fallback-ul configurat, cu URL-ul păstrat |
-| două rute cu etichetă asemănătoare | [identitatea rutelor](src/test/java/atf/mock/MockRouteIdentityTest.java) | sursa selectată rămâne distinctă de eticheta diagnostică |
-| query duplicat sau gol | [catalog YAML](#configurația-yaml) | perechile nu se pierd prin conversie la map |
-| răspuns fake corect, raport greșit | [adaptorul consumerului](../atf-reporting-tests/README.md#fidelitatea-query-ului-și-asocierea-mock) | aceeași rută și aceleași dovezi sunt adaptate |
+| demand without eligible route | [matching and priority](#potrivirea-și-prioritatea-rutelor) | configured fallback with URL- stored |
+| two routes with similar label | [route identity](src/test/java/atf/mock/MockRouteIdentityTest.java) | the selected source remains distinct from the diagnostic label |
+| duplicate or empty query | [catalog YAML](#configurația-yaml) | pairs are not lost by conversion to map |
+| Fake response right, wrong report | [consumption adapter](../atf-reporting-tests/README.md#fidelitatea-query-ului-și-asocierea-mock) | Same route and same evidence is adapted |
 
-Pornește cu `AtfMockTransport.defaults()` pentru o probă offline ori cu
-`fromConfiguration(...)` pentru catalogul explicit. Alegerea unui URL în
-request nu transformă transportul mock în transport live.
+Start with `AtfMockTransport.defaults()` for an offline sample or `fromConfiguration(...)` for explicit catalogue. Choosing a URL in request does not convert the mock transport into live transport.
 
-## Contractul modulului
+<a id="module-contract"></a>
+<a id="contractul-modulului"></a>
+## Module contract
 
-| Întrebare | Răspuns contractual |
+| Question | Contractual response |
 |---|---|
-| Ce înlocuiește? | portul `ApiTransport` pentru execuții offline |
-| Ce execută? | matching determinist și construirea unui `ApiResponse` |
-| Ce nu execută? | DNS, TLS, socket, server, retry real sau browser |
-| Ce deține? | schema `atf-mock`, rutele fake, fallback-ul și fixture-urile proprii |
-| Ce consumă? | `atf-core` și Jackson YAML în producție |
-| Cine îl folosește? | composition roots și testele consumatoare, prin injecție explicită |
+| What's the replacement? | `ApiTransport` port for offline executions |
+| What's he doing? | Masking determinist and building a `ApiResponse` |
+| What's not running? | DNS, TLS, socket, server, real retry or browser |
+| What's he holding? | `atf-mock` scheme, fake routes, fallback and their own fixtures |
+| What's he eating? | `atf-core` and Jackson YAML in production |
+| Who uses it? | composition roots and consumer tests by explicit injection |
 
-**Regula de boundary:** `atf-mock` nu importă `atf-reporting`, `atf-ui`, JUnit
-sau fixture-uri ale unei aplicații. Reporting-ul poate consuma datele produse de
-transport, dar nu devine o responsabilitate a acestui modul.
+**Boundary rule:** `atf-mock` does not import `atf-reporting`, `atf-ui`, JUnit or fixtures of an application. Reporting can consume transport data, but does not become a responsibility of this module.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Consumer["consumer"] -->|injectează| Mock["mock transport"]
-    Mock -->|implementează| Core["Port"]
-    Core -->|produce| Evidence["Exchange"]
-    Evidence -->|adaptează| Adapter["Adaptor"]
+    Consumer["consumer"] -->|Inject| Mock["mock transport"]
+    Mock -->|implement| Core["Port"]
+    Core -->|produces| Evidence["Exchange"]
+    Evidence -->|Adapt| Adapter["Adaptor"]
 ```
 
 <details>
-<summary><strong>Legendă — direcția dependency-ului</strong></summary>
+<summary><strong>Legend - direction of dependency</strong></summary>
 
-- consumerul alege transportul și îl injectează;
-- `atf-mock` depinde de portul din `atf-core`, nu invers;
-- evidence-ul este o consecință a execuției, nu o integrare ascunsă cu reporting;
-- adapterul pentru `atf-reporting-tests` rămâne în test scope-ul consumerului;
-- `atf-test-practice-shop` nu folosește `atf-mock`; decizia este documentată în
-  feedback-ul modulului său.
-Etichetele scurte păstrează următorul sens:
+- the consumer chooses the consignment and injects it;
+- `atf-mock` depends on the port in `atf-core`, not the other way around;
+- the record is a consequence of the execution, not a hidden integration with reporting;
+- the adapter for `atf-reporting-tests` remains in the test for the consumer's scope;
+- `atf-test-practice-shop` does not use `atf-mock`; the decision is documented in
+  its module feedback. Short labels keep the following meaning:
 
-| În schemă | Sens complet |
+| In the scheme | Full meaning |
 |---|---|
 | Port | core port |
 | Exchange | request + response |
-| Adaptor | consumer adapter |
+| Adapter | consumer adapter |
 
 </details>
 
-## Configurația YAML
+<a id="yaml-configuration"></a>
+<a id="configurația-yaml"></a>
+## YAML configuration
 
-Catalogul mock este intenționat separat de `atf.yaml`:
+The mock catalogue is intended to be separated from `atf.yaml`:
 
-- `atf.yaml` — configurație generală API, validation și reporting;
-- `atf-mock.yaml` / `atf-mock.yml` — rute, răspunsuri și fallback offline;
-- schema obligatorie — root `mock` și lista `mock.routes`;
-- valori sensibile — niciodată hardcodate în catalog.
+- `atf.yaml` - API configuration, validation and reporting;
+- `atf-mock.yaml` / `atf-mock.yml` - routes, replies and offline fallback;
+- mandatory scheme - root `mock` and list `mock.routes`;
+- Sensitive values - never hardcoded in the catalogue.
 
-### Ordinea surselor
+<a id="order-of-sources"></a>
+<a id="ordinea-surselor"></a>
+### Order of sources
 
-| Prioritate | Sursă | Comportament |
+| Priority | Source | Behavior |
 |---:|---|---|
 | 1 | `-Datf.mock.config=<path>` | override explicit JVM |
-| 2 | `ATF_MOCK_CONFIG` | override explicit de mediu |
-| 3 | discovery ascendent | caută `atf-mock.yaml` și `atf-mock.yml` |
-| 4 | defaults built-in | se folosește doar când nu există catalog configurat |
+| 2 | `ATF_MOCK_CONFIG` | explicit environmental override |
+| 3 | discovery ascendent | Search `atf-mock.yaml` and `atf-mock.yml` |
+| 4 | default values incorporated | only uses when there is no set-up catalogue |
 
 <details>
-<summary><strong>Reguli de încărcare și fail-fast</strong></summary>
+<summary><strong>Loading rules and fast-track</strong></summary>
 
-- calea explicită poate fi relativă la working directory-ul procesului;
-- calea explicită inexistentă sau invalidă oprește încărcarea;
-- un catalog generic `atf.yaml` nu este interpretat ca mock catalog;
-- loader-ul caută în directorul curent și apoi în părinți;
-- configurația este încărcată la composition root și reutilizată ca snapshot;
-- lipsa unui fișier extern nu activează HTTP real; folosește defaults;
-- pentru rulări paralele, consumerul poate furniza o cale explicită proprie.
+- The explicit path can be relative to the process director's working;
+- explicit non-existing or invalid path stops loading;
+- a generic `atf.yaml` catalogue is not interpreted as a mock catalogue;
+- the loader searches the current directory and then the parents;
+- the configuration is loaded to the composition root and reused as snapshot;
+- the lack of an external file does not activate actual HTTP; uses default;
+- for parallel runs, the consumer may provide an explicit route of its own.
 </details>
 
-### Forma minimă a unui catalog
+<a id="minimum-form-of-a-catalogue"></a>
+<a id="forma-minimă-a-unui-catalog"></a>
+### Minimum form of a catalogue
 
 ```yaml
 mock:
@@ -149,54 +156,55 @@ mock:
     body: '{"message":"Unexpected mock route"}'
 ```
 
-- `duration` este ISO-8601 Java: `PT0.012S` înseamnă 12 ms;
-- `headers` descrie response-ul, nu headerele request-ului;
-- fallback-ul explicit previne false-green pentru rute uitate;
-- `status` trebuie să fie în intervalul HTTP `100..599`;
-- body-ul rămâne textul care va fi livrat în `ApiResponse`.
+- `duration` is ISO-8601 Java: `PT0.012S` means 12 ms;
+- `headers` describes the response, not the headers of the request;
+- explicit fallback prevents false-green for forgotten routes;
+- `status` must be within HTTP `100..599`;
+- The body remains the text that will be delivered in `ApiResponse`.
 
-## Potrivirea și prioritatea rutelor
+<a id="matching-and-priority-of-routes"></a>
+<a id="potrivirea-și-prioritatea-rutelor"></a>
+## Matching and priority of routes
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Request["ApiRequest"] -->|expune| Dimensions["match dimensions"]
-    Dimensions -->|filtrează| Candidate["matching routes"]
-    Candidate -->|alege| Specific["best route"]
-    Specific -->|produce| Response["response"]
+    Request["ApiRequest"] -->|exposes| Dimensions["match dimensions"]
+    Dimensions -->|filter| Candidate["matching routes"]
+    Candidate -->|choose| Specific["best route"]
+    Specific -->|produces| Response["response"]
     Candidate -->|"none"| Fallback["fallback"]
 ```
 
 <details>
-<summary><strong>Legendă — cum este aleasă ruta</strong></summary>
+<summary><strong>Legend - how the route is chosen</strong></summary>
 
-- metoda și path-ul trebuie să corespundă;
-- path-ul poate fi exact sau wildcard-ul `/*`;
-- `auth-profile` poate fi exact sau wildcard-ul `*`;
-- query-ul configurat este un subset obligatoriu al query-ului request-ului;
-- când mai multe rute corespund, câștigă ruta cu mai multe query parameters;
-- numele headerelor request-ului se compară case-insensitive;
-- valorile headerelor request-ului se compară exact;
-- body-ul și `request-body-mode` pot restrânge suplimentar potrivirea;
-- fără match se livrează fallback-ul, nu un status de succes inventat.
+- the method and the paths shall correspond;
+- the pathogen may be exactly or the `/*` wildcard;
+- `auth-profile` may be the exact or `*` wildcard;
+- configured query is a mandatory subset of query of the query;
+- when several routes correspond, win the route with multiple query parameters;
+- the name of the headers of the request shall be compared to the case- sensitive;
+- the values of the headers of the quest shall be compared exactly;
+- the body and `request-body-mode` may further restrict the fit;
+- No match is delivered to the fallback, not a successful status invented.
 </details>
 
-`MockRoute.key()` este o etichetă de diagnostic, nu un identificator unic de
-catalog. Consumerul care adaptează ruta păstrează separat sursa selectată;
-adaptorul Reporting Tests folosește [asocierea directă](../atf-reporting-tests/README.md#fidelitatea-query-ului-și-asocierea-mock),
-fără reasociere prin string ori schimbarea regulilor Mock.
+`MockRoute.key()` is a diagnostic label, not a unique catalogue identifier. The consumer who adapts the route keeps the selected source separately; the Reporting Adapter uses [direct association](../atf-reporting-tests/README.md#fidelitatea-query-ului-și-asocierea-mock), without reassociation by string or change the Mock rules.
 
-| Dimensiune | Regulă | Owner |
+| Dimension | Rule | Owner |
 |---|---|---|
-| method | verb normalizat uppercase | `HttpMethod` + `MockRoute` |
-| path | slash leading, exact sau wildcard | `MockRoutePaths` + `ApiPathTemplate` |
-| auth | profil metadata, fără secret | `MockRoute` |
-| query | obiect simplu sau listă cu duplicate | `ApiQueryParameters` |
-| request headers | nume insensitive, valori exacte | `HttpHeader` + `MockRoute` |
-| request body | JSON valid/non-gol pentru POST/PUT | `MockRequestBodyMode` + `MockRoute` |
+| method | normalized verb uppercase | `HttpMethod` + `MockRoute` |
+| path | slash leading, exact or wildcard | `MockRoutePaths` + `ApiPathTemplate` |
+| auth | Metadata profile, no secret | `MockRoute` |
+| query | simple object or list of duplicates | `ApiQueryParameters` |
+| request headers | insensitive names, exact values | `HttpHeader` + `MockRoute` |
+| request body | JSON valid / non-empty for POST / PUT | `MockRequestBodyMode` + `MockRoute` |
 | fallback | status explicit, implicit 500 | `AtfMockConfiguration` |
 
-### Potrivire configurabilă prin YAML
+<a id="configurable-yaml-match"></a>
+<a id="potrivire-configurabilă-prin-yaml"></a>
+### Configurable YAML match
 
 ```yaml
 mock:
@@ -214,177 +222,169 @@ mock:
 ```
 
 <details>
-<summary><strong>Detalii pentru query, headere și body</strong></summary>
+<summary><strong>Details for query, heads and bodies</strong></summary>
 
-- query-ul poate fi map sau listă de perechi `name`/`value`;
-- forma listă păstrează explicit valori goale și duplicate;
-- `auth-profile` nu conține credentiale; este doar discriminator de matching;
-- `headers` din response sunt distincte de `request-headers`;
-- `POST` și `PUT` cer request body JSON non-gol și `Content-Type` JSON;
-- un body lipsă, invalid sau cu media type greșit ajunge la fallback;
-- response-ul configurat pentru write contract trebuie să fie JSON valid și
-  non-gol;
-- un expected request body poate fi comparat structural, nu doar textual.
+- the query may be a map or a list of `name` / `value` pairs;
+- the list form explicitly retains empty and duplicate values;
+- `auth-profile` does not contain any credential; it is only a matching discriminator;
+- `headers` in the responses are distinct from `request-headers`;
+- `POST` and `PUT` are required to be body JSON non-empty and `Content-Type` JSON;
+- a missing body, invalid or with the wrong average type reaches the fallback;
+- the configured contract written response must be valid JSON and
+  non-empty;
+- an expected demand body can be structurally compared, not just textual.
 </details>
 
-## Vocabular și responsabilități
+<a id="vocaular-and-responsibilities"></a>
+<a id="vocabular-și-responsabilități"></a>
+## Vocaular and responsibilities
 
-Valorile stabile trebuie să aibă un owner semantic. Nu introducem un bucket
-global de constante și nu copiem endpoint-uri între module.
+Stable values must have a semantic owner. We do not introduce a global bucket of constants and we do not copy endpoints between modules.
 
-- **protocol** — `HttpMethod`, `HttpHeader`, `MediaTypes` din `atf-core`;
-- **query** — `ApiQueryParameters` și `ApiQueryParameter` din `atf-core`;
-- **path template** — `ApiPathTemplate` din `atf-core`;
-- **mock routes** — `MockRoutePaths` în `atf-mock`;
-- **body mode** — enum-ul închis `MockRequestBodyMode`;
-- **test-only payloads** — `MockTransportTestFixtures` în test scope;
-- **scenarii reporting** — fixture-urile din `atf-reporting-tests`, nu în
-  producția `atf-mock`.
+- **protocol** - `HttpMethod`, `HttpHeader`, `MediaTypes` of `atf-core`;
+- **query** - `ApiQueryParameters` and `ApiQueryParameter` of `atf-core`;
+- **path template** - `ApiPathTemplate` of `atf-core`;
+- **middle routines** - `MockRoutePaths` in `atf-mock`;
+- **body mode** - the closed `MockRequestBodyMode` enumeration;
+- **single payload test** - `MockTransportTestFixtures` in the scope test;
+- **reporting scenarios** - `atf-reporting-tests` fixtures, not in
+  `atf-mock` production.
 
-`MockRoutePaths` deține rutele built-in ale mock-ului și construiește ID-urile
-dinamice prin `ApiPathTemplate`. Nu este catalog de endpoint-uri live și nu
-trebuie mutat în `atf-core` sau în reporting doar pentru că este reutilizat de
-teste.
+`MockRoutePaths` owns the built-in routes of the mock and builds ID-DV dynamic `ApiPathTemplate`. It is not a live endpoints catalogue and should not be moved to `atf-core` or reporting just because it is reused by the tests.
 
-## Utilizare în punctul de compunere al aplicației
+<a id="use-at-the-application-composition-point"></a>
+<a id="utilizare-în-punctul-de-compunere-al-aplicației"></a>
+## Use at the application composition point
 
-Consumerul decide explicit dacă folosește defaults sau un catalog propriu:
+The consumer shall explicitly decide whether to use default or a catalogue of its own:
 
 ```java
 var transport = AtfMockTransport.fromConfiguration(mockConfigPath);
 ```
 
-Consumerul injectează transportul în propriul composition root și decide cum
-construiește executorul, serviciile și evidence-ul. `atf-mock` nu publică un
-composition root pentru scenariile altui modul.
+The consumer injects the transport into its own composition root and decides how the executor, services and evidence. `atf-mock` does not publish a composition root for the scenarios of another module.
 
-Pentru izolare rapidă:
+For rapid isolation:
 
 ```java
 var transport = AtfMockTransport.defaults();
 ```
 
-- factory-ul este orchestration, nu loc pentru aserțiuni;
-- configurația se încarcă o singură dată per composition root;
-- transportul rămâne reutilizabil pentru mai multe scenarii;
-- consumerul decide cum publică request/response evidence;
-- consumerul decide dacă un raport este `ACCEPTANCE / MOCK` sau `LIVE_HTTP`.
+- The factory is orchestration, not room for assertions;
+- the configuration is loaded once per composition root;
+- transport remains reusable for several scenarios;
+- the consumer decides how to publish the request / answer evidence;
+- the consumer decides whether a ratio is `ACCEPTANCE / MOCK` or `LIVE_HTTP`.
 
-În `atf-reporting-tests`, catalogul de integrare este în
-`src/test/resources/atf-mock.yaml` și este încărcat prin resursele testului.
-Aceasta este o alegere de test scope; nu transformă YAML-ul într-o resursă de
-producție a `atf-mock`.
+In `atf-reporting-tests`, the integration catalogue is in `src/test/resources/atf-mock.yaml` and is loaded through the resources of the test. This is a choice of scope test; does not convert YAML into a `atf-mock` production resource.
 
-## Testarea modulului
+<a id="module-testing"></a>
+<a id="testarea-modulului"></a>
+## Module testing
 
-`atf-mock` se testează jos și rapid. Nu are browser și nu adaugă E2E doar pentru
-a verifica un transport care este deja observabil prin modele și răspunsuri.
+`atf-mock` is tested down and quickly. It has no browser and does not add E2E just to check a transport that is already observable through models and responses.
 
-| Layer | Locație | Dovezi principale |
+| Layer | Location | Main evidence |
 |---|---|---|
 | component | `src/test/java/atf/mock` | loader YAML, matching, fallback, response |
-| support | `.../mock/fixtures` | payload-uri, rute și request-uri reutilizabile |
-| consumer integration | `atf-reporting-tests/src/test` | adaptarea datelor către reporting |
-| browser/E2E | în afara `atf-mock` | efect observabil în consumer, dacă este necesar |
+| support | `.../mock/fixtures` | reusable payloads, routes and requests |
+| consumer integration | `atf-reporting-tests/src/test` | Adapting data to reporting |
+| browser/E2E | outside `atf-mock` | observable effect in the consumer, if necessary |
 
-Suitea locală protejează explicit:
+The local suite shall explicitly protect:
 
-- status și body pentru rute built-in;
-- păstrarea URL-ului în response;
-- statusul fallback-ului pentru request necunoscut;
-- parsing YAML și durata ISO-8601;
-- query simplu, query gol și query duplicat;
-- headere request case-insensitive și headere response;
-- auth profile și request body modes;
-- respingerea JSON-ului invalid pentru write routes;
-- identitatea stabilă a rutelor cu query parameters sortate.
+- status and body for built-in routes;
+- keeping URL- in response;
+- status of the fallback for unknown request;
+- Parsing YAML and duration ISO-8601;
+- simple query, empty query and duplicate query;
+- the headere request case- insensitive and headere response;
+- auth profiles and request body models;
+- rejection of the JSON invalid for writing trails;
+- stable identity of routes with query parameters sorted.
 
 <details>
-<summary><strong>Comenzi de verificare</strong></summary>
+<summary><strong>Verification orders</strong></summary>
 
 ```text
 mvn -pl atf-mock -am test
 ```
 
-Gate-ul trebuie să ruleze fără network și fără a cere un artifact HTML. Testele
-care verifică integrarea cu reporting aparțin consumerului
-`atf-reporting-tests`, nu se copiază în acest modul.
+The gear must run without network and without requiring an artifact HTML. Tests that check integration with reporting belong to the `atf-reporting-tests` consumer shall not be copied in this module.
 </details>
 
-## Ce rămâne în afara modulului
+<a id="whats-left-outside-the-module"></a>
+<a id="ce-rămâne-în-afara-modulului"></a>
+## What's left outside the module
 
-- **`atf-core`** — porturi HTTP, modele neutre și utilități reutilizabile;
-- **`atf-reporting`** — publisher, HTML/Extent, contracte și audit static;
-- **`atf-reporting-tests`** — adapter, fixture de reporting și composition root;
-- **`atf-test-practice-shop`** — teste ale aplicației, fără `atf-mock`;
-- **`atf-tests`** — governance whole-reactor, nu test double concret.
+- **`atf-core`** - HTTP ports, neutral models and reusable utilities;
+- **`atf-reporting`** - publisher, HTML / Extent, contracts and static audit;
+- **`atf-reporting-tests`** - adapter, reforming fixture and composition root;
+- **`atf-test-practice-shop`** - application tests without `atf-mock`;
+- **`atf-tests`** - government-entire-reactor, not test double concrete.
 
-Această delimitare păstrează `atf-mock` compilabil și reutilizabil fără să
-tragă după el rendererul, browserul sau un domeniu de business.
+This delimitation keeps `atf-mock` compilable and reusable without drawing the renderer, browser or business domain after it.
 
-## Documente asociate
+<a id="related-documents"></a>
+<a id="documente-asociate"></a>
+## Related documents
 
-- [`atf-core`](../atf-core/README.md) — porturile consumate de transport;
-- [`atf-reporting`](../atf-reporting/README.md) — biblioteca standalone;
-- [`atf-reporting-tests`](../atf-reporting-tests/README.md) — consumer și
-  composition root pentru contractele de reporting;
-- [`ATF Architecture`](../docs/ATF_Architecture.md) — boundary-urile reactorului;
+- [`atf-core`](../atf-core/README.md) - Transport ports consumed;
+- [`atf-reporting`](../atf-reporting/README.md) - Standalone library;
+- [`atf-reporting-tests`](../atf-reporting-tests/README.md) - consumer and
+  composition root for reporting contracts;
+- [`ATF Architecture`](../docs/ATF_Architecture.md) - reactor boundary;
 - [`Bune practici de cod`](../docs/README_Atf_CodeBestPractices.md) — ownership,
-  modele și stratificarea testelor.
+  test models and stratification.
 
-## Verificare rapidă
+<a id="quick-check"></a>
+<a id="verificare-rapidă"></a>
+## Quick check
 
-| Decizie | Sursă și limită |
+| Decision | Source and limit |
 |---|---|
-| Răspuns determinist prin portul ApiTransport | [sursa ownerului](src/main/java/atf/mock/AtfMockTransport.java); probă: [AtfMockTransportTest](src/test/java/atf/mock/AtfMockTransportTest.java) |
-| Dependențe și source-set-uri | [POM](pom.xml); scope-ul declarat este autoritatea pentru integrare |
-| Ce nu demonstrează această probă | Proba nu confirmă disponibilitatea unui serviciu real. |
+| Determinalist response via ApiTransport port | [source of the host](src/main/java/atf/mock/AtfMockTransport.java); sample [AtfMockTransportTest](src/test/java/atf/mock/AtfMockTransportTest.java) |
+| Dependencies and source- sets | [POM](pom.xml); declared scope authority for integration |
+| What this probe does not prove | The evidence does not confirm the availability of a real service. |
 
 <details>
-<summary><strong>Comandă pentru proba locală</strong></summary>
+<summary><strong>Command for local sample</strong></summary>
 
-Rulați din rădăcina unui [staging extern](../docs/ATF_Build_And_Execution_Safety.md), cu JDK 21 și Maven.
+Run from the root of a [external staging](../docs/ATF_Build_And_Execution_Safety.md), with JDK 21 and Maven.
 
 ```powershell
 mvn -B -pl atf-mock -am "-Dtest=AtfMockTransportTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
-Comanda selectează proba numită și construiește dependențele; nu declară
-trecerea întregului modul. Proba nu confirmă disponibilitatea unui serviciu real.
+The command selects the sample called and builds the dependencies; does not declare the passage of the entire module. The sample does not confirm the availability of a real service.
 
 </details>
 
-## MIME și validitatea payload-ului
+<a id="mime-and-payload-validity"></a>
+<a id="mime-și-validitatea-payload-ului"></a>
+## MIME and payload validity
 
-Matching-ul folosește clasificarea media type din Core, separată de validitatea
-body-ului. `text/plain; profile=json` nu satisface o rută JSON; aceeași cerere
-cu JSON valid poate satisface numai modul explicit `WRONG_CONTENT_TYPE`.
+Matchings use the Core media classification type, separate from the validity of the body. `text/plain; profile=json` does not satisfy a JSON route; the same valid JSON application can only satisfy the explicit `WRONG_CONTENT_TYPE` mode.
 
-`application/json` și sufixele `+json` păstrează parametrizarea și casing-ul
-acceptate. Un payload invalid este refuzat de ambele moduri; configurația
-catalogului nu inventează un body valid.
+`application/json` and the suffix `+json` keep the parametric and the casino accepted. An invalid payload is refused by both ways; the catalogue configuration does not invent a valid body.
 
-[MockMediaTypeContractTest](src/test/java/atf/mock/MockMediaTypeContractTest.java)
-verifică deciziile opuse și axa independentă a payload-ului invalid.
+[MockMediaTypeContractTest](src/test/java/atf/mock/MockMediaTypeContractTest.java) checks the opposite decisions and the independent axis of invalid payload.
 
 
-## JSON strict și potrivire numerică exactă
+<a id="json-strictly-and-exact-numerical-fit"></a>
+<a id="json-strict-și-potrivire-numerică-exactă"></a>
+## JSON strictly and exact numerical fit
 
-Catalogul și request-ul sunt documente complete. Trailing content, rădăcini
-multiple și duplicate nested sunt refuzate; scalarul null este JSON valid.
-Un expected absent în YAML nu echivalează cu textul JSON null, iar obiectele
-sau array-urile YAML nu sunt convertite tacit în absența constrângerii.
+Catalogue and requests are complete documents. Trailing content, multiple roots and duplicates nested are denied; the null scalar is valid JSON. An expected absence in YAML does not equate to text JSON null and objects or arrays YAML are not tacitly converted without constraint.
 
-| Potrivire | Contract verificat |
+| Match | Verified contract |
 |---|---|
-| precizie | JSON și scalarul numeric YAML folosesc BigDecimal, fără narrowing prin Double |
-| valori distincte | vecinii peste 2^53, fracțiile lungi, exponenții extremi și underflow-ul ajung la fallback |
-| nominale | formele decimal egale și zerourile rămân eligibile; integer/decimal și număr/string păstrează distincțiile |
-| wire | body-ul și răspunsul configurat nu sunt rescrise |
+| precizie | JSON and YAML numeric scalar use BigDecimal without narrowing via Double |
+| Distinguishing values | Neighbors over 2 ^ 53, long fractions, extreme exponents and underflow reach fallback |
+| nominal | equal decimal forms and zeroes remain eligible; integer / decimal and number / string keep the distinctions |
+| wire | body and configured response are not rewritten |
 
-[Contractele de componentă](src/test/java/atf/mock/json/MockNumericContractComponentTest.java)
-folosesc API-ul public, expected independent și transportul mock. Ele verifică
-fallback-ul, răspunsul original și încărcarea YAML, fără serviciu extern.
+[Component contracts](src/test/java/atf/mock/json/MockNumericContractComponentTest.java) uses API publicly, independently and freely expected mock transport. They check the fallback, original response and loading YAML without external service.
 
 
 ## Library publication

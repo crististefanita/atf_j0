@@ -1,23 +1,31 @@
-# Testele infrastructurii comune
+<a id="tests-of-the-joint-infrastructure"></a>
+<a id="testele-infrastructurii-comune"></a>
+# Tests of the joint infrastructure
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-J0 califică primitivele Kit separat de regulile aplicațiilor și de renderer. [Contractul Kit](../../README.md) deține API-ul; [strategia comună](../../../docs/ATF_Testing_Guide.md) delimitează nivelurile și responsabilitățile.
+J0 qualifies the primitive Kit separately from the application rules and renderer. [Kit contract](../../README.md) holds API; [joint strategy](../../../docs/ATF_Testing_Guide.md) delimits levels and responsibilities.
 
-## Familii și oracole
+<a id="meal-and-other-articles-of-animal-hair"></a>
+<a id="familii-și-oracole"></a>
+## Meal and other articles of animal hair
 
-| Familie | Proprietate verificată |
+| Familie | Proprietary checks |
 |---|---|
-| Configurare și selecție | Descoperire, conversie și refuzul configurațiilor ambigue ori incomplete. |
-| Scope și resurse | Proprietate pe clasă, suită sau invocare; inițializare și închidere controlate. |
-| Aserțiuni și proiecție | Comparație evaluată o dată, redactare înainte de preview, valori integrale opționale și cauza originală păstrată. |
-| Ciclul Jupiter | Izolarea invocărilor, faze și eșecuri observabile, inclusiv erori prinse de test. |
-| Căi și timp | Limite de output și intervale măsurate prin ceasuri controlate. |
-| Publicație | POM independent, namespace și CodeSource pe JAR, fără implementări paralele. |
+| Configuration and selection | Discovery, conversion and refusal of ambiguous or incomplete configurations. |
+| Purpose and resources | Class property, suite or invocation; initialization and controlled closure. |
+| Assertions and projection | Comparison evaluated once, redaction before preview, optional full values and original case preserved. |
+| Jupiter Cycle | Isolation of observable invoicing, phases and failures, including errors caught by the test. |
+| Path and time | Output limits and intervals measured by controlled clocks. |
+| Publication | POM independent, namespace and CodeSource on JAR without parallel implementation. |
 
-## Execuție și limite
+<a id="implementation-and-limits"></a>
+<a id="execuție-și-limite"></a>
+## Implementation and limits
 
-Într-o [copie TMP proprie](../../../docs/ATF_Build_And_Execution_Safety.md), JDK 21 și Maven rulează POM-ul fără parent. Clasele-fixture cu eșec intenționat sunt lansate de testele lor; nu se selectează direct.
+[TMP copy of its own](../../../docs/ATF_Build_And_Execution_Safety.md), JDK 21 and Maven run POM without parent. Intent-failure fastening keys are launched by their tests; they are not directly selected.
 
-- `KitUnitSuite` și `KitComponentSuite` selectează separat tag-urile unit și component prin engine-ul Jupiter, cu scope explicit de suită. Folosiți `mvn -Dtest=KitUnitSuite,KitComponentSuite test` în staging-ul J0; nativele nu se distribuie consumerilor.
-- Unitățile califică politica locală; componentele ciclului folosesc Jupiter real. [Feedback-ul Kit](../../../docs/feedback/ATF_Common_Test_Support_Feedback.md) păstrează limitele concurenței și ale retenției; acceptanța binară este distinctă per consumer.
+- `KitUnitSuite` and `KitComponentSuite` select separately the tags united and component by Jupiter engineer with explicit suites. Use `mvn -Dtest=KitUnitSuite,KitComponentSuite test` in J0 staging; the natives do not distribute to the consumers.
+- Units qualify local policy; cycle components use actual Jupiter. [Feedback-ul Kit](../../../docs/feedback/ATF_Common_Test_Support_Feedback.md) maintains competition and retention limits; binary acceptance is distinct per consumer.

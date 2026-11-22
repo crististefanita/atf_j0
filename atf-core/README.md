@@ -1,19 +1,23 @@
-# ATF Core — kernel neutru și porturi
+<a id="atf-core---neutral-kernel-and-ports"></a>
+<a id="atf-core--kernel-neutru-și-porturi"></a>
+# ATF Core - neutral kernel and ports
 
-`atf-core` este stratul de bază al ATF Java. Conține modele, contracte și
-abstracții reutilizabile, fără să decidă cum este orchestrat un scenariu sau
-cum este randat un raport.
+`atf-core` is the base layer of ATF Java. It contains reusable models, contracts and abstractions, without deciding how a scenario is orchestrated or how a report is rendered.
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-**Trasee rapide:** [Eroare și istoric](#istoric-la-eroare-terminală) · [Sync sigur](#manifest-și-promovare-guarded) · [Probă locală](#verificare-rapidă)
+**Quick links:** [Error and history](#istoric-la-eroare-terminală) · [Safe synchronization](#manifest-și-promovare-guarded) · [Local sample](#verificare-rapidă)
 
-| Deține | Consumatori | Limită |
+| Owned | Consumers | Boundary |
 |---|---|---|
-| lifecycle, ports, HTTP vocabulary și module IDs | validation, mock, UI și guvernanță | nu publică HTML |
-| snapshot-uri și politici neutre | composition roots | nu deține scenarii concrete |
+| lifecycle, ports, HTTP vocabulary and module IDs | validation, mock, UI and governance | does not publish HTML |
+| Snapshots and neutral policies | composition roots | does not have any concrete scenarios |
 
-## Diagramă de bază
+<a id="core-diagram"></a>
+<a id="diagramă-de-bază"></a>
+## Core diagram
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
@@ -22,117 +26,105 @@ flowchart LR
 ```
 
 <details>
-<summary><strong>Legendă — poziția kernelului</strong></summary>
+<summary><strong>Legend - position of the kernel</strong></summary>
 
-- săgeata înseamnă „modulul din stânga depinde de modulul din dreapta”;
-- atf-core este ultimul boundary comun din această hartă;
-- atf-core nu depinde de modulele care îl consumă;
-- fixture-urile concrete, browserul, JUnit-ul și rendererul rămân în modulele consumatoare.
+- the arrow means "the module on the left depends on the module on the right ';
+- atf-core is the last common boundary in this map;
+- atf-core does not depend on the modules that consume it;
+- Concrete fixtures, browser, JUnit and renderer remain in the consuming modules.
 </details>
 
 <details>
-<summary><strong>Harta de lectură</strong></summary>
+<summary><strong>Reading map</strong></summary>
 
-- [responsabilități](#responsabilități) și
-  [lifecycle](#ciclu-de-viață-generic-și-reutilizabil) — boundary-ul kernelului;
-- [vocabular HTTP](#coeziune-și-responsabilitate-pentru-vocabularul-http) și
-  [decuplare](#regula-de-decuplare) — ownership și direcția dependențelor;
-- [selecție API](#contractul-reutilizabil-pentru-selecția-api),
-  [catalog live](#catalogul-live-explicit) și
-  [promovare guarded](#manifest-și-promovare-guarded);
-- [determinism](#determinism-și-concurență) și
-  [teste](#teste) — protecțiile executabile.
+- [responsibilities](#responsabilități) and
+  [lifecycle](#ciclu-de-viață-generic-și-reutilizabil) — boundary-ul kernel;
+- [HTTP vocabulary](#coeziune-și-responsabilitate-pentru-vocabularul-http) and
+  [decoupling](#regula-de-decuplare) - ownership and direction of dependence;
+- [API selection](#contractul-reutilizabil-pentru-selecția-api),
+  [catalog live](#catalogul-live-explicit) and [promotion guarded](#manifest-și-promovare-guarded);
+- [determinism](#determinism-și-concurență) and
+  [tests](#teste) - executable protection.
 
 </details>
 
-## Alege boundary-ul de integrare
+<a id="choose-integration-boundary"></a>
+<a id="alege-boundary-ul-de-integrare"></a>
+## Choose integration boundary
 
-| Intenție | Intrare și dovadă | Consumerul păstrează |
+| Intent | Entry and proof | Consumption keeps |
 |---|---|---|
-| execută HTTP cu deadline comun | [ApiExecutor](src/main/java/atf/core/http/execution/ApiExecutor.java) → [istoric terminal](#istoric-la-eroare-terminală) | endpoint-ul, operația și verdictul business |
-| selectează transport live | [catalog explicit](#catalogul-live-explicit) | opt-in-ul și autentificarea |
-| rulează cleanup LIFO | [CleanupRegistry](src/main/java/atf/core/lifecycle/CleanupRegistry.java) | dobândirea resurselor și politica erorilor |
-| inspectează surse ori promovează fișiere | [referințe Java](#responsabilități) / [manifest guarded](#manifest-și-promovare-guarded) | root-urile și lista aprobată |
+| HTTP with shared deadline | [ApiExecutor](src/main/java/atf/core/http/execution/ApiExecutor.java) → [terminal history](#istoric-la-eroare-terminală) | endpoint, operation and business verdict |
+| select live transport | [catalog explicit](#catalogul-live-explicit) | 180-in and authentication |
+| LIFO Cleanup | [CleanupRegistry](src/main/java/atf/core/lifecycle/CleanupRegistry.java) | resource acquisition and error policy |
+| inspects sources or promotes files | [Java references](#responsabilități) / [manifest guarded](#manifest-și-promovare-guarded) | approved roots and list |
 
-Contractele Core și cele din biblioteca Reporting au owneri separați.
-Adaptorul consumerului face conversia explicită; similaritatea numelor nu
-creează o dependență runtime Reporting → Core.
+Core contracts and those in the Reporting library have separate owners. The consumer adapter makes explicit conversion; the similarity of names does not create a runtime dependence Reporting → Core.
 
-`CleanupRegistry` colectează `RuntimeException` și continuă acțiunile LIFO.
-Contractul său nu promite agregarea oricărui `Throwable`; un adaptor de browser
-trebuie să-și probeze separat achiziția parțială și cauza primară.
+`CleanupRegistry` collects `RuntimeException` and continues LIFO actions. His contract does not promise to aggregate any `Throwable`; a browser adapter must try to obtain part of its acquisition and the primary cause separately.
 
-- Contextul redactării este în [harta pachetului security](src/main/java/atf/core/security/README.md):
-  input original, strategie, fallback și limita dintre redactare și preview.
+- The context of the redaction is in [Security package map](src/main/java/atf/core/security/README.md):
+  original input, strategy, fallback and the limit between redaction and foresight.
 
-## Responsabilități
+<a id="liabilities"></a>
+<a id="responsabilități"></a>
+## Liabilities
 
-| Zonă | Owner în `atf-core` | Nu face |
+| Area | Owner in `atf-core` | Don't |
 |---|---|---|
-| HTTP | `ApiRequest`, `ApiResponse`, `ApiTransport`, `ApiExecutor` | nu definește scenarii sau assertions |
-| routing neutru | `ApiPathTemplate`, `ApiRoute`, `ApiUrlBuilder` | nu deține serviciile Users/Posts sau rutele concrete |
-| timp și retry | `ApiExecutionClock`, `ApiExecutionDeadline`, `ApiRetryWaiter`, `RetryPolicy` | nu decide verdictul testului |
-| configurație typed | `AtfConfiguration`, `AtfRuntimeSnapshot`, `ApiSettings`, `ReportingSettings` și snapshot-uri | nu recitește configurația în fiecare request |
-| source adapters | `config.source.ApiBootstrapConfigurationLoader`, `ApiEnvironment` | nu execută request-uri și nu deține catalogul Users/Posts |
-| statusuri | `AtfReportStatus`, `ReportStatusAggregator` | nu randă badge-uri |
-| file/source discovery | `AtfPathLocator`, `AtfJavaSourceReferences` | rezolvă căi din rădăcinile callerului, fără căi de workstation hardcodate; nu confundă literalii cu dependențe Java |
-| reporting ports | `AtfReportPorts`, `ValidationSink`, `ReportStepScope`, `AtfConsoleEvent`, `AtfConsoleSink` | nu importă Extent, HTML, `System.out` sau implementarea `atf-console` |
-| redaction | `Redactor`, `RedactionContext`, strategiile de redaction | nu modifică input-ul original |
-| selecție API neutră | `ApiScenarioSelection` | declarațiile test-only `ApiScenarioSetup` și `ApiTestRef` aparțin TestKit; catalogul rămâne la consumator |
-| live transport adapter | `ApiLiveTransportCatalog` și `ApiTransportPolicy` | nu activează rețeaua din URL, default sau un flag implicit |
-| guarded sync | `AtfPromotionManifest`, `AtfPromotionGuard` | nu promovează fișiere în afara manifestului și nu șterge surse |
-| reactor vocabulary | `config.module.AtfModuleIds` | nu orchestrează modulele și nu introduce dependențe în sus |
+| HTTP | `ApiRequest`, `ApiResponse`, `ApiTransport`, `ApiExecutor` | does not define scenarios or assertions |
+| neutral routing | `ApiPathTemplate`, `ApiRoute`, `ApiUrlBuilder` | does not own Users / Posts services or concrete routes |
+| time and retry | `ApiExecutionClock`, `ApiExecutionDeadline`, `ApiRetryWaiter`, `RetryPolicy` | not decide the test verdict |
+| Typed configuration | `AtfConfiguration`, `AtfRuntimeSnapshot`, `ApiSettings`, `ReportingSettings` and snapshots | does not read configuration in each request |
+| source adapters | `config.source.ApiBootstrapConfigurationLoader`, `ApiEnvironment` | does not perform requests and does not own the Users / Posts catalogue |
+| statusuri | `AtfReportStatus`, `ReportStatusAggregator` | no render badges |
+| file/source discovery | `AtfPathLocator`, `AtfJavaSourceReferences` | solves paths from the roots of the caller without hardcoded workstation paths; does not confuse literals with Java dependencies |
+| reporting ports | `AtfReportPorts`, `ValidationSink`, `ReportStepScope`, `AtfConsoleEvent`, `AtfConsoleSink` | do not import Extent, HTML, `System.out` or `atf-console` implementation |
+| redaction | `Redactor`, `RedactionContext`, strategies de redaction | does not alter the original input |
+| neutral API selection | `ApiScenarioSelection` | `ApiScenarioSetup` and `ApiTestRef` test-only declarations belong to TestKit; the catalogue remains with the consumer |
+| live transport adapter | `ApiLiveTransportCatalog` and `ApiTransportPolicy` | does not activate the URL network, default or default flag |
+| guarded sync | `AtfPromotionManifest`, `AtfPromotionGuard` | does not promote files outside the manifest and does not delete sources |
+| reactor vocabulary | `config.module.AtfModuleIds` | does not orchestrate modules and introduce dependencies up |
 
-`AtfConsoleEvent.fromExternalEnums(...)` primește explicit câmpurile unui
-eveniment și convertește enumurile compatibile după nume. Core păstrează
-validarea statusului, duratei și căii publicate, fără reflection sau dependențe
-către sursa externă; compoziția de test transmite câmpurile evenimentului Reporting.
+`AtfConsoleEvent.fromExternalEnums(...)` explicitly receives the fields of an event and converts the compatible enumerations by name. Core maintains the validation of the published status, duration and path, without reflection or dependence on the external source; the test composition transmits the fields of the Reporting event.
 
-`AtfPathLocator.locateSourceFile(...)` rezolvă un fișier relativ din source root-uri
-candidate, fie când testul pornește din directorul modulului, fie din reactor.
-Validarea respinge căi absolute și traversal; caller-ul declară explicit layout-ul
-acceptat în loc să reproducă bucla de ancestor-walk în fiecare test.
+`AtfPathLocator.locateSourceFile(...)` solves a relative file of source candidate roots, either when the test starts from the module directory or from the reactor. Validation rejects absolute and cross paths; the caller explicitly declares the accepted layout instead of reproducing the ancestor traversal loop in each test.
 
-- `AtfJavaSourceReferences.containsNamespace(...)` caută referințe Java reale,
-  cu delimitarea exactă a identificatorilor.
-- Traduce escape-urile Unicode înainte de a exclude comentariile și literalii;
-  un escape invalid este respins.
-- `codeOnly(...)` oferă aceiași tokeni lexicali guard-urilor de adnotări și tipuri;
-  textul documentar nu poate declara sau exclude o clasă executabilă.
-- Guard-urile de arhitectură îl refolosesc; [probele controlate](src/test/java/atf/core/files/AtfJavaSourceReferencesTest.java)
-  acoperă importuri, nume calificate și prefixe asemănătoare.
-- `AtfJavaSourceReferences.annotationArguments(...)` citește adnotarea reală a
-  ownerului, păstrând literalii argumentelor și ignorând comentariile, exemplele
-  string/text block și declarațiile nested; escape-urile Unicode sunt traduse înaintea analizei.
+- `AtfJavaSourceReferences.containsNamespace(...)` seeks real Java references,
+  with the exact delimits of the identifiers.
+- Translate Unicode escapes before excluding comments and literals;
+  an invalid escape is denied.
+- `codeOnly(...)` offers the same lexical tokens as annotational guards and types;
+  the documentary text cannot declare or exclude an executable class.
+- Architectural guards re-use it; [evidence controlled](src/test/java/atf/core/files/AtfJavaSourceReferencesTest.java)
+  covers imports, qualified names and similar prefixes.
+- `AtfJavaSourceReferences.annotationArguments(...)` read the actual annotation of the
+  The owner, keeping the literals of arguments and ignoring comments, examples string / text block and declarations nested; Unicode escapes are translated prior to analysis.
 
-## Ciclu de viață generic și reutilizabil
+<a id="generic-and-reusable-life-cycle"></a>
+<a id="ciclu-de-viață-generic-și-reutilizabil"></a>
+## Generic and reusable life cycle
 
-Pachetul `atf.core.lifecycle` deține mecanica neutră a scenariului:
+`atf.core.lifecycle` package holds neutral mechanics of the scenario:
 
-- plan și orchestration: `ApiScenarioPlan`, `ApiScenarioLifecycleRunner`,
+- plan and orchestration: `ApiScenarioPlan`, `ApiScenarioLifecycleRunner`,
   `ApiScenarioPhaseExecutor`;
-- rezultat: `ApiScenarioOutcome` și `ApiScenarioSkipException`;
-- ordine: `SETUP → TEST BODY → TEARDOWN`, cu precedence pentru cauze și
+- result: `ApiScenarioOutcome` and `ApiScenarioSkipException`;
+- orders: `SETUP → TEST BODY → TEARDOWN`, with precedence for causes; and
   `PASS/WARNING/SKIP/FAIL`;
-- boundary: fără servicii Users/Posts, rute concrete, YAML, Extent sau JUnit.
+- Boundary: Users / Posts free of service, concrete routes, YAML, Extent or JUnit.
 
-Pentru un port de raportare, `Phase.supportsDetails()` declară dacă `detail`
-reține dovezile; defaultul `false` păstrează compatibilitatea adaptorului legacy.
-Acest default nu pretinde că diagnosticul a fost publicat.
+For a reporting port, `Phase.supportsDetails()` declares whether `detail` retains evidence; `false` default retains the compatibility of the legacy adapter. This default does not claim that the diagnosis has been published.
 
-- Erorile de `detail`, interogarea capabilității, `complete` și `close` nu
-  întrerup cleanup-ul fazei.
-- Prima cauză de business rămâne primară; erorile ulterioare sunt `suppressed`
-  în ordinea apariției.
-- Dacă faza nu poate fi deschisă, runnerul înregistrează FAIL și continuă
+- Errors from `detail`, capability queries, `complete` and `close` do not interrupt phase cleanup.
+- First business cause remains primary; subsequent errors are `suppressed`
+  in the order of appearance.
+- If the phase cannot be opened, the runner shall record FAIL and continue
   teardown-ul.
-- Eșecul de lifecycle devine FAIL când nu există o cauză primară; runnerul
-  încearcă `scenario.close()` și păstrează precedence-ul planului.
+- Lifecycle failure becomes FAIL when there is no primary cause; runner
+  try `scenario.close()` and keep the precedent of the plan.
 
-Contractul este protejat de [testele Core](src/test/java/atf/core/lifecycle/ApiScenarioPhaseExecutorTest.java)
-și [testele de contract](../atf-reporting-tests/src/test/java/atf/reporting/api/execution/ApiScenarioLifecycleRunnerTest.java).
-Randarea Extent și fallback, inclusiv disclosure-ul colapsat al assertions și
-cauza din Fails, este verificată de [proba browser permanentă](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/lifecycle/ApiScenarioLifecycleReportComponentTest.java).
+The contract is protected by [Core tests](src/test/java/atf/core/lifecycle/ApiScenarioPhaseExecutorTest.java) and [contract tests](../atf-reporting-tests/src/test/java/atf/reporting/api/execution/ApiScenarioLifecycleRunnerTest.java). The Extent and fallback performance, including the collapsed discoloration of the assertions and the cause of the Fails, is verified by [permanent browser sample](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/lifecycle/ApiScenarioLifecycleReportComponentTest.java).
 
 ```text
 test adapter / library consumer
@@ -142,44 +134,47 @@ core lifecycle ports + immutable outcome
 execution service | reporting publisher | another consumer
 ```
 
-Boundary-ul lifecycle-ului se citește astfel:
+The boundary of the lifecycle is read as follows:
 
-- `CleanupRegistry` rămâne în core ca mecanism generic;
-- fixture-urile concrete (`ApiModule`, servicii, `RoutePaths`) și adapter-ele
-  lor rămân în test scope-ul `atf-reporting-tests`;
-- orice consumer API/UI poate reutiliza lifecycle-ul fără a importa fixture-uri
-  în production;
-- `atf-reporting` rămâne standalone și nu depinde de core;
-- un lifecycle nou intră în core numai dacă este endpoint-neutral și are teste
-  unitare fără browser sau transport real.
+- `CleanupRegistry` remains in the core as a generic mechanism;
+- specific fixtures (`ApiModule`, services, `RoutePaths`) and adapters
+  THEIR REMAIN IN THE TEST THE `atf-reporting-tests` SCOPE;
+- any API / UI consumer may reuse lifecycle without importing fixtures
+  in production;
+- `atf-reporting` remains standalone and does not depend on core;
+- a new lifecycle enters the core only if it is endpoint-neutral and has tests
+  units without browser or actual transport.
 
-## Coeziune și responsabilitate pentru vocabularul HTTP
+<a id="cohesion-and-responsibility-for-http-vocabulary"></a>
+<a id="coeziune-și-responsabilitate-pentru-vocabularul-http"></a>
+## Cohesion and responsibility for HTTP vocabulary
 
-Pachetele production au cel mult opt clase și grupează o singură responsabilitate:
+Production packages have no more than eight classes and group only one responsibility:
 
-| Pachet | Deține |
+| Package | Owned |
 |---|---|
-| `http.request` | forma request-ului: `ApiRequest`, `ApiPathTemplate`, `ApiRoute`, `ApiUrlBuilder`, `HttpMethod`, `HttpHeader`, `MediaTypes` |
-| `http.response` | rezultatul response-ului, politica JSON și diagnosticul neutru `ApiBodyEvidence` pentru corpuri indisponibile |
-| `http.auth` | autentificarea, tipurile standard și numele normalizate de profil prin `AuthProfiles` |
-| `http.protocol` | URI-uri absolute și profile reutilizabile de headere, fără host-uri de produs |
-| `http.execution` | execuția și rezultatul ei |
-| `http.transport` | boundary-ul transportului |
-| `diagnostics` | mesaje de excepție compacte și bounded, independente de Playwright sau produs |
+| `http.request` | form of a quest: `ApiRequest`, `ApiPathTemplate`, `ApiRoute`, `ApiUrlBuilder`, `HttpMethod`, `HttpHeader`, `MediaTypes` |
+| `http.response` | response result, JSON policy and neutral diagnosis `ApiBodyEvidence` for unavailable bodies |
+| `http.auth` | authentication, standard types and normalized profile names via `AuthProfiles` |
+| `http.protocol` | URI-X absolute and reusable headers profiles without product hosts |
+| `http.execution` | execution and outcome |
+| `http.transport` | boundary transport |
+| `diagnostics` | Compact and bounded exceptional messages, independent of Playwright or product |
 
-`ApiPathTemplate` face join, validare și rezolvare sigură a segmentelor; nu este
-catalogul de rute al unui produs.
+`ApiPathTemplate` makes a joint, validation and secure segment resolution; it is not a product route catalogue.
 
-### Cataloge concrete și direcția dependency-ului
+<a id="concrete-catalogues-and-direction-of-dependence"></a>
+<a id="cataloge-concrete-și-direcția-dependency-ului"></a>
+### Concrete catalogues and direction of dependence
 
-- `atf-reporting-tests` deține `RoutePaths`, `ApiRoutes` și serviciile Users/Posts
-  în test scope;
-- `atf-mock` deține `MockRoutePaths` pentru fixture-ul built-in;
-- reporting production nu deține endpoint-uri și nu devine dependent de un catalog
+- `atf-reporting-tests` owns `RoutePaths`, `ApiRoutes` and Users / Posts services
+  in the scope test;
+- `atf-mock` holds `MockRoutePaths` for the built-in fixture;
+- reporting production does not hold endpoints and does not become dependent on a catalogue
   de business;
-- `ApiPaths` a fost eliminat din core pentru a nu prezenta un catalog concret ca
-  platformă generică;
-- direcția corectă este `consumer → atf-core`, iar reporting rămâne standalone.
+- `ApiPaths` has been removed from the core to not present a concrete catalogue as
+  generic platform;
+- The correct direction is `consumer → atf-core`, and reporting remains standalone.
 
 ```text
 ApiPathTemplate (core, generic)
@@ -188,34 +183,34 @@ ApiPathTemplate (core, generic)
         └── reporting tests consume semantic references; no raw URL literals
 ```
 
-### Vocabular și guard-uri
+<a id="vocaular-and-guardines"></a>
+<a id="vocabular-și-guard-uri"></a>
+<a id="vocaular-and-guards"></a>
+### Vocaular and guards
 
-- **HTTP vocabulary** — verbe, headere, media type-uri, scheme URI și profile
-  auth sunt constante/enum-uri cu owner semantic; `ApiUris`,
-  `HttpHeaderProfiles` și `AuthProfiles` elimină copiile din consumatori;
-- **diagnostics** — `ThrowableDiagnostics` produce mesaje single-line bounded;
-  consumatorul decide unde sunt publicate și nu mută politica de business în core;
-- **fără bucket global** — nu se introduce un `AtfConstants` global;
+- **HTTP vocabulary** - verbs, heads, media types, URI schemes and profiles
+  auth are constant / enumerations with semantic owner; `ApiUris`, `HttpHeaderProfiles` and `AuthProfiles` remove copies from consumers;
+- **diagnostics** - `ThrowableDiagnostics` produces singleline bound messages;
+  the consumer decides where they are published and does not move business policy to core;
+- **without a global bucket** - no global `AtfConstants` is inserted;
 - **write requests** — `HttpHeader.CONTENT_TYPE`,
-  `MediaTypes.APPLICATION_JSON`, `HttpMethod.POST` și `HttpMethod.PUT` sunt
-  folosite de request, mock și validare; contractul JSON este verificat la
-  transport și în raport;
-- **reactor** — `AtfModuleIds` deține string-urile Maven, `REACTOR_MODULES`
-  reprezintă modulele root POM, iar `SOURCE_GOVERNED_MODULES` reprezintă modulele
-  inspectate de guardul global;
-- **test-kit** — rămâne în reactor și își guvernează separat test-layer-ul;
-- **config keys** — enum-ul `AtfModule` rămâne separat pentru cheile logice;
-- **package cohesion** — `AtfPackageCohesionGovernanceTest` verifică inventarul
-  de producție și source-set-urile; peste 8 clase înseamnă separare după
-  responsabilitate, iar excepțiile rămân explicite;
-- **controlled discovery** — `AtfPathLocator` caută în directoarele părinte și
-  rezolvă source root-ul numai când markerul relativ există;
-- **single owner** — `locateAtfTestSourceRoot(...)` păstrează candidatele
-  suportate într-un singur loc; testele și composition roots nu repetă traversal-ul;
-- **relocatabilitate** — utilitarul nu expune root-ul în evidence și nu introduce
-  căi locale în raport.
+  `MediaTypes.APPLICATION_JSON`, `HttpMethod.POST` and `HttpMethod.PUT` are used by the demand, mock and validation; the JSON contract is checked for transport and in the report;
+- **reactor** - `AtfModuleIds` holds Maven, `REACTOR_MODULES` strings
+  represents the POM root modules and `SOURCE_GOVERNED_MODULES` represents the modules inspected by the global guard;
+- **test-kit** - remains in the reactor and governs its test-layer separately;
+- **keys configure** - the `AtfModule` enumeration remains separate for logical keys;
+- **package cohesion** - `AtfPackageCohesionGovernanceTest` checks inventory
+  production and source- sets; over 8 classes means separation after responsibility and exceptions remain explicit;
+- **controlled discovery** - `AtfPathLocator` searches the parent directories and
+  solves the root source only when the relative marker exists;
+- **single owner** - `locateAtfTestSourceRoot(...)` keeps the candidates
+  supported in one place; tests and composition roots do not repeat the crosswalk;
+- **relocatabilitate** - Utilizer does not expose the robot to evidence and does not introduce
+  local routes in the report.
 
-## Regula de decuplare
+<a id="uncoupling-rule"></a>
+<a id="regula-de-decuplare"></a>
+## Uncoupling rule
 
 ```text
 ApiRequest / ApiResponse / ValidationResult / Report ports
@@ -223,20 +218,16 @@ ApiRequest / ApiResponse / ValidationResult / Report ports
               modulele de execuție și reporting
 ```
 
-Core poate defini porturi și source adapters fail-closed, dar nu implementează
-Extent, HTML, CSS, JavaScript, formatarea consolei, scrierea în `System.out`,
-JUnit sau servicii de business.
-Un port trebuie să fie mic, semantic și
-testabil cu fake-uri în memorie.
+Core can define ports and source adapters fail- closed, but does not implement Extent, HTML, CSS, JavaScript, console formatting, writing in `System.out`, JUnit or business services. A port must be small, semantic and testable with fakes in memory.
 
-Configurația de execuție este typed și immutable:
+The execution configuration is typed and immutable:
 
-- `config.source` citește o singură dată YAML, properties sau environment;
-- loaderul produce snapshot-ul validat și nu intră în transport;
-- fiecare sesiune păstrează propriile timeout, retry, auth și redaction policy;
-- rulările paralele nu își pot suprascrie configurația reciproc.
+- `config.source` only reads YAML, properties or environment;
+- The loader produces the validated snapshots and does not enter the transport;
+- each session shall keep its own time-out, retry, auth and editorial policy;
+- parallel runs cannot override each other's configuration.
 
-Exemple de direcții corecte:
+Examples of correct directions:
 
 ```text
 ApiExecutor → ApiExecutionResult
@@ -244,7 +235,7 @@ Validator    → ValidationResult
 Reporting   → AtfReportPorts
 ```
 
-Direcții interzise:
+Prohibited directions:
 
 ```text
 core → ExtentTest
@@ -253,14 +244,16 @@ core → HTML/CSS
 core → UsersService / PostsService
 ```
 
-## Contractul reutilizabil pentru selecția API
+<a id="reusable-contract-for-api-selection"></a>
+<a id="contractul-reutilizabil-pentru-selecția-api"></a>
+## Reusable contract for API selection
 
-Modelul `ApiScenarioSelection` din `atf-core` este neutru față de consumer:
+`ApiScenarioSelection` model in `atf-core` is neutral from the consumer:
 
-- declarațiile `@ApiScenarioSetup` și `@ApiTestRef` sunt în `atf.testkit.setup.api`, consumate în test scope;
-- `ApiScenarioSelection` transmite snapshot-ul immutable către composition root;
-- UI testele, acceptance runner-ele și alți consumatori pot reutiliza contractul;
-- catalogul concret al testelor nu intră în `atf-core`.
+- `@ApiScenarioSetup` and `@ApiTestRef` declarations are in `atf.testkit.setup.api`, consumed in the scope test;
+- `ApiScenarioSelection` transmits the snapshots immutable to the composition root;
+- UI tests, acceptance runners and other consumers may re-use the contract;
+- The specific catalogue of tests does not enter `atf-core`.
 
 ```text
 consumer annotation
@@ -270,34 +263,33 @@ consumer annotation
   → API/reporting composition root
 ```
 
-| Responsabilitate | Owner |
+| Responsibility | Owner |
 |---|---|
 | mapping `UsersApiScenarios`, `PostsApiScenarios`, `LifecycleApiScenarios` | composition scope-ul `atf-reporting-tests` |
-| loader generic pentru `atf.yaml` | `config.source` din core |
-| catalog concret, YAML mock, JUnit și orchestration | modulele consumatoare |
+| generic loader for `atf.yaml` | `config.source` of core |
+| specific catalogue, YAML mok, JUnit and orchestration | consumption modules |
 
-Catalogul de servicii este compoziție de produs, nu platformă generică.
-Contractul adnotărilor este în [documentația de infrastructură](../docs/ATF_Test_Infrastructure_Annotations.md);
-Core main nu depinde de TestKit.
+The service catalogue is product composition, not generic platform. The annotation contract is in [infrastructure documentation](../docs/ATF_Test_Infrastructure_Annotations.md); Core main does not depend on TestKit.
 
-`RecordingApiTransport` este decoratorul generic pentru evidence:
+`RecordingApiTransport` is the generic decorative for the highlight:
 
-- capturează ultimul `ApiRequest` și delegă execuția;
-- nu cunoaște reporting, mock sau JUnit;
-- poate fi reutilizat pentru API report, component tests și replay, fără a copia
-  fixture-uri din test scope.
+- capture the last `ApiRequest` and delegate the execution;
+- be not aware of reporting, mock or JUnit;
+- can be reused for API report, component tests and replay without copy
+  The fixtures from the scope test.
 
-## Catalogul live explicit
+<a id="explicit-live-catalogue"></a>
+<a id="catalogul-live-explicit"></a>
+## Explicit live catalogue
 
-`ApiLiveTransportCatalog` este adaptorul public pentru request-uri reale; regulile
-sale sunt:
+`ApiLiveTransportCatalog` is the public adapter for real quests; its rules are:
 
-- ține endpoint-uri numite;
-- produce un `ApiTransport` numai după `ApiTransportPolicy` cu profil `LIVE` și
+- keep endpoints called;
+- produce a `ApiTransport` only after `ApiTransportPolicy` with `LIVE` profile and
   opt-in explicit;
-- politica `ACCEPTANCE` nu consultă catalogul;
-- placeholder-ul acceptance (`ApiEnvironment.MOCK_BASE_URI`) este respins chiar
-  dacă operatorul a activat opt-in-ul.
+- `ACCEPTANCE` policy does not consult the catalogue;
+- the acceptance placeholder (`ApiEnvironment.MOCK_BASE_URI`) is rejected even
+  if the operator has activated the eighty-nine.
 
 ```text
 ApiBootstrapConfiguration
@@ -307,27 +299,27 @@ ApiBootstrapConfiguration
   → ApiExecutor
 ```
 
-Catalogul aplică limitele de siguranță înainte de a crea transportul:
+The catalogue shall apply the safety limits before creating the transport:
 
-- acceptă numai `http/https` și profile endpoint neambigue;
-- limitează fiecare transport la originea endpoint-ului numit;
-- delegă autentificarea la `ApiAuthenticator` și nu expune token-uri;
-- nu construiește cURL sau HTML; redaction-ul replay-ului aparține reporting-ului;
-- factory-ul injectabil permite verificarea contractului fără rețea reală.
+- accept only `http/https` and endpoint unambiguous profiles;
+- limit each consignment to the origin of the named endpoint;
+- delegate authentication to `ApiAuthenticator` and do not expose tokens;
+- does not build cURL or HTML; the replica editor belongs to the reporting;
+- The injectable factory allows the verification of the contract without real network.
 
-Mock-ul rămâne default-ul sigur și este compus separat prin `atf-mock`. Faptul
-că o configurație conține `baseUri` nu este niciodată suficient pentru a deschide
-network-ul.
+Mock remains the safe default and is composed separately by `atf-mock`. The fact that a configuration contains `baseUri` is never enough to open the network.
 
-## Manifest și promovare guarded
+<a id="manifest-and-guaranteed-promotion"></a>
+<a id="manifest-și-promovare-guarded"></a>
+## Manifest and guaranteed promotion
 
-`AtfPromotionManifest` fixează baseline-ul fișierelor aprobate înainte de staging:
+`AtfPromotionManifest` fixes the baseline of the approved files prior to staging:
 
-- căile sunt relative; fișierele existente păstrează dimensiunea și SHA-256;
-- o intrare absentă aprobă crearea acelui fișier și detectează crearea paralelă;
-- rădăcina checkout-ului nu este persistată, iar manifestul nu ajunge în HTML.
+- the paths are relative; existing files retain size and SHA-256;
+- an absent entry approves the creation of that file and detects parallel creation;
+- The root of the checkout is not persistent, and the manifest does not reach HTML.
 
-Promovarea reutilizabilă:
+Re-usable promotion:
 
 ```text
 live root + approved relative files
@@ -337,275 +329,237 @@ live root + approved relative files
   → verificare drift + copiere atomică numai a fișierelor aprobate
 ```
 
-Guard-ul verifică întregul baseline live înaintea primei copieri și revalidează
-destinația înaintea fiecărui fișier. Lock-ul extern per rădăcină coordonează
-promotorii cooperanți; sursele staging rămân păstrate, fără ștergeri implicite.
+The guard checks the entire live baseline before the first copy and revalidates the destination before each file. The external location per root coordinates the co-operating promoters; the staging sources remain preserved without default deletions.
 
-- Atomicitatea privește înlocuirea unui fișier, nu întregul lot.
-- Guard-ul construiește planul complet înaintea primei scrieri: fiecare sursă
-  aprobată trebuie să fie fișier regulat, eligibil și deschizabil pentru citire.
-  O sursă ulterioară absentă sau director refuză întregul plan fără modificări live.
-- Părinții existenți ai fiecărei destinații trebuie să fie directoare. Preflight-ul
-  refuză un fișier intermediar, inclusiv apărut după capturarea manifestului,
-  înaintea oricărei copieri. Părinții absenți sunt permiși și se creează numai la execuție.
-- Execuția revalidează baseline-ul per destinație. Un eșec I/O sau un drift
-  apărut după prevalidare poate lăsa un lot parțial; operatorul recitește starea
-  efectivă înainte de reluare. Preflight-ul nu promite o tranzacție pentru lot.
-- `AtfPromotionPreflightTest` probează refuzul înaintea oricărei scrieri,
-  crearea concurentă, părinții direcți/intermediari neeligibili și promovarea
-  exclusiv a fișierelor aprobate. Refuzul păstrează sursele și nu creează părinți.
-- Baseline-ul urmărește conținutul fișierelor aprobate; părintele invalid este
-  o verificare structurală separată. Ea și refuzul symlink-urilor sunt reluate
-  înaintea copierii fiecărui fișier, fără a elimina posibilitatea unui eșec I/O ulterior.
-- Manifestul JSON portabil este audit al procesului, fără evidence în HTML
-  sau sincronizare ca output generat.
+- The atomicity concerns the replacement of a file, not the whole lot.
+- The guard builds the complete plan before the first writing: each source
+  approved must be a regular, eligible and open file for reading. A subsequent source absent or directory refuses the entire plan without live changes.
+- The existing parents of each destination must be the director.
+  refuse an intermediate file, including that which occurred after the capture of the manifesto, prior to any copy. Absent parents are allowed and are created only upon execution.
+- Execution revalidates each destination baseline. I/O failure or drift after preflight may leave a partial batch; reread actual state before resuming. Preflight does not promise a batch transaction.
+- `AtfPromotionPreflightTest` is proposing refusal before any writing,
+  creating competition, direct parents / ineligible intermediaries and promoting only approved files. Denying keeps the sources and does not create parents.
+- Baseline follows the content of approved files; the invalid parent is
+  a separate structural check. It and the refusal of the symlinks are resumed prior to copying each file, without eliminating the possibility of a subsequent I / O failure.
+- Portable JSON Manifesto is process audit without evidence in HTML
+  or synchronization as generated output.
 
-## Izolarea diagnosticului de execuție
+<a id="isolation-of-the-execution-diagnosis"></a>
+<a id="izolarea-diagnosticului-de-execuție"></a>
+## Isolation of the execution diagnosis
 
-`ApiExecutor` deține câte un `AtfConsoleDiagnostics` per invocare. Un
-`RuntimeException` al sink-ului la START, DETAIL, CODE sau COMPLETE nu oprește
-dispatch-ul și nu înlocuiește rezultatul. La eroare funcțională, cauzele
-diagnostice distincte sunt atașate ca suppressed aceleiași excepții cu snapshot;
-nu se republică prin sink-ul defect și nu se folosește stdout de rezervă.
+`ApiExecutor` holds one `AtfConsoleDiagnostics` per invoicing. `RuntimeException` of the synchronization at START, DETAIL, CODE or COMPLETE does not stop the display and does not replace the result. At functional error, distinct diagnostic causes are attached as suppressed with the same exception of snapshot; do not be Republic through the defective synchronization and no spare stdout shall be used.
 
-Politica este best-effort pentru erori runtime ale diagnosticului. `Error`
-rămâne fatal; nu este convertit în succes.
+Politics is best- effort for runtime errors of diagnosis. `Error` remains fatal; it is not converted into success.
 
-- Timeout-ul, anularea și retry-ul păstrează deadline-ul, încercările și proveniența execuției.
+- The timeout, cancellation and retry shall retain the deadline, tests and provenance of execution.
 
-[ApiDiagnosticIsolationTest](src/test/java/atf/core/http/diagnostics/ApiDiagnosticIsolationTest.java)
-probează aceste limite prin portul public, fără Console sau Reporting în producție.
+[ApiDiagnosticIsolationTest](src/test/java/atf/core/http/diagnostics/ApiDiagnosticIsolationTest.java) shall propose these limits by public port, without Console or Reporting in production.
 
-## Istoric la eroare terminală
+<a id="terminally-incorrect-history"></a>
+<a id="istoric-la-eroare-terminală"></a>
+## Terminally incorrect history
 
-`ApiExecutionException.snapshot()` expune un `ApiExecutionSnapshot` imutabil
-pentru transport eșuat, timeout și întrerupere. Anularea rămâne
-`CancellationException`, prin subtipul `ApiExecutionCancelledException`.
+`ApiExecutionException.snapshot()` shows a `ApiExecutionSnapshot` immutable for failed transport, timeout and interruption. Cancellation remains `CancellationException`, via `ApiExecutionCancelledException` subtype.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Dispatch["Dispatch"] -->|măsoară| History["Istoric"]
-    History -->|eroare terminală| Snapshot["Snapshot"]
-    Snapshot -->|convertește| Adapter["Adaptor"]
-    Adapter -->|publică| Report["Dovezi"]
+    Dispatch["Dispatch"] -->|measure| History["History"]
+    History -->|terminal error| Snapshot["Snapshot"]
+    Snapshot -->|convert| Adapter["Adaptor"]
+    Adapter -->|publishes| Report["Evidence"]
 ```
 
 <details>
-<summary><strong>Legendă — execuție observată, fără răspuns fabricat</strong></summary>
+<summary><strong>Legend - observed execution, no response manufactured</strong></summary>
 
-- `ApiExecutionFailure.find(error)` caută snapshot-ul pe lanțul cauzei primare,
-  cu protecție la cicluri; o eroare suppressed de cleanup nu poate furniza
-  evidence pentru altă operație.
-- Snapshot-ul păstrează request-ul, URL-ul rezolvat, proveniența declarată,
-  durata monotonă totală, încercările, retry-urile planificate și terminarea.
-  Listele sunt copii imutabile, iar încercările au ordine contiguă.
-- `response()` este Optional; lipsa răspunsului terminal nu reutilizează 503-ul
-  unei încercări anterioare. Un răspuns capturat înaintea unei erori de policy
-  rămâne distinct de absența răspunsului.
-- `ApiAttemptRecord.httpStatus()` este gol pentru sentinelul legacy zero;
-  acesta nu reprezintă HTTP 0. Core păstrează constructorii existenți.
-- Anularea înaintea dispatch-ului are zero încercări. Oprirea în backoff
-  păstrează retry-ul planificat, fără a inventa următorul apel.
-- Cauza, stack-ul și suppressed rămân păstrate; întreruperea păstrează flag-ul
-  thread-ului și anulează future-ul pending.
-- Deadline-ul și politica de retry sunt cele originale. Capturarea ori
-  publicarea snapshot-ului nu retrimite request-ul.
+- `ApiExecutionFailure.find(error)` is looking for the snapshots on the primary cause chain,
+  with cycle protection; a clerical suppressed error cannot provide evidence for any other operation.
+- Snapshots keep the quest, URL-ul solved, the declared provenance,
+  The total monotony duration, the tests, the planned retries and the endings. The lists are immutable copies and the tests are contiguous.
+- `response()` is Optional; no terminal response reuses 503
+  A response captured prior to a police error remains distinct from the lack of response.
+- `ApiAttemptRecord.httpStatus()` is empty for the sentinel legacy zero;
+  this does not represent HTTP 0. Core retains the existing constructors.
+- Cancellation before the Display has zero attempts. Stopping in the backoff
+  keep the retry planned, without inventing the next call.
+- The cause, stack and suppressed remains preserved; interruption retains the flag
+  Thread and cancel the fucking pending.
+- The Deadline and policy of the retry are the original ones. Capturing times
+  Publication of snapshots does not return the request.
 
-Etichetele scurte păstrează următorul sens:
+The short labels shall be kept as follows:
 
-| În schemă | Sens complet |
+| In the scheme | Full meaning |
 |---|---|
-| Dispatch | Dispatch efectuat |
-| Istoric | Încercări + retry-uri planificate |
-| Snapshot | Snapshot imutabil + cauză |
-| Adaptor | Adaptor consumer |
-| Dovezi | Execution evidence |
-| convertește | convertește la owner |
-| publică | publică fără replay |
+| Dispatch | Dispatch performed |
+| History | Tests + planned retries |
+| Snapshot | Snapshot immutable + cause |
+| Adapter | Adaptor consumer |
+| Evidence | Execution evidence |
+| convert | convert to owner |
+| publishes | release |
 
 </details>
 
-Un răspuns final, inclusiv non-2xx, continuă să întoarcă `ApiExecutionResult`.
-Outcome-ul legacy SUCCESS al unei încercări înseamnă răspuns final primit,
-fără a declara succesul business.
+A final response, including non-2xx, continues to return `ApiExecutionResult`. The SUCCESS legacy outcomer of a test means the final response received without declaring business success.
 
-`ApiTerminalExecutionEvidenceTest` folosește transport și ceas controlate
-pentru 503 → eroare/timeout, anulare, întrerupere și eroare la primul apel.
-Redactarea și verdictul raportului rămân la consumer și Reporting, fără
-dependență a Core către renderer.
+`ApiTerminalExecutionEvidenceTest` uses controlled transport and watch for 503 → error / timeout, cancellation, interruption and error on the first call. The report's redaction and verdict remain at the consumer and Reporting, without Core's dependence on the renderer.
 
-## Determinism și concurență
+<a id="determinism-and-competition"></a>
+<a id="determinism-și-concurență"></a>
+## Determinism and competition
 
-Probele concurente de anulare confirmă intrarea transportului prin barieră,
-apoi verifică rezultatul workerului în threadul JUnit prin `FutureTask`.
-Un sleep nu dovedește dispatch-ul, iar o aserțiune pierdută în worker nu este verdict JUnit.
+The competing evidence of cancellation confirms the entry of the transport through the barrier, then checks the result of the workshop in the JUnit Thread via `FutureTask`. A sleep does not prove the display, and a loss of assertion in the workshop is not JUnit verdict.
 
-- Înainte de dispatch, transportul nu este apelat și future-ul nepredat rămâne neanulat.
-- După dispatch, future-ul predat este anulat, iar snapshot-ul păstrează încercarea
-  și categoria `CANCELLED`; eroarea workerului este observată de caller.
-- Cleanup-ul semnalizează anularea, întrerupe și face join bounded inclusiv la
-  eșecul probei; limitele API și ale join-ului nu se măresc pentru sincronizare.
+- Before the dispatch, the shipment is not called and the unturned future remains uncancelled.
+- After the display, the future handed over is cancelled, and the snapshots keep trying.
+  and category `CANCELLED`; worker error is observed by the caller.
+- The Cleanup signals the cancellation, interrupts and makes the join bound including at
+  evidence failure; API and join limits do not increase for timing.
 
-`ExecutionResilienceTest` verifică threadul real, iar
-`ApiTerminalExecutionEvidenceTest` verifică separat deadline-ul și snapshot-urile
-cu clock controlat. Testele unitare Core păstrează categoria fără raport HTML.
+`ExecutionResilienceTest` checks the real thread, and `ApiTerminalExecutionEvidenceTest` checks the deadline and controlled-clock snapshots separately. Core unit tests maintain the category without HTML ratio.
 
-Istoricul din `ApiExecutionResult` este disponibil când execuția întoarce un
-răspuns final. La eroare terminală, [snapshot-ul parțial](#istoric-la-eroare-terminală)
-păstrează încercările observate și cauza, fără a retrimite operația.
+The `ApiExecutionResult` history is available when execution returns a final response. At terminal error, [partial snapshots](#istoric-la-eroare-terminală) retains the observed tests and cause without sending back the operation.
 
-- **snapshot și timp** — fiecare execuție primește setări snapshot-uite;
-- **clock injectabil** — timpul monotonic, deadline-ul request-ului și delay-ul
-  de retry nu cer timp real în teste;
-- **modele immutable** — obiectele ieșite din core nu expun colecții mutabile și
-  nu păstrează state static de rulare;
-- **write contracts** — `ApiRoute.request(...)` respinge `POST` și `PUT` fără
-  body, iar `requestBody(...)` cere JSON valid, ne-gol și normalizează
-  `Content-Type: application/json`;
-- **verdict observabil** — invariantă aparține construcției transportului și este
-  verificată din nou de publisher/auditor în evidence;
-- **redaction** — `RedactionContext` immutable păstrează masca literală și encodează numai valoarea ei la boundary-ul regex; strategiile păstrează grupurile structurale. JSON-ul și câmpurile nominale folosesc masca brută, fără să modifice request-ul, response-ul sau assertion-ul original. [Harta security](src/main/java/atf/core/security/README.md#masca-și-protocolul-replacement) delimitează comparația, redactarea și preview-ul.
+- **Snapshot and time** - each execution receives snapshots-look settings;
+- **clock injectable** - monotonic time, the deadline of the request and the delay
+  Retry does not require real time in tests;
+- **IMMUTABLE MODEL** - objects exited from the core do not exhibit mutable collections and
+  does not keep static rolling states;
+- **written contracts** - `ApiRoute.request(...)` rejects `POST` and `PUT` without
+  body, while `requestBody(...)` requires valid, nonempty JSON and normalizes `Content-Type: application/json`;
+- **Observed verdict** - invariant belongs to the construction of the transport and is
+  re-checked by publisher / auditor in evidence;
+- **redaction** - `RedactionContext` immutable maintains the literal mask and encodes only its value at the regex boundary; strategies keep the structural groups. JSON and the nominal fields use the gross mask without altering the quest, the original response or the assertion. [Security Map](src/main/java/atf/core/security/README.md#masca-și-protocolul-replacement) delimits the comparison, editing and preview.
 
-## Teste
+<a id="tests"></a>
+<a id="teste"></a>
+## Tests
 
-Testele din `atf-core` verifică separat:
+`atf-core` tests shall verify separately:
 
-- request/response și autentificare;
-- timeout, cancellation, retry și `Retry-After` cu clock injectabil;
-- snapshot-uri și precedence-ul configurației;
-- status aggregation și precedența `FAIL > SKIP > WARNING > PASS`;
-- redaction pe JSON, headers, query, path și PII;
-- referințe namespace Java reale față de exemple în comentarii/literali;
-- contractele porturilor fără Extent concret.
-- `ApiScenarioSelection` și contractele de annotation fără JUnit/browser;
+- Require / reply and authentication;
+- timeout, cancellation, retry and `Retry-After` with injection clock;
+- Snapshots and the precedence of configuration;
+- status aggregation and precedence of `FAIL > SKIP > WARNING > PASS`;
+- Redaction on JSON, heads, query, path and PII;
+- actual namespace Java references to examples in comments / literals;
+- port contracts without specific Extent.
+- `ApiScenarioSelection` and Annotation Contracts without JUnit / browser;
 
-Un test core nu generează raport HTML. Dovada vizuală și scenariile end-to-end
-ale raportării aparțin composition scope-ului `atf-reporting-tests`. `atf-tests` deține guvernanța whole-reactor; numai
-selecțiile legacy documentate păstrează rolul de compatibilitate.
+A core test does not generate HTML ratio. Visual evidence and end to end scenarios of the reporting belong to the `atf-reporting-tests` Scopeship. `atf-tests` holds the whole-reactor governance; only documented legacy selections retain the role of compatibility.
 
-## Verificare rapidă
+<a id="quick-check"></a>
+<a id="verificare-rapidă"></a>
+## Quick check
 
-Contractul concurent păstrează [distincția înainte/după dispatch](#determinism-și-concurență).
+The competing contract keeps [Distinguishing number of the country which has granted authorisation](#determinism-și-concurență).
 
-| Decizie | Sursă și limită |
+| Decision | Source and limit |
 |---|---|
-| Execuție, deadline și istoric terminal | [sursa ownerului](src/main/java/atf/core/http/execution/ApiExecutor.java); probă: [ApiTerminalExecutionEvidenceTest](src/test/java/atf/core/http/execution/ApiTerminalExecutionEvidenceTest.java) |
-| Dependențe și source-set-uri | [POM](pom.xml); scope-ul declarat este autoritatea pentru integrare |
-| Ce nu demonstrează această probă | Nu calculează verdictul business și nu publică HTML. |
+| Execution, deadline and terminal history | [source of the host](src/main/java/atf/core/http/execution/ApiExecutor.java); sample [ApiTerminalExecutionEvidenceTest](src/test/java/atf/core/http/execution/ApiTerminalExecutionEvidenceTest.java) |
+| Dependencies and source- sets | [POM](pom.xml); declared scope authority for integration |
+| What this probe does not prove | Do not calculate the business verdict and do not publish HTML. |
 
 <details>
-<summary><strong>Comandă pentru proba locală</strong></summary>
+<summary><strong>Command for local sample</strong></summary>
 
-Rulați din rădăcina unui [staging extern](../docs/ATF_Build_And_Execution_Safety.md), cu JDK 21 și Maven.
+Run from the root of a [external staging](../docs/ATF_Build_And_Execution_Safety.md), with JDK 21 and Maven.
 
 ```powershell
 mvn -B -pl atf-core -am "-Dtest=ApiTerminalExecutionEvidenceTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
-Comanda selectează proba numită și construiește dependențele; nu declară
-trecerea întregului modul. Nu calculează verdictul business și nu publică HTML.
+The command selects the sample called and builds the dependencies; does not declare the passage of the entire module. Do not calculate the business verdict and do not publish HTML.
 
 </details>
 
-## Media type, headere și vocabular de protocol
+<a id="average-type-heads-and-protocol-vocabulary"></a>
+<a id="media-type-headere-și-vocabular-de-protocol"></a>
+## Average type, heads and protocol vocabulary
 
-| Boundary | Contract verificat |
+| Boundary | Verified contract |
 |---|---|
-| `MediaTypes.isJson` | clasifică numai tipul/subtipul concret, fără parametri; acceptă JSON și sufixul `+json`, independent de casing |
-| tip și payload | un MIME corect nu repară JSON invalid; `json` numai într-un parametru sau într-un subtip asemănător nu este suficient |
-| headere efective | default-uri → headere request → profilul de autentificare selectat; înlocuirea este case-insensitive, fără valori reziduale pentru același header |
-| profil `NONE` | păstrează headerul furnizat de caller; un profil selectat deține numai headerele pe care le declară |
-| transport | construiește și expediază o singură cerere; nu compensează headerele prin replay |
-| vocabular | numele auth/policy se normalizează cu `Locale.ROOT`, separat de textul business |
+| `MediaTypes.isJson` | only classifies the specific type / subtype without parameters; accept JSON and the `+json` suffix independently of casing |
+| type and payload | A correct MIME does not repair invalid JSON; `json` only in a parameter or similar subtype is not sufficient |
+| actual heads | default → headers request → selected authentication profile; replacement is case insensitive, without residual values for the same header |
+| `NONE` profile | keep the header provided by the caller; a selected profile holds only the headers it declares |
+| transport | build and send only one request; do not compensate headers by replay |
+| vocabulary | the name of the author / policy normalises with `Locale.ROOT`, separate from the business text |
 
-[MediaTypesTest](src/test/java/atf/core/http/request/MediaTypesTest.java),
-[headerele request-ului real construit](src/test/java/atf/core/http/transport/HttpClientRequestHeadersTest.java)
-și [profilele auth](src/test/java/atf/core/http/auth/AuthProfilesTest.java) păstrează
-nominalele și negativele. Proba loopback verifică separat ambele transporturi,
-valorile complete, body-ul și o singură expediere, fără serviciu extern.
+[MediaTypesTest](src/test/java/atf/core/http/request/MediaTypesTest.java), [actual built demand headers](src/test/java/atf/core/http/transport/HttpClientRequestHeadersTest.java) and [auth profiles](src/test/java/atf/core/http/auth/AuthProfilesTest.java) keep the nominations and negatives. The loopback sample checks both shipments, complete values, body and one shipment without external service.
 
 ## Core distribution
 
-J0 păstrează sursa și toate testele native. POM-ul Core este parentless, cu
-Java 21 și dependențe runtime Jackson explicite; Test Kit și JUnit sunt doar
-pentru teste și nu intră în tranzitivele de producție.
+J0 retains source and all native tests. The Core POM is parentless, targets Java 21 and declares Jackson runtime dependencies explicitly. Test Kit and JUnit are test-only dependencies and do not enter production transitives.
 
 J1–J6 consume the same Core JAR/POM pair directly in lib, alongside the independently versioned Reporting pair. The [publication and consumption contract](../docs/ATF_Core_Consumer.md) defines Maven/IntelliJ bootstrap, provenance and acceptance without Core source.
 
-### Timeout și ownership în probele native
+<a id="timeout-and-ownership-in-native-samples"></a>
+<a id="timeout-și-ownership-în-probele-native"></a>
+### Timeout and ownership in native samples
 
-Contractul distinge expirarea înainte de dispatch de timeout-ul unui future
-preluat: numai al doilea poate fi anulat de executor. Probele folosesc clock-ul
-injectabil existent și verifică numărul de dispatch-uri, durata, outcome-ul și
-absența unui răspuns inventat, fără presupuneri de scheduling într-un buget real de 30 ms.
+The contract distinguishes the expiry before the disassembly from the timeout of a future taken over: only the second can be cancelled by the executor. The samples use the existing injectable clicker and check the number of mismatches, duration, outcomer and absence of an invented response, without assumptions of scheduling in a real budget of 30 ms.
 
-## Probele deadline-ului și ownership-ul future-ului
+<a id="the-samples-of-the-deadline-and-the-ownership-of-the-fuck"></a>
+<a id="probele-deadline-ului-și-ownership-ul-future-ului"></a>
+## The samples of the deadline and the ownership of the fuck
 
-Un deadline poate expira înainte ca transportul să fie apelat. Probele native
-verifică separat cele două stări, fără să mărească bugetul de execuție.
+A deadline may expire before the shipment is called. Native samples check the two states separately without increasing the execution budget.
 
-| Boundary | Criteriu executabil |
+| Boundary | Executable criterion |
 |---|---|
-| înainte de dispatch | clock controlat 11 ms pentru buget 10 ms; zero apeluri, zero attempts/history, fără răspuns și future-ul callerului rămâne incomplet |
-| după dispatch | clock controlat consumă exact 10 ms prin get; un apel/attempt, o singură anulare, TIMED_OUT și fără răspuns inventat |
-| diagnostice pe clock real | 20 repetări la 10 ms; calls observate decid ownership-ul, iar anularea, istoricul și snapshot-ul trebuie să corespundă acelei stări |
-| cauză | TimeoutException și diagnosticul original suppressed rămân vizibile; expirarea trebuie confirmată de durata snapshot-ului |
-| protecția probei | failsafe JUnit 5 s previne o probă blocată; nu schimbă deadline-ul produsului de 10 ms |
+| prior to dispatch | 11 ms controlled clock for budget 10 ms; zero calls, zero attempts / history, unanswered and caller future remains incomplete |
+| after dispatch | controlled clock consume exactly 10 ms by get; one call / attempt, one cancellation, TIMED_OUT and unanswered invented |
+| diagnoses on actual clock | 20 repeats 10 ms; calls observed decide ownership, and cancellation, history and snapshots must correspond to that condition |
+| cause | TimeoutException and the original diagnosis suppressed remain visible; the expiry must be confirmed by the duration of the snapshots |
+| protection of the sample | the JUnit 5 s failsafe prevents a stuck test; it does not change the product's 10 ms deadline |
 
-[ApiTerminalExecutionEvidenceTest](src/test/java/atf/core/http/execution/ApiTerminalExecutionEvidenceTest.java)
-forțează ambele stări; [ApiDiagnosticIsolationTest](src/test/java/atf/core/http/diagnostics/ApiDiagnosticIsolationTest.java)
-verifică integrarea diagnosticului. Probele externe refuză mutații fără
-cancel, fără verificare înainte de dispatch și fără atașarea diagnosticului.
+[ApiTerminalExecutionEvidenceTest](src/test/java/atf/core/http/execution/ApiTerminalExecutionEvidenceTest.java) forces both states; [ApiDiagnosticIsolationTest](src/test/java/atf/core/http/diagnostics/ApiDiagnosticIsolationTest.java) checks the integration of the diagnosis. External samples refuse mutations without canel, without checking before mismatch and without attaching the diagnosis.
 
-HttpClientTransport links cancellation to its owned upstream operation. UrlConnectionTransport currently cancels only its exposed future: a pending body publisher can survive cancellation or the caller deadline and later dispatch. The [Core feedback](../docs/feedback/ATF_Core_Feedback.md#core-urlconnection-cancel-126--body-subscription-and-dispatch-ownership) owns this transport-specific gap; cancellation never proves server-side rollback.
+HttpClientTransport keeps up the operation; UrlConnectionTransport owns the body subscriber, virtual workshop and connection. A late body cannot send after the original cancellation or deadline. [Core contract](../docs/feedback/ATF_Core_Feedback.md#core-urlconnection-cancel-126--body-subscription-and-dispatch-ownership) keeps independent samples of the shipments; cancellation does not prove rollback on the server.
 
-## Document JSON complet și evidence fidel
+<a id="full-json-document-and-accurate-record"></a>
+<a id="document-json-complet-și-evidence-fidel"></a>
+## Full JSON document and accurate record
 
 | Boundary | Contract |
 |---|---|
-| JsonDocuments | un document complet, fără trailing content sau chei duplicate, inclusiv nested; reader imuabil, arbore nou per apel |
-| sintaxă și write | scalarii și literalul null sunt JSON; fabrica POST/PUT JSON refuză null înainte ca request-ul să poată fi expediat |
-| request explicit | căile form/text rămân disponibile; executorul nu deduce JSON doar din metoda HTTP |
-| egalitate Mock | decimale BigDecimal fără narrowing; număr/string și integer/decimal păstrează distincțiile existente; raw body rămâne intact |
-| redactare Core | tokenuri numerice și câmpuri publice duplicate păstrate; fiecare valoare sensibilă este mascată integral |
-| display Reporting | proiecție streaming autonomă, fără dependență Core; numerele și duplicatele se păstrează înaintea truncării configurate |
-| assertions | expected/actual se redactează separat; verdictul callerului rămâne independent de preview-ul implicit 240 |
+| JsonDocuments | a complete document, without trailing content or duplicate keys, including nested; immutable reader, new tree per call |
+| Syntax and write | The scalars and the literal null are JSON; POST / PUT JSON factory refuses null before the quest can be shipped |
+| request explicit | Formal / text paths remain available; the executor does not deduct JSON from HTTP method only |
+| Mock equality | decimal BigDecimal without narrowing; number / string and integer / decimal keep existing distinctions; raw body remains intact |
+| Core redaction | numerical tokens and duplicate public fields kept; each sensitive value is fully masked |
+| display Reporting | Core independent streaming projection; numbers and duplicates shall be kept prior to the configuration of the drive |
+| assertions | Expected / current is drafted separately; the caller verdict remains independent of the default 240 preview- |
 
-- Parserul strict refuză documentul ambiguu pentru decizii; proiecția evidence păstrează toate aparițiile câmpurilor.
-- Mock acceptă literalul null ca sintaxă, separat de interdicția fabricii write.
-- JSON invalid de diagnostic nu devine payload valid.
+- The strict parser refuses the ambiguous document for decisions; the obvious projection retains all the appearances of the fields.
+- Mock accepts literally null as syntax, separated from the prohibition of the write factory.
+- JSON invalid diagnostic does not become valid payload.
 
-Nativele Core și regresiile generice Reporting rămân numai în J0. Harness-urile
-temporare verifică JAR-urile fizice, fără surse de implementare shadow.
+Core natives and generic regressions Reporting remain only in J0. Temporary Harnesses check JAR physically without sources of shadow implementation.
 
-## Proiecția console și anularea transportului
+<a id="projection-of-consoles-and-cancellation-of-transport"></a>
+<a id="proiecția-console-și-anularea-transportului"></a>
+## Projection of consoles and cancellation of transport
 
 | Boundary | Contract |
 |---|---|
-| lifecycle START/COMPLETE | numele complet method/path este redactat înaintea emisiei; transportul păstrează inputul original |
-| CODE JSON | câmpurile sensibile sunt mascate structural; string-urile publice decodate folosesc regulile text configurate |
-| fidelitate | numerele păstrează tokenul exact, câmpurile duplicate rămân distincte, iar vecinii nesensibili rămân vizibili |
-| cancel după dispatch | future-ul expus transmite o singură cerere best effort upstream, cu același interrupt flag |
-| competiție cu finalizarea | primul rezultat terminal câștigă; cancel după succes/eșec nu anulează retroactiv operația |
-| URLConnection înainte de dispatch | operația deține subscription-ul body, workerul virtual și conexiunea; body-ul întârziat nu poate relansa un request terminal |
-| deadline URLConnection | body, connect și read împart bugetul monoton original; cleanup-ul deadline-ului este independent de carrierii virtuali, fără retry implicit |
-| cleanup refuzat/eșuat | anularea callerului rămâne terminală; excepția cleanup este suppressed, fără pretenție de rollback server-side |
+| lifecycle START/COMPLETE | Full name method / path is written prior to issue; the consignment retains the original input |
+| CODE JSON | Sensitive fields are structurally masked; decoded public strings use configured text rules |
+| fidelity | numbers keep the exact token, duplicate fields remain distinct, and non-sensitive neighbours remain visible |
+| cancellation after dispatch | The exposed future forwards one best-effort upstream cancellation request with the same interrupt flag |
+| competition with completion | the first terminal result wins; canel after success / failure does not retroactively cancel the operation |
+| URLConnection prior to disconnect | the operation holds the body subscriber, virtual workshop and connection; the delayed body cannot re-launch a terminal request |
+| deadline URLConnection | body, connect and read share the original monotonous budget; the deadline caller is independent of virtual carriers without default retry |
+| cleanup refused / failed | the cancellation of the caller remains terminal; the exception of cleanup is suppressed without claim of the server-side rollback |
 
-[HttpClientCancellationTest](src/test/java/atf/core/http/transport/HttpClientCancellationTest.java)
-controlează succesul, eșecul, anularea și cursele fără rețea.
-[HttpClientReadCancellationTest](src/test/java/atf/core/http/transport/HttpClientReadCancellationTest.java)
-verifică separat un GET local blocat: un dispatch, CANCELLED și fără răspuns inventat.
+[HttpClientCancellationTest](src/test/java/atf/core/http/transport/HttpClientCancellationTest.java) controls success, failure, cancellation and non-network races. [HttpClientReadCancellationTest](src/test/java/atf/core/http/transport/HttpClientReadCancellationTest.java) checks separately a local GET blocked: a display, CANCELLED and uninvented response.
 
-[UrlConnectionCancellationTest](src/test/java/atf/core/http/transport/UrlConnectionCancellationTest.java) și
-[UrlConnectionDeadlineTest](src/test/java/atf/core/http/transport/UrlConnectionDeadlineTest.java)
-verifică subscription întârziat, deadline propriu și caller de 250 ms, publisher
-blocat, cauză/suppressed și curse; anularea după dispatch nu dovedește rollback.
+[UrlConnectionCancellationTest](src/test/java/atf/core/http/transport/UrlConnectionCancellationTest.java) and [UrlConnectionDeadlineTest](src/test/java/atf/core/http/transport/UrlConnectionDeadlineTest.java) check delayed subscription, own deadline and 250 ms call, blocked publisher, cause / suppressed and races; cancellation after disconnect does not prove rollback.
 
-[Izolarea deadline-ului](src/test/java/atf/core/http/transport/UrlConnectionDeadlineIsolationTest.java)
-verifică într-un JVM separat progresul cu un singur carrier virtual blocat.
+[Isolation of the deadline](src/test/java/atf/core/http/transport/UrlConnectionDeadlineIsolationTest.java) checks in a JVM separate progress with a single virtual locked carrier.
 
-[Proiecția console](src/test/java/atf/core/http/ApiExecutorConsoleRedactionTest.java)
-verifică absența canary-ului în fiecare canal, păstrând request/response originale.
-[Politica string-urilor JSON](src/test/java/atf/core/security/json/JsonPublicStringRedactionTest.java)
-acoperă enabled/disabled și măști literale; redactarea nu este detecție universală de secrete.
+[Console projection](src/test/java/atf/core/http/ApiExecutorConsoleRedactionTest.java) checks the absence of canary in each channel, keeping demand / original responses. [JSON Stringings Policy](src/test/java/atf/core/security/json/JsonPublicStringRedactionTest.java) covers enabled / disabled and literal masks; the redaction is not universal detection of secrets.

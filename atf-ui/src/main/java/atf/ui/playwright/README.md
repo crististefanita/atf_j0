@@ -1,62 +1,72 @@
-# Playwright — operații, deadline și sesiune de browser
+<a id="playwright--operations-deadlines-and-browser-session"></a>
+<a id="playwright--operații-deadline-și-sesiune-de-browser"></a>
+# Playwright — Operations, Deadlines, and Browser Session
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-Pachetul este adaptorul browser generic. Primește configurație și sink explicit,
-înregistrează operații și expune observații; nu decide rezultatul unui checkout
-și nu deține rendererul sau runnerul JUnit.
+This package is the generic browser adapter. It receives explicit configuration
+and a sink, records operations, and exposes observations; it does not decide a
+checkout outcome or own the renderer or JUnit runner.
 
-## Intrări și responsabilități
+<a id="inputs-and-responsibilities"></a>
+<a id="intrări-și-responsabilități"></a>
+## Inputs and responsibilities
 
-| Când investighezi | Citește întâi | Limita |
+| When investigating | Read first | Boundary |
 |---|---|---|
-| achiziție și release | [PlaywrightUiSession](PlaywrightUiSession.java) | deține Playwright/browser/context/page și inspectorul |
-| scală și coordonate iframe | [UiViewportScale](../config/geometry/UiViewportScale.java) → [PlaywrightUiSession](PlaywrightUiSession.java) | ieșire cerută, viewport CSS și DPR native; fără CSS injectat |
-| vocabularul acțiunii | [PlaywrightActionSequence](PlaywrightActionSequence.java) | fațadă publică, nu implementarea tuturor operațiilor |
-| download și cleanup-ul observației | [PlaywrightBrowserActions](PlaywrightBrowserActions.java) | listener armat înainte de click, deadline comun și eveniment real |
-| readiness și buget | [PlaywrightBrowserActions](PlaywrightBrowserActions.java) | așteptări browser și observație în buget |
-| locator și interacțiune | [PlaywrightLocatorActions](PlaywrightLocatorActions.java) | operații asupra locatorului |
-| select înlocuit în timpul așteptării | [PlaywrightSelectAction](selection/PlaywrightSelectAction.java) | observație read-only înaintea unicului apel nativ, fără replay |
-| observația BE pasivă și dezabonarea | [UiBackendRecovery](recovery/UiBackendRecovery.java) și [UiRecoveryObserver](recovery/UiRecoveryObserver.java) | metadata scoped; fără dispatch, replay sau body capturat |
-| atașare parțială și erori la retragere | [UiListenerScope](lifecycle/UiListenerScope.java) | activ numai după atașarea completă; toate retragerile încercate și cauzele distincte păstrate |
-| cauză, timp și diagnostic | [UiActionRecorder](UiActionRecorder.java) | înregistrare și politica de retry a operației |
+| acquisition and release | [PlaywrightUiSession](PlaywrightUiSession.java) | owns Playwright/browser/context/page and the inspector |
+| scale and iframe coordinates | [UiViewportScale](../config/geometry/UiViewportScale.java) → [PlaywrightUiSession](PlaywrightUiSession.java) | requested output, CSS viewport, and native DPR; no injected CSS |
+| action vocabulary | [PlaywrightActionSequence](PlaywrightActionSequence.java) | public facade, not the implementation of every operation |
+| download and observation cleanup | [PlaywrightBrowserActions](PlaywrightBrowserActions.java) | listener armed before click, shared deadline, and real event |
+| readiness and budget | [PlaywrightBrowserActions](PlaywrightBrowserActions.java) | browser waits and observation within budget |
+| explicit fixture preparation | [PlaywrightPagePreparation](PlaywrightPagePreparation.java) | load, current root attachment, and native PNG share the existing navigation budget; target actionability remains native |
+| locator and interaction | [PlaywrightLocatorActions](PlaywrightLocatorActions.java) | locator operations |
+| select replaced while waiting | [PlaywrightSelectAction](selection/PlaywrightSelectAction.java) | read-only observation before the single native call, with no replay |
+| passive backend observation and unsubscribe | [UiBackendRecovery](recovery/UiBackendRecovery.java) and [UiRecoveryObserver](recovery/UiRecoveryObserver.java) | scoped metadata; no dispatch, replay, or captured body |
+| partial attachment and release failures | [UiListenerScope](lifecycle/UiListenerScope.java) | active only after full attachment; attempts every release and retains distinct causes |
+| cause, timing, and diagnostics | [UiActionRecorder](UiActionRecorder.java) | recording and operation retry policy |
 
-## Invariante de păstrat
+<a id="invariants-to-preserve"></a>
+<a id="invariante-de-păstrat"></a>
+## Invariants to preserve
 
-- Readiness-ul primește bugetul rămas. O nouă citire nu primește automat încă
-  un timeout complet; expected-ul business nu este predicat de sincronizare.
-- Nu echivala clickul reușit cu finalizarea efectului. Download-ul, navigarea
-  și răspunsul HTTP sunt observații distincte care cer context și timp propriu.
-- Consultă politica de retry înainte de a modifica o operație; nu adăuga retry
-  local la o mutație pentru a ascunde o postcondiție lipsă.
-- Selectul reobservă locatorul strict și opțiunea fără a activa controlul vechi.
-  Evenimentul nativ este permis o singură dată, în restul deadline-ului; un rezultat
-  gol sau o excepție după dispatch rămân FAIL și nu autorizează încă o selecție.
-- Diagnosticul unei acțiuni sensibile rămâne sigur. Proiecția HTML și preview-ul
-  aparțin bibliotecii Reporting, nu acestui adaptor.
+- Readiness receives the remaining budget. A new read does not automatically
+  get another full timeout; the business expected value is not a synchronization predicate.
+- Do not equate a successful click with completion of its effect. Download,
+  navigation, and HTTP response are distinct observations that need their own context and time.
+- Check the retry policy before changing an operation; do not add a local retry
+  to a mutation to hide a missing postcondition.
+- Select re-observes the strict locator and option without activating the old
+  control. The native event is allowed once, within the remaining deadline; an
+  empty result or exception after dispatch remains FAIL and does not authorize another selection.
+- Diagnostics for a sensitive action remain safe. HTML projection and preview
+  belong to the Reporting library, not this adapter.
 
-Pregătirea [gate-ului de geometrie](../../../../../../README.md#gate-ul-fixture-ului-de-geometrie)
-aparține fixture-ului din test: documente inițializate, layout stabil și captură în bugetul
-navigării, apoi pointer la 850 ms. Runtime-ul nu primește un warm-up implicit.
+Preparation for the [geometry fixture gate](../../../../../../README.md#geometry-fixture-gate)
+belongs to the test fixture: initialized documents, stable layout, and capture
+within the navigation budget, followed by a pointer at 850 ms. Runtime gets no implicit warm-up.
 
-## Probe și vecini
+<a id="proofs-and-neighbors"></a>
+<a id="probe-și-vecini"></a>
+## Proofs and neighbors
 
-| Contract | Probă de pornire |
+| Contract | Starting proof |
 |---|---|
-| vocabular și înregistrarea acțiunilor | [PlaywrightActionSequenceTest](../../../../../test/java/atf/ui/playwright/PlaywrightActionSequenceTest.java) |
-| pointer trusted, focus, captură și refuz la 70% | [PlaywrightPointerGeometryComponentTest](../../../../../test/java/atf/ui/playwright/geometry/PlaywrightPointerGeometryComponentTest.java) |
-| download, eveniment și cleanup | [PlaywrightDownloadComponentTest](../../../../../test/java/atf/ui/playwright/download/PlaywrightDownloadComponentTest.java) |
-| continuitatea selectului și refuzul replay-ului | [PlaywrightSelectContinuityComponentTest](../../../../../test/java/atf/ui/playwright/selection/PlaywrightSelectContinuityComponentTest.java) |
-| achiziția sesiunii, cauze simultane și close-once | [PlaywrightUiSessionLifecycleComponentTest](../../../../../test/java/atf/ui/playwright/PlaywrightUiSessionTest.java); resurse returnate cu succes, release complet și aceeași cauză |
-| atașarea și retragerea listener-elor | [UiListenerScopeComponentTest](../../../../../test/java/atf/ui/playwright/lifecycle/UiListenerScopeComponentTest.java) și [UiRecoveryObserverLifecycleComponentTest](../../../../../test/java/atf/ui/playwright/recovery/UiRecoveryObserverLifecycleComponentTest.java) |
+| action vocabulary and recording | [PlaywrightActionSequenceTest](../../../../../test/java/atf/ui/playwright/PlaywrightActionSequenceTest.java) |
+| first-frame preparation and its independent deadline | [clock contracts](../../../../../test/java/atf/ui/playwright/PlaywrightPagePreparationTest.java) / [native pixels and refusals](../../../../../test/java/atf/ui/playwright/PlaywrightPagePreparationComponentTest.java) |
+| trusted pointer, focus, capture, and refusal at 70% | [PlaywrightPointerGeometryComponentTest](../../../../../test/java/atf/ui/playwright/geometry/PlaywrightPointerGeometryComponentTest.java) |
+| download, event, and cleanup | [PlaywrightDownloadComponentTest](../../../../../test/java/atf/ui/playwright/download/PlaywrightDownloadComponentTest.java) |
+| select continuity and replay refusal | [PlaywrightSelectContinuityComponentTest](../../../../../test/java/atf/ui/playwright/selection/PlaywrightSelectContinuityComponentTest.java) |
+| cause, rollback, and close-once | [UiListenerScopeComponentTest](../../../../../test/java/atf/ui/playwright/lifecycle/UiListenerScopeComponentTest.java) and [UiRecoveryObserverLifecycleComponentTest](../../../../../test/java/atf/ui/playwright/recovery/UiRecoveryObserverLifecycleComponentTest.java) |
 
-Pentru ownership și capturi continuă în [README-ul UI](../../../../../../README.md);
-pentru operația business continuă la pagina/flow-ul consumerului. Un fixture
-local nu certifică readiness-ul întregii aplicații externe.
+For ownership and screenshots, continue in the [UI README](../../../../../../README.md);
+for business operations, continue in the consumer's page/flow. A local fixture
+does not certify readiness of the entire external application.
 
-Callback-ul verifică `active()` înaintea oricărui acces la request/response/frame.
-Contractul scope-ului este la [UI](../../../../../../README.md#scope-ul-listener-elor-de-observație);
-inspectorul de rețea își păstrează separat ownership-ul și ordinea de release.
+The callback checks `active()` before accessing any request/response/frame.
+The scope contract is in the [UI README](../../../../../../README.md#observation-listener-scope);
+the network inspector keeps its ownership and release order separate.
 
-Continuă orientarea în [atlasul de context ATF](../../../../../../../docs/ATF_Context_Atlas.md).
-
+Continue with the [UI module guide](../../../../../../../atf-ui/README.md).

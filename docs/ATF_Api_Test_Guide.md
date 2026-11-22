@@ -1,121 +1,126 @@
-# Ghid pentru adăugarea unui test API în ATF Java
+<a id="guide-to-add-a-api-test-to-atf-java"></a>
+<a id="ghid-pentru-adăugarea-unui-test-api-în-atf-java"></a>
+<a id="guide-to-adding-an-api-test-in-atf-java"></a>
+# Guide to adding an API test in ATF Java
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-- scop: un test API determinist, semantic și reproductibil;
-- boundary: testul compune core, transportul configurat și validatorul;
-- raportul este verificat separat după contractul Extent;
-- arhitectură: [ATF_Architecture.md](ATF_Architecture.md);
-- raportare: [ATF_Reporting_Contract.md](ATF_Reporting_Contract.md).
+- goal: a deterministic, semantic, reproducible API test;
+- boundary: the test composes Core, the configured transport, and the validator;
+- verify the report separately against the Extent contract;
+- architecture: [ATF_Architecture.md](ATF_Architecture.md);
+- reporting: [ATF_Reporting_Contract.md](ATF_Reporting_Contract.md).
 
-## Pașii obligatorii
+<a id="binding-steps"></a>
+<a id="pașii-obligatorii"></a>
+<a id="required-steps"></a>
+## Required steps
 
-- [ ] definește comportamentul API și criteriul de acceptare;
-- [ ] verifică ruta, modelul, serviciul și validatorul existente;
-- [ ] păstrează vocabularul rutelor la owner: `MockRoutePaths` acoperă serviciul
-      demo al modulului `atf-mock`, nu rutele fiecărui consumer; pentru live,
-      `ApiLiveTransportCatalog` oferă transport generic cu endpoint declarat și
-      opt-in explicit;
-- [ ] adaugă serviciu semantic numai când operația are sens de domeniu;
-- [ ] execută prin executor și transport injectat; testul nu construiește clientul HTTP;
-- [ ] grupează verificările response-ului într-un singur tabel de assertions;
-- [ ] înregistrează cleanup-ul imediat după dobândirea ownership-ului;
-- [ ] adaugă întâi testul unit/component pentru regula nouă;
-- [ ] numește scenariul și tag-urile după intenție;
-- [ ] generează artifactul și verifică raportul după contract.
+- [ ] define the API behavior and acceptance criterion;
+- [ ] inspect the existing route, model, service, and validator;
+- [ ] keep route vocabulary with its owner: `MockRoutePaths` covers the `atf-mock` demo service, not each consumer's routes; for live traffic, `ApiLiveTransportCatalog` provides generic transport with a declared endpoint and explicit opt-in;
+- [ ] add a semantic service only when the operation has domain meaning;
+- [ ] execute through the executor and injected transport; the test does not construct the HTTP client;
+- [ ] group response checks in one assertions table;
+- [ ] register cleanup immediately after acquiring ownership;
+- [ ] add a unit/component test for the new rule first;
+- [ ] name the scenario and tags after its intent;
+- [ ] generate the artifact and verify the report against its contract.
 
 <details>
-<summary><strong>Flow cu mai multe request-uri</strong></summary>
+<summary><strong>Flow with multiple requests</strong></summary>
 
-- contractul de mutație și contractul read-model-ului rămân distincte;
-- relația dintre răspunsuri verifică `id/self-link`, versiune sau lineage;
-- verificarea se atașează request-ului de read-back ca evidence;
-- nu se inventează un request HTTP pentru a explica relația.
+- the mutation contract and read-model contract remain separate;
+- the relationship between responses verifies `id/self-link`, version, or lineage;
+- attach the verification to the read-back request as evidence;
+- do not invent an HTTP request to explain the relationship.
 
 </details>
 
-## Structura minimă a unui scenariu
+<a id="minimum-structure-of-a-scenario"></a>
+<a id="structura-minimă-a-unui-scenariu"></a>
+<a id="minimum-scenario-structure"></a>
+## Minimum scenario structure
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    Test[Test API] -->|planifică| Plan["Plan"]
-    Plan -->|pregătește| Setup["SETUP"]
-    Setup -->|execută| Body[TEST BODY]
-    Body -->|închide| Teardown[TEARDOWN]
-    Teardown -->|curăță| Cleanup["Cleanup"]
-    Setup -. atașează .-> SetupRequest["Dovezi setup"]
-    Body -. atașează .-> BodyRequest["Schimb HTTP"]
-    BodyRequest -. deține .-> BodyValidation["Contract validation"]
+    Test[Test API] -->|plan| Plan["Plan"]
+    Plan -->|prepare| Setup["SETUP"]
+    Setup -->|runs| Body[TEST BODY]
+    Body -->|closes| Teardown[TEARDOWN]
+    Teardown -->|clean| Cleanup["Cleanup"]
+    Setup -. Attach .-> SetupRequest["Setup evidence"]
+    Body -. attaches .-> BodyRequest["HTTP exchange"]
+    BodyRequest -. owns .-> BodyValidation["Contract validation"]
 ```
 
 <details>
-<summary><strong>Legendă — scenariul API minim</strong></summary>
+<summary><strong>Legend — minimum API scenario</strong></summary>
 
-- linia solidă arată `TEST API → plan → SETUP → TEST BODY → TEARDOWN`;
-- ramificațiile punctate arată numai evidence-ul local al fazei;
-- `SETUP` pregătește numai precondițiile care există în scenariu;
-- `TEST BODY` păstrează contract validation nested sub request-ul al cărui
-  response îl verifică;
-- `TEARDOWN` apare doar când există cleanup sau read-back real;
-- tabelul de assertions este verdictul semantic, nu un rezumat duplicat în fază.
+- the solid line shows `API TEST → plan → SETUP → TEST BODY → TEARDOWN`;
+- dotted branches show only evidence local to that phase;
+- `SETUP` prepares only preconditions that exist in the scenario;
+- `TEST BODY` keeps contract validation nested under the request whose response it verifies;
+- `TEARDOWN` appears only when there is real cleanup or read-back;
+- the assertions table is the semantic verdict, not a duplicate phase summary.
 
-Etichetele scurte păstrează următorul sens:
+The short labels shall be kept as follows:
 
-| În schemă | Sens complet |
+| In the scheme | Full meaning |
 |---|---|
 | Plan | Scenario plan |
-| SETUP | SETUP opțional |
+| SETUP | Optional setup |
 | Cleanup | Cleanup/read-back |
-| Dovezi setup | Setup request |
-| Schimb HTTP | Request + trace · response evidence |
+| Setup evidence | Setup request |
+| HTTP exchange | Request + trace · response evidence |
 | Contract validation | Contract validation + aggregate · assertion table |
-| atașează | local evidence |
-| deține | owns |
+| attaches | local evidence |
+| owns | owns |
 
 </details>
 
-Pentru un test simplu, TEST BODY trebuie să conțină request-ul și validarea
-lui. Pentru lifecycle, fazele sunt create numai când au conținut real. Un nod
-TEST BODY nu repetă failure-urile care apar deja în tabelul de assertions; faza
-arată doar sumarul, iar diagnosticul detaliat rămâne sub validation.
+For a simple test, TEST BODY must contain the request and its validation. For a lifecycle scenario, create phases only when they have real content. A TEST BODY node does not repeat failures already shown in the assertions table; the phase shows only a summary, while detailed diagnostics remain under validation.
 
-## Ce verifică un test API
+<a id="what-checks-a-api-test"></a>
+<a id="ce-verifică-un-test-api"></a>
+<a id="what-an-api-test-verifies"></a>
+## What an API test verifies
 
-Un validator poate grupa în același tabel:
+A validator can group the following in the same table:
 
 | Assertion | Expected | Actual | Result |
 |---|---|---|---|
-| HTTP status | codul și textul așteptat | răspunsul primit | PASS/FAIL/WARNING |
-| Content-Type | tipul acceptat | header-ul primit | PASS/FAIL |
-| JSON schema | schema contractului | schema evaluată | PASS/FAIL |
-| câmp obligatoriu | valoare sau tip | valoarea primită | PASS/FAIL/WARNING |
-| relație | resursa asociată | rezultatul verificării | PASS/FAIL |
+| HTTP status | expected code and text | received response | PASS/FAIL/WARNING |
+| Content-Type | accepted type | received header | PASS/FAIL |
+| JSON schema | contract schema | evaluated schema | PASS/FAIL |
+| required field | expected value or type | received value | PASS/FAIL/WARNING |
+| relationship | associated resource | verification result | PASS/FAIL |
 
-Nu se creează câte un nod pentru fiecare assertion. Tabelul este agregat pentru
-response-ul curent, astfel încât toate abaterile să fie vizibile împreună.
+Do not create a node for each assertion. The table aggregates the current response so all deviations are visible together.
 
-Corelarea alege observația curentă înaintea evaluării statusului, conform
-[contractului dovezii](ATF_Evidence_Capture_Contract.md#alegerea-dovezii-înaintea-verdictului).
-Un răspuns de eroare și lipsa capturii au diagnostice distincte; un 2xx mai vechi
-nu poate înlocui dovada operației evaluate.
+The correlation chooses the current observation before the status assessment according to [contract of proof](ATF_Evidence_Capture_Contract.md#alegerea-dovezii-înaintea-verdictului). An error response and absence of capture have distinct diagnoses; an older 2xx cannot replace the evidence of the assessed operation.
 
-## Durată și status în raport
+<a id="duration-and-status-in-the-report"></a>
+<a id="durată-și-status-în-raport"></a>
+## Duration and status in the report
 
-Regula vizibilă este:
+Visible rules:
 
-- durata are unitate explicită (`ms` sau `s`);
-- statusul și durata sunt tokens diferite;
-- frunza folosește durata măsurată;
-- părintele folosește durata proprie și totalurile copiilor direcți;
-- o durată Extent inclusivă nu se adună din nou cu descendenții;
-- timestamp-ul nu este durată și nu apare ca o coloană în `Tests`.
+- duration has an explicit unit (`ms` or `s`);
+- status and duration are separate tokens;
+- a leaf uses its measured duration;
+- a parent uses its own duration and the totals of its direct children;
+- an inclusive Extent duration is not added again to its descendants;
+- a timestamp is not a duration and does not appear as a column in `Tests`.
 
-Unitatea, geometria și paleta badge-urilor sunt contracte vizuale comune, nu
-reguli API; sursa normativă este
-[contractul Reporting Display](ATF_Reporting_Display_Contract.md#tokens-vizuale).
+The unit, geometry and badge palette are common visual contracts, not API rules; the regulatory source is [contract Reporting Display](ATF_Reporting_Display_Contract.md#tokens-vizuale).
 
-## Separarea responsabilităților
+<a id="separation-of-responsibilities"></a>
+<a id="separarea-responsabilităților"></a>
+## Separation of responsibilities
 
 ```text
 MockRoutePaths              -> rutele serviciului demo atf-mock
@@ -128,24 +133,18 @@ Report session              -> arbore și evidence
 Scenario                    -> ordine și intenție
 ```
 
-Dacă testul începe să conțină JSON de infrastructură, CSS, markup Extent,
-politici de retry sau endpoint-uri literale, responsabilitatea este în locul
-greșit.
+If a test starts to contain infrastructure JSON, CSS, Extent markup, retry policies, or literal endpoints, the responsibility is in the wrong place.
 
-`ApiLiveTransportCatalog` nu descoperă host-ul serviciului și nu selectează
-automat o rută de business: consumerul îi furnizează endpoint-ul din configurația
-sa, apoi catalogul validează modul `LIVE`, opt-in-ul și originea request-ului.
-Contractul serviciului și rutele lui rămân în modulul consumerului.
+`ApiLiveTransportCatalog` does not discover the service host or automatically select a business route: the consumer provides the endpoint from its configuration, then the catalog validates `LIVE` mode, opt-in, and request origin. The service contract and its routes remain in the consumer module.
 
-## Replay manual și request-uri reale
+<a id="hand-replay-and-actual-requests"></a>
+<a id="replay-manual-și-request-uri-reale"></a>
+<a id="manual-replay-and-real-requests"></a>
+## Manual replay and real requests
 
-Raportul API este sursa de pași reproductibili: `METHOD`, `URL`, headers
-efective, `REQUEST JSON`, `RESPONSE JSON`, `TRANSPORT PROVENANCE` și
-`MANUAL REPLAY`. În acceptance, un URL real configurat este numai metadata a
-mock-ului; raportul îl marchează `ACCEPTANCE / MOCK` și `NOT EXECUTABLE`. Nu se
-copiează un cURL dintr-un raport mock ca și cum ar fi fost executat.
+The API report provides reproducible steps: `METHOD`, `URL`, effective headers, `REQUEST JSON`, `RESPONSE JSON`, `TRANSPORT PROVENANCE`, and `MANUAL REPLAY`. In acceptance, a configured real URL is only mock metadata; the report marks it `ACCEPTANCE / MOCK` and `NOT EXECUTABLE`. Do not copy cURL from a mock report as if it had been executed.
 
-Request-urile reale sunt separate și opt-in:
+Real requests are separate and opt-in:
 
 ```yaml
 api:
@@ -153,58 +152,59 @@ api:
   baseUri: https://<real-api-host>/<base-path>
 ```
 
-Transportul live cere mod și opt-in explicite la composition root, plus un
-endpoint validat de `ApiLiveTransportCatalog`. Configurația generică poate citi
-`atf.api.live.optIn` sau `ATF_API_LIVE_OPT_IN`; gate-urile consumerilor au politici proprii.
+Live transport requires an explicit mode and opt-in at the composition root, plus an endpoint validated by `ApiLiveTransportCatalog`. Generic configuration can read `atf.api.live.optIn` or `ATF_API_LIVE_OPT_IN`; consumer gates have their own policies.
 
-| Lansare | Gate curent | Owner |
+| Launch | Current gate | Owner |
 |---|---|---|
-| Catalog generic configurat | profil `live` și opt-in de transport | `atf-core` |
-| API AutoEx | opt-in-uri independente `atf.autoex.api.readonly.live.enabled` și `atf.autoex.api.live.enabled` | [AutoEx](../atf-test-auto-ex/README.md#api-direct-și-limita-evidence-ului-uiapi) |
-| API autentificat Shop | profil autentificat permis, fixture valid și mod API `LIVE` | [Shop](../atf-test-practice-shop/README.md#de-ce-raportul-api-nu-arată-ca-raportul-ui) |
+| configured generic catalog | `live` profile and transport opt-in | `atf-core` |
+| AutoEx API | independent opt-ins `atf.autoex.api.readonly.live.enabled` and `atf.autoex.api.live.enabled` | [AutoEx](../atf-test-auto-ex/README.md#api-direct-și-limita-evidence-ului-uiapi) |
+| authenticated Shop API | permitted authenticated profile, valid fixture, and API mode `LIVE` | [Shop](../atf-test-practice-shop/README.md#de-ce-raportul-api-nu-arată-ca-raportul-ui) |
 
-În toate cazurile se păstrează:
+In every case, preserve:
 
-- replay cURL generat după execuție, cu token-uri și headere sensibile redactate;
-- fără network pentru testele care nu declară explicit profilul `live`;
-- fără placeholder acceptance și fără request în afara originii endpoint-ului selectat.
+- generate cURL replay after execution, with tokens and sensitive headers redacted;
+- no network for tests that do not explicitly declare the `live` profile;
+- no placeholder acceptance and no request outside the selected endpoint origin.
 
-## Ownership-ul raportului
+<a id="report-ownershipwwnnnnnnnnnnnnnnnnnnnnnnnnnn"></a>
+<a id="ownership-ul-raportului"></a>
+<a id="report-ownership"></a>
+## Report ownership
 
-Suita nu garantează singură raport comun: adaptorul trebuie să dețină explicit
-sesiunea și finalizarea. AutoEx declară scope `suite` pentru API și păstrează
-scope `class` la lansare individuală; Shop are o singură clasă în suita API live.
+The suite alone does not guarantee a shared report: the adapter must explicitly own the session and finalization. AutoEx declares `suite` scope for API runs and keeps `class` scope for individual runs; Shop has one class in its live API suite.
 
-- Auditul Shop se deschide înaintea clientului și credentialelor și se publică
-  după cleanup, inclusiv pe ieșiri de eșec. Lipsa răspunsului nu inventează status sau body HTTP.
-- Un HTTP respins păstrează request-ul, răspunsul disponibil și comparațiile FAIL;
-  o clasă reușită nu acoperă eșecul clasei-surori din artifactul comun.
-- Componentele fără trafic publică verificări prin adaptorul de componentă,
-  fără request-uri sintetice; contractul este în
-  [ghidul de testare](ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
+- Shop audit starts before the client and credentials and publishes after cleanup, including on failure exits. A missing response does not invent an HTTP status or body.
+- A rejected HTTP response retains the request, available response, and FAIL comparisons; a passing class does not cover a sibling class failure in the shared artifact.
+- Components without traffic shall publish checks through the component adapter,
+  no synthetic quests; the contract is in [test guide](ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
 
-## Cleanup și failure
+<a id="cleanup-and-faillure"></a>
+<a id="cleanup-și-failure"></a>
+<a id="cleanup-and-failure"></a>
+## Cleanup and failure
 
-- resursa creată se înregistrează imediat în registry-ul scenariului;
-- teardown-ul se execută și când body-ul eșuează, dacă există ownership;
-- failure-ul din cleanup nu ascunde failure-ul primar;
-- statusul final respectă aceeași precedence peste tot;
-- un test skip nu simulează un pass și nu publică assertions inventate.
+- register a created resource in the scenario registry immediately;
+- run teardown after a body failure when ownership exists;
+- cleanup failure does not hide the primary failure;
+- final status follows the same precedence everywhere;
+- a skipped test does not simulate a pass or publish invented assertions.
 
-## Verificarea raportului
+<a id="verification-of-the-report"></a>
+<a id="verificarea-raportului"></a>
+<a id="verifying-the-report"></a>
+## Verifying the report
 
-După testele offline și rularea scenariului:
+After offline tests and the scenario run:
 
-- [ ] deschide artifactul HTML în TAB MCP;
-- [ ] verifică `Tests → Category → Fails → Overview`, cu `Overview` implicit;
-- [ ] selectează un test pozitiv și unul cu warning/fail/skip;
-- [ ] expandează request, trace, JSON și validation;
-- [ ] confirmă `Contract validation` nested sub request-ul evaluat și un singur tabel;
-- [ ] confirmă JSON scrollabil intern, fără overflow al paginii;
-- [ ] verifică tag-urile în detaliile scenariului;
-- [ ] verifică Fails: o singură zonă, sumar schematic și link stabil;
-- [ ] confirmă că nu apar resurse externe sau folder auxiliar Extent.
+- [ ] open the HTML artifact in TAB MCP;
+- [ ] verify `Tests → Category → Fails → Overview`, with `Overview` as the default;
+- [ ] select one passing test and one warning/fail/skip test;
+- [ ] expand the request, trace, JSON, and validation;
+- [ ] confirm `Contract validation` is nested under the evaluated request and uses one table;
+- [ ] confirm JSON scrolls internally without page overflow;
+- [ ] verify tags in the scenario details;
+- [ ] verify Fails has one section, a schematic summary, and a stable link;
+- [ ] confirm that no external resources or auxiliary Extent folder appear.
 
-Validarea vizuală este parte din testul de raportare. Build-ul verde singur nu
-este suficient când schimbarea atinge DOM-ul sau CSS-ul.
+Visual validation is part of the reporting test. A green build alone is not sufficient when a change affects the DOM or CSS.
 

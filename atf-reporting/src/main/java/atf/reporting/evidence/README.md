@@ -1,79 +1,79 @@
-# ATF Reporting Evidence — date observate, format și disclosure
+<a id="atf-reporting-evidence---observed-data-format-and-dislocure"></a>
+<a id="atf-reporting-evidence--date-observate-format-și-disclosure"></a>
+<a id="atf-reporting-evidence---observed-data-format-and-disclosure"></a>
+# ATF Reporting Evidence - observed data, format and disclosure
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-Pachetul transformă dovezile primite în tabele și markup. Deține politica de
-display și prezentarea capturilor existente; nu capturează ecranul și nu
-execută operația pentru a completa un rând lipsă.
+The package converts the evidence received in the tables and markup. It holds the display policy and the presentation of existing catches; it does not capture the screen and does not perform the operation to complete a missing row.
 
-[Atlas](../README.md) · [Profil UI](profile/ReportEvidenceProfile.java) ·
-[Contractul de display](../../../../../../README.md#lizibilitatea-dovezilor-în-panouri-înguste)
+[Atlas](../README.md) · [UI profile](profile/ReportEvidenceProfile.java) · [Display contract](../../../../../../README.md#lizibilitatea-dovezilor-în-panouri-înguste)
 
-| Schimbare | Sursa | Responsabilitate |
+| Change | Source | Responsibility |
 |---|---|---|
-| dispatch între UI și transport | [ExtentEvidenceRenderer](ExtentEvidenceRenderer.java) | coordonează renderere specializate, fără lifecycle de nod |
-| request/response/attempts | [ExtentTransportEvidenceRenderer](ExtentTransportEvidenceRenderer.java) | tabele tehnice și dovezi JSON |
-| acțiuni, observations și assertions UI | [ExtentUiEvidenceRenderer](ExtentUiEvidenceRenderer.java), [ui](ui) | owner și prezentare UI |
-| ordinea redactare/format/plafon | [ReportEvidenceJsonFormatter](markup/ReportEvidenceJsonFormatter.java) | politică comună Extent/fallback |
-| câmpuri și tabele | [EvidenceTableFormatter](EvidenceTableFormatter.java), [ReportEvidenceTable](ReportEvidenceTable.java) | structură și date de display |
-| sumar de excepție | [ReportFailureDescription](diagnostic/ReportFailureDescription.java) | graf bounded, redactare înainte de 240; fără decizie business |
-| imaginea atașată acțiunilor | [UiActionScreenshotPolicy](policy/UiActionScreenshotPolicy.java) | cardinalitate, fără captură browser |
+| Display between UI and transport | [ExtentEvidenceRenderer](ExtentEvidenceRenderer.java) | coordinate specialized renderings without lifecycle of node |
+| request/response/attempts | [ExtentTransportEvidenceRenderer](ExtentTransportEvidenceRenderer.java) | Technical tables and evidence JSON |
+| shares, observations and assertions UI | [ExtentUiEvidenceRenderer](ExtentUiEvidenceRenderer.java), [ui](ui) | Owner and presentation UI |
+| Redaction order / format / ceiling | [ReportEvidenceJsonFormatter](markup/ReportEvidenceJsonFormatter.java) | Extent / fallback policy |
+| Lines and tables | [EvidenceTableFormatter](EvidenceTableFormatter.java), [ReportEvidenceTable](ReportEvidenceTable.java) | Display structure and data |
+| exceptional summary | [ReportFailureDescription](diagnostic/ReportFailureDescription.java) | graph bounded, redaction before 240; no business decision |
+| image attached to actions | [UiActionScreenshotPolicy](policy/UiActionScreenshotPolicy.java) | cardinality, without browser catch |
 
-## Pipeline-ul de citit împreună
+<a id="the-reading-pipelineum-together"></a>
+<a id="pipeline-ul-de-citit-împreună"></a>
+<a id="the-reading-pipeline-together"></a>
+## The reading pipeline together
 
-- Modelul păstrează faptele complete pentru verdict și asociere; copia de
-  display aplică redactare, formatare și bugetul configurat.
-- Formatterul JSON este folosit de ambele renderere. O corecție numai în HTML-ul
-  Extent poate lăsa fallback-ul sau o altă proiecție nealiniată.
-- Disclosure-ul deține interacțiunea; patru coloane de assertions și șase de
-  acțiuni au roluri diferite. Timpul unei comparații nu este inventat din timpul acțiunii.
+- The model keeps the facts complete for verdict and association; copy of
+  Display applies redaction, formatting and budget configured.
+- JSON formatter is used by both renderers. A correction only in HTML
+  Extent may leave the fallback or another unaligned projection.
+- Disclosureul holds the interaction; four columns of assertions and six of
+  actions have different roles. A comparison time is not invented during action.
 
 <details>
-<summary><strong>Invariante pentru capturi, status și siguranță</strong></summary>
+<summary><strong>Invariant for catches, status and safety</strong></summary>
 
-- O secvență cu acțiuni are cel mult un payload screenshot distinct;
-  observațiile fără acțiuni pot avea galerie, conform politicii existente.
-- Screenshot policy, flow mode și action details sunt axe separate ale profilului.
-- `ExtentReportUiEvidence` poate insera capturi PNG deja produse într-un artifact;
-  numele său nu îl transformă într-un provider Playwright.
-- Verdictul se păstrează din intrarea typed. Trunchierea textului nu produce o
-  comparație nouă și nu transformă expected/actual egale vizual în PASS.
-- [Redactorul JSON](../security/JsonEvidenceRedactor.java) interpretează cheia
-  semantică înaintea valorii; maschează și scalare/array/obiect, păstrează
-  câmpurile duplicate și nu modifică valorile folosite de caller la verdict.
-- [Sumarul assertion-urilor](diagnostic/ReportAssertionSummary.java) este numai
-  diagnostic sigur, cu redacție per câmp și plafon 240; nu reevaluează comparațiile.
+- A sequence of actions shall have at most a distinct payload screen shot;
+  Without action observations may have a gallery, according to existing policy.
+- Screenshot policy, flow mode and action details are separate axes of the profile.
+- `ExtentReportUiEvidence` can insert catches PNG already produced in an artifact;
+  His name doesn't turn him into a Playwright provider.
+- The verdict is kept from the input typed. Trunching text does not produce a
+  new comparison and does not convert the expected / current equal visual into PASS.
+- [Redactorul JSON](../security/JsonEvidenceRedactor.java) interprets key
+  Semantics before value; also mask / array / object, keep the fields duplicated and does not other than the values used by the caller at the verdict.
+- [Summary of the assertions](diagnostic/ReportAssertionSummary.java) is only
+  Safe diagnosis, with 240 editorial per field and ceiling; do not reassess comparisons.
 
 </details>
 
 ## Probe
 
-[ReportEvidenceJsonFormatterTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/evidence/markup/ReportEvidenceJsonFormatterTest.java), [ReportEvidenceTableTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/evidence/ReportEvidenceTableTest.java) și
-[ReportEvidenceStyleContractTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/evidence/ReportEvidenceStyleContractTest.java) verifică proiecția; controalele de renderer și
-browser sunt în [Reporting Tests](../../../../../../../atf-reporting-tests/README.md#tabele-publicate-și-inventar-independent).
+[ReportEvidenceJsonFormatterTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/evidence/markup/ReportEvidenceJsonFormatterTest.java), [ReportEvidenceTableTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/evidence/ReportEvidenceTableTest.java) and [ReportEvidenceStyleContractTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/evidence/ReportEvidenceStyleContractTest.java) check the projection; renderer and browser controls are in [Reporting Tests](../../../../../../../atf-reporting-tests/README.md#tabele-publicate-și-inventar-independent).
 
-Pentru o modificare de secret/buget se citesc și
-[SensitiveDataRedactor](../security/SensitiveDataRedactor.java) și
-[ReportingSettings](../configuration/ReportingSettings.java); pentru geometrie,
-contextul continuă la [runtime și assets](../runtime/README.md).
+[SensitiveDataRedactor](../security/SensitiveDataRedactor.java) and [ReportingSettings](../configuration/ReportingSettings.java) are also read for a secret / budget change; for geometry, the continuous context of [runtime and assets](../runtime/README.md).
 
 
-## Valorile complete ACTION/OBSERVE
+<a id="action--observe-complete-values"></a>
+<a id="valorile-complete-actionobserve"></a>
+## ACTION / OBSERVE complete values
 
 | Owner | Contract |
 |---|---|
-| [UiEvidenceValueMarkup](ui/UiEvidenceValueMarkup.java) | redactează o singură valoare; preview 240 și disclosure complet în aceeași celulă |
-| [ACTION](ui/ExtentUiActionRenderer.java) și [OBSERVE](ui/ExtentUiObservationRenderer.java) | folosesc aceeași proiecție în Extent și fallback, cu ordinal și status capturate |
+| [UiEvidenceValueMarkup](ui/UiEvidenceValueMarkup.java) | Only one value; preview 240 and complete dislocation in the same cell |
+| [ACTION](ui/ExtentUiActionRenderer.java) and [OBSERVE](ui/ExtentUiObservationRenderer.java) | use the same projection in Extent and fallback, with ordinary and captured status |
 
-SUMMARY_ONLY rămâne explicit; body display limit și valorile assertions au contracte separate.
+SUMMARY_ONLY remains explicit; body display limit and assertions values have separate contracts.
 
-## Un singur owner pentru rândul UI
+<a id="a-single-owner-for-the-row-ui"></a>
+<a id="un-singur-owner-pentru-rândul-ui"></a>
+## A single owner for the row UI
 
-[UiEvidenceRowMarkup](ui/UiEvidenceRowMarkup.java) proiectează operation, ordinal,
-target și valorile capturate pentru ACTION și OBSERVE, cu aceeași politică de redactare.
-[UiEvidenceValueMarkup](ui/UiEvidenceValueMarkup.java) păstrează preview-ul 240 și
-textul integral, inclusiv începutul și finalul whitespace-ului în DOM.
+[UiEvidenceRowMarkup](ui/UiEvidenceRowMarkup.java) designs operation, ordinary, target and captured values for ACTION and OBSERVE, with the same redaction policy. [UiEvidenceValueMarkup](ui/UiEvidenceValueMarkup.java) keeps the 240 preview and the full text, including the beginning and end of whitespace in DOM.
 
-- ACTION păstrează coloana TIME; OBSERVE păstrează structura fără timp.
-- Fallback deleagă recordurile originale; titlul PNG folosește politica rendererului.
-- Verdictul și comparațiile rămân input capturat, independent de textul redactat.
+- ACTION retains the TIME column; OBSERVE retains the time-free structure.
+- Fallback unlocks the original records; the title PNG uses renderer policy.
+- The verdict and comparisons remain captured independently of the wording.

@@ -1,20 +1,26 @@
-# Core — contracte și mecanisme comune
+<a id="core--shared-contracts-and-mechanisms"></a>
+<a id="core--contracte-și-mecanisme-comune"></a>
+# Core — shared contracts and mechanisms
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-`atf-core` oferă vocabularul și mecanismele reutilizabile ale ATF. Folosiți-l pentru a compune adaptoare și execuții, păstrând regulile aplicației în consumer.
+`atf-core` provides ATF's reusable vocabulary and mechanisms. Use it to compose adapters and executions while keeping application rules in the consumer.
 
-| Aveți nevoie de | API de pornire |
+| Need | Starting API |
 |---|---|
-| Cereri, răspunsuri și execuție HTTP | `ApiRequest`, `ApiResponse`, `ApiTransport`, `ApiExecutor` |
-| Configurație capturată pentru o rulare | `AtfConfiguration`, `ApiSettingsSnapshot`, `AtfRuntimeSnapshot` |
-| JSON strict și redactarea datelor sensibile | `JsonDocuments`, `SensitiveDataRedactor` |
-| Eliberarea resurselor în ordine inversă | `CleanupRegistry` |
-| Sincronizare selectivă cu verificarea baseline-ului | `AtfPromotionManifest`, `AtfPromotionGuard` |
+| HTTP requests, responses, and execution | `ApiRequest`, `ApiResponse`, `ApiTransport`, `ApiExecutor` |
+| Configuration captured for a run | `AtfConfiguration`, `ApiSettingsSnapshot`, `AtfRuntimeSnapshot` |
+| Strict JSON and sensitive-data redaction | `JsonDocuments`, `SensitiveDataRedactor` |
+| Releasing resources in reverse order | `CleanupRegistry` |
+| Selective synchronization with baseline verification | `AtfPromotionManifest`, `AtfPromotionGuard` |
 
-## Exemplu minim
+<a id="minimal-example"></a>
+<a id="exemplu-minim"></a>
+## Minimal example
 
-Fragment într-o metodă care poate propaga `IOException`; construiește datele fără a trimite un request:
+Snippet inside a method that may propagate `IOException`; it constructs the data without sending a request:
 
 ```java
 import atf.core.http.request.ApiRequest;
@@ -29,16 +35,18 @@ var body = JsonDocuments.read("{\"total\":19.90}");
 var total = body.path("total").decimalValue();
 ```
 
-`url` este `https://example.test/api/orders/42`. `JsonDocuments` respinge cheile duplicate și conținutul rămas după document; numerele zecimale nu trec prin `double`.
+`url` is `https://example.test/api/orders/42`. `JsonDocuments` rejects duplicate keys and trailing content after the document; decimal numbers are not converted through `double`.
 
-## Utilizare în ATF
+<a id="use-in-atf"></a>
+<a id="utilizare-în-atf"></a>
+## Use in ATF
 
-- Injectați un `ApiTransport` în `ApiExecutor`; transportul real sau mock se alege explicit la compoziție.
-- `HttpClientTransport` și `UrlConnectionTransport` propagă anularea către operația deținută; fallback-ul include body-ul în deadline. Anularea nu dovedește rollback și nu autorizează replay.
-- Reutilizați snapshot-ul de configurație al rulării; oracolul, aserțiunile și verdictul de business aparțin consumerului.
-- Păstrați modelul original pentru comparație; redactarea și preview-ul se aplică la publicarea diagnosticului.
-- Core expune porturi neutre; [Console](README.Console.md), [Mock](README.Mock.md) și [Reporting](README.Reporting.md) au roluri distincte.
+- Inject an `ApiTransport` into `ApiExecutor`; select the real or mock transport explicitly during composition.
+- `HttpClientTransport` and `UrlConnectionTransport` propagate cancellation to the owned operation; the fallback includes the body in the deadline. Cancellation does not prove rollback or authorize replay.
+- Reuse the run's configuration snapshot; the oracle, assertions, and business verdict belong to the consumer.
+- Keep the original model for comparison; apply redaction and preview limits when publishing diagnostics.
+- Core exposes neutral ports; [Console](README.Console.md), [Mock](README.Mock.md), and [Reporting](README.Reporting.md) have distinct roles.
 
 ---
 
-Mentenanța codului și testelor Core aparține proiectului separat `atf_j0/atf-core`; [feedback-ul și sincronizarea](README.md#mentenanță-și-feedback) pornesc de la J0.
+The maintenance of Core code and tests belongs to the separate `atf_j0/atf-core` project; [feedback and synchronization](README.md#mentenanță-și-feedback) starts from J0.

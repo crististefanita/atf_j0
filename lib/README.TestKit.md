@@ -1,21 +1,27 @@
-# Test Kit — clasificare și audit JUnit
+<a id="test-kit--junit-classification-and-audit"></a>
+<a id="test-kit--clasificare-și-audit-junit"></a>
+# Test Kit — JUnit classification and audit
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-Kit oferă adnotări, comparații evaluate și lifecycle neutru. JAR-ul nu pornește browser, broker ori ADB și nu publică singur Extent.
+Kit provides annotations, evaluated comparisons, and a neutral lifecycle. The JAR does not start a browser, broker, or ADB, and does not publish Extent on its own.
 
-| Nevoie | API și limită |
+| Need | API and limit |
 |---|---|
-| Nivelul testului | @AtfUnitTest, @AtfComponentTest, @AtfIntegrationTest, @AtfE2eTest; clasificare, fără lansare automată. |
-| Comparații auditabile | RecordedAssertions; verdictul JUnit precede preview-ul 240, care păstrează perechile Unicode complete. |
-| Aserțiuni JUnit existente | AuditedAssertions în scope-ul adaptorului; diagnostic lazy, identitate și cauză originale. Apelurile JUnit directe nu devin automat auditabile. |
-| Valori integrale | AssertionValueDisplay poate primi un observer Projection cu rol expected/actual și text redactat, înainte de preview; consumerul deține retenția. |
-| Faze și cleanup | ComponentAuditExtension / ComponentAuditAdapter, TestRunInitialization, FailureAwareCleanup. |
-| Politici și resurse | Resolverele Atf*Policy; readResourceUtf8 pentru classpath/JAR, requiredPath pentru fișier real. |
+| Test level | @AtfUnitTest, @AtfComponentTest, @AtfIntegrationTest, @AtfE2eTest; classification only, with no automatic launch. |
+| Auditable comparisons | RecordedAssertions; the JUnit verdict precedes the 240-character preview, which preserves complete Unicode pairs. |
+| Existing JUnit assertions | AuditedAssertions within the adapter scope; lazy diagnostics, original identity and cause. Direct JUnit calls do not become auditable automatically. |
+| Full values | AssertionValueDisplay can receive a Projection observer with the expected/actual role and redacted text before preview; the consumer owns retention. |
+| Phases and cleanup | ComponentAuditExtension / ComponentAuditAdapter, TestRunInitialization, FailureAwareCleanup. |
+| Policies and resources | Atf*Policy resolvers; readResourceUtf8 for classpath/JAR, requiredPath for a real file. |
 
-## Exemplu minim
+<a id="minimal-example"></a>
+<a id="exemplu-minim"></a>
+## Minimal example
 
-Adaptorul deține recorderul și publică rezultatul; o nepotrivire păstrează excepția JUnit originală:
+The adapter owns the recorder and publishes the result; a mismatch preserves the original JUnit exception:
 
 ```java
 import atf.testkit.assertions.RecordedAssertions;
@@ -25,38 +31,35 @@ public static void verifyState(RecordedAssertions audit, String actual) {
 }
 ```
 
-## Scope și integrare
+<a id="scope-and-integration"></a>
+<a id="scope-și-integrare"></a>
+## Scope and integration
 
-- Dependență atf.api:atf-test-kit cu versiunea atf.testkit.version din POM-ul proiectului. Folosiți test scope în produs; compile este justificat numai pentru suportul main al unui modul de test. Nu includeți Kit în APK/aplicație.
-- JUnit Jupiter API și Jackson sunt tranzitive. Runnerul declară motorul junit-jupiter-engine și selecția sa; adnotarea de nivel nu înlocuiește @Test ori extensia consumerului.
-- Pentru Extent: adaptorul trimite checks către AssertionAuditReport; AssertionAuditRun deține sesiunea comună. Kit nu copiază rendererul. [Integrare Reporting](README.Reporting.md#scope-și-integrare).
-- Sanitizer-ul se injectează prin AssertionValueDisplay înainte de preview. Comparația rulează o dată; valorile stocate sunt limitate și nu constituie arhivă integrală. Unitățile pure își păstrează politica proprie.
-- Scope-urile și resursele sunt per invocare; închideți-le și păstrați cauza inițială. Politicile globale nu devin izolate între cititori externi printr-un lock local.
+- Dependency: atf.api:atf-test-kit with the atf.testkit.version from the project POM. Use test scope in production; compile is justified only for main-scope support in a test module. Do not include Kit in an APK/application.
+- JUnit Jupiter API and Jackson are transitive. The runner declares the junit-jupiter-engine and its selection; the level annotation does not replace @Test or the consumer extension.
+- For Extent: the adapter sends checks to AssertionAuditReport; AssertionAuditRun owns the shared session. Kit does not copy the renderer. [Reporting integration](README.Reporting.md#scope-and-integration).
+- Inject the sanitizer through AssertionValueDisplay before preview. The comparison runs once; stored values are bounded and are not a complete archive. Pure units keep their own policy.
+- Scopes and resources are per invocation; close them and preserve the original cause. A local lock does not isolate global policies from external readers.
 
 ---
 
-Mentenanță, cod, teste și feedback: [atf_j0](README.md#mentenanță-și-feedback).
+Maintenance, code, tests and feedback: [atf_j0](README.md#mentenanță-și-feedback).
 
-## Planul real al lansării JUnit
+<a id="real-junit-launch-plan"></a>
+<a id="planul-real-al-lansării-junit"></a>
+## Real JUnit launch plan
 
-Pachetul `atf.testkit.launch` observă sesiunea launcherului prin SPI-ul public
-`LauncherSessionListener`. Nu execută teste și nu deschide resurse consumer.
-`TestLaunchContext.capture(context)` returnează un `Optional<TestLaunchSnapshot>`
-imuabil pentru invocarea curentă: selectorii cererii, inventarul filtrat din
-`TestPlan`, numărul descoperit inițial și înregistrările dinamice la captură.
+The `atf.testkit.launch` package observes launcher sessions through the public `LauncherSessionListener` SPI. It neither executes tests nor opens consumer resources. `TestLaunchContext.capture(context)` returns an immutable `Optional<TestLaunchSnapshot>` for the current invocation: request selectors, filtered `TestPlan` inventory, initially discovered count and dynamic registrations observed at capture time.
 
-- Asocierea cererii folosește identitatea configurației planului; o cerere
-  străină sau indisponibilă nu înlocuiește proveniența planului executat.
-- Suitele transmit contextul exterior numai descendenților reali. Lansările
-  independente, repetate și concurente își păstrează scope-ul și cleanup-ul.
-- Numărul descoperit include teste dezactivate și exclude înregistrările
-  dinamice ulterioare; nu reprezintă numărul de teste trecute sau executate.
-- Dacă observerul SPI este dezactivat, captura este absentă. Pentru un plan
-  descoperit într-o altă sesiune, inventarul și numărul rămân disponibile,
-  iar proveniența selectorilor spune explicit că cererea nu este disponibilă.
-- Dependența `junit-platform-launcher` este opțională; consumerul care lansează
-  testele o furnizează. Biblioteca nu depinde de Reporting, UI sau consumeri.
+- Request association uses plan configuration identity; a foreign or unavailable
+  request does not replace provenance of the executed plan.
+- Suites pass outer context only to actual descendants. Independent, repeated
+  and concurrent launches retain their own scope and cleanup.
+- The discovered count includes disabled tests and excludes later dynamic
+  registrations; it does not represent the number of passed or executed tests.
+- Capture is absent when the SPI observer is disabled. For a plan discovered
+  in another session, inventory and count remain available; selector provenance explicitly reports the unavailable request.
+- `junit-platform-launcher` is optional; the consumer launching tests provides
+  it. The library has no dependency on Reporting, UI or consumers.
 
-`TestLaunchPlanComponentTest` probează selecții directe și filtrate, scope-uri
-imbricate/concurente, planuri executate ulterior, teste dezactivate, înregistrări
-dinamice și absența punții.
+`TestLaunchPlanComponentTest` probes direct/filtered selection, nested/concurrent scopes, plans executed later, disabled tests, dynamic registrations and absence of the bridge.

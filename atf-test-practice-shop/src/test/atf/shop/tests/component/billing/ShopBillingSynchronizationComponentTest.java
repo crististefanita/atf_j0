@@ -23,12 +23,14 @@ class ShopBillingSynchronizationComponentTest {
     void onlyTheCurrentAppliedLookupCanPrecedeObservationOrConfiguredInput(String mode, boolean configured, boolean succeeds) throws Exception {
         var configuration = new UiBrowserConfiguration(URI.create("about:blank"), "chromium", true,
                 Duration.ofMillis(1100), Duration.ofSeconds(3), 1440, 1000, 70, true);
+        long browserAndFixtureSetupStarted = System.nanoTime();
         try (var browser = PlaywrightUiSession.open(configuration);
              var site = new ShopBillingLookupSite(browser.page(), mode)) {
             var actions = browser.newActionSequence();
             {
                 var billing = new ShopBillingPage(site.page(), new ShopLocators(), actions);
                 site.open();
+                long browserAndFixtureSetupMillis = Duration.ofNanos(System.nanoTime() - browserAndFixtureSetupStarted).toMillis();
                 var address = new ShopBillingAddress("United States of America (the)", "53703", "10",
                         "Wayne Lock", "Cartwrightmouth", "Alaska");
                 Runnable operation = () -> { if (configured) billing.fill(address, site.endpoint()); else billing.fillFromPostalLookup(address, site.endpoint()); };
@@ -43,6 +45,15 @@ class ShopBillingSynchronizationComponentTest {
                     assertNotNull(failure.getCause(), "The original lookup or deadline cause stays inspectable");
                     assertEquals("FAIL", actions.snapshot().getLast().status().name());
                 }
+                var settlement = actions.snapshot().stream()
+                        .filter(action -> action.operation().equals("Await visible"))
+                        .findFirst().orElseThrow(() -> new AssertionError("Post-input lookup settlement must be timed"));
+                long timeoutMillis = configuration.timeout().toMillis();
+                long measurementLimitMillis = timeoutMillis + (succeeds ? 0 : 25);
+                assertTrue(settlement.durationMillis() <= measurementLimitMillis,
+                        "inputsApplied-to-settlement must fit the observation budget; expected timeout failures allow 25 ms of driver/recording overhead only; browser startup and fixture navigation="
+                                + browserAndFixtureSetupMillis + " ms; settlement=" + settlement.durationMillis()
+                                + " ms; budget=" + timeoutMillis + " ms");
                 for (String field : List.of("street", "city", "state")) assertEquals(configured && succeeds ? 1 : 0,
                         site.inputs(field), "Generated fields are never cleared or retyped during lookup observation");
                 assertFalse(site.state().equals("AlaskaAlaska"), "The configured state must not append to an asynchronously completed lookup");

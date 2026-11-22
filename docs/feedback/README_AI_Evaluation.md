@@ -1,11 +1,14 @@
-# Evaluare AI — owner J1
+<a id="ai-evaluation---owner-j1"></a>
+<a id="evaluare-ai--owner-j1"></a>
+# AI evaluation - owner J1
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-Cerințele sunt întreținute în [registrul J1](../../../atf_j1/docs/feedback/README_AI_Evaluation.md).
+The requirements are maintained in [J1 registry](../../../atf_j1/docs/feedback/README_AI_Evaluation.md).
 
-Transferul din 2026-11-02 păstrează ID-urile, probele și limitele originale.
-Contractele deja livrate rămân în documentația modulelor; mutarea registrului nu certifică implementarea.
+The transfer from 2026-11-02 keeps ID-uri, the original samples and limits. The contracts already delivered remain in the module documentation; the transfer of the registry does not certify implementation.
 
 
 <a id="gap-uri-rămase-pentru-evaluator"></a>

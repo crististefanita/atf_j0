@@ -1,198 +1,156 @@
-# ATF Reporting Tests — oracole independente și acceptanță sursă/JAR
+<a id="atf-reporting-tests---independent-oracles-and-source-acceptance--jar"></a>
+<a id="atf-reporting-tests--oracole-independente-și-acceptanță-sursăjar"></a>
+# ATF Reporting Tests - independent oracles and source acceptance / JAR
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-Acest feedback deține corectitudinea probelor din `atf-reporting-tests`:
-oracol, fixture, classpath, navigare și acceptanța browserului.
-[Implementarea bibliotecii](ATF_Reporting_Feedback.md) păstrează lifecycle-ul,
-API-ul public, publicarea și release-ul; un test reparat nu închide implicit acel criteriu.
+This feedback holds the accuracy of the `atf-reporting-tests` samples: oracle, fixture, classpath, browsing and browser acceptance. [Implementation of the library](ATF_Reporting_Feedback.md) keeps lifecycle, API publicly, publication and release; a repaired test does not necessarily close that criterion.
 
-Un candidat de bibliotecă cere și probele canonice afectate, cu ieșirea integrală
-păstrată în staging. O selecție focalizată verde nu certifică inventarul rezidual.
+A library candidate also asks for the affected canonical samples, with the full output kept in staging. A focused green selection does not certify the residual inventory.
 
-| Decizie obligatorie | Refuzul unei închideri premature |
+| Mandatory decision | Refusal of a premature closure |
 |---|---|
-| clasificați defectul înaintea modificării expected-ului | nu schimbați `component` în `execution` numai pentru verde; justificați ownerul cauzei și proba lui |
-| oracolul citește dovada publicată a scenariului | textul găsit în script/CSS sau în alt scenariu nu dovedește verdict, captură ori comparație |
-| verificați dovada exactă după navigare | tabul Tests vizibil și titlul comun `Failure evidence` nu confirmă faza și ordinalul |
-| păstrați două limite de distribuție | runtime-ul JAR nu primește sursa producătorului pentru a satisface un fixture |
-| controalele negative rămân executabile | eliminarea unei capturi, schimbarea unui verdict ori ascunderea dovezii originale trebuie detectate separat |
+| classify the defect before changing the expectations | do not change `component` to `execution` only for green; justify the cause's owner and its sample |
+| oracle reads the published proof of scenario | text found in script / CSS or otherwise does not prove verdict, catch or comparison |
+| check exact proof after navigation | Visible test table and common title `Failure evidence` do not confirm phase and ordinal |
+| keep two distribution limits | JAR runtime does not receive the manufacturer's source to meet a fixture |
+| negative controls remain enforceable | removal of a catch, change of verdict or concealment of original evidence must be detected separately |
 
-## REPORT-TEST-AUDIT-60 — o dovadă identificabilă pentru fiecare scenariu
+<a id="report-test-audit-60---identifiable-evidence-for-each-scenario"></a>
+<a id="report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu"></a>
+## REPORT-TEST-AUDIT-60 - identifiable evidence for each scenario
 
-**Prioritate: 80/100** = impact 31 + lacună 24 + lucrabil 18 + documentare 7.
-**Owner:** Reporting Tests pentru fixture-ul neutru și oracol; consumerii
-pentru asocierea fault-ului și expected-ul aplicației.
+**Priority: 80/100** = impact 31 + 24 + workable 18 + documentation 7. **Owner:** Reporting tests for neutral and oracle fixture; consumers for the combination of fault and application expectation.
 
-Căutarea unui marker în întregul HTML poate găsi template-ul JavaScript ori
-dovada altui scenariu. Un raport comun cu mai multe negative cere identificarea
-scenariului, fazei, ownerului, ordinalului și capturii originale.
+The search for a marker throughout HTML can find JavaScript template or proof of any other scenario. A joint report with several negative calls for identification of the scenario, phase, owner, order and original capture.
 
-- Auditul Shop confirmă și copii DOM ascunse după navigarea runtime: numărarea
-  globală poate găsi 270 de rânduri, deși flow-ul activ afișează corect 135.
-  Oracolul trebuie să identifice ownerul activ și comparația originală;
-  vizibilitatea singură nu înlocuiește identitatea sau inventarul semantic.
+- Shop audit confirms and copies DOM hidden after runtime navigation: counting
+  The global 270 can be found by rows, although the active flower correctly displays 135. Oracle must identify the active host and the original comparison; visibility alone does not replace the semantic identity or inventory.
 
-Regresiile permanente acoperă ordinalele originale ACTION/OBSERVE/comparison,
-etichetele de eșec repetate, navigarea inversă și reload. Păstrați [contractul
-catalogului](../../atf-reporting-tests/src/test/java/atf/reporting/ui/contract/UiFailureCatalogueContractTest.java)
-și [testele de navigare publicată](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationEdgeComponentTest.java);
-nu relistați acoperirea nominală ca lacună.
+Permanent regressions cover the original ACTION / OBSERVE / comparison orders, repeated failure labels, reverse navigation and reload. Keep [Catalogue contract](../../atf-reporting-tests/src/test/java/atf/reporting/ui/contract/UiFailureCatalogueContractTest.java) and [published navigation tests](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationEdgeComponentTest.java); do not reveal the nominal cover as a gap.
 
 - [ ] Reconcile the remaining source/JAR mutation matrix per evidence kind and scenario; identify exactly which capture/owner/value degradation lacks an independent rejection before adding another fixture.
-- **Limitare observată a probei externe:** [AssertionAuditObservationDisclosureProbe.verify(Path)](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/assertions/AssertionAuditObservationDisclosureProbe.java) selectează primul owner/disclosure al raportului, apoi cere necondiționat textul fixture-ului `not captured`. Rularea pe raportul JUnit curent al Shop a trecut navigarea în browser, izolarea stării colapsate și deschiderea rândurilor de observație; proba a eșuat ulterior numai la această așteptare de text, fără legătură cu randarea. Modul local cu fixture intern trece 1/1. Nu indică un defect de randare al consumerului, ci faptul că modul pentru rapoarte externe nu selectează ownerul/scenariul intenționat înainte să aplice un oracol specific fixture-ului.
-- [ ] Faceți acceptanța raportului extern să identifice ownerul, faza și observația așteptate înaintea verificării conținutului. Înlocuiți markerul necondiționat din primul disclosure cu un contract explicit, neutru față de fixture; negativele trebuie să mute sau să elimine doar dovada selectată și să fie refuzate pentru motivul respectiv.
-- [ ] Controlul negativ elimină numai captura unui caz, mută dovada la un
-      sibling sau inversează numai verdictul lui; oracolul trebuie să refuze
-      fiecare variantă fără să fie satisfăcut de script ori de alt scenariu.
-- [ ] Verificați explicit focusul linkului Fails la navigarea cu tastatura.
-      Probele existente folosesc deja Enter în Extent și fallback și verifică
-      revenirea la comparația exactă după reload. Space rămâne pentru disclosure.
-- [ ] Păstrați preview-ul implicit 240 și bugetele configurate; comparația
-      integrală precede redacția. Un mismatch după limita preview-ului rămâne
-      FAIL fără publicarea integrală a valorilor ori expunerea unui secret.
+- **Preserved limitation of generic external sample:** [AssertionAuditObservationDisclosureProbe.verify(Path)](../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/assertions/AssertionAuditObservationDisclosureProbe.java) selects the first owner / discrete of the report, then unconditionally request `not captured` fixture text. Running on JUnit current Shop ratio has passed navigation in the browser, isolation of the collapsed state and opening of observation rows; the sample has subsequently failed only at this text waiting, unrelated to rendering. with internal fixture passes 1/1. It does not indicate a defect in the power supply, but that the module for external reports does not select the owner / scenario intentionally before applying a specific fixture oracle.
+The browser acceptance held by J1 now checks both real Maven reports. This delivery does not change the selection of the first owner from the generic sample above and does not close the neutral matrix of mutations.
 
-**Închidere:** fiecare degradare focalizată are refuz observabil și diagnostic
-cu identitatea dovezii. [Proba business a consumerilor](../ATF_Testing_Guide.md#acceptanța-business-individual-și-prin-suită)
-rămâne la aplicație; fixture-ul neutru nu aduce Shop/AutoEx în Reporting Tests.
+- [ ] Acceptance the external report to identify the host, phase and observation expected prior to the content verification. Replace the unconditionally marked mark from the first discourse with an explicit contract, neutral from fixture; the negatives must move or remove only the selected evidence and be refused for that reason.
+- [ ] Negative control only eliminates capture of a case, moves evidence to a
+      Sibling or only reversing its verdict; the oracle must refuse each variant without being satisfied by the script or any other scenario.
+- [ ] Explicit check the focus of the Fails link when browsing with the keyboard.
+      The existing samples already use Enter in Extent and fallback and check the return to exact comparison after reload. Space remains for disclosure.
+- [ ] Keep the default 240 preview and configured budgets; comparison
+      Full precedes the editorial. A mismatch by the limit of the preview remains FAIL without full publication of values or exposure of a secret.
 
-## Dovada cerută pentru handoff
+**Closure:** each focused degradation has observable refusal and diagnosis with the identity of the evidence. [Business sample of consumers](../ATF_Testing_Guide.md#acceptanța-business-individual-și-prin-suită) remains on application; neutral fixture does not bring Shop / AutoEx into Reporting Tests.
 
-| Livrabil | Criteriu |
+<a id="proof-required-for-handoff"></a>
+<a id="dovada-cerută-pentru-handoff"></a>
+## Proof required for handoff
+
+| Livrabil | Criterion |
 |---|---|
-| clasificare | implementare, test/oracol, fixture sau document; cauza și ownerul sunt explicite |
-| regresie | nominal și negativ independent, fără praguri relaxate ori teste ascunse |
-| distribuție | sursa izolată și consumerul JAR au classpath verificat; assets din același candidat |
-| browser | fază și comparație exacte, două diagnostice omonime, tastatură, reload și panou îngust |
-| acceptare | gate-urile relevante trec, criteriul demonstrat se elimină, controlul Git verificat trece în baseline |
+| classification | implementation, test / oracle, fixture or document; cause and owner are explicit |
+| regression | nominally and negatively independent, without relaxed thresholds or hidden tests |
+| distribution | isolated source and JAR consumer have classpath checked; assets from the same candidate |
+| browser | exact phase and comparison, two diagnostics homonyms, keyboard, reload and narrow panel |
+| acceptance | relevant passes, criterion demonstrated be deleted, Git control checked passes into baseline |
 
-Contractele și selecțiile sunt la [README-ul modulului](../../atf-reporting-tests/README.md).
-Build-ul și auditul respectă [procesul izolat](../ATF_Build_And_Execution_Safety.md);
-documentele normative nu păstrează artifacte sau rezultate datate.
+The contracts and selections are at [README module](../../atf-reporting-tests/README.md). The building and audit comply with [isolated process](../ATF_Build_And_Execution_Safety.md); normative documents do not retain artifacts or dated results.
 
-## REPORT-TEST-FALLBACK-RESULT-WIDTH-101 — geometria celulei RESULT
+<a id="report-test-fallback-result-width-101-cell-geometry-result"></a>
+<a id="report-test-fallback-result-width-101--geometria-celulei-result"></a>
+## REPORT-TEST-FALLBACK-RESULT-WIDTH-101 cell geometry RESULT
 
-**Prioritate: 64/100.** [Criteriul bibliotecii](ATF_Reporting_Feedback.md#report-fallback-result-width-101--regresie-geometrică-pentru-badge)
-păstrează martorul istoric și cere măsurarea geometrică a codului/JAR-ului actual.
-Testele existente verifică alocarea dinamică și alte familii, dar nu publică
-WARNING ca badge în celula RESULT.
+**Priority: 64/100.** [Library criterion](ATF_Reporting_Feedback.md#report-fallback-result-width-101--regresie-geometrică-pentru-badge) maintains the historical witness and requires geometric measurement of the current code / JAR. Existing tests check dynamic allocation and other families, but do not publish WARNING as a badge in RESULT cell.
 
-- [ ] Extindeți fixture-ul geometric existent cu verdicturile PASS, FAIL și
-      WARNING plus header lung; măsurați lățimea reală a badge-ului, celulei și
-      tabelului la viewport normal și îngust în Extent/fallback.
-- [ ] Refuzați mutantul care restrânge numai RESULT, apoi confirmați ultima
-      coloană/rând, wrapping și preview 240. Reutilizați fixture-ul existent dacă
-      permite un oracol independent; nu impuneți o clasă nouă fără motiv.
+- [ ] Extend the existing geometric fixture with PASS, FAIL and WARNING verdicts and a long header; measure actual badge, cell and table widths at normal and narrow viewports in Extent/fallback.
+- [ ] Refuse the mutant that only restricts RESULT, then confirm the last
+      column / row, wrapping and preview 240. Reuse existing fixture if it allows for an independent oracle; do not impose a new class without reason.
 
-**Închidere:** regresia reproduce overflow-ul vechi și refuză mutantul, apoi
-verifică sursa și JAR-ul real. Proba de valori din consumer rămâne acolo;
-fixture-ul și oracolul generic de geometrie sunt deținute permanent în J0.
+**Closure:** regression reproduces the old overflow and refuses the mutant, then checks the source and actual JAR. The consumer value sample remains there; the generic fixture and oracle of geometry are permanently held in J0.
 
 ## REPORT-TEST-SQL-STEPS-116 — probe dedicate SQL
 
-**Prioritate: 88/100** = impact 35 + lacună 26 + lucrabil 18 + documentare 9.
-**Owner:** atf-reporting-tests pentru componentele neutre și oracolele de
-randare; nativele modelelor/configurației aparțin atf-reporting. Aceste probe
-sunt cerute pentru [contractul SQL nou](ATF_Reporting_Feedback.md#report-sql-steps-116--query-uri-și-rezultate-auditabile), nu implementate în acest increment documentar.
+**Priority: 88/100** = 35 impact + 26 lacuna + 18 workable + 9 documentation. **Owner:** atf-reporting-tests for neutral components and rendering oracles; model / configuration natives belong to atf-reporting. These samples are required for [New SQL contract](ATF_Reporting_Feedback.md#report-sql-steps-116--query-uri-și-rezultate-auditabile), not implemented in this documentary increment.
 
-Fixture-urile primesc fapte SQL capturate, fără Eventuate, H2 sau conexiune
-reală în harness. Execuția JDBC independentă și selecțiile individual/suită
-rămân acceptanța J2; un fixture neutru nu dovedește tranzacțiile aplicației.
+Fixturees receive SQL captured facts without Eventuate, H2 or actual connection in harness. The execution of JDBC independent and individual / suite selections remain the acceptance of J2; a neutral fixture does not prove the transactions of the application.
 
-| Familie componentă propusă | Oracol independent obligatoriu |
+| Proposed component family | Mandatory independent oracle |
 |---|---|
-| disclosure și identitate | query plus bind-uri exacte în faza corectă, inclusiv două titluri identice, vecin PASS și SQL error controlat |
-| bugete și redacție | query 4.096, bind-uri 2.048, rezultate 16.384 și payload SQL cumulat 1.048.576; fiecare configurabil separat, fără leak în canale ascunse |
-| tabel rezultate | zero/unul/multe rânduri, duplicate de rând și de etichetă coloană, ordine fixă, NULL/gol, întregi mari și zecimale exacte |
-| lifecycle și ownership | cauză inițială, cleanup secundar, cancel și captură parțială, publicare refuzată/repetată și niciun callback JDBC ori assertion reevaluat |
+| Disclosure and identity | query plus accurate bindings in the correct phase, including two identical titles, neighbor PASS and SQL controlled error |
+| budgets and editorial work | 4.096 query, 2.048 binds, 16.384 results and SQL cumulative payload 1.048.576; each configurable separately without leakless hidden channels |
+| table results | Zero / one / many rows, row duplicates and column label, fixed order, NULL / empty, whole large and exact decimal places |
+| lifecycle and ownership | initial cause, secondary cleanup, canel and partial catch, refused / repeated publication and no JDBC callback or reassessed assessment |
 
-Separați familiile în pachete coezive în limita existentă de opt clase;
-nu creați un modul nou. AtfComponentTest și selecțiile explicite rămân vizibile;
-un test contractual închis nu dispare din suita de regresie.
+Separate families in cohesive packages within the existing eight-class limit; do not create a new module. AtfComponentTest and explicit selections remain visible; a closed contractual test does not disappear from the regression suite.
 
 <details>
-<summary><strong>Matricea de regresie și probele negative</strong></summary>
+<summary><strong>Regression matrix and negative evidence</strong></summary>
 
-- Pentru fiecare buget verificați limita minus unu, limita exactă și limita
-  plus unu, valoare mică validă și configurații invalide/overflow. Schimbarea
-  limitei rezultatelor nu trebuie să modifice limita query-ului sau preview-ul 240.
-- Numărați separat code points vizibile și payload-ul efectiv serializat.
-  Includeți diacritice, emoji compuse, markup care amplifică escaping-ul,
-  parametri sensibili și multe execuții care epuizează bugetul cumulat.
-- Oracolul scanează DOM, JSON, script, atribute și indexul de căutare pentru
-  full payload/secret interzis; markerul de omisiune este inclus în buget și
-  documentul final rămâne valid. Verificați și publicarea concurentă.
-- Includeți eroare SQL așteptată într-un test PASS și eroare neinterceptată
-  într-un FAIL, SQLState/vendor code și cauza originală; nu deduceți verdictul
-  numai din existența unui error field sau din culoarea tabelului.
-- Un mismatch după toate limitele de preview rămâne FAIL. SQL-only legitim,
-  assertion-only și combinația UI/API/SQL se verifică fără request-uri fictive;
-  includeți setup eșuat înaintea body-ului și cleanup eșuat după body.
-- Mutați numai query-ul, bind-urile, rândul ori verdictul la un sibling omonim;
-  eliminați o coloană duplicată, rotunjiți un număr, ascundeți full payload-ul
-  peste plafon ori scurgeți un secret. Fiecare mutant trebuie refuzat independent.
-- În Extent și fallback inspectați toate disclosure-urile, lățimea disponibilă,
-  ultima coloană/rând, scroll interior, Enter/Space, panou îngust, reload și
-  linkurile Tests/Fails/Overview către aceeași execuție și cauză.
+- For each budget check minus one, exact limit and limit
+  plus one, low valid value and invalid / overflow configurations. Changing the limit of results must not change the limit of the query or the preview of 240.
+- Count separately visible codes points and actual serialized payload.
+  Include diacritic, composite emoji, markup that amplifies escaping, sensitive parameters and many executions that deplete the cumulative budget.
+- Oracle scans DOM, JSON, script, attributes and search index for
+  Full payload / secret prohibited; the omission marker is included in the budget and the final document remains valid. Check and publish the competition.
+- Include expected SQL error in a PASS test and unintercepted error
+  in a FAIL, SQLState / vendor code and original cause; do not infer the verdict only from the existence of a field error or the colour of the table.
+- A mismatch after all the limits of the preview remains FAIL. SQL-only legitimately,
+  Assertion- only and combination UI / API / SQL are checked without fictional quests; include failed setup before body and failed cleanup after body.
+- Move only the query, the binds, the row times the verdict to a sibling homonym;
+  Remove a duplicate column, round a number, hide the full payload over the ceiling or leak a secret. Each mutant must be refused independently.
+- In Extent and fallback inspect all discoloration, the width available,
+  the last column / row, inside scroll, Enter / Space, narrow panel, reload and test / Fails / Overview links to the same execution and cause.
 
 </details>
 
-**Închidere:** componente permanente și controale negative, matrice pe sursă
-izolată și JAR fizic fără sursa producătorului, plus audit browser pentru
-ambele renderere. Receipt-ul leagă scenariul, faza, ID-ul execuției și limitele
-efective; un marker găsit ori un screenshot singur nu închide criteriul.
+**Closure:** permanent components and negative controls, isolated source matrix and JAR physically without the manufacturer's source, plus browser audit for both renderers. The Receipt links the scenario, phase, ID-ul execution and actual limits; a marker found or a screen shot alone does not close the criterion.
 
-J2 adoptă apoi noul candidat și extinde matricea proprie de 18 rapoarte SQL cu
-query/bind-uri/schema efectiv capturate. Acceptanța anterioară J9 rămâne istorică.
+J2 then adopts the new candidate and extends its own 18 report matrix SQL with query / binds / scheme effectively captured. Previous acceptance J9 remains historical.
 
-### Intrări concrete pentru componentele J0 — 2026-11-01
+<a id="concrete-inputs-for-j0-components---2026-11-01"></a>
+<a id="intrări-concrete-pentru-componentele-j0--2026-11-01"></a>
+### Concrete inputs for J0 components - 2026-11-01
 
-- [Matricea J2](../../../atf_j2/docs/ATF_SQL_Live_Verification.md) furnizează acum query/binds/schema/rows typed și erori controlate, în 12 Extent/fallback. Adăugați fixture-uri neutre permanente pentru fiecare familie de mai sus, fără copierea H2 sau a suitei JDBC în Reporting Tests.
-- Păstrați negativele query absent, ID diferit de metadata, DECIMAL rotunjit și rând/coloană duplicată pierdută. Adăugați cross-owner cu titluri identice și SQL-only fără HTTP; refuzul legacy J10 este istoric; J12 oferă profilul explicit, iar acceptoarele J2 îl adoptă separat.
-- Verificați separat captura parțială JDBC, tăierea HTML configurată și testul PASS care verifică o eroare SQL așteptată. Un error field nu impune FAIL asupra comparațiilor care au trecut; eroarea neconsumată păstrează FAIL și cauza originală.
+- [J2 Matrix](../../../atf_j2/docs/ATF_SQL_Live_Verification.md) now provides query / binds / scheme / rows typed and controlled errors in 12 Extent / fallback. Add permanent neutral fixtures for each family above without copying H2 or JDBC suite in Reporting Tests.
+- Keep the query negatives absent, ID different from metadata, DECIMAL rounded and row / duplicate column lost. Add cross-owner with identical titles and SQL-ally without HTTP; the denial of J10 legacy is historic; J12 provides the explicit profile and J2 acceptors adopt it separately.
+- Check separately the partial capture JDBC, HTML configuration and PASS test that checks for an expected SQL error. A field error does not impose FAIL on past comparisons; unconfirmed error retains FAIL and the original cause.
 
 ## Current regression boundaries
 
-- SQL-STEPS-116, matricea de mutații per dovadă și geometria RESULT au criterii de închidere distincte.
-- [Test Kit](ATF_Common_Test_Support_Feedback.md) deține capturarea și proiecția comparațiilor. [Coordonarea J1](../../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md) păstrează integrarea în consumeri.
+- SQL-STEPS-116, the mutation matrix per proof and the geometry RESULT have distinct closing criteria.
+- [Test Kit](ATF_Common_Test_Support_Feedback.md) holds the capture and projection of comparisons. [Coordonarea J1](../../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md) maintains the integration into the consumers.
 - [Long UI assertion capture](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) remains separate from the delivered ACTION/OBSERVE and literal TEXT contracts.
 
-Probele permanente pentru inspector, timing, PNG, navigare și pornirea la rece
-sunt documentate la [ownerul testelor](../../atf-reporting-tests/README.md),
-în [contractul de audit](../ATF_Inline_Audit_Contract.md#acceptanță-permanentă)
-și în [contractul de navigare](../ATF_Large_Report_Navigation.md#permanent-verification).
+The permanent samples for inspector, timing, PNG, navigation and cold start are documented in [test owner](../../atf-reporting-tests/README.md), [audit contract](../ATF_Inline_Audit_Contract.md#acceptanță-permanentă) and [navigation contract](../ATF_Large_Report_Navigation.md#permanent-verification).
+<a id="public-adapter-and-api-client-boundary"></a>
+<a id="limita-adaptorului-public-și-a-clientului-api"></a>
 ## Public adapter and API-client boundary
 
-Ghidul din `lib` este deja compilat și executat pe JAR-ul fizic prin
-`ReportingLibraryGuideIT`, fără sursa producerului, Core sau Kit în classpath.
-Rămâne deschisă compatibilitatea API susținută și capabilitățile adaptoarelor,
-nu portabilitatea ghidului livrat.
+`lib` guide is already compiled and executed on JAR physically via `ReportingLibraryGuideIT`, without the source of the product, Core or Kit in the classSPath. The API compatibility supported and adaptor capabilities, not the portability of the delivered guide, remains open.
 
 - [ ] Characterize lightweight legacy adapters: requested mandatory screenshots, actions, execution diagnostics and aggregate data either survive publication or receive an explicit capability refusal; a no-op call alone is not auditable evidence.
-- [ ] Exercitați un client declarat susținut contra JAR-ului fizic, fără clase
-      interne ale producerului; comparați separat semnăturile susținute și
-      presupunerile runtime/vendor. Ghidul existent demonstrează numai exemplul
-      documentat și publicarea de bază.
+- [ ] Exercise a declared customer claimed against JAR physically without classes
+      internal production; compare supported signatures and runtime / vendor assumptions separately. The existing guide demonstrates only the documented example and basic publication.
 
 <a id="report-unit-baseline-149--restore-the-complete-existing-unit-gate"></a>
 
-Contractul suitei canonice, al hostului Fails și al controalelor negative este
-menținut în [Reporting Tests](../../atf-reporting-tests/README.md). Controalele
-tehnice eligibile rămân în [baseline](../ATF_Test_Changes_Baseline.md).
+The contract of canonical suite, the host Fails and the negative controls is maintained in [Reporting Tests](../../atf-reporting-tests/README.md). Eligible technical controls remain in [baseline](../ATF_Test_Changes_Baseline.md).
 
 <a id="report-test-controls-150--reconcile-existing-java-changes-at-the-real-review-base"></a>
 
-Eligibilitatea controalelor Git este guvernată de [baseline-ul tehnic](../ATF_Test_Changes_Baseline.md), cu path-uri exacte și baza reală a revizuirii.
+The eligibility of Git controls is governed by [baseline-ul tehnic](../ATF_Test_Changes_Baseline.md), with accurate paths and the actual basis of the review.
 
 <a id="report-test-setup-153--inițializare-browser-cu-termen-propriu"></a>
 
-- [Setup-ul și verdictul terminal](../../atf-reporting-tests/README.md#setup-browser-și-verdict-terminal)
-  separă inspecția statică de proba browser.
-- Controalele pentru factory necooperant, cleanup, cauza inițială și ownership
-  rămân permanente. [Controlul tehnic](../ATF_Test_Changes_Baseline.md)
-- Inventarul leagă PID-ul de timpul de start și urmărește lanțul de părinți până
-  la worker. Terminarea confruntă din nou generația capturată înainte de semnal,
-  inclusiv când sistemul reutilizează PID-ul.
+- [Setup and final verdict](../../atf-reporting-tests/README.md#setup-browser-și-verdict-terminal)
+  separate the static inspection from the browser sample.
+- Controls for non-cooperative factory, cleanup, initial cause and ownership
+  [Technical control](../ATF_Test_Changes_Baseline.md)
+- Inventory links PID-ul to start time and follows the parent chain up to
+  Termination faces again the generation captured prior to the signal, including when the system reuses PID-ul.
 
 <details>
 <summary><strong>Control tehnic — REPORT-BROWSER-LIFECYCLE-154-CONTROL</strong></summary>
@@ -203,7 +161,7 @@ testChanges:
     status: ACTIVE
     base: 2f33813701b47e362b8091c6aca7c1c2b602727d
     expires: 2026-11-25
-    reason: Izoleaza selectia originala si lifecycle-ul SDK. Executa un singur plan Jupiter si clasifica discovery in bugetul de verificare. Confirma iesirea arborelui Chromium detinut de worker pe Windows. Pastreaza asertiunile si pragurile originale, inclusiv cleanup-ul global legacy.
+    reason: "It provides the original selection and the SDK lifecycle. It executes a single Jupiter plan and classifies the discourse in the verification budget. It confirms the output of Chromium's worker tree on Windows. It keeps the original assertions and thresholds, including the global legal cleanup."
     proof: >-
       mvn -pl atf-reporting-tests -am -Dsurefire.failIfNoSpecifiedTests=false -Dtest=AtfReportingUnitSuite,AtfReportingBrowserSuite test;
       mvn -pl atf-reporting-tests -Preporting-release -Datf.reporting.test.version=1.0.0-j23 -Dtest=AtfReportingUnitSuite,AtfReportingBrowserSuite test
@@ -347,28 +305,6 @@ testChanges:
       - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/locators/readability/ReportReadabilityLocators.java
       - atf-reporting-tests/src/test/resources/META-INF/services/org.junit.platform.launcher.LauncherDiscoveryListener
       - atf-reporting-tests/src/test/resources/META-INF/services/org.junit.platform.launcher.TestExecutionListener
-```
-
-</details>
-
-<details>
-<summary><strong>Control tehnic — REPORT-OBSERVATION-DISCLOSURE-COMPONENT-CONTROL</strong></summary>
-
-```yaml
-testChanges:
-  - id: REPORT-OBSERVATION-DISCLOSURE-COMPONENT-CONTROL
-    status: CLOSED
-    base: 58177a8c1e04103f1d160f04eca4b466d2da8381
-    expires: 2026-12-21
-    reason: Păstrează proba de publicare și interacțiune browser pentru observațiile phase-scoped din raportul Extent.
-    proof: >-
-      mvn -B -ntp -pl atf-reporting-tests -am
-      "-Dtest=AssertionAuditPublicationComponentTest,AssertionAuditObservationDisclosureComponentTest"
-      "-Dsurefire.failIfNoSpecifiedTests=false" test
-    paths:
-      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/assertions/AssertionAuditPublicationComponentTest.java
-      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/assertions/AssertionAuditObservationDisclosureComponentTest.java
-      - atf-reporting-tests/src/test/java/atf/ui/tests/extent/support/inspection/assertions/AssertionAuditObservationDisclosureProbe.java
 ```
 
 </details>

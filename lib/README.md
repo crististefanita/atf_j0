@@ -1,22 +1,30 @@
-# Biblioteci ATF — sursă și mentenanță J0
+<a id="atf-libraries---j0-source-and-maintenance"></a>
+<a id="biblioteci-atf--sursă-și-mentenanță-j0"></a>
+# ATF libraries - J0 source and maintenance
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-J0 deține bibliotecile Core, Reporting, Console, Mock și Test Kit: cod, API, teste, împachetare și feedback. Codul rămâne în modulele sursă ale acestui proiect; consumerii ATF reutilizează perechile JAR/POM verificate.
+J0 holds Core, Reporting, Console, Mock and Test Kit libraries: code, API, tests, packaging and feedback. The code remains in the source modules of this project; ATF consumers re-use JAR / POM pair checked.
 
-## Ghiduri de utilizare
+<a id="usage-guidelines"></a>
+<a id="ghiduri-de-utilizare"></a>
+## Usage guidelines
 
-| Bibliotecă | Ce oferă | Folosiți-o pentru |
+| Library | What does it offer | Use her for |
 |---|---|---|
-| [Core](README.Core.md) | HTTP, configurație, JSON, redactare și lifecycle | Mecanisme comune și adaptoare neutre. |
-| [Reporting](README.Reporting.md) | Extent/fallback, aserțiuni și dovezi UI/API | Rapoarte auditabile din observațiile consumerului. |
-| [Console](README.Console.md) | Evenimente și diagnostic configurabil | Urmărirea execuției în Maven și IntelliJ. |
-| [Mock](README.Mock.md) | Transport HTTP determinist | Componente și contracte offline, cu catalog propriu. |
-| [Test Kit](README.TestKit.md) | `atf-test-kit` · audit și lifecycle JUnit neutru | Clasificare, comparații și suportul testelor. |
+| [Core](README.Core.md) | HTTP configuration, JSON, editing and lifecycle | Common mechanisms and neutral adapters. |
+| [Reporting](README.Reporting.md) | Extent / fallback, assertions and evidence UI / API | Auditable reports from consumer observations. |
+| [Console](README.Console.md) | Configurable events and diagnosis | Follow-up of execution in Maven and IntelliJ. |
+| [Mock](README.Mock.md) | HTTP transport determinist | Components and offline contracts with own catalogue. |
+| [Test Kit](README.TestKit.md) | `atf-test-kit` · audit and neutral lifecycle JUnit | Classification, comparisons and test support. |
 
-## Mentenanță și feedback
+<a id="maintenance-and-feedback"></a>
+<a id="mentenanță-și-feedback"></a>
+## Maintenance and feedback
 
-| Bibliotecă | Codul întreținut în J0 | Backlog canonic în J0 |
+| Library | Code maintained in J0 | Canonical backlog in J0 |
 |---|---|---|
 | Core | [atf-core](../atf-core/README.md) | [Feedback](../docs/feedback/ATF_Core_Feedback.md) |
 | Reporting | [atf-reporting](../atf-reporting/README.md) | [Feedback](../docs/feedback/ATF_Reporting_Feedback.md) |
@@ -24,48 +32,54 @@ J0 deține bibliotecile Core, Reporting, Console, Mock și Test Kit: cod, API, t
 | Mock | [atf-mock](../atf-mock/README.md) | [Feedback](../docs/feedback/ATF_Console_Mock_Feedback.md) |
 | Test Kit | [atf-test-kit](../atf-test-kit/README.md) | [Feedback](../docs/feedback/ATF_Common_Test_Support_Feedback.md) |
 
-[Registrul J0](../docs/feedback/README.md#biblioteci-comune) este punctul de intrare pentru toate proiectele. Regresiile generice de compoziție și randare Reporting rămân în [atf-reporting-tests](../atf-reporting-tests/README.md); celelalte teste native stau lângă implementarea bibliotecii.
+[J0 Registry](../docs/feedback/README.md#biblioteci-comune) is the entry point for all projects. Generic regression of composition and rendering Reporting remains in [atf-reporting-tests](../atf-reporting-tests/README.md); the other native tests stand next to the library implementation.
 
-## Fluxul de lucru
+<a id="working-flow"></a>
+<a id="fluxul-de-lucru"></a>
+## Working flow
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Owner["J0<br/>cod · teste · feedback"] -->|împachetează| Pair["Candidat verificat<br/>JAR + POM"]
-    Pair -->|sincronizează| Consumer["Consumatori ATF<br/>adaptoare + acceptanță"]
-    Consumer -.->|feedback bibliotecă| Owner
+    Owner["J0 <br/>code · tests · feedback"] -->|pack| Pair["Controlled candidate <br/> JAR + POM"]
+    Pair -->|synchronize| Consumer["ATF <br/>adaptors + acceptance"]
+    Consumer -.->|library feedback| Owner
 ```
 
 <details>
-<summary><strong>Legendă — implementare comună, acceptanță separată</strong></summary>
+<summary><strong>Legend - joint implementation, separate acceptance</strong></summary>
 
-- Săgețile continue descriu livrarea unui candidat; săgeata punctată întoarce constatările la J0.
-- J0 deține remedierea comună și regresia permanentă. Consumerul furnizează reproducerea și verifică integrarea binarului în propriul domeniu.
-- Diagrama descrie responsabilități și livrări, nu module Maven suplimentare ori copierea surselor în consumeri.
+- Continuous arrows describe the delivery of a candidate; the dotted arrow returns the findings to J0.
+- J0 holds joint remediation and permanent regression. The consumer provides reproduction and verifies the integration of the binary in its own field.
+- The diagram describes responsibilities and deliveries, not additional Maven modules or copy sources into consumers.
 
 </details>
 
-## O singură cerință, cu dovezi
+<a id="only-one-requirement-with-evidence"></a>
+<a id="o-singură-cerință-cu-dovezi"></a>
+## Only one requirement with evidence
 
-- Consemnați în J0 proiectul, coordonata/hash-ul efectiv, selecția/profilul, rezultatul așteptat și observat, reproducerea minimă și dovezile păstrate.
-- Dacă originea este neclară, păstrați o singură constatare neconfirmată în J0 până la izolare; nu copiați checklist-ul în fiecare proiect.
-- Regulile de business, capturarea Android, modelele ASR și infrastructura brokerului rămân la ownerul consumerului. Un task demonstrat exclusiv local se mută acolo cu o trimitere scurtă din criteriul inițial.
-- Închideți criteriul numai după controlul negativ, regresia corectată și acceptanța relevantă; păstrați contractul stabil în documentație, fără ToDo-uri rezolvate sau cronologii de release.
+- Please note in J0 the project, the actual coordinate / hash, the selection / profile, the expected and observed result, the minimum reproduction and the evidence kept.
+- If the origin is unclear, keep a single unconfirmed finding in J0 until isolation; do not copy the checklist in each project.
+- Business rules, capture Android, ASR models and broker infrastructure remain at the consumer's owner. A task shown exclusively locally moves there with a short reference from the original criterion.
+- Close the criterion only after negative control, corrected regression and relevant acceptance; keep the contract stable in documentation, without resolved ToDos or release chronologies.
 
-## Sincronizare și guvernanță
+<a id="timing-and-governance"></a>
+<a id="sincronizare-și-guvernanță"></a>
+## Timing and governance
 
-1. Comparați codul live și schimbările locale înainte de modificare; păstrați bazele Git și configurația fiecărui proiect.
-2. Corectați în J0 și adăugați regresia permanentă la owner; construiți și verificați sursa/JAR-ul într-un staging TMP propriu.
-3. Distribuiți același candidat către consumerii afectați: o pereche curentă per bibliotecă, cu proveniența actualizată și istoricul original păstrat.
-4. Revalidați independent fiecare consumer și promovați selectiv prin guard-ul Core. Un rezultat din J1 nu devine automat dovadă pentru J2, J3 sau J4.
+1. Compare live code and local changes prior to modification; keep Git bases and configuration of each project.
+2. Correct J0 and add permanent regression to the owner; build and check source / JAR in a TMP staging of your own.
+3. Distribute the same candidate to affected consumers: a current pair per library, with updated provenance and original history preserved.
+4. independently revalidate each consumer and selectively promote through the Core guard. A result from J1 does not automatically become evidence for J2, J3 or J4.
 
 | Control | Contract |
 |---|---|
-| Inventar consumer | Exact cinci perechi JAR/POM, indexul și cinci ghiduri de utilizare, direct în lib; fără versiuni suplimentare, depozit imbricat sau note de release. |
-| Dependențe | Console și Mock fixează versiunea Core verificată; schimbarea ei cere republicarea JAR/POM împreună, fără editarea izolată a POM-ului. |
-| Identitate | Coordonate din POM; hash-uri și proveniență la rădăcină; POM-ul încorporat coincide cu perechea publicată. |
-| Încărcare | CodeSource indică JAR-ul fizic; sursele paralele și harness-urile native nu revin în consumer. |
-| Teste | [Exemple JAR/POM](../docs/ATF_Platform_Libraries.md#ghiduri-executabile-pe-publicația-binară) în J0; acceptanță locală la consumer. |
-| Raportare | Preview implicit 240, assert-uri auditabile și colapsabile, cadre complete; proba mock/componentă nu certifică un device, broker sau ASR real. |
+| Consumer inventory | Exact five JAR / POM pairs, index and five user guides, directly in lib; no additional versions, nested deposit or release notes. |
+| Dependencies | Console and Mock fix the verified Core; its change requires the republication of JAR / POM together without the isolated editing of POM. |
+| Identity | Coordinates from POM; hashes and root provenance; POM incorporated coincides with the published pair. |
+| Loading | CodeSource indicates JAR physically; parallel sources and native harness do not return to the consumer. |
+| Tests | [Examples JAR / POM](../docs/ATF_Platform_Libraries.md#ghiduri-executabile-pe-publicația-binară) in J0; local consumer acceptance. |
+| Reporting | 240 default preview, auditable and collapsible asserts, complete frames; the mock / component sample does not certify a real device, broker or ASR. |
 
-În J0, acest director este registrul de mentenanță; nu înlocuiește modulele sursă și nu găzduiește output-uri de build. [Contractul tehnic](../docs/ATF_Platform_Libraries.md) și [sincronizarea workspace-urilor](../docs/ATF_Workspace_Synchronization.md) detaliază publicarea.
+In J0, this directory is the maintenance register; it does not replace the source modules and does not host building outputs. [Technical contract](../docs/ATF_Platform_Libraries.md) and [synchronization of workspaces](../docs/ATF_Workspace_Synchronization.md) detail the publication.

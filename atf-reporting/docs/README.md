@@ -1,149 +1,127 @@
-# ATF Reporting — context portabil al bibliotecii
+<a id="atf-reporting---portable-context-of-the-library"></a>
+<a id="atf-reporting--context-portabil-al-bibliotecii"></a>
+# ATF Reporting - portable context of the library
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-Acesta este punctul de intrare care poate însoți sursa Reporting în afara
-reactorului ATF. Linkurile de aici rămân în modul; orientarea completă în cod
-este în [atlasul producției](../src/main/java/atf/reporting/README.md).
-Contractele de adopție sunt în [README-ul modulului](../README.md).
+This is the entry point that can accompany Reporting source outside the ATF reactor. The links here remain in the mode; the complete orientation in the code is in [Atlas of production](../src/main/java/atf/reporting/README.md). Adoption contracts are in [README module](../README.md).
 
-- Biblioteca primește fapte și verdicte și publică Extent sau fallback HTML;
-  HTTP-ul, browserul și comparațiile business sunt deținute de caller.
-- JAR-ul este thin și necesită dependențele runtime declarate în [POM](../pom.xml),
-  pe Java 21. Independența de modulele ATF nu elimină dependențele externe.
+- The library receives facts and verdicts and publishes Extent or Fallback HTML;
+  HTTP, the browser and business comparisons are owned by the caller.
+- JAR is thin and requires the runtime dependencies declared in [POM](../pom.xml),
+  Java 21. Independence from ATF modules does not remove external dependencies.
 
-## Limita bibliotecii
+<a id="library-limit"></a>
+<a id="limita-bibliotecii"></a>
+## Library limit
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Consumer["Consumer<br/>fapte și verdict"] -->|furnizează| Input["Porturi typed<br/>request · audit · UI"]
-    Input -->|proiectează| Renderer["Reporting JAR<br/>Extent / fallback"]
-    Renderer -->|publică| Artifact["HTML<br/>dovezi și navigare"]
+    Consumer["Consumer<br/>Facts and verdict"] -->|provide| Input["Typed<br/>request · audit · UI"]
+    Input -->|design| Renderer["Reporting JAR<br/>Extent / fallback"]
+    Renderer -->|publishes| Artifact["HTML <br/>evidence and navigation"]
 ```
 
 <details>
-<summary><strong>Legendă — datele intră, execuția rămâne la caller</strong></summary>
+<summary><strong>Legend - data enters, execution remains at the caller</strong></summary>
 
-| Element | Sens și limită |
+| Element | Meaning and limit |
 |---|---|
-| Consumer | execută operația, deține expected-ul și decide verdictul; poate fi orice aplicație Java |
-| Porturi typed | contracte de raportare, fără obiecte Core, Playwright, Kit ori JUnit obligatorii |
-| Reporting JAR | modele, proiecții și renderere; folosește Jackson YAML, ExtentReports, FreeMarker și Jsoup prin Maven |
-| HTML | artifact cu resursele necesare vizualizării; autonomia HTML nu îl transformă pe JAR într-un fat JAR |
+| Consumer | perform the operation, hold the bill and decide the verdict; it can be any Java application |
+| Typed ports | reporting contracts without Core, Playwright, Kit or JUnit objects |
+| Reporting JAR | models, projections and renderers; uses Jackson YAML, ExtentReports, FreeMarker and Jsoup via Maven |
+| HTML | artifact with the resources needed for visualization; HTML autonomy does not transform JAR into a JAR face |
 
-Muchiile reprezintă fluxul dovezii, nu dependențe Maven între module ATF.
-Observația, identitatea de captură, semnătura de prezentare și cheia selecției
-business au roluri distincte; un sumar nu autorizează replay.
+The edges represent the flow of evidence, not Maven dependencies between ATF modules. The observation, catch identity, presentation signature and business selection key have distinct roles; a summary does not allow replicas.
 
 </details>
 
-## Intrări consumate și context minim
+<a id="inflows-consumed-and-minimum-context"></a>
+<a id="intrări-consumate-și-context-minim"></a>
+## Inflows consumed and minimum context
 
-Acestea sunt intrări existente în cod, nu o promisiune că orice clasă publică
-este API stabil pentru release. Delimitarea compatibilității și a capabilităților
-adaptoarelor trebuie încheiată înaintea distribuirii unei versiuni susținute.
+These are existing entries in the code, not a promise that any public class is API stable for releases. The delimitation of compatibility and adaptor capabilities must be completed before distribution of a supported version.
 
-| Scop | Citește întâi | Ce furnizează callerul |
+| Purpose | Read first | What the caller provides |
 |---|---|---|
-| sesiune și arbore de execuție | [AtfReportPorts](../src/main/java/atf/reporting/contract/AtfReportPorts.java) | scenariu, faze, dovezi și verdict explicit |
-| randare Extent | [ExtentReportSession](../src/main/java/atf/reporting/extent/session/ExtentReportSession.java) | path, settings, redactor și sink opțional |
-| randare fallback | [HtmlReportSession](../src/main/java/atf/reporting/html/HtmlReportSession.java) | aceleași fapte; contractul flush/path/threading se citește la implementare |
-| component assertions | [AssertionAuditReport](../src/main/java/atf/reporting/audit/AssertionAuditReport.java) | identitate și rânduri evaluate independent de renderer |
-| profile și vocabular de evidence | [ReportEvidenceProfile](../src/main/java/atf/reporting/evidence/profile/ReportEvidenceProfile.java), [AtfGherkinKeyword](../src/main/java/atf/reporting/contract/AtfGherkinKeyword.java) | intenția profilului și pasului; selecția business rămâne externă |
-| lifecycle și checkpoint UI | [UiExtentReportSession](../src/main/java/atf/reporting/ui/UiExtentReportSession.java) | acțiuni și capturi deja observate, fără obiect Playwright |
-| exchange API | [ReportExecutionEvidence](../src/main/java/atf/reporting/model/ReportExecutionEvidence.java), [ReportRequest](../src/main/java/atf/reporting/api/ReportRequest.java) | request, response disponibil sau absent, attempts, provenance și termination |
-| adaptor legacy existent | [ReportModelAdapters](../src/main/java/atf/reporting/api/ReportModelAdapters.java) | accessori externi verificabili; preferați DTO-urile typed pentru adopții noi |
-| inspecție artifact | [ReportArtifactInspector](../src/main/java/atf/reporting/artifact/ReportArtifactInspector.java), [ReportArtifactProfile](../src/main/java/atf/reporting/artifact/ReportArtifactProfile.java) | renderer și inventarul obligatoriu explicit; varianta legacy păstrează Extent/HTTP |
-| verificare semantică | [AtfReportSemanticSnapshot](../src/main/java/atf/reporting/semantic/AtfReportSemanticSnapshot.java) | comparație a populației și statusurilor, separat de inspecția DOM |
+| execution session and tree | [AtfReportPorts](../src/main/java/atf/reporting/contract/AtfReportPorts.java) | scenario, phases, evidence and explicit verdict |
+| Extent rendering | [ExtentReportSession](../src/main/java/atf/reporting/extent/session/ExtentReportSession.java) | path, settings, editor and optional sink |
+| Fallback rendering | [HtmlReportSession](../src/main/java/atf/reporting/html/HtmlReportSession.java) | Same facts; Flush / path / thread contract is read when implementing |
+| component assertions | [AssertionAuditReport](../src/main/java/atf/reporting/audit/AssertionAuditReport.java) | identity and lines assessed independently of the renderer |
+| Profiles and vocabulary of evidence | [ReportEvidenceProfile](../src/main/java/atf/reporting/evidence/profile/ReportEvidenceProfile.java), [AtfGherkinKeyword](../src/main/java/atf/reporting/contract/AtfGherkinKeyword.java) | profile and step intent; business selection remains external |
+| lifecycle and checkpoint UI | [UiExtentReportSession](../src/main/java/atf/reporting/ui/UiExtentReportSession.java) | actions and catches already observed, not subject to Playwright |
+| API exchange | [ReportExecutionEvidence](../src/main/java/atf/reporting/model/ReportExecutionEvidence.java), [ReportRequest](../src/main/java/atf/reporting/api/ReportRequest.java) | demand, answer available or absent, attempts, provenance and termination |
+| existing legacy adapter | [ReportModelAdapters](../src/main/java/atf/reporting/api/ReportModelAdapters.java) | verifiable external accessors; prefer typed DTOs for new adoption |
+| artifact inspection | [ReportArtifactInspector](../src/main/java/atf/reporting/artifact/ReportArtifactInspector.java), [ReportArtifactProfile](../src/main/java/atf/reporting/artifact/ReportArtifactProfile.java) | the renderer and the explicit mandatory inventory; the legacy version keeps Extent / HTTP |
+| Semantic verification | [AtfReportSemanticSnapshot](../src/main/java/atf/reporting/semantic/AtfReportSemanticSnapshot.java) | comparison of population and statuses, separate from inspection DOM |
 
-Pentru configurație se citesc [ReportingSettings](../src/main/java/atf/reporting/configuration/ReportingSettings.java)
-și [loaderul YAML](../src/main/java/atf/reporting/configuration/AtfReportConfigurationLoader.java).
-Bugetul implicit al assertion-urilor este 240; proiecția sigură nu recalculează
-verdictul din textul scurtat. Redactorul se aplică înaintea bugetului de display;
-acoperirea fiecărui format sensibil cere probă proprie, fără garanție universală.
+[ReportingSettings](../src/main/java/atf/reporting/configuration/ReportingSettings.java) and [loaderul YAML](../src/main/java/atf/reporting/configuration/AtfReportConfigurationLoader.java) are read for configuration. The default budget of the assertions is 240; the safe projection does not recalculate the verdict from the shortened text. The editor applies before the display budget; the coverage of each sensitive format requires own proof without universal guarantee.
 
-## Patru probe distincte ale extracției
+<a id="four-distinct-samples-of-extraction"></a>
+<a id="patru-probe-distincte-ale-extracției"></a>
+## Four distinct samples of extraction
 
-| Probă | Condiția de acceptare | Ce nu demonstrează singură |
+| Test | Acceptance conditions | What it does not prove alone |
 |---|---|---|
-| sursa în reactor | compile/package și testele relevante la owner | autonomia filesystem-ului sau a distribuției |
-| numai modulul sursă | copia include POM, main, resurse și testele locale; rulează din TMP cu nume arbitrar, fără părintele ATF | compatibilitatea consumului Maven și contractul de release |
-| consumer Maven extern | depinde de JAR-ul și POM-ul reale, cu tranzitive rezolvate de Maven; verifică hash-ul și CodeSource-ul încărcat | succesul gate-ului sursei ori stabilitatea întregului API public |
-| artifactul și controlul negativ | nominal și FAIL controlat în ambele renderere; o resursă runtime lipsă din copia JAR-ului refuză publicarea | navigarea browser completă ori publicarea unei versiuni susținute |
+| reactor source | compile / package and relevant owner tests | the autonomy of filesystem or distribution |
+| source module only | Copy includes POM, main, resources and local tests; running from TMP with arbitrary name without parent ATF | the compatibility of the consumption of Maven and the release contract |
+| external Maven consumer | depends on JAR and actual POM with transitives solved by Maven; check hash and CodeSource loaded | success of source's gear or stability of all public API |
+| artifact and negative control | nominal and FAIL controlled in both renderers; a missing runtime resource from copy JAR refuses publication | browsing full browser or publishing a supported version |
 
 <details>
-<summary><strong>Limita actuală a gate-ului și izolarea probei externe</strong></summary>
+<summary><strong>Current limit of the gate and isolation of external sample</strong></summary>
 
-Gate-ul local este [ReportingStandaloneDependencyTest](../src/test/java/atf/reporting/standalone/ReportingStandaloneDependencyTest.java).
-Pornește de la CodeSource-ul testelor și inspectează propriul modul; numele
-directorului și prezența reactorului nu sunt condiții de succes.
-[Probele negative](../src/test/java/atf/reporting/standalone/StandaloneBoundaryRulesTest.java)
-protejează importurile externe ATF, dependențele Maven și parent-ul interzis.
+The local coat is [ReportingStandaloneDependencyTest](../src/test/java/atf/reporting/standalone/ReportingStandaloneDependencyTest.java). It starts with CodeSource tests and inspections its own modules; the name of the director and the presence of the reactor are not successful conditions. [Negative evidence](../src/test/java/atf/reporting/standalone/StandaloneBoundaryRulesTest.java) external protects imports ATF, Maven dependencies and the banned parent.
 
-`ReportingLibraryDistributionIntegrationTest` automatizează proba în proiectul
-intern de testare. În reactor izolează sursa și execută testele native;
-într-un consumer binar pornește de la JAR-ul încărcat și POM-ul inclus în acesta.
-Ambele forme sunt consumate de un proiect Maven extern, cu aceleași probe.
+`ReportingLibraryDistributionIntegrationTest` automates the sample in the internal test project. In the reactor it isolates the source and performs native tests; in a binary consumer starts from JAR loaded and POM included therein. Both forms are consumed by an external Maven project with the same samples.
 
-[Auditul sursei Java](../src/test/java/atf/reporting/standalone/source/ReportingSourceArchitectureTest.java)
-este nativ la producător; contractele de fațadă și delegare nu sunt eliminate.
-Consumerul runtime nu are nevoie de acele fișiere Java și nu le înlocuiește
-prin verificări dezactivate.
+[Java source audit](../src/test/java/atf/reporting/standalone/source/ReportingSourceArchitectureTest.java) is native to the manufacturer; façade and delegation contracts are not eliminated. Runtime consumption does not need those Java files and does not replace them by deactivated checks.
 
-În consumerul extern, classpath-ul aplicației conține JAR-ul Reporting și
-tranzitivele sale, fără clase ATF din `target/classes`, Core, UI, Kit, JUnit sau
-Playwright. Exemplul consumerului se compilează separat. Prezența unor JAR-uri
-în cache nu înseamnă că ele sunt dependențe runtime ale bibliotecii.
+In the external consumer, the application's top-up contains JAR Reporting and its transistors, without ATF classes in `target/classes`, Core, UI, Kit, JUnit or Playwright. The consumer's example is compiled separately. JAR in cache does not mean that they are runtime dependencies of the library.
 
-Controlul negativ modifică numai o copie TMP a JAR-ului; elimină o resursă din
-[manifestul de assets](../src/main/java/atf/reporting/asset/ReportAsset.java)
-și verifică refuzul [loaderului](../src/main/java/atf/reporting/asset/ReportAssetLoader.java).
-Nu schimbă sursa, cache-ul Maven de lucru ori artifactul publicat.
-Constructorul sau publicarea refuzată păstrează raportul anterior și eliberează
-workspace-ul; proba externă verifică și acest rollback.
+Negative control only modifies TMP's JAR copy; eliminates a [Asset manifesto](../src/main/java/atf/reporting/asset/ReportAsset.java) resource and verifies the [loader](../src/main/java/atf/reporting/asset/ReportAssetLoader.java) refusal. Do not change the source, Maven workpiece or published artifact. The manufacturer or refused publication shall keep the previous report and release the workspace; the external sample also checks this rollback.
 
 </details>
 
-## Pregătire pentru un release susținut
+<a id="preparation-for-a-supported-release"></a>
+<a id="pregătire-pentru-un-release-susținut"></a>
+## Preparation for a supported release
 
-- Păstrați contractul și probele locale în modul. Verificările care necesită
-  runner, browser sau compoziție ATF rămân în proiectul intern de testare și
-  nu devin dependențe ale JAR-ului distribuit.
-- Declarați API-ul susținut, compatibilitatea și capabilitățile opționale înainte
-  de a ascunde sau muta clase publice. Inventariați apelurile reale ale consumerilor.
-- Definiți politica versiunilor, POM-ul distribuit, resursele, licențele și
-  documentele care însoțesc artifactul. Un package local nu este un release.
-- Verificați semantica și apoi DOM-ul: FAIL după diferență dincolo de 240,
-  redacție, expandare, navigare către dovadă și indexarea cauzei terminale.
-  Snapshot-ul semantic singur nu certifică interacțiunile din HTML.
-- Păstrați măsurătorile callerului distincte de timpul publicării. Nu inventați
-  durate pentru răspunsuri lipsă și nu schimbați protocolul de flush/close implicit.
-- Acest atlas este document sursă. Includerea în pachetul distribuit și
-  portabilitatea tuturor README-urilor din modul rămân criterii separate;
-  linkurile locale de aici nu repară automat ieșirile din celelalte documente.
+- Keep the contract and local evidence in the mode.
+  Runner, browser or composition ATF remains in the internal test project and do not become dependencies of the distributed JAR.
+- Declare API sustained, optional compatibility and capabilities forward
+  to hide or move public classes. Inventory actual consumer calls.
+- Define version policy, distributed POM, resources, licenses and
+  documents accompanying the artifact. A local package is not a release.
+- Check semantics and then DOM: FAIL after difference beyond 240,
+  editorial, expansion, navigation to proof and indexing the terminal cause. Semantic snapshots alone do not certify interactions in HTML.
+- Keep caller measurements distinct from the time of publication. Do not invent
+  durations for missing responses and do not change the default flush / close protocol.
+- This atlas is source document. Inclusion in the distributed package and
+  Portable for all README in the module remain separate criteria; local links here do not automatically repair outputs from other documents.
 
-## Întreținere și probe locale
+<a id="local-maintenance-and-samples"></a>
+<a id="întreținere-și-probe-locale"></a>
+## Local maintenance and samples
 
-[Contractele standalone](../src/test/java/atf/reporting/standalone/ReportingStandaloneContractTest.java)
-verifică valorile de bază și redactarea acoperită de fixture-uri.
-[Verdictele componentei](../src/test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java)
-verifică propagarea statusurilor și refuzul inputului terminal nejudecat.
-Aceste probe nu înlocuiesc analiza limitelor redacției ori oracolele browser.
+[Standalone contracts](../src/test/java/atf/reporting/standalone/ReportingStandaloneContractTest.java) verifies the basic values and the redaction covered by fixtures. [Verdicts of the component](../src/test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java) verifies the propagation of the statuses and refusal of the unjudged terminal input. These samples do not replace the analysis of the editorial boundaries or browser oracles.
 
-O schimbare de intrare, invariantă sau owner actualizează această hartă și
-README-ul pachetului în același increment. Rulările, hash-urile și rezultatele
-datate rămân în TMP; documentația păstrează contractul și limitele sale actuale.
+An entry change, invariant or owner updates this map and README package in the same increment. The runs, hashes and dated results remain in TMP; documentation retains the contract and its current limits.
 
-## Publicare și dovezi complete
+<a id="publication-and-full-evidence"></a>
+<a id="publicare-și-dovezi-complete"></a>
+## Publication and full evidence
 
-| Contract portabil | Intrare |
+| Contract portable | Input |
 |---|---|
-| memorie și cleanup PNG | [publicarea modulului](../README.md#publicarea-png-la-volum-mare) |
-| preview și celulă completă ACTION/OBSERVE | [proiecția comună](../README.md#actionobserve--preview-și-valori-complete) |
-| lifecycle observații UI | [atlasul UI](../src/main/java/atf/reporting/ui/README.md#observații-neutre-pe-uiphase) |
+| memory and cleanup PNG | [publication of the module](../README.md#publicarea-png-la-volum-mare) |
+| ACTION / OBSERVE complete preview and cell | [joint projection](../README.md#actionobserve--preview-și-valori-complete) |
+| lifecycle observations UI | [UI atlas](../src/main/java/atf/reporting/ui/README.md#observații-neutre-pe-uiphase) |
 
-Biblioteca primește dovezi și verdicturi capturate; nu execută aplicația sau comparațiile.
+The library receives evidence and verdicts captured; it does not execute the application or comparisons.
 
 ## Minimal binary consumer
 

@@ -6,6 +6,7 @@ import atf.reporting.contract.AtfGherkinKeyword;
 import atf.reporting.evidence.ReportScreenshotPolicy;
 import atf.reporting.evidence.profile.ReportEvidenceFlowMode;
 import atf.autoex.tests.extension.AutoExComponentTest;
+import atf.autoex.tests.support.reporting.AutoExCatalogApiReportFixture;
 import atf.ui.playwright.PlaywrightUiSession;
 import atf.autoex.config.AutoExConfigurationLoader;
 import atf.autoex.runtime.AutoExE2eRun;
@@ -53,6 +54,46 @@ import static atf.testkit.assertions.AuditedAssertions.assertThrows;
 class AutoExRuntimeBoundaryComponentTest {
     private static final AtomicLong OBSERVATION_SEQUENCE = new AtomicLong();
     @Test
+    void catalogAssertionsBelongOnlyToTheSelectedGetAmongSamePathNeighbors() throws Exception {
+        Path reportRoot = Path.of(System.getProperty("atf.test.reportDirectory", "target/autoex-runtime-reports"))
+                .toAbsolutePath().resolve("component-report");
+        Path reportPath = AutoExCatalogApiReportFixture.create(reportRoot);
+        String html = Files.readString(reportPath).replaceAll(
+                "(?is)<script\\b[^>]*>.*?</script>|<style\\b[^>]*>.*?</style>", "");
+        assertTrue(html.contains("the catalog API confirms the configured product before UI purchase"));
+        assertEquals(1, occurrences(html, "Catalog result count"),
+                "the selected API assertion must render once despite same-path POST and repeated GET neighbors");
+        assertTrue(html.contains("POST"));
+        assertTrue(html.contains("GET"));
+        assertTrue(html.contains("/api/unrelated"));
+        assertTrue(html.contains("data-atf-preview-limit=\"240\""));
+        for (int exchange = 1; exchange <= 4; exchange++) {
+            assertEquals(1, occurrences(html, "Exchange " + exchange),
+                    "only the four captured exchanges should be published");
+        }
+        assertEquals(0, occurrences(html, "Exchange 5"), "the API checkpoint must not synthesize an exchange");
+    }
+
+    @Test
+    void catalogApiCheckpointFailsClosedWhenTheSelectedEvidenceIsMissingOrAmbiguous() throws Exception {
+        for (var captureCase : List.of(
+                AutoExCatalogApiReportFixture.CaptureCase.MISSING_CATALOG_GET,
+                AutoExCatalogApiReportFixture.CaptureCase.AMBIGUOUS_CATALOG_GET)) {
+            Path reportRoot = Path.of(System.getProperty("atf.test.reportDirectory", "target/autoex-runtime-reports"))
+                    .toAbsolutePath().resolve("component-report").resolve(captureCase.name());
+            Path reportPath = AutoExCatalogApiReportFixture.create(reportRoot, captureCase);
+            String html = Files.readString(reportPath).replaceAll(
+                    "(?is)<script\\b[^>]*>.*?</script>|<style\\b[^>]*>.*?</style>", "");
+            assertTrue(html.contains("Catalog API evidence"), "the failure must be retained in Extent");
+            assertTrue(html.contains(captureCase == AutoExCatalogApiReportFixture.CaptureCase.MISSING_CATALOG_GET
+                    ? "not observed" : "2 captured exchanges match the selected sequence"),
+                    "Extent must state why the catalog exchange was rejected");
+            assertEquals(0, occurrences(html, "Catalog result count"),
+                    "business assertions must not be attached to missing or ambiguous API evidence");
+        }
+    }
+
+    @Test
     void cartReadBackRejectsProductIdPrefixesWrongMethodsAndDocumentNeighbors() throws Exception {
         var source = AutoExE2eRun.withNetworkInspection(AutoExConfigurationLoader.load());
         var base = source.browser();
@@ -98,6 +139,16 @@ class AutoExRuntimeBoundaryComponentTest {
     private static UiNetworkObservation cartObservation(AutoExConfiguration configuration, String product,
                                                          String method, UiNetworkCapturePolicy.ResourceKind kind) {
         return cartObservation(configuration, product, method, kind, 200, "");
+    }
+
+    private static int occurrences(String source, String value) {
+        int count = 0;
+        int cursor = 0;
+        while ((cursor = source.indexOf(value, cursor)) >= 0) {
+            count++;
+            cursor += value.length();
+        }
+        return count;
     }
 
     private static UiNetworkObservation cartObservation(AutoExConfiguration configuration, String product,

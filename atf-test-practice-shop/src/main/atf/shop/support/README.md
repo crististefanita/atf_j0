@@ -1,86 +1,103 @@
-# Shop support — contracte de ecran și dovezi cauzale
+<a id="shop-support--screen-contracts-and-causal-evidence"></a>
+<a id="shop-support--contracte-de-ecran-și-dovezi-cauzale"></a>
+# Shop support — screen contracts and causal evidence
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-Pachetul adaptează observațiile Shop la contracte de ecran, validări și dovezi
-API. Rămâne în main; harness-ul JUnit și selecția suitei rămân în test.
-Modelul Shop este reperul consumer pentru această separare, nu o regulă de
-copiere a endpoint-urilor sau a politicilor sale în AutoEx.
+This package adapts Shop observations into screen contracts, validations, and
+API evidence. It stays in main; the JUnit harness and suite selection stay in
+test. The Shop model is the consumer reference for this separation, not a rule
+for copying its endpoints or policies into AutoEx.
 
-## Intrări și responsabilități
+<a id="entry-points-and-responsibilities"></a>
+<a id="intrări-și-responsabilități"></a>
+## Entry points and responsibilities
 
-Conversia din [ShopApiEvidenceMapper](api/ShopApiEvidenceMapper.java) păstrează
-[query-ul typed](../../../../../../atf-reporting/README.md#fidelitatea-contractului-query)
-pentru identitatea agregatului; view-ul legacy rămâne separat. Perechile disponibile
-se păstrează integral. Pentru captura browser redactată, jurnalul și `withTrace`
-conservă numai amprenta opacă; nu reconstruiesc valori sau parametri din placeholder.
+Conversion in [ShopApiEvidenceMapper](api/ShopApiEvidenceMapper.java) retains
+the [typed query](../../../../../../atf-reporting/README.md#dovezi-api-atașate-unui-pas-ui)
+for aggregate identity; the legacy view remains separate. Available pairs are
+retained in full. For redacted browser capture, the journal and `withTrace`
+retain only the opaque fingerprint; they do not reconstruct values or
+parameters from placeholders.
 
-Rutele, politica personal-field și alegerea comenzii aparțin Shop.
+Routes, the personal-field policy, and order selection belong to Shop.
 
-Factory-ul runtime transmite originea API configurată către captura de răspuns.
-Aceasta păstrează livrarea la `response` folosită de gate-urile Shop; abonarea
-la inspectorul UI `request-finished` cere reconcilierea explicită a momentului consumului.
+The runtime factory passes the configured API origin to response capture. This
+preserves delivery at `response`, as used by Shop gates; subscribing to the UI
+inspector's `request-finished` event requires explicit reconciliation of when
+observations are consumed.
 
-| Intrare | Limită |
+| Entry point | Boundary |
 |---|---|
-| `attach(Page, URI)` | originea API configurată, cu schemă/host/port normalizate; folosită de runtime |
-| `attach(Page)` | compatibilitate pentru probele adaptorului existent, cu hostul demo istoric |
-| `attach(UiNetworkInspector)` | abonare neutră disponibilă; callerul trebuie să consume observațiile finalizate înaintea gate-ului business |
+| `attach(Page, URI)` | configured API origin with normalized scheme/host/port; used by runtime |
+| `attach(Page)` | compatibility for existing adapter tests, using the historical demo host |
+| `attach(UiNetworkInspector)` | neutral subscription is available; the caller must consume completed observations before the business gate |
 
-Publicarea grupului non-HTTP și sumarele sigure sunt delegate la Reporting.
-`ShopApiReportPublisher` păstrează titlul, expected-urile și rezultatul business;
-un grup de aserțiuni nu mai este reprezentat printr-un request `ASSERT` artificial.
+Publishing non-HTTP groups and safe summaries is delegated to Reporting.
+`ShopApiReportPublisher` retains the title, expected values, and business
+result; an assertion group is no longer represented by an artificial `ASSERT`
+request.
 
-| Când investighezi | Citește întâi | Limita |
+| When investigating | Read first | Boundary |
 |---|---|---|
-| ce se citește din ecran | [ShopPageValidator](validation/ShopPageValidator.java) | observă contractul paginii și produce rezultate typed |
-| ce trafic aparține checkpoint-ului | [ShopApiNetworkJournal](api/ShopApiNetworkJournal.java) | jurnalul aceleiași sesiuni UI; nu generează alt coș |
-| ce exchange se alege | [ShopApiExchangeSelector](api/ShopApiExchangeSelector.java) | selecție ordonată; verifică separat query-ul și payload-ul |
-| dacă request-ul comenzii este nou | [ShopOrderRequestWindow](api/correlation/ShopOrderRequestWindow.java) | identitate la pornire, distinctă de ordinea răspunsurilor |
-| confirmarea adăugării în coș | [ShopCartAdditionConfirmation](cart/ShopCartAdditionConfirmation.java) | request pornit după armare, payload deținut și răspunsul aceleiași cereri |
-| de ce catalogul nu devine ready | [ShopCatalogReadiness](catalog/ShopCatalogReadiness.java) | observă GET/QUERY; permite cel mult un GET home după tranzitoriu confirmat |
-| ce fapt a produs catalogul | [ShopCatalogObservation](catalog/ShopCatalogObservation.java) | listener-e, request curent, receipt și document; fără decizie de refresh |
-| de unde vine adresa observată | [ShopPostalLookup](billing/ShopPostalLookup.java) și [ShopBillingPage](../pages/ShopBillingPage.java) | cerere nouă, tuple curent, răspuns complet și DOM concordant |
+| what is read from the screen | [ShopPageValidator](validation/ShopPageValidator.java) | observes the page contract and produces typed results |
+| which traffic belongs to a checkpoint | [ShopApiNetworkJournal](api/ShopApiNetworkJournal.java) | journal from the same UI session; does not create another cart |
+| which exchange is selected | [ShopApiExchangeSelector](api/ShopApiExchangeSelector.java) | ordered selection; checks query and payload separately |
+| whether the order request is new | [ShopOrderRequestWindow](api/correlation/ShopOrderRequestWindow.java) | identity at request start, distinct from response order |
+| confirmation that an item was added to the cart | [ShopCartAdditionConfirmation](cart/ShopCartAdditionConfirmation.java) | request started after arming, owned payload, and response for that same request |
+| why the catalog is not ready | [ShopCatalogReadiness](catalog/ShopCatalogReadiness.java) | observes GET/QUERY; permits at most one home GET after a confirmed transient state |
+| which event the catalog produced | [ShopCatalogObservation](catalog/ShopCatalogObservation.java) | listeners, current request, receipt, and document; no refresh decision |
+| where the observed address comes from | [ShopPostalLookup](billing/ShopPostalLookup.java) and [ShopBillingPage](../pages/ShopBillingPage.java) | new request, current tuple, complete response, and matching DOM |
 
-## Invariante de păstrat
+<a id="invariants-to-preserve"></a>
+<a id="invariante-de-păstrat"></a>
+## Invariants to preserve
 
-- Expected-ul vine din configurație/fixture; actual-ul se citește independent.
-  Nu înlocui valorile lipsă și nu deriva expected-ul din preview-ul raportului.
-- Cea mai recentă comandă eligibilă poate fi FAIL. Un `201` vechi nu acoperă
-  un `500` ulterior; o captură începută înaintea markerului nu devine nouă la sosire.
-- Marcajul numeric citește recepția după bariera browserului și salvează fence-ul
-  la cheia returnată. O coliziune între ferestre diferite este ambiguă și refuzată;
-  marcajul typed rămâne independent și este folosit de Confirm.
-- Toast-ul nu confirmă mutația. Răspunsul propriului POST este așteptat în bugetul
-  unicului click; coșul se validează apoi independent, fără replay.
-- Achiziția browserului este în runtime, iar capturile sunt în evidence.
-  `support` nu devine un al doilea composition root sau un registru JUnit.
-- Billing-ul armează observația înaintea input-urilor și consumă debounce-ul
-  aplicației în bugetul existent. Configured-fields drenează autofill-ul posibil,
-  apoi tastează o dată; postal-lookup cere răspuns curent și DOM concordant.
-- Catalogul și lookup-ul compun scope-ul UI: callback-urile sunt inerte la
-  atașare parțială și după close; retragerile păstrează cauza primară și erorile distincte.
-- Observația catalogului este separată de clasificarea tranzitoriului și de
-  unicul refresh home. Readiness-ul consumă același `ObservationBudget`; GET/QUERY
-  și ultimul request eligibil rămân politica Shop, distinctă de observerul BE strict.
+- Expected values come from configuration/fixtures; actual values are read
+  independently. Do not replace missing values or derive expected values from
+  the report preview.
+- The latest eligible order can FAIL. An old `201` does not cover a later `500`;
+  a capture started before the marker does not become new when it arrives.
+- The numeric marker reads the receipt after the browser barrier and saves the
+  fence at the returned key. A collision between different windows is
+  ambiguous and refused; the typed marker remains independent and is used by Confirm.
+- A toast does not confirm the mutation. The response to the corresponding POST
+  is awaited within the single click's budget; the cart is then validated
+  independently, without replay.
+- Browser acquisition belongs in runtime, and captures belong in evidence.
+  `support` does not become a second composition root or JUnit registry.
+- Billing arms observation before input and consumes the application's debounce
+  within the existing budget. Configured fields drain possible autofill, then
+  are typed once; postal lookup requires a current response and matching DOM.
+- Catalog and lookup compose the UI scope: callbacks are inert during partial
+  attachment and after close; removals preserve the primary cause and distinct
+  failures.
+- Catalog observation is separate from transient-state classification and the
+  single home refresh. Readiness consumes the same `ObservationBudget`; GET/QUERY
+  and the latest eligible request remain Shop policy, distinct from the strict
+  backend observer.
 
-## Probe și vecini
+<a id="tests-and-related-contracts"></a>
+<a id="probe-și-vecini"></a>
+## Tests and related contracts
 
-| Contract | Probă de pornire |
+| Contract | Starting test |
 |---|---|
-| acceptarea coșului fără toast | [ShopCartAcknowledgementComponentTest](../../../../test/atf/shop/tests/component/cart/ShopCartAcknowledgementComponentTest.java) |
-| ownership la pornirea request-ului | [ShopOrderRequestStartComponentTest](../../../../test/atf/shop/flow/ShopOrderRequestStartComponentTest.java) |
-| snapshot numeric și coliziuni | [ShopLegacyMarkerComponentTest](../../../../test/atf/shop/tests/api/network/causality/ShopLegacyMarkerComponentTest.java) |
-| catalog nominal și refuz | [ShopCatalogReadinessComponentTest](../../../../test/atf/shop/tests/component/catalog/ShopCatalogReadinessComponentTest.java) |
-| erori de lifecycle catalog | [ShopCatalogLifecycleComponentTest](../../../../test/atf/shop/tests/component/catalog/lifecycle/ShopCatalogLifecycleComponentTest.java) |
-| cursa autofill/input și refuzuri | [ShopBillingSynchronizationComponentTest](../../../../test/atf/shop/tests/component/billing/ShopBillingSynchronizationComponentTest.java) |
-| adresa lookup-ului curent | [ShopPostalLookupComponentTest](../../../../test/atf/shop/tests/component/billing/ShopPostalLookupComponentTest.java) |
-| failure Account/Cart/Purchase și frate sănătos | [acceptanța explicită](../../../../test/atf/shop/tests/e2e/failures/ShopBusinessFailureAcceptance.java) — flow și validări reale; injecție numai în test, raport individual/comun |
+| cart acceptance without a toast | [ShopCartAcknowledgementComponentTest](../../../../test/atf/shop/tests/component/cart/ShopCartAcknowledgementComponentTest.java) |
+| ownership at request start | [ShopOrderRequestStartComponentTest](../../../../test/atf/shop/flow/ShopOrderRequestStartComponentTest.java) |
+| numeric snapshot and collisions | [ShopLegacyMarkerComponentTest](../../../../test/atf/shop/tests/api/network/causality/ShopLegacyMarkerComponentTest.java) |
+| nominal catalog state and refusal | [ShopCatalogReadinessComponentTest](../../../../test/atf/shop/tests/component/catalog/ShopCatalogReadinessComponentTest.java) |
+| catalog lifecycle errors | [ShopCatalogLifecycleComponentTest](../../../../test/atf/shop/tests/component/catalog/lifecycle/ShopCatalogLifecycleComponentTest.java) |
+| autofill/input race and refusals | [ShopBillingSynchronizationComponentTest](../../../../test/atf/shop/tests/component/billing/ShopBillingSynchronizationComponentTest.java) |
+| address from the current lookup | [ShopPostalLookupComponentTest](../../../../test/atf/shop/tests/component/billing/ShopPostalLookupComponentTest.java) |
+| Account/Cart/Purchase failure and healthy sibling | [explicit acceptance](../../../../test/atf/shop/tests/e2e/failures/ShopBusinessFailureAcceptance.java) — real flow and validations; injection only in test, individual/shared report |
 
-Achiziția concretă începe în [ShopBrowserRuntime](../runtime/ShopBrowserRuntime.java).
-Contractele și probele celorlalte checkpoint-uri rămân în [contractul modulului](../../../../../README.md).
+The concrete purchase starts in [ShopBrowserRuntime](../runtime/ShopBrowserRuntime.java).
+Contracts and tests for the other checkpoints remain in the [module contract](../../../../../README.md).
 
-Scope-ul reutilizabil are [contract la UI](../../../../../../atf-ui/README.md#scope-ul-listener-elor-de-observație).
-Lookup-ul observă traficul aplicației; nu execută un al doilea GET și nu suprascrie câmpurile generate.
+The reusable scope has a [UI contract](../../../../../../atf-ui/README.md#observation-listener-scope).
+Lookup observes application traffic; it does not issue a second GET or overwrite generated fields.
 
-Continuă orientarea în [atlasul de context ATF](../../../../../../docs/ATF_Context_Atlas.md).
+Continue in the [Shop module guide](../../../../../../atf-test-practice-shop/README.md).

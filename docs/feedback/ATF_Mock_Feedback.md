@@ -1,7 +1,11 @@
-# Mock — ruta canonică de feedback
+<a id="mock---canon-feedback-route"></a>
+<a id="mock--ruta-canonică-de-feedback"></a>
+# Mock - canon feedback route
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-J0 deține implementarea, testele native și feedback-ul Mock. [Console / Mock](ATF_Console_Mock_Feedback.md) păstrează backlog-ul unic; această rută de compatibilitate nu copiază cerințe.
+J0 holds the implementation, native tests and Mock feedback. [Console / Mock](ATF_Console_Mock_Feedback.md) keeps the unique backlog; this compatibility route does not copy requirements.
 
-[Contractul Mock](../../atf-mock/README.md) descrie comportamentul curent. Cataloagele și oracolele Eventuate rămân în J2; [ghidul bibliotecilor](../../lib/README.md) separă remedierea comună de acceptanța consumerului.
+[Mock contract](../../atf-mock/README.md) describes current behavior. Eventuate catalogues and oracles remain in J2; [library guide](../../lib/README.md) separates joint remediation from consumer acceptance.

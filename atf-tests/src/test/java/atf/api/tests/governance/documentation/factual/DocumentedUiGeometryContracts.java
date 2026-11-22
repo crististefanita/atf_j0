@@ -1,5 +1,6 @@
 package atf.api.tests.governance.documentation.factual;
 
+import atf.api.tests.governance.documentation.language.DocumentationLanguagePolicy;
 import atf.ui.config.UiBrowserConfiguration;
 import atf.ui.config.geometry.UiViewportScale;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -19,20 +20,29 @@ final class DocumentedUiGeometryContracts {
     static final List<String> DOCUMENTS = List.of(UI, "atf-test-auto-ex/README.md", "atf-test-practice-shop/README.md");
     private static final String SCALE_SOURCE = "atf-ui/src/main/java/atf/ui/config/geometry/UiViewportScale.java";
     private static final String DEFAULT_SOURCE = "atf-ui/src/main/java/atf/ui/config/UiBrowserConfiguration.java";
-    private static final Pattern DEFAULT = Pattern.compile("(?m)^Implicitul generic al `zoomPercent` este `(\\d+)`");
-    private static final Pattern EXAMPLE = Pattern.compile(
-            "(?m)^\\| ieșire cerută `(\\d+) × (\\d+)`, zoom `(\\d+)` \\| viewport CSS `(\\d+) × (\\d+)`, DPR `([0-9.]+)` \\|$");
-    private static final Pattern DELIVERED = Pattern.compile(
-            "(?m)^\\| YAML livrat \\| `(\\d+) × (\\d+)` \\| `(\\d+)` \\| `(\\d+) × (\\d+)` \\| `([0-9.]+)` \\|$");
+    private static final Pattern DEFAULT_EN = Pattern.compile("(?m)^The generic default for `zoomPercent` is `(\\d+)`");
+    private static final Pattern DEFAULT_RO = Pattern.compile("(?m)^Implicitul generic al `zoomPercent` este `(\\d+)`");
+    private static final Pattern EXAMPLE_EN = Pattern.compile(
+            "(?m)^\\| requested output `(\\d+) × (\\d+)`, zoom `(\\d+)` \\| CSS viewport `(\\d+) × (\\d+)`, DPR `([0-9.]+)` \\|");
+    private static final Pattern EXAMPLE_RO = Pattern.compile(
+            "(?m)^\\| ieșire cerută `(\\d+) × (\\d+)`, zoom `(\\d+)` \\| viewport CSS `(\\d+) × (\\d+)`, DPR `([0-9.]+)` \\|");
+    private static final Pattern DELIVERED_EN = Pattern.compile(
+            "(?m)^\\| Delivered YAML \\| `(\\d+) × (\\d+)` \\| `(\\d+)` \\| `(\\d+) × (\\d+)` \\| `([0-9.]+)` \\|");
+    private static final Pattern DELIVERED_RO = Pattern.compile(
+            "(?m)^\\| YAML livrat \\| `(\\d+) × (\\d+)` \\| `(\\d+)` \\| `(\\d+) × (\\d+)` \\| `([0-9.]+)` \\|");
 
+    static Pattern defaultPattern(String language) { return language.equals("ro") ? DEFAULT_RO : DEFAULT_EN; }
+    static Pattern examplePattern(String language) { return language.equals("ro") ? EXAMPLE_RO : EXAMPLE_EN; }
+    static Pattern deliveredPattern(String language) { return language.equals("ro") ? DELIVERED_RO : DELIVERED_EN; }
     private DocumentedUiGeometryContracts() { }
 
     static List<String> inspect(Path root, String relative, String document) throws Exception {
         if (!DOCUMENTS.contains(relative)) throw new IllegalArgumentException("Unselected document: " + relative);
+        String language = DocumentationLanguagePolicy.read(root);
         String prose = withoutFences(document);
         var failures = new ArrayList<String>();
         if (relative.equals(UI)) {
-            Matcher defaults = single(prose, DEFAULT, relative, "generic zoom default", DEFAULT_SOURCE, failures);
+            Matcher defaults = single(prose, defaultPattern(language), relative, "generic zoom default", DEFAULT_SOURCE, failures);
             if (defaults != null && new BigDecimal(defaults.group(1)).compareTo(BigDecimal.valueOf(UiBrowserConfiguration.defaults().zoomPercent())) != 0) {
                 failures.add(diagnostic(relative, prose, defaults.start(), "generic zoom default", defaults.group(1),
                         Integer.toString(UiBrowserConfiguration.defaults().zoomPercent()), DEFAULT_SOURCE));
@@ -42,7 +52,7 @@ final class DocumentedUiGeometryContracts {
         String yaml = example ? null : relative.substring(0, relative.indexOf('/')) + "/src/test/resources/"
                 + (relative.contains("auto-ex") ? "atf-auto-ex.yaml" : "atf-practice-shop.yaml");
         String source = example ? SCALE_SOURCE : yaml + " -> " + SCALE_SOURCE;
-        Matcher row = single(prose, example ? EXAMPLE : DELIVERED, relative, "UI geometry", source, failures);
+        Matcher row = single(prose, example ? examplePattern(language) : deliveredPattern(language), relative, "UI geometry", source, failures);
         if (row == null) return List.copyOf(failures);
         try {
             Geometry declared = Geometry.read(row);

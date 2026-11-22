@@ -1,77 +1,92 @@
-# AutoEx runtime — compoziție, observație și finalizare
+<a id="autoex-runtime--composition-observation-and-finalization"></a>
+<a id="autoex-runtime--compoziție-observație-și-finalizare"></a>
+# AutoEx runtime — composition, observation, and finalization
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-Acest pachet compune browserul, checkpoint-urile și publicarea AutoEx fără
-adnotări JUnit. Ownerul este consumerul AutoEx; regula business rămâne la flow/gate,
-iar integrarea runnerului rămâne în `src/test`.
+This package composes the browser, checkpoints, and AutoEx publishing without
+JUnit annotations. The AutoEx consumer owns it; business rules stay in the
+flow/gate, and runner integration stays in `src/test`.
 
-## Intrări și responsabilități
+<a id="entry-points-and-responsibilities"></a>
+<a id="intrări-și-responsabilități"></a>
+## Entry points and responsibilities
 
-| Când investighezi | Citește întâi | Limita |
+| When investigating | Read first | Boundary |
 |---|---|---|
-| un checkpoint sau finalizarea run-ului | [AutoExE2eRun](AutoExE2eRun.java) | fațadă peste browser, dovezi și portul de finalizare |
-| ownerul contului înainte de checkout | [observarea identității](account/AutoExCustomerIdentityObservation.java) | citește identitatea nevidă; gate-ul compară ownerul |
-| ordinea cleanup/publicare/close | [AutoExRunLifecycle](AutoExRunLifecycle.java) | port runtime; implementarea Kit/JUnit se află în test |
-| failure business controlat | [acceptanța explicită](../../../../../test/java/atf/autoex/tests/e2e/failures/AutoExBusinessFailureAcceptance.java) | fixture în test; journey real, captură originală, cleanup al contului deținut și JUnit FAIL păstrat |
-| configurație și sesiune de raport | [AutoExReportSession](AutoExReportSession.java) | factory și delegare către biblioteca Reporting |
-| download-ul facturii | [AutoExInvoiceDownload](invoice/AutoExInvoiceDownload.java) | un click; recuperare numai pentru GET-ul invoice queue-full observat |
-| verdictul sumei facturii | [validatorul pur](../business/invoice/AutoExInvoiceValidator.java) → [adaptorul](../support/checkout/AutoExInvoiceAssertions.java) | clauză completă, sintaxă înainte de BigDecimal și FAIL fidel; fără replay |
-| confirmarea produsului după click | [AutoExProductTransition](catalog/AutoExProductTransition.java) | un pointer, Close explicit dacă reclama interceptează, GET deținut 2xx și numele configurat; un singur buget |
-| reclama apărută după pointer | [AutoExVignetteHandler](../support/browser/AutoExVignetteHandler.java) | Close explicit, fără replay; child INFO în durata părintelui |
-| readiness read-only | [navigarea AutoEx](navigation/AutoExReadOnlyNavigation.java) | politică specifică documentului și originii AutoEx |
-| conversia traficului observat | [AutoExObservedExchangeMapper](AutoExObservedExchangeMapper.java) | păstrează query-ul typed, service-ul și disponibilitatea response-ului în Reporting |
+| a checkpoint or run finalization | [AutoExE2eRun](AutoExE2eRun.java) | facade over the browser, evidence, and finalization port |
+| account owner before checkout | [identity observation](account/AutoExCustomerIdentityObservation.java) | reads a non-empty identity; the gate compares the owner |
+| cleanup/publish/close order | [AutoExRunLifecycle](AutoExRunLifecycle.java) | runtime port; Kit/JUnit implementation stays in test |
+| controlled business failure | [explicit acceptance](../../../../../test/java/atf/autoex/tests/e2e/failures/AutoExBusinessFailureAcceptance.java) | test fixture; real journey, original capture, cleanup of the owned account, and preserved JUnit FAIL |
+| configuration and report session | [AutoExReportSession](AutoExReportSession.java) | factory and delegation to the Reporting library |
+| invoice download | [AutoExInvoiceDownload](invoice/AutoExInvoiceDownload.java) | one click; recovery only for the observed queue-full invoice GET |
+| invoice amount verdict | [pure validator](../business/invoice/AutoExInvoiceValidator.java) → [adapter](../support/checkout/AutoExInvoiceAssertions.java) | complete clause, syntax check before BigDecimal, faithful FAIL; no replay |
+| product confirmation after click | [AutoExProductTransition](catalog/AutoExProductTransition.java) | one pointer action, explicit Close if an ad intercepts it, owned 2xx GET and configured name; one budget |
+| search response and DOM | [AutoExCatalogSearch](catalog/AutoExCatalogSearch.java) / [AutoExSearchDocument](catalog/AutoExSearchDocument.java) | one pointer and owned 2xx GET, exact decoded term, fresh visible first product; queue-full fails without replay |
+| ad shown after pointer action | [AutoExVignetteHandler](../support/browser/AutoExVignetteHandler.java) | explicit Close, no replay; child INFO within the parent duration |
+| read-only readiness | [AutoEx navigation](navigation/AutoExReadOnlyNavigation.java) | policy specific to the AutoEx document and origin |
+| mapping observed traffic | [AutoExObservedExchangeMapper](AutoExObservedExchangeMapper.java) | retains the typed query, service, and response availability in Reporting |
 
-## Invariante de păstrat
+<a id="invariants-to-preserve"></a>
+<a id="invariante-de-păstrat"></a>
+## Invariants to preserve
 
-- Observația nu primește expected-ul clientului și nu autorizează checkout-ul.
-  Textul întârziat și documentul înlocuit folosesc deadline-ul inițial.
-- Tranziția produsului citește locatorul vizibil heading/queue-full o singură
-  dată per observație și evită repetarea așteptării unui URL deja confirmat.
-  Documentul și produsul rămân oracole distincte; un port Purchase refuzat
-  oprește flow-ul înaintea verdictului business și a mutației coșului.
-- `AutoExE2eRun` cere explicit configurația, browserul, faza și lifecycle-ul;
-  o extracție runtime nu mută JUnit sau Test Kit în main.
-- Browserul, publicarea, timpul și cleanup-ul sunt responsabilități distincte.
-  Finalizarea păstrează cauza inițială și eșecurile distincte de cleanup.
-  Dacă eroarea inițială a fost deja capturată, refuzul ulterior al cleanup-ului
-  publică un diagnostic propriu fără captură nouă. Nu înlocuiește imaginea
-  inițială și nu autorizează replay-ul; un refuz de publicare rămâne suprimat
-  pe eroarea cleanup-ului. Primul failure produs chiar de cleanup urmează
-  capturarea existentă înaintea închiderii browserului.
-- Download-ul este o acțiune măsurată; un click reușit nu o confirmă. Numai
-  evenimentul real autorizează citirea fișierului; validatorul verifică factura.
-- Queue-full permite numai GET-ul exact al facturii same-origin, în bugetul și
-  încercările existente. POST-ul, documentul străin și backoff-ul prea lung sunt refuzate.
+- Observation does not receive the client's expected value or authorize
+  checkout. Delayed text and a replaced document use the original deadline.
+- Product transition reads the visible heading/queue-full locator once per
+  observation and avoids waiting again for a URL that is already confirmed.
+  The document and product remain separate oracles; a refused Purchase port
+  stops the flow before the business verdict and cart mutation.
+- `AutoExE2eRun` explicitly requires configuration, browser, phase, and
+  lifecycle; extracting runtime code does not move JUnit or Test Kit into main.
+- Browser, publishing, timing, and cleanup are separate responsibilities.
+  Finalization preserves the initial cause and distinct cleanup failures.
+  If the original error was already captured, a later cleanup refusal publishes
+  its own diagnostic without a new capture. It does not replace the original
+  image or authorize replay; a publishing refusal remains suppressed on the
+  cleanup error. The first failure caused by cleanup itself follows the existing
+  capture path before the browser closes.
+- Download is a measured action; a successful click does not confirm it. Only
+  the real event authorizes reading the file; the validator checks the invoice.
+- Queue-full permits only the exact same-origin invoice GET, within the existing
+  budget and attempts. POST, foreign documents, and excessive backoff are refused.
 
-## Probe înainte de schimbare
+<a id="tests-to-run-before-a-change"></a>
+<a id="probe-înainte-de-schimbare"></a>
+## Tests to run before a change
 
-| Contract | Probă de pornire |
+| Contract | Starting test |
 |---|---|
-| produs și refuzuri | [AutoExProductTransitionComponentTest](../../../../../test/java/atf/autoex/tests/component/pages/AutoExProductTransitionComponentTest.java) |
-| factură și refuzuri | [AutoExInvoiceDownloadComponentTest](../../../../../test/java/atf/autoex/tests/component/pages/AutoExInvoiceDownloadComponentTest.java) |
-| identitate și checkout unic | [AutoExCustomerIdentityObservationComponentTest](../../../../../test/java/atf/autoex/tests/component/pages/AutoExCustomerIdentityObservationComponentTest.java) |
-| boundary runtime | [AutoExRuntimeBoundaryComponentTest](../../../../../test/java/atf/autoex/tests/component/lifecycle/AutoExRuntimeBoundaryComponentTest.java) |
-| ordinea lifecycle-ului | [AutoExRunLifecycleAdapterComponentTest](../../../../../test/java/atf/autoex/tests/component/lifecycle/AutoExRunLifecycleAdapterComponentTest.java) |
+| product and refusals | [AutoExProductTransitionComponentTest](../../../../../test/java/atf/autoex/tests/component/pages/AutoExProductTransitionComponentTest.java) |
+| search ownership and terminal outcomes | [response contracts](../../../../../test/java/atf/autoex/tests/component/pages/AutoExSearchResponseComponentTest.java) / [readiness](../../../../../test/java/atf/autoex/tests/component/pages/AutoExSearchReadinessComponentTest.java) |
+| invoice and refusals | [AutoExInvoiceDownloadComponentTest](../../../../../test/java/atf/autoex/tests/component/pages/AutoExInvoiceDownloadComponentTest.java) |
+| identity and single checkout | [AutoExCustomerIdentityObservationComponentTest](../../../../../test/java/atf/autoex/tests/component/pages/AutoExCustomerIdentityObservationComponentTest.java) |
+| runtime boundary | [AutoExRuntimeBoundaryComponentTest](../../../../../test/java/atf/autoex/tests/component/lifecycle/AutoExRuntimeBoundaryComponentTest.java) |
+| lifecycle order | [AutoExRunLifecycleAdapterComponentTest](../../../../../test/java/atf/autoex/tests/component/lifecycle/AutoExRunLifecycleAdapterComponentTest.java) |
 
-Probele locale verifică boundary-ul; același purchase individual și prin suită
-restrânsă verifică integrarea live. Un FAIL nou rămâne în feedback, chiar dacă
-altă lansare trece. Detaliile normative sunt în [contractul modulului](../../../../../../README.md).
+Local tests verify the boundary; the same purchase run individually and through
+a filtered suite verifies live integration. A new FAIL remains in feedback,
+even if a later run passes. Normative details are in the [module contract](../../../../../../README.md).
 
-Continuă orientarea în [atlasul de context ATF](../../../../../../../docs/ATF_Context_Atlas.md).
+Continue in the [AutoEx module guide](../../../../../../../atf-test-auto-ex/README.md).
 
-Mapperul folosește [contractul query Reporting](../../../../../../../atf-reporting/README.md#fidelitatea-contractului-query)
-pentru identitatea sigură a agregatului. Captura browser elimină valorile și
-transportă numai amprenta opacă; mapperul nu fabrică perechi din placeholder.
+The mapper uses the [Reporting query contract](../../../../../../../atf-reporting/README.md#dovezi-api-atașate-unui-pas-ui)
+for safe aggregate identity. Browser capture removes values and carries only
+the opaque fingerprint; the mapper does not fabricate pairs from placeholders.
 
-Politica endpoint-ului și alegerea checkpoint-ului rămân AutoEx; biblioteca
-primește contracte neutre, fără dependență UI.
-`ReportAssertionSummary` deține numai formatarea și redacția diagnosticului;
-`AutoExE2eRun` păstrează comparațiile și decizia business.
+Endpoint policy and checkpoint selection remain with AutoEx; the library
+receives neutral contracts without a UI dependency.
+`ReportAssertionSummary` owns only diagnostic formatting and redaction;
+`AutoExE2eRun` retains comparisons and the business decision.
 
-## Limita probei de timp
+<a id="timing-test-boundary"></a>
+<a id="limita-probei-de-timp"></a>
+## Timing test boundary
 
-Proba funcțională de tranziție folosește browserul după pregătirea fixture-ului,
-cu deadline-ul acțiunii neschimbat. Aritmetica și propagarea deadline-ului sunt
-verificate determinist la ownerul UI prin `ObservationBudgetComponentTest`;
-durata de lansare ori închidere Chromium nu este un oracle al acelui contract.
+The functional transition test uses the browser after fixture preparation,
+with the action deadline unchanged. Deadline arithmetic and propagation are
+verified deterministically by the UI owner through
+`ObservationBudgetComponentTest`; Chromium startup or shutdown time is not an
+oracle for that contract.

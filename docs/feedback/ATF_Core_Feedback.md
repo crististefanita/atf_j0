@@ -1,28 +1,36 @@
-# Core — contracte și trasee de mentenanță
+<a id="core---contracts-and-maintenance-routes"></a>
+<a id="core--contracte-și-trasee-de-mentenanță"></a>
+# Core - contracts and maintenance routes
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-J0 deține execuția transporturilor, anularea, redactarea și promovarea fișierelor. Contractele și probele permanente sunt în [Core README](../../atf-core/README.md); consumerii păstrează acceptanța propriului deployment.
+J0 holds the execution of shipments, cancellation, redaction and promotion of files. Contracts and permanent evidence are in [Core README](../../atf-core/README.md); consumers retain the acceptance of their own deployment.
 
 <a id="core-urlconnection-cancel-126--body-subscription-and-dispatch-ownership"></a>
 <a id="core-console-redaction-124--sanitize-every-emitted-console-channel"></a>
 <a id="core-transport-cancel-125--retain-ownership-of-the-upstream-http-future"></a>
 
-## Contracte păstrate la owner
+<a id="contracts-held-at-the-owner"></a>
+<a id="contracte-păstrate-la-owner"></a>
+## Contracts held at the owner
 
-| Boundary | Contract și probă permanentă |
+| Boundary | Contract and permanent proof |
 |---|---|
-| HttpClient | [Anularea upstream](../../atf-core/README.md#proiecția-console-și-anularea-transportului), un singur rezultat terminal și cleanup suppressed |
-| URLConnection | Subscription body, worker virtual și conexiune deținute de aceeași operație; body-ul întârziat nu poate începe un dispatch după anulare sau deadline |
-| Deadline | Colectarea body-ului, connect și read folosesc bugetul original; [regresiile](../../atf-core/src/test/java/atf/core/http/transport/UrlConnectionDeadlineTest.java) păstrează 250 ms; [izolarea JVM](../../atf-core/src/test/java/atf/core/http/transport/UrlConnectionDeadlineIsolationTest.java) probează progresul când un carrier virtual este blocat |
-| Erori și curse | [Publisher controlat și loopback](../../atf-core/src/test/java/atf/core/http/transport/UrlConnectionCancellationTest.java): cauză originală, suppressed, finalizare concurentă și lipsa unui dispatch ulterior |
-| Distribuție | [Contractul consumerului](../ATF_Core_Consumer.md): native sursă/JAR, POM încorporat identic și perechi dependente coerente |
+| HttpClient | [Cancellation of upstream](../../atf-core/README.md#proiecția-console-și-anularea-transportului), one terminal result and cleanup suppressed |
+| URLConnection | Subscription body, virtual worker and connection held by the same operation; late body cannot start a disconnect after cancellation or deadline |
+| Deadline | Collecting the body, connecting and reading use the original budget; [regression](../../atf-core/src/test/java/atf/core/http/transport/UrlConnectionDeadlineTest.java) keeps 250 ms; [JVM isolation](../../atf-core/src/test/java/atf/core/http/transport/UrlConnectionDeadlineIsolationTest.java) proposes progress when a virtual carrier is blocked |
+| Miscellaneous errors and races | [Controlled and loopback Publisher](../../atf-core/src/test/java/atf/core/http/transport/UrlConnectionCancellationTest.java): original case, suppressed, competitive completion and lack of a later disconnect |
+| Distribution | [Consumery contract](../ATF_Core_Consumer.md): native source / JAR, POM embedded identical and consistent dependent pairs |
 
-Anularea unei operații deja expediate nu confirmă rollback și nu autorizează replay. Probele Core nu certifică aplicația, brokerul, dispozitivul ori ASR-ul consumerului.
+Cancellation of an already deployed operation does not confirm rollback and does not authorise replica. Core samples do not know the application, broker, device or ASR-ul consumerul.
 
-## Unde se înregistrează următoarea lacună
+<a id="where-the-following-gap-is-recorded"></a>
+<a id="unde-se-înregistrează-următoarea-lacună"></a>
+## Where the following gap is recorded
 
-- Trigger, coordonată/hash, reproducere minimă, așteptat/observat și criteriu negativ; o problemă a unui transport nu se generalizează la celălalt.
-- [Reporting](ATF_Reporting_Feedback.md) deține rendererul; [Reporting Tests](ATF_Reporting_Tests_Feedback.md) deține oracolele neutre de randare.
-- [Registrul J1](../../../atf_j1/docs/feedback/README.md) coordonează criteriile comune nonbibliotecă; consumerii păstrează acceptanța domeniului.
-- [Baseline-ul tehnic](../ATF_Test_Changes_Baseline.md) păstrează controalele Git separat de backlog.
+- Trigger, coordinated / hash, minimum reproduction, expected / observed and negative criterion; one transport problem does not generalise in the other.
+- [Reporting](ATF_Reporting_Feedback.md) holds the renderer; [Reporting Tests](ATF_Reporting_Tests_Feedback.md) holds neutral rendering oracles.
+- [J1 Registry](../../../atf_j1/docs/feedback/README.md) coordinates common non-library criteria; consumers retain the acceptance of the domain.
+- [Baseline-ul tehnic](../ATF_Test_Changes_Baseline.md) shall keep the Git controls separate from the backlog.

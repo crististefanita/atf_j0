@@ -1,58 +1,55 @@
-# ATF Reporting Runtime — interacțiuni în HTML-ul publicat
+<a id="atf-reporting-runtime---interactions-in-html-published"></a>
+<a id="atf-reporting-runtime--interacțiuni-în-html-ul-publicat"></a>
+# ATF Reporting Runtime - interactions in HTML published
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-Pachetul compune controllerele JavaScript care rulează în raportul publicat.
-`runtime/tests` deține fila Tests din HTML; este cod de producție și nu conține
-scenarii JUnit sau teste business ale consumerilor.
+The package consists of JavaScript controllers which run in the published report. `runtime/tests` holds HTML Test tab; it is a production code and does not contain JUnit scenarios or consumer business tests.
 
-[Atlas](../README.md) · [Assets și vocabular](../../../../../../README.md#contracte-și-feedback)
+[Atlas](../README.md) · [Assets and vocabulary](../../../../../../README.md#contracte-și-feedback)
 
-| Comportament | Intrare Java | Sursa efectivă |
+| Behavior | Entry Java | Actual source |
 |---|---|---|
-| ordinea modulelor runtime | [ExtentReportRuntimeModule](core/ExtentReportRuntimeModule.java) | registry typed al ownerilor |
-| injecția în document | [ExtentReportRuntimeBehaviour](core/ExtentReportRuntimeBehaviour.java) | runtime boot și scripturi compuse |
-| navigare și ancestorii eșecului | [section](section), [failure runtime](core/ExtentReportFailureRuntime.java) | `extent-navigation-*`, `extent-failure-*` |
+| Runtime module order | [ExtentReportRuntimeModule](core/ExtentReportRuntimeModule.java) | typed registry of the owners |
+| injection into the document | [ExtentReportRuntimeBehaviour](core/ExtentReportRuntimeBehaviour.java) | runtime boot and compound scripts |
+| navigation and the ancestral of failure | [section](section), [failure runtime](core/ExtentReportFailureRuntime.java) | `extent-navigation-*`, `extent-failure-*` |
 | Tests/Categories | [tests](tests) | `extent-scenarios`, `extent-tests-filters`, `extent-categories` |
-| durate și proiecții | [duration runtime](core/ExtentReportDurationRuntime.java) | `duration-*` |
-| vocabular DOM și token-uri | [AtfReportHtmlVocabulary](../markup/vocabulary/AtfReportHtmlVocabulary.java) | selectori și atribute comune markup/runtime |
+| durations and projections | [duration runtime](core/ExtentReportDurationRuntime.java) | `duration-*` |
+| DOM vocabulary and tokens | [AtfReportHtmlVocabulary](../markup/vocabulary/AtfReportHtmlVocabulary.java) | markup / runtime common selectors and attributes |
 
-## De la sursa nativă la artifact
+<a id="from-native-source-to-artifact"></a>
+<a id="de-la-sursa-nativă-la-artifact"></a>
+## From native source to artifact
 
-- [ReportAsset](../asset/ReportAsset.java) și manifestul dețin identitatea,
-  formatul, path-ul și ordinea inventarului validat.
-- [Loaderul](../asset/ReportAssetLoader.java) citește classpath-ul;
-  [composerul](../asset/ReportAssetComposer.java) rezolvă token-urile și produce
-  copia de publicare. Resursele rămân în [javascript](../../../../resources/atf/reporting/javascript)
-  și [css](../../../../resources/atf/reporting/css).
-- Facade-urile runtime și [tema](../theme/AtfReportTheme.java) păstrează ordinea
-  compoziției. Pipeline-ul rendererului include rezultatul în HTML-ul autonom.
+- [ReportAsset](../asset/ReportAsset.java) and the manifest hold the identity,
+  the format, the pathology and order of the validated inventory.
+- [Loaderul](../asset/ReportAssetLoader.java) read the classification;
+  [composer](../asset/ReportAssetComposer.java) solves tokens and produces the copy of publication. Resources remain in [javascript](../../../../resources/atf/reporting/javascript) and [css](../../../../resources/atf/reporting/css).
+- Runtime facades and [tema](../theme/AtfReportTheme.java) maintain order
+  The renderer's pipeline includes the result in autonomous HTML.
 
 <details>
-<summary><strong>Ce se verifică dincolo de existența scriptului</strong></summary>
+<summary><strong>What checks beyond the existence of the script</strong></summary>
 
-- Modificarea unui selector cere citirea markup-ului care îl produce și a
-  vocabularului Java folosit pentru interpolare.
-- Fails trebuie să rezolve identitatea exactă a comparației și ancestorii ei;
-  prima validare din TEST BODY nu este un substitut general pentru calea semantică.
-- Publicarea navigării amânate depinde de generația curentă. Un callback vechi
-  nu trebuie să deschidă scenariul rămas dintr-o selecție anterioară.
-- Compactarea este aplicată copiei publicate; sursele native rămân lizibile.
-  Prezența tuturor resurselor în directorul sursă nu dovedește conținutul JAR-ului.
-- Runtime-ul proiectează durate existente și nu măsoară din nou operația business.
+- Modification of a selector requires reading of the label that produces it and a
+  Java vocabulary used for interpolation.
+- Fails must resolve the exact identity of the comparison and its ancestral;
+  the first validation of TEST BODY is not a general substitute for semantic path.
+- Publication of delayed sailing depends on the current generation. An old callback
+  shall not open the remaining scenario of a previous selection.
+- Compaction is applied to the published copy; native sources remain legible.
+  The presence of all resources in the source directory does not prove JAR content.
+- The Runtime projects existing durations and does not measure business operation again.
 
 </details>
 
-## Probe și context minim
+<a id="minimum-evidence-and-context"></a>
+<a id="probe-și-context-minim"></a>
+## Minimum evidence and context
 
-[ReportAssetContractTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/asset/ReportAssetContractTest.java) și [ReportAssetCompactorTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/asset/ReportAssetCompactorTest.java) verifică resursele;
-[ExtentReportRuntimeEvidenceComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/runtime/evidence/ExtentReportRuntimeEvidenceComponentTest.java) verifică runtime-ul compus.
-[PublishedFailureNavigationComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationComponentTest.java) verifică vizibilitatea comparației
-după backlink, cu un control negativ care ascunde un ancestor.
-[PublishedFailureNavigationEdgeComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationEdgeComponentTest.java) completează diagnosticele fără
-comparații, fallback-ul și păstrarea rutei/scroll-ului.
+[ReportAssetContractTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/asset/ReportAssetContractTest.java) and [ReportAssetCompactorTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/asset/ReportAssetCompactorTest.java) check the resources; [ExtentReportRuntimeEvidenceComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/runtime/evidence/ExtentReportRuntimeEvidenceComponentTest.java) checks the composed runtime. [PublishedFailureNavigationComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationComponentTest.java) checks comparison visibility after the backlink, including a negative control that hides an ancestor. [PublishedFailureNavigationEdgeComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationEdgeComponentTest.java) adds comparison-free diagnostics, fallback and route/scroll retention checks.
 
-Aceste probe sunt în [Reporting Tests](../../../../../../../atf-reporting-tests/README.md).
-O schimbare de interacțiune cere și artifact fresh în browser; inspecția textului
-JavaScript nu demonstrează click-ul, geometria sau expandarea completă.
+These samples are in [Reporting Tests](../../../../../../../atf-reporting-tests/README.md). A change of interaction requires and fresh artifact in the browser; JavaScript text inspection does not demonstrate the click, geometry or complete expansion.
 

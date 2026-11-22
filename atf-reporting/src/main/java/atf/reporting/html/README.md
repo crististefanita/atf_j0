@@ -1,59 +1,58 @@
-# ATF Reporting HTML — rendererul fallback și populația semantică
+<a id="atf-reporting-html---renderer-fallback-and-semantic-population"></a>
+<a id="atf-reporting-html--rendererul-fallback-și-populația-semantică"></a>
+# ATF Reporting HTML - renderer fallback and semantic population
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-Fallback-ul construiește views din aceeași populație imutabilă de scenarii și
-dovezi. Nu este un browser și nu repară observații lipsă; semantica se verifică
-împotriva snapshot-ului comun, separat de diferențele vizuale față de Extent.
+Fallback builds views from the same population that are immutable by scenarios and evidence. It is not a browser and does not repair missing observations; semantics are checked against common snapshots, separated from visual differences from Extent.
 
-[Atlas](../README.md) · [Modele](../model/README.md) · [Extent](../extent/README.md)
+[Atlas](../README.md) · [Models](../model/README.md) · [Extent](../extent/README.md)
 
-| Boundary | Sursă | Responsabilitate |
+| Boundary | Source | Responsibility |
 |---|---|---|
-| sesiune și output | [HtmlReportSession](HtmlReportSession.java) | render, flush și close |
-| stare în construcție | [HtmlReportSemanticDocument](HtmlReportSemanticDocument.java) | identitate, ordine și snapshot-ul execuției |
-| lifecycle | [scope](scope) | porturile scenariului/fazei/request-ului/validării |
-| views | [Tests](HtmlReportTestsView.java), [Overview](HtmlReportOverviewView.java), [Fails](HtmlReportFailsView.java) | proiecții peste același model |
-| dovezi | [HtmlReportEvidenceView](evidence/HtmlReportEvidenceView.java) | markup și politica de display comună |
-| shell și navigare | [HtmlReportShell](HtmlReportShell.java), [script](script/HtmlReportNavigationScript.java) | document și interacțiuni fallback |
+| session and output | [HtmlReportSession](HtmlReportSession.java) | render, flush and close |
+| conditions under construction | [HtmlReportSemanticDocument](HtmlReportSemanticDocument.java) | ID, orders and execution snack |
+| lifecycle | [scope](scope) | Ports of scenario / phase / request / validation |
+| views | [Tests](HtmlReportTestsView.java), [Overview](HtmlReportOverviewView.java), [Fails](HtmlReportFailsView.java) | projections above the same model |
+| evidence | [HtmlReportEvidenceView](evidence/HtmlReportEvidenceView.java) | Marup and common display policy |
+| shell and navigation | [HtmlReportShell](HtmlReportShell.java), [script](script/HtmlReportNavigationScript.java) | Fallback document and interactions |
 
-## De la stare la document
+<a id="from-status-to-document"></a>
+<a id="de-la-stare-la-document"></a>
+## From status to document
 
-- Documentul mutabil este transformat în `ReportExecutionModel` imutabil;
-  recorderul semantic păstrează în paralel snapshot-ul renderer-neutral.
-- `render()` verifică egalitatea populațiilor înainte de construirea views.
-  O diferență semantică nu este compensată prin ascunderea unui rând HTML.
-- Views Tests, Categories, Fails și Overview provin din aceeași execuție;
-  diagnosticul unei faze nu devine automat o aserțiune business nouă.
-- Contextul unui flow UI unificat folosește disclosure-ul neutru comun,
-  separat de response evidence; validările sale au propriul `Assertions · n`,
-  colapsat inițial. Agregarea per fază nu este reclasificată drept compactare.
-- Titlurile scenariilor și claselor rămân integrale și se împachetează în
-  sidebar. Sub sau la 760 px, navigarea precede articolul pe o singură coloană;
-  anchor-ul, statusul și identitatea scenariului rămân cele originale.
+- The mutable document is converted into `ReportExecutionModel` immutable;
+  Semantic recorder keeps in parallel renderer-neutral snapshots.
+- `render()` checks the equality of populations before building views.
+  A semantic difference is not compensated by hiding a HTML line.
+- Views Tests, Categories, Fails and Overview come from the same execution;
+  Diagnosis of a phase does not automatically become a new business assertion.
+- The context of a unified UI flow uses the common neutral discoloration,
+  separate from the obvious responses; its validations have their own `Assertions · n`, initially collapsed. Aggregation per phase is not reclassified as compaction.
+- The titles of scenarios and classes remain integral and are packed in
+  sub or 760 px, navigation precedes the article on a single column; the anchor, status and identity of the script remaining the original.
 
 <details>
-<summary><strong>Diferențe care trebuie citite explicit</strong></summary>
+<summary><strong>Differences to be explicitly read</strong></summary>
 
-- În implementarea curentă, `flush()` scrie direct fișierul fallback;
-  `close()` apelează flush și marchează sesiunea închisă.
-- Constructorul păstrează path-ul primit; guard-ul de thread al Extent nu este
-  prezent aici. Aceste fapte nu reprezintă o promisiune de thread-safety.
-- Navigation script este un port injectabil; înlocuirea lui nu schimbă
-  lifecycle-ul semantic sau responsabilitatea consumerului pentru verdict.
-- Paritatea semantică nu cere copierea DOM-ului Spark. Controalele și
-  disclosure-urile se verifică și prin probele rendererului respectiv.
+- In the current implementation, `flush()` writes directly the fallback file;
+  `close()` calls flush and marks closed session.
+- The manufacturer keeps the received pathic; the Extent Thread Guard is not
+  These facts are not a promise of thread-safety.
+- Script navigation is an injectable port; its replacement does not change
+  Semantic lifecycle or the consumer's responsibility for the verdict.
+- Semantic parity does not require copying DOM Spark. Controls and
+  The disclosures shall be checked by the evidence of the renderer concerned.
 
 </details>
 
-## Probe și contractul sesiunii
+<a id="evidence-and-contract-of-the-session"></a>
+<a id="probe-și-contractul-sesiunii"></a>
+## Evidence and contract of the session
 
-[HtmlReportSessionTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/html/HtmlReportSessionTest.java) și [AtfReportSemanticSnapshotTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/semantic/AtfReportSemanticSnapshotTest.java) verifică modelul și
-paritatea; [UiFallbackFailureEvidenceTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/ui/UiFallbackFailureEvidenceTest.java) păstrează cauza și izolarea scenariilor.
-Probe de browser și responsive sunt la [Reporting Tests](../../../../../../../atf-reporting-tests/README.md).
+[HtmlReportSessionTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/html/HtmlReportSessionTest.java) and [AtfReportSemanticSnapshotTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/semantic/AtfReportSemanticSnapshotTest.java) check model and parity; [UiFallbackFailureEvidenceTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/ui/UiFallbackFailureEvidenceTest.java) keeps the cause and isolation of scenarios. Browser and responsive samples are at [Reporting Tests](../../../../../../../atf-reporting-tests/README.md).
 
-Semantica flush/publicare/path/threading este declarată în
-[contractul sesiunii](../../../../../../README.md#publicare-și-ieșire).
-Consumerul așteaptă momentul de publicare al rendererului ales și serializează
-accesul fallback; portul comun nu promite acces concurent.
+Semantics flush / publication / path / thread is declared in [contract of the session](../../../../../../README.md#publicare-și-ieșire). The consumer waits for the publication moment of the chosen renderer and serializations fallback access; the common port does not promise competitive access.
 

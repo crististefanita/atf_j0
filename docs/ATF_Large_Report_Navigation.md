@@ -1,10 +1,10 @@
+<a id="large-report-navigation--retained-evidence-incremental-work"></a>
+<a id="navigarea-rapoartelor-mari--dovezi-păstrate-lucru-incremental"></a>
 # Large report navigation — retained evidence, incremental work
 
 ## Contract
 
-Large HTML reports retain every supplied comparison and original inline PNG.
-Navigation changes when layout and timing metadata are prepared, not which
-evidence is published or how a test verdict is evaluated.
+Large HTML reports retain every supplied comparison and original inline PNG. Navigation changes when layout and timing metadata are prepared, not which evidence is published or how a test verdict is evaluated.
 
 | Responsibility | Invariant |
 |---|---|
@@ -18,10 +18,10 @@ evidence is published or how a test verdict is evaluated.
 | dynamic content | identical class/open writes are ignored; actual mutations are coalesced before content invalidation; real child/text mutations increment a content revision; new/reopened/resized tables receive native column allocation; removed tables retire resize observations |
 | renderer scope | the table allocator is shared by Extent and fallback; duration aggregation belongs to Extent |
 
-The report stays self-contained. This change does not move evidence to another
-file, virtualize away owners, remove screenshots or substitute observations
-for assertion rows.
+The report stays self-contained. This change does not move evidence to another file, virtualize away owners, remove screenshots or substitute observations for assertion rows.
 
+<a id="permanent-verification"></a>
+<a id="verificare-permanentă"></a>
 ## Permanent verification
 
 | Owner | Proof |
@@ -38,6 +38,8 @@ for assertion rows.
 - Each selected owner is expanded once, with the same canonical evidence inventory before and after.
 - This verifies publication/rendering, not a fresh business or device execution.
 
+<a id="measurement-and-boundaries"></a>
+<a id="măsurare-și-limite"></a>
 ## Measurement and boundaries
 
 - Browser readiness, owner interaction and publication clocks have different scopes.
@@ -47,6 +49,8 @@ for assertion rows.
 
 The producer owns permanent source/JAR regressions. Consumer provenance records the current binary and independent acceptance; archived Android rendering does not certify a fresh device run.
 
+<a id="cold-startup-and-readiness"></a>
+<a id="pornire-la-rece-și-readiness"></a>
 ## Cold startup and readiness
 
 | Lifecycle | Required behavior |
@@ -58,12 +62,10 @@ The producer owns permanent source/JAR regressions. Consumer provenance records 
 | dynamic content | retain observers, revision invalidation and scheduled normalization for later mutations |
 | deadlines | readiness/action 10,000 ms; navigation 45,000 ms; existing API matrices retain 5,000 ms |
 
-[ColdStartReadinessComponentTest](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/navigation/ColdStartReadinessComponentTest.java)
-checks five initial destinations, startup scenario deep links, native link
-repair and repeated load. It verifies that readiness waits for real structural
-normalization and that Tests controls work when animation frames are withheld.
-An external atf.cold.input runs three fresh Chromium processes against the same complete artifact.
+[ColdStartReadinessComponentTest](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/navigation/ColdStartReadinessComponentTest.java) checks five initial destinations, startup scenario deep links, native link repair and repeated load. It verifies that readiness waits for real structural normalization and that Tests controls work when animation frames are withheld. An external atf.cold.input runs three fresh Chromium processes against the same complete artifact.
 
+<a id="native-timeline-labels"></a>
+<a id="etichete-native-pentru-timeline"></a>
 ## Native timeline labels
 
 | Boundary | Invariant |

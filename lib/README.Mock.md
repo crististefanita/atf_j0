@@ -1,12 +1,18 @@
-# Mock — transport HTTP determinist
+<a id="mock--deterministic-http-transport"></a>
+<a id="mock--transport-http-determinist"></a>
+# Mock — deterministic HTTP transport
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-`atf-mock` înlocuiește portul Core `ApiTransport` cu un catalog local de răspunsuri. Folosiți-l pentru componente și contracte offline, cu intrări controlate și un fallback explicit.
+`atf-mock` replaces the Core `ApiTransport` port with a local response catalog. Use it for offline components and contracts, with controlled inputs and an explicit fallback.
 
-## Exemplu minim
+<a id="minimal-example"></a>
+<a id="exemplu-minim"></a>
+## Minimal example
 
-`mock.yaml` în directorul de lucru:
+`mock.yaml` in the working directory:
 
 ```yaml
 mock:
@@ -15,7 +21,7 @@ mock:
   fallback: {status: 500, body: '{}'}
 ```
 
-Fragment într-o metodă; transportul rămâne offline:
+Snippet inside a method; the transport remains offline:
 
 ```java
 import atf.core.http.request.ApiRequest;
@@ -27,22 +33,24 @@ var response = mock.send(ApiRequest.of("GET", "/health"),
         "https://offline.test/health", "none").join();
 ```
 
-`response.status()` este `200`; o cerere fără rută potrivită primește fallback-ul `500`. Testul compară independent răspunsul cu rezultatul așteptat.
+`response.status()` is `200`; a request with no matching route receives the `500` fallback. The test independently compares the response with the expected result.
 
-## Catalog și potrivire
+<a id="catalog-and-matching"></a>
+<a id="catalog-și-potrivire"></a>
+## Catalog and matching
 
-| Necesitate | API sau contract |
+| Need | API or contract |
 |---|---|
-| Catalog YAML explicit | `AtfMockTransport.fromConfiguration(Path)` |
-| Configurația proiectului | `fromProjectConfiguration()`: `atf.mock.config` > `ATF_MOCK_CONFIG` > `atf-mock.yaml/yml` |
-| Condiții de request | Metodă, cale, profil auth, query, headere cerute și corp așteptat în `MockRoute` |
-| Corp de request | Mod implicit `json`, probă MIME negativă `wrong-content-type`; potrivire numerică fără conversie prin `double` |
-| Query repetat | `ApiQueryParameters`; include valorile cerute, cu multiplicitate |
+| Explicit YAML catalog | `AtfMockTransport.fromConfiguration(Path)` |
+| Project configuration | `fromProjectConfiguration()`: `atf.mock.config` > `ATF_MOCK_CONFIG` > `atf-mock.yaml/yml` |
+| Request conditions | Method, path, auth profile, query, required headers, and expected body in `MockRoute` |
+| Request body | Default `json` mode, negative MIME probe `wrong-content-type`; numeric matching without conversion through `double` |
+| Repeated query values | `ApiQueryParameters`; includes the required values with multiplicity |
 
-- Fără configurație, `fromProjectConfiguration()` folosește fixture-ul `defaults()`; catalogul aplicației rămâne local.
-- Durata din rută este metadată a răspunsului, nu o întârziere reală simulată.
-- O probă mock verifică integrarea; acceptanța serviciului, brokerului sau dispozitivului real rămâne separată.
+- Without configuration, `fromProjectConfiguration()` uses the `defaults()` fixture; the application catalog remains local.
+- The duration in a route is response metadata, not a simulated real delay.
+- A mock probe verifies integration; acceptance of the real service, broker, or device remains separate.
 
 ---
 
-Mentenanța codului și testelor Mock aparține proiectului separat `atf_j0/atf-mock`; [feedback-ul și sincronizarea](README.md#mentenanță-și-feedback) pornesc de la J0.
+The maintenance of Mock code and tests belongs to the separate `atf_j0/atf-mock` project; [feedback and synchronization](README.md#mentenanță-și-feedback) starts from J0.

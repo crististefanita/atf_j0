@@ -9,12 +9,13 @@ import atf.autoex.tests.e2e.AutoExExistingCustomerUiApiE2eTest;
 import atf.autoex.tests.e2e.AutoExPurchaseUiE2eTest;
 import atf.autoex.tests.e2e.AutoExPurchaseUiApiE2eTest;
 import atf.autoex.tests.e2e.AutoExPurchaseUiFinalScreenshotE2eTest;
+import atf.autoex.tests.e2e.reporting.AutoExCatalogReportPresentationE2eTest;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
 
-/** One UI gate preserves every business story and the executable evidence variants without overlapping suites. */
+/** One UI gate preserves business stories, evidence variants and local report presentation. */
 @Suite
 @SelectClasses({
         AutoExPurchaseUiE2eTest.class,
@@ -24,7 +25,8 @@ import org.junit.platform.suite.api.Suite;
         AutoExCartUiApiE2eTest.class,
         AutoExExistingCustomerUiApiE2eTest.class,
         AutoExPurchaseUiApiE2eTest.class,
-        AutoExPurchaseUiFinalScreenshotE2eTest.class})
+        AutoExPurchaseUiFinalScreenshotE2eTest.class,
+        AutoExCatalogReportPresentationE2eTest.class})
 @AtfE2eTest
 @Execution(ExecutionMode.SAME_THREAD)
 public class AutoExE2eSuite { }

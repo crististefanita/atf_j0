@@ -1,79 +1,59 @@
-# Test Kit — bibliotecă comună, owner J0
+<a id="test-kit---shared-library-owner-j0"></a>
+<a id="test-kit--bibliotecă-comună-owner-j0"></a>
+# Test Kit - shared library, owner J0
 
-## Pe scurt
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-J0 deține codul, API-ul, testele native, împachetarea și feedback-ul Test Kit. J1–J7 păstrează integrarea și oracolele lor; consumă perechea verificată din lib, fără surse ori native Kit paralele. [Contractul bibliotecii](../ATF_Test_Kit_Library.md) descrie distribuția și acceptanțele distincte.
+J0 holds the code, API, native tests, packaging and feedback Test Kit. J1 -J7 maintains their integration and oracles; consumes the verified pair from the lib, without parallel sources or native Kit. [Library contract](../ATF_Test_Kit_Library.md) describes the distinct distribution and acceptances.
 
 <a id="kit-library-151--distribuție-unică-fără-surse-paralele"></a>
 
-[Contractul bibliotecii](../ATF_Test_Kit_Library.md) păstrează distribuția, scope-urile, ghidul local și acceptanțele independente. Codul, nativele și guvernanța implementării rămân în J0; consumerii verifică binarul și oracolele proprii.
+[Library contract](../ATF_Test_Kit_Library.md) maintains distribution, goals, local guide and independent acceptances. Code, natives and government of implementation remain in J0; consumers check their own binary and oracles.
 
 <a id="kit-assertion-overloads--compatibilitatea-capturii-cu-aserțiunea-originală"></a>
 
-[Contractul aserțiunilor](../../lib/README.TestKit.md#scope-și-integrare) păstrează semantica JUnit, diagnosticul lazy și scope-ul adaptorului; regresiile native aparțin J0.
+[Contract of assertions](../../lib/README.TestKit.md#scope-și-integrare) maintains JUnit semantics, lazy diagnosis and adaptor scope; native regressions belong to J0.
 
+<a id="kit-acceptance-diagnostics-123--reuse-scope-preserve-causes"></a>
+<a id="kit-acceptance-diagnostics-123--reutilizează-scope-ul-și-păstrează-cauzele"></a>
 ## KIT-ACCEPTANCE-DIAGNOSTICS-123 — reuse scope, preserve causes
 
-**P2 · Test Kit J0; launcherele și oracolele rămân la consumeri.** J2 SqlReportAcceptance afișează unele erori ca DefaultFailure; Eventuate repetă save/restore, iar J3 repetă scope-uri și poate pierde diagnosticul procesului eșuat. ScopedAcceptanceRun și FailureAwareCleanup sunt mecanismele existente; primul scopează o proprietate și colectează artifacte numai după return normal.
+**P2 · Test Kit J0; lasers and oracles remain in the consumptions.** J2 SqlReportAcceptance displays some errors like DefaultFailure; Eventuate repeats save / restore, and J3 repeats scouts and may lose the diagnosis of the failed process. ScopedAcceptanceRun and FailureAwareCleanup are existing mechanisms; the first one retrieves property and collects artifacts only after normal return.
 
-- [ ] Demonstrați două adaptoare concrete înainte de extindere: rezultat neutru cu cauza originală, număr de containere/teste, selecție explicită și referințe diagnostice limitate; restaurare exactă inclusiv la Error, publicare și colectare eșuate.
-- [ ] Păstrați controale pentru zero teste, container eșuat, assertion așteptat, excepție neașteptată și sink diagnostic eșuat. Eroarea primară rămâne aceeași; capturarea și cleanup-ul sunt secundare.
-- [ ] JUnit launching rămâne la adaptor; nu introduceți renderer, Kafka/JDBC, ASR, context global mutabil sau modul nou doar pentru reutilizarea unei bucle. BoundedProcess și CleanupRegistry rămân primitive de producție cu alte contracte.
+- [ ] Prove two concrete adapters prior to expansion: neutral result with original cause, number of containers / tests, explicit selection and limited diagnostic references; exact restoration including Error, publication and collection failed.
+- [ ] Keep checks for zero tests, failed container, expected assertion, unexpected exception and failed sink diagnosis. The primary error remains the same; capture and cleanup are secondary.
+- [ ] JUnit launching remains at the adapter; do not enter renderer, Kafka / JDBC, ASR, global mutable context or new mode only for reuse of a loop. BoundedProcess and CleanupRegistry remain primitive production with other contracts.
 
-## Retenția comparațiilor — coordonare cu Reporting
+<a id="comparison-retention---coordination-with-reporting"></a>
+<a id="retenția-comparațiilor--coordonare-cu-reporting"></a>
+## Comparison retention - coordination with Reporting
 
-`RecordedAssertions` stochează proiecția limitată și primește un `AssertionValueDisplay` cu observer opțional pentru valorile `Projection` redactate integral. O eroare de captură păstrează cauza și verdictul pe fază. `ValidationTable` și politica de retenție a consumerului au criterii distincte.
+`RecordedAssertions` stores limited projection and receives a `AssertionValueDisplay` with optional observer for fully redacted `Projection` values. A catch error keeps the cause and verdict on stage. `ValidationTable` and consumer retention policy have distinct criteria.
 
-- [ ] Coordonați [dovada integrală Reporting](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview): captură sigură înaintea trunchierii, limite integrale explicite, fără comparație dublă și fără modificarea preview-ului 240. Controlul negativ are preview-uri identice și un sufix diferit.
+- [ ] [Full proof Reporting](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) coordinates: secure catch before truncation, explicit full limits, without double comparison and without modification of the 240 preview.Negative control has identical previews and a different suffix.
 
-## KIT-PHASE-OBSERVATION — fapte pe fază, verdict independent
+<a id="kit-phase-observation---facts-per-phase-independent-verdict"></a>
+<a id="kit-phase-observation--fapte-pe-fază-verdict-independent"></a>
+## KIT-PHASE-OBSERVATION - facts per phase, independent verdict
 
-`RecordedAssertions.observe(ComponentAuditObservation)` păstrează observațiile
-imuabile separate de checks și assertion coverage; adaptorul decide publicarea.
+**Status: Implementation and check.** Immunomovable observations remain separate from assertions and coverage; the consumer adapter holds their publication. [Kit contract](../../atf-test-kit/README.md) and [permanent sample](../../atf-test-kit/src/test/java/atf/testkit/assertions/ComponentAuditExtensionComponentTest.java) keep API and compatibility. Real Maven reports have browser acceptance in J1; IntelliJ verification remains separate and delayed to the consumer.
 
-- **API:** `PhaseResult` acceptă canonic `observations`; overload-urile vechi de
-  patru și cinci argumente rămân.
-- **Livrare:** `atf-test-kit:1.0.0-k3`; testele native au trecut 160/160, fără
-  eșecuri, erori sau teste ignorate.
-- **Adopție J1:** Reporting J26 și Test Kit K3 au trecut Shop 6/6 și AutoEx
-  5/5 în `main` și `main_RO`.
-- **Rapoarte:** Playwright a verificat cele patru artifacte Maven reale,
-  disclosure-urile colapsate, ordinea observațiilor, timing-ul și redactarea;
-  hash-urile și manifestele sunt în [proveniența J1](https://github.com/crististefanita/atf_j1/blob/main/library-provenance.json).
-- **Deschis:** paritatea pentru lansarea IntelliJ rămâne activă în feedback-ul
-  consumerului J1.
+<a id="kit-concurrency-152---parallel-jupiter-qualification"></a>
+<a id="kit-concurrency-152--calificare-jupiter-paralelă"></a>
+## KIT-CONCURRENCY-152 - parallel Jupiter qualification
 
-## KIT-CONCURRENCY-152 — calificare Jupiter paralelă
+**P2 · owner J0; Android adoption at J4.** Proba ScopedComponentAuditExtensionComponentTest disables Jupiter parallelism; competing controls of primitives do not qualify for the current cycle alone. The criterion is taken from J4 without declaring new implementation.
 
-**P2 · owner J0; adopție Android la J4.** Proba ScopedComponentAuditExtensionComponentTest dezactivează paralelismul Jupiter; controalele concurente ale primitivelor nu califică singure ciclul real. Criteriul este preluat din J4, fără declararea unei implementări noi.
+- [ ] Competitive Jupiter classes and methods: creation / closure once per owner, separate audit per invoicing, original cause kept in preparation / failed publication. Keep class and suite owners separately.
+- [ ] ScopedAcceptanceRun only serializes its calls; the sample with the competing external reader and injected error must show the restoration and limitation of the insulation of global properties. Do not promise global isolation by a local monitor.
 
-- [ ] Clase și metode Jupiter concurente: creare/închidere o singură dată per owner, audit distinct per invocare, cauză originală păstrată la pregătire/publicare eșuată. Păstrați separat proprietarii clasă și suită.
-- [ ] ScopedAcceptanceRun serializează numai apelurile sale; proba cu cititor extern concurent și eroare injectată trebuie să arate restaurarea și limita izolării proprietăților globale. Nu promiteți izolare globală printr-un monitor local.
 
-<details>
-<summary><strong>Control tehnic — KIT-PHASE-OBSERVATION-COMPONENT-CONTROL</strong></summary>
+<a id="kit-launch-plan---neutral-context-for-actual-selection"></a>
+<a id="kit-launch-plan--context-neutru-pentru-selecția-reală"></a>
+## KIT-LAUNCH-PLAN - neutral context for actual selection
 
-```yaml
-testChanges:
-  - id: KIT-PHASE-OBSERVATION-COMPONENT-CONTROL
-    status: CLOSED
-    base: 58177a8c1e04103f1d160f04eca4b466d2da8381
-    expires: 2026-12-21
-    reason: Verifică păstrarea observațiilor distincte de aserțiuni și coverage în auditul componentelor Test Kit.
-    proof: >-
-      mvn -B -ntp -pl atf-test-kit -am "-Dtest=ComponentAuditExtensionComponentTest"
-      "-Dsurefire.failIfNoSpecifiedTests=false" test
-    paths:
-      - atf-test-kit/src/test/java/atf/testkit/assertions/ComponentAuditExtensionComponentTest.java
-```
+Imported through SPI observatory in `atf.testkit.launch`; contract and limits are in [README-ul Kit](../../atf-test-kit/README.md). Adoption and inspection of reports belong to the consumer.Tests do not confuse the result of execution with the number discovered, and the absence of the observer does not authorise a foreign context.
 
-</details>
-
-## KIT-LAUNCH-PLAN — context neutru pentru selecția reală
-
-Implementat prin observerul SPI din `atf.testkit.launch`; contractul și limitele
-sunt în [README-ul Kit](../../atf-test-kit/README.md). Adopția și inspectarea
-rapoartelor aparțin consumerului. Testele nu confundă rezultatul execuției cu
-numărul descoperit, iar lipsa observerului nu autorizează un context străin.
-
-Controlul verificat rămâne în [baseline](../ATF_Test_Changes_Baseline.md); puntea nu introduce o sarcină de mentenanță duplicată în consumeri.
+The check-up shall remain in [baseline](../ATF_Test_Changes_Baseline.md); the deck shall not introduce a duplicate maintenance load into the consumption.
