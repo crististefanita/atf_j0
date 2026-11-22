@@ -354,7 +354,13 @@ The current metadata is corrected; the remaining criterion is guard coverage, wi
 <a id="report-duration-scenario-wall-141--timp-total-față-de-suma-pașilor"></a>
 ## REPORT-DURATION-SCENARIO-WALL-141 - elapsed vs aggregated step time
 
-**Priority: 76/100 = 30 + 23 + 16 + 7. Owner: Reporting runtime and Reporting Tests.** J7's real-browser Saved/Finished probe (`chess/atf-tests/src/test/java/ro/atf/chess/ChessWebMatchListPlaywrightE2e.java`) used the published `atf-reporting:1.0.0-j25` JAR at Chess source commit `8500f443a5f830e082aa0b41b7d061c3fe3b943e`. Its raw scenario and TEST BODY badges recorded about `01:31:508`, and the scenario retained `data-atf-measured-duration-ms=91508`. After the report runtime initialized, both visible badges showed `2.396 s`, the sum of recorded child durations. The test passed; this is a timing presentation finding, not a verdict failure. [Current aggregation decision](../../atf-reporting/src/main/resources/atf/reporting/javascript/duration-aggregation.js) also prefers child totals when children exist and no explicit execution marker is present. First check whether a newer qualified JAR already distinguishes these two clocks.
+**Priority: 76/100 = 30 + 23 + 16 + 7. Owner: Reporting runtime and Reporting Tests.**
+
+- Reproducer: J7's Saved/Finished browser probe (`chess/atf-tests/src/test/java/ro/atf/chess/ChessWebMatchListPlaywrightE2e.java`), Chess source `8500f443a5f830e082aa0b41b7d061c3fe3b943e`, published `atf-reporting:1.0.0-j25`.
+- Observation: raw scenario and TEST BODY badges showed about `01:31:508`, retaining `data-atf-measured-duration-ms=91508`; after runtime initialization, both visible badges showed the child-duration sum `2.396 s`.
+- Boundary: the test passed; this is a timing presentation finding. The [aggregation decision](../../atf-reporting/src/main/resources/atf/reporting/javascript/duration-aggregation.js) prefers child totals when children exist without an explicit execution marker.
+
+First check whether a newer qualified JAR already distinguishes elapsed time from the child aggregate.
 
 - [ ] In a frozen Extent and fallback fixture, retain the measured elapsed interval and the child aggregate separately. Label the visible value by source so the reader cannot mistake publication or summed action time for scenario wall time; never manufacture execution duration from a child.
 - [ ] Add a browser control for a slow uninstrumented wait around fast recorded steps, another with explicit phase execution timing, and a class aggregate. Verify Overview, Tests, tooltip/ARIA and full expansion agree on what each duration means. Re-run the J7 consumer probe against the released JAR before closing.

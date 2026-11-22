@@ -57,17 +57,17 @@ public static void publish(AssertionAuditRun run, String actual) {
 
 | Owner | Closing and limit |
 |---|---|
-| AssertionAuditRun | Owns the session; close publishes the final HTML. |
-| run.open(identity) | Borrows the session; close closes the invocation's scenario. |
-| AssertionAuditReport(session, ...) constructor | Owns and closes its own session. |
+| `AssertionAuditRun` | Owns the session; close publishes the final HTML. |
+| `run.open(identity)` | Borrows the session; closing the report closes the invocation's scenario. |
+| `AssertionAuditReport(session, ...)` constructor | Owns and closes its own session. |
 
-- Use the same settings/redactor in the run and renderer; the default preview is **240**, read through assertionMaxDisplayCharacters(). Full values precede the preview.
-- The example follows the session thread; AssertionAuditRun.extent(...) serializes publication for concurrent callers.
-- Kit collects the JUnit comparison, evaluated once; Reporting publishes it. The caller preserves the verdict, cause, and timing through phase(..., timing).
-- Fails indexes the terminal cause on the failed ACTION or OBSERVE row. Tests also retains the collapsible diagnostic, while independent comparisons remain distinct.
+- Use the same settings/redactor in the run and renderer; the default preview is **240**, read through `assertionMaxDisplayCharacters()`. Full values precede the preview.
+- The example follows the session thread; `AssertionAuditRun.extent(...)` serializes publication for concurrent callers.
+- Kit collects the JUnit comparison, evaluated once; Reporting publishes it. The caller preserves the verdict, cause, and timing through `phase(..., timing)`.
+- Fails indexes the terminal cause on the failed ACTION or OBSERVE row. The Tests view also retains the collapsible diagnostic, while independent comparisons remain distinct.
 - The PNG retains the full viewport/display; capture and zoom belong to the adapter. Identical screenshots from the same step retain one piece of evidence and the first caption.
-- After close, ReportArtifactInspector.inspect(path, profile) qualifies the inventory and embedded resources; diagnostics identify external dependencies. Text paths remain valid. The inspector is static; rendering and interactions are verified separately in a browser.
-- Titles are published as literal text in Extent and fallback. The profile accepts the original labels, including multiline labels. ReportArtifactProfile.visibleLabel(label) provides the same whitespace projection as the inspector.
+- After close, `ReportArtifactInspector.inspect(path, profile)` qualifies the inventory and embedded resources; diagnostics identify external dependencies. Text paths remain valid. The inspector is static; rendering and interactions are verified separately in a browser.
+- Titles are published as literal text in Extent and fallback. The profile accepts the original labels, including multiline labels. `ReportArtifactProfile.visibleLabel(label)` provides the same whitespace projection as the inspector.
 - The browser belongs to the caller: separate JUnit discovery diagnostics from execution, close the context before the browser, and preserve the original cause during cleanup.
 
 HTTP duration comes from `ReportResponse.duration()`; `detail(...)` preserves the caller's text without turning it into a transport measurement.

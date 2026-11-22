@@ -53,6 +53,6 @@ var response = mock.send(ApiRequest.of("GET", "/health"),
 
 ---
 
-The maintenance of Mock code and tests belongs to the separate `atf_j0/atf-mock` project; [feedback and synchronization](README.md#mentenanță-și-feedback) starts from J0.
+Mock source and native tests are maintained in this project's library module; [maintenance and feedback](README.md#mentenanță-și-feedback) routes shared findings.
 
 [Consumer integration guides](README.md#consumer-guides).

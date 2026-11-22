@@ -6,19 +6,19 @@
 <a id="pe-scurt"></a>
 ## At a glance
 
-J0 holds Core, Reporting, Console, Mock and Test Kit libraries: code, API, tests, packaging and feedback. The code remains in the source modules of this project; ATF consumers re-use JAR / POM pair checked.
+J0 maintains Core, Reporting, Console, Mock and Test Kit: implementation, APIs, tests, packaging and feedback. Source code stays in this project; consumers use verified JAR/POM pairs.
 
 <a id="usage-guidelines"></a>
 <a id="ghiduri-de-utilizare"></a>
 ## Usage guidelines
 
-| Library | What does it offer | Use her for |
+| Library | Capability | Use |
 |---|---|---|
-| [Core](README.Core.md) | HTTP configuration, JSON, editing and lifecycle | Common mechanisms and neutral adapters. |
-| [Reporting](README.Reporting.md) | Extent / fallback, assertions and evidence UI / API | Auditable reports from consumer observations. |
-| [Console](README.Console.md) | Configurable events and diagnosis | Follow-up of execution in Maven and IntelliJ. |
-| [Mock](README.Mock.md) | HTTP transport determinist | Components and offline contracts with own catalogue. |
-| [Test Kit](README.TestKit.md) | `atf-test-kit` · audit and neutral lifecycle JUnit | Classification, comparisons and test support. |
+| [Core](README.Core.md) | HTTP, configuration, JSON, redaction and lifecycle | Common mechanisms and neutral adapters. |
+| [Reporting](README.Reporting.md) | Extent/fallback, assertions and UI/API evidence | Auditable reports from consumer observations. |
+| [Console](README.Console.md) | Configurable events and diagnostics | Run diagnostics in Maven and IntelliJ. |
+| [Mock](README.Mock.md) | Deterministic HTTP transport | Offline components and contracts with a local catalog. |
+| [Test Kit](README.TestKit.md) | `atf-test-kit` · audit and a neutral JUnit lifecycle | Classification, comparisons and test support. |
 
 <a id="maintenance-and-feedback"></a>
 <a id="mentenanță-și-feedback"></a>
@@ -32,11 +32,11 @@ J0 holds Core, Reporting, Console, Mock and Test Kit libraries: code, API, tests
 | Mock | [atf-mock](../atf-mock/README.md) | [Feedback](../docs/feedback/ATF_Console_Mock_Feedback.md) |
 | Test Kit | [atf-test-kit](../atf-test-kit/README.md) | [Feedback](../docs/feedback/ATF_Common_Test_Support_Feedback.md) |
 
-[J0 Registry](../docs/feedback/README.md#biblioteci-comune) is the entry point for all projects. Generic regression of composition and rendering Reporting remains in [atf-reporting-tests](../atf-reporting-tests/README.md); the other native tests stand next to the library implementation.
+The [library feedback index](../docs/feedback/README.md#biblioteci-comune) routes shared findings. Generic Reporting composition and rendering regressions belong to [atf-reporting-tests](../atf-reporting-tests/README.md); other native tests stay beside their library implementation.
 
 <a id="working-flow"></a>
 <a id="fluxul-de-lucru"></a>
-## Working flow
+## Maintenance flow
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":16,"padding":10,"diagramPadding":16}}}%%
@@ -49,40 +49,40 @@ flowchart LR
 <details>
 <summary><strong>Legend - joint implementation, separate acceptance</strong></summary>
 
-- Continuous arrows describe the delivery of a candidate; the dotted arrow returns the findings to J0.
-- J0 holds joint remediation and permanent regression. The consumer provides reproduction and verifies the integration of the binary in its own field.
-- The diagram describes responsibilities and deliveries, not additional Maven modules or copy sources into consumers.
+- Solid arrows describe candidate delivery; the dotted arrow returns findings to J0.
+- J0 owns shared fixes and permanent regressions. Each consumer supplies a reproducer and verifies binary integration in its own domain.
+- Diagram edges describe responsibility and delivery; they add no Maven modules or copied library source to consumers.
 
 </details>
 
 <a id="only-one-requirement-with-evidence"></a>
 <a id="o-singură-cerință-cu-dovezi"></a>
-## Only one requirement with evidence
+## One finding with evidence
 
-- Please note in J0 the project, the actual coordinate / hash, the selection / profile, the expected and observed result, the minimum reproduction and the evidence kept.
-- If the origin is unclear, keep a single unconfirmed finding in J0 until isolation; do not copy the checklist in each project.
-- Business rules, capture Android, ASR models and broker infrastructure remain at the consumer's owner. A task shown exclusively locally moves there with a short reference from the original criterion.
-- Close the criterion only after negative control, corrected regression and relevant acceptance; keep the contract stable in documentation, without resolved ToDos or release chronologies.
+- Record the project, exact coordinates and hashes, selection/profile, expected and observed result, minimal reproducer and retained evidence in J0.
+- If ownership is unclear, keep one unconfirmed finding in J0 until it is isolated; avoid duplicating the checklist across projects.
+- Business rules, Android capture, ASR models and broker infrastructure belong to the consumer. Move a confirmed local finding to that owner, leaving a short reference at the original criterion.
+- Close a finding after its negative control, regression and relevant acceptance pass. Keep the durable contract in documentation; remove completed ToDos and release chronology.
 
 <a id="timing-and-governance"></a>
 <a id="sincronizare-și-guvernanță"></a>
-## Timing and governance
+## Synchronization and governance
 
-1. Compare live code and local changes prior to modification; keep Git bases and configuration of each project.
-2. Correct J0 and add permanent regression to the owner; build and check source / JAR in a TMP staging of your own.
-3. Distribute the same candidate to affected consumers: a current pair per library, with updated provenance and original history preserved.
-4. independently revalidate each consumer and selectively promote through the Core guard. A result from J1 does not automatically become evidence for J2, J3 or J4.
+1. Compare live code and local changes before editing; preserve each project's Git base and configuration.
+2. Fix the source owner in J0 and add a permanent regression; build and verify source/JAR behavior in owned TMP staging.
+3. Deliver the same candidate to affected consumers: one current pair per library, updated provenance and preserved package history.
+4. Revalidate each consumer independently and promote selectively through the Core guard. J1 acceptance supplies no automatic evidence for J2, J3 or J4.
 
 | Control | Contract |
 |---|---|
-| Consumer inventory | Exact five JAR / POM pairs, index and five user guides, directly in lib; no additional versions, nested deposit or release notes. |
-| Dependencies | Console and Mock fix the verified Core; its change requires the republication of JAR / POM together without the isolated editing of POM. |
-| Identity | Coordinates from POM; hashes and root provenance; POM incorporated coincides with the published pair. |
-| Loading | CodeSource indicates JAR physically; parallel sources and native harness do not return to the consumer. |
-| Tests | [Examples JAR / POM](../docs/ATF_Platform_Libraries.md#ghiduri-executabile-pe-publicația-binară) in J0; local consumer acceptance. |
-| Reporting | 240 default preview, auditable and collapsible asserts, complete frames; the mock / component sample does not certify a real device, broker or ASR. |
+| Consumer inventory | Exactly five JAR/POM pairs, the index and five usage guides directly in lib; no extra versions, nested repository or release notes. |
+| Dependencies | Console and Mock pin the verified Core version; a dependency change requires republishing the JAR/POM pair together, without editing only the POM. |
+| Identity | POM coordinates, hashes and root provenance agree; the embedded POM matches the published pair. |
+| Loading | CodeSource identifies the physical JAR; parallel library source and the native harness stay outside the consumer. |
+| Tests | [Executable JAR/POM examples](../docs/ATF_Platform_Libraries.md#ghiduri-executabile-pe-publicația-binară) in J0; local consumer acceptance. |
+| Reporting | Default preview of 240 characters, auditable collapsible assertions and complete frames; a mock/component probe does not qualify a real device, broker or ASR. |
 
-In J0, this directory is the maintenance register; it does not replace the source modules and does not host building outputs. [Technical contract](../docs/ATF_Platform_Libraries.md) and [synchronization of workspaces](../docs/ATF_Workspace_Synchronization.md) detail the publication.
+This directory indexes library maintenance; source modules own implementation and build outputs stay in TMP. The [technical contract](../docs/ATF_Platform_Libraries.md) and [workspace protocol](../docs/ATF_Workspace_Synchronization.md) describe publication.
 
 Project entry points are collected in the [workspace index](../docs/workspaces/README.md).
 
