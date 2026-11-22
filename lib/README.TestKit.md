@@ -36,3 +36,28 @@ public static void verifyState(RecordedAssertions audit, String actual) {
 ---
 
 Mentenanță, cod, teste și feedback: [atf_j0](README.md#mentenanță-și-feedback).
+
+## Planul real al lansării JUnit
+
+Pachetul `atf.testkit.launch` observă sesiunea launcherului prin SPI-ul public
+`LauncherSessionListener`. Nu execută teste și nu deschide resurse consumer.
+`TestLaunchContext.capture(context)` returnează un `Optional<TestLaunchSnapshot>`
+imuabil pentru invocarea curentă: selectorii cererii, inventarul filtrat din
+`TestPlan`, numărul descoperit inițial și înregistrările dinamice la captură.
+
+- Asocierea cererii folosește identitatea configurației planului; o cerere
+  străină sau indisponibilă nu înlocuiește proveniența planului executat.
+- Suitele transmit contextul exterior numai descendenților reali. Lansările
+  independente, repetate și concurente își păstrează scope-ul și cleanup-ul.
+- Numărul descoperit include teste dezactivate și exclude înregistrările
+  dinamice ulterioare; nu reprezintă numărul de teste trecute sau executate.
+- Dacă observerul SPI este dezactivat, captura este absentă. Pentru un plan
+  descoperit într-o altă sesiune, inventarul și numărul rămân disponibile,
+  iar proveniența selectorilor spune explicit că cererea nu este disponibilă.
+- Dependența `junit-platform-launcher` este opțională; consumerul care lansează
+  testele o furnizează. Biblioteca nu depinde de Reporting, UI sau consumeri.
+
+`TestLaunchPlanComponentTest` probează selecții directe și filtrate, scope-uri
+imbricate/concurente, planuri executate ulterior, teste dezactivate, înregistrări
+dinamice și absența punții.
+

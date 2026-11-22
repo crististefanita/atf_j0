@@ -35,6 +35,30 @@ flowchart LR
 | clasificare test | business flow | fiecare clasă are un singur nivel |
 | reguli transversale | business runtime dependency | fail-closed la drift |
 
+## Planul real al lansării JUnit
+
+Pachetul `atf.testkit.launch` observă sesiunea launcherului prin SPI-ul public
+`LauncherSessionListener`. Nu execută teste și nu deschide resurse consumer.
+`TestLaunchContext.capture(context)` returnează un `Optional<TestLaunchSnapshot>`
+imuabil pentru invocarea curentă: selectorii cererii, inventarul filtrat din
+`TestPlan`, numărul descoperit inițial și înregistrările dinamice la captură.
+
+- Asocierea cererii folosește identitatea configurației planului; o cerere
+  străină sau indisponibilă nu înlocuiește proveniența planului executat.
+- Suitele transmit contextul exterior numai descendenților reali. Lansările
+  independente, repetate și concurente își păstrează scope-ul și cleanup-ul.
+- Numărul descoperit include teste dezactivate și exclude înregistrările
+  dinamice ulterioare; nu reprezintă numărul de teste trecute sau executate.
+- Dacă observerul SPI este dezactivat, captura este absentă. Pentru un plan
+  descoperit într-o altă sesiune, inventarul și numărul rămân disponibile,
+  iar proveniența selectorilor spune explicit că cererea nu este disponibilă.
+- Dependența `junit-platform-launcher` este opțională; consumerul care lansează
+  testele o furnizează. Biblioteca nu depinde de Reporting, UI sau consumeri.
+
+`TestLaunchPlanComponentTest` probează selecții directe și filtrate, scope-uri
+imbricate/concurente, planuri executate ulterior, teste dezactivate, înregistrări
+dinamice și absența punții.
+
 ## Clasificare
 
 Fiecare clasă executabilă declară exact un nivel:
@@ -111,7 +135,7 @@ callback sincron și colecție imutabilă de artifacte. Serializează apelurile
 cooperante; nu oferă izolare față de scriitori externi ai proprietății JVM.
 
 Consumerul furnizează launcherul, configurația, filtrul fișierelor și
-oracolele business. Kit nu importă launcherul JUnit, Reporting ori Playwright,
+oracolele business. ScopedAcceptanceRun nu importă launcherul JUnit, Reporting ori Playwright,
 nu creează directorul și nu interpretează HTML-ul. Testul
 [ScopedAcceptanceRunTest](src/test/java/atf/testkit/lifecycle/ScopedAcceptanceRunTest.java)
 rămâne unitar; contractul Extent aparține acceptanței consumerului.
