@@ -1671,6 +1671,41 @@ Unit și probele renderer din Reporting Tests își păstrează categoriile sepa
 Deadline-ul, refuzurile și limitele sunt în [UI](../atf-ui/README.md#recuperare-be-prin-observație-pasivă);
 indicatorul agregat de recuperare rămâne în [feedback-ul auditului](../docs/feedback/ATF_Reporting_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent).
 
+## Identitatea lansării JUnit
+
+O fază INFO colapsată `Launch context` păstrează clasa/metoda canonică și suita
+exterioară expusă de ascendența JUnit. `AutoExLaunchMetadata` proiectează snapshot-ul
+imuabil `TestLaunchContext.capture(context)` furnizat de Test Kit K4. Publică
+selectorii reali, inventarul filtrat și numărul exact de teste descoperite prin
+contractul existent de observații Reporting.
+
+Numărul este măsurat la începutul planului, include teste dezactivate și exclude
+înregistrările dinamice ulterioare. Numărul lor la captură este un câmp separat.
+Valorile nu sunt reconstruite din teste terminate sau trecute. Un plan executat
+în altă sesiune păstrează inventarul/numărul și marchează explicit lipsa cererii;
+dezactivarea observerului SPI produce metadate indisponibile.
+
+```mermaid
+flowchart LR
+    Request["Cererea lansării"] -->|descoperă| Plan["TestPlan filtrat"]
+    Plan -->|capturează| Kit["Test Kit K4"]
+    Kit -->|furnizează| Adapter["Adapter AutoEx"]
+    Adapter -->|publică| Reporting["Reporting J26"]
+    Reporting -->|randează| Tests["Tests · Launch context"]
+```
+
+<details>
+<summary><strong>Legendă — interacțiunea modulelor și semantica numărării</strong></summary>
+
+- Kit observă callback-urile publice; nu pornește teste, browser sau raport.
+- Consumerul deține proiecția imuabilă în raport și fațada selectorilor săi.
+- Selectorii păstrează sursa reală; titlurile și numele fișierelor nu definesc selecția.
+- `AutoExLaunchMetadataComponentTest` verifică lansări de clasă/metodă și suite
+  canonice sau filtrate prin tag, titluri identice, lansări repetate, numere exacte,
+  selectorii originali, sursele selectate și expandarea în browser a fiecărui câmp.
+
+</details>
+
 ## Rulare
 
 <details>

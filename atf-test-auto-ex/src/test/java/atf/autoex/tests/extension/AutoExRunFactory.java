@@ -22,6 +22,7 @@ import atf.autoex.runtime.AutoExE2eRun;
 import atf.autoex.runtime.AutoExReportSession;
 import atf.autoex.runtime.reporting.AutoExReportSystemMetadata;
 import atf.autoex.runtime.config.AutoExProjectRoot;
+import atf.autoex.tests.support.reporting.AutoExLaunchMetadata;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import java.nio.file.Path;
@@ -36,6 +37,7 @@ final class AutoExRunFactory {
     private static final String SUITE_REPORT_KEY = "auto-ex-suite-report";
     private AutoExRunFactory() { }
     static AutoExE2eRun open(ExtensionContext context) {
+        var launch = AutoExLaunchMetadata.capture(context);
         AutoExConfiguration configuration = AutoExConfigurationLoader.load();
         var recovery = atf.testkit.recovery.AtfUiRecoveryResolver.resolve(context.getRequiredTestClass(), context.getRequiredTestMethod());
         configuration = configuration.withRecovery(configuration.browser().recovery().restrict(
@@ -81,7 +83,10 @@ final class AutoExRunFactory {
                 browser -> report.startScenario(context.getRequiredTestClass().getSimpleName(),
                         context.getRequiredTestClass().getPackageName(), context.getDisplayName(),
                         List.of("e2e", "ui", "automation-exercise"), evidence),
-                scenario -> scenario.startPhase(TEST_BODY.displayName()),
+                scenario -> {
+                    launch.publish(scenario);
+                    return scenario.startPhase(TEST_BODY.displayName());
+                },
                 (browser, scenario, phase) -> new AutoExE2eRun(runConfiguration, browser, scenario, phase, evidence,
                         channel == TestChannel.UI_API, AutoExRunLifecycleAdapter.INSTANCE),
                 phase -> phase.complete(AtfReportStatus.FAIL),

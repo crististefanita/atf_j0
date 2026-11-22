@@ -36,6 +36,7 @@ import atf.shop.locators.ShopLocators;
 import atf.shop.support.api.ShopApiNetworkJournal;
 import atf.shop.tests.support.lifecycle.ShopE2eContext;
 import atf.shop.tests.support.lifecycle.ShopE2eActivationExtension;
+import atf.shop.tests.support.reporting.ShopLaunchMetadata;
 import atf.shop.support.ShopPurchaseTraceStep;
 import atf.shop.support.ShopPurchaseCheckpoint;
 import atf.shop.reporting.ShopScreenshotPolicy;
@@ -138,7 +139,8 @@ public final class ShopE2eTestSupport {
                         AtfConsoleTestExtension.reportPathSink(context.getRequiredTestClass()));
             }
             ShopE2eContext browser = ShopE2eContext.open(
-                    configuration, presentation, sharedReport, reportConsole);
+                    configuration, presentation, sharedReport, reportConsole,
+                    ShopLaunchMetadata.capture(context));
             context.getStore(NAMESPACE).put(HARNESS_KEY, new CloseOnceResource<>(
                     new E2eHarness(configuration, browser, new ShopLocators(),
                             context.getRequiredTestClass().getSimpleName(), accountSetup, registrationProfile,

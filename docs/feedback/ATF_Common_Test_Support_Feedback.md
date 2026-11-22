@@ -90,6 +90,12 @@ testChanges:
     paths:
       - atf-test-kit/pom.xml
       - atf-test-kit/src/test/java/atf/testkit/launch/TestLaunchPlanComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/extension/AutoExRunFactory.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/reporting/AutoExE2eReportPathComponentTest.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/support/reporting/AutoExLaunchMetadata.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/support/reporting/AutoExLaunchReportProbe.java
+      - atf-test-auto-ex/src/test/java/atf/autoex/tests/component/reporting/AutoExLaunchMetadataComponentTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/consumers/ConsumerModuleArchitectureGovernanceTest.java
 ```
 
 </details>

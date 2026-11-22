@@ -79,6 +79,10 @@ class AutoExE2eReportPathComponentTest {
         String html = Files.readString(created.iterator().next());
         for (Class<?> owner : owners) assertTrue(html.contains(owner.getSimpleName()));
         assertTrue(html.contains("Local fixture"));
+        assertTrue(html.contains("JUnit launch identity"), "Real E2E composition publishes source identity");
+        for (Class<?> owner : owners) assertTrue(html.contains(owner.getName()), "Canonical owner is retained");
+        assertTrue(html.contains("EFFECTIVE SELECTION COUNT"), "Real E2E reports include discovery metadata");
+        assertFalse(html.contains("unavailable (no active TestPlan)"), "The Kit listener is active in the real composition");
     }
     private static Set<Path> reports(Path directory) throws Exception {
         try (var files = Files.walk(directory)) {

@@ -20,6 +20,31 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** Keeps consumer source-set and test-suite architecture under whole-ATF governance. */
 @AtfIntegrationTest
 public class ConsumerModuleArchitectureGovernanceTest {
+    @Test
+    void launchIdentityRemainsAtTheConsumerJUnitBoundary() throws IOException {
+        for (String name : List.of("Shop", "AutoEx")) {
+            String moduleName = name.equals("Shop") ? "atf-test-practice-shop" : "atf-test-auto-ex";
+            if (!consumer(moduleName)) continue;
+            Path tests = module(moduleName).resolve(name.equals("Shop")
+                    ? "src/test/atf/shop/tests" : "src/test/java/atf/autoex/tests");
+            Path metadata = tests.resolve("support/reporting/" + name + "LaunchMetadata.java");
+            assertTrue(Files.isRegularFile(metadata), "Launch metadata belongs to the consumer's test scope");
+            String source = Files.readString(metadata);
+            for (String forbidden : List.of("System.getProperty", "Class.forName", "getDisplayName",
+                    "getFileName", "atf.ui.", "com.microsoft.playwright", "org.junit.platform.launcher",
+                    "SummaryGeneratingListener", "getTestsSucceededCount", "getTestsFoundCount")) {
+                assertFalse(source.contains(forbidden), "Launch facts must not infer runner state or acquire resources: " + forbidden);
+            }
+            assertTrue(source.contains("TestLaunchContext.capture(context)")
+                            && source.contains("discoveredTestCount()"),
+                    "Consumer discovery facts must come from the neutral Kit snapshot");
+            Path acceptance = tests.resolve("component/reporting/" + name + "LaunchMetadataComponentTest.java");
+            assertTrue(Files.isRegularFile(acceptance), "Direct and suite metadata need executable consumer acceptance");
+            Path probe = tests.resolve("support/reporting/" + name + "LaunchReportProbe.java");
+            assertTrue(Files.isRegularFile(probe), "Launch-report selectors remain consumer-owned");
+        }
+    }
+
     private static final String JAVA_SUFFIX = ".java";
 
     @Test
@@ -128,6 +153,7 @@ public class ConsumerModuleArchitectureGovernanceTest {
 
         for (Path source : javaFiles(sourceRoot, testRoot)) {
             if (source.toAbsolutePath().normalize().startsWith(locatorRoot)) continue;
+            if (source.toAbsolutePath().normalize().equals(testRoot.resolve("support/reporting/ShopLaunchReportProbe.java").toAbsolutePath().normalize())) continue;
             String text = Files.readString(source);
             assertFalse(text.contains("page.locator("), "raw locator escaped the facade: " + source);
             assertFalse(text.contains("getByText("), "text selector escaped the facade: " + source);
