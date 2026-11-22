@@ -114,14 +114,14 @@ J2 then adopts the new candidate and extends its own 18 report matrix SQL with q
 <a id="intrări-concrete-pentru-componentele-j0--2026-11-01"></a>
 ### Concrete inputs for J0 components - 2026-11-01
 
-- [J2 Matrix](../../../atf_j2/docs/ATF_SQL_Live_Verification.md) now provides query / binds / scheme / rows typed and controlled errors in 12 Extent / fallback. Add permanent neutral fixtures for each family above without copying H2 or JDBC suite in Reporting Tests.
+- [J2 Matrix](https://github.com/crististefanita/atf_j2/blob/HEAD/docs/ATF_SQL_Live_Verification.md) now provides query / binds / scheme / rows typed and controlled errors in 12 Extent / fallback. Add permanent neutral fixtures for each family above without copying H2 or JDBC suite in Reporting Tests.
 - Keep the query negatives absent, ID different from metadata, DECIMAL rounded and row / duplicate column lost. Add cross-owner with identical titles and SQL-ally without HTTP; the denial of J10 legacy is historic; J12 provides the explicit profile and J2 acceptors adopt it separately.
 - Check separately the partial capture JDBC, HTML configuration and PASS test that checks for an expected SQL error. A field error does not impose FAIL on past comparisons; unconfirmed error retains FAIL and the original cause.
 
 ## Current regression boundaries
 
 - SQL-STEPS-116, the mutation matrix per proof and the geometry RESULT have distinct closing criteria.
-- [Test Kit](ATF_Common_Test_Support_Feedback.md) holds the capture and projection of comparisons. [Coordonarea J1](../../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md) maintains the integration into the consumers.
+- [Test Kit](ATF_Common_Test_Support_Feedback.md) holds the capture and projection of comparisons. [Coordonarea J1](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/ATF_Common_Test_Support_Feedback.md) maintains the integration into the consumers.
 - [Long UI assertion capture](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) remains separate from the delivered ACTION/OBSERVE and literal TEXT contracts.
 
 The permanent samples for inspector, timing, PNG, navigation and cold start are documented in [test owner](../../atf-reporting-tests/README.md), [audit contract](../ATF_Inline_Audit_Contract.md#acceptanță-permanentă) and [navigation contract](../ATF_Large_Report_Navigation.md#permanent-verification).

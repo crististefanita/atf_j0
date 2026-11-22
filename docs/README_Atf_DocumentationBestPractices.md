@@ -181,6 +181,8 @@ This order is not an explanation of “how to read” the project; it is a compo
 5. **Further detail** — contracts, exceptions, and references, collapsed or linked;
 6. **Verification criterion** — test, guard, or reproducible procedure.
 
+The root README presents this project’s purpose, modules and evidence flow first. A cross-workspace catalog belongs in its [dedicated index](workspaces/README.md), reached through one link in the final root section; it does not replace local orientation.
+
 Spacing and readability rules:
 
 - do not place two primary tables back to back;
@@ -356,6 +358,8 @@ The root README must be self-explanatory as a product overview, but it should no
 - generated artifacts: temporary evidence, never normative navigation.
 
 Links from the root should naturally answer “where can I learn more?” without introducing a second version of the same map. A good reference has a semantic label and a clear question, not just a path.
+
+Use relative links within the repository and published GitHub repository names across repositories. The source-owned route guard checks those document paths and fragments against adjacent checkouts; remote reachability is verified separately. Preserve shared explicit anchors when translating section titles.
 
 <a id="naming-links-and-durability"></a>
 <a id="denumiri-linkuri-și-durabilitate"></a>

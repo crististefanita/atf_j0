@@ -95,8 +95,8 @@ The edges are reading and maintenance steps, not Maven dependencies. Atlas start
 |---|---|---|
 | What reactor do they use? | [workspace-uri](ATF_Workspace_Synchronization.md), then POM and README target | J0 owns the source; read J1–J7 roles and modules from each live project, without inferring them from absent directories |
 | Reporting change? | [J0 source atlas](../atf-reporting/src/main/java/atf/reporting/README.md) and [permanent regression](../atf-reporting-tests/README.md) | Each J1-J7 consumer has its own acceptance; the source documentation does not automatically certify the JAR consumed |
-| app change? | [Shop](../../atf_j1/atf-test-practice-shop/README.md) or [AutoEx](../../atf_j1/atf-test-auto-ex/README.md) | Expected, catch and business selection remain in the consumer |
-| Kafka / Podman change? | [J2 atlas](../../atf_j2/docs/ATF_Context_Atlas.md), then Setup and configuration | three MOCK components and existing scripts; Java client / actual broker are WIP |
+| app change? | [Shop](https://github.com/crististefanita/atf_j1/blob/HEAD/atf-test-practice-shop/README.md) or [AutoEx](https://github.com/crististefanita/atf_j1/blob/HEAD/atf-test-auto-ex/README.md) | Expected, catch and business selection remain in the consumer |
+| Kafka / Podman change? | [J2 atlas](https://github.com/crististefanita/atf_j2/blob/HEAD/docs/ATF_Context_Atlas.md), then Setup and configuration | three MOCK components and existing scripts; Java client / actual broker are WIP |
 
 1. Read the package map and relevant section of README module.
    Before refactoring, reconcile the host feedback with the live source and specify the closing sample; update the finding during the increment.

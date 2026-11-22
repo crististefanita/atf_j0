@@ -32,5 +32,5 @@ Cancellation of an already deployed operation does not confirm rollback and does
 
 - Trigger, coordinated / hash, minimum reproduction, expected / observed and negative criterion; one transport problem does not generalise in the other.
 - [Reporting](ATF_Reporting_Feedback.md) holds the renderer; [Reporting Tests](ATF_Reporting_Tests_Feedback.md) holds neutral rendering oracles.
-- [J1 Registry](../../../atf_j1/docs/feedback/README.md) coordinates common non-library criteria; consumers retain the acceptance of the domain.
+- [J1 Registry](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/README.md) coordinates common non-library criteria; consumers retain the acceptance of the domain.
 - [Baseline-ul tehnic](../ATF_Test_Changes_Baseline.md) shall keep the Git controls separate from the backlog.

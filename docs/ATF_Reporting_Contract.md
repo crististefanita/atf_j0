@@ -789,7 +789,7 @@ Reporting maintains a neutral pattern and does not depend on Kafka / RabbitMQ. T
 | message / delivery contract demonstrated LIVE | assess only then the evidence for identity, position and attempts, distinct from HTTP |
 | acceptance of a new projection | neutral fixture in Reporting Tests, Extent / fallback, timing, FAIL, incomplete evidence and navigation; expectations and Eventuate code remain at the consumer |
 
-This decision keeps the REPORT-MQ-02 proposal in the project, without counting it as current defect or functionality delivered. Owner [messaging J2](../../atf_j2/docs/ATF_J2_Scope.md) provides the actual witness before an extension of the library.
+This decision keeps the REPORT-MQ-02 proposal in the project, without counting it as current defect or functionality delivered. Owner [messaging J2](https://github.com/crististefanita/atf_j2/blob/HEAD/docs/ATF_J2_Scope.md) provides the actual witness before an extension of the library.
 
 <a id="explicit-inspection-and-time-sources"></a>
 <a id="inspecție-explicită-și-surse-temporale"></a>

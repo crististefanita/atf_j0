@@ -4744,3 +4744,23 @@ testChanges:
 ```
 
 </details>
+
+<details>
+<summary>Root overview and workspace navigation control</summary>
+
+```yaml
+testChanges:
+  - id: J0-DOC-WORKSPACE-INDEX-20261122
+    status: VERIFIED
+    base: 8f9e3e4556765683b1975d79eece56d265a0c58c
+    expires: 2026-12-22
+    reason: "Move cross-workspace orientation to its dedicated README, require local root orientation and one final index link, and retain offline path/fragment checks for portable owned GitHub routes."
+    proof: mvn -B -ntp -pl atf-tests -am "-Dtest=AtfWorkspaceMaintenanceSuite" "-Datf.maintenance.j0=<source-workspace>" "-Datf.maintenance.j1=<consumer-workspace>" "-Datf.governance.testChanges.baseRef=8f9e3e4556765683b1975d79eece56d265a0c58c" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationReadmeStructureGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationTargetGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/links/DocumentationLinkGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/links/WorkspaceDocumentationLinks.java
+```
+
+</details>

@@ -2,33 +2,15 @@
 <a id="atf--platformă-modulară-pentru-testare-și-rezultate-verificabile"></a>
 # ATF Java — modular testing and auditable results
 
-[Library maintenance](lib/README.md) defines J0 ownership of library code, native tests, packaging and feedback; J1–J7 consume verified deliveries.
-
-Shop and AutoEx scenarios are owned by J1; their copies in this reactor verify
-integration with Reporting source. J2 independently owns queue and messaging tests.
+ATF Java is a Maven reactor for deterministic API execution, semantic validation, Extent reports and browser auditing. It contains the source of five reusable libraries, integration fixtures and governance tests.
 
 `Deterministic API → semantic validation → Extent report → UI audit`
 
-<a id="atf-java--executive-overview"></a>
-<a id="atf-java--prezentare-executivă"></a>
-## ATF Java — executive overview
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## At a glance
 
-| Workspace | Role and entry point |
-|---|---|
-| J0 | 12 source modules; owner of Core, Reporting, Console, Mock and Test Kit; [source atlas](docs/ATF_Context_Atlas.md) |
-| J1 | 6 modules; Shop/AutoEx consumer and shared-library integration; [consumer documentation](../atf_j1/docs/README.md) |
-| J2 · WIP | 5 modules; Kafka/Eventuate queue and messaging tests, without UI/Debug UI; [WIP atlas](../atf_j2/docs/ATF_Context_Atlas.md) |
-| J3 | 4 modules; English speech transcription; [speech architecture](../atf_j3/docs/ATF_Speech_Architecture.md) |
-| J4 | 3 modules; Whist Lab and Android testing; [consumer documentation](../atf_j4/docs/README.md) |
-| J5 | 2 modules; Rentz Lab and offline tests; [project README](../atf_j5/README.md) |
-| J6 | 5 modules; Hold’em Lab; [project README](../atf_j6/README.md) |
-| J7 | 1 Maven module; Chess Lab and ATF library consumption; [project README](../atf_j7/README.md) |
-
-A project's role and its verified behavior are separate: a successful build or mock does not certify the external service, broker or the entire platform.
-
-ATF Java connects deterministic API execution, semantic validation, Extent
-publication and browser inspection. The groups below explain each module's
-responsibility and guide the reader to the relevant contract.
+The 12 modules separate reusable contracts, execution, verdicts, reporting, consumer integration and governance:
 
 | Area | Live modules | Responsibility | Reader's question |
 |---|---|---|---|
@@ -291,7 +273,7 @@ A new test is useful even when it does not add business functionality: it can de
 
 <a id="api-executive-sequence--report--audit"></a>
 <a id="secvența-executivă-api--raport--audit"></a>
-## API Executive Sequence → Report → Audit
+## API execution → report → audit
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px","actorFontSize":"15px","messageFontSize":"12px","noteFontSize":"12px"},"themeCSS":".actor { font-size: 15px !important; } .messageText, .labelText, .loopText, .noteText { font-size: 12px !important; }","sequence":{"actorFontSize":15,"messageFontSize":12,"noteFontSize":12,"width":120,"height":42,"actorMargin":40,"messageMargin":24,"mirrorActors":false,"wrap":true,"wrapPadding":6}}}%%
@@ -435,13 +417,13 @@ Root README describes the system from top to bottom. It does not keep the intern
 <a id="core-ca-bibliotecă--owner-și-deployment"></a>
 ## Core as library - owner and deployment
 
-J0 retains Core source and native tests; the source reactor still has 12 modules. [Core contract](docs/ATF_Core_Consumer.md) separates source ownership and publication from each J1–J7 consumer's independent acceptance. Native tests remain in J0; binary acceptance runs in TMP.
+Core source and native tests remain in this 12-module reactor. The [library contract](docs/ATF_Core_Consumer.md) separates source ownership and publication from independent consumer acceptance.
 
 <a id="reporting-library-and-audit-contracts"></a>
 <a id="biblioteca-reporting-și-contractele-de-audit"></a>
 ## Reporting library and audit contracts
 
-[Consumer provenance](../atf_j1/library-provenance.json) identifies the distributed Core and Reporting coordinates, hashes and source snapshot. Acceptance remains independently recorded in each consumer. J0 owns Reporting source and permanent mock, contract and browser regressions.
+This project owns Reporting source and permanent mock, contract and browser regressions. The contracts below describe evidence ownership and artifact behavior.
 
 | Topic | Current owner contract |
 |---|---|
@@ -451,3 +433,11 @@ J0 retains Core source and native tests; the source reactor still has 12 modules
 | latest verification note beside the producer package | [Sampling](docs/ATF_Workspace_Synchronization.md#release-evidence-retention) |
 
 Library publication/rendering acceptance is separate from new business, device, broker or acoustic ASR execution. Release notes are not stored in project documentation or consumer `lib`.
+
+<a id="atf-java--executive-overview"></a>
+<a id="atf-java--prezentare-executivă"></a>
+<a id="workspace-connections"></a>
+<a id="legături-între-workspace-uri"></a>
+## Workspace connections
+
+The [workspace index](docs/workspaces/README.md) routes library producers and consumers to their own documentation; [library maintenance](lib/README.md) describes the shared publication boundary.

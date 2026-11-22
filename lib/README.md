@@ -83,3 +83,5 @@ flowchart LR
 | Reporting | 240 default preview, auditable and collapsible asserts, complete frames; the mock / component sample does not certify a real device, broker or ASR. |
 
 In J0, this directory is the maintenance register; it does not replace the source modules and does not host building outputs. [Technical contract](../docs/ATF_Platform_Libraries.md) and [synchronization of workspaces](../docs/ATF_Workspace_Synchronization.md) detail the publication.
+
+Project entry points are collected in the [workspace index](../docs/workspaces/README.md).

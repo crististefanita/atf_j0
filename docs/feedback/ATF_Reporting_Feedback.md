@@ -146,7 +146,7 @@ JAR inspected contains the production classes and all CSS / JS resources in the 
 - The Timestamp Adapter reads an internal Spark template. Compatibility
   Extent must be followed; the mackerel refuses to express the changed vendor.
 
-The library inventory verifies JAR / POM distributed, hash and provenance; the executable guide probes the binary consumer.Evidence of the current package, indicated in [provenance of consumption](../../../atf_j1/library-provenance.json), records two clean buildings with the same JAR / POM. It remains the automatic operator maintained at the owner and the explicit compatibility policy and metadata.
+The library inventory verifies JAR / POM distributed, hash and provenance; the executable guide probes the binary consumer.Evidence of the current package, indicated in [provenance of consumption](https://github.com/crististefanita/atf_j1/blob/HEAD/library-provenance.json), records two clean buildings with the same JAR / POM. It remains the automatic operator maintained at the owner and the explicit compatibility policy and metadata.
 
 **Same increment:**
 
@@ -195,7 +195,7 @@ The distribution gate checks Extent and fallback evidence after the move and ref
 <a id="ui-recovery-audit-01---inspectable-tests-in-extent"></a>
 <a id="ui-recovery-audit-01--încercări-inspectabile-în-extent"></a>
 
-[Recovery observations](../../atf-reporting/README.md#decizii-be-fără-verdict-de-succes-implicit) retain INFO separately from assertions and verdict. Deferred IntelliJ acceptance stays with the [consumer owner](../../../atf_j1/docs/feedback/ATF_Reporting_Feedback.md#j1-recovery-runner-trace-2026-11-21); the neutral browser matrix remains an independent [Reporting Tests criterion](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu).
+[Recovery observations](../../atf-reporting/README.md#decizii-be-fără-verdict-de-succes-implicit) retain INFO separately from assertions and verdict. Deferred IntelliJ acceptance stays with the [consumer owner](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/ATF_Reporting_Feedback.md#j1-recovery-runner-trace-2026-11-21); the neutral browser matrix remains an independent [Reporting Tests criterion](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu).
 
 <a id="existing-contracts"></a>
 <a id="contracte-existente"></a>
@@ -311,7 +311,7 @@ The following values are proposed default for the new contract, not properties a
 <a id="predare-de-la-producătorul-j2--2026-11-01"></a>
 ### SQL producer boundary
 
-The [J2 SQL contract](../../../atf_j2/atf-sql/README.md) owns typed capture and execution identity; Reporting receives a neutral projection without JDBC, H2 or consumer-module dependencies. Preserve the separate SQL budgets above and preview 240; neutral renderer fixtures certify neither saga behavior nor SQL dialects, and J2 adoption requires independent acceptance.
+The [J2 SQL contract](https://github.com/crististefanita/atf_j2/blob/HEAD/atf-sql/README.md) owns typed capture and execution identity; Reporting receives a neutral projection without JDBC, H2 or consumer-module dependencies. Preserve the separate SQL budgets above and preview 240; neutral renderer fixtures certify neither saga behavior nor SQL dialects, and J2 adoption requires independent acceptance.
 
 <a id="diagnostic-bound-al-assertions---criterion-separate-from-verdict"></a>
 <a id="diagnostic-bounded-al-assertions--criteriu-separat-de-verdict"></a>

@@ -18,10 +18,10 @@ The documents describe the framework and its owners, rather than a particular ru
 
 | For | Read first |
 |---|---|
-| project orientation | [workspaces](ATF_Workspace_Synchronization.md), then [context atlas](ATF_Context_Atlas.md) |
+| project orientation | [project README](../README.md), then [workspace index](workspaces/README.md) |
 | contract and owner | [architecture](ATF_Architecture.md), the POM and module README |
 | still open problem | [feedback registry](feedback/README.md); contracts delivered remain at the owner |
-| Kafka / Podman in J2 | [WIP atlas](../../atf_j2/docs/ATF_Context_Atlas.md); is not a web extension of J1 |
+| Kafka / Podman in J2 | [WIP atlas](https://github.com/crististefanita/atf_j2/blob/HEAD/docs/ATF_Context_Atlas.md); is not a web extension of J1 |
 
 J0 owns Reporting implementation and regressions; J1 owns AutoEx/Shop scenarios. J2 has begun bootstrapping queues and messaging; the [workspace map](ATF_Workspace_Synchronization.md) separates copied infrastructure from messaging contracts and acceptance.
 

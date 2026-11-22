@@ -111,7 +111,7 @@ Observation-only screenshots use the explicit uiValidationAsMedia route. The emp
 | Renderers | Extent/fallback preserve semantic inputs, order, result and capture identity |
 | Library | Keep ADB, browser execution and application oracles outside the Reporting runtime; verify the physical JAR separately |
 
-Whole-context capture and 70% web geometry belong to the [J1 UI contract](../../atf_j1/atf-ui/README.md#full-context-screenshots). [Full-display Android capture](../../atf_j4/docs/reporting/ATF_Android.md#capture-and-ownership) retains its independent device acceptance.
+Whole-context capture and 70% web geometry belong to the [J1 UI contract](https://github.com/crististefanita/atf_j1/blob/HEAD/atf-ui/README.md#full-context-screenshots). [Full-display Android capture](https://github.com/crististefanita/whist/blob/HEAD/docs/reporting/ATF_Android.md#capture-and-ownership) retains its independent device acceptance.
 
 ## Composite evidence acceptance
 

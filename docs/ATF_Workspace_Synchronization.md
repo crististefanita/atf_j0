@@ -180,13 +180,13 @@ The building and promotion follow [isolated process](ATF_Build_And_Execution_Saf
 
 The areas of the consumers are distinct: J1 has AutoEx / Shop web scenarios, and J2 is designed for queues and messages. MOCK acceptance checks ATF and Reporting integration; broker scenarios have their own contracts and evidence.
 
-The acceptance of J2 Eventuate and the limit of the host are in [proof of consumption](../../atf_j2/docs/ATF_J2_Verification.md); the installation of prerequisites does not certify the engine or broker.
+The acceptance of J2 Eventuate and the limit of the host are in [proof of consumption](https://github.com/crististefanita/atf_j2/blob/HEAD/docs/ATF_J2_Verification.md); the installation of prerequisites does not certify the engine or broker.
 
 <a id="j2-without-browser-modules---distinct-perimeter"></a>
 <a id="j2-fără-module-browser--perimetru-distinct"></a>
 ## J2 without browser modules - distinct perimeter
 
-J2 declares five source modules: the platform, SQL, Setup, Eventuate and governance; Core and Reporting are external libraries. [Scope-ul J2](../../atf_j2/docs/ATF_J2_Scope.md) delimits the contract without UI / Debug or Playwright; withdrawal is implemented in J2 checkout.
+J2 declares five source modules: the platform, SQL, Setup, Eventuate and governance; Core and Reporting are external libraries. [Scope-ul J2](https://github.com/crististefanita/atf_j2/blob/HEAD/docs/ATF_J2_Scope.md) delimits the contract without UI / Debug or Playwright; withdrawal is implemented in J2 checkout.
 
 Do not restore browser modules via sync. Atlas, README and feedback remain adapted to the domain of each deployment; joint contracts are selectively reconciled and the Reporting and web backlog remain with the J0 / J1 owners.
 

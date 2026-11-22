@@ -160,8 +160,7 @@ src/test/java/atf/api/tests/governance/
 - `ConstantsOwnershipGovernanceTest` - protocol vocabulary, routes and
   boundary-ul reporting standalone;
 - `governance.documentation.DynamicPathDocumentationArchitectureTest` — relocatable documentation, relocatable, without machine paths or concrete generated artifact names;
-- `governance.documentation.DocumentationReadmeStructureGovernanceTest` - a title,
-  mandatory executive overview in the root README, `Overview`/`Pe scurt` in local documents, balanced `<details>` and resolvable local links; also checks J0–J7 routes in the workspace table;
+- `governance.documentation.DocumentationReadmeStructureGovernanceTest` — one title, local project orientation, balanced `<details>` and resolvable links; the workspace catalog belongs in its dedicated index, linked once from the final root section.
 - `governance.documentation.DocumentationStyleGovernanceTest` — ATF semantic style: typed fences, headings without skipped levels, `-` bullets, and no font/CSS/HTML presentation markup in READMEs or the canonical architecture document;
 - `governance.documentation.DocumentationProseGovernanceTest` — limits quick-scan prose to at most three sentences per paragraph and two consecutive dense paragraphs; dense responsibilities, boundaries, and relationships should move into bullets, tables, diagrams, or `<details>`;
 - `governance.documentation.DocumentationTargetGovernanceTest` — plug-and-play example with `@DocumentationTarget("atf-test-practice-shop/README.md")`; the same class can validate any README across all documentation modules;
@@ -434,3 +433,5 @@ The general cohesion limit remains eight. The exact inventory for the model allo
 ### Documentation lifecycle
 
 `DocumentationLifecycleGovernanceTest`, selected by `WholeAtfGovernanceSuiteTest`, protects the [feedback promotion rule](../docs/README_Atf_DocumentationBestPractices.md#retaining-and-deleting-feedback): reusable contracts remain at their owner; delivery receipts and completed backlog entries do not enter maintained docs. Negative controls cover wrapped prose, tables, bilingual status markers and closed checklists; literal fenced examples, active criteria and the executable change-control baseline remain valid.
+
+Owned GitHub document links are also checked against adjacent source checkouts by `WorkspaceDocumentationLinks`: published repository names, paths and Markdown fragments. This offline guard does not certify remote reachability or a consumer test run.

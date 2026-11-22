@@ -2,7 +2,7 @@
 
 ## At a glance
 
-J0 owns documentation for its source libraries and Reporting regressions. [Shared consumer criteria](../../../atf_j1/docs/feedback/ATF_Documentation_Feedback.md) remain with J1; transferring a finding does not prove implementation.
+J0 owns documentation for its source libraries and Reporting regressions. [Shared consumer criteria](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/ATF_Documentation_Feedback.md) remain with J1; transferring a finding does not prove implementation.
 
 <a id="doc-reporting-prose--remaining-detailed-section-review"></a>
 <a id="doc-reporting-prose--revizia-rămasă-a-secțiunilor-detaliate"></a>

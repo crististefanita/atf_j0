@@ -6,7 +6,7 @@
 <a id="pe-scurt"></a>
 ## At a glance
 
-The requirements are maintained in [J1 registry](../../../atf_j1/docs/feedback/README_AI_Evaluation.md).
+The requirements are maintained in [J1 registry](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/README_AI_Evaluation.md).
 
 The transfer from 2026-11-02 keeps ID-uri, the original samples and limits. The contracts already delivered remain in the module documentation; the transfer of the registry does not certify implementation.
 

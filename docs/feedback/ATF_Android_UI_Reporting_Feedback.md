@@ -10,7 +10,7 @@ The registry follows the neutral evidence of Reporting library and their accepta
 <a id="decizie-și-boundary"></a>
 ## Decision and boundary
 
-J0 owns neutral publication and permanent source/JAR tests. J1 coordinates consumer handoffs; J4 owns ADB, full-display capture and application oracles. The [current library provenance](../../../atf_j1/library-provenance.json) is separate from frozen J10/J13 witnesses and from a new device execution.
+J0 owns neutral publication and permanent source/JAR tests. J1 coordinates consumer handoffs; J4 owns ADB, full-display capture and application oracles. The [current library provenance](https://github.com/crististefanita/atf_j1/blob/HEAD/library-provenance.json) is separate from frozen J10/J13 witnesses and from a new device execution.
 
 | Current residual | Owner and closure boundary |
 |---|---|
@@ -35,9 +35,9 @@ The [neutral UI contract](../../atf-reporting/README.md#neutral-ui-attribution-a
 - [ ] Keep neutral regression in Reporting Tests: only the last scalar removed, sibling identically named, FAIL verdict after 240, Unicode and editorial Extent / source fallback / JAR.
 - [ ] Check Escape / collapse, return to the same comparison and last row; a short table with ellipsis alone does not rebuild the proof.
 
-J4 temporarily retains the bodies of TEXT native to the body explicitly limited to the complete values. Adoption and application sample remain in [Consumer's Handoff](../../../atf_j1/docs/feedback/ATF_Consumer_Reporting_Handoff_Feedback.md) without artificial PASS assertions.
+J4 temporarily retains the bodies of TEXT native to the body explicitly limited to the complete values. Adoption and application sample remain in [Consumer's Handoff](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/ATF_Consumer_Reporting_Handoff_Feedback.md) without artificial PASS assertions.
 
-J4 owns application qualification and ADB device access; neutral Reporting checks do not use a device. See [current catch contract and ownership](../../../atf_j4/docs/reporting/ATF_Android.md#capture-and-ownership).
+J4 owns application qualification and ADB device access; neutral Reporting checks do not use a device. See [current catch contract and ownership](https://github.com/crististefanita/whist/blob/HEAD/docs/reporting/ATF_Android.md#capture-and-ownership).
 
 <a id="observation-routes-and-large-publication-follow-up"></a>
 <a id="rute-de-observație-și-urmărirea-publicațiilor-mari"></a>
@@ -45,7 +45,7 @@ J4 owns application qualification and ADB device access; neutral Reporting check
 
 - [ ] Features THEN without comparison to the explicit average, including INDIVIDUAL / UNIFIED_FLOW and inputs only OBSERVE. Documenting intended behaviour based solely on result or refusal of unsupported catches; do not recommend invented assertions.
 
-The [J4 audit contract](../../../atf_j4/docs/reporting/ATF_Audit.md) owns producer-specific volume qualification and detached HTML acceptance. The old J13 memory result applies only to its bounded fixture; it does not promise unbounded publication capacity.
+The [J4 audit contract](https://github.com/crististefanita/whist/blob/HEAD/docs/reporting/ATF_Audit.md) owns producer-specific volume qualification and detached HTML acceptance. The old J13 memory result applies only to its bounded fixture; it does not promise unbounded publication capacity.
 
 <details>
 <summary><strong>Contracts concluded and historical delivery routes</strong></summary>
@@ -66,7 +66,7 @@ The [J4 audit contract](../../../atf_j4/docs/reporting/ATF_Audit.md) owns produc
 <a id="restanță-generică-și-handoff"></a>
 ## Generic and handoff retention
 
-Active J0 residuals are listed in the current table above. [coordonarea J1/J4](../../../atf_j1/docs/feedback/ATF_Consumer_Reporting_Handoff_Feedback.md) owns device inputs and application assertions.
+Active J0 residuals are listed in the current table above. [coordonarea J1/J4](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/ATF_Consumer_Reporting_Handoff_Feedback.md) owns device inputs and application assertions.
 
 <a id="report-publication-memory-131---full-copies-of-the-publication"></a>
 <a id="report-publication-memory-131--copii-integrale-la-publicare"></a>
@@ -92,7 +92,7 @@ The frozen J13 missing-frame witness is historical. [inline audit contract](../A
 
 Kit `RecordedAssertions` accepts an `AssertionValueDisplay` with an optional observer of `Projection` values. The observer receives full redacted text, while recorded rows retain bounded previews. The remaining work is to connect that capture to Reporting and define retention where `ValidationTable` or consumer adapters supply bounded values.
 
-- [ ] Coordinate capture with the [J0 Test Kit owner](ATF_Common_Test_Support_Feedback.md#retenția-comparațiilor--coordonare-cu-reporting) and [J1 integration](../../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md). Keep preview 240, evaluate the original comparison once and redact before display.
+- [ ] Coordinate capture with the [J0 Test Kit owner](ATF_Common_Test_Support_Feedback.md#retenția-comparațiilor--coordonare-cu-reporting) and [J1 integration](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/ATF_Common_Test_Support_Feedback.md). Keep preview 240, evaluate the original comparison once and redact before display.
 - [ ] Add a neutral composition witness whose first mismatch lies after preview and an independent negative that removes only the retained suffix; full ACTION/OBSERVE disclosure does not by itself close assertion capture.
 
 <a id="report-setup-media-completeness---sample-set-only-with-average"></a>

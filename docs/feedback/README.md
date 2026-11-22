@@ -7,7 +7,7 @@
 <a id="pe-scurt"></a>
 ## At a glance
 
-The J0 registry tracks Core, Reporting, Console, Mock and Test Kit gaps, including generic Reporting regressions. The [atlas](../ATF_Context_Atlas.md) routes delivered contracts to their owners; the [J1 registry](../../../atf_j1/docs/feedback/README.md) owns shared requirements outside the libraries and AutoEx/Shop scenarios.
+The J0 registry tracks Core, Reporting, Console, Mock and Test Kit gaps, including generic Reporting regressions. The [atlas](../ATF_Context_Atlas.md) routes delivered contracts to their owners; the [J1 registry](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/README.md) owns shared requirements outside the libraries and AutoEx/Shop scenarios.
 
 [Workspaces](../ATF_Workspace_Synchronization.md) separates J0 source, J1 web consumer and J2 WIP for Kafka / Setup messaging in Podman. A result or priority shall not be transferred automatically to each other.
 
@@ -65,7 +65,7 @@ The [atlas](../ATF_Context_Atlas.md) routes reusable contracts to their normativ
 <a id="cerințe-transferate-în-j1"></a>
 ## Requirements transferred to J1
 
-[J1 Registry](../../../atf_j1/docs/feedback/README.md) owns shared governance, AI design and consumer coordination. J0 owns Test Kit, consumed as a JAR in J1–J7 without parallel source. ID- identifiers and evidence are retained; moving the record does not complete the implementation.
+[J1 Registry](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/README.md) owns shared governance, AI design and consumer coordination. J0 owns Test Kit, consumed as a JAR in J1–J7 without parallel source. ID- identifiers and evidence are retained; moving the record does not complete the implementation.
 
 <a id="preservation-promotion-and-verification"></a>
 <a id="păstrare-promovare-și-verificare"></a>
