@@ -2,7 +2,7 @@
 <a id="atf-core--kernel-neutru-și-porturi"></a>
 # ATF Core — kernel neutru și porturi
 
-`atf-core` este stratul de bază al ATF Java. Conține modele, contracte și abstracții reutilizabile, fără să decidă cum este orchestrat un scenariu sau cum este randat un raport.
+`atf-core` oferă contracte HTTP, de configurație și lifecycle neutre pentru ATF Java. Deține mecanisme de execuție reutilizabile; scenariile business concrete și randarea rapoartelor rămân la consumatori.
 
 <a id="at-a-glance"></a>
 <a id="pe-scurt"></a>
@@ -150,7 +150,7 @@ Boundary-ul lifecycle-ului se citește astfel:
 <a id="coeziune-și-responsabilitate-pentru-vocabularul-http"></a>
 ## Coeziune și responsabilitate pentru vocabularul HTTP
 
-Pachetele production au cel mult opt clase și grupează o singură responsabilitate:
+Pachetele de producție grupează o singură responsabilitate. Guvernanța folosește pragul de revizie de opt clase, cu excepții explicite revizuite, precum vocabularul comun al răspunsului HTTP.
 
 | Pachet | Deține |
 |---|---|

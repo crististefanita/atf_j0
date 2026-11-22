@@ -184,7 +184,7 @@ Un document este gata când cititorul poate decide unde să continue fără să 
 Ordinea nu este o explicație despre „cum să citești” proiectul; este o regulă de compoziție pentru ca documentul să poată fi parcurs natural:
 
 1. **Titlu clar** — spune ce boundary sau rezultat descrie documentul;
-2. **Orientare** — `Overview` în engleză sau `Pe scurt` în română, conform limbii proiectului, cu două-trei idei despre scop, proprietar și limite;
+2. **Orientare** — folosește `At a glance` în engleză și `Pe scurt` în română, cu două sau trei idei concise despre scop, ownership și limite;
 3. **Dovada principală** — bullets, o schemă sau un tabel scurt;
 4. **Legendă imediată** — dacă există diagramă, unica legendă aferentă urmează
    imediat după ea;
@@ -531,3 +531,22 @@ node atf-tests/tools/documentation-editions.mjs verify <repository> <English-com
 ~~~
 
 Traducerea nu autorizează schimbarea unui oracol, a coordonatei bibliotecii sau a bazei Git înregistrate. Guvernanța limbii include fixture-uri pozitive și negative, iar controalele factuale păstrează verificările numerice și de ownership.
+
+<a id="technical-prose-review"></a>
+### Proză tehnică și revizia traducerii
+
+Revizuiește contractul tradus după ediția pereche și codul live al ownerului. Paritatea structurală și detectarea limbii nu demonstrează echivalența semantică.
+
+| Termen | Sens de păstrat |
+|---|---|
+| request | request-ul HTTP furnizat sau capturat, distinct de invocarea unui test |
+| invocation / callback | o execuție de test / un callback din acea execuție |
+| scope | ownerul și durata de viață a unei resurse sau a dovezilor colectate |
+| credential | un secret de autentificare; păstrează distincția față de schemă sau numele headerului |
+| disclosure | un nod de prezentare expandabil, distinct de o operație nouă sau un verdict |
+| snapshot | fapte și proveniență capturate, distincte de un rezultat așteptat fabricat ulterior |
+
+- Păstrează identificatorii API, comenzile, blocurile de cod și metadatele istorice ale controalelor; traduce explicațiile vizibile și etichetele diagramelor.
+- Verifică negația, precedența, valorile opționale și limitele de timing după implementare și teste independente; formularea naturală nu poate întări o garanție nesusținută.
+- Citește inventarul Markdown din metadatele edițiilor sau din comparator; nu duplica un număr fix de fișiere în proză.
+- Guvernanța stilului respinge markeri de traducere nerezolvați și fragmente accidentale de redactare din proză, etichete de diagramă și motive YAML inline; exemplele literale de cod rămân valide. Acest guard nu evaluează sensul traducerii.

@@ -52,8 +52,7 @@ flowchart LR
 
 - Pentru o schimbare semantică: portul sau DTO-ul, mapperul care îl publică și
   oracolul de snapshot; un screenshot singur nu dovedește statusul corect.
-- Pentru exchange terminal: [boundary-ul verdictului](ui/validation/UiApiValidationEvidence.java),
-  [proiecția comună](api/evidence/ApiExchangeEvidence.java) și publisherul UI. [ReportingStandaloneVerdictComponentTest](../../../../test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java) și [UiTerminalExchangeReportComponentTest](../../../../../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/execution/UiTerminalExchangeReportComponentTest.java) verifică refuzul inputului nejudecat și păstrarea dovezii în ambele renderere.
+- Pentru exchange terminal: [boundary-ul verdictului](ui/validation/UiApiValidationEvidence.java), [proiecția comună](api/evidence/ApiExchangeEvidence.java) și publisherul UI. [ReportingStandaloneVerdictComponentTest](../../../../test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java) și [UiTerminalExchangeReportComponentTest](../../../../../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/execution/UiTerminalExchangeReportComponentTest.java) refuză un exchange fără răspuns capturat dacă lipsesc verdictul callerului și aserțiunile evaluate; păstrează dovezile în ambele renderere.
 - Pentru o schimbare vizuală: markup-ul, vocabularul, resursa CSS/JS și proba
   browser; `runtime/tests` este codul filei Tests, nu un pachet de teste JUnit.
 - Pentru extragere: [POM-ul](../../../../../pom.xml), classpath-ul JAR-ului și

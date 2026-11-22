@@ -1,8 +1,8 @@
 # ATF Test Kit
 
-`atf-test-kit` oferă clasificare, lifecycle și comparații JUnit neutre, fără renderer, transport sau business. Codul și feedback-ul au owner în J0; J1–J6 folosesc perechea JAR/POM din lib, fără surse ori native Kit paralele.
+`atf-test-kit` oferă clasificare JUnit, lifecycle și comparații neutre, fără renderer, transport sau reguli de business. J0 deține implementarea și testele native; J1–J7 consumă perechea JAR/POM din lib, fără surse Kit paralele.
 
-Produsul folosește Kit în `test`; suportul de test din main cere `compile` justificat, iar Console păstrează `optional compile`. Consumerul deține oracolul și publicarea. [Contractul bibliotecii](../../atf_j0/docs/ATF_Test_Kit_Library.md) delimitează migrarea și acceptanțele.
+Produsul folosește Kit în `test`; suportul de test din main cere `compile` justificat, iar Console păstrează `optional compile`. Consumerul deține oracolul și publicarea. [Contractul bibliotecii](../docs/ATF_Test_Kit_Library.md) delimitează migrarea și acceptanțele.
 
 <a id="at-a-glance"></a>
 <a id="pe-scurt"></a>

@@ -31,6 +31,8 @@ J0 deține codul, contractele publice, testele native, împachetarea și feedbac
 
 [Feedback-ul workspace-urilor](ATF_Maintenance_Feedback.md) păstrează ownership-ul porților whole-reactor și J0/J1. Entry point-ul combinat, verificările read-only și criteriul de închidere sunt executabile și legate de documentația procesului.
 
+Criteriile editoriale ale bibliotecilor sursă sunt în [feedback-ul documentației](ATF_Documentation_Feedback.md); criteriile comune ale consumerilor rămân în J1.
+
 <a id="active-maintenance-priorities"></a>
 <a id="priorități-de-mentenanță-activă"></a>
 ## Priorități de mentenanță activă

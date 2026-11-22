@@ -4709,3 +4709,20 @@ testChanges:
 ```
 
 </details>
+
+<details>
+<summary>Control de guvernanță editorială</summary>
+
+```yaml
+testChanges:
+  - id: J0-DOC-EDITORIAL-GUARD-20261122
+    status: VERIFIED
+    base: 3bd85eaf8bc0066a59ac9e16b878efb7260c3fa3
+    expires: 2026-12-22
+    reason: "Respinge artefactele de traducere observate, păstrând codul literal, linkurile, delimitatorii compatibili și controalele de stil existente."
+    proof: mvn -B -ntp -pl atf-tests -am "-Dtest=AtfWorkspaceMaintenanceSuite" "-Datf.maintenance.j0=<source-workspace>" "-Datf.maintenance.j1=<consumer-workspace>" "-Datf.governance.testChanges.baseRef=3bd85eaf8bc0066a59ac9e16b878efb7260c3fa3" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationStyleGovernanceTest.java
+```
+
+</details>
