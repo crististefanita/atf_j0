@@ -22,10 +22,7 @@ J0 deține publicarea neutră și testele permanente sursă/JAR. J1 coordonează
 <a id="proveniența-acțiunilor-ui"></a>
 ## Proveniența acțiunilor UI
 
-Contractul neutru de atribuire este implementat; [proveniența curentă a bibliotecii](../../../atf_j1/library-provenance.json) înregistrează perechea livrată și acceptanța datată.
-
-- [Contractul UI neutru](../../atf-reporting/README.md#neutral-ui-attribution-and-failure-ownership) deține titlurile fidele și navigarea nativă/fallback către rândul sursă.
-- Controalele permanente sursă/JAR păstrează aserțiunile separate, diagnosticele redactate complete și PNG-urile; rutele de compatibilitate nu dublează TODO.
+[Contractul UI neutru](../../atf-reporting/README.md#neutral-ui-attribution-and-failure-ownership) deține titlurile fidele și navigarea la rândul sursă în Extent/fallback; criteriul rămas pentru comparații lungi este separat.
 
 <a id="report-ui-assertion-full-evidence-133---long-values-captured-prior-to-forecast"></a>
 <a id="report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview"></a>

@@ -4726,3 +4726,21 @@ testChanges:
 ```
 
 </details>
+
+<details>
+<summary>Control pentru guvernanța ciclului documentației</summary>
+
+```yaml
+testChanges:
+  - id: J0-DOC-LIFECYCLE-GUARD-20261122
+    status: VERIFIED
+    base: 7fcbc0bca85a9b486eb666ad263c1f114b2406f3
+    expires: 2026-12-22
+    reason: "Previne poluarea documentației întreținute cu dovezi de livrare către consumeri și intrări încheiate din backlog; păstrează contractele ownerilor, criteriile deschise și controalele istorice executabile."
+    proof: mvn -B -ntp -pl atf-tests -am "-Dtest=AtfWorkspaceMaintenanceSuite" "-Datf.maintenance.j0=<source-workspace>" "-Datf.maintenance.j1=<consumer-workspace>" "-Datf.governance.testChanges.baseRef=7fcbc0bca85a9b486eb666ad263c1f114b2406f3" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/hygiene/DocumentationLifecycleGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/WholeAtfGovernanceSuiteTest.java
+```
+
+</details>

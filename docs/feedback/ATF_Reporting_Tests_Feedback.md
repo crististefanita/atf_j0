@@ -130,7 +130,7 @@ Probele permanente pentru inspector, timing, PNG, navigare și pornirea la rece 
 <a id="limita-adaptorului-public-și-a-clientului-api"></a>
 ## Limita adaptorului public și a clientului API
 
-Ghidul din `lib` este deja compilat și executat pe JAR-ul fizic prin `ReportingLibraryGuideIT`, fără sursa producerului, Core sau Kit în classpath. Rămâne deschisă compatibilitatea API susținută și capabilitățile adaptoarelor, nu portabilitatea ghidului livrat.
+[Ghidul bibliotecii](../../lib/README.Reporting.md) deține exemplul portabil; compatibilitatea API-ului susținut și capabilitățile adaptoarelor rămân deschise mai jos.
 
 - [ ] Caracterizați adaptoarele legacy ușoare: capturile, acțiunile, diagnosticele de execuție și agregatele obligatorii sunt publicate sau primesc un refuz explicit de capabilitate; un apel fără efect nu este dovadă auditabilă.
 - [ ] Exercitați un client declarat susținut contra JAR-ului fizic, fără clase

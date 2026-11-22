@@ -445,7 +445,7 @@ TestCase
 | body absent | request/response details rămân prezente; `ABSENT` și `NOT_CAPTURED` au explicații distincte, fără payload inventat; numai JSON literal `null` capturat devine document JSON |
 | fază fără evidence copil | o fază fără conținut publicat rămâne nod terminal: rendererul nu afișează `＋/−`, nu o face focusabilă și nu inventează pași din aserțiunile JUnit; conținutul real publicat sub fază rămâne disclosure interactiv |
 | aserțiuni de componentă | `Phase.startAssertionStep` publică un copil tipizat în faza owner (`SETUP`, `TEST BODY` ori `TEARDOWN`), fără request HTTP; rândurile `AtfAssertion` folosesc tabelul, redacția și statusurile comune în Extent și fallback. Pasul există numai când testul publică aserțiuni evaluate efectiv. |
-| UI evidence | `SETUP` rămâne setup; în `TEST BODY`, acțiunile, observațiile, aserțiunile și verdictul UI sunt publicate sub unicul titlu `UI validation` |
+| UI evidence | SETUP își păstrează rolul de pregătire; în TEST BODY, acțiunile, observațiile, aserțiunile și verdictul UI aparțin unui singur nod de validare UI, cu titlul implicit `UI validation` |
 | aserții în flow UI | Extent și fallback păstrează propriul disclosure `Assertions · n`, colapsat inițial, atât pentru flow-ul unificat per fază, cât și pentru prezentarea compactă peste faze. Toate rândurile originale, preview-ul configurat, Enter/Space și reload-ul au probe la [Reporting Tests](../atf-reporting-tests/README.md#regresia-permanentă-a-fiecărui-defect-reporting). |
 | contextul flow-ului | `UI flow context · n fields` prezintă metadatele agregării per fază. `UI flow provenance · n checkpoints` păstrează proveniența checkpoint-urilor peste faze. Identitatea typed decide secțiunea; câmpurile HTTP/custom și exchange-urile reale își păstrează request/response/execution evidence. |
 | UI `UNIFIED_FLOW` pe una sau mai multe faze | Consumerul apelează `UiScenario.unifyAcrossPhases()` înainte de prima fază și `UiPhase.completeFinal(status)` la faza terminală. Un singur `TEST BODY` este eligibil, inclusiv cu pregătirea declarată în acel body. Pe succes UI-only, Reporting publică o singură validare UI cu un tabel ACTION, unul OBSERVE (dacă există observații) și unul assertions (dacă există aserțiuni), păstrând toate rândurile în ordine. Captura `FINAL` permisă apare sub tabelul Playwright, înaintea auditului; fazele/checkpoint-urile și verdictele sunt în `UI flow provenance`, separat de răspunsurile HTTP. UI+API, setup eșuat și politicile explicite cu capturi multiple păstrează validările pe checkpoint. `completeFinal(FAIL)` în `SETUP` nu creează `TEST BODY` sau o captură finală. Fără opt-in, comportamentul existent per fază rămâne valabil. |
@@ -575,7 +575,7 @@ UI checkpoint
 - consumerul furnizează datele typed, iar `atf-reporting` publică numai
   contractul semantic și layout-ul verificabil, independent de mock, browser și aplicație.
 
-Verdictul este calculat de execution/validation și doar publicat de reporting. Rendererul nu inventează statusuri.
+Execuția și validarea furnizează verdictul business; Reporting agregă statusurile primite fără a substitui decizia business.
 
 <a id="api-execution-completed-unanswered"></a>
 <a id="execuție-api-terminată-fără-răspuns"></a>
@@ -651,7 +651,7 @@ Etichetele scurte păstrează următorul sens:
 
 Adaptoarele AutoEx/Shop publică deciziile recuperării prin observații INFO, cu politica și bugetul în Expected, iar decizia, motivul și timpii în Observed. Aceste rânduri nu reprezintă clickuri repetate și nu rescriu un FAIL publicat. Receipt-ul și sursa politicii, operația, încercarea și timpii probe/backoff/total sunt observații auditabile; corpul HTTP și credentialele nu sunt capturate.
 
-Proiecția existentă păstrează disclosure-urile și plafonul configurat după redactarea textului complet. Indicatorul agregat de recuperare, abort SKIP și matricea completă UI/UI_API rămân în [feedback-ul auditului](../docs/feedback/ATF_Reporting_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent).
+Proiecția păstrează disclosure-urile și limitele configurate după redactarea textului complet. [Feedback-ul auditului de recuperare](../docs/feedback/ATF_Reporting_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent) separă acceptanța specifică fiecărui consumer de criteriile comune rămase; publicarea INFO nu demonstrează singură matricea UI/UI_API completă.
 
 <a id="background-to-error-prior-to-technical-diagnosis"></a>
 <a id="contextul-erorii-înaintea-diagnosticului-tehnic"></a>
@@ -817,7 +817,7 @@ Contractul de trace se citește astfel:
 - consumerul atașează API validation la același nod Gherkin cu `UI validation`;
   diagnosticul tehnic de transport provine din exchange și nu introduce o propoziție Gherkin suplimentară.
 
-Contractul este verificat de testul component [`keepsUiAndApiValidationUnderOneGherkinCheckpoint`](../atf-reporting-tests/src/test/java/atf/reporting/ui/ExtentReportUiEvidencePublishingTest.java): titlul Gherkin apare o singură dată, iar validările UI/API și exchange evidence coexistă sub acel checkpoint. Un card Gherkin duplicat este regresie a acestui contract, nu un ToDo activ.
+Testul [`keepsUiAndApiValidationUnderOneGherkinCheckpoint`](../atf-reporting-tests/src/test/java/atf/reporting/ui/ExtentReportUiEvidencePublishingTest.java) protejează un singur titlu Gherkin cu validări UI/API și dovezile exchange-urilor sub el; un card Gherkin duplicat încalcă această ierarhie.
 
 </details>
 
@@ -892,7 +892,7 @@ La nivelul markup-ului Java, `ReportEvidenceDisclosure` este modelul typed al un
 
 Și proiecția `Fails` este acum separată pe responsabilități native: detection, context, cause-chain și projection au câte un asset JS și o fațadă Java proprie. `ExtentReportFailureRuntime` compune ordinea stabilă, fără să dețină corpuri de funcții; astfel testele pot verifica independent cauza, contextul și randarea failure fără browser, iar testul E2E verifică deep-link-ul către testul exact.
 
-Auditul final al vocabularului/builder-ului CSS și al seam-urilor mici de publicare este acoperit de contractele component și de gate-ul fresh standard/responsive. Orice schimbare viitoare rămâne incrementală și cere aceeași dovadă; nu există un TODO deschis doar pentru că asset-urile sunt împărțite în fișiere native. `AtfUiEvidenceCss` este facade typed peste `ui-evidence.css`, iar `Duration` și `RuntimeCore` sunt compuse din asset-uri JavaScript native; niciuna dintre aceste familii nu mai asamblează corpuri mari în Java. `ScenarioCss` este facade typed peste `theme-scenario.css`, iar `ExtentReportNavigationView` publică numai markup și hash links; nu mai generează JavaScript executabil inline. `ExtentReportCategoryMarkup` folosește aceeași construcție semantică pentru shell-ul Category: vocabularul typed guvernează tag-uri, clase, atribute și empty-state, iar markerul vendor `atf-fails-view` este păstrat doar ca boundary de inserare documentat. `ExtentReportCategoryMarkupTest` verifică separat idempotency, ordinea în DOM și contractul CSS/accessibility. `HtmlReportFailsView` folosește aceleași primitive pentru fallback-ul Fails, inclusiv statusul semantic, deep-link-ul scenariului și empty-state-ul; astfel paritatea dintre Extent și fallback este verificabilă prin teste lower-level. `HtmlReportTestsView` și `ExtentReportPublicationPipeline` folosesc aceeași graniță pentru scenarii, phase/request nodes, theme și view identifiers. `ExtentReportScreenshotDeduplicator` păstrează fingerprint-ul doar intern, pentru deduplicare; în raport rămâne linkul inline cu emoji-ul curent, nu un hash afișat. `HtmlReportScriptBuilder` rămâne numai infrastructură generică pentru porturi typed/custom și teste; nu mai este folosit pentru a construi navigation sau boot în producție. Regula de formatare este explicită: fișierele `.js`/`.css` din classpath rămân multiline și ușor de revizuit, iar `ReportAssetCompactor` compactează numai copia injectată în HTML.
+Auditul final al vocabularului/builder-ului CSS și al seam-urilor mici de publicare este acoperit de contractele component și de gate-ul fresh standard/responsive. Schimbările cer aceeași dovadă. `AtfUiEvidenceCss` este facade typed peste `ui-evidence.css`, iar `Duration` și `RuntimeCore` sunt compuse din asset-uri JavaScript native; niciuna dintre aceste familii nu mai asamblează corpuri mari în Java. `ScenarioCss` este facade typed peste `theme-scenario.css`, iar `ExtentReportNavigationView` publică numai markup și hash links; nu mai generează JavaScript executabil inline. `ExtentReportCategoryMarkup` folosește aceeași construcție semantică pentru shell-ul Category: vocabularul typed guvernează tag-uri, clase, atribute și empty-state, iar markerul vendor `atf-fails-view` este păstrat doar ca boundary de inserare documentat. `ExtentReportCategoryMarkupTest` verifică separat idempotency, ordinea în DOM și contractul CSS/accessibility. `HtmlReportFailsView` folosește aceleași primitive pentru fallback-ul Fails, inclusiv statusul semantic, deep-link-ul scenariului și empty-state-ul; astfel paritatea dintre Extent și fallback este verificabilă prin teste lower-level. `HtmlReportTestsView` și `ExtentReportPublicationPipeline` folosesc aceeași graniță pentru scenarii, phase/request nodes, theme și view identifiers. `ExtentReportScreenshotDeduplicator` păstrează fingerprint-ul doar intern, pentru deduplicare; în raport rămâne linkul inline cu emoji-ul curent, nu un hash afișat. `HtmlReportScriptBuilder` rămâne numai infrastructură generică pentru porturi typed/custom și teste; nu mai este folosit pentru a construi navigation sau boot în producție. Regula de formatare este explicită: fișierele `.js`/`.css` din classpath rămân multiline și ușor de revizuit, iar `ReportAssetCompactor` compactează numai copia injectată în HTML.
 
 </details>
 
@@ -1795,7 +1795,7 @@ Observațiile tipizate publică fapte fără transport printr-o proiecție comun
 | Verdict | INFO fără request/validation inventat; nu slăbește FAIL/SKIP; adaptorul fără capabilitate refuză publicarea |
 | Context | `Phase.detail` rămâne intern; snapshot-ul semantic păstrează etichetele, fără valori/corpuri ori căi de artifact |
 | Proiecție | redacție înainte de escaping/preview, disclosure colapsat și corp accesibil cu tastatura până la final |
-| Bugete | câmpuri/assertions implicit 240; body default 100 standalone, configured independently by each consumer; evaluarea primește input integral |
+| Bugete | câmpuri/assertions implicit 240; body implicit 100 standalone, configurat independent de fiecare consumer; evaluarea primește input integral |
 | URI | file/http/https sunt referințe fără fetch; credential/query/fragment și scheme active refuzate; locația redactată nu persistă în href |
 | Compatibilitate | `ObservationStep`/`ObservationSnapshot` extind arborii sealed; simbolurile binare susținute și switch-urile exhaustive la sursă cer verificări separate la evoluția arborilor |
 | Randare | glyph-ul depinde de summary/open propriu; End/Home/PageUp/PageDown folosesc scroll-ul comun `atf-observation-body`; bulk expand păstrează starea locală a dovezilor |
@@ -1857,7 +1857,7 @@ Ambele renderere publică Environment, Runtime, OS, Client, Reporting și Assert
 |---|---|
 | HtmlReportSession.updateEnvironment | merge typed prin allowlist și redacție; update null/după close este refuzat înaintea mutației |
 | suprascrie | Environment, Client și câmpurile opționale explicite sunt păstrate; snapshot-ul callerului rămâne imuabil |
-| faptele calculează | fallback publică propria identitate; preview-ul efectiv este al ReportingSettings, implicit 240 |
+| fapte calculate | fallback publică propria identitate; preview-ul efectiv este al ReportingSettings, implicit 240 |
 | index fallback | titlu și clasă integrale în culori neutre; Pass/Fail/Skip în badge separat, cu același href și ID original |
 | acces | wrapping fără ascundere/trunchiere, focus vizibil și Enter către scenariul original |
 
@@ -2019,7 +2019,7 @@ Adaptorul de prezentare Spark encodează cheile cronologiei ca string-uri JSON, 
 
 `AtfUiActionRecord` capturează operația, ținta, rezultatul observat și durata. Canalul ACTION/OBSERVE identifică tipul dovezii.
 
-- Default publication uses **UI action sequence** and **UI action**, without inferring a driver.
+- Publicarea implicită folosește **UI action sequence** și **UI action**, fără a deduce driverul.
 - Numele capturate ale uneltelor rămân intacte; callerii Android, web și mock folosesc același contract neutru.
 
 | Evidence | Audit boundary |

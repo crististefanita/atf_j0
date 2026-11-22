@@ -89,7 +89,7 @@ flowchart LR
     Live -->|inspectează| Classify
     Classify -->|atribuie| Owner
     Owner -->|protejează| Gate
-    Gate -->|dovadă stabilă| Owner
+    Gate -->|validează regula| Owner
     Classify -->|gap reproductibil| Feedback
     Feedback -->|reconciliază| Reconcile
     Reconcile -->|actualizează| Live
@@ -132,6 +132,11 @@ Feedback-ul este un backlog de lacune, nu un al doilea README și nici un jurnal
   activ, chiar dacă restul conținutului poate fi promovat ori eliminat;
 - nu închide, rescrie sau șterge un control `testChanges` doar pentru că a
   expirat ori a apărut un commit nou: compară schimbările față de baseline și aplică procedura din [baseline-ul schimbărilor de teste](ATF_Test_Changes_Baseline.md) și [guvernanța testelor](../atf-tests/README.md#guvernanța-schimbării-testelor).
+- promovează numai o regulă reutilizabilă sau o instrucțiune de folosire; un ToDo încheiat nu devine rezumat de livrare în README-ul proiectului;
+- păstrează dovezile verificărilor consumerilor, verdicturile datate și numărul de teste lângă pachetul deținut, în afara documentației întreținute; conservă proveniența istorică și bazele controalelor executabile de schimbare;
+- elimină elementele bifate și secțiunile cu stare închisă; păstrează legături minime de compatibilitate numai când mai conduc cititorul la ownerul normativ.
+
+[Guvernanța ciclului documentației](../atf-tests/src/test/java/atf/api/tests/governance/documentation/hygiene/DocumentationLifecycleGovernanceTest.java) respinge dovezile recognoscibile de livrare către consumeri și marcajele de backlog încheiat în ambele ediții. Păstrează exemplele literale, criteriile deschise și registrul tehnic al controalelor; codul live și testele ownerului decid în continuare dacă un criteriu este efectiv încheiat.
 
 Testele de guvernanță rămân contract protejat. Dacă documentul țintă nu trece, se repară documentul; regula testului se schimbă numai prin feedback direct, owner, motiv și criteriu nou, conform README-ului `atf-tests`.
 
@@ -520,7 +525,7 @@ Documentația oficială descrie API curent, ownership-ul, configurația, limitel
 <a id="ediții-de-limbă-întreținute"></a>
 ## Ediții de limbă întreținute
 
-Ramura main conține documentația engleză; main_RO conține corespondentul român. Codul și configurațiile rămân identice, cu excepția limbii documentației declarate. Păstrați comenzile, identificatorii API, căile și ancorele explicite la traducerea prozei vizibile și a etichetelor diagramelor.
+Ramura `main` conține documentația în engleză; `main_RO` conține ediția română corespondentă. Codul și configurația rămân identice, cu excepția limbii declarate a documentației. Păstrează comenzile, identificatorii API, căile și ancorele când traduci proza și etichetele diagramelor.
 
 Comparatorul verifică inventarul Markdown complet, structura, destinațiile linkurilor și implementarea comună. Inventarele revizuite sunt fixate pe commit-uri Git în config/documentation-editions.json; identitatea artefactelor curente rămâne în library-provenance.json.
 

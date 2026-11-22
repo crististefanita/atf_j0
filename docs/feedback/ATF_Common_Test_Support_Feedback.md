@@ -36,9 +36,8 @@ J0 deține codul, API-ul, testele native, împachetarea și feedback-ul Test Kit
 
 <a id="kit-phase-observation---facts-per-phase-independent-verdict"></a>
 <a id="kit-phase-observation--fapte-pe-fază-verdict-independent"></a>
-## KIT-PHASE-OBSERVATION — fapte pe fază, verdict independent
 
-**Stare: Implementat și verificat.** Observațiile imuabile rămân separate de aserțiuni și coverage; adaptorul consumerului deține publicarea lor. [Contractul Kit](../../atf-test-kit/README.md) și [proba permanentă](../../atf-test-kit/src/test/java/atf/testkit/assertions/ComponentAuditExtensionComponentTest.java) păstrează API-ul și compatibilitatea. Rapoartele Maven reale au acceptanță browser în J1; verificarea IntelliJ rămâne separată și amânată la consumer.
+[Contractul observațiilor pe fază](../../atf-test-kit/README.md) deține faptele imuabile separate de aserțiuni și verdict; acceptanța specifică runnerului rămâne la consumer.
 
 <a id="kit-concurrency-152---parallel-jupiter-qualification"></a>
 <a id="kit-concurrency-152--calificare-jupiter-paralelă"></a>
@@ -52,8 +51,5 @@ J0 deține codul, API-ul, testele native, împachetarea și feedback-ul Test Kit
 
 <a id="kit-launch-plan---neutral-context-for-actual-selection"></a>
 <a id="kit-launch-plan--context-neutru-pentru-selecția-reală"></a>
-## KIT-LAUNCH-PLAN — context neutru pentru selecția reală
 
-Implementat prin observerul SPI din `atf.testkit.launch`; contractul și limitele sunt în [README-ul Kit](../../atf-test-kit/README.md). Adopția și inspectarea rapoartelor aparțin consumerului. Testele nu confundă rezultatul execuției cu numărul descoperit, iar lipsa observerului nu autorizează un context străin.
-
-Controlul verificat rămâne în [baseline](../ATF_Test_Changes_Baseline.md); puntea nu introduce o sarcină de mentenanță duplicată în consumeri.
+[Contractul selecției de lansare](../../atf-test-kit/README.md) definește contextul neutru și limitele sale; adopția aparține fiecărui consumer.

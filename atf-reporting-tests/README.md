@@ -239,7 +239,7 @@ Markerii de fază păstrează timpul monoton al workerului. La cursa dintre watc
 |---|---|
 | Setup | 30 s pentru pornirea JVM/SDK, launch și `newPage`; fără retry sau prag relaxat |
 | Driver CLI | pregătit o dată per JVM host ori reutilizat din `playwright.cli.dir`; sursa și timpul sunt consemnate separat în `driver-runtime.log` |
-| Verificare | `BrowserProbeBudget.DEFAULT`: 60 s; `BrowserClassRun`: 120 s/clasă și maximum 10 min total; acțiunea 5 s și navigarea 30 s rămân independente |
+| Verificare | `BrowserProbeBudget.DEFAULT`: 60 s; `BrowserClassRun`: 120 s per scope de verificare și maximum 10 min per clasă; timeout-urile de acțiune 5 s și navigare 30 s rămân independente |
 | Cleanup | 5 s pentru închiderea normală; la eșec, terminarea forțată are 5 s și vizează numai descendenți cu lanț de părinți verificat și aceeași identitate de start |
 | Diagnostic | fază, PID-uri, log și stack-uri la timeout; matricea eșuată și controalele lifecycle păstrează directorul probei, iar cauza inițială precede erorile de cleanup |
 | TMP nativ | director scurt, unic și marcat cu owner; JVM și SDK primesc aceeași rădăcină, fără profil browser în TMP-ul comun |
@@ -461,9 +461,9 @@ Matricea publică este completată de `UiFailurePublicationComponentTest`, pentr
 <a id="selecția-scenariilor-pentru-un-raport-api"></a>
 ### Selecția scenariilor pentru un raport API
 
-`@ApiScenarioSetup(tests = ...)` declară metodele exacte; resolver-ul validează selecția înaintea colecțiilor mai largi.
+`@ApiScenarioSetup(tests = ...)` declară metode exacte, rezolvate după override-urile explicite JVM pentru familii/suită și înaintea familiilor din adnotare ori YAML. Selecția este validată înaintea publicării.
 
-Ordinea fallback-ului, când nu sunt declarate metode exacte:
+Când nu sunt declarate metode exacte, precedența familiilor este:
 
 1. proprietatea JVM cu familii API;
 2. proprietatea suitei;
@@ -656,10 +656,8 @@ Bugetele de regresie sunt explicite în `ReportAssetSizeInventoryTest`; inventar
 
 - `ReportAssetSizeBudgetTest` verifică limitele depășite și configurațiile
   invalide; mărirea unui plafon cere motiv și verificarea impactului asupra artifactului.
-- Pasul tipizat de aserțiuni de componentă folosește disclosure-ul comun în
-  JavaScript. Bugetul sursei de la commitul de bază era deja depășit.
-- Plafoanele revizuite acoperă sursa și copia compactată măsurate, cu mai puțin
-  de 2 KB rezervă în fiecare dimensiune modificată; CSS și totalul nativ rămân neschimbate.
+- Nodurile tipizate de aserțiuni de componentă reutilizează implementarea comună de disclosure din JavaScript; bugetele asset-urilor native și publicate rămân separate.
+- Revizuiește schimbările de buget după sursa și output-ul compactat măsurate; trecerea bugetului de dimensiune nu demonstrează contractul interacțiunii randate.
 
 <a id="answering-of-the-liability"></a>
 <a id="verificarea-randării-responsive"></a>
@@ -848,13 +846,12 @@ atf-test-practice-shop/src/test/atf/shop/tests/
   mută proba neutră aici și păstrează în Shop/AutoEx doar integrarea îngustă.
 - Un test consumer care produce HTML poate rămâne local numai dacă verifică
   traducerea contractului propriu (de exemplu titlu/rută/intenție business, asocierea unei așteptări cu exchange-ul capturat sau politica proprie de redactare). Nu verifica în consumer coloanele, nesting-ul, clasele CSS, disclosure-urile generice ori semantica generică de retry/failure.
-- `AtfReportSemanticSnapshotTest.sameRequestInIndependentScenariosRemainsOwnedByBothScenarios`
-  protejează acum în acest modul izolarea generică a request-urilor identice între scenarii; copia consumerului Shop a fost eliminată. Shop păstrează separat probele asocierii și publicării auditului său API.
+- `AtfReportSemanticSnapshotTest.sameRequestInIndependentScenariosRemainsOwnedByBothScenarios` protejează izolarea generică a request-urilor identice între scenarii; Shop verifică separat asocierea și publicarea auditului său API.
 - La testele API Shop, separați transportul de owner: probele cu
   `ShopApiComponentFixture` sunt mock-backed, dar validează clientul și contractele Practice Shop, deci rămân în consumer. Mutați aici numai invariants de model/publicare/rendering care nu importă tipuri sau reguli Shop; nu adăugați dependență de `atf-reporting-tests` în modulul consumer.
 
 <details>
-<summary><strong>Probe neutre pentru simplificarea testelor Shop și AutoEx</strong></summary>
+<summary><strong>Probe neutre și responsabilități ale consumerilor</strong></summary>
 
 | Invariant reutilizabil | Probă existentă aici | Rămâne de verificat în consumer |
 |---|---|---|
@@ -869,8 +866,7 @@ atf-test-practice-shop/src/test/atf/shop/tests/
   nodului API din Tests prin locatorii comuni, nu prin numărarea tuturor copiilor din Category/Fails sau a datelor serializate.
 - `ApiRetryProjectionContractTest` aparține pachetului component UI
   `atf.ui.tests.extent.component.inspection.retry`; păstrează `@AtfComponentTest` și selecția existentă din `AtfReportingComponentSuite`.
-- Probe neutre consolidate: formatul auth, filtrarea providerului și retry pe
-  cele trei proiecții. Niciuna nu substituie forwarding-ul mapperului sau siguranța artifactului produs de adaptorul local.
+- Probele neutre acoperă formatul autentificării, filtrarea providerului și retry în trei proiecții; nu substituie forwarding-ul mapperului sau siguranța artifactului produs de adaptorul local.
 - Înaintea unei ștergeri, comparați inputul, calea publică, verdictul și
   cazul negativ; completați aici lipsa neutră, fără importuri Shop/AutoEx.
 - Înlocuiți verificările locale de markup cu rezultate typed/snapshot numai
@@ -947,7 +943,7 @@ Detaliul normativ al normalizării evidence este în [`atf-reporting/README.md`]
 
 <a id="neutral-samples-promoted-from-consumption"></a>
 <a id="probe-neutre-promovate-din-consumeri"></a>
-### Probe neutre promovate din consumeri
+### Probe neutre și limitele adaptoarelor
 
 | Contract | Probă la owner | Ce rămâne în consumer |
 |---|---|---|

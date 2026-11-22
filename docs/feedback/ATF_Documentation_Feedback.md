@@ -4,6 +4,8 @@
 
 J0 deține documentația bibliotecilor sursă și a regresiilor Reporting. [Criteriile comune ale consumerilor](../../../atf_j1/docs/feedback/ATF_Documentation_Feedback.md) rămân în J1; transferul unei constatări nu demonstrează implementarea.
 
+<a id="doc-reporting-prose--remaining-detailed-section-review"></a>
+<a id="doc-reporting-prose--revizia-rămasă-a-secțiunilor-detaliate"></a>
 <a id="joint-documentation---owner-j1"></a>
 <a id="documentație-comună--owner-j1"></a>
 <a id="doc-context-deployment-111--prioritate-81"></a>
@@ -15,10 +17,9 @@ J0 deține documentația bibliotecilor sursă și a regresiilor Reporting. [Crit
 | stil comun și paritatea edițiilor | [standardul documentar](../README_Atf_DocumentationBestPractices.md#technical-prose-review), guvernanța documentației și comparatorul edițiilor fixate pe commit |
 | scenarii ale consumerilor și criterii comune din afara bibliotecilor | J1; acceptanța independentă rămâne la fiecare consumer |
 
-## DOC-REPORTING-PROSE — revizia rămasă a secțiunilor detaliate
+## DOC-GUIDE-PROSE — terminologia rămasă a mentenanței
 
-**Status: Deschis.** Intrările principale sunt revizuite; secțiunile detaliate despre workerul browser și dovezi mai cer o revizie terminologică țintită.
+**Status: Deschis.** Revizuiește terminologia launcherelor/scope-urilor din [feedback-ul activ Test Kit](ATF_Common_Test_Support_Feedback.md) și formulările despre consumeri/sincronizare din [protocolul workspace-urilor](../ATF_Workspace_Synchronization.md), după ediția română și ownerii live.
 
-- Revizuiește lifecycle-ul workerului din [Reporting Tests](../../atf-reporting-tests/README.md) și proza disclosure/evidence din [Reporting](../../atf-reporting/README.md); traducerile rămase includ „workshop” pentru worker și „discoloration” pentru disclosure.
-- Compară fiecare pasaj cu ediția română, codul ownerului și oracolul independent; păstrează bugetele de timeout, mutanții, identificatorii și proveniența înregistrată.
-- Închide numai după ce secțiunile au proză naturală, păstrează același contract în ambele ediții și trec guvernanța documentară și o revizie nouă a edițiilor fixată pe commit.
+- Păstrează criteriile nerezolvate, comenzile executabile și bazele originale ale controalelor de teste; elimină narațiunea rezultatelor închise în loc să o traduci.
+- Închide după ce pasajele selectate au proză naturală, păstrează același contract în ambele ediții și trec guvernanța documentației.

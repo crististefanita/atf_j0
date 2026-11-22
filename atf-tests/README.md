@@ -439,3 +439,7 @@ Pragul general de coeziune rămâne opt. Inventarul exact pentru model admite op
 - O a zecea clasă este refuzată.
 - Înlocuirea unui contract cu alt tip, la același număr fizic, este refuzată.
 - API-ul vechi rămâne executabil; puntea nu primește o politică nouă de taguri.
+
+### Ciclul documentației
+
+`DocumentationLifecycleGovernanceTest`, selectat de `WholeAtfGovernanceSuiteTest`, protejează [regula promovării feedback-ului](../docs/README_Atf_DocumentationBestPractices.md#retaining-and-deleting-feedback): contractele reutilizabile rămân la owner; dovezile livrării și intrările închise din backlog nu intră în documentația întreținută. Controalele negative acoperă proza pe mai multe linii, tabelele, marcajele bilingve de stare și checklist-urile încheiate; exemplele literale în blocuri de cod, criteriile active și baseline-ul executabil al controalelor rămân valide.

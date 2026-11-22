@@ -194,40 +194,14 @@ Extragerea `ApiEvidencePublisher` și conservarea cauzei sunt livrate. `UiEviden
 
 <a id="ui-recovery-audit-01---inspectable-tests-in-extent"></a>
 <a id="ui-recovery-audit-01--încercări-inspectabile-în-extent"></a>
-## UI-RECOVERY-AUDIT-01 — încercări inspectabile în Extent
 
-**Stare: Contractul bibliotecii și acceptanța Maven sunt verificate.** [Reporting](../../atf-reporting/README.md#decizii-be-fără-verdict-de-succes-implicit) păstrează observațiile INFO distincte de aserțiuni și verdict. Consumerii dețin proiecția tipizată și selectorii propriilor rapoarte.
-
-- Shop și AutoEx verifică în browser rapoartele JUnit Maven reale: rezultate recovered/exhausted, operație și eveniment separate, durate tipizate, ordine, aserțiuni expandate, disclosure colapsat după Expand all, redactare și verdict. [Feedback-ul J1](../../../atf_j1/docs/feedback/ATF_Reporting_Feedback.md#j1-recovery-runner-trace-2026-11-21) și [proveniența](../../../atf_j1/library-provenance.json) păstrează dovada.
-
-- Paritatea IntelliJ este amânată și rămâne exclusiv la ownerul consumerului. Matricea neutră pentru Tests/Fails/Overview și mutațiile pe dovezi rămân criterii distincte în [Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu). Controlul bibliotecii verificat este păstrat în [baseline](../ATF_Test_Changes_Baseline.md).
+[Observațiile recovery](../../atf-reporting/README.md#decizii-be-fără-verdict-de-succes-implicit) păstrează INFO separat de aserțiuni și verdict. Acceptanța IntelliJ amânată rămâne la [ownerul consumerului](../../../atf_j1/docs/feedback/ATF_Reporting_Feedback.md#j1-recovery-runner-trace-2026-11-21); matricea neutră în browser rămâne un [criteriu Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) independent.
 
 <a id="existing-contracts"></a>
 <a id="contracte-existente"></a>
-## Contracte existente
+## Ownerii contractelor
 
-| Informație | Responsabil |
-|---|---|
-| Exchange terminal în Tests/Fails: un lanț agregat per scenariu, aserțiunea și diagnosticul etichetate distinct, backlink către rândul sursă | [Reporting](../../atf-reporting/README.md#execuție-api-terminată-fără-răspuns) |
-| JSON semantic, canary-uri și degradarea inputului invalid | [Security](../../atf-reporting/src/main/java/atf/reporting/security/README.md) |
-| YAML strict și defaults legitime | [Reporting](../../atf-reporting/README.md#intrări-și-configurare-în-bibliotecă) |
-| Sursa izolată și JAR-ul fizic consumat extern | [Reporting Tests](../../atf-reporting-tests/README.md#gate-ul-bibliotecii-distribuite) |
-| Buget configurabil și valoarea efectivă în System | [Reporting](../../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor) |
-| Lifecycle și refuzul constructorului | [Reporting](../../atf-reporting/README.md#publicare-și-ieșire) |
-| Cauza publicării directe și închiderea scope-urilor | [Reporting](../../atf-reporting/README.md#cauza-publicării-și-scope-urile-deținute) |
-| Tranziții de scope și refuz fără mutație | [Reporting](../../atf-reporting/README.md#atomicitatea-tranzițiilor-de-scope) |
-| Timing explicit, capturi și publicare | [Reporting](../../atf-reporting/README.md#timing-e2e-la-ownerul-runtime) |
-| Setup și dovezi UI în fallback | [Reporting](../../atf-reporting/README.md#evidence-ui-și-setup-în-fallback) |
-| Cauza terminală unică și backlink către dovada UI | [Reporting](../../atf-reporting/README.md#neutral-ui-attribution-and-failure-ownership) |
-| Coloane dinamice și scroll local | [Reporting](../../atf-reporting/README.md#lizibilitatea-dovezilor-în-panouri-înguste) |
-| Probe de compatibilitate și browser | [Reporting Tests](../../atf-reporting-tests/README.md) |
-| Oracole, fixture-uri binare și dovezi exacte | [Feedback Reporting Tests](ATF_Reporting_Tests_Feedback.md) |
-| Inventar UI/API/UI+API și controale negative de randare | [Reporting Tests](../../atf-reporting-tests/README.md#tabele-publicate-și-inventar-independent) |
-| Controale Git verificate | [Baseline](../ATF_Test_Changes_Baseline.md#controale-tehnice-verificate) |
-| Contractele consumerilor | [Acceptanța business](../ATF_Testing_Guide.md#acceptanța-business-individual-și-prin-suită) |
-| Identitatea query-ului între modele | [Reporting Tests](../../atf-reporting-tests/README.md#fidelitatea-query-ului-și-asocierea-mock) |
-
-Refactorizările păstrează contractele ownerilor de mai sus și urmează [ghidul de probă](../ATF_Testing_Guide.md#proba-fiecărui-owner-de-resurse). Reevaluarea folosește [rubrica comună de cod](../README_Atf_CodeBestPractices.md#rubrica-reevaluării-modulelor), cu randare inspectată și regresiile ownerului trecute în TMP.
+[Reporting](../../atf-reporting/README.md) deține contractele runtime, iar [Reporting Tests](../../atf-reporting-tests/README.md) deține procedurile regresiilor generice. Refactorizarea păstrează aceste contracte și respectă [regula probei ownerului de resurse](../ATF_Testing_Guide.md#proba-fiecărui-owner-de-resurse); acest backlog păstrează numai criteriile rămase.
 
 <a id="report-fallback-result-width-101---geometric-regression-for-badge"></a>
 <a id="report-fallback-result-width-101--regresie-geometrică-pentru-badge"></a>
@@ -335,12 +309,9 @@ Valorile următoare sunt defaults propuse pentru noul contract, nu proprietăți
 
 <a id="handoff-producer-j2--2026-11-01"></a>
 <a id="predare-de-la-producătorul-j2--2026-11-01"></a>
-### Predare de la producătorul J2 — 2026-11-01
+### Limita producătorului SQL
 
-- [Contractul SQL J2](../../../atf_j2/atf-sql/README.md) oferă acum faptele typed și un ID per execuție. Reporting primește o proiecție neutră, fără dependență către JDBC, H2 sau modulul SQL consumer.
-- Matricea J2 are 12 HTML-uri/36 invocări și patru FAIL-uri JDBC controlate, cu oracol pe query, binds, duplicate labels/rows, NULL/gol, DECIMAL exact și ownership. Mutanții ID/query lipsă și număr rotunjit sunt refuzați; aceasta nu substituie componentele permanente J0 ale noului API SQL.
-- Captura JDBC implicită are 4.194.304 unități conservative; nu este plafon HTML. Păstrați cerința distinctă pentru query 4.096, binds 2.048, rezultate 16.384 și total SQL 1.048.576, toate configurabile, fără payload complet ascuns. Preview-ul assertions rămâne 240.
-- [Dovada J2](../../../atf_j2/docs/ATF_SQL_Live_Verification.md) separă H2, Kafka/MySQL reale și aplicația Eventuate NOT RUN. Nu certificați saga sau dialecte SQL prin fixture-ul neutru al rendererului.
+[Contractul SQL J2](../../../atf_j2/atf-sql/README.md) deține captura tipizată și identitatea execuției; Reporting primește o proiecție neutră fără dependențe JDBC, H2 sau de modulul consumerului. Păstrează bugetele SQL distincte de mai sus și preview-ul 240; fixture-urile neutre ale rendererului nu certifică saga sau dialectele SQL, iar adopția J2 cere acceptanță independentă.
 
 <a id="diagnostic-bound-al-assertions---criterion-separate-from-verdict"></a>
 <a id="diagnostic-bounded-al-assertions--criteriu-separat-de-verdict"></a>
@@ -380,30 +351,8 @@ Metadatele curente sunt corectate; rămâne acoperirea prin controale, fără sc
 
 <a id="report-profile-labels---convention-of-visible-text"></a>
 <a id="report-profile-labels--convenția-textului-vizibil"></a>
-## REPORT-PROFILE-LABELS — convenția textului vizibil
-
-Contractul acoperă titlul literal și compararea etichetelor multiline în Extent și fallback. Adopția binară se verifică prin proveniența și acceptanța fiecărui consumator. [Contractul](../../atf-reporting/README.md#titluri-și-etichete-ale-profilului) · [Proba permanentă](../../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions)
-
-<details>
-<summary><strong>Proveniență J21 — dovezi istorice indisponibile local</strong></summary>
-
-- `final-live-components/atf-tests/component-report.html` din
-  `whist_back/maintenance/20261106-component-suite-aggregation` a omis `<version>` din titlul DOM. `execution.json` consemna refuzul la scenariul 80.
-- `multiline-profile-controls-verified.log` din același dosar păstra
-  controalele inițiale pentru proiecția etichetelor așteptate.
-
-</details>
-
-<details>
-<summary><strong>Rute de compatibilitate către contractele livrate</strong></summary>
-
 <a id="report-artifact-profile-62--aplicabilitate-explicită-a-inspectorului"></a>
-
-[Profilul explicit de inspecție](../../atf-reporting/README.md#inspecția-artifactului-cu-intenție-explicită) acoperă rapoarte fără HTTP.
-
 <a id="report-screenshot-return-137--png-reutilizat-schimbă-ownerul-și-pierde-expandările"></a>
 <a id="report-screenshot-viewport-138--imagine-integrală-în-spațiul-disponibil"></a>
 
-[Contractul de audit inline](../ATF_Inline_Audit_Contract.md#full-image-viewer-target) păstrează imaginea completă și contextul la revenire. [Probele permanente](../ATF_Inline_Audit_Contract.md#acceptanță-permanentă) verifică identitatea capturii și comportamentul viewerului.
-
-</details>
+[Etichetele literale ale profilului](../../atf-reporting/README.md#titluri-și-etichete-ale-profilului), [inspecția explicită](../../atf-reporting/README.md#inspecția-artifactului-cu-intenție-explicită) și [revenirea din viewerul capturii](../ATF_Inline_Audit_Contract.md#full-image-viewer-target) sunt documentate la owneri.

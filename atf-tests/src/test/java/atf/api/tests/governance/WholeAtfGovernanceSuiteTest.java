@@ -47,6 +47,7 @@ import org.junit.platform.suite.api.Suite;
         DocumentationProseGovernanceTest.class,
         DocumentationReadmeStructureGovernanceTest.class,
         DocumentationStyleGovernanceTest.class,
+        atf.api.tests.governance.documentation.hygiene.DocumentationLifecycleGovernanceTest.class,
         DocumentationTargetGovernanceTest.class,
         DocumentationLinkGovernanceTest.class,
         DocumentationAnchorGovernanceTest.class,

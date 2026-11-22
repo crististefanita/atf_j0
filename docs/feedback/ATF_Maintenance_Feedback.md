@@ -7,7 +7,7 @@
 <a id="pe-scurt"></a>
 ## Pe scurt
 
-Porțile de mentenanță sunt implementate. Nu există o sarcină de implementare deschisă în acest registru; lacunele funcționale rămân la ownerii lor.
+[Mentenanța workspace-urilor](../ATF_Workspace_Synchronization.md#maintenance-increment-protocol) deține procesul întreținut; lacunele funcționale rămân în backlog-urile domeniilor.
 
 <a id="atf-workspace-maintenance-01---gates-and-ownership"></a>
 <a id="atf-workspace-maintenance-01--porți-și-ownership"></a>

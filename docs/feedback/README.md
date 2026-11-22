@@ -57,18 +57,9 @@ Nu introduceți funcționalitate doar pentru a atinge o notă; prioritizați cor
 
 <a id="checked-contracts-and-controls"></a>
 <a id="contracte-și-controale-verificate"></a>
-## Contracte și controale verificate
+## Ownerii contractelor
 
-| Boundary | Contract livrat și dovadă păstrată |
-|---|---|
-| Ghiduri de consum | [Gate JAR/POM](../ATF_Platform_Libraries.md) |
-| Core | [Contractul consumerului](../ATF_Core_Consumer.md): ownership sursă/native, anularea body/deadline și acceptanța independentă pe JAR |
-| Disclosure și guvernanță | [Contractul de afișare](../ATF_Reporting_Display_Contract.md): criteriile 114/100 sunt livrate |
-| Recovery în rapoartele Maven | [Contractul livrat](ATF_Reporting_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent); verificarea IntelliJ rămâne amânată la consumer |
-| Navigarea Extent și pornirea browserului de verificare | [Contractul de navigare](../ATF_Large_Report_Navigation.md) și [setup-ul probei](../../atf-reporting-tests/README.md#setup-browser-și-verdict-terminal) |
-| System, inspector și timing | [Contractul de afișare](../ATF_Reporting_Display_Contract.md) și [contractul Reporting](../../atf-reporting/README.md): criteriile 117/66/62/83/124 sunt livrate |
-| Memoria publicării și ACTION/OBSERVE integral | [Contractul Reporting](../../atf-reporting/README.md): criteriile 131/132 au ieșit din prioritățile active; proba sursă/JAR rămâne |
-| Documentație și controale | [Atlas](../ATF_Context_Atlas.md), [arhitectură](../ATF_Architecture.md), [testare](../ATF_Testing_Guide.md) și [baseline](../ATF_Test_Changes_Baseline.md#controale-tehnice-verificate) păstrează contractele și bazele Git reale |
+[Atlasul](../ATF_Context_Atlas.md) trimite contractele reutilizabile la ownerii normativi; [controalele schimbărilor de teste](../ATF_Test_Changes_Baseline.md) păstrează bazele Git imuabile. Dovezile livrării către consumeri și criteriile încheiate nu sunt duplicate în acest backlog.
 
 <a id="requirements-transferred-to-j1"></a>
 <a id="cerințe-transferate-în-j1"></a>
