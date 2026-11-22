@@ -51,3 +51,5 @@ Console depinde de Core; Kit este opțional pentru legătura JUnit. Proiecția r
 ---
 
 Mentenanța codului și testelor Console aparține proiectului separat `atf_j0/atf-console`; [feedback-ul și sincronizarea](README.md#mentenanță-și-feedback) pornesc de la J0.
+
+[Ghidurile de integrare ale consumerilor](README.md#consumer-guides).

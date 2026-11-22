@@ -63,3 +63,5 @@ Pachetul `atf.testkit.launch` observă sesiunea launcherului prin SPI-ul public 
   testele o furnizează. Biblioteca nu depinde de Reporting, UI sau consumeri.
 
 `TestLaunchPlanComponentTest` probează selecții directe și filtrate, scope-uri imbricate/concurente, planuri executate ulterior, teste dezactivate, înregistrări dinamice și absența punții.
+
+[Ghidurile de integrare ale consumerilor](README.md#consumer-guides).

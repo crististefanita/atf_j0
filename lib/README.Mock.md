@@ -54,3 +54,5 @@ var response = mock.send(ApiRequest.of("GET", "/health"),
 ---
 
 Mentenanța codului și testelor Mock aparține proiectului separat `atf_j0/atf-mock`; [feedback-ul și sincronizarea](README.md#mentenanță-și-feedback) pornesc de la J0.
+
+[Ghidurile de integrare ale consumerilor](README.md#consumer-guides).

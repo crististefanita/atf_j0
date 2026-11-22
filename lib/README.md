@@ -85,3 +85,11 @@ flowchart LR
 În J0, acest director este registrul de mentenanță; nu înlocuiește modulele sursă și nu găzduiește output-uri de build. [Contractul tehnic](../docs/ATF_Platform_Libraries.md) și [sincronizarea workspace-urilor](../docs/ATF_Workspace_Synchronization.md) detaliază publicarea.
 
 Punctele de intrare ale proiectelor sunt reunite în [indexul workspace-urilor](../docs/workspaces/README.md).
+
+<a id="consumer-guides"></a>
+
+## Ghidurile consumerilor
+
+[J1](https://github.com/crististefanita/atf_j1/blob/HEAD/lib/README.md) · [J2](https://github.com/crististefanita/atf_j2/blob/HEAD/lib/README.md) · [J3](https://github.com/crististefanita/atf_j3/blob/HEAD/lib/README.md) · [J4](https://github.com/crististefanita/whist/blob/HEAD/lib/README.md) · [J5](https://github.com/crististefanita/rentz/blob/HEAD/lib/README.md) · [J6](https://github.com/crististefanita/atf_j6/blob/HEAD/lib/README.md) · [J7](https://github.com/crististefanita/chess/blob/HEAD/lib/README.md)
+
+Fiecare ghid descrie integrarea bibliotecilor în propriul proiect; versiunile, proveniența și acceptanța rămân locale.
