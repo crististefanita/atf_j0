@@ -73,6 +73,7 @@ Auditul structurii sursei aparține build-ului producătorului. Probele runtime 
 | [REPORT-UI-ASSERTION-FULL-EVIDENCE-133](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) | 88 — criteriu existent | valori UI complete capturate înaintea preview-ului callerului; ownership-ul sursă/JAR și proba redactării rămân separate |
 | `REPORT-PUBLIC-API-43` | 81 = 31 + 24 + 17 + 9 | API-ul susținut, compatibilitatea și capabilitățile adaptoarelor nu sunt delimitate suficient |
 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) | 80 = 31 + 24 + 18 + 7 | criteriu separat al consumerului: oracol per scenariu și containment fallback |
+| [REPORT-DURATION-SCENARIO-WALL-141](#report-duration-scenario-wall-141--elapsed-vs-aggregated-step-time) | 76 = 30 + 23 + 16 + 7 | timpul total al scenariului consumerului și suma afișată a pașilor necesită o distincție explicită |
 | `REPORT-RELEASE-CONTRACT-45` | 73 = 25 + 22 + 17 + 9 | matricea runtime/vendor, operatorul repetabil și metadatele externe nu sunt încă o politică completă |
 | `REPORT-OBSERVATION-CONTRACT` | 72 = 29 + 20 + 16 + 7 | profilul declară observations generice, dar nu UI validation cu screenshot și identitatea PNG |
 | [REPORT-FALLBACK-RESULT-WIDTH-101](#report-fallback-result-width-101--regresie-geometrică-pentru-badge) | 64 = 24 + 19 + 15 + 6 | lipsește un oracol geometric al badge-ului WARNING în celula RESULT |
@@ -348,6 +349,15 @@ Metadatele curente sunt corectate; rămâne acoperirea prin controale, fără sc
 - [ ] Comparați același text și aceleași invocări cu părți mici și mari, pe input înghețat: caractere, număr de corpuri/noduri, heap, durată și octeții HTML. Controlați separat inventarul tehnic al surselor de datele obligatorii ale comparației.
 - [ ] Calificați un buget sau un refuz explicit înaintea epuizării memoriei, fără eliminarea comparațiilor, schimbarea verdictului ori trunchierea valorilor obligatorii. Nu creșteți preview-ul implicit de 240 pentru a masca problema.
 - [ ] Partajarea manifestului de hash-uri și părțile mai mari sunt optimizări de input ale consumatorului; nu dovedesc că rendererul este calificat pentru orice cardinalitate de corpuri. Nativele generice și împachetarea rămân aici.
+
+<a id="report-duration-scenario-wall-141--elapsed-vs-aggregated-step-time"></a>
+<a id="report-duration-scenario-wall-141--timp-total-față-de-suma-pașilor"></a>
+## REPORT-DURATION-SCENARIO-WALL-141 - timp total față de suma pașilor
+
+**Prioritate: 76/100 = 30 + 23 + 16 + 7. Owner: Reporting runtime și Reporting Tests.** Proba J7 Saved/Finished în browser real (`chess/atf-tests/src/test/java/ro/atf/chess/ChessWebMatchListPlaywrightE2e.java`) a folosit JAR-ul publicat `atf-reporting:1.0.0-j25` la commit-ul sursă Chess `8500f443a5f830e082aa0b41b7d061c3fe3b943e`. Badge-urile brute ale scenariului și TEST BODY au înregistrat aproximativ `01:31:508`, iar scenariul a păstrat `data-atf-measured-duration-ms=91508`. După inițializarea runtime-ului raportului, ambele badge-uri vizibile au afișat `2.396 s`, suma duratelor înregistrate ale copiilor. Testul a trecut; constatarea privește prezentarea duratei, nu un verdict eșuat. [Decizia curentă de agregare](../../atf-reporting/src/main/resources/atf/reporting/javascript/duration-aggregation.js) preferă de asemenea totalul copiilor atunci când aceștia există și lipsește un marker explicit al execuției. Verificați mai întâi dacă un JAR calificat mai nou distinge deja cele două ceasuri.
+
+- [ ] Într-un fixture înghețat Extent și fallback, păstrați separat intervalul total măsurat și agregatul copiilor. Etichetați valoarea vizibilă după sursă, astfel încât cititorul să nu confunde timpul publicării ori suma acțiunilor cu timpul total al scenariului; nu fabricați durata execuției dintr-un copil.
+- [ ] Adăugați un control în browser cu o așteptare lentă neinstrumentată în jurul unor pași rapizi înregistrați, altul cu durata explicită a execuției unei faze și unul pentru agregatul clasei. Verificați că Overview, Tests, tooltip/ARIA și expandarea completă exprimă același sens al fiecărei durate. Rerulați proba consumerului J7 pe JAR-ul publicat înainte de închidere.
 
 <a id="report-profile-labels---convention-of-visible-text"></a>
 <a id="report-profile-labels--convenția-textului-vizibil"></a>
