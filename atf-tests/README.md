@@ -163,8 +163,7 @@ src/test/java/atf/api/tests/governance/
   boundary-ul reporting standalone;
 - `governance.documentation.DynamicPathDocumentationArchitectureTest` — documentație
   relocabilă, fără căi de mașină sau nume de artifact generate concret;
-- `governance.documentation.DocumentationReadmeStructureGovernanceTest` — un titlu,
-  prezentare executivă obligatorie în README-ul rădăcină, `Overview`/`Pe scurt` în documentele locale, `<details>` echilibrate și linkuri locale rezolvabile; verifică și rutele J0–J7 din tabelul de workspace-uri;
+- `governance.documentation.DocumentationReadmeStructureGovernanceTest` — un titlu, orientare asupra proiectului local, `<details>` echilibrate și linkuri rezolvabile; catalogul workspace-urilor aparține indexului dedicat, legat o singură dată din ultima secțiune a rădăcinii.
 - `governance.documentation.DocumentationStyleGovernanceTest` — stil semantic ATF:
   fence-uri tipizate, headings fără salturi, bullets `-` și fără font/CSS/HTML prezentational în README-uri și în documentul arhitectural canonic;
 - `governance.documentation.DocumentationProseGovernanceTest` — limitează proza
@@ -443,3 +442,5 @@ Pragul general de coeziune rămâne opt. Inventarul exact pentru model admite op
 ### Ciclul documentației
 
 `DocumentationLifecycleGovernanceTest`, selectat de `WholeAtfGovernanceSuiteTest`, protejează [regula promovării feedback-ului](../docs/README_Atf_DocumentationBestPractices.md#retaining-and-deleting-feedback): contractele reutilizabile rămân la owner; dovezile livrării și intrările închise din backlog nu intră în documentația întreținută. Controalele negative acoperă proza pe mai multe linii, tabelele, marcajele bilingve de stare și checklist-urile încheiate; exemplele literale în blocuri de cod, criteriile active și baseline-ul executabil al controalelor rămân valide.
+
+Linkurile documentare GitHub deținute sunt verificate și față de checkout-urile sursă adiacente prin `WorkspaceDocumentationLinks`: numele publicate ale repository-urilor, căile și fragmentele Markdown. Acest guard offline nu certifică accesibilitatea remote sau o rulare de teste a consumerului.

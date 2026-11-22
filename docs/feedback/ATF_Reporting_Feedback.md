@@ -146,7 +146,7 @@ JAR-ul inspectat conține clasele de producție și toate resursele CSS/JS din m
 - Adaptorul timestamp citește un template intern Spark. Compatibilitatea
   Extent trebuie urmărită; macro-ul refuză expresia vendorului schimbată.
 
-Inventarul bibliotecilor verifică JAR/POM-ul distribuit, hash-ul și proveniența; ghidul executabil probează consumerul binar. Dovada pachetului curent, indicată în [proveniența de consum](../../../atf_j1/library-provenance.json), consemnează două build-uri curate cu JAR/POM identice. Rămân operatorul automat menținut la owner și politica explicită de compatibilitate și metadate.
+Inventarul bibliotecilor verifică JAR/POM-ul distribuit, hash-ul și proveniența; ghidul executabil probează consumerul binar. Dovada pachetului curent, indicată în [proveniența de consum](https://github.com/crististefanita/atf_j1/blob/HEAD/library-provenance.json), consemnează două build-uri curate cu JAR/POM identice. Rămân operatorul automat menținut la owner și politica explicită de compatibilitate și metadate.
 
 **Același increment:**
 
@@ -195,7 +195,7 @@ Extragerea `ApiEvidencePublisher` și conservarea cauzei sunt livrate. `UiEviden
 <a id="ui-recovery-audit-01---inspectable-tests-in-extent"></a>
 <a id="ui-recovery-audit-01--încercări-inspectabile-în-extent"></a>
 
-[Observațiile recovery](../../atf-reporting/README.md#decizii-be-fără-verdict-de-succes-implicit) păstrează INFO separat de aserțiuni și verdict. Acceptanța IntelliJ amânată rămâne la [ownerul consumerului](../../../atf_j1/docs/feedback/ATF_Reporting_Feedback.md#j1-recovery-runner-trace-2026-11-21); matricea neutră în browser rămâne un [criteriu Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) independent.
+[Observațiile recovery](../../atf-reporting/README.md#decizii-be-fără-verdict-de-succes-implicit) păstrează INFO separat de aserțiuni și verdict. Acceptanța IntelliJ amânată rămâne la [ownerul consumerului](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/ATF_Reporting_Feedback.md#j1-recovery-runner-trace-2026-11-21); matricea neutră în browser rămâne un [criteriu Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) independent.
 
 <a id="existing-contracts"></a>
 <a id="contracte-existente"></a>
@@ -311,7 +311,7 @@ Valorile următoare sunt defaults propuse pentru noul contract, nu proprietăți
 <a id="predare-de-la-producătorul-j2--2026-11-01"></a>
 ### Limita producătorului SQL
 
-[Contractul SQL J2](../../../atf_j2/atf-sql/README.md) deține captura tipizată și identitatea execuției; Reporting primește o proiecție neutră fără dependențe JDBC, H2 sau de modulul consumerului. Păstrează bugetele SQL distincte de mai sus și preview-ul 240; fixture-urile neutre ale rendererului nu certifică saga sau dialectele SQL, iar adopția J2 cere acceptanță independentă.
+[Contractul SQL J2](https://github.com/crististefanita/atf_j2/blob/HEAD/atf-sql/README.md) deține captura tipizată și identitatea execuției; Reporting primește o proiecție neutră fără dependențe JDBC, H2 sau de modulul consumerului. Păstrează bugetele SQL distincte de mai sus și preview-ul 240; fixture-urile neutre ale rendererului nu certifică saga sau dialectele SQL, iar adopția J2 cere acceptanță independentă.
 
 <a id="diagnostic-bound-al-assertions---criterion-separate-from-verdict"></a>
 <a id="diagnostic-bounded-al-assertions--criteriu-separat-de-verdict"></a>

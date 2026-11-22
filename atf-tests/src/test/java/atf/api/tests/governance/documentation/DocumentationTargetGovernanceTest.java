@@ -39,6 +39,7 @@ import static atf.api.tests.governance.AtfGovernanceTestSupport.locateProjectRoo
 @DocumentationTarget("docs/README_Atf_CodeBestPractices.md")
 @DocumentationTarget("docs/README_Atf_DocumentationBestPractices.md")
 @DocumentationTarget("docs/README.md")
+@DocumentationTarget("docs/workspaces/README.md")
 @DocumentationTarget("docs/feedback/ATF_Reporting_Feedback.md")
 @DocumentationTarget("docs/feedback/README.md")
 @DocumentationTarget("docs/feedback/README_AI_Evaluation.md")
@@ -76,6 +77,8 @@ public class DocumentationTargetGovernanceTest {
             DocumentationDiagramGovernanceTest.validate(target, root, violations);
             if (DocumentationGovernanceSupport.isReadme(target)) {
                 DocumentationReadmeStructureGovernanceTest.validate(target, root, violations);
+                atf.api.tests.governance.documentation.links.WorkspaceDocumentationLinks.validate(
+                        target, root, Files.readAllLines(target), violations);
             } else {
                 DocumentationLinkGovernanceTest.validate(target, root, violations);
             }

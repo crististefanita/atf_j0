@@ -6,7 +6,7 @@
 <a id="pe-scurt"></a>
 ## Pe scurt
 
-Cerințele sunt întreținute în [registrul J1](../../../atf_j1/docs/feedback/README_AI_Evaluation.md).
+Cerințele sunt întreținute în [registrul J1](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/README_AI_Evaluation.md).
 
 Transferul din 2026-11-02 păstrează ID-urile, probele și limitele originale. Contractele deja livrate rămân în documentația modulelor; mutarea registrului nu certifică implementarea.
 

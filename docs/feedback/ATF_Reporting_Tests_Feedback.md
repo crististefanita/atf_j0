@@ -115,14 +115,14 @@ J2 adoptă apoi noul candidat și extinde matricea proprie de 18 rapoarte SQL cu
 <a id="intrări-concrete-pentru-componentele-j0--2026-11-01"></a>
 ### Intrări concrete pentru componentele J0 — 2026-11-01
 
-- [Matricea J2](../../../atf_j2/docs/ATF_SQL_Live_Verification.md) furnizează acum query/binds/schema/rows typed și erori controlate, în 12 Extent/fallback. Adăugați fixture-uri neutre permanente pentru fiecare familie de mai sus, fără copierea H2 sau a suitei JDBC în Reporting Tests.
+- [Matricea J2](https://github.com/crististefanita/atf_j2/blob/HEAD/docs/ATF_SQL_Live_Verification.md) furnizează acum query/binds/schema/rows typed și erori controlate, în 12 Extent/fallback. Adăugați fixture-uri neutre permanente pentru fiecare familie de mai sus, fără copierea H2 sau a suitei JDBC în Reporting Tests.
 - Păstrați negativele query absent, ID diferit de metadata, DECIMAL rotunjit și rând/coloană duplicată pierdută. Adăugați cross-owner cu titluri identice și SQL-only fără HTTP; refuzul legacy J10 este istoric; J12 oferă profilul explicit, iar acceptoarele J2 îl adoptă separat.
 - Verificați separat captura parțială JDBC, tăierea HTML configurată și testul PASS care verifică o eroare SQL așteptată. Un error field nu impune FAIL asupra comparațiilor care au trecut; eroarea neconsumată păstrează FAIL și cauza originală.
 
 ## Current regression boundaries
 
 - SQL-STEPS-116, matricea de mutații per dovadă și geometria RESULT au criterii de închidere distincte.
-- [Test Kit](ATF_Common_Test_Support_Feedback.md) deține capturarea și proiecția comparațiilor. [Coordonarea J1](../../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md) păstrează integrarea în consumeri.
+- [Test Kit](ATF_Common_Test_Support_Feedback.md) deține capturarea și proiecția comparațiilor. [Coordonarea J1](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/ATF_Common_Test_Support_Feedback.md) păstrează integrarea în consumeri.
 - [Capturarea aserțiunilor UI lungi](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) rămâne separat de contractele ACTION/OBSERVE și TEXT literal deja livrate.
 
 Probele permanente pentru inspector, timing, PNG, navigare și pornirea la rece sunt documentate la [ownerul testelor](../../atf-reporting-tests/README.md), în [contractul de audit](../ATF_Inline_Audit_Contract.md#acceptanță-permanentă) și în [contractul de navigare](../ATF_Large_Report_Navigation.md#permanent-verification).

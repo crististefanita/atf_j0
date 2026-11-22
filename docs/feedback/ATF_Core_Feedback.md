@@ -32,5 +32,5 @@ Anularea unei operații deja expediate nu confirmă rollback și nu autorizează
 
 - Trigger, coordonată/hash, reproducere minimă, așteptat/observat și criteriu negativ; o problemă a unui transport nu se generalizează la celălalt.
 - [Reporting](ATF_Reporting_Feedback.md) deține rendererul; [Reporting Tests](ATF_Reporting_Tests_Feedback.md) deține oracolele neutre de randare.
-- [Registrul J1](../../../atf_j1/docs/feedback/README.md) coordonează criteriile comune nonbibliotecă; consumerii păstrează acceptanța domeniului.
+- [Registrul J1](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/README.md) coordonează criteriile comune nonbibliotecă; consumerii păstrează acceptanța domeniului.
 - [Baseline-ul tehnic](../ATF_Test_Changes_Baseline.md) păstrează controalele Git separat de backlog.

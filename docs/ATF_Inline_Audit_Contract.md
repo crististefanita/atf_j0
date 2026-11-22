@@ -111,7 +111,7 @@ Capturile doar de observație folosesc ruta uiValidationAsMedia explicită. Matr
 | Renderere | Extent/fallback preserve semantic inputs, order, result and capture identity |
 | Bibliotecă | Păstrează ADB, execuția browser și oracolele aplicației în afara runtime-ului Reporting; verifică separat JAR fizic |
 
-Captura întregului context și geometria web la 70% aparțin [J1 UI contract](../../atf_j1/atf-ui/README.md#full-context-screenshots). [Full-display Android capture](../../atf_j4/docs/reporting/ATF_Android.md#capture-and-ownership) își păstrează acceptanța independentă pe dispozitiv.
+Captura întregului context și geometria web la 70% aparțin [J1 UI contract](https://github.com/crististefanita/atf_j1/blob/HEAD/atf-ui/README.md#full-context-screenshots). [Full-display Android capture](https://github.com/crististefanita/whist/blob/HEAD/docs/reporting/ATF_Android.md#capture-and-ownership) își păstrează acceptanța independentă pe dispozitiv.
 
 ## Composite evidence acceptance
 

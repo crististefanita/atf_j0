@@ -2,7 +2,7 @@
 
 ## Pe scurt
 
-J0 deține documentația bibliotecilor sursă și a regresiilor Reporting. [Criteriile comune ale consumerilor](../../../atf_j1/docs/feedback/ATF_Documentation_Feedback.md) rămân în J1; transferul unei constatări nu demonstrează implementarea.
+J0 deține documentația bibliotecilor sursă și a regresiilor Reporting. [Criteriile comune ale consumerilor](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/ATF_Documentation_Feedback.md) rămân în J1; transferul unei constatări nu demonstrează implementarea.
 
 <a id="doc-reporting-prose--remaining-detailed-section-review"></a>
 <a id="doc-reporting-prose--revizia-rămasă-a-secțiunilor-detaliate"></a>

@@ -10,7 +10,7 @@ Registrul urmărește probele neutre ale bibliotecii Reporting și acceptanța l
 <a id="decizie-și-boundary"></a>
 ## Decizie și boundary
 
-J0 deține publicarea neutră și testele permanente sursă/JAR. J1 coordonează consumerii; J4 deține ADB, captura integrală a display-ului și oracolele aplicației. [proveniența curentă a bibliotecii](../../../atf_j1/library-provenance.json) este separat de martorii J10/J13 înghețați și de o nouă execuție pe dispozitiv.
+J0 deține publicarea neutră și testele permanente sursă/JAR. J1 coordonează consumerii; J4 deține ADB, captura integrală a display-ului și oracolele aplicației. [proveniența curentă a bibliotecii](https://github.com/crististefanita/atf_j1/blob/HEAD/library-provenance.json) este separat de martorii J10/J13 înghețați și de o nouă execuție pe dispozitiv.
 
 | Current residual | Owner și limita închiderii |
 |---|---|
@@ -35,9 +35,9 @@ J0 deține publicarea neutră și testele permanente sursă/JAR. J1 coordonează
 - [ ] Păstrați regresie neutră în Reporting Tests: numai ultimul scalar eliminat, sibling omonim, verdict FAIL după 240, Unicode și redacție, Extent/fallback sursă/JAR.
 - [ ] Verificați Escape/colapsare, revenire la aceeași comparație și ultimul rând; un tabel scurt cu ellipsis singur nu reconstruiește dovada.
 
-J4 păstrează temporar corpurile TEXT native cu body limit explicit pentru valorile complete. Adopția și proba aplicației rămân în [handoff-ul consumerului](../../../atf_j1/docs/feedback/ATF_Consumer_Reporting_Handoff_Feedback.md), fără assertions PASS artificiale.
+J4 păstrează temporar corpurile TEXT native cu body limit explicit pentru valorile complete. Adopția și proba aplicației rămân în [handoff-ul consumerului](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/ATF_Consumer_Reporting_Handoff_Feedback.md), fără assertions PASS artificiale.
 
-J4 deține calificarea aplicației și a accesului ADB pe dispozitiv; probele neutre Reporting nu folosesc dispozitivul. Consultați [contractul curent de captură și ownership](../../../atf_j4/docs/reporting/ATF_Android.md#capture-and-ownership).
+J4 deține calificarea aplicației și a accesului ADB pe dispozitiv; probele neutre Reporting nu folosesc dispozitivul. Consultați [contractul curent de captură și ownership](https://github.com/crististefanita/whist/blob/HEAD/docs/reporting/ATF_Android.md#capture-and-ownership).
 
 <a id="observation-routes-and-large-publication-follow-up"></a>
 <a id="rute-de-observație-și-urmărirea-publicațiilor-mari"></a>
@@ -45,7 +45,7 @@ J4 deține calificarea aplicației și a accesului ADB pe dispozitiv; probele ne
 
 - [ ] Caracterizați THEN fără comparații față de media explicită, inclusiv INDIVIDUAL/UNIFIED_FLOW și intrări numai OBSERVE-. Documentați comportamentul intenționat bazat doar pe rezultat sau refuzul capturilor nesusținute; nu recomandați aserțiuni inventate.
 
-[J4 audit contract](../../../atf_j4/docs/reporting/ATF_Audit.md) deține calificarea de volum specifică producătorului și acceptanța HTML detașată. Rezultatul vechi de memorie J13 se aplică numai fixture-ului limitat; nu promite capacitate nelimitată.
+[J4 audit contract](https://github.com/crististefanita/whist/blob/HEAD/docs/reporting/ATF_Audit.md) deține calificarea de volum specifică producătorului și acceptanța HTML detașată. Rezultatul vechi de memorie J13 se aplică numai fixture-ului limitat; nu promite capacitate nelimitată.
 
 <details>
 <summary><strong>Contracte încheiate și rute istorice de predare</strong></summary>
@@ -66,7 +66,7 @@ J4 deține calificarea aplicației și a accesului ADB pe dispozitiv; probele ne
 <a id="restanță-generică-și-handoff"></a>
 ## Restanță generică și handoff
 
-Restanțele J0 active sunt în tabelul curent de mai sus. [coordonarea J1/J4](../../../atf_j1/docs/feedback/ATF_Consumer_Reporting_Handoff_Feedback.md) deține intrările dispozitivului și aserțiunile aplicației.
+Restanțele J0 active sunt în tabelul curent de mai sus. [coordonarea J1/J4](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/ATF_Consumer_Reporting_Handoff_Feedback.md) deține intrările dispozitivului și aserțiunile aplicației.
 
 <a id="report-publication-memory-131---full-copies-of-the-publication"></a>
 <a id="report-publication-memory-131--copii-integrale-la-publicare"></a>
@@ -92,7 +92,7 @@ Martorul J13 înghețat pentru cadrul lipsă este istoric. [inline audit contrac
 
 `RecordedAssertions` din Kit acceptă `AssertionValueDisplay` cu observer opțional pentru valorile `Projection`. Observerul primește textul redactat complet, iar rândurile păstrează preview-uri limitate. Rămâne conectarea capturii la Reporting și definirea retenției când `ValidationTable` sau adaptoarele furnizează valori deja limitate.
 
-- [ ] Coordonați captura cu [J0 Test Kit owner](ATF_Common_Test_Support_Feedback.md#retenția-comparațiilor--coordonare-cu-reporting) și [J1 integration](../../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md). Păstrați preview-ul 240, evaluați comparația originală o singură dată și redactați înaintea afișării.
+- [ ] Coordonați captura cu [J0 Test Kit owner](ATF_Common_Test_Support_Feedback.md#retenția-comparațiilor--coordonare-cu-reporting) și [J1 integration](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/ATF_Common_Test_Support_Feedback.md). Păstrați preview-ul 240, evaluați comparația originală o singură dată și redactați înaintea afișării.
 - [ ] Adăugați un martor neutru de compoziție cu primul mismatch după preview și un negativ independent care elimină numai sufixul păstrat; disclosure-ul ACTION/OBSERVE integral nu închide singur captura aserțiunilor.
 
 <a id="report-setup-media-completeness---sample-set-only-with-average"></a>

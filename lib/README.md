@@ -83,3 +83,5 @@ flowchart LR
 | Raportare | Preview implicit 240, assert-uri auditabile și colapsabile, cadre complete; proba mock/componentă nu certifică un device, broker sau ASR real. |
 
 În J0, acest director este registrul de mentenanță; nu înlocuiește modulele sursă și nu găzduiește output-uri de build. [Contractul tehnic](../docs/ATF_Platform_Libraries.md) și [sincronizarea workspace-urilor](../docs/ATF_Workspace_Synchronization.md) detaliază publicarea.
+
+Punctele de intrare ale proiectelor sunt reunite în [indexul workspace-urilor](../docs/workspaces/README.md).

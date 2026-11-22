@@ -2,30 +2,15 @@
 <a id="atf--platformă-modulară-pentru-testare-și-rezultate-verificabile"></a>
 # ATF — platformă modulară pentru testare și rezultate verificabile
 
-[Mentenanța bibliotecilor](lib/README.md) fixează J0 ca owner al codului, testelor, împachetării și feedback-ului; J1–J7 reutilizează livrările verificate.
-
-Scenariile AutoEx/Shop au owner în J1; copiile din acest reactor verifică consumul Reporting sursă. J2 pregătește separat testarea cozilor și mesajelor.
+ATF Java este un reactor Maven pentru execuție API deterministă, validare semantică, rapoarte Extent și audit în browser. Conține sursa a cinci biblioteci reutilizabile, fixture-uri de integrare și teste de guvernanță.
 
 `API determinist → validare semantică → raport Extent → audit UI`
 
-<a id="atf-java--executive-overview"></a>
-<a id="atf-java--prezentare-executivă"></a>
-## ATF Java — prezentare executivă
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
+## Pe scurt
 
-| Workspace | Rol și punct de intrare |
-|---|---|
-| J0 | 12 module sursă; owner pentru Core, Reporting, Console, Mock și Test Kit; [atlasul sursei](docs/ATF_Context_Atlas.md) |
-| J1 | 6 module; consumatorul AutoEx/Shop și al bibliotecilor comune; [documentația consumerului](../atf_j1/docs/README.md) |
-| J2 · WIP | 5 module; teste de cozi și mesaje Kafka/Eventuate, fără UI/Debug UI; [atlasul WIP](../atf_j2/docs/ATF_Context_Atlas.md) |
-| J3 | 4 module; transcriere audio în engleză; [arhitectura speech](../atf_j3/docs/ATF_Speech_Architecture.md) |
-| J4 | 3 module; Whist Lab și testare Android; [documentația consumerului](../atf_j4/docs/README.md) |
-| J5 | 2 module; Rentz Lab și teste offline; [README-ul proiectului](../atf_j5/README.md) |
-| J6 | 5 module; Hold’em Lab; [README-ul proiectului](../atf_j6/README.md) |
-| J7 | 1 modul Maven; Chess Lab și consumul bibliotecilor ATF; [README-ul proiectului](../atf_j7/README.md) |
-
-Rolul proiectului și rezultatul verificat sunt distincte: un build sau un MOCK verde nu certifică serviciul extern, brokerul ori întregul ATF.
-
-ATF Java este platforma care leagă execuția deterministă a testelor API de validarea semantică, publicarea artefactului Extent și auditul UI al rezultatului. Pentru orientare rapidă, modulele sunt grupate după întrebarea la care răspund, nu enumerate ca un inventar Maven:
+Cele 12 module separă contractele reutilizabile, execuția, verdictele, raportarea, integrarea consumerilor și guvernanța:
 
 | Zonă | Module live | Responsabilitate | Întrebarea cititorului |
 |---|---|---|---|
@@ -432,13 +417,13 @@ Root README-ul descrie sistemul de sus în jos. Nu păstrează lifecycle-ul inte
 <a id="core-ca-bibliotecă--owner-și-deployment"></a>
 ## Core ca bibliotecă — owner și deployment
 
-J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module. [Contractul Core](docs/ATF_Core_Consumer.md) separă sursa și publicarea de acceptanța independentă a fiecărui consumator J1–J7. Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
+Sursa Core și testele native rămân în acest reactor cu 12 module. [Contractul bibliotecii](docs/ATF_Core_Consumer.md) separă ownership-ul sursei și publicarea de acceptanța independentă a consumerilor.
 
 <a id="reporting-library-and-audit-contracts"></a>
 <a id="biblioteca-reporting-și-contractele-de-audit"></a>
 ## Biblioteca Reporting și contractele de audit
 
-[Consumer provenance](../atf_j1/library-provenance.json) identifică coordonatele Core și Reporting distribuite, hash-urile și snapshot-ul sursei. Fiecare consumer își înregistrează independent acceptanța. J0 deține sursa Reporting și regresiile permanente cu mock, contract și browser.
+Acest proiect deține sursa Reporting și regresiile permanente mock, de contract și de browser. Contractele de mai jos descriu ownership-ul dovezilor și comportamentul artifactului.
 
 | Subiect | Current owner contract |
 |---|---|
@@ -448,3 +433,11 @@ J0 păstrează sursa și testele native Core; reactorul sursă are în continuar
 | nota curentă de verificare lângă pachetul producătorului | [Reținerea probelor](docs/ATF_Workspace_Synchronization.md#release-evidence-retention) |
 
 Acceptanța publicării/randării bibliotecii este separată de o execuție business, device, broker sau ASR acustică nouă. Notele de release nu se stochează în documentația proiectului sau `lib` al consumerului.
+
+<a id="atf-java--executive-overview"></a>
+<a id="atf-java--prezentare-executivă"></a>
+<a id="workspace-connections"></a>
+<a id="legături-între-workspace-uri"></a>
+## Legături între workspace-uri
+
+[Indexul workspace-urilor](docs/workspaces/README.md) trimite producătorii și consumerii bibliotecilor la propria documentație; [mentenanța bibliotecilor](lib/README.md) descrie limita comună de publicare.

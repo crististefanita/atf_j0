@@ -7,7 +7,7 @@
 <a id="pe-scurt"></a>
 ## Pe scurt
 
-Registrul J0 urmărește lacunele Core, Reporting, Console, Mock și Test Kit, inclusiv regresiile generice Reporting. [Atlasul](../ATF_Context_Atlas.md) indică ownerii contractelor livrate, iar [registrul J1](../../../atf_j1/docs/feedback/README.md) urmărește cerințele comune din afara bibliotecilor și scenariile AutoEx/Shop.
+Registrul J0 urmărește lacunele Core, Reporting, Console, Mock și Test Kit, inclusiv regresiile generice Reporting. [Atlasul](../ATF_Context_Atlas.md) indică ownerii contractelor livrate, iar [registrul J1](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/README.md) urmărește cerințele comune din afara bibliotecilor și scenariile AutoEx/Shop.
 
 [Workspace-urile](../ATF_Workspace_Synchronization.md) separă J0 sursă, J1 consumer web și J2 WIP pentru Kafka/mesagerie cu Setup în Podman. Un rezultat sau o prioritate nu se transferă automat între ele.
 
@@ -65,7 +65,7 @@ Nu introduceți funcționalitate doar pentru a atinge o notă; prioritizați cor
 <a id="cerințe-transferate-în-j1"></a>
 ## Cerințe transferate în J1
 
-[Registrul J1](../../../atf_j1/docs/feedback/README.md) deține guvernanța comună, designul AI și coordonarea consumerilor. Test Kit are owner în J0 și este consumat ca JAR în J1–J7, fără surse paralele. ID-urile și probele sunt păstrate; transferul nu închide implementarea.
+[Registrul J1](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/README.md) deține guvernanța comună, designul AI și coordonarea consumerilor. Test Kit are owner în J0 și este consumat ca JAR în J1–J7, fără surse paralele. ID-urile și probele sunt păstrate; transferul nu închide implementarea.
 
 <a id="preservation-promotion-and-verification"></a>
 <a id="păstrare-promovare-și-verificare"></a>

@@ -95,8 +95,8 @@ Muchiile sunt pași de lectură și întreținere, nu dependențe Maven. Atlasul
 |---|---|---|
 | ce reactor folosesc? | [workspace-uri](ATF_Workspace_Synchronization.md), apoi POM-ul și README-ul țintei | J0 deține sursa; rolurile și modulele J1–J7 se citesc din proiectul live, nu se deduc din directoare absente |
 | schimbare Reporting? | [atlasul sursei J0](../atf-reporting/src/main/java/atf/reporting/README.md) și [regresiile permanente](../atf-reporting-tests/README.md) | fiecare consumator J1–J7 are acceptanță proprie; documentația sursei nu certifică automat JAR-ul consumat |
-| schimbare de aplicație? | [Shop](../../atf_j1/atf-test-practice-shop/README.md) sau [AutoEx](../../atf_j1/atf-test-auto-ex/README.md) | expected, captură și selecție business rămân în consumer |
-| schimbare Kafka/Podman? | [atlasul J2](../../atf_j2/docs/ATF_Context_Atlas.md), apoi Setup și configurația | trei componente MOCK și scripturi existente; clientul Java/brokerul real sunt WIP |
+| schimbare de aplicație? | [Shop](https://github.com/crististefanita/atf_j1/blob/HEAD/atf-test-practice-shop/README.md) sau [AutoEx](https://github.com/crististefanita/atf_j1/blob/HEAD/atf-test-auto-ex/README.md) | expected, captură și selecție business rămân în consumer |
+| schimbare Kafka/Podman? | [atlasul J2](https://github.com/crististefanita/atf_j2/blob/HEAD/docs/ATF_Context_Atlas.md), apoi Setup și configurația | trei componente MOCK și scripturi existente; clientul Java/brokerul real sunt WIP |
 
 1. Citește harta pachetului și secțiunea relevantă din README-ul modulului.
    Înaintea refactorizării, reconciliază feedback-ul ownerului cu sursa live și precizează proba de închidere; actualizează constatarea pe parcursul incrementului.

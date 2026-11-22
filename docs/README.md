@@ -18,10 +18,10 @@ Documentele descriu framework-ul și ownerii lui, nu un run sau un artifact part
 
 | Pentru | Citește întâi |
 |---|---|
-| orientare între proiecte | [workspace-uri](ATF_Workspace_Synchronization.md), apoi [atlasul de context](ATF_Context_Atlas.md) |
+| orientare între proiecte | [README-ul proiectului](../README.md), apoi [indexul workspace-urilor](workspaces/README.md) |
 | contract și owner | [arhitectură](ATF_Architecture.md), POM și README-ul modulului |
 | problemă încă deschisă | [registrul feedback-urilor](feedback/README.md); contractele livrate rămân la owner |
-| Kafka/Podman în J2 | [atlasul WIP](../../atf_j2/docs/ATF_Context_Atlas.md); nu este o extensie web a J1 |
+| Kafka/Podman în J2 | [atlasul WIP](https://github.com/crististefanita/atf_j2/blob/HEAD/docs/ATF_Context_Atlas.md); nu este o extensie web a J1 |
 
 J0 deține implementarea și regresiile Reporting; J1 deține scenariile AutoEx/Shop. J2 a început bootstrap-ul pentru cozi și mesaje; [harta workspace-urilor](ATF_Workspace_Synchronization.md) separă infrastructura copiată de contractele și acceptanța mesageriei.
 

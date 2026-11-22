@@ -180,13 +180,13 @@ Build-ul și promovarea urmează [procesul izolat](ATF_Build_And_Execution_Safet
 
 Domeniile consumerilor sunt distincte: J1 deține scenariile web AutoEx/Shop, iar J2 este destinat cozilor și mesajelor. Acceptanța MOCK verifică integrarea ATF și Reporting; scenariile de broker au contracte și probe proprii.
 
-Acceptanța J2 Eventuate și limita hostului sunt în [dovada consumerului](../../atf_j2/docs/ATF_J2_Verification.md); instalarea prerequisites nu certifică engine ori broker.
+Acceptanța J2 Eventuate și limita hostului sunt în [dovada consumerului](https://github.com/crististefanita/atf_j2/blob/HEAD/docs/ATF_J2_Verification.md); instalarea prerequisites nu certifică engine ori broker.
 
 <a id="j2-without-browser-modules---distinct-perimeter"></a>
 <a id="j2-fără-module-browser--perimetru-distinct"></a>
 ## J2 fără module browser — perimetru distinct
 
-J2 declară cinci module sursă: platforma, SQL, Setup, Eventuate și guvernanța; Core și Reporting sunt biblioteci externe. [Scope-ul J2](../../atf_j2/docs/ATF_J2_Scope.md) delimitează contractul fără UI/Debug sau Playwright; retragerea este implementată în checkout-ul J2.
+J2 declară cinci module sursă: platforma, SQL, Setup, Eventuate și guvernanța; Core și Reporting sunt biblioteci externe. [Scope-ul J2](https://github.com/crististefanita/atf_j2/blob/HEAD/docs/ATF_J2_Scope.md) delimitează contractul fără UI/Debug sau Playwright; retragerea este implementată în checkout-ul J2.
 
 Nu restaurați modulele browser prin sync. Atlasele, README-urile și feedback-urile rămân adaptate domeniului fiecărui deployment; contractele comune se reconciliază selectiv, iar backlog-ul Reporting și cel web rămân la ownerii J0/J1.
 

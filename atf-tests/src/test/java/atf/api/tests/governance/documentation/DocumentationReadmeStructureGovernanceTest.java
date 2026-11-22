@@ -1,6 +1,7 @@
 package atf.api.tests.governance.documentation;
 
 import atf.api.tests.governance.documentation.links.DocumentationLocalLinks;
+import atf.api.tests.governance.documentation.links.MarkdownAnchorIndex;
 
 import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import java.util.regex.Pattern;
 
 import static atf.api.tests.governance.AtfGovernanceTestSupport.locateProjectRoot;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Checks the minimum readable shape shared by every owner README. */
 @AtfComponentTest
@@ -25,8 +27,11 @@ public class DocumentationReadmeStructureGovernanceTest {
     private static final Pattern H1 = Pattern.compile("^#\\s+[^#].*$");
     private static final Pattern H2_ORIENTATION = Pattern.compile("^##\\s+(?:Overview|At a glance|Pe scurt)\\b.*$",
             Pattern.CASE_INSENSITIVE);
-    private static final Pattern ROOT_H2_ORIENTATION = Pattern.compile(
+    private static final String WORKSPACE_INDEX = "docs/workspaces/README.md";
+    private static final Pattern EXECUTIVE_OVERVIEW = Pattern.compile(
             "^##\\s+ATF Java\\s+—\\s+(?:prezentare executivă|executive overview)\\s*$", Pattern.CASE_INSENSITIVE);
+    private static final Pattern WORKSPACE_ROW = Pattern.compile("^\\|\\s*J[0-7](?:\\s|\\s*·).*");
+    private static final Pattern INDEX_LINK = Pattern.compile("\\[[^\\]]+]\\(" + Pattern.quote(WORKSPACE_INDEX) + "\\)");
     private static final Pattern DETAILS_OPEN = Pattern.compile("^\\s*<details(?:\\s|>)",
             Pattern.CASE_INSENSITIVE);
     private static final Pattern DETAILS_CLOSE = Pattern.compile("^\\s*</details>\\s*$",
@@ -46,32 +51,82 @@ public class DocumentationReadmeStructureGovernanceTest {
     }
 
     @Test
-    void liveRootOverviewRoutesEveryWorkspacePromisedByTheLibraryIndex() throws Exception {
+    void dedicatedIndexRoutesEveryWorkspacePromisedByTheLibraryIndex() throws Exception {
         Path root = locateProjectRoot();
-        List<String> lines = Files.readAllLines(root.resolve("README.md"));
+        List<String> lines = Files.readAllLines(root.resolve(WORKSPACE_INDEX));
         for (int workspace = 0; workspace <= 7; workspace++) {
             String rowPrefix = "| J" + workspace;
             assertEquals(1, lines.stream().filter(line -> line.startsWith(rowPrefix + " |")
                             || line.startsWith(rowPrefix + " ·")).count(),
-                    "The root workspace overview must have one row for J" + workspace);
+                    "The dedicated workspace index must have one row for J" + workspace);
         }
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"prezentare executivă", "executive overview"})
-    void rootReadmeRequiresItsOwnExecutiveOrientation(String heading, @TempDir Path workspace) throws Exception {
+    @ValueSource(strings = {"At a glance", "Overview", "Pe scurt"})
+    void rootReadmeRequiresLocalOrientationAndAFinalIndexLink(String heading, @TempDir Path workspace) throws Exception {
         Path root = Files.createDirectories(workspace.resolve("project"));
         Path readme = root.resolve("README.md");
-        Files.writeString(readme, "# ATF\n\n## Module map\n\nDetails.\n");
+        writeRoot(root, "## Module map\n\nDetails.");
         var violations = new ArrayList<DocumentationGovernanceSupport.Violation>();
         validate(readme, root, violations);
         assertEquals(List.of("DOC-README-OVERALL"), violations.stream()
                 .map(DocumentationGovernanceSupport.Violation::code).toList());
 
-        Files.writeString(readme, "# ATF\n\n## ATF Java — " + heading + "\n\nPurpose.\n");
+        writeRoot(root, "## " + heading + "\n\nPurpose.");
         violations.clear();
         validate(readme, root, violations);
         DocumentationGovernanceSupport.assertNoViolations("Root README orientation", violations);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"## ATF Java — executive overview", "## ATF Java — prezentare executivă",
+            "| J1 | consumer |"})
+    void rejectsWorkspaceCatalogContentInTheProjectOverview(String catalog, @TempDir Path root) throws Exception {
+        Path readme = writeRoot(root, "## At a glance\n\nPurpose.\n\n" + catalog);
+        var violations = new ArrayList<DocumentationGovernanceSupport.Violation>();
+        validate(readme, root, violations);
+        assertTrue(violations.stream().anyMatch(item -> item.code().equals("DOC-README-WORKSPACE-CATALOG")));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"early", "duplicate"})
+    void indexNavigationMustBeUniqueAndInTheFinalSection(String mutation, @TempDir Path root) throws Exception {
+        Path readme = writeRoot(root, "## At a glance\n\nPurpose.");
+        String source = Files.readString(readme);
+        source = mutation.equals("early") ? source + "\n## Later section\n\nDetails.\n"
+                : source + "\n[Duplicate](" + WORKSPACE_INDEX + ")\n";
+        Files.writeString(readme, source);
+        var violations = new ArrayList<DocumentationGovernanceSupport.Violation>();
+        validate(readme, root, violations);
+        assertTrue(violations.stream().anyMatch(item -> item.code().equals("DOC-README-WORKSPACE-ROUTE")));
+    }
+
+    @Test
+    void rootOrientationPrecedesTheModuleDetails(@TempDir Path root) throws Exception {
+        Path readme = writeRoot(root, "## Modules\n\nDetails.\n\n## At a glance\n\nPurpose.");
+        var violations = new ArrayList<DocumentationGovernanceSupport.Violation>();
+        validate(readme, root, violations);
+        assertTrue(violations.stream().anyMatch(item -> item.code().equals("DOC-README-ORIENTATION-ORDER")));
+    }
+
+    @Test
+    void fencedCatalogExamplesDoNotBecomeRootContent(@TempDir Path root) throws Exception {
+        Path readme = writeRoot(root, "## At a glance\n\nPurpose.\n\n~~~markdown\n"
+                + "## ATF Java — executive overview\n| J1 | consumer |\n[Index](" + WORKSPACE_INDEX + ")\n~~~");
+        var violations = new ArrayList<DocumentationGovernanceSupport.Violation>();
+        validate(readme, root, violations);
+        DocumentationGovernanceSupport.assertNoViolations("Literal catalog example", violations);
+    }
+
+    private static Path writeRoot(Path root, String content) throws Exception {
+        Path index = root.resolve(WORKSPACE_INDEX);
+        Files.createDirectories(index.getParent());
+        Files.writeString(index, "# Workspace index\n\n## At a glance\n\nProject routes.\n");
+        Path readme = root.resolve("README.md");
+        Files.writeString(readme, "# ATF\n\n" + content
+                + "\n\n## Workspace connections\n\n[Index](" + WORKSPACE_INDEX + ")\n");
+        return readme;
     }
 
     @ParameterizedTest
@@ -99,7 +154,11 @@ public class DocumentationReadmeStructureGovernanceTest {
                          List<DocumentationGovernanceSupport.Violation> violations) {
         try {
             List<String> lines = Files.readAllLines(path);
-            inspectTitleAndOrientation(path, root, lines, violations);
+            List<String> visible = MarkdownAnchorIndex.withoutFences(lines);
+            inspectTitleAndOrientation(path, root, visible, violations);
+            if (path.toAbsolutePath().normalize().equals(root.resolve("README.md").toAbsolutePath().normalize())) {
+                inspectRootNavigation(path, root, visible, violations);
+            }
             inspectDetails(path, root, lines, violations);
             inspectLocalLinks(path, root, lines, violations);
         } catch (Exception error) {
@@ -121,21 +180,41 @@ public class DocumentationReadmeStructureGovernanceTest {
                     "an owner README has one stable title before its sections",
                     "keep one `# ...` title and convert additional top-level titles to `## ...`"));
         }
-        boolean rootReadme = path.toAbsolutePath().normalize()
-                .equals(root.resolve("README.md").toAbsolutePath().normalize());
-        Pattern orientation = rootReadme ? ROOT_H2_ORIENTATION : H2_ORIENTATION;
-        if (matchingLines(lines, orientation).isEmpty()) {
+        if (matchingLines(lines, H2_ORIENTATION).isEmpty()) {
             violations.add(DocumentationGovernanceSupport.violation(
                     "DOC-README-OVERALL", root, path, 1,
-                    rootReadme
-                            ? "README-ul rădăcină nu are prezentarea executivă a proiectului"
-                            : "README-ul nu are secțiunea de orientare `## Overview` sau `## Pe scurt`",
-                    rootReadme
-                            ? "pagina rădăcină orientează cititorul asupra proiectului înaintea detaliilor"
-                            : "README-urile modulelor și ale documentației prezintă scopul, proprietarul și limitele înaintea detaliilor",
-                    rootReadme
-                            ? "adaugă `## ATF Java — prezentare executivă` înaintea detaliilor"
-                            : "adaugă `## Overview` în engleză sau `## Pe scurt` în română înaintea detaliilor, conform limbii proiectului"));
+                    "README has no local project orientation",
+                    "owner READMEs explain purpose, ownership and limits before details",
+                    "add `## At a glance` in English or `## Pe scurt` in Romanian before details"));
+        }
+    }
+
+    private static void inspectRootNavigation(Path path, Path root, List<String> lines,
+                                               List<DocumentationGovernanceSupport.Violation> violations) {
+        List<Integer> orientation = matchingLines(lines, H2_ORIENTATION);
+        List<Integer> sections = matchingLines(lines, Pattern.compile("^##\\s+.+"));
+        if (!orientation.isEmpty() && !sections.isEmpty() && !orientation.getFirst().equals(sections.getFirst())) {
+            violations.add(DocumentationGovernanceSupport.violation("DOC-README-ORIENTATION-ORDER", root, path,
+                    orientation.getFirst(), "local orientation follows other sections",
+                    "the root introduces this project before its details", "move local orientation to the first level-two section"));
+        }
+        var links = new ArrayList<Integer>();
+        for (int index = 0; index < lines.size(); index++) {
+            String line = lines.get(index);
+            if (EXECUTIVE_OVERVIEW.matcher(line).matches() || WORKSPACE_ROW.matcher(line).matches()) {
+                violations.add(DocumentationGovernanceSupport.violation("DOC-README-WORKSPACE-CATALOG", root, path,
+                        index + 1, "cross-workspace overview in the project README",
+                        "the root explains its own project; workspace routes have a dedicated owner",
+                        "move the catalog to " + WORKSPACE_INDEX + " and retain its final navigation link"));
+            }
+            var matcher = INDEX_LINK.matcher(line);
+            while (matcher.find()) links.add(index + 1);
+        }
+        if (links.size() != 1 || sections.isEmpty() || links.getFirst() <= sections.getLast()) {
+            violations.add(DocumentationGovernanceSupport.violation("DOC-README-WORKSPACE-ROUTE", root, path,
+                    links.isEmpty() ? 1 : links.getFirst(), "workspace index is missing, duplicated or outside the final section",
+                    "one final root link routes cross-workspace readers to the dedicated index",
+                    "link once to " + WORKSPACE_INDEX + " in the final level-two section"));
         }
     }
 

@@ -196,7 +196,9 @@ Ordinea nu este o explicație despre „cum să citești” proiectul; este o re
 5. **Aprofundare** — contracte, excepții și referințe, colapsate sau legate;
 6. **Criteriu de verificare** — test, guard sau procedură reproductibilă.
 
-Reguli de spațiere și digestie:
+README-ul rădăcină prezintă întâi scopul, modulele și fluxul dovezilor acestui proiect. Catalogul între workspace-uri aparține [indexului dedicat](workspaces/README.md), accesibil printr-un singur link în ultima secțiune a rădăcinii; nu înlocuiește orientarea locală.
+
+Reguli de spațiere și lizibilitate:
 
 - nu așeza două tabele principale unul după altul;
 - după un tabel de orientare urmează o schemă, o explicație scurtă sau o
@@ -394,6 +396,8 @@ Root-ul trebuie să fie self-explanatory ca overview al produsului, dar nu trebu
 - artifacte generate: evidence temporară, niciodată navigație normativă.
 
 Linkurile din root trebuie să răspundă natural la „unde aprofundez?” și să nu introducă o a doua versiune a aceleiași hărți. O referință bună are o etichetă semantică și o întrebare clară, nu doar un path.
+
+Folosește linkuri relative în interiorul repository-ului și numele GitHub publicate între repository-uri. Guard-ul rutelor deținute în sursă verifică acele căi și fragmente față de checkout-urile adiacente; accesibilitatea remote se verifică separat. Păstrează ancore explicite comune când traduci titlurile secțiunilor.
 
 <a id="naming-links-and-durability"></a>
 <a id="denumiri-linkuri-și-durabilitate"></a>

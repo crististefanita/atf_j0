@@ -4744,3 +4744,23 @@ testChanges:
 ```
 
 </details>
+
+<details>
+<summary>Control pentru prezentarea locală și navigarea între workspace-uri</summary>
+
+```yaml
+testChanges:
+  - id: J0-DOC-WORKSPACE-INDEX-20261122
+    status: VERIFIED
+    base: ee1970e12da64ee5535a6c319fc5623aac231f42
+    expires: 2026-12-22
+    reason: "Mută orientarea între workspace-uri în README-ul dedicat, cere orientare locală în rădăcină și un singur link final și păstrează verificarea offline a căilor și fragmentelor pentru rutele GitHub deținute."
+    proof: mvn -B -ntp -pl atf-tests -am "-Dtest=AtfWorkspaceMaintenanceSuite" "-Datf.maintenance.j0=<source-workspace>" "-Datf.maintenance.j1=<consumer-workspace>" "-Datf.governance.testChanges.baseRef=ee1970e12da64ee5535a6c319fc5623aac231f42" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationReadmeStructureGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationTargetGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/links/DocumentationLinkGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/links/WorkspaceDocumentationLinks.java
+```
+
+</details>
