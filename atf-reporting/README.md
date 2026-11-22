@@ -10,38 +10,39 @@ read application mocks and fixtures.
 <a id="pe-scurt"></a>
 ## At a glance
 
-- **Binary adoption:** [minimal consumer](docs/README.md#minimal-binary-consumer) uses FALS JAR and its declared dependencies during operation without Core, Kit or manufacturer's source directories.
+- **Binary adoption:** the [minimal consumer](docs/README.md#minimal-binary-consumer) runs against the physical JAR and its declared runtime dependencies, without Core, Kit or producer source directories.
 
 **Quick links:** [JAR adoption](#consumarea-bibliotecii-ca-jar) · [Tree and ownership](#contractul-raportului) · [Assertions and budget](#proiecția-sigură-a-aserțiunilor) · [Timing](#timing-e2e-la-ownerul-runtime) · [Tables](#lizibilitatea-dovezilor-în-panouri-înguste) · [Prohibitions and limits](#verificare-rapidă)
 
-- **production** - contracts typed, semantic models, renderer, assets and
-  publication; zero dependencies to ATF modules;
-- **tests** - check the standalone boundary and local contracts without any
-  mock, Playwright or application fixtures;
+- **production** — typed contracts, semantic models, renderers, assets and
+  publication, without dependencies on other ATF modules;
+- **tests** — standalone boundaries and native contracts, without mock
+  transport, Playwright or application fixtures;
 - **composition** - `atf-reporting-tests` is the canonical consumer for
   API / integration and UI / E2E reporting;
-- **output** - artifact Extent / HTML with CSS and JavaScript native, without verdicts
-  invented by the renderer;
-- **adoption** - the consumer provides the input typed, status, record and
-  API public output policy.
+- **output** — Extent/HTML with bundled CSS and JavaScript, preserving
+  consumer verdicts rather than inventing them;
+- **adoption** — the consumer supplies typed input, status, evidence and
+  output policy through the public API.
 
-Semantics and display contracts are linked from [contracts and feedback](#contracte-și-feedback). The structure of the harness belongs to [Reporting Tests](../atf-reporting-tests/README.md). [code atlas](src/main/java/atf/reporting/README.md) for consolidation selects the context on responsibility: inputs, invariants, local sources and samples.
+[Contracts and feedback](#contracte-și-feedback) routes semantic and display rules to their owners. [Reporting Tests](../atf-reporting-tests/README.md) owns the harness; the [code atlas](src/main/java/atf/reporting/README.md) maps inputs, invariants, native sources and probes by responsibility.
 
 <a id="consular-use-of-the-library-as-jar"></a>
 <a id="consumarea-bibliotecii-ca-jar"></a>
-## Consular use of the library as JAR
+## Consuming the library as a JAR
 
-[Portable context of the library](docs/README.md) links the inputs consumed, the limits and the extraction samples using only the destinations in the module. This is a starting point for the extracted source; the release preparation remains separate.
+The [portable library contract](docs/README.md) links entry points, boundaries and extraction probes using destinations inside this module. It supports isolated-source adoption; release qualification remains separate.
 
-The library is compiled for **Java 21**. Maven Arteact is a JAR thin:
+The library targets **Java 21** and is distributed as a thin Maven JAR:
 
-- the application conforms with the resolved runtime dependencies in POM;
-- JAR compiler, Surefire and plugin have explicit versions; timestamp
-  the artifact is normalized for reproducible buildings;
-- FreeMarker is the direct dependence of the fixed-version Spark adapter;
-- Jsoup 1.23.2 is locally parking the artifact for inspection; does not execute JavaScript and does not access the network;
-- `atf-reporting-tests` remains the internal verification mode without entering into
-  runtime dependencies of the application.
+- the application resolves the runtime dependencies declared in the POM;
+- JAR, compiler and Surefire plugins have explicit versions; the output
+  timestamp is normalized for reproducible builds;
+- FreeMarker is a direct dependency of the pinned Spark adapter;
+- Jsoup 1.23.2 parses local artifacts for inspection; it neither executes
+  JavaScript nor accesses the network;
+- `atf-reporting-tests` remains internal verification support, outside the
+  application’s runtime dependencies.
 
 ```xml
 <dependency>
@@ -56,7 +57,7 @@ The library is compiled for **Java 21**. Maven Arteact is a JAR thin:
 | `AtfReportPorts` and Typed Models | the consumer provides the observations and the verdict; the library preserves and publishes the evidence |
 | `ExtentReportSession` | Extent renderer and final publication at `close()` |
 | `HtmlReportSession` | the fallback renderer; has its own publication lifecycle |
-| `UiExtentReportOptions` / `UiExtentReportSession` | the record profile and composition of checkpoints, without a browser or executor HTTP |
+| `UiExtentReportOptions` / `UiExtentReportSession` | evidence profile and checkpoint composition, without a browser or HTTP executor |
 
 <details>
 <summary><strong>Example Java - observation report provided by the application</strong></summary>
@@ -90,31 +91,31 @@ public final class ReportExample {
 }
 ```
 
-- Observation and comparison are of the application; example does not perform a test
-  business inside the library and does not need additional ATF modules.
-- The goals are closed child → parent; the final artifact Extent is
-  `flush()` does not replace `close()`.
-- Coordinates describe POM development version; publication of a version
-  release and compatibility guarantees require criteria below.
+- The application supplies observation and comparison; the example does not
+  execute business tests inside the library or require other ATF modules.
+- Close scopes from child to parent; the final Extent artifact is published
+  when the session closes, and `flush()` does not replace `close()`.
+- The example uses the development POM coordinate; release publication and
+  compatibility guarantees require the qualification criteria below.
 
 </details>
 
-JAR can be consumed separately from the reactor. The preparation for release has [Active consolidation criteria](../docs/feedback/ATF_Reporting_Feedback.md) for supported API, also released document portability. Oracles and integration JAR / browser have [Distinguished owner in Reporting Tests](../docs/feedback/ATF_Reporting_Tests_Feedback.md).
+The JAR can be consumed outside this reactor. [Release criteria](../docs/feedback/ATF_Reporting_Feedback.md) still govern the supported public API, qualification gate and portable distribution documentation; [Reporting Tests](../docs/feedback/ATF_Reporting_Tests_Feedback.md) owns independent JAR/browser oracles.
 
 <a id="choose-adoption-route"></a>
 <a id="alege-traseul-de-adopție"></a>
 ## Choose adoption route
 
-| Cititor | Input | Proof to be followed |
+| Reader | Input | Proof to be followed |
 |---|---|---|
 | application that consumes JAR | [context portable](docs/README.md) → [minimum example](#consumarea-bibliotecii-ca-jar) | input typed, verdict and artifact available after close |
 | Semantics maintainer | [models and projections](#modelele-semantice-și-proiecția-comună) | same population in Tests, Fails and Overview |
 | publication maintainer | [lifecycle](#publicare-și-ieșire) and [atlas local](src/main/java/atf/reporting/README.md) | Ownership, primary cause and previously protected output |
-| autor de probe | [Reporting Tests](../atf-reporting-tests/README.md) | Isolated source, physical JAR and browser have distinct gates |
+| probe author | [Reporting Tests](../atf-reporting-tests/README.md) | Isolated source, physical JAR and browser have distinct gates |
 
-Links to `../docs` and neighbouring modules describe integration into ATF reactor. Portable entry uses internal library destinations; migration of all documentation and delivery to distribution remain release criteria.
+Links to `../docs` and neighboring modules describe ATF reactor integration. The portable entry uses library-local destinations; complete documentation portability and distribution delivery remain release criteria.
 
-Isolated compilation, physical JAR consumption and rendering are distinct evidence. The example above demonstrates the ports used; does not declare the entire API as stable for releases. [API delimitation and compatibility](../docs/feedback/ATF_Reporting_Feedback.md) remains explicit criteria, even when the candidate artifact can be consumed.
+Isolated compilation, physical JAR consumption and rendering prove different boundaries. The example demonstrates its ports without declaring the whole API release-stable; [API scope and compatibility](../docs/feedback/ATF_Reporting_Feedback.md) remain explicit criteria even when a candidate JAR is consumable.
 
 <a id="limits-of-the-autonomous-library-and-the-canonical-consumer"></a>
 <a id="limitele-librăriei-autonome-și-consumatorul-canonic"></a>

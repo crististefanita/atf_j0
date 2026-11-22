@@ -31,6 +31,8 @@ J0 owns Core, Reporting, Console, Mock and Test Kit implementation, public contr
 
 [Workspace feedback](ATF_Maintenance_Feedback.md) keeps the ownership of the whole- reactor gates and J0 / J1. The combined point entry, readonly checks and closing criteria are executable and related to process documentation.
 
+Source-library editorial criteria belong to [documentation feedback](ATF_Documentation_Feedback.md); shared consumer criteria remain with J1.
+
 <a id="active-maintenance-priorities"></a>
 <a id="priorități-de-mentenanță-activă"></a>
 ## Active maintenance priorities

@@ -4709,3 +4709,20 @@ testChanges:
 ```
 
 </details>
+
+<details>
+<summary>Editorial governance control</summary>
+
+```yaml
+testChanges:
+  - id: J0-DOC-EDITORIAL-GUARD-20261122
+    status: VERIFIED
+    base: d8f7a0bef15bb64ee5e563e2f1017c989c816255
+    expires: 2026-12-22
+    reason: "Reject observed translation artifacts while preserving literal code, links, matching fence types and existing style checks."
+    proof: mvn -B -ntp -pl atf-tests -am "-Dtest=AtfWorkspaceMaintenanceSuite" "-Datf.maintenance.j0=<source-workspace>" "-Datf.maintenance.j1=<consumer-workspace>" "-Datf.governance.testChanges.baseRef=d8f7a0bef15bb64ee5e563e2f1017c989c816255" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationStyleGovernanceTest.java
+```
+
+</details>

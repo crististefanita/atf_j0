@@ -2,7 +2,7 @@
 <a id="atf-core--kernel-neutru-și-porturi"></a>
 # ATF Core - neutral kernel and ports
 
-`atf-core` is the base layer of ATF Java. It contains reusable models, contracts and abstractions, without deciding how a scenario is orchestrated or how a report is rendered.
+`atf-core` provides neutral HTTP, configuration and lifecycle contracts for ATF Java. It owns reusable execution mechanics; concrete business scenarios and report rendering remain with consumers.
 
 <a id="at-a-glance"></a>
 <a id="pe-scurt"></a>
@@ -38,7 +38,7 @@ flowchart LR
 <summary><strong>Reading map</strong></summary>
 
 - [responsibilities](#responsabilități) and
-  [lifecycle](#ciclu-de-viață-generic-și-reutilizabil) — boundary-ul kernel;
+  [lifecycle](#ciclu-de-viață-generic-și-reutilizabil) — kernel boundary;
 - [HTTP vocabulary](#coeziune-și-responsabilitate-pentru-vocabularul-http) and
   [decoupling](#regula-de-decuplare) - ownership and direction of dependence;
 - [API selection](#contractul-reutilizabil-pentru-selecția-api),
@@ -55,20 +55,20 @@ flowchart LR
 | Intent | Entry and proof | Consumption keeps |
 |---|---|---|
 | HTTP with shared deadline | [ApiExecutor](src/main/java/atf/core/http/execution/ApiExecutor.java) → [terminal history](#istoric-la-eroare-terminală) | endpoint, operation and business verdict |
-| select live transport | [catalog explicit](#catalogul-live-explicit) | 180-in and authentication |
+| select live transport | [catalog explicit](#catalogul-live-explicit) | explicit opt-in and authentication |
 | LIFO Cleanup | [CleanupRegistry](src/main/java/atf/core/lifecycle/CleanupRegistry.java) | resource acquisition and error policy |
 | inspects sources or promotes files | [Java references](#responsabilități) / [manifest guarded](#manifest-și-promovare-guarded) | approved roots and list |
 
 Core contracts and those in the Reporting library have separate owners. The consumer adapter makes explicit conversion; the similarity of names does not create a runtime dependence Reporting → Core.
 
-`CleanupRegistry` collects `RuntimeException` and continues LIFO actions. His contract does not promise to aggregate any `Throwable`; a browser adapter must try to obtain part of its acquisition and the primary cause separately.
+`CleanupRegistry` collects `RuntimeException` failures and continues LIFO cleanup. It does not aggregate every `Throwable`; browser adapters separately own partial acquisition and preservation of the primary cause.
 
-- The context of the redaction is in [Security package map](src/main/java/atf/core/security/README.md):
-  original input, strategy, fallback and the limit between redaction and foresight.
+- The [security package map](src/main/java/atf/core/security/README.md) explains
+  original input, strategy selection, fallback and the boundary between redaction and preview.
 
 <a id="liabilities"></a>
 <a id="responsabilități"></a>
-## Liabilities
+## Responsibilities
 
 | Area | Owner in `atf-core` | Don't |
 |---|---|---|
@@ -77,54 +77,53 @@ Core contracts and those in the Reporting library have separate owners. The cons
 | time and retry | `ApiExecutionClock`, `ApiExecutionDeadline`, `ApiRetryWaiter`, `RetryPolicy` | not decide the test verdict |
 | Typed configuration | `AtfConfiguration`, `AtfRuntimeSnapshot`, `ApiSettings`, `ReportingSettings` and snapshots | does not read configuration in each request |
 | source adapters | `config.source.ApiBootstrapConfigurationLoader`, `ApiEnvironment` | does not perform requests and does not own the Users / Posts catalogue |
-| statusuri | `AtfReportStatus`, `ReportStatusAggregator` | no render badges |
+| statuses | `AtfReportStatus`, `ReportStatusAggregator` | no render badges |
 | file/source discovery | `AtfPathLocator`, `AtfJavaSourceReferences` | solves paths from the roots of the caller without hardcoded workstation paths; does not confuse literals with Java dependencies |
 | reporting ports | `AtfReportPorts`, `ValidationSink`, `ReportStepScope`, `AtfConsoleEvent`, `AtfConsoleSink` | do not import Extent, HTML, `System.out` or `atf-console` implementation |
-| redaction | `Redactor`, `RedactionContext`, strategies de redaction | does not alter the original input |
+| redaction | `Redactor`, `RedactionContext`, redaction strategies | does not alter the original input |
 | neutral API selection | `ApiScenarioSelection` | `ApiScenarioSetup` and `ApiTestRef` test-only declarations belong to TestKit; the catalogue remains with the consumer |
-| live transport adapter | `ApiLiveTransportCatalog` and `ApiTransportPolicy` | does not activate the URL network, default or default flag |
+| live transport adapter | `ApiLiveTransportCatalog` and `ApiTransportPolicy` | does not enable networking from a URL, default endpoint or implicit flag |
 | guarded sync | `AtfPromotionManifest`, `AtfPromotionGuard` | does not promote files outside the manifest and does not delete sources |
-| reactor vocabulary | `config.module.AtfModuleIds` | does not orchestrate modules and introduce dependencies up |
+| reactor vocabulary | `config.module.AtfModuleIds` | does not orchestrate modules or introduce dependencies on consumers |
 
 `AtfConsoleEvent.fromExternalEnums(...)` explicitly receives the fields of an event and converts the compatible enumerations by name. Core maintains the validation of the published status, duration and path, without reflection or dependence on the external source; the test composition transmits the fields of the Reporting event.
 
-`AtfPathLocator.locateSourceFile(...)` solves a relative file of source candidate roots, either when the test starts from the module directory or from the reactor. Validation rejects absolute and cross paths; the caller explicitly declares the accepted layout instead of reproducing the ancestor traversal loop in each test.
+`AtfPathLocator.locateSourceFile(...)` resolves a relative source file from caller-supplied candidate roots, whether execution starts at a module or reactor. It rejects absolute paths and traversal; callers declare supported layouts instead of repeating ancestor-search loops.
 
-- `AtfJavaSourceReferences.containsNamespace(...)` seeks real Java references,
-  with the exact delimits of the identifiers.
-- Translate Unicode escapes before excluding comments and literals;
-  an invalid escape is denied.
-- `codeOnly(...)` offers the same lexical tokens as annotational guards and types;
-  the documentary text cannot declare or exclude an executable class.
-- Architectural guards re-use it; [evidence controlled](src/test/java/atf/core/files/AtfJavaSourceReferencesTest.java)
-  covers imports, qualified names and similar prefixes.
-- `AtfJavaSourceReferences.annotationArguments(...)` read the actual annotation of the
-  The owner, keeping the literals of arguments and ignoring comments, examples string / text block and declarations nested; Unicode escapes are translated prior to analysis.
+- `AtfJavaSourceReferences.containsNamespace(...)` finds real Java references
+  with exact identifier boundaries.
+- Unicode escapes are translated before comments and literals are excluded;
+  malformed escapes are rejected.
+- `codeOnly(...)` supplies the same lexical tokens to annotation and type guards;
+  documentation text cannot declare or exclude an executable class.
+- Architecture guards reuse this parser; [controlled probes](src/test/java/atf/core/files/AtfJavaSourceReferencesTest.java)
+  cover imports, qualified names and similar prefixes.
+- `AtfJavaSourceReferences.annotationArguments(...)` reads the owner’s actual annotation,
+  preserving argument literals while excluding comments, string/text-block examples and nested declarations; Unicode escapes are translated first.
 
 <a id="generic-and-reusable-life-cycle"></a>
 <a id="ciclu-de-viață-generic-și-reutilizabil"></a>
 ## Generic and reusable life cycle
 
-`atf.core.lifecycle` package holds neutral mechanics of the scenario:
+The `atf.core.lifecycle` package owns neutral scenario mechanics:
 
 - plan and orchestration: `ApiScenarioPlan`, `ApiScenarioLifecycleRunner`,
   `ApiScenarioPhaseExecutor`;
 - result: `ApiScenarioOutcome` and `ApiScenarioSkipException`;
-- orders: `SETUP → TEST BODY → TEARDOWN`, with precedence for causes; and
+- ordering: `SETUP → TEST BODY → TEARDOWN`, cause precedence and
   `PASS/WARNING/SKIP/FAIL`;
-- Boundary: Users / Posts free of service, concrete routes, YAML, Extent or JUnit.
+- boundary: no Users/Posts services, concrete routes, YAML, Extent or JUnit.
 
-For a reporting port, `Phase.supportsDetails()` declares whether `detail` retains evidence; `false` default retains the compatibility of the legacy adapter. This default does not claim that the diagnosis has been published.
+For a reporting port, `Phase.supportsDetails()` declares whether `detail` can retain evidence. Its default `false` preserves legacy adapter compatibility and makes no claim that diagnostics were published.
 
 - Errors from `detail`, capability queries, `complete` and `close` do not interrupt phase cleanup.
 - First business cause remains primary; subsequent errors are `suppressed`
   in the order of appearance.
-- If the phase cannot be opened, the runner shall record FAIL and continue
-  teardown-ul.
-- Lifecycle failure becomes FAIL when there is no primary cause; runner
-  try `scenario.close()` and keep the precedent of the plan.
+- If a phase cannot open, the runner records FAIL and still attempts teardown.
+- A lifecycle failure becomes FAIL when no earlier cause is primary; the runner
+  still attempts `scenario.close()` and preserves plan precedence.
 
-The contract is protected by [Core tests](src/test/java/atf/core/lifecycle/ApiScenarioPhaseExecutorTest.java) and [contract tests](../atf-reporting-tests/src/test/java/atf/reporting/api/execution/ApiScenarioLifecycleRunnerTest.java). The Extent and fallback performance, including the collapsed discoloration of the assertions and the cause of the Fails, is verified by [permanent browser sample](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/lifecycle/ApiScenarioLifecycleReportComponentTest.java).
+[Core tests](src/test/java/atf/core/lifecycle/ApiScenarioPhaseExecutorTest.java) and [contract tests](../atf-reporting-tests/src/test/java/atf/reporting/api/execution/ApiScenarioLifecycleRunnerTest.java) protect lifecycle behavior. The [permanent browser probe](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/lifecycle/ApiScenarioLifecycleReportComponentTest.java) verifies Extent/fallback presentation, including collapsible assertions and the original Fails cause.
 
 ```text
 test adapter / library consumer
@@ -137,8 +136,8 @@ execution service | reporting publisher | another consumer
 The boundary of the lifecycle is read as follows:
 
 - `CleanupRegistry` remains in the core as a generic mechanism;
-- specific fixtures (`ApiModule`, services, `RoutePaths`) and adapters
-  THEIR REMAIN IN THE TEST THE `atf-reporting-tests` SCOPE;
+- Specific fixtures (`ApiModule`, services, `RoutePaths`) and adapters stay
+  in the `atf-reporting-tests` test scope;
 - any API / UI consumer may reuse lifecycle without importing fixtures
   in production;
 - `atf-reporting` remains standalone and does not depend on core;
@@ -149,11 +148,11 @@ The boundary of the lifecycle is read as follows:
 <a id="coeziune-și-responsabilitate-pentru-vocabularul-http"></a>
 ## Cohesion and responsibility for HTTP vocabulary
 
-Production packages have no more than eight classes and group only one responsibility:
+Production packages group one responsibility. Governance uses an eight-class review threshold, with explicit reviewed exceptions such as the shared HTTP response vocabulary.
 
 | Package | Owned |
 |---|---|
-| `http.request` | form of a quest: `ApiRequest`, `ApiPathTemplate`, `ApiRoute`, `ApiUrlBuilder`, `HttpMethod`, `HttpHeader`, `MediaTypes` |
+| `http.request` | request shape: `ApiRequest`, `ApiPathTemplate`, `ApiRoute`, `ApiUrlBuilder`, `HttpMethod`, `HttpHeader`, `MediaTypes` |
 | `http.response` | response result, JSON policy and neutral diagnosis `ApiBodyEvidence` for unavailable bodies |
 | `http.auth` | authentication, standard types and normalized profile names via `AuthProfiles` |
 | `http.protocol` | URI-X absolute and reusable headers profiles without product hosts |
@@ -198,24 +197,24 @@ ApiPathTemplate (core, generic)
 - **reactor** - `AtfModuleIds` holds Maven, `REACTOR_MODULES` strings
   represents the POM root modules and `SOURCE_GOVERNED_MODULES` represents the modules inspected by the global guard;
 - **test-kit** - remains in the reactor and governs its test-layer separately;
-- **keys configure** - the `AtfModule` enumeration remains separate for logical keys;
+- **configuration keys** — the `AtfModule` enum remains separate from module IDs;
 - **package cohesion** - `AtfPackageCohesionGovernanceTest` checks inventory
   production and source- sets; over 8 classes means separation after responsibility and exceptions remain explicit;
 - **controlled discovery** - `AtfPathLocator` searches the parent directories and
   solves the root source only when the relative marker exists;
 - **single owner** - `locateAtfTestSourceRoot(...)` keeps the candidates
   supported in one place; tests and composition roots do not repeat the crosswalk;
-- **relocatabilitate** - Utilizer does not expose the robot to evidence and does not introduce
-  local routes in the report.
+- **relocatability** — utilities do not publish workstation paths as evidence or
+  introduce local paths into reports.
 
 <a id="uncoupling-rule"></a>
 <a id="regula-de-decuplare"></a>
-## Uncoupling rule
+## Dependency direction
 
 ```text
 ApiRequest / ApiResponse / ValidationResult / Report ports
                          ↓
-              modulele de execuție și reporting
+              execution and reporting modules
 ```
 
 Core can define ports and source adapters fail- closed, but does not implement Extent, HTML, CSS, JavaScript, console formatting, writing in `System.out`, JUnit or business services. A port must be small, semantic and testable with fakes in memory.
@@ -248,7 +247,7 @@ core → UsersService / PostsService
 <a id="contractul-reutilizabil-pentru-selecția-api"></a>
 ## Reusable contract for API selection
 
-`ApiScenarioSelection` model in `atf-core` is neutral from the consumer:
+The `ApiScenarioSelection` model in `atf-core` is consumer-neutral:
 
 - `@ApiScenarioSetup` and `@ApiTestRef` declarations are in `atf.testkit.setup.api`, consumed in the scope test;
 - `ApiScenarioSelection` transmits the snapshots immutable to the composition root;
@@ -271,25 +270,25 @@ consumer annotation
 
 The service catalogue is product composition, not generic platform. The annotation contract is in [infrastructure documentation](../docs/ATF_Test_Infrastructure_Annotations.md); Core main does not depend on TestKit.
 
-`RecordingApiTransport` is the generic decorative for the highlight:
+`RecordingApiTransport` is a reusable observation decorator:
 
-- capture the last `ApiRequest` and delegate the execution;
-- be not aware of reporting, mock or JUnit;
-- can be reused for API report, component tests and replay without copy
-  The fixtures from the scope test.
+- it captures the latest `ApiRequest` and delegates execution;
+- it has no dependency on reporting, mock transport or JUnit;
+- API reporting, component tests and replay can reuse it without copying
+  test-scope fixtures.
 
 <a id="explicit-live-catalogue"></a>
 <a id="catalogul-live-explicit"></a>
 ## Explicit live catalogue
 
-`ApiLiveTransportCatalog` is the public adapter for real quests; its rules are:
+`ApiLiveTransportCatalog` is the public adapter for live requests:
 
-- keep endpoints called;
-- produce a `ApiTransport` only after `ApiTransportPolicy` with `LIVE` profile and
-  opt-in explicit;
+- it retains named endpoints;
+- it creates an `ApiTransport` only for an `ApiTransportPolicy` with `LIVE`
+  profile and explicit opt-in;
 - `ACCEPTANCE` policy does not consult the catalogue;
-- the acceptance placeholder (`ApiEnvironment.MOCK_BASE_URI`) is rejected even
-  if the operator has activated the eighty-nine.
+- it rejects the acceptance placeholder (`ApiEnvironment.MOCK_BASE_URI`) even
+  when explicit opt-in is enabled.
 
 ```text
 ApiBootstrapConfiguration
@@ -301,64 +300,64 @@ ApiBootstrapConfiguration
 
 The catalogue shall apply the safety limits before creating the transport:
 
-- accept only `http/https` and endpoint unambiguous profiles;
-- limit each consignment to the origin of the named endpoint;
+- accept only `http/https` and unambiguous endpoint profiles;
+- constrain each dispatch to the named endpoint’s origin;
 - delegate authentication to `ApiAuthenticator` and do not expose tokens;
-- does not build cURL or HTML; the replica editor belongs to the reporting;
+- do not build cURL or HTML; replay presentation belongs to Reporting;
 - The injectable factory allows the verification of the contract without real network.
 
 Mock remains the safe default and is composed separately by `atf-mock`. The fact that a configuration contains `baseUri` is never enough to open the network.
 
 <a id="manifest-and-guaranteed-promotion"></a>
 <a id="manifest-și-promovare-guarded"></a>
-## Manifest and guaranteed promotion
+## Manifest and guarded promotion
 
 `AtfPromotionManifest` fixes the baseline of the approved files prior to staging:
 
 - the paths are relative; existing files retain size and SHA-256;
 - an absent entry approves the creation of that file and detects parallel creation;
-- The root of the checkout is not persistent, and the manifest does not reach HTML.
+- the checkout root is not persisted, and the manifest does not enter HTML.
 
 Re-usable promotion:
 
 ```text
 live root + approved relative files
   → AtfPromotionManifest.capture(...)
-  → build/test în staging extern
+  → build/test in external staging
   → AtfPromotionGuard.promote(staging, live, baseline)
-  → verificare drift + copiere atomică numai a fișierelor aprobate
+  → drift check + atomic replacement of approved files only
 ```
 
-The guard checks the entire live baseline before the first copy and revalidates the destination before each file. The external location per root coordinates the co-operating promoters; the staging sources remain preserved without default deletions.
+The guard checks the complete live baseline before copying and revalidates each destination immediately before replacement. An external lock per live root coordinates cooperating promoters; staging sources are retained and files are never deleted implicitly.
 
-- The atomicity concerns the replacement of a file, not the whole lot.
-- The guard builds the complete plan before the first writing: each source
-  approved must be a regular, eligible and open file for reading. A subsequent source absent or directory refuses the entire plan without live changes.
-- The existing parents of each destination must be the director.
-  refuse an intermediate file, including that which occurred after the capture of the manifesto, prior to any copy. Absent parents are allowed and are created only upon execution.
+- Atomicity applies to replacement of one file, rather than the complete batch.
+- The guard builds the complete plan before writing: every approved source
+  must be a readable, eligible regular file. A missing source or directory anywhere in the plan rejects the batch before live changes.
+- Existing destination parents must be directories; an intermediate file,
+  including one created after manifest capture, rejects preflight. Missing parents are permitted and created only during execution.
 - Execution revalidates each destination baseline. I/O failure or drift after preflight may leave a partial batch; reread actual state before resuming. Preflight does not promise a batch transaction.
-- `AtfPromotionPreflightTest` is proposing refusal before any writing,
-  creating competition, direct parents / ineligible intermediaries and promoting only approved files. Denying keeps the sources and does not create parents.
-- Baseline follows the content of approved files; the invalid parent is
-  a separate structural check. It and the refusal of the symlinks are resumed prior to copying each file, without eliminating the possibility of a subsequent I / O failure.
-- Portable JSON Manifesto is process audit without evidence in HTML
-  or synchronization as generated output.
+- `AtfPromotionPreflightTest` checks refusal before writing, concurrent creation,
+  invalid parents/intermediates and approved-file-only promotion; refusal preserves sources and creates no parents.
+- The baseline tracks approved file content; parent eligibility is a separate
+  structural check. It and symlink rejection are repeated before each copy, without promising immunity to later I/O failure.
+- Portable manifest JSON is process-audit data; it is not HTML evidence or
+  generated output to synchronize.
 
 <a id="isolation-of-the-execution-diagnosis"></a>
 <a id="izolarea-diagnosticului-de-execuție"></a>
 ## Isolation of the execution diagnosis
 
-`ApiExecutor` holds one `AtfConsoleDiagnostics` per invoicing. `RuntimeException` of the synchronization at START, DETAIL, CODE or COMPLETE does not stop the display and does not replace the result. At functional error, distinct diagnostic causes are attached as suppressed with the same exception of snapshot; do not be Republic through the defective synchronization and no spare stdout shall be used.
+`ApiExecutor` owns one `AtfConsoleDiagnostics` per invocation. A diagnostic sink’s `RuntimeException` during START, DETAIL, CODE or COMPLETE neither stops dispatch nor replaces its result. On functional failure, distinct diagnostic causes become suppressed on the same snapshot exception; the failed sink is not called again and there is no fallback stdout channel.
 
-Politics is best- effort for runtime errors of diagnosis. `Error` remains fatal; it is not converted into success.
+Diagnostic `RuntimeException` handling is best-effort. `Error` remains fatal and is never converted into success.
 
 - The timeout, cancellation and retry shall retain the deadline, tests and provenance of execution.
 
-[ApiDiagnosticIsolationTest](src/test/java/atf/core/http/diagnostics/ApiDiagnosticIsolationTest.java) shall propose these limits by public port, without Console or Reporting in production.
+[ApiDiagnosticIsolationTest](src/test/java/atf/core/http/diagnostics/ApiDiagnosticIsolationTest.java) checks these boundaries through the public port, without Console or Reporting in production.
 
 <a id="terminally-incorrect-history"></a>
 <a id="istoric-la-eroare-terminală"></a>
-## Terminally incorrect history
+## History on terminal failure
 
 `ApiExecutionException.snapshot()` shows a `ApiExecutionSnapshot` immutable for failed transport, timeout and interruption. Cancellation remains `CancellationException`, via `ApiExecutionCancelledException` subtype.
 
@@ -374,27 +373,27 @@ flowchart LR
 <details>
 <summary><strong>Legend - observed execution, no response manufactured</strong></summary>
 
-- `ApiExecutionFailure.find(error)` is looking for the snapshots on the primary cause chain,
-  with cycle protection; a clerical suppressed error cannot provide evidence for any other operation.
-- Snapshots keep the quest, URL-ul solved, the declared provenance,
-  The total monotony duration, the tests, the planned retries and the endings. The lists are immutable copies and the tests are contiguous.
-- `response()` is Optional; no terminal response reuses 503
-  A response captured prior to a police error remains distinct from the lack of response.
+- `ApiExecutionFailure.find(error)` finds snapshots along the primary cause chain
+  with cycle protection; a suppressed diagnostic cannot supply evidence for another operation.
+- Snapshots retain the request, resolved URL, declared provenance, total
+  monotonic duration, attempts, scheduled retries and outcomes; lists are immutable and attempts are contiguous.
+- `response()` is Optional; absent terminal response does not reuse an earlier
+  503 as the final result. A response captured before a policy error remains distinct from no response.
 - `ApiAttemptRecord.httpStatus()` is empty for the sentinel legacy zero;
   this does not represent HTTP 0. Core retains the existing constructors.
-- Cancellation before the Display has zero attempts. Stopping in the backoff
-  keep the retry planned, without inventing the next call.
-- The cause, stack and suppressed remains preserved; interruption retains the flag
-  Thread and cancel the fucking pending.
-- The Deadline and policy of the retry are the original ones. Capturing times
-  Publication of snapshots does not return the request.
+- Cancellation before dispatch has zero attempts; cancellation during backoff
+  retains the scheduled retry without inventing a subsequent dispatch.
+- Cause, stack and suppressed errors are preserved; interruption retains the
+  thread flag and cancels the pending future.
+- Deadline and retry policy remain those of the original invocation; capturing
+  or publishing a snapshot does not replay the request.
 
 The short labels shall be kept as follows:
 
 | In the scheme | Full meaning |
 |---|---|
 | Dispatch | Dispatch performed |
-| History | Tests + planned retries |
+| History | Attempts + scheduled retries |
 | Snapshot | Snapshot immutable + cause |
 | Adapter | Adaptor consumer |
 | Evidence | Execution evidence |
@@ -403,21 +402,21 @@ The short labels shall be kept as follows:
 
 </details>
 
-A final response, including non-2xx, continues to return `ApiExecutionResult`. The SUCCESS legacy outcomer of a test means the final response received without declaring business success.
+A terminal response, including non-2xx, still returns `ApiExecutionResult`. The legacy SUCCESS attempt outcome means a final response was received; it does not establish business success.
 
-`ApiTerminalExecutionEvidenceTest` uses controlled transport and watch for 503 → error / timeout, cancellation, interruption and error on the first call. The report's redaction and verdict remain at the consumer and Reporting, without Core's dependence on the renderer.
+`ApiTerminalExecutionEvidenceTest` uses controlled transport and a clock for 503 → error/timeout, cancellation, interruption and first-call failure. The consumer and Reporting own redaction and verdict; Core remains independent of the renderer.
 
 <a id="determinism-and-competition"></a>
 <a id="determinism-și-concurență"></a>
-## Determinism and competition
+## Determinism and concurrency
 
-The competing evidence of cancellation confirms the entry of the transport through the barrier, then checks the result of the workshop in the JUnit Thread via `FutureTask`. A sleep does not prove the display, and a loss of assertion in the workshop is not JUnit verdict.
+Concurrent cancellation probes use a barrier to establish transport entry and observe the worker’s `FutureTask` result on the JUnit thread. A sleep does not prove dispatch, and a worker assertion that never reaches JUnit is not a test verdict.
 
-- Before the dispatch, the shipment is not called and the unturned future remains uncancelled.
-- After the display, the future handed over is cancelled, and the snapshots keep trying.
-  and category `CANCELLED`; worker error is observed by the caller.
-- The Cleanup signals the cancellation, interrupts and makes the join bound including at
-  evidence failure; API and join limits do not increase for timing.
+- Before dispatch, transport is not invoked and an unreturned future is not cancelled.
+- After dispatch, the returned future is cancelled; snapshots retain attempts
+  and `CANCELLED`, and the caller observes worker failures.
+- Cleanup signals cancellation, interrupts and performs bounded join even if
+  an assertion fails; probe timing does not increase API or join deadlines.
 
 `ExecutionResilienceTest` checks the real thread, and `ApiTerminalExecutionEvidenceTest` checks the deadline and controlled-clock snapshots separately. Core unit tests maintain the category without HTML ratio.
 

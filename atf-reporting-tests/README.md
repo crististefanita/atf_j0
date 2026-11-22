@@ -8,7 +8,7 @@
 
 **Neutral Diagnosis:** [graph, budget and publication](#diagnosticul-neutru-al-excepțiilor).
 
-**Quick trails:** [Choose the sample](#matricea-de-integrare-și-limitele-verificate) · [Tables and Respondents](#probe-de-lizibilitate-a-panoului) · [Scope-uri](#refuz-recuperabil-al-scope-urilor) · [Local Browser and Limits](#verificare-rapidă)
+**Quick links:** [Choose a probe](#matricea-de-integrare-și-limitele-verificate) · [Tables and responsive layout](#probe-de-lizibilitate-a-panoului) · [Scopes](#refuz-recuperabil-al-scope-urilor) · [Browser verification and limits](#verificare-rapidă)
 
 `atf-reporting-tests` checks `atf-reporting` as a reusable library:
 
@@ -17,22 +17,22 @@
 - business tests belong to the consumer module, such as `atf-test-practice-shop`;
 - `atf-tests` remains dedicated to the governance of the whole- ATF.
 
-For extraction, the candidate artifact is `atf-reporting`; this module remains internal verification support. Compilation and running on `target/classes` does not demonstrate the consumption of JAR published on its own. [Distribution Gateul](#gate-ul-bibliotecii-distribuite) uses a consumer without sources or ATF modules in the classpath.
+`atf-reporting` is the distributable artifact; this module is internal verification support. Compilation against `target/classes` does not prove independent JAR consumption. The [distribution gate](#gate-ul-bibliotecii-distribuite) uses a consumer classpath without producer sources or ATF modules.
 
-Change of tests, support or resources in this module requires eligible `testChanges` technical control; [whole- ATF governance](../atf-tests/README.md#guvernanța-schimbării-testelor) verifies the Git difference and negative rule samples.
+Changes to tests, support or resources require an eligible `testChanges` control; [whole-ATF governance](../atf-tests/README.md#guvernanța-schimbării-testelor) checks the Git delta and negative policy fixtures.
 
 <a id="permanent-regression-of-each-reporting-defect"></a>
 <a id="regresia-permanentă-a-fiecărui-defect-reporting"></a>
 ## Permanent regression of each Reporting defect
 
-Any observable defect in the report, public contract or composition receives first regression in this module. The sample replicates previous behavior, has independently expected and remains in the canon inventory after correction.
+Every observable report, public-contract or composition defect first receives a permanent regression here. The probe reproduces the prior behavior with an independent expected result and remains in canonical discovery after the fix.
 
 | Boundary | Sample retained |
 |---|---|
-| API, query, status, ownership and correlation | configured mock and captured exchange; nominally and refuse, without necessary live endpoint |
-| flow and renderer | Same input typed through actual Extent / fallback, with exact number, order and verdict |
+| API, query, status, ownership and correlation | configured mock and captured exchange; nominal and rejection paths without a required live endpoint |
+| flow and renderer | same typed input through real Extent/fallback publication, with exact population, order and verdict |
 | Display and navigation | DOM / real browser: original table, geometry, expansion / collapse, keyboard and reload |
-| distribution | binary candidates, its POM and real transistors; CodeSource and hash checked |
+| distribution | candidate binary, its POM and actual transitives; verified CodeSource and hashes |
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
@@ -46,14 +46,14 @@ flowchart LR
 <details>
 <summary><strong>Legend - test kept at manufacturer and binary checked at consumption</strong></summary>
 
-- Regression belongs to `atf-reporting-tests`: mocks, contracts and evidence
-  the browser remains maintained together with the manufacturer's implementation.
-- The library's native tests complement the standalone boundary; acceptance
-  The artifact also requires external composition, including damaged failures-paths.
-- The binary consumer can withdraw the copy of the harness from its reactor.
-  Each new version, the manufacturer's samples run on that JAR in a TMP consumer.
-- A green test on `target/classes` or a manual capture does not replace the neck
-  binary. Running logs and artifacts remain in TMP; README maintains the contract.
+- `atf-reporting-tests` owns mock, contract and browser regressions, maintained
+  alongside the producer implementation.
+- Native library tests protect standalone boundaries; artifact acceptance
+  additionally requires external composition and failure-path probes.
+- Binary consumers can remove parallel harness source from their reactors;
+  each new version runs the producer probes against that physical JAR in owned TMP.
+- Passing `target/classes` tests or retaining a screenshot does not replace
+  the binary gate. Logs and artifacts stay in TMP; this README owns the durable contract.
 
 </details>
 
@@ -70,7 +70,7 @@ flowchart LR
 | Expansion of assertions per phase | `PhaseUnifiedFlowComponentTest`: own disclosure, Enter / Space, reload, rows ACTION / OBSERVE, original catch and preview 18/240 |
 | long fallback titles | `FallbackLongTitleComponentTest`: text fragments remain in the sidebar and heading at 1280/760/392 px; sibling, anchor, keyboard and reload retain identity and the reintroduction of `nowrap` is denied |
 
-The selection of fields is tested separately from HTML via `UnifiedFlowProvenanceFieldsTest`, including the non-compaction typed context, HTTP / preserved custom and the refusal of reclassification by an isolated field name. The conflicting metadata, including the compact marker, retains the quest, the 500 mock response and captured execution, with independent 200 expected.
+`UnifiedFlowProvenanceFieldsTest` checks field selection independently of HTML, including noncompact typed context, retained HTTP/custom fields and rejection of classification from an isolated field name. Conflicting metadata, including a compact marker, preserves the request, captured mock 500 response and execution; the expected status remains independently 200.
 
 | Question | Gate | What it confirms |
 |---|---|---|
@@ -96,7 +96,7 @@ Consumer tests keep independent and negative controls. A HTML containing the tex
 
 Both routes check hashes, CodeSource and the same negative controls. JAR consumption also checks the targets of the four Extent tables and the timing of the hash with the selected view; Chromium component checks the real changes.
 
-Java structure audit is performed by `ReportingSourceArchitectureTest` in the manufacturer's native building. Runtime samples here consume classes and resources loaded, whether they come from the reactor or JAR; do not have skips for lack of source. Fixturees identify the root through their own POM and resources.
+`ReportingSourceArchitectureTest` audits Java structure in the producer’s native build. Runtime probes here inspect loaded classes/resources from either the reactor or physical JAR, without skipping when producer sources are absent; fixtures locate roots through their own POM and resources.
 
 | Boundary | Oracle and limit |
 |---|---|

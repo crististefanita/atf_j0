@@ -169,7 +169,7 @@ A document is ready when the reader can decide where to continue without searchi
 This order is not an explanation of “how to read” the project; it is a composition rule that makes the document easy to scan:
 
 1. **Clear title** — state the boundary or result described by the document;
-2. **Guideline** - `Overview` in English or `Pe scurt` in Romanian, according to the project language, with two-three ideas about purpose, owner and limits;
+2. **Orientation** — use `At a glance` in English and `Pe scurt` in Romanian, with two or three concise statements about purpose, ownership and boundaries;
 3. **Primary evidence** — bullets, a diagram, or a short table;
 4. **Immediate legend** — if there is a diagram, its single legend follows
    immediately;
@@ -485,3 +485,22 @@ node atf-tests/tools/documentation-editions.mjs verify <repository> <English-com
 ~~~
 
 Translation does not allow the change of an oracle, the library's co-ordinate or the registered Git base. Language governance includes positive and negative fixtures, and factual controls keep numerical and ownership checks.
+
+<a id="technical-prose-review"></a>
+### Technical prose and translation review
+
+Review a translated contract against its language peer and the live owner code. Structural parity and language detection do not prove semantic equivalence.
+
+| Term | Meaning to preserve |
+|---|---|
+| request | the HTTP request supplied or captured, rather than a test invocation |
+| invocation / callback | one test execution / a callback within that execution |
+| scope | the owner and lifetime of a resource or collected evidence |
+| credential | an authentication secret; preserve the distinction from its scheme or header name |
+| disclosure | an expandable presentation node, rather than a new operation or verdict |
+| snapshot | captured facts and provenance, rather than an expected result fabricated afterward |
+
+- Keep API names, commands, code fences and historical control metadata intact; translate visible explanations and diagram labels.
+- Check negation, precedence, optional values and timing boundaries against implementation and independent tests; natural wording must not strengthen an unsupported guarantee.
+- Read the Markdown inventory from edition metadata or the comparator; do not duplicate a fixed file count in prose.
+- Documentation style governance rejects unresolved translation markers and drafting artifacts in visible prose, diagram labels and inline YAML reasons; literal code examples remain valid. This guard does not assess translation meaning.

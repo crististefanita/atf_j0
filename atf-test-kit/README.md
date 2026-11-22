@@ -1,14 +1,14 @@
 # ATF Test Kit
 
-`atf-test-kit` provides neutral JUnit classification, lifecycle and comparisons, without a renderer, transport or business rules. J0 owns its code and feedback; J1–J6 consume the JAR/POM pair in lib, without parallel Kit source or native tests.
+`atf-test-kit` provides neutral JUnit classification, lifecycle and comparisons, without a renderer, transport or business rules. J0 owns implementation and native tests; J1–J7 consume the JAR/POM pair in lib without parallel Kit source.
 
-The product uses Kit in `test`; the test medium in the main requires justified `compile` and Console keeps `optional compile`. The consumer holds the oracle and publication. [Library contract](../../atf_j0/docs/ATF_Test_Kit_Library.md) delimits migration and acceptances.
+Production projects use Kit in `test` scope; main-scope support in a test module requires justified `compile`, and Console retains `optional compile`. The consumer owns its oracle and publication; the [library contract](../docs/ATF_Test_Kit_Library.md) defines distribution and independent acceptance.
 
 <a id="at-a-glance"></a>
 <a id="pe-scurt"></a>
 ## At a glance
 
-**Quick trails:** [Layer and ownership](#clasificare) · [Auditable Assert](#comparații-junit-cu-dovadă-neutră) · [Scope Maven](#dependențe) · [Local sample](#verificare-rapidă)
+**Quick links:** [Classification](#clasificare) · [Auditable assertions](#comparații-junit-cu-dovadă-neutră) · [Dependency scopes](#dependențe) · [Local verification](#verificare-rapidă)
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
@@ -24,17 +24,17 @@ flowchart LR
 - the modules declare the layer by annotation, and the kit checks it;
 - the four layers are executable test layers: unit, component, integration and E2E;
 - support is an auxiliary code, not the fifth executable layer;
-- the pointed edge excludes Test Kit from the business runtime of the consumption;
-- JUnit Console adapter keeps the `optional compile` exception, without propagation
-  Default transitive; [architecture](../docs/ATF_Architecture.md#harta-modulelor-platformă-și-consumatori) and POM Console document this limit.
+- the dotted edge keeps Test Kit outside the consumer’s business runtime;
+- The JUnit Console adapter retains `optional compile`, without default
+  transitive propagation; [architecture](../docs/ATF_Architecture.md#harta-modulelor-platformă-și-consumatori) and the Console POM own this exception.
 </details>
 
 | Contains | Not containing | Gate |
 |---|---|---|
 | level / channel / console / output / setup / docs / UI records, neutral resolvers | renderer, mock, browser | Test Kit tests; global classification in `atf-tests` |
-| JUnit comparisons and observation facts scoured by phase | Fact-derived verdict, business rules, publication Extent | Test Kit tests; adapters to the consumer's owner |
+| JUnit comparisons and observation facts scoped by phase | verdicts inferred from observations, business rules, Extent publication | Test Kit tests; adapters to the consumer's owner |
 | test classification | business flow | each class has a single level |
-| cross-cutting rules | business runtime dependency | fail-closed la drift |
+| cross-cutting rules | business runtime dependency | rejects drift |
 
 <a id="real-junit-launch-plan"></a>
 <a id="planul-real-al-lansării-junit"></a>
@@ -70,17 +70,17 @@ Each executable class declares exactly one level:
 
 <a id="what-checks-governance"></a>
 <a id="ce-verifică-guvernanța"></a>
-### What checks governance
+### What governance checks
 
-- `AtfTestLayerArchitectureTest`, `atf-tests` and the whole- ATF suite, uses
-  `AtfJavaSourceInventory` joint inventory: default Maven root or `testSourceDirectory` declared in POM, including `src/test` root Shop;
-- verify annotation, package, prohibited imports and `support` isolation;
-- solves from compound sources and annotations, by import or the same packaging,
-  including the ingot composition; cycles do not invent a level;
-- The rule is fail- closed: a class without level or with multiple levels stops
-  The building, including when levels come from compound annotations.
-- Level belongs to the executable class, not the file name or profile
-  the report; the metaphoric-annotations fixtures are separated from the executable owner.
+- `AtfTestLayerArchitectureTest` in the whole-ATF suite uses shared
+  `AtfJavaSourceInventory` discovery: Maven’s default root or declared `testSourceDirectory`, including Shop’s `src/test` layout;
+- it checks annotations, packages, prohibited imports and `support` isolation;
+- it resolves source and composed annotations through imports or the same package,
+  including nested composition; cycles cannot invent a level;
+- the rule rejects missing or multiple levels, including levels inherited
+  through composed annotations;
+- the executable class owns its level, independently of filename or report profile;
+  meta-annotation fixtures remain separate from executable test owners.
 - Reporting samples using Playwright directly remain at the UI component owner,
   in `atf.ui.tests.extent.component`; a contract API rendered does not justify an exception.
 
@@ -88,9 +88,9 @@ Each executable class declares exactly one level:
 <a id="verificări-de-compoziție"></a>
 ### Composition checks
 
-- `AtfModuleTest` / `AtfModuleTestCondition` remains suitcase specific
-  `atf-reporting-tests` in `atf.reporting.test`;
-- a missing module can produce `SKIPPED` through the dedicated neck;
+- `AtfModuleTest` / `AtfModuleTestCondition` remain suite-specific support
+  in `atf-reporting-tests`, under `atf.reporting.test`;
+- the dedicated condition can report a missing module as `SKIPPED`;
 - The kit does not introduce a parallel UI boolean.
 
 <a id="infrastructure-annotations-implemented"></a>
@@ -100,29 +100,29 @@ Each executable class declares exactly one level:
 | Package | API | Application |
 |---|---|---|
 | `atf.testkit.channel` | `AtfTestChannel`, `TestChannelPlan`, resolver | UI / API / UI_API channel, separate from JUnit level |
-| `atf.testkit` + `.console` | `AtfConsoleMessages`, `AtfConsoleMessagePolicyResolver` | Tipped console policy; `atf-console` applies it without a double sink / formatter |
-| `atf.testkit.reporting` | `AtfReportPath`, `AtfReportPathPolicyResolver` | i-in separately for the published report path |
-| `atf.testkit.output` | directory annotations and `ReportOutputDirectory` | Anchor UI by annotation or path project-related validated for an artifact |
+| `atf.testkit` + `.console` | `AtfConsoleMessages`, `AtfConsoleMessagePolicyResolver` | typed console policy; `atf-console` applies it without a duplicate sink or formatter |
+| `atf.testkit.reporting` | `AtfReportPath`, `AtfReportPathPolicyResolver` | separate opt-in for the published report path |
+| `atf.testkit.output` | directory annotations and `ReportOutputDirectory` | UI root selected by annotation, or a validated project-relative artifact directory |
 | `atf.testkit.setup.api` | `ApiScenarioSetup`, `ApiTestRef` | statements; catalogue and execution remain with the consumer |
 | `atf.testkit.documentation` | `DocumentationTarget`, JAR guides | selection and compilation isolated; oracles to the owner |
-| `atf.testkit.evidence` | `AtfUiEvidence`, `AtfUiEvidencePlan`, `AtfUiEvidenceResolver` and axis enumerations | independently solves the float, catches and stock details; consumer adapters mapped them in the Reporting profile |
-| `atf.testkit.lifecycle` | `TestRunInitialization`, `CloseOnceResource`, `ArmedCleanup`, `FailureAwareCleanup`, `FailureEvidenceCleanup`, `AtfE2eActivationPolicy`, `ScopedAcceptanceRun` | purchase / rollback, cleanup, activation E2E and launch scoped; without API UI / Reporting |
-| `atf.testkit.scope` | `TestRunScope`, `ScopedTestValue<T>`, `ScopedTestResource<T>` | explicit ownership in the JUnit Storeul, without static cache or UI resources |
-| `atf.testkit.assertions` | facade / recorder, injected display and component protocol | comparisons JUnit with neutral evidence on phases and invoicing; no renderer or business rules |
+| `atf.testkit.evidence` | `AtfUiEvidence`, `AtfUiEvidencePlan`, `AtfUiEvidenceResolver` and axis enumerations | resolves flow, capture and detail axes independently; consumer adapters map them to a Reporting profile |
+| `atf.testkit.lifecycle` | `TestRunInitialization`, `CloseOnceResource`, `ArmedCleanup`, `FailureAwareCleanup`, `FailureEvidenceCleanup`, `AtfE2eActivationPolicy`, `ScopedAcceptanceRun` | acquisition/rollback, cleanup, E2E activation and scoped launch; no UI/Reporting API |
+| `atf.testkit.scope` | `TestRunScope`, `ScopedTestValue<T>`, `ScopedTestResource<T>` | explicit JUnit Store ownership without static caching or UI resources |
+| `atf.testkit.assertions` | facade / recorder, injected display and component protocol | JUnit comparisons with neutral evidence per phase and invocation; no renderer or business rules |
 | `atf.testkit.timing` | `InvocationTimer` | Monotone intervals per owner, immutable snapshot and accumulation without renderer or JUnit |
-| `atf.testkit.recovery` | `AtfUiRecovery`, plan and Resolver | restriction per invoicing for BE policy; without YAML, browser or renderer |
+| `atf.testkit.recovery` | `AtfUiRecovery`, plan and Resolver | per-invocation BE policy restriction; no YAML, browser or renderer |
 
 `atf.testkit.lifecycle` is a package of the existing `atf-test-kit` module, not a new module. It does not introduce dependencies to UI or Reporting.
 
 | Contract | Behavior and evidence |
 |---|---|
-| Initialization | `TestRunInitialization.create(...)` receives resource factories → scenario → phase → run; on failure perform reverse callbacks for returned handles.`TestRunInitializationTest` checks success, each failure point, `Error` and `suppressed` errors. |
-| Single Closure | `CloseOnceResource` keeps the handler and tries close once, including if it fails; `closeAfter(primary)` retains the original cause without self-pressure. |
-| Compensare | `ArmedCleanup.arm()` is called before the mutation; success disarms, and failure retains the possibility of explicit retry. It does not represent automatic cleanup retry and does not know what an account is. |
+| Initialization | `TestRunInitialization.create(...)` acquires factories → scenario → phase → run; failure invokes reverse cleanup for successfully returned handles. `TestRunInitializationTest` checks success, every acquisition failure, `Error` and suppressed cleanup errors. |
+| Single Closure | `CloseOnceResource` retains the handle and attempts close once, even if close fails; `closeAfter(primary)` preserves the original cause without self-suppression. |
+| Compensation | `ArmedCleanup.arm()` is called before the mutation; success disarms, and failure retains the possibility of explicit retry. It does not represent automatic cleanup retry and does not know what an account is. |
 | Cleanup | `FailureAwareCleanup` tries all stages, keeps the first error and attaches the rest as `suppressed`; the resources close backwards. |
-| Failure evidence | `FailureEvidenceCleanup` captures before the cleanup that can change the page; the consumer holds the callbacks. Both primitive are tested in `FailureAwareCleanupTest`. |
-| Activation | `AtfE2eActivationPolicy`: override JVM → oci- in configured → Fallback IDE → deactivation; extensions read signals, and `AtfE2eActivationPolicyTest` checks the precedence and rejection of invalid values. |
-| Scoped acceptance | `ScopedAcceptanceRun` applies only synchronous callback override, restore the previous value including `Error`, then collect selected caller files; `ScopedAcceptanceRunTest` proposes the same cause, filter and collection error. |
+| Failure evidence | `FailureEvidenceCleanup` captures before cleanup can change the page; the consumer provides callbacks. `FailureAwareCleanupTest` checks both primitives. |
+| Activation | `AtfE2eActivationPolicy`: JVM override → configured opt-in → IDE fallback → disabled; extensions supply resolved signals, and `AtfE2eActivationPolicyTest` checks precedence and invalid-value rejection. |
+| Scoped acceptance | `ScopedAcceptanceRun` applies an override only around a synchronous callback, restores the prior value even after `Error`, then collects caller-selected files; `ScopedAcceptanceRunTest` verifies the original cause, filter and collection failure. |
 | Integration | The whole- ATF governance checks Shop / AutoEx limits; the kit does not read YAML and does not start the browser. |
 
 - API, precedent and evidence: [infrastructure annotations](../docs/ATF_Test_Infrastructure_Annotations.md).
@@ -135,13 +135,13 @@ Each executable class declares exactly one level:
 
 [ScopedAcceptanceRun](src/main/java/atf/testkit/lifecycle/ScopedAcceptanceRun.java) is the neutral primitive used by the Shop and AutoEx CLI- routes: temporary override, synchronous callback and immutable artifact collection. It serializes cooperating calls; it does not isolate the JVM property from external writers.
 
-The consumer provides the laser, configuration, file filter and business oracles. ScopedAcceptanceRun does not import JUnit, Reporting or Playwright, does not create the directory and does not interpret HTML. [ScopedAcceptanceRunTest](src/test/java/atf/testkit/lifecycle/ScopedAcceptanceRunTest.java) test remains unitary; Extent contract belongs to the acceptance of the consumer.
+The consumer provides the launcher, configuration, file filter and business oracles. `ScopedAcceptanceRun` imports neither JUnit, Reporting nor Playwright and neither creates directories nor interprets HTML. [ScopedAcceptanceRunTest](src/test/java/atf/testkit/lifecycle/ScopedAcceptanceRunTest.java) remains a unit test; the consumer owns Extent acceptance.
 
 <a id="neutral-declaration-for-recovery-be"></a>
 <a id="declarația-neutră-pentru-recuperare-be"></a>
 ### Neutral declaration for recovery BE
 
-`atf.testkit.recovery.AtfUiRecovery` and its resolver do not know YAML, Playwright, business operations or renderer. The consumer's extension solves the plan per invoicing before resources, then narrows the UI policy loaded from YAML.
+`atf.testkit.recovery.AtfUiRecovery` and its resolver do not know YAML, Playwright, business operations or renderers. The consumer extension resolves the plan before acquiring invocation resources, then restricts the UI policy loaded from YAML.
 
 | Mode | Effect |
 |---|---|
@@ -151,7 +151,7 @@ The consumer provides the laser, configuration, file filter and business oracles
 
 The nearest class with direct or compound declaration establishes the basis. The method may narrow down; READ_ONLY does not reopen a DISABLED class and CONFIGURED per method retains class restriction.
 
-A CONFIGURED explicitly on the next class resumes YAML base instead of the parent class. READ_ONLY / DISABLED conflicts at the same level are rejected; the math cycles do not invent a policy.
+Explicit CONFIGURED on the nearest declaring class resets to the YAML baseline instead of inheriting the parent’s restriction. Conflicting READ_ONLY/DISABLED declarations at one level are rejected; meta-annotation cycles cannot invent policy.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
@@ -177,20 +177,20 @@ The runtime contract is at [UI](../atf-ui/README.md#recuperare-be-prin-observaț
 
 <a id="comparison-junit-with-neutral-evidence"></a>
 <a id="comparații-junit-cu-dovadă-neutră"></a>
-### Comparison JUnit with neutral evidence
+### JUnit comparisons with neutral evidence
 
-`AuditedAssertions` and `RecordedAssertions`, in `src/main/java`, delegate the JUnit comparison once. `Check(name, expected, actual, passed)` row is retained before the original error reaches the caller; the preview is not deciding the verdict.
+`AuditedAssertions` and `RecordedAssertions` in `src/main/java` delegate each JUnit comparison once. They retain a `Check(name, expected, actual, passed)` before propagating the original assertion failure; preview never decides the verdict.
 
-`RecordedAssertions.observe(ComponentAuditObservation)` records typed facts for the current phase, separate from the `Check` list and the requested cover. A single fact does not meet the `ComponentAssertionAudit` Assertion requirement; the consumer adaptor decides how to map it into `ReportObservation`, and the Kiti does not import Reporting and does not publish a renderer.
+`RecordedAssertions.observe(ComponentAuditObservation)` records typed facts in the current phase, separately from checks and the requested outcome. An observation does not satisfy `ComponentAssertionAudit`’s assertion requirement; the consumer maps it to `ReportObservation`, while Kit remains independent of Reporting and rendering.
 
-- `AssertionValueDisplay` receives consumer redaction policy and
-  apply to the complete text, then limit the display to 240 characters including `…` by default. The positive limit is configurable and expansion does not cancel it.
+- `AssertionValueDisplay` applies the consumer’s redaction policy to full text,
+  then limits display to 240 characters including `…` by default; the positive limit is configurable and expansion does not remove it.
 - The consumer adaptor receives the actual budget from the report owner,
   prior to collection; Kit does not read YAML and does not depend on Reporting. [Reporting contract](../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor) defines the configuration and value displayed in the System.
-- Defective projection uses `<display unavailable>`; we do not redial `toString()`
-  in the handler and do not replace the original error of comparison. JUnit messages provided lazy remain lazy.
-- `assertThrows` and `assertDoesNotThrow` suppress both internal checks of
-  façade and explicit recorder; the report keeps checking the wait, not an artificial FAIL business.
+- Failed projection yields `<display unavailable>`; handling does not retry
+  `toString()` or replace the original comparison failure, and lazy JUnit messages stay lazy.
+- `assertThrows` and `assertDoesNotThrow` suppress internal facade and recorder
+  checks; the report retains the exception expectation rather than inventing a business FAIL.
 - A recorder explicitly created in the scope also feeds the collector of the invocation;
   Each collector applies its own display policy to the full value. `checks()` returns the immutable snapshots.
 
@@ -198,17 +198,17 @@ The runtime contract is at [UI](../atf-ui/README.md#recuperare-be-prin-observaț
 
 | Case | Contract |
 |---|---|
-| `@BeforeEach` / Test Method / `@AfterEach` | Distinguished recorder in `SETUP` / `TEST BODY` / `TEARDOWN`; legacy and temples keep isolation |
-| FAIL captured by a simple `catch` | uncompleted audited error is spread at the end; JUnit and the ratio remains FAIL |
-| JUnit Handler swallowing an exception | the error caught at the callback output remains FAIL; an abort remains SKIP, and the translation of an error into the abort does not hide the original error |
+| `@BeforeEach` / test method / `@AfterEach` | separate recorder in `SETUP` / `TEST BODY` / `TEARDOWN`; legacy and template invocations remain isolated |
+| FAIL captured by a simple `catch` | an unhandled audited failure is rethrown at completion; JUnit and the report remain FAIL |
+| JUnit handler swallowing an exception | a failure captured at callback exit remains FAIL; an abort remains SKIP, and translating failure into abort cannot hide the original cause |
 | PASS without assessed checks | explicit guard; no lines are invented |
-| assessment rejected | `ABORTED` result, designed by the consumer as SKIP for real reason |
+| aborted execution | `ABORTED`, projected by the consumer as SKIP with the actual reason |
 | publication / close failure | all stages are tested; the original cause remains primary and the rest are `suppressed` |
 
-The factor and mappings are consumer; Kit does not import Reporting, Validation, Core or Playwright and does not choose steps or catches.
+The consumer owns the factory and mappings. Kit imports neither Reporting, Validation, Core nor Playwright, and it does not choose business steps or captures.
 
 - `ComponentAuditExtension.scoped(...)` shares only the publication resource;
-  The collector, phases and publication remain per invoicing.
+  collectors, phases and publication remain per invocation.
 - `@BeforeAll` / `@AfterAll` errors receive class diagnosis without invented comparisons.
 
 `AssertionProjectionTest` and `ComponentAuditExtensionComponentTest` are tested in Extent / fallback in Reporting Tests.
@@ -217,7 +217,7 @@ The factor and mappings are consumer; Kit does not import Reporting, Validation,
 <a id="timpul-execuției-pe-faze-componente"></a>
 ### Time of execution by component phases
 
-`InvocationTimer`, in `src/main/java/atf/testkit/timing`, measures monotone intervals in nanoseconds. `ComponentAuditExtension` surrounds each executed JUnit callback; `PhaseResult.timing()` carries the immobile snapshots and the number of intervals. several methods inherited from the same phase are combined without the gaps between them.
+`InvocationTimer` in `src/main/java/atf/testkit/timing` measures monotonic nanosecond intervals. `ComponentAuditExtension` surrounds each executed JUnit callback; `PhaseResult.timing()` retains an immutable snapshot and interval count. Multiple inherited callbacks in one phase accumulate their intervals without the gaps between them.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":24}}}%%
@@ -262,14 +262,14 @@ flowchart LR
 </details>
 
 <details>
-<summary><strong>JUnit Invoice limit</strong></summary>
+<summary><strong>JUnit invocation boundary</strong></summary>
 
-- The scope is explicit on the thread of the claim; it does not propel implicitly into the worker threads.
-- Template methods and invoicing, including parameterization of consumption, are covered;
-  a dynamic test factory requires an adaptor of its own per dynamic test.
-- A pre-invoicing disabled selection shall not produce an execution or assertion.
-- The original JUnit errors are retained; the wording applies to ATF proof,
-  does not rewrite the object of the exception held by the runner.
+- Scope is explicit on the assertion thread and does not propagate implicitly to workers.
+- Template methods and invocations, including consumer parameterization, are covered;
+  a dynamic test factory needs a separate adapter for each dynamic test.
+- Selection disabled before invocation produces neither execution nor assertions.
+- Original JUnit failures are retained; redaction applies to ATF evidence,
+  without rewriting the exception owned by the runner.
 
 </details>
 
@@ -280,12 +280,12 @@ flowchart LR
 `@AtfReportPath` controls the notification after publication; Kit does not create the report.
 
 - Absence: `DISABLED`; value-free annotation: `ENABLED`.
-- At the nearest level of class, direct declaration overrides meta- policies,
-  including `DISABLED` over E2E marker.
-- Without direct declaration, the opposite meta-policies fail failfast; without policy
-  local search for the superclass, then apply the default.
-- Console Agregator receives each owner via `AtfReportPathOptIn.include(owner)`;
-  at least one active owner shall request notification of the common artifact.
+- On the nearest declaring class, a direct policy overrides meta-policies,
+  including DISABLED over an E2E marker.
+- Without a direct declaration, conflicting meta-policies fail immediately;
+  without a local policy, resolution continues through superclasses, then uses the default.
+- The Console aggregator includes each owner through `AtfReportPathOptIn.include(owner)`;
+  one enabled owner is enough to request notification for the shared artifact.
 - Policy belongs to Jupiter class, including when launching a method; annotation
   `@Suite` is not inherited by the selected classes.
 
@@ -293,44 +293,44 @@ The above precedence is `AtfReportPath` specific. The full contract is in [annot
 
 <a id="wealth-values-per-class-or-execution"></a>
 <a id="valori-cu-ownership-per-clasă-sau-execuție"></a>
-### Wealth values per class or execution
+### Values owned by a class or execution
 
 `TestRunScope.selected(context)` reads JUnit `atf.test.run.scope` parameter; invalid values stop configuration.
 
 | Value | Owner | Use |
 |---|---|---|
-| `class` implicit | Actual class store | class methods divide the value; other classes have distinct values |
-| `suite` explicit | The root stores of the execution | the classes of the same execution may reuse the value |
+| `class` default | current class Store | methods in one class share the value; other classes have independent values |
+| `suite` explicit | execution root Store | the classes of the same execution may reuse the value |
 
 - The suite declares `@ConfigurationParameter(key = "atf.test.run.scope", value = "suite")`;
   order and parallelism are separate decisions of consumption.
-- `value(context, owner, name, type)` isolates the keys and scopes.
-  Two launches in the same JVM do not share values, even with the same ID-uri JUnit.
-- `ScopedTestValue.getOrCreate(...)` performs the factory once and returns
-  value plus indicator `created`; a failed purchase blocks the default retry and retains the original cause.
-- `close()` is idempotent and forgets the reference, including after a failure;
-  do not close the stored object and do not delete the borrowed remote resource.
-- `toString()` representation does not include value. Consumer holds policy
-  drawing up and any external operation of cleanup.
-- `resource(context, owner, name, type)` uses `ScopedTestResource<T>`
-  Distinguished from `value(...)`: Close the purchased object to the class / suite owner, once, including when close fails. Do not resume failed factory.
+- `value(context, owner, name, type)` isolates keys and scopes; two launches in
+  the same JVM never share values merely because their JUnit IDs match.
+- `ScopedTestValue.getOrCreate(...)` invokes the factory once and returns the
+  value with a `created` flag; failed acquisition prevents implicit retry and retains the original cause.
+- `close()` is idempotent and releases the reference even after failure;
+  it neither closes the stored value nor deletes a borrowed remote resource.
+- `toString()` excludes the value; the consumer owns redaction policy and
+  any external cleanup operation.
+- `resource(context, owner, name, type)` uses `ScopedTestResource<T>`, separately
+  from `value(...)`: the class/suite owner attempts close once, even when close fails, and never retries a failed factory.
 
-`ScopedTestValueTest` checks the status and competition; `TestRunScopeComponentTest` launches real Jupiter for methods, classes, repeated executions, setup / body failed and release upon closure of Store.Launcher and engineer Jupiter are only dependent on Kit test. `ScopedTestResourceTest` and `ScopedComponentAuditExtensionComponentTest` check the dispersal, isolation The claims, the class failure and the failed publication after the contract.
+`ScopedTestValueTest` covers state and concurrency; `TestRunScopeComponentTest` uses real Jupiter for methods, classes, repeated runs, setup/body failures and Store cleanup. Launcher and Jupiter engine remain test dependencies. `ScopedTestResourceTest` and `ScopedComponentAuditExtensionComponentTest` check disposal, invocation isolation, class failure and publication failure.
 
 <a id="liability-limits"></a>
 <a id="limite-de-responsabilitate"></a>
-### Liability limits
+### Responsibility boundaries
 
-- `AtfUiEvidence` holds only the declared vocabulary: `CONFIGURED` leaves each
-  axis to the condominium configuration, and an explicit value is the class's intention; the kit does not read YAML and does not create Reporting profile;
+- `AtfUiEvidence` owns declarative vocabulary: CONFIGURED leaves an axis to
+  consumer configuration, and an explicit value declares class intent; Kit neither reads YAML nor creates a Reporting profile;
 - each consumer applies the precedence and mapped the values in its profile:
   The configuration provides the base, and the explicit value of annotation only overrides the declared axis. AutoEx and Shop apply all three axes; the isolation of profiles between scenarios from a shared ratio remains the responsibility of the consumer lifecycle, not Test Kit;
-- `AtfUiEvidenceResolver` analyses direct and compound statements of the
-  The complementary explicit axes combine; different explicit values for the same axis fail with the owner and the name of the axis. A complete local declaration `CONFIGURED` returns to configuration without inheriting the parent's overrides. Resolver does not automatically compose harness;
+- `AtfUiEvidenceResolver` resolves direct and composed declarations.
+  Explicit values on complementary axes combine; conflicting values for one axis fail with owner/axis diagnostics. A wholly CONFIGURED local declaration resets to configuration rather than inheriting parent overrides; the resolver does not compose a harness.
 - capture source, the publisher, the browser lifecycle and the practical flows
   Shop remains with their owners; Test Kit does not depend on `atf-reporting` or Playwright;
-- `AtfReportPathPolicyResolver`'s solver manages the metaphorical annotations separately,
-  class hierarchy and output policy conflicts.
+- `AtfReportPathPolicyResolver` separately resolves meta-annotations,
+  class inheritance and report-path policy conflicts.
 
 <a id="e2e-common-support-limit"></a>
 <a id="limita-suportului-e2e-comun"></a>
