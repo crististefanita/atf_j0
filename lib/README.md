@@ -85,3 +85,11 @@ flowchart LR
 In J0, this directory is the maintenance register; it does not replace the source modules and does not host building outputs. [Technical contract](../docs/ATF_Platform_Libraries.md) and [synchronization of workspaces](../docs/ATF_Workspace_Synchronization.md) detail the publication.
 
 Project entry points are collected in the [workspace index](../docs/workspaces/README.md).
+
+<a id="consumer-guides"></a>
+
+## Consumer guides
+
+[J1](https://github.com/crististefanita/atf_j1/blob/HEAD/lib/README.md) · [J2](https://github.com/crististefanita/atf_j2/blob/HEAD/lib/README.md) · [J3](https://github.com/crististefanita/atf_j3/blob/HEAD/lib/README.md) · [J4](https://github.com/crististefanita/whist/blob/HEAD/lib/README.md) · [J5](https://github.com/crististefanita/rentz/blob/HEAD/lib/README.md) · [J6](https://github.com/crististefanita/atf_j6/blob/HEAD/lib/README.md) · [J7](https://github.com/crististefanita/chess/blob/HEAD/lib/README.md)
+
+Each guide describes its project’s library integration; versions, provenance and acceptance remain local.

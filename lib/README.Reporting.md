@@ -75,3 +75,5 @@ HTTP duration comes from `ReportResponse.duration()`; `detail(...)` preserves th
 ---
 
 J0: [code, tests and feedback](README.md#mentenanță-și-feedback).
+
+[Consumer integration guides](README.md#consumer-guides).

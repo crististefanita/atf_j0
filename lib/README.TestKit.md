@@ -63,3 +63,5 @@ The `atf.testkit.launch` package observes launcher sessions through the public `
   it. The library has no dependency on Reporting, UI or consumers.
 
 `TestLaunchPlanComponentTest` probes direct/filtered selection, nested/concurrent scopes, plans executed later, disabled tests, dynamic registrations and absence of the bridge.
+
+[Consumer integration guides](README.md#consumer-guides).

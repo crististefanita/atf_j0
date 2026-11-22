@@ -51,3 +51,5 @@ Console depends on Core; Kit is optional for JUnit integration. The projection i
 ---
 
 The maintenance of Console code and tests belongs to the separate `atf_j0/atf-console` project; [feedback and synchronization](README.md#mentenanță-și-feedback) starts from J0.
+
+[Consumer integration guides](README.md#consumer-guides).

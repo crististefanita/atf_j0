@@ -50,3 +50,5 @@ var total = body.path("total").decimalValue();
 ---
 
 The maintenance of Core code and tests belongs to the separate `atf_j0/atf-core` project; [feedback and synchronization](README.md#mentenanță-și-feedback) starts from J0.
+
+[Consumer integration guides](README.md#consumer-guides).
