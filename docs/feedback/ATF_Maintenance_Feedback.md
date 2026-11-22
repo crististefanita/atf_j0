@@ -7,7 +7,7 @@
 <a id="pe-scurt"></a>
 ## At a glance
 
-Maintenance gates are implemented. There is no open implementation task in this register; functional gaps remain with their owners.
+[Workspace maintenance](../ATF_Workspace_Synchronization.md#maintenance-increment-protocol) owns the maintained process; functional gaps remain in their domain backlogs.
 
 <a id="atf-workspace-maintenance-01---gates-and-ownership"></a>
 <a id="atf-workspace-maintenance-01--porți-și-ownership"></a>

@@ -67,7 +67,7 @@ flowchart LR
 |---|---|
 | Core → Kit → Reporting | `CoreRedactionPublicationComponentTest`: `$0` and backslash literal masks, original comparison FAIL with identical previews, 240 limit and absent canary Extent / fallback; renderer does not change the requested comparison verdict |
 | UI context per phase | `PhaseUnifiedFlowContextComponentTest`: same Extent / fallback, UI and mock API 200/500; flow metadata do not become HTTP response, and the actual exchange retains its status and expect 200 |
-| Expansion of assertions per phase | `PhaseUnifiedFlowComponentTest`: own disclosure, Enter / Space, reload, rows ACTION / OBSERVE, original catch and preview 18/240 |
+| Expansion of assertions per phase | `PhaseUnifiedFlowComponentTest`: independent disclosure, Enter/Space, reload, ACTION/OBSERVE rows, original screenshot and preview 18/240 |
 | long fallback titles | `FallbackLongTitleComponentTest`: text fragments remain in the sidebar and heading at 1280/760/392 px; sibling, anchor, keyboard and reload retain identity and the reintroduction of `nowrap` is denied |
 
 `UnifiedFlowProvenanceFieldsTest` checks field selection independently of HTML, including noncompact typed context, retained HTTP/custom fields and rejection of classification from an isolated field name. Conflicting metadata, including a compact marker, preserves the request, captured mock 500 response and execution; the expected status remains independently 200.
@@ -77,7 +77,7 @@ flowchart LR
 | The library compiles itself? | [isolated source](#gate-ul-bibliotecii-distribuite) | POM autonomous and boundary production |
 | Does the app use physical JAR? | [binary consumer](#gate-ul-bibliotecii-distribuite) | CodeSource and classpath without library source |
 | Semantic contract is kept? | [integration matrix](#matricea-de-integrare-și-limitele-verificate) | independent browser models, causes and projections |
-| Can the user audit the artifact? | [tables and responders](#tabele-publicate-și-inventar-independent) | exact comparisons, catches, keyboard and backlink |
+| Can the user audit the artifact? | [tables and responders](#tabele-publicate-și-inventar-independent) | exact comparisons, screenshots, keyboard and backlink |
 
 The inventory below indicates their samples and boundary; the acceptance of a paper requires execution of the affected coats and audit of the new artifact. [Test residues](../docs/feedback/ATF_Reporting_Tests_Feedback.md) separates the obsolete oracle, binary fixture and reproducible rendering defect.
 
@@ -85,7 +85,7 @@ Consumer tests keep independent and negative controls. A HTML containing the tex
 
 <a id="the-librarys-gatecraet-distributed"></a>
 <a id="gate-ul-bibliotecii-distribuite"></a>
-## The library's gatecraet distributed
+## Distributed-library gate
 
 `ReportingLibraryDistributionIntegrationTest` checks the actual loaded form:
 
@@ -110,7 +110,7 @@ Copies, Maven / Java processes and lobes remain in TMP. The test proves the cons
 
 <a id="portable-receipt-for-evidence-of-publication"></a>
 <a id="receipt-portabil-pentru-dovezile-publicării"></a>
-### Portable Receipt for Evidence of Publication
+### Portable publication evidence receipt
 
 After Maven consumer acceptance, the distribution gate writes a `.receipt` beside each HTML Extent and fallback report. The receipt pins the run's UUID-, the Maven coordinate, the SHA-256 of the JAR and HTML, and the publication verdict.
 
@@ -154,14 +154,11 @@ The verifier shall separately display the historical verdict in the Receipt and 
 
 `UiFailureReportContractTest` is the annotation-driver browser sample for UI failure in Extent:
 
-- SETUP, Playwright timeout, observation and assertion keep the FAIL Leaf under
-  Semantic owner; document starts collapsing, and Fails strictly opens the ancestors of original proof and keeps sister scenarios closed;
-- Playwright scenario checks `TimeoutError`, the locator, duration and editorial;
-  UI failure must not create disclosure HTTP;
+- SETUP, Playwright timeout, observation and assertion retain the FAIL leaf under its semantic owner; the document starts collapsed, and Fails opens only original-evidence ancestors while sibling scenarios stay closed.
+- The Playwright scenario checks `TimeoutError`, locator, duration and redaction; UI failure creates no HTTP disclosure.
 - `ExtentReportUiFailureEvidenceTest` and `UiFallbackFailureEvidenceTest`
   check the fallback and isolation of a brother-screenplay;
-- The renderer gives the locator's target through the editor; without cause, the publication of a
-  derives from FAIL action or rejects the undiagnosed implant;
+- The renderer redacts locator targets; without an explicit cause, it derives one from a FAIL action or rejects input lacking a diagnostic.
 - browser contract keeps timeout in current scenario and excludes it from
   Sibling scenarios; stable rule is in [reporting contract](../docs/ATF_Reporting_Contract.md#fails-și-legături).
 
@@ -170,8 +167,7 @@ The backlinks' oracles shall retain the identity:
 - `FailureLinkIdentity` compares the decoded scenario and parameters, including the ordinal;
 - Negative evidence refuses foreign scenarios and duplicate parameters; parameters
   additional and reload encoding shall retain the same destination.
-- `PublishedFailureNavigationEdgeComponentTest` checks two UI groups
-  homonymous with a single FAIL, so that the derived summary is created. Oracle selects the comparison in the validation host, with literal causes, reload, reverse orders and preview 18/240; does not repeat the production selector.
+- `PublishedFailureNavigationEdgeComponentTest` checks two identically named UI groups with one FAIL each, triggering derived summaries; its oracle selects the original validation comparison using literal causes, reload, reverse order and preview 18/240 rather than copying the production selector.
 
 The stable contract for the visible hierarchy, layout, responsive view, disclosures and browser evidence is [ATF Reporting - Display contract and layout](../docs/ATF_Reporting_Display_Contract.md). This README holds the matrix of evidence and the responsibilities of the suite; does not redefine visual rules in feedback or fixtures.
 
@@ -184,34 +180,34 @@ The projection of the context UI is checked by the component:
 | Test | Protected contract |
 |---|---|
 | `UiCheckpointEvidenceProjectionTest` | the identity of the checkpoint and `evidence.type` / `evidence.policy` remain in the model; the projections typed / legacy and fallback do not publish and move them to replies |
-| `UiApiValidationContractComponentTest` | prohibit entries with gross exchanges into API, lifecycle, publisher and buffer; check the verdicts UI / API independent and sister exchanges in checkpoint, setup, final and unified, plus mark request / response / actual execution |
-| `ReportRequestHeadersTest` | observed / configured source, cas- insensitive override, existing customer compatibility and immutable copying |
-| `ObservedRequestEvidenceComponentTest` | Extent / fallback / UI_API × six inputs: absent, unpressed, JSON literal null, explicitly redacted heads, declared defaults and replies without body; Request details and replay does not invent headers or payload |
-| `ObservedBodyAuditComponentTest` | 22 cases: actual browser audit in the three publishers, body absent / unclaimed / null literal, JSON fallback collapsed and compared to catalogue without invented payload |
+| `UiApiValidationContractComponentTest` | rejects raw-exchange inputs in API, lifecycle, publisher and buffer; checks independent UI/API verdicts and sibling exchanges in checkpoint/setup/final/unified publication, plus real request/response/execution markup |
+| `ReportRequestHeadersTest` | observed/configured sources, case-insensitive override, existing-client compatibility and immutable copying |
+| `ObservedRequestEvidenceComponentTest` | Extent/fallback/UI_API × six inputs: absent, uncaptured, literal JSON null, explicit redacted headers, declared defaults and body-free responses; Request details/replay invent no headers or payload |
+| `ObservedBodyAuditComponentTest` | 22 cases: real browser audit across three publishers, absent/uncaptured/literal-null bodies, collapsed fallback JSON and catalog comparison without invented payload |
 | `LiveClientHeaderProbe` | HTTP loopback real through ATF client; headers received on the wire are compared to Reporting projection and sanitized replica |
 | `UiApiVerdictProjectionComponentTest` | UI PASS/API FAIL, UI FAIL/API PASS, both FAIL and API FAIL correlation with PASS exchanges; typed owner, exact request/checkpoint/cause, final PASS sibling exchange and exact Open in Tests index; separate audit with steps, assertions and captures for all five Fails entries |
 | `ApiWhitespaceBodyComponentTest` + `UiNetworkBodyFidelityComponentTest` of UI | body present only from whitespace remains distinct from absent, unclaimed and JSON literal null; capture / sanitization to the UI host, then formatting / publishing / replicating to Reporting |
-| `ExtentReportUiEvidencePublishingTest` | UI does not add a synthetic HTTP quest; the unspoken exchange keeps quest / response / JSON / execution |
-| `ExtentReportDisclosureBrowserComponentTest` | PASS / WARNING / FAIL-controlled artifact; empty phase does not display expansion affordance, and API with evidence mock remains expanding with mouse / keyboard; no introduction table for checkpoint, validations and screenshot available, close without visible subshaft and semantic identified customized titles; removable open by click / Enter with the source collapsed without jumping to anchor |
-| `NavigationSelectionBrowserComponentTest` | Extent actual, successively click on the four tables; accessible names for icons, single link `active` and `aria-current="page"`, synchronous with visible view |
-| `ComponentAssertionStepReportTest` | Same typed and 42-line node in Extent / fallback; default collapse step, last row access and switch with mouse / Enter / Space in Chromium; FAIL in Extent has `component` owner, exact numerical values and reopened link to table, without demand or duration HTTP |
+| `ExtentReportUiEvidencePublishingTest` | the UI publisher adds no synthetic HTTP request; nested exchanges retain request/response/JSON/execution |
+| `ExtentReportDisclosureBrowserComponentTest` | controlled PASS/WARNING/FAIL artifact; empty phases offer no expansion, while mock API evidence remains mouse/keyboard expandable; no introductory checkpoint table, retained validations/screenshots, hidden subtree on close and semantically identified custom titles; deduplicated captures open by click/Enter while the source stays collapsed, without an anchor jump |
+| `NavigationSelectionBrowserComponentTest` | real Extent, sequential clicks across four tabs; accessible icon names, one `active`/`aria-current="page"` link synchronized with the visible view |
+| `ComponentAssertionStepReportTest` | the same typed node and 42 rows in Extent/fallback; initially collapsed, last-row access and mouse/Enter/Space in Chromium; Extent FAIL retains `component` ownership, exact numeric values and a deep link opening the table without fabricated HTTP request/duration |
 | `PublishedEvidenceTableComponentTest` | UI / API / UI + API × Extent / fallback; literal values in 12/40 rows, exact inventory per owner, real geometry, expansion, resize and tables; negative controls detect missing evidence, clipping, removed ceiling and FAIL changed to PASS |
-| `TerminalExecutionProjectionTest` + `TerminalApiExecutionReportTest` | Snapshot partially strict, 503 followed by status unavailable, end typed in Execution evidence, without manufactured answers details; Extent / fallback keeps 240 ceiling, budget configured, redaction, last row and Enter / Space; zero discounts do not declare executed network |
-| `UiTerminalExchangeReportComponentTest` | checkpoint, setup, final, trace and flow unified in / over phases keep the unresponsive exchange between two neighbours PASS; diagnosis, attempts, totals and keyboard in Extent / fallback, with implicit and personalized budget; the unversed samples are held by `ReportingStandaloneVerdictComponentTest` in the standalone library |
+| `TerminalExecutionProjectionTest` + `TerminalApiExecutionReportTest` | strict partial snapshot, 503 followed by unavailable status, typed termination in Execution evidence without fabricated Response details; Extent/fallback retain preview 240, configured budgets, redaction, last-row access and Enter/Space; zero dispatches claim no network execution |
+| `UiTerminalExchangeReportComponentTest` | checkpoint/setup/final/trace and unified flow within/across phases retain a response-free exchange between two PASS neighbors; diagnostics, attempts, totals and keyboard in Extent/fallback with default/custom budgets; verdict-free probes belong to standalone-library `ReportingStandaloneVerdictComponentTest` |
 | `ReportPhaseTimingComponentTest` | Timing typed identical in Extent / fallback snapshots; browser keeps 12/345/0 ms per phase, scenario / class / Overview totals without duplication and the source of execution after expansion; publication remains separate |
 | `BodyOnlyUnifiedFlowComponentTest` | one eligible TEST BODY UI-only body: one flow with retained actions/observations/assertions, preview 18/240 and mouse/Space/reload in Extent/fallback; typed contracts include API mock PASS/FAIL and multiple captures |
-| `ComponentExecutionDiagnosticReportTest` | PASS or before first comparison; Fails without quest / duration HTTP invented or comparison PASS attributed to error; empty measured phases and 42 rows in Extent / fallback, with 240 ceiling and keyboard |
+| `ComponentExecutionDiagnosticReportTest` | exception after PASS comparisons or before the first comparison; Fails invents neither HTTP request/duration nor a failed PASS comparison; empty measured phases and 42 rows in Extent/fallback, preview 240 and keyboard access |
 | Relays | `ExtentReportRuntimeScriptTest` maintains the sources of duration; `ExtentReportSessionContractTest` separates fields API / UI in Fails; `AtfReportEvidenceCssTest` protects the common container and font, supplemented by actual measurements from `NarrowEvidenceReadabilityComponentTest` |
-| `AssertionAuditPublicationComponentTest` | Extent / fallback projection; keep FAIL row without synthetic secrecy fragments and SKIP with `Abort reason` without built assertions |
+| `AssertionAuditPublicationComponentTest` | redaction before the limit in Extent/fallback; retains FAIL without synthetic-secret fragments and SKIP with `Abort reason`, without fabricated assertions |
 | `ReportingPreviewBudgetTest` | the full value displayed includes the ellipse in limit; null, exact limit and budget of JSON independent |
 | `LegacyPreviewBudgetComponentTest` | direct UI ports in Extent / fallback; 240/18 limits, full wording, verdict from full values and same limit in Fails after backlink |
-| `ReportingPreviewConfigurationComponentTest` | YAML default 240 and configured 18/480, effective value in Extent / fallback system, contradictory metadata refused and budget rejected unpositive |
-| `UiFailureContextTest` + `UiFailureContextReportTest` | FAIL action prior to long technical message, lack of exception / action, PASS actions followed by error, first FAIL sequence and graf causes / suppressed with references / cycles, without moving the verdict or original evidence |
+| `ReportingPreviewConfigurationComponentTest` | default YAML 240 and configured 18/480; effective value in Extent/fallback System, contradictory metadata rejected and nonpositive budgets refused |
+| `UiFailureContextTest` + `UiFailureContextReportTest` | FAIL action before long technical text, missing exception/action, PASS actions followed by error, first FAIL sequence and cause/suppressed graphs with references/cycles; verdict and original evidence stay intact |
 | `UiFailureContextComponentTest` | Tests / Fails and backlinks in Extent / fallback, preview 240/18, 392 panel, context of action and time measured, inspectable relationships in diagnostics INFO and disclosure Enter / Space without JavaScript errors |
 | `UiTimeoutReportComponentTest` | native separate from the time captured and the compact context Fails; Extent / fallback at 240/18, primary / cause / suppressed redacted, HTML without credential, owner and backlink, Enter / Space, last row and negative oracle for diagnosis missing or visible secret |
 | `ReportScopeAtomicityComponentTest` | repeated completions, late writing, closed idempotent / FAIL, open children and closed session; refusal without mutation and publicity in Extent / fallback |
 | `UiSetupFallbackParityComponentTest` | setup keeps comparisons, actions and capture in Extent / fallback; 240/18, redaction, Enter / Space and FAIL evaluated beyond forecast, including with PASS caller |
-| `UiPhaseExecutionTest` + `UiPhaseTimingLifecycleComponentTest` | execution / catches / publication delimited, controlled clock, primary cause, zero / unknown, success / FAIL / SKIP, incomplete setup, failed teardown and unified flow over phases |
+| `UiPhaseExecutionTest` + `UiPhaseTimingLifecycleComponentTest` | separate execution/capture/publication, controlled clock, primary cause, zero/unknown, success/FAIL/SKIP, incomplete setup, failed teardown and cross-phase unified flow |
 | `ReportPhaseDiagnosticTest` | explicit conversion, source phase status, delimited legacy keys, unaltered context and immutable result; the diagnostic port does not create HTTP |
 | `ReportPhaseAuditBrowserComponentTest` | Extent / fallback with zero / one / more exchanges and with / without metadata; JUnit failure, missing association, editorial and closure of diagnosis; Fails excludes PASS phase notes; negative samples for hidden tape, renamed or empty |
 
@@ -225,45 +221,45 @@ Maven `reporting-release` profile maintains the complete unit suite as a precond
 mvn -pl atf-reporting-tests -Preporting-release test
 ```
 
-`UnitBaselineBehaviorComponentTest` rejects the unbound table, the duplicate initialization and the / duration of the neighbor PASS. Direct opening in Fails and the relay keeps the index after native handler Tests; the reintroduction of the native class of the host must be rejected by the same oracle. `ScreenshotLinkContract` checks DOM link, PNG octets and caption; The duplicate, the modified catch and the foreign caption remain negative controls. A script selector is not a published link. The same selection is performed with JAR physically without parallel Reporting classes; CodeSource and results are kept near the TMP candidate. JAR installed in the private cachet sets `atf.reporting.test.version` to the published version and `-am` is running the profile. By default, the property follows `${project.version}` and keeps execution on the reactor source.
+`UnitBaselineBehaviorComponentTest` rejects an unbound tab, duplicate initialization and a neighboring PASS request or duration. Direct entry to Fails and reload preserve the index after the native Tests handler; restoring the native host class must fail the same oracle. `ScreenshotLinkContract` checks the published DOM link, PNG bytes and caption, with duplicate links, altered images and foreign captions as negative controls. A script selector is not a published link. Run the same selection against the physical JAR without parallel Reporting classes; retain CodeSource and results beside the TMP candidate. For a JAR installed in a private cache, set `atf.reporting.test.version` to its published version and run the profile without `-am`; the default `${project.version}` keeps reactor-source execution.
 
 <a id="browser-setup-and-terminal-verdict"></a>
 <a id="setup-browser-și-verdict-terminal"></a>
-### Browser Setup and Terminal verdict
+### Browser setup and terminal verdict
 
-Phase markers keep the workshop's monotonous time. At the race between watchdog and the publication of the marker, a transition confirmed in the phase budget may advance the observation. The overcome measured in the worker remains a failure, and the term startup and the total limit of the process remain active.
+Phase markers retain the worker’s monotonic timestamps. If a watchdog check races marker publication, only a transition completed within its phase budget can advance observation; a worker-measured overrun remains a failure. Startup and total process deadlines remain active independently.
 
-`ReportArtifactProfileComponentTest` keeps the static inspection and interactive sample separately. `BrowserProbeProcess` performs each sample in its own JVM; a factory locked before navigation produces FAIL, including when HTML conforms.
+`ReportArtifactProfileComponentTest` separates static inspection from interactive verification. `BrowserProbeProcess` runs each probe in its own JVM; a factory blocked before navigation fails even when the input HTML satisfies static checks.
 
 | Boundary | Contract |
 |---|---|
-| Setup | 30 s for JVM / SDK, launch and `newPage` startup; no retry or relaxed threshold |
-| Driver CLI | prepared once per JVM host or reused from `playwright.cli.dir`; source and time are recorded separately in `driver-runtime.log` |
-| Verification | `BrowserProbeBudget.DEFAULT`: 60 s; `BrowserClassRun`: 120 s / class and maximum 10 min total; 5 s action and 30 navigation s remain independent |
-| Cleanup | 5 s for normal closure; at failure, forced termination has 5 s and only targets offspring with verified parent chain and same starting identity |
-| Diagnostic | phase, PID-uri, log and stacks at timeout; failed matrix and lifecycle controls keep the sample directory and initial cause precedes errors of cleanup |
-| TMP native | short, unique and owner- marked directory; JVM and SDK receive the same root without browser profile in the common TMP-ul |
-| Acceptance | DONE terminal phase, exit 0 and resources closed; no verdict is PASS |
+| Setup | 30 s for JVM/SDK startup, browser launch and `newPage`; no retry or relaxed threshold |
+| Driver CLI | prepared once per host JVM, or reused from `playwright.cli.dir`; `driver-runtime.log` records its source and preparation time separately |
+| Verification | `BrowserProbeBudget.DEFAULT`: 60 s; `BrowserClassRun`: 120 s per verification scope with a 10 min class lifetime; 5 s action and 30 s navigation timeouts remain independent |
+| Cleanup | 5 s for normal cleanup; forced termination after failure has its own 5 s budget and targets only descendants with a verified parent chain and matching start identity |
+| Diagnostic | phase, PIDs, logs and timeout thread dumps; failed matrix/lifecycle probes retain their directories, and the original cause precedes cleanup failures |
+| Native TMP | short, unique, owner-marked directory shared by JVM and SDK; browser profiles do not leak into shared TMP |
+| Acceptance | terminal DONE, exit code 0 and closed resources; a missing verdict is not PASS |
 
-`BrowserProbeProcessComponentTest` covers non-cooperative factory, blocked cleanup, suppressed causes and parent's interruption; an independent process must survive. `BrowserProcessInventoryContractTest` refuses processes started before the workshop and PID-uri reused. Same SDK and the same samples run on the reactor source and JAR physically via `reporting-release`. Harnessul remains in J0, without Playwright added to the standalone library or in the browser-free consumers.
+`BrowserProbeProcessComponentTest` covers noncooperative factories, blocked cleanup, suppressed causes and parent interruption while preserving an unrelated process. `BrowserProcessInventoryContractTest` rejects processes predating the worker and reused PIDs. The same SDK and probes run against reactor source and the physical JAR through `reporting-release`; the harness stays in J0 without adding Playwright to the standalone library or browser-free consumers.
 
 <a id="published-tables-and-independent-inventory"></a>
 <a id="tabele-publicate-și-inventar-independent"></a>
 ### Published tables and independent inventory
 
-`PublishedEvidenceTableComponentTest` publishes UI, API and UI + API through real ports, Extent and fallback. 12 case keeps short comparisons; the two cases of 40 by rows shift long text to EXPECTED and ACTUAL respectively.
+`PublishedEvidenceTableComponentTest` publishes UI, API and UI+API through real ports in Extent and fallback. Its 12-row case retains short comparisons; two 40-row cases place long text in EXPECTED and ACTUAL respectively.
 
 | Test | Observed criterion |
 |---|---|
-| Inventory | exact number per form and owner; setup, ACTION / OBSERVE, request / response, execution / retry and three distinct Thracian roles |
-| Geometry | 1803/1280/991/719/720/721/591/392 px and 591/392 px panels; full width, legible font, aligned columns, finite head, last row and last accessible column; secondary tabs also check 760/761 px threshold |
-| Evidence | independent literal values, Unicode / escaping, PASS / FAIL kept and identical content after resize, Enter / Space and return to Tests |
-| Taburi | Overview / System / Tags and table Categories; Fails uses native fields / index, and secondary fallback tags use cards / links; the intentional absence of a table is explicit |
-| Negative control | artificially reduced width, header / column / missing table, vertical cells, direct / inner clipping, hidden row, empty gutter, removed head, modified value times FAIL changed into PASS; Fails hidden under navigation and technically torn header |
+| Inventory | exact population per shape and owner: setup, ACTION/OBSERVE, request/response, execution/retry and three distinct trace roles |
+| Geometry | viewports 1803/1280/991/719/720/721/591/392 px and panels 591/392 px; full width, readable font, aligned columns, bounded height and accessible last row/column; secondary tabs also check the 760/761 px threshold |
+| Evidence | independent literal values, Unicode/escaping and retained PASS/FAIL; identical content after resize, Enter/Space and return to Tests |
+| Tabs | Overview/System/Tags and the Categories table; Fails uses native fields/index, while secondary fallback tabs use cards/links; intentionally absent tables are explicit |
+| Negative control | artificially reduced width, missing header/column/table, vertical cells, direct/inner clipping, hidden rows, empty gutter, removed height limit, altered values or FAIL changed to PASS; Fails hidden behind navigation and technical headers broken into letters |
 
-The browser collection is grouped in `PublishedEvidenceTableMeasurements`; `PublishedEvidenceTableOracle` applies independent rules. Negative controls restore the exact published table and check the inventory and content again. The sample is waiting for the completion of the finished transitions prior to measurement, including after restoration of a mutation. The browser campaign runs separately from public E2E purchases; interaction budgets and business timeouts remain unchanged.
+`PublishedEvidenceTableMeasurements` collects browser observations; `PublishedEvidenceTableOracle` applies independent rules. Negative controls restore the exact published table, then recheck inventory and content after finite transitions finish. This browser campaign remains separate from public purchase E2E, preserving interaction budgets and business timeouts.
 
-Canon content is compared in the same order after navigation. `atf-ui-failure-evidence` derived projections are checked separately: one for each failed owner / validation, with the first original comparison and no duplicates on repeated browsing; `assertion-step` component step does not participate in the hook.
+Compare canonical content in the same order after navigation. Check derived `atf-ui-failure-evidence` projections separately: one per failed request/validation owner, retaining its first original comparison without duplicates on repeated navigation; the `assertion-step` component node does not participate in this hook.
 
 The percentage width of the first column is not an aesthetic oracle. The allocation of content remains protected by `EvidenceColumnSizingComponentTest`. The configurable budget and redaction have existing dedicated evidence.
 
@@ -276,7 +272,7 @@ For `ExtentReportDisclosureBrowserComponentTest`, `support/inspection/disclosure
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-10px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10}}}%%
 flowchart LR
-    Composition["Composition"] -->|consume| Reporting["Reporting"]
+    Composition["Composition"] -->|consumes| Reporting["Reporting"]
     Reporting -->|produces| Reports["API / UI reports"]
     Composition -. test scope .-> Support["Test support"]
     ShopTests[Practice Shop] -. consume .-> Reporting
@@ -294,15 +290,15 @@ flowchart LR
 
 | Surface | Owner | Dependencies |
 |---|---|---|
-| renderer, model, CSS/JS, publication | `atf-reporting` | zero module ATF |
-| API / mock contracts producing record-keeping for reporting | `atf-reporting-tests` | core/mock/validation/console |
-| E2E and ATF Debug browser for report | `atf-reporting-tests` | ui/debug-ui/Playwright |
-| Shop Practice tests | `atf-test-practice-shop` | reporting jar, UI and application setup |
-| whole governance - ATF | `atf-tests` | does not have application tests |
+| renderer, model, CSS/JS, publication | `atf-reporting` | no dependencies on ATF modules |
+| API/mock contracts that produce reporting evidence | `atf-reporting-tests` | core/mock/validation/console |
+| report E2E browser and ATF Debug | `atf-reporting-tests` | ui/debug-ui/Playwright |
+| Practice Shop tests | `atf-test-practice-shop` | reporting jar, UI and application setup |
+| whole-ATF governance | `atf-tests` | does not own application tests |
 
 <a id="rule-of-liability-limits"></a>
 <a id="regula-limitelor-de-responsabilitate"></a>
-## Rule of liability limits
+## Responsibility boundaries
 
 `atf-reporting` must pass by itself:
 
@@ -368,21 +364,18 @@ The contract is checked on two seams:
 
 <a id="correlation-of-ui-cases"></a>
 <a id="corelarea-cauzelor-ui"></a>
-### Correlation of UI cases
+### UI failure-cause correlation
 
-The correlation of UI cases is checked separately from `UiFailureCorrelationComponentTest`: the same published assertion court and its propagated exception produce a single Fails entry. The neutral fixture covers nine scenarios in both flow modes; the 16 intentional causes remain distinct, including UI / API with equal texts and independent exceptions. Tests, original assertion, terminal diagnosis and retained catch; unitary test checks identity, wrapped propagation, cleanup and cycles of causes.
+`UiFailureCorrelationComponentTest` checks that the same published assertion instance and its propagated exception produce one Fails entry. Its neutral fixture covers nine scenarios in both flow modes and preserves 16 intentional causes, including equal UI/API text and independent exceptions; browser audit checks every Open in Tests link, original assertion, terminal diagnostic and retained screenshot, while unit tests check identity, wrapped propagation, cleanup and cause cycles.
 
 <a id="fitness-of-method-and-times-api"></a>
 <a id="fidelitatea-metodei-și-a-timpilor-api"></a>
-### Fitness of method and times API
+### API method and timing fidelity
 
-- method observed remains true in snapshot, title, signature and reply; alias
-  the business operation remains separate;
-- unclaimed duration is distinct from `0 ms` and response time, total with retry
-  and the duration of the publication shall not be substituted for each other;
-- Absent body, JSON literal `null` and unattached body remain distinct states;
-- The reply keeps the shell arguments quoted separately; parity test does not
-  entails the order of the headers and does not turn the absence into a JSON flat;
+- The observed method stays intact in snapshot, title, signature and replay; the business-operation alias remains separate.
+- Uncaptured duration differs from `0 ms`; response time, retry-inclusive total and publication duration are not interchangeable.
+- Absent body, literal JSON `null` and uncaptured body remain distinct states.
+- Replay retains separately quoted shell arguments; parity tests assume no header order and do not turn absence into a JSON pane.
 - `ReportTransportTimingTest` and `ApiExchangeParityComponentTest` check
   Reporting projection and `ShopApiMethodFidelityTest` protects the consumer adapter;
 - semantics is in [`ATF_Reporting_Contract.md`](../docs/ATF_Reporting_Contract.md),
@@ -406,43 +399,42 @@ The correlation of UI cases is checked separately from `UiFailureCorrelationComp
 | Boundary | Contract | Test |
 |---|---|---|
 | Rated fields | `ApiReportEvidenceField` holds the canonical label and explicit legacy aliases; contradictory aliases do not hide a wrong value | `ApiReportContractAuditorTest` |
-| Query | be withdrawn from the `URL` of the request, not from the patch or URL-ul response; a correct response does not artificially repair an incomplete request | `ApiReportRenderedEvidenceComponentTest` - nominal and query missing |
+| Query | extracted from the request `URL`, not its path or the response URL; a correct response cannot repair an incomplete request | `ApiReportRenderedEvidenceComponentTest` - nominal and query missing |
 | Ownership table | responding fields come only from `Response details` disclosure, not from the technical trackside of execution | Same component requires exactly one table for each evidence channel |
-| Phase | bindings are checked on the header, then waiting for open status on the card; no increase in timeout and repeated toggle without reading status | Same component: re-selection, round-trip tab, reloading and TEST BODY absent |
-| Audit catch | the publisher reuses the already inspected table without reload or resetting the actions; changing the evidence table keeps the history | Same component checks the identity of the page, the tracksuit and the open discoloration |
+| Phase | check binding on the header, then await the card’s open state; do not increase timeouts or toggle repeatedly without reading state | Same component: re-selection, round-trip tab, reloading and TEST BODY absent |
+| audit capture | the publisher reuses the inspected tab without reload or action reset; switching to the evidence tab retains history | the same component checks page identity, trace and open disclosure |
 | Composition | exact setup → mock → API artifact → all sections rendered and reconciling | `SelectedApiTestsReportUiTest` |
 
-Component samples use a controlled Extent publication and the same locators / extractors as E2E without external endpoint. Negative scenarios are fixture data, not reasons to disable checks or invent PASS. `ExtentReportDisclosureBrowserComponentTest` uses and highlight API mock: nodes with demand / response / validation extend, while a phase without child content does not simulate interactive control.
+Component probes use controlled Extent publication and the same locators/extractors as E2E, without external endpoints; negative scenarios are fixture data, never reasons to disable checks or invent PASS. `ExtentReportDisclosureBrowserComponentTest` also uses mock API evidence: nodes with request/response/validation expand, while an empty phase does not simulate an interactive control.
 
 <a id="simultaneous-errors-in-publication-and-close"></a>
 <a id="erori-simultane-la-publicare-și-close"></a>
 ### Simultaneous errors in publication and close
 
-`UiPublicationFailureComponentTest` injects errors in controlled ports, called through public UI facade; does not imply an incident in a real renderer.
+`UiPublicationFailureComponentTest` injects errors into controlled ports through the public UI facade; it does not imply a real-renderer incident.
 
 | Independent oracle | Proven contract |
 |---|---|
-| The original exemption court | purchase / body / complete remains the cause; separate close becomes suppressed |
-| Port events | each scope purchased has a single close without rephrase |
-| Same exception to body and close | without self-pressure or substitution of the case |
-| RuntimeException and Error | Same identity and order in all proven entries |
+| original exception instance | acquisition/body/complete remains primary; a distinct close failure is suppressed |
+| Port events | one close per acquired scope, without replay |
+| Same exception to body and close | no self-suppression or cause replacement |
+| RuntimeException and Error | same identity and order across all probed entry points |
 | Outcome, setup, checkpoint / media, API, unified, delegated failure | Require, validation and API assertions close to owner |
-| Partial acquisition | close the prisoner parent without close on the child not obtained |
-| Multiple errors of cleanup | child precedes parent in suppressed, with original identities |
+| Partial acquisition | close the owned parent, never the unacquired child |
+| Multiple errors of cleanup | child precedes parent in suppressed failures, with original identities |
 
-Semantic snapshots and Extent / fallback samples check the rendering separately; foul injection does not replace the HTML audit.
+Semantic snapshots and Extent/fallback probes verify rendering separately; fault injection does not replace HTML audit.
 
-The public matrix is complemented by `UiFailurePublicationComponentTest`, for `UiFailureEvidencePublisher` directly and through the facade. Ports do not close children in cascade: lack of validation close.Partial acquisition, body / complete / close errors, `Error` and self- pressure keeps the original cause.
+`UiFailurePublicationComponentTest` complements the public matrix with direct/facade checks of `UiFailureEvidencePublisher`. Ports do not cascade child closure, so missing validation close is independently detectable; partial acquisition, body/complete/close failures, `Error` and self-suppression retain the original cause.
 
-`PublishedFailureNavigationComponentTest` publishes Extent fixtures with UI / API and assertion- step component in all phases. Backlink must open the exact comparison without expansion helper; the keyboard, relay and neighbouring PASS scenario are tested separately from the general Extent / fallback geometry.
+`PublishedFailureNavigationComponentTest` publishes Extent UI/API and component assertion-step fixtures in every phase. The backlink must open the exact comparison without expansion helpers; keyboard, reload and the PASS neighbor are checked separately from general Extent/fallback geometry.
 
 `PublishedFailureNavigationEdgeComponentTest` completes the navigation sample:
 
-- Extent indexes a single diagnostic chain in Fails; Tests keep each
-  source row per phase, collapsible and expanding independently. Fallback keeps one navigable row for each phase;
-- Blurred diagnoses in all phases and fallback for UI / API / component;
-- original proof, configured budget, recharged route and intercalated diagnostics;
-- Hidden ancestor that invalidates the oracle, without assisted expansion.
+- Extent indexes one diagnostic chain in Fails while Tests retains each phase source row as an independent disclosure; fallback retains one navigable row per phase.
+- Diagnostics without comparisons across all phases, with fallback UI/API/component coverage.
+- Original evidence, configured budget, reloaded route and interleaved diagnostics.
+- A hidden ancestor invalidates the oracle without assisted expansion.
 
 <a id="order-of-tests-and-responsibility-of-protection"></a>
 <a id="ordinea-testelor-și-responsabilitatea-protecțiilor"></a>
@@ -459,11 +451,11 @@ The public matrix is complemented by `UiFailurePublicationComponentTest`, for `U
 
 <a id="selecting-scenarios-for-api-ratio"></a>
 <a id="selecția-scenariilor-pentru-un-raport-api"></a>
-### Selecting scenarios for API ratio
+### Scenario selection for an API report
 
-`@ApiScenarioSetup(tests = ...)` declares the exact methods; the resolver validates the selection before wider collections.
+`@ApiScenarioSetup(tests = ...)` declares exact methods, resolved after explicit JVM family/suite overrides and before annotation families or YAML. Selection is validated before publication.
 
-Fallback order, when no precise methods are declared:
+When no exact methods are declared, family precedence is:
 
 1. JVM property with API families;
 2. property of the suite;
@@ -474,11 +466,11 @@ The expected Owners and scenarios are not deducted from the resulting DOM.
 
 | Contract | Proof component | Boundary |
 |---|---|---|
-| exact selection and semantic projection | `ApiScenarioManifestTest` | checks the owner, titles, statuses, orders and rejects unelected scenarios against the YAML fallback |
-| precedent of the setting and fallbacks | `ApiReportAuditSetupTest` | directly verify that the JVM family override takes priority over `tests = ...`, then check the suite, annotation and YAML fallbacks |
+| exact selection and semantic projection | `ApiScenarioManifestTest` | checks owners, titles, statuses and order; rejects unselected scenarios against the YAML fallback |
+| precedent of the setting and fallbacks | `ApiReportAuditSetupTest` | directly checks JVM family overrides before `tests = ...`, then suite, annotation and YAML fallbacks |
 | exact selection → mock / lifecycle → publisher | `ApiSelectionMockPublisherComponentTest` | checks the mock's JSON response, request/response/execution evidence in the artifact and exclusion of unselected scenarios; invalid selection is rejected before publication |
 
-These proofs are complementary: the manifest checks the projection, the resolver checks the precedent, and the composite test proves vertical to the artifact. `SelectedApiTestsReportUiTest` remains separate for browser interaction; it is not used as a substitute for lower- level contracts.
+These probes complement each other: the manifest checks projection, the resolver checks precedence, and the composed test reaches the artifact. `SelectedApiTestsReportUiTest` separately checks browser interaction rather than replacing lower-level contracts.
 
 <details>
 <summary><strong>Test levels and independence</strong></summary>
@@ -499,7 +491,7 @@ These proofs are complementary: the manifest checks the projection, the resolver
 
 <a id="generic-capture---support-checked-prior-to-the-consumer-module"></a>
 <a id="capturare-generică--suport-verificat-înaintea-modulului-consumator"></a>
-## Generic capture - support checked prior to the consumer module
+## Generic capture — verified before consumer integration
 
 <details>
 <summary><strong>Detailed contracts and evidence of the owners - Generic capture - support checked before the consumer module</strong></summary>
@@ -510,59 +502,51 @@ The cross-cutting contract for flow mode, screening policy and capture source is
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-10px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10}}}%%
 flowchart LR
     Fixture["Fixture PNG"] -->|configures| Session["Session + profile"]
-    Session -->|publishes| Html[HTML local]
+    Session -->|publishes| Html[Local HTML]
     Html -->|verifies| Contract["Component / integration"]
-    Browser["Browser static"] -. audit .-> Html
+    Browser["Static browser"] -. audit .-> Html
 ```
 
 <details>
 <summary><strong>Legend - testing on levels</strong></summary>
 
-- the fixture reunites PNG mock, typed input and catch provider;
-- the session uses the profile and the policy, applied before the provider;
-- units: policy before provider, target, provenance, PNG and cardinal `0/1/N`;
-- component: markup, status, disclosure, media reference and stock retention;
-- integration: session → semantic pattern → HTML, without endpoint or external browser;
-- optional browser: actual capture on the artifact HTML static;
-- E2E consumer: proves integration, does not reimplement generic support;
+- The fixture combines mock PNG, typed input and a capture provider.
+- The session applies profile/policy before invoking the provider.
+- Unit: policy before provider, target, provenance, PNG and cardinality `0/1/N`.
+- Component: markup, status, disclosure, media reference and retained actions.
+- Integration: session → semantic model → HTML, without external endpoint/browser.
+- Optional browser probe: real capture of a static HTML artifact.
+- Consumer E2E: integration proof, without reimplementing generic support.
 - The fixture may represent `PASS`, `FAIL`, `WARNING` or `SKIP`.
 
 </details>
 
-- `ReportEvidenceProfileTest` checks the filtering before the catch, the source's match,
-  PNG payload and typed selection of action details.
-- `ReportScreenshotTest` checks the Base64 encoding and signature PNG;
-  the contract does not entail full decoding of the image.
-- `ExtentReportUiEvidenceRenderingTest` checks the default table and that
-  `SUMMARY_ONLY` keeps a collapse disclosure without detailed table or change of catch; renderer does not perform UI actions.
+- `ReportEvidenceProfileTest` checks filtering before capture, source matching, PNG payload and typed action-detail selection.
+- `ReportScreenshotTest` checks Base64 encoding and PNG signature; the contract does not assume full image decoding.
+- `ExtentReportUiEvidenceRenderingTest` checks the default table and that `SUMMARY_ONLY` retains a collapsed disclosure without its detailed table or screenshot changes; the renderer performs no UI actions.
 - `ReportEvidenceProfileIntegrationTest` proves the mock provider → session → HTML local for both flow models.
-- The same class checks different profiles for sister-scenarios in a shared session and repeats the sample with reverse order; the profile does not leak between scenarios.
-- `UNIFIED_FLOW` retains one request with the final Gherkin sentence, without numbered checkpoints or duplicated Gherkin. In the phase projection, UI actions and assertions are aggregated; `API validation` is a sibling of `UI validation` under the same Gherkin checkpoint and owns its exchanges. Only the `FINAL` capture is published under `FINAL_ONLY`.
+- The same class checks different profiles for sibling scenarios in one shared session, then reverses order; profiles do not leak between scenarios.
+- `UNIFIED_FLOW` retains one request with the final Gherkin sentence, without numbered checkpoints or duplicated Gherkin. Per-phase projection aggregates UI actions/assertions, with `API validation` owning its exchanges beside sibling `UI validation`; `FINAL_ONLY` publishes only the `FINAL` screenshot.
 - `SCREEN_CHECKPOINTS` keeps the Gherkin quests independent.
 - Typed profile combines flow mode, screening policy, capture source and actions-details mode.
   The Grouping belongs to the lifecycle / publishing house in `atf-reporting`; choosing the mode for a consumer annotation remains the responsibility of that consumer.
 
-The profile isolation per scenario is a generic contract implemented and tested. The consumer must transmit the solved profile when creating each scenario; a profile provided only at the opening of the report remains the default value of the session. The Shop Practical Wirings for shared reports and the aggregation of `SETUP` + `TEST BODY` phases are implemented at the consumer and documented in [contract of the report](../atf-reporting/README.md#contractul-raportului).
+Per-scenario profile isolation is implemented and tested as a generic contract. The consumer passes the resolved profile when creating each scenario; a report-opening profile remains only the session default, while Practice Shop’s shared-report wiring and `SETUP` + `TEST BODY` aggregation are implemented at the consumer and described in the [report contract](../atf-reporting/README.md#contractul-raportului).
 
 `ExtentUnifiedFlowMultipleScreenshotTest` checks the generic regression of publication; local mappings remain in Shop samples without copying the renderer.
 
-- `UiCrossPhaseCompactFlowComponentTest` publishes a UI-only scenario by
-  Extent lifecycle and check the equivalent typed projection in fallback with `SETUP`, two `TEST BODY` and `CLEANUP` checkpoints: check one table per family, order of action, terminal capture under the table, `NONE` policy, UI provenance separated from `Response details` and absence of any Body invented after failed setup. Existing regressions for UI + API and multiple catches remain unchanged.
-- The same test checks the declared training directly in `TEST BODY`, without
-  `SETUP` or invented `Setup validation` label with assertions and FAIL stored in both renderers. The choice of the guest / authenticated phases belongs to the consumer; the Shop sample exercises the actual harness- separate from the neutral fixture.
+- `UiCrossPhaseCompactFlowComponentTest` publishes a UI-only Extent lifecycle scenario and checks the equivalent typed fallback projection across `SETUP`, two `TEST BODY` checkpoints and `CLEANUP`: one table per family, action order, terminal screenshot below the table, `NONE` policy, UI provenance separate from `Response details` and no invented body after failed setup. Existing UI+API and multiple-screenshot regressions remain intact.
+- The same test checks preparation declared directly in `TEST BODY`, without fabricated `SETUP` or `Setup validation`, retaining assertions/FAIL in both renderers; guest/authenticated phase choices stay with the consumer, whose Shop probe exercises the real harness separately.
 
 | Component | Verified contract | Invariant |
 |---|---|---|
-| `UiAuditLifecycleTest` of `AtfReportingComponentSuite` | Extent / fallback: valid catch, absence, invalid or excluded payload by policy | The action, cause and FAIL remain visible; the `Screenshot` observation explains the status without artificial business assertion or the Base64 link invented. |
-| `ExtentReportSessionContractTest` | Artifact and common style; `Configured per execution` default client or explicit client kept and written in System | A consumer without declared transport does not by default receive the identity of a API customer. |
+| `UiAuditLifecycleTest` of `AtfReportingComponentSuite` | Extent/fallback: valid or absent screenshot, invalid payload or policy-excluded capture | action, cause and FAIL stay visible; the `Screenshot` observation explains state without an artificial business assertion or fabricated Base64 link |
+| `ExtentReportSessionContractTest` | artifact/shared style; exact default Client `Configured per execution`, or explicit Client retained and redacted in System | A consumer without declared transport does not by default receive the identity of a API customer. |
 
-- The additional matrix compares the semantic snapshots with HTML for public
-  any policies, including empty payload, incorrect Base64, non-PNG and faulty without executed actions.
+- The additional matrix compares semantic snapshots and public HTML across all policies, including empty payload, invalid Base64, non-PNG and failure without executed actions.
 - The Client Oracle also checks the uniqueness of the row in the System.
-- The inspection fixture of the catch shall contain intended synthetic failures
-  and a PASS brother screenplay; it is not a Shop / AutoEx business run.
-- The component shall check the model and the marker; the rendering, the catch click and
-  Fails → Open in Tests remain the responsibility of [fault browser sample](src/test/java/atf/ui/tests/extent/e2e/failure/UiFailureReportContractTest.java).
+- The inspectable screenshot fixture contains intentional synthetic failures and a PASS sibling; it is not a Shop/AutoEx business run.
+- The component checks model/markup; rendering, screenshot interaction and Fails → Open in Tests belong to the [failure browser probe](src/test/java/atf/ui/tests/extent/e2e/failure/UiFailureReportContractTest.java).
 
 </details>
 
@@ -611,40 +595,39 @@ Boundary Boundary Boundarys remain small and verifiable:
 
 <a id="publication-of-a-bulky-report---component-sample"></a>
 <a id="publicarea-unui-raport-voluminos--probă-de-componentă"></a>
-### Publication of a bulky report - component sample
+### Large-report publication — component probe
 
-`LargeReportPublicationComponentTest` runs in a JVM child with limited head; does not run Journeys on external application and does not reduce catches. Two profiles isolate HTML volume from the average volume.
+`LargeReportPublicationComponentTest` runs in a child JVM with bounded heap, without external application journeys or reduced captures. Two profiles isolate HTML volume from media volume.
 
 | Parameter / proof | The fixture contract |
 |---|---|
 | Heap | `-Xms64m -Xmx384m`, separate from the Surefire fork |
-| Output | Configurable directory is created before JVM child log; the sample can start in a new directory |
-| Text profile / HTML | Unicode, 1.500 references PNG inline and two distinct images repeated; artifact > 9 MB |
-| Media profile | Four separate PNG generated 256×256, each referred twice; after the deduction four inline payloads remain, their total exceeds 900.000 characters |
-| Integrity | Exit code 0, total heap sampled at 2 ms, duration of publication, final marker, theme, runtime and actionable screenshot references |
-| Faillure-path and publication | `ExtentReportSessionLifecycleTest` checks for blocked destination, cleanup failure after atomic promotion, private staging without leads and `REPORT_PUBLISHED` event only after the final file; repeated closure only gives one notification and failed publication does not deliver successes. `ExtentReportAssetCleanupTest` proposes `AccessDeniedException` determinist and `FileSystemException`: transition / persistent lock, limited retry, error I / O nonretryable and maintenance of interruption |
-| Time | Child processing has `atf.test.publication.timeout.seconds` configurable timeout (default 60 s); overshoot only JVM sample |
-| Boundary | does not prove arbitrary volumes or very high resolution photos; the time is measured and limited only by the sample timeout, it is not SLA |
+| Output | the configurable directory is created before the child JVM log; the probe can start in a new directory |
+| Text profile / HTML | Unicode, 1,500 inline PNG references and two distinct repeated images; artifact >9 MB |
+| Media profile | four distinct generated 256×256 PNGs, each referenced twice; deduplication retains four inline payloads totaling over 900,000 characters |
+| Integrity | exit code 0, total heap sampled every 2 ms, publication duration, final marker, theme/runtime and actionable screenshot references |
+| Faillure-path and publication | `ExtentReportSessionLifecycleTest` checks blocked destination, cleanup failure after atomic promotion, leak-free private staging and `REPORT_PUBLISHED` only after the final file exists; repeated close notifies once, while failed publication announces no success. `ExtentReportAssetCleanupTest` deterministically probes `AccessDeniedException`/`FileSystemException`: transient/persistent locks, bounded retries, nonretryable I/O and preserved interruption |
+| Time | child timeout `atf.test.publication.timeout.seconds` is configurable (default 60 s); expiry forcibly stops only the probe JVM |
+| Boundary | does not prove arbitrary volume or very high-resolution photos; time is measured and bounded by the probe timeout, not an SLA |
 
 The test is contractual by repeatable limits, not by the results of a run:
 
 - JVM child: `-Xms64m -Xmx384m`; sampled head should remain below
   `345 MiB`;
 - timeout: `atf.test.publication.timeout.seconds`, implicit `60 s`;
-- `repeated-pixels` profile keeps the ratio above `9 MB` and references to
-  separate catches;
+- The `repeated-pixels` profile retains an artifact above `9 MB` with references to distinct screenshots.
 - `distinct-pngs` profile keeps the ratio above `2 MB`, four payloads
   PNG distinct inline and above `900.000` media characters;
 - duration and head are observed for diagnosis, but do not copy as
   permanent results in README.
 
-The Cleanup of the Director of Vendor `spark` treats `FileSystemException`, including `AccessDeniedException`, in maximum four attestations with 50 ms breaks. Persistent blocking is spreading with diagnosis; the interruption of the cleanup and retains the flag of the thread, without eliminating the report already published.
+Vendor `spark` directory cleanup handles `FileSystemException`, including `AccessDeniedException`, with at most four attempts 50 ms apart. Persistent locks propagate diagnostics; interruption stops cleanup and preserves the thread flag without deleting the already published report.
 
 <a id="budget-of-published-assets"></a>
 <a id="bugetul-asset-urilor-publicate"></a>
-### Budget of published assets'
+### Published asset budgets
 
-`ReportAssetSizeInventoryTest` measures the native sources and compact / published copies separately and verifies them against the explicit consumer budgets. The threshes are regression contract; the number of bytes observed in a run is only a measurement, not a new threesome. Any rebuilding reasons and verification of the impact on the artifact, not an accidental relaxation for the test to pass.
+`ReportAssetSizeInventoryTest` measures native sources and compacted/published copies separately against explicit consumer budgets. Thresholds are regression contracts, not run measurements; changing them requires a reason and artifact-impact verification.
 
 Regression budgets are explicit in `ReportAssetSizeInventoryTest`; the inventory is measured from native assets and published at each execution. These are ceilings, not targets for delivered size:
 
@@ -654,93 +637,68 @@ Regression budgets are explicit in `ReportAssetSizeInventoryTest`; the inventory
 | CSS | `140.000 B` | `120.000 B` |
 | Total | `265.000 B` | `223.000 B` |
 
-- `ReportAssetSizeBudgetTest` checks the exceeded limits and configurations
-  invalids; raising a ceiling requires reason and checking the impact on the artifact.
-- The typed step of the component assertions uses the common discoloration in
-  JavaScript. The source budget at the basic commissary was already overrun.
-- The revised ceilings cover the source and the measured compacted copy with less
-  2 KB reserve in each modified dimension; CSS and the native total remain unchanged.
+- `ReportAssetSizeBudgetTest` checks exceeded limits and invalid configurations; raising a ceiling requires a reason and artifact-impact verification.
+- Typed component assertion nodes reuse the common JavaScript disclosure implementation; native and published asset budgets remain separate.
+- Review budget changes against measured source and compacted output; a passing size budget does not prove the rendered interaction contract.
 
 <a id="answering-of-the-liability"></a>
 <a id="verificarea-randării-responsive"></a>
-### Answering of the liability
+### Responsive rendering verification
 
-The scroll ceiling and the absence of overflow are not sufficient for readability. Check the useful width of the columns, visible text and access to the last row according to [Adaptive contract](../atf-reporting/README.md#lizibilitatea-dovezilor-în-panouri-înguste).
+A scroll-height cap and absence of overflow do not by themselves establish readability. Check usable column widths, visible text and access to the final row under the [adaptive contract](../atf-reporting/README.md#lizibilitatea-dovezilor-în-panouri-înguste).
 
-`SelectedApiTestsReportUiTest` is the configurable entry point for the Extent ratio generated. Full crossing activates native disclosures with focus + Enter; component samples keep activation by clicking separately and check for open evidence. `CategoryCardinalityBrowserFixtureTest` is the dynamic gateway to verification in the browser: check 0/1 / many categories and measure UI fixtures and API for short / long content, at configured width and `591px`. The audit report shall be published via `ReportAuditContext` / ATF Debug.
+`SelectedApiTestsReportUiTest` is the configurable entry for generated Extent reports: full traversal activates native disclosures through focus + Enter, while component probes separately cover clicks and inspect opened evidence. `CategoryCardinalityBrowserFixtureTest` checks 0/1/many categories and short/long UI/API fixtures at configured width and `591px`. Publish the audit through `ReportAuditContext` / ATF Debug.
 
-Rendation invariants are:
+Rendering invariants:
 
 - in the eight areas measured in the browser (Overview categories,
   System / Environment, tag audit, Playwright actions, Audit / Assertions, `TECHNICAL TRACE`, Unique request signatures, Technical diagnostics), `scrollWidth <= clientWidth`, `max-height` uses the common `500px` ceiling and the short content remains natural without empty height;
-- `TECHNICAL TRACE` is measured in API directly and in exchange for API published next to
-  UI checkpoint for short and long data; markup and CSS tests check the same structure and token in the fallback renderer;
-- `ExtentReportDisclosureBrowserComponentTest` checks the long table
-  `Request details`, intoxicated in the discoloration of the quest, and retry history in Extent: local scroll, last accessible row and stick header at standard viewport and `760px`;
-- `ReportApiViewportParityComponentTest` completes the matrix with short tables
-  Require details / retry Extent and short / long fallback to `1280px` and `760px`: natural height for short, local / last row / sticky for long, without horizontal overflow of the document. `HtmlReportViewsTest` keeps the structural contract of the fallback wrapper separately;
+- `TECHNICAL TRACE` is measured in direct API reports and API exchanges beside UI checkpoints with short/long data; markup and CSS tests protect the same fallback structure and token;
+- `ExtentReportDisclosureBrowserComponentTest` checks long Request details nested within the request disclosure and Extent retry history: local scrolling, accessible final row and sticky header at standard width and `760px`;
+- `ReportApiViewportParityComponentTest` adds short Extent Request details/retry tables and short/long fallback tables at `1280px` and `760px`: natural short-content height and long-content local scrolling, final-row access and sticky headers without document overflow; `HtmlReportViewsTest` separately protects fallback wrapper structure;
 - for long content, the last row remains accessible, the table header remains
   fixed and the scrollable area does not exceed the common ceiling;
-- `ReportTableViewportComponentTest` checks default whipper, including
-  New families, empty input / null and same policy published in both themes;
-- `TableViewportBrowserComponentTest` measures the real tables in all phases
-  and the density / view / token matrix, including the single high cell, the overflow limit, mouse / keyboard and the maintenance of the titles / meters;
-- Same sample rejects missing / double wrapper, wrong ceiling, hidden overflow,
-  unfixed header and last row inaccessible; the inventory starts from tables, not only from already compliant wrappers;
-- `Unique request signatures` Network Inspector, and
-  `Technical diagnostics` measures `34px` in both widths and are closed by default, aligned with the other API / UI details;
-- browser audit does not notice console / page / request errors when opening
-  the selected UI and API artifacts; this is evidence of rendering, not evidence published in the report;
+- `ReportTableViewportComponentTest` checks default wrapping, including new table families, empty/null input and the same published policy in both themes;
+- `TableViewportBrowserComponentTest` measures real tables across phases and the density/viewport/token matrix, including a single tall cell, overflow boundaries, mouse/keyboard and retained titles/counts;
+- the same probe rejects missing/double wrappers, wrong caps, hidden overflow, nonsticky headers and an unreachable final row; inventory begins with tables rather than only compliant wrappers;
+- Network Inspector rows `Unique request signatures` and `Technical diagnostics` measure `34px` at both widths, start closed and align with other API/UI details;
+- opening the selected UI/API artifacts produces no observed console/page/request errors; this verifies rendering, separately from evidence published inside the report;
 - the report keeps the sections, the collapsed disclosures upon arrival,
   `SETUP → TEST BODY → UI validation`, request / response JSON and the glyphs `＋/−` inline prior to the sentence, without the decorative `<hr>`.
 
-Artifacts are routed and do not copy in README. `.js` / `.css` source remains formatted in `atf-reporting/src/main/resources`; only the copy published in HTML is compacted by `ReportAssetCompactor`. Thus, the component tests can check the native fragments and the browser verifies the effect of the final composition.
+Generated artifacts are run output and do not belong in READMEs. `.js`/`.css` source stays formatted under `atf-reporting/src/main/resources`; `ReportAssetCompactor` compacts only the copy embedded in HTML, so component probes can inspect native fragments while the browser verifies final composition.
 
 <a id="evidence-for-the-flow-inspector"></a>
 <a id="dovezi-pentru-inspectorul-fluxului"></a>
 ### Evidence for the flow inspector
 
-The network inspector shall be checked in two steps without transforming E2E into the model owner:
+Verify the network inspector at two levels, keeping E2E separate from model ownership:
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-10px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10}}}%%
 flowchart LR
     Evidence["HTTP exchanges"] -->|component| Aggregate["JourneyAggregate"]
-    Aggregate -->|integration| Publisher["Publisher Extent"]
+    Aggregate -->|integration| Publisher["Extent publisher"]
     Publisher -->|browser proof| Render["HTML collapse"]
 ```
 
 <details>
 <summary><strong>Legend - what must pass at each level</strong></summary>
 
-- `ReportNetworkInspectorTest` checks the ordered facts, authentication,
-  correlations, transport counters, unique signatures and the deduction of diagnostics derived from failed HTTP exchanges.The united test also checks the nested marker, including empty / partial aggregates;
-- `NetworkInspectorSummaryRoleTest` is the component proof for the role of
-  summary, order in flow and all evidence patterns;
-- `ExtentReportUiEvidencePublishingTest` remains proof separately for publication
-  the aggregate in the artifact Extent; its change does not replace the design unit or the contract component of the renderer;
-- component / integration publisher tests verify that the bodywork remains in
-  canonical discharges and aggregate do not receive any royalties or volatile messages;
-- `ApiBodyMediaComponentTest` checks JSON, JSON declared `text/html`, form
-  adversarial text, absent body and unclaimed in standalone Extent, fallback and UI + API; keep MIME-ul, the editorial and escaping without artificial conversion;
-- Same sample checks the direction of demand / response independently of the label
-  shown; the `ReportJsonBody` model and `Request.body(...)` channel are typed and the two-argument manufacturer and `json(...)` retain the Legacy convention; [contract and limit of legacy adapters](../atf-reporting/README.md#dovezi-json-și-componentele-de-randare-ui) are owned by Reporting, not redefined by fixtures;
-- publisher proof must also check the shape- not only the presence of the labels:
-  for `0..N` exchanges, each pair required / responded and outright execution shall be stacked as API unit; a common table with `API 1/API 2` prefixes is not sufficient;
-- UI trace proof must check the hierarchy 'one Gherkin checkpoint →
-  UI validation + API validation → discharges', with the two nodes validation as semantic brothers and without repetition of the Gherkin sentence;
-- the execution of the discoloration must be identifiable for its exchange;
-  two `Execution evidence · 1 attempt` appearances without context are ambiguous even if the number of attempts is correct;
-- the retry of the same request shall be checked as a single logical exchange:
-  attempts / history is kept in discrete execution and does not generate a new `API n`;
-- the layout contract must keep URL-ul fully legible at view
-  narrow, no arbitrary break in the identifier and no overflow;
-- browser / debug only checks visible structure, expansion / collapse, orders and
-  navigation; not required for each variation of method / status;
-- if the renderer publishes fields flat instead of the discoloration nested, model
-  Semantic may remain green, but publisher's throat must remain red until the projection is corrected;
-- HTML tests shall select the semantic area of the inspector and verify
-  cells / attributes / orders, not to use `contains` global or casing vendor.
+- `ReportNetworkInspectorTest` checks ordered facts, authentication, correlation, transport counters, unique signatures and deduplicated diagnostics from failed HTTP exchanges; its unit oracle also checks nested markup and empty/partial aggregates;
+- `NetworkInspectorSummaryRoleTest` checks the component summary role, flow order and all evidence modes;
+- `ExtentReportUiEvidencePublishingTest` separately verifies aggregate publication in Extent; changing it does not replace unit projection or renderer-component coverage;
+- component/integration publisher probes keep bodies inside canonical disclosures and exclude credentials or volatile messages from aggregates;
+- `ApiBodyMediaComponentTest` covers JSON, JSON declared `text/html`, form, adversarial text, absent and uncaptured bodies in standalone Extent, fallback and UI+API; MIME, redaction and escaping are retained without artificial conversion;
+- the same probe checks request/response direction independently of display labels; typed `ReportJsonBody` and `Request.body(...)` coexist with the legacy two-argument constructor and `json(...)`. Reporting owns the [contract and legacy adapter boundary](../atf-reporting/README.md#dovezi-json-și-componentele-de-randare-ui), rather than redefining them in fixtures;
+- publisher verification checks shape as well as labels: for `0..N` exchanges, each request/response pair and its execution evidence remains a readable API unit; one shared table prefixed `API 1/API 2` is insufficient;
+- UI trace verification checks `one Gherkin checkpoint → UI validation + API validation → disclosures`, with sibling validation nodes and no duplicated Gherkin sentence;
+- each execution disclosure is identifiable with its exchange; two bare `Execution evidence · 1 attempt` labels are ambiguous even when attempt counts are correct;
+- retries of one request remain one logical exchange: attempts/history belong in its execution disclosure and do not create another `API n`;
+- narrow layout keeps the complete URL readable without arbitrary identifier breaks or overflow;
+- browser/debug verification checks visible structure, expand/collapse, order and navigation; every method/status variation does not need a separate browser run;
+- flat fields in place of nested disclosures may pass semantic-model checks, but must fail the publisher gate until projection is corrected;
+- HTML probes select the inspector’s semantic region and verify cells, attributes and order rather than global `contains` or vendor casing.
 
 </details>
 
@@ -749,13 +707,13 @@ The selectable Entrypoints directly from IntelliJ are separated by the layer:
 | Entry point | Include | Role |
 |---|---|---|
 | `AtfReportingUnitSuite` | `unit` of `atf.reporting` | model, policy, parser, renderer seam and vocabulary |
-| `AtfReportingComponentSuite` | `component` from reporting and UI from ecstasy | Boundary HTML / CSS / JS, controlled contracts and fixtures; performance navigation snapshots are mapped through `ReportRuntimePerformanceSnapshot` and `ReportRuntimePerformanceBudget` verifies configurable fixtures without a business verdict |
-| `AtfReportingIntegrationSuite` | `integration` of `atf.reporting` | session, publication, reply and integration contracts of the library |
+| `AtfReportingComponentSuite` | `component` from Reporting and Extent UI | Boundary HTML / CSS / JS, controlled contracts and fixtures; performance navigation snapshots are mapped through `ReportRuntimePerformanceSnapshot` and `ReportRuntimePerformanceBudget` verifies configurable fixtures without a business verdict |
+| `AtfReportingIntegrationSuite` | `integration` of `atf.reporting` | session, publication, replay and library integration contracts |
 | `AtfReportingApiFixtureSuite` | `integration` of `atf.reporting.api.tests.api` | mock API → core → validation → reporting evidence without browser |
 | `ExtentReportingE2eSuite` | `e2e` of `atf.ui.tests.extent.e2e` | canonical UI gate with `@AtfTestChannel(UI)` |
-| `AtfReportingUiAuditSuite` | Same selection | A.K.A. compatibility for existing launches; not listed as the second gate |
+| `AtfReportingUiAuditSuite` | Same selection | compatibility alias for existing launches; not a second independent gate |
 
-`ReportingUiLauncherSelectionTest` compares by discourse JUnit the identities of the parametric methods and temples of both lasers without starting the browser. Parametric inventions appear on execution; both lasers select the same definitions and do not run together as disjuncts.
+`ReportingUiLauncherSelectionTest` compares method and parameterized-template identities through JUnit discovery without starting a browser. Parameterized invocations arise during execution; both launchers select the same definitions and are not independent gates to run together.
 
 The cross-projection API gate is selected by `AtfReportingComponentSuite` and linked to `ReportingCoverageMatrixTest`: a direct API contract, the same evidence through API/fallback/UI publishers, browser reconciliation of query and phase, API table viewports and ARIA/keyboard disclosures. Run the gate from the reactor root with:
 
@@ -767,27 +725,25 @@ mvn -pl atf-reporting-tests -am "-Dtest=AtfReportingComponentSuite" "-Dsurefire.
 - `failIfNoSpecifiedTests=false` allows intermediate modules not to have selected classes.
 - The command starts the suite completely, not just the matrix test.
 - Targeted browser probes reject Request/Response disclosures that are missing or moved to the scenario owner. `ApiReportRenderedEvidenceComponentTest` verifies isolation of API owners within the same artifact and browser collapse/reopen: Request/Response/Execution tables visibly disappear and return. `UiApiVerdictProjectionComponentTest` checks UI PASS/API FAIL and UI FAIL/API PASS independently, the correct cause in `Fails` and the deep link to the owner scenario. This README owns the protected stable contract; concrete verdicts and case counts remain in test output.
-- Surefire can display `0 tests` on the suite container; test results
-  child are reported separately from JUnit platform.
-- Results and number of tests belong to the output of execution, not to the contract
-  This README. The above command is the reproducible entry point; a failure is diagnosed from the current run ratio and log, not from a historical summary kept here.
+- Surefire may show `0 tests` for a suite container; JUnit Platform reports child-test results separately.
+- Test results and counts belong in run output, rather than this README’s contract. The command above is the reproducible entry; diagnose failures from current reports/logs, without retaining historical result summaries here.
 
-`ExtentReportingE2eSuite` is the canonical launcher; `AtfReportingUiAuditSuite` is the depressed compatibility alias. Both select the same JUnit definitions and do not run together as two independent gates.
+`ExtentReportingE2eSuite` is the canonical launcher; `AtfReportingUiAuditSuite` is its deprecated compatibility alias. Both select the same JUnit definitions and must not be counted as independent gates.
 
-[ReportingUiLauncherSelectionTest](src/test/java/atf/reporting/governance/ReportingUiLauncherSelectionTest.java) compares the methods / temples identities and the UI metadata by discovery. This sample does not start the browser; the rendering and parametric invoicing is checked on execution. [criteria still open](../docs/feedback/ATF_Reporting_Tests_Feedback.md) concerns the oracles and the acceptance of the browser, not the already applied choice of the launcher.
+[ReportingUiLauncherSelectionTest](src/test/java/atf/reporting/governance/ReportingUiLauncherSelectionTest.java) compares method/template identities and UI metadata through discovery. It does not start a browser; rendering and parameterized invocations are verified during execution. [Open criteria](../docs/feedback/ATF_Reporting_Tests_Feedback.md) concern oracles and browser acceptance, separately from the implemented launcher selection.
 
 The output anchors are:
 
 - E2E with `@ProjectRelativeUiReportDirectory("artifacts/reports/ui/e2e")`:
   `<reactor>/artifacts/reports/ui/e2e`;
-- Other layer- e UI: `<ui-report-base>`;
+- Other UI layers: `<ui-report-base>`;
 - In staging, the project's root is the external checkout, not the live project.
 
 | Output policy | Responsibility |
 |---|---|
-| `atf.testkit.output` | NOTES AND Neutral Resolver; UI base and project root are explicitly received |
-| `ReportingTestResources` | Delegation the choice of the Director after loading configuration |
-| Unit samples | Default Director and E2E Kept; empty, absolute or rejected crossing values |
+| `atf.testkit.output` | neutral annotations/resolver; UI base and project root are explicit inputs |
+| `ReportingTestResources` | delegates directory selection after configuration loading |
+| Unit samples | default/E2E directories retained; empty, absolute or traversal values rejected |
 
 - API implemented, precedent and limits are in
   [documentation of annotations](../docs/ATF_Test_Infrastructure_Annotations.md);
@@ -796,30 +752,30 @@ The output anchors are:
 - import `pom.xml` root as Maven project and use **Reload all Maven projects** before the first run or after changes in modules;
 - run the reporting suite configuration uses the `atf-reporting-tests` module, not the `atf-tests` legacy module;
 - for `NoClassDefFoundError` in IntelliJ, check the `atf-reporting` and `atf-reporting-tests` modules and the dependence of the test graph; do not duplicate or move the class to compensate for a IDE stale model;
-- reproduces first with the `ReportStagingWorkspaceTest` Forked Test in the Maven reactor.
+- First reproduce with the forked `ReportStagingWorkspaceTest` in the Maven reactor.
 
 </details>
 
 <a id="liability-limits-of-consumer-applications"></a>
 <a id="limitele-de-responsabilitate-ale-aplicațiilor-consumatoare"></a>
-## Liability limits of consumer applications
+## Consumer application responsibilities
 
 <details>
-<summary><strong>Detailed contracts and evidence of owners - Liability limits of consumer applications</strong></summary>
+<summary><strong>Detailed owner contracts — consumer application responsibilities</strong></summary>
 
 <details>
-<summary><strong>Details - liability limits of consumer applications</strong></summary>
+<summary><strong>Details — consumer application responsibilities</strong></summary>
 
 [common rule of ownership](../docs/ATF_Testing_Guide.md#owner-ul-testului-business-adaptor-sau-infrastructură) applies: this README describes the Reporting boundary without moving the consumer tests.
 
-`atf-reporting-tests` has reusable samples of the library, not application adapters:
+`atf-reporting-tests` owns reusable library probes rather than application adapters:
 
 - neutral API model, publisher and fixtures;
-- parity between renderere and artifact HTML;
-- DOM / CSS and browser interactions, checked with mock / fake determinist;
-- no dependent on endpoints or business rules of the tested application.
+- renderer parity and HTML artifacts;
+- DOM/CSS and browser interactions with deterministic mocks/fakes;
+- no dependencies on application endpoints or business rules.
 
-Shop practice is isolated in the dedicated module:
+Practice Shop is isolated in its dedicated module:
 
 ```text
 atf-test-practice-shop/src/test/resources/atf-practice-shop.yaml
@@ -838,67 +794,57 @@ atf-test-practice-shop/src/test/atf/shop/tests/
 └── e2e/             journey complet
 ```
 
-- `atf-tests` no longer contains YAML, page objects or practical Shop flows.
+- `atf-tests` contains no Practice Shop YAML, page objects or flows.
 - Consumer tests remain in Shop for configuration, checkpoint binding,
   specific redaction, flow or public adaptation to Reporting.
-- `ShopE2eFailureReportComponentTest` checks `ShopE2eContext`;
-  generic construction and redaction contracts are tested separately here.
-- If a consumer test checks an independent consumer Reporting invariant,
-  Move the neutral sample here and keep in Shop / AutoEx only narrow integration.
-- A consumer test that produces HTML can only stay local if it checks
-  translation of own contract (e.g. title / route / business intent, association of an expectation with the captured exchange or own redaction policy). Do not check the columns, non-contact, CSS classes, generic disclosures or generic retry / failure semantics.
-- `AtfReportSemanticSnapshotTest.sameRequestInIndependentScenariosRemainsOwnedByBothScenarios`
-  now protects generic isolation of identical requests across scenarios in this module; the Shop consumer copy was removed. Shop separately retains checks for association and publication of its API audit.
-- In API Shop tests, separate transport from the owner: samples with
-  `ShopApiComponentFixture` are mock- backed, but it validates the client and the Practical contracts Shop, so they stay in the consumer. Only model / publication / rendering invariants that do not import Shop types or rules; do not add dependence on `atf-reporting-tests` to the consumer module.
+- `ShopE2eFailureReportComponentTest` checks `ShopE2eContext` wiring; generic failure/redaction contracts are tested separately here.
+- Move consumer-independent Reporting invariants here and retain narrow integration probes in Shop/AutoEx.
+- A consumer HTML test stays local when it verifies its own adapter contract, such as title/route/business intent, expectation-to-exchange association or application redaction policy. Generic columns, nesting, CSS, disclosures and retry/failure semantics belong here.
+- `AtfReportSemanticSnapshotTest.sameRequestInIndependentScenariosRemainsOwnedByBothScenarios` protects generic isolation of identical requests across scenarios; Shop separately checks association/publication of its API audit.
+- Separate transport from ownership in Shop API tests: mock-backed `ShopApiComponentFixture` probes still validate the Practice Shop client/contracts and stay with that consumer. Move only consumer-independent model/publication/rendering invariants here; do not add a consumer dependency on `atf-reporting-tests`.
 
 <details>
-<summary><strong>Neutral samples to simplify Shop and AutoEx tests</strong></summary>
+<summary><strong>Neutral probes and consumer responsibilities</strong></summary>
 
-| Reusable invariant | Sample existing here | Remaining to be checked in consumer |
+| Reusable invariant | existing probe here | Remaining to be checked in consumer |
 |---|---|---|
 | `AUTH PROFILE` separate from `AUTH TYPE`, standalone parity / UI + API | `ApiAuthenticationSchemaContractTest` | profile and mechanism mapping captured by application adapter |
-| form-encoded rephrase without exposure of the credential | `ApiManualReplayProjectionTest` | the artifact published by the AutoEx adapter does not expose the password |
-| Require / response / single execution with / without retry and depleted retry | `ApiRetryProjectionContractTest`: standalone Extent, fallback and UI + API | The mapper keeps attempts / history / provenance and the publisher transmits the history |
-| the prohibited catch does not call the provider, regardless of source or point of capture | `ReportEvidenceProfileTest`, including permitted control and negative cases PNG / provenance | YAML policy mapping / annotation and masking of application fields |
-| reinforced flow and catch policies | `ReportEvidenceProfileIntegrationTest`, `UiScreenshotPolicyIntegrationTest` | annotation and YAML applied to local session, including failure |
-| diagnoses without change of verdict | `ReportPhaseDiagnosticTest` and `ReportPhaseDiagnosticPublicationComponentTest`: Extent / fallback, PASS / FAIL, without invented or secret exchange | calling the port according to the diagnosis and cause of the consumption |
+| form-encoded replay without exposed credentials | `ApiManualReplayProjectionTest` | the artifact published by the AutoEx adapter does not expose the password |
+| one request/response/execution, with or without retries and after retry exhaustion | `ApiRetryProjectionContractTest`: standalone Extent, fallback and UI + API | The mapper keeps attempts / history / provenance and the publisher transmits the history |
+| disallowed capture never invokes the provider, regardless of source/capture point | `ReportEvidenceProfileTest`, including permitted control and negative cases PNG / provenance | YAML policy mapping / annotation and masking of application fields |
+| consolidated flow and screenshot policies | `ReportEvidenceProfileIntegrationTest`, `UiScreenshotPolicyIntegrationTest` | annotation and YAML applied to local session, including failure |
+| diagnoses without change of verdict | `ReportPhaseDiagnosticTest` and `ReportPhaseDiagnosticPublicationComponentTest`: Extent/fallback, PASS/FAIL, no invented exchanges or secrets | invoking the correct port with the consumer’s diagnostic and cause |
 
-- The Cardinality and Order Request / Response / Execution are checked in DOM
-  API node in tests by common locations, not by counting all children in Category / Fails or serialized data.
+- Check Request/Response/Execution cardinality and order in the Tests API owner’s DOM using shared locators; do not count Category/Fails copies or serialized data.
 - `ApiRetryProjectionContractTest` belongs to the UI component package
   `atf.ui.tests.extent.component.inspection.retry`; keeps `@AtfComponentTest` and existing `AtfReportingComponentSuite` selection.
-- Reinforced neutral samples: auth format, filter of the provider and retry on
-  The three projections. None substitute the forwarding of the mapper or the safety of the artifact produced by the local adapter.
-- Before a deletion, compare the input, public path, verdict and
-  negative case; fill in here the neutral lack, without imports Shop / AutoEx.
-- Replace local markup checks with typed / snapshot results only
-  if the actual invoicing of the adapter and its data policy remains proven.
+- Neutral probes cover authentication format, provider filtering and retry across three projections; they do not substitute mapper forwarding or local-adapter artifact safety.
+- Before deleting a probe, compare input, public path, verdict and negative cases; fill neutral gaps here without Shop/AutoEx imports.
+- Replace local markup checks with typed results/snapshots only when actual adapter invocation and data policy remain verified.
 - Additional reduction of live runs for evidence profiles
   [separate criteria](../docs/ATF_Testing_Guide.md#acceptanța-business-individual-și-prin-suită); these neutral samples do not justify changing the E2E selection on their own.
 
 </details>
-- Generic JUnit Hookies are tested in the Osner module (`atf-test-kit`);
-  Reporting Session and Publication Tests belong to `atf-reporting-tests`.
+- Generic JUnit hooks are tested in their owner (`atf-test-kit`); Reporting session/publication tests belong to `atf-reporting-tests`.
 - `ApiResourceTestBase` explicitly activates `@AtfReportPath`; JUnit composition
   transmit the terminal event to ATF console only after the report has been published. Resolver / annotation and output policy remain tested in `atf-test-kit` / `atf-console`, are not reimplemented here.
 
 <a id="query-fidelity-and-mock-combination"></a>
 <a id="fidelitatea-query-ului-și-asocierea-mock"></a>
-### Query fidelity and Mock combination
+### Query fidelity and mock association
 
-`MockReportContractAuditor` retains the association between each converted contract and the exact `MockRoute` court. The route selected by the auditor is reassociated with this mapping, without search after the `key()` label or the choice of the first route. Prefix name and the delimiters in the values may produce ambiguous labels; the legible title is not a catalogue identity.
+`MockReportContractAuditor` retains the association between each converted contract and its exact `MockRoute` instance; it rebinds through that mapping, never by `key()` label or first-route selection. Prefix names and value delimiters can produce ambiguous labels, so readable titles are not catalog identity.
 
 | Boundary | Nominal and negative sample |
 |---|---|
-| multiplication conversion and subset | [ReportQueryContractComponentTest](src/test/java/atf/reporting/api/query/ReportQueryContractComponentTest.java): duplicate pairs, encoded values, incomplete query and missing metadata |
+| conversion and multiset subset matching | [ReportQueryContractComponentTest](src/test/java/atf/reporting/api/query/ReportQueryContractComponentTest.java): duplicate pairs, encoded values, incomplete query and missing metadata |
 | re-association with source | [MockQueryAssociationComponentTest](src/test/java/atf/reporting/api/query/MockQueryAssociationComponentTest.java): prefix names, tag collisions, both catalogue orders and unknown route |
 | Extent / fallback projection | [QueryFailureReportComponentTest](src/test/java/atf/ui/tests/extent/component/verdict/QueryFailureReportComponentTest.java): FAIL stored against a complete (PASS), sibling positive, Fails → Tests, Disclosure and Preview redacted 240 |
-| observed query and private identity | [ObservedQueryEvidenceComponentTest](src/test/java/atf/reporting/api/query/ObservedQueryEvidenceComponentTest.java): orderly pairs, implausible copying, distinct fingerprints in aggregate and absent from both HTML |
+| observed query and private identity | [ObservedQueryEvidenceComponentTest](src/test/java/atf/reporting/api/query/ObservedQueryEvidenceComponentTest.java): ordered pairs, immutable copying and distinct aggregate fingerprints absent from both HTML artifacts |
 
-The expectations are literal and independent of the production canonicalizer. The reporting device uses `AssertionStep`, without the required HTTP invented; runs directly through `AtfReportingComponentSuite`, in category Reporting.
+Expectations are literal and independent of the production canonicalizer. The fixture uses `AssertionStep` without fabricated HTTP and runs directly or through `AtfReportingComponentSuite` in the Reporting category.
 
-The inspector → log / mapper route is tested in UI and in actual consumers via `UiObservedQueryFingerprintComponentTest`, `ShopObservedQueryComponentTest` and `AutoExObservedQueryComponentTest`. The print cannot recover the values: the print only preserves the identity and the placeholder does not become a parameter.
+`UiObservedQueryFingerprintComponentTest`, `ShopObservedQueryComponentTest` and `AutoExObservedQueryComponentTest` check the inspector → journal/mapper route in UI and real consumers. Redacted captures cannot recover values; the fingerprint retains identity only, and a placeholder never becomes a parameter.
 
 <a id="neutral-projections-without-manufactured-transport"></a>
 <a id="proiecții-neutre-fără-transport-fabricat"></a>
@@ -906,24 +852,22 @@ The inspector → log / mapper route is tested in UI and in actual consumers via
 
 | Contract | Test at the owner |
 |---|---|
-| Assertion step in the caller phase | `AssertionAuditStepComponentTest`: FAIL kept from complete values, editorial and same non-HTTP node in both renderers |
-| common diagnostic summary | `ReportAssertionSummaryTest`: before 240 ceiling, without changing rows or business verdict |
-| JSON semantic | `JsonEvidenceRedactionComponentTest` and `JsonEvidenceRedactorTest`: Unicode keys, non-linking, non-string, duplicated and canary absent from the entire artifact |
-| YAML strict | `ReportingNumericConfigurationTest`: full type, range, section forms, keys held and legitimate defaults |
+| Assertion step in the caller phase | `AssertionAuditStepComponentTest`: FAIL retained from full values, redaction and the same non-HTTP node in both renderers |
+| common diagnostic summary | `ReportAssertionSummaryTest`: redaction before the 240-character limit, without changing rows or business verdict |
+| JSON semantic | `JsonEvidenceRedactionComponentTest` and `JsonEvidenceRedactorTest`: Unicode keys, nesting, non-string values, duplicates and no canary anywhere in the artifact |
+| YAML strict | `ReportingNumericConfigurationTest`: integer type/range, section shapes, owned keys and legitimate defaults |
 | terminal cause in Fails | `TerminalFailureIndexComponentTest` and `TerminalFailureNavigationComponentTest`: exact request, simultaneous assertions, PASS excluded terminal including in a FAIL scenario, narrow breakpoint and reload up to original proof |
 
-Hidden phase control uses `content-visibility`, separated from `display`ul owned by navigation. Oracle checks the real visibility, not only geometry; backlink must open the proof without additional clicks that would collapse the phase.
+The hidden-phase control uses `content-visibility`, separately from navigation-owned `display`. The oracle checks actual visibility rather than geometry alone; backlinks must reveal evidence without extra clicks that would collapse its phase.
 
 <a id="neutral-reuse-between-modules"></a>
 <a id="reutilizare-neutră-între-module"></a>
 ### Neutral reuse between modules
 
-- The compatibility of Core / Reporting consoles is verified here by
-  `AtfConsoleBridgeTest` and `AtfConsoleBridgeVocabularyTest`: scoops, statuses, details, duration and notification of the published path. The composition transmits fields to the neutral Core `AtfConsoleEvent.fromExternalEnums(...)`; Console and Reporting do not depend on each other.
+- `AtfConsoleBridgeTest` and `AtfConsoleBridgeVocabularyTest` check Core/Reporting console compatibility: scopes, statuses, details, durations and published-path notification. Composition forwards fields to neutral Core factory `AtfConsoleEvent.fromExternalEnums(...)`; Console and Reporting do not depend on each other.
 - `ReportModelAdapters` converts the core models (`ApiExecutionResult`,
   Retry / provenance, assertions and UI actions) without `atf-reporting` depending on `atf-core` compilation; unknown vocabulary fails explicitly, is not guessed or transformed into `INFO`;
-- `ReportQueryParameters.fromUri(...)` is the common decoder of queries.
-  Practical Shop uses it in mapper and assertions, keeping only business semantics around it;
+- `ReportQueryParameters.fromUri(...)` is the shared query decoder; Practice Shop uses it in its mapper/assertions and retains only surrounding business semantics.
 - `AtfPathLocator.locateSourceFile(...)` and `locateModuleRoot(...)` centralize
   generic discovery used by component tests; candidate roots and requested file remain explicit, relative and validated inputs;
 - the capture of the host, the choice of endpoints, the recovery of the login,
@@ -933,39 +877,37 @@ Hidden phase control uses `content-visibility`, separated from `display`ul owned
 
 Reports are output of run, not fixtures kept in documentation.
 
-Browser the proofer uses one generic seam, `StaticHtmlScreenshotAdapter`:
+Browser verification uses one generic seam, `StaticHtmlScreenshotAdapter`:
 
 - input: HTML local generated by reporting;
 - Output: PNG captured headless by Playwright;
-- integration test: check the signature of PNG and the Viewporter;
-- limit: does not start endpoint, does not know Shop Practice and does not enter
-  production JAR;
+- integration test: PNG signature and viewport;
+- limit: no endpoint, Practice Shop knowledge or production-JAR inclusion;
 - DOM / CSS contracts remain in validators and ATF Debug.
 
-The regulatory detail of the obvious normalization is in [`atf-reporting/README.md`](../atf-reporting/README.md#normalizarea-dovezilor-în-artefact). Here remains only proof of the consumer: `ExtentReportRuntimeEvidenceComponentTest` and the browser the proofer checks that the request / response JSON survive along with execution trace in DOM the open report.
+The normative [evidence normalization contract](../atf-reporting/README.md#normalizarea-dovezilor-în-artefact) belongs to Reporting. Here, `ExtentReportRuntimeEvidenceComponentTest` and browser verification check that request/response JSON and execution trace coexist in the opened report DOM.
 
 <a id="neutral-samples-promoted-from-consumption"></a>
 <a id="probe-neutre-promovate-din-consumeri"></a>
-### Neutral samples promoted from consumption
+### Neutral probes and adapter boundaries
 
 | Contract | Test at the owner | What remains in the consumer |
 |---|---|---|
-| Proven failure from setting, duration, locator and redaction | `UiSetupFailureEvidenceComponentTest` | phase, setup label and application artifact safety |
-| Captured HTTP method, body and replay, including `QUERY` | `ApiManualReplayProjectionTest` | the loyalty of the mapper and the association of the business operation |
-| Flow unified over setup / body | `ReportEvidenceProfileIntegrationTest` | application of profile by composition your own robot |
+| setup failure evidence, duration, locator and redaction | `UiSetupFailureEvidenceComponentTest` | phase, setup label and application artifact safety |
+| Captured HTTP method, body and replay, including `QUERY` | `ApiManualReplayProjectionTest` | mapper fidelity and business-operation association |
+| Flow unified over setup / body | `ReportEvidenceProfileIntegrationTest` | profile applied through the consumer’s composition root |
 
-Neutral samples do not import Shop / AutoEx. PNG audit and Playwright sequences belong to `atf-ui`; primates without UI / Reporting belong to the existing Kiti.
+Neutral probes import neither Shop nor AutoEx; PNG audit and Playwright sequences belong to `atf-ui`, while primitives without UI/Reporting belong to Test Kit.
 
-- `ReportingTimestampComponentTest` checks format 24h and conservation
-  the courts at the owner of the components Reporting; do not extend the finite exception of the independence tests in the standby module.
+- `ReportingTimestampComponentTest` checks 24-hour formatting and preserved instants at the Reporting component owner, without extending the standalone module’s finite independence-test exception.
 
 <a id="the-test-shall-be-carried-out-in-accordance-with-the-requirements-of-paragraph-51312-of-this-regulation"></a>
 <a id="probe-de-lizibilitate-a-panoului"></a>
-### The test shall be carried out in accordance with the requirements of paragraph 5.1.3.1.2 of this Regulation.
+### Panel readability probes
 
 `NarrowEvidenceReadabilityComponentTest` uses Reporting public ports and neutral Extent / fallback fixtures. The matrix includes 1280/591/392 px viewport and 591/392 px panels in a desktop window.
 
-| Test | Measure contract |
+| Test | measured contract |
 |---|---|
 | Useful width | Common font, legible header, cells without clipping; short data do not receive artificial percentage rates |
 | Column | visible header and cells lined up across the width; local horizontal scroll when the space is insufficient, without overflow of the page |
@@ -976,9 +918,9 @@ Neutral samples do not import Shop / AutoEx. PNG audit and Playwright sequences 
 
 <a id="recoverable-refusal-of-the-scope"></a>
 <a id="refuz-recuperabil-al-scope-urilor"></a>
-### Recoverable refusal of the scope
+### Recoverable scope rejection
 
-`ReportScopeAtomicityComponentTest` and `ReportingScopeAtomicityComponentTest` use public ports Extent / fallback for repeated additions, open copies, invalid input, close FAIL, best- effort console and failed publication. The previous snack remains intact after refusal; the caller captured once, and the replaced aggregate does not produce drift to flush. The fixtures are neutral; the order selection and the single click belong to Shop tests.
+`ReportScopeAtomicityComponentTest` and `ReportingScopeAtomicityComponentTest` exercise public Extent/fallback ports: repeated completion, open children, invalid input, FAIL closure, best-effort console and failed publication. Rejection preserves the prior snapshot, caller collections are captured once and replaced aggregates do not drift at flush; fixtures are neutral, while order selection and single-click behavior belong to Shop tests.
 
 Reporting Suites retain their contract category and fixture artifacts; the rule of an aggregated HTML per suite business remains with Shop / AutoEx adapters.
 
@@ -992,9 +934,9 @@ Reporting Suites retain their contract category and fixture artifacts; the rule 
 
 | Test or policy | Input | What it confirms |
 |---|---|---|
-| diagnostic summary | [ReportFailureDescriptionTest](src/test/java/atf/reporting/evidence/diagnostic/ReportFailureDescriptionTest.java) | Cyclic graph, order / suppressed, redaction before the 240 ceiling |
+| diagnostic summary | [ReportFailureDescriptionTest](src/test/java/atf/reporting/evidence/diagnostic/ReportFailureDescriptionTest.java) | cyclic graphs, cause/suppressed order and redaction before the helper’s own 240-character limit |
 | published evidence | [ReportFailureDescriptionComponentTest](src/test/java/atf/reporting/evidence/diagnostic/ReportFailureDescriptionComponentTest.java) | Same phase, cause, cleanup and FAIL in Extent / fallback |
-| configuration versus helper | [policy map](../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor) | the line-session budget is separated from the ceiling of the helper; without dependence on endpoint or checkout |
+| configuration versus helper | [policy map](../atf-reporting/README.md#proiecția-sigură-a-aserțiunilor) | session row budgets remain separate from helper limits; no endpoint/checkout dependency |
 
 Consular samples keep the actual wirling: configuration, API contract, individual / suite unique ratio and auditable assertions. A test that checks this adapter stays on the application even when reading the resulting HTML; no dependence of the Reporting composition to business modules is added.
 
@@ -1023,37 +965,37 @@ The command selects the sample called and builds the dependencies; does not decl
 <a id="neutral-observations-and-intoxicated-discorsure"></a>
 <a id="observații-neutre-și-disclosure-imbricat"></a>
 <a id="neutral-observations-and-intoxicated-disclosure"></a>
-## Neutral observations and intoxicated disclosure
+## Neutral observations and nested disclosure
 
-`ReportObservationComponentTest` protects neutral INFO, the absence of HTTP manufactured, FAIL unmasked, preview 240, complete body and URI. `ObservationBrowserProbe` checks two distinct invokes, local glyph, Enter / Space, End and last row in Extent / fallback; Fallback keeps the browser's native marker. The distribution fixture publishes the same observation on physical JAR, with zero Core / Kit / JUnit / Playwright packages in the external consumer runtime.
+`ReportObservationComponentTest` protects neutral INFO, no fabricated HTTP, unmasked FAIL, preview 240, full bodies and URIs. `ObservationBrowserProbe` checks two distinct invocations, local glyph, Enter/Space, End and final-row access in Extent/fallback, with fallback retaining the native browser marker; the distribution fixture publishes the same observation on a physical JAR without Core/Kit/JUnit/Playwright packages in the external consumer runtime.
 
 <a id="validation-of-api-collapsible-in-each-renderer"></a>
 <a id="validarea-api-colapsabilă-în-fiecare-renderer"></a>
-## Validation of API collapsible in each renderer
+## Collapsible API validation in each renderer
 
 `ApiValidationDisclosureFixture` neutral fixture publishes mock snapshots through public ports without Eventuate or external services. `ApiValidationDisclosureComponentTest` test is discovered by the suite of components.
 
 | Test | Contract |
 |---|---|
 | 12 nominal | Extent / fallback × individual / aggregate × PASS / FAIL / WARNING; single table for owner, four columns and three exact comparisons |
-| 4 media cases | HTTP status PASS, mean FAIL / WARNING and null PASS; exchange of verdicts between rows is refused without change of total negative |
+| 4 media cases | HTTP status PASS, media FAIL/WARNING and null PASS; swapped row verdicts are rejected even when the total negative count stays unchanged |
 | navigation | closed on arrival; click, Enter / Space, last row, backlink Fails, reload and panel 392 px |
-| values | Object / array / null, pre-preview 240 and miss by limit remaining FAIL |
+| values | object/array/null, redaction before preview 240 and mismatch beyond the limit retaining FAIL |
 | 6 mutants | removed control, default open or last row moved to a sibling; each is refused |
 | assets | ARIA growth is measured separately; the limit of the fallback owner refuses a byte over baseline even when the format has headroom |
-| standalone | `ReportingStandaloneValidationDisclosureTest`: empty shell and validation; no browser or other ATF modules |
+| standalone | `ReportingStandaloneValidationDisclosureTest`: nonempty shell and empty validation; no browser or other ATF modules |
 
-Extent holds the collapse by validation card; the fallback by native `details`. The duplicate diagnosis and DOM Extent can not replace the original table. The same matrices are performed on the physical JAR without Reporting sources.
+Extent owns collapse through the validation card and fallback through native `details`. Duplicate diagnostics or hidden Extent DOM cannot replace the original table; the same matrix also runs on the physical JAR without Reporting source.
 
 <a id="json-regressions-per-source-and-jar"></a>
 <a id="regresii-json-pe-sursă-și-jar"></a>
 ## JSON regressions per source and JAR
 
-ReportingStandaloneJsonFidelityTest natives check the editorial and formatter separately. JsonEvidenceFidelityComponentTest publishes mocks through public ports in Extent / fallback, individually and aggregate, with PASS neighbours.
+Native ReportingStandaloneJsonFidelityTest checks redaction and formatting separately. JsonEvidenceFidelityComponentTest publishes mock data through public ports in Extent/fallback, individually and aggregated, with PASS neighbors.
 
-- The Oracle reads the body tokens from the active host and refuses rounding up or eliminating a duplicate appearance.
-- Comparison keeps FAIL-ul JSON short, FAIL- after preview 240 and final row PASS.
-- Mouse, Enter and Space check out the collapsed discoloration and access to the last row.
+- The oracle reads body tokens from the active owner and rejects rounding or missing duplicate occurrences.
+- Comparisons retain short-JSON FAIL, FAIL beyond preview 240 and the final null PASS row.
+- Mouse, Enter and Space check initially collapsed disclosure and access to the final row.
 - The fixture declares body preview 240; the standalone body default remains 100, and the assertions maintain 240 by default.
 
 JAR regression is running in a TMP harness without Reporting implementation. Live consumers keep only JAR / POM and their own application samples.
@@ -1066,7 +1008,7 @@ JAR regression is running in a TMP harness without Reporting implementation. Liv
 |---|---|
 | SiblingDisclosureStateComponentTest | Extent / fallback, individual / aggregate, mouse / Enter / Space; neighbours keep status and last row |
 | Visibility check | oracle refuses the hidden body even when all expanded values and attributes remain in DOM |
-| ReportingTagBinaryCompatibilityTest | customer compiled against old ABI without steeple in runtime classloader |
+| ReportingTagBinaryCompatibilityTest | client compiled against the old ABI; no stub in the runtime classloader |
 | observation | the two components are in atf.reporting.observation; assertions and fixtures remain the same |
 
 The same independent disclosure oracles run against source and the physical JAR. Visibility corruption must fail without changing captured values or expanded attributes; generic regressions remain in J0.
@@ -1075,23 +1017,23 @@ The same independent disclosure oracles run against source and the physical JAR.
 <a id="contractele-metadatelor-system-și-ale-indexului-fallback"></a>
 ## System metadata and fallback index contracts
 
-ReportSystemMetadataComponentTest reads six exact facts at the Overview Owner, Extent / fallback and individual / aggregate. FallbackIndexPresentationComponentTest checks the neighbors Pass / Fail / Skip, full titles / classes, contrast, geometry, Enter and a mutant that colors the whole link. Natives check the overrides typed, unknown explicit, editorial, calculated preview and refusal without mutation after close.
+ReportSystemMetadataComponentTest reads six exact Overview System facts in Extent/fallback, individually and aggregated. FallbackIndexPresentationComponentTest checks Pass/Fail/Skip neighbors, full titles/classes, contrast, geometry, Enter and a whole-link badge mutant; native tests cover typed overrides, explicit unknown values, redaction, computed preview and rejection without mutation after close.
 
 Same neutral fixture runs on physical JAR. Do not use Android, ASR or invented HTTP; the inspector's profile and the timing remain separate criteria.
 
 <a id="inspector-timing-and-indicator-assertions"></a>
 <a id="probe-inspector-timing-și-indicator-assertions"></a>
-## Inspector, timing and indicator assertions
+## Inspector, timing and assertion indicator probes
 
 | Permanent sample | Oracle and negative controls |
 |---|---|
 | `ReportArtifactProfileComponentTest` | Extent / fallback, individual / aggregate, assertion / observation-only and HTTP mandatory; owner, final row, status, script / theme, request, moved / removed table and incomplete reconstructed result |
 | `ReportProfileLabelsComponentTest` | Extent / fallback, literal titles with script canary, multi-line labels, full body with CRLF and FAIL after preview 240. The title marked with the same visible text is refused. |
-| `RecordedPublicationTimingComponentTest` | post-capture publication barrier without slaps; 11 ms execution, 7 ms transport and separate publishing clock without summation or clamp |
+| `RecordedPublicationTimingComponentTest` | post-capture publication barrier without sleeps; 11 ms execution, 7 ms transport and a separate publication clock, without summation or clamping |
 | `AssertionIndicatorComponentTest` | closed / open / reclosed indicator, mouse / Enter / Space and last visible row; mutant only hides glyphs and is refused |
 | native standalone | Public result empty / partial / contradictory, immutable profile and severity, zero versus absent transport |
 
-`support/inspection/ArtifactProfileFixture` has independently provided the names and statuses expected. A numerical mismatch and one after the character 240 keep FAIL even when the displayed previews coincide. Static inspection does not substitute original navigation; source and JAR sample have different classifications and results.
+`support/inspection/ArtifactProfileFixture` independently supplies expected names/statuses. Numeric mismatch and mismatch beyond character 240 retain FAIL even with identical previews; static inspection never replaces navigation to the original row, and source/JAR probes have distinct classpaths and results.
 
 ## Core projection in reports
 
@@ -1107,28 +1049,28 @@ Same neutral fixture runs on physical JAR. Do not use Android, ASR or invented H
 
 | Permanent sample | Independent oracle | Controlled refusal |
 |---|---|---|
-| CapturedVolumePublicationComponentTest | actual model: 321 checkpoints, 6.634 comparisons, 577 ACTION/OBSERVE and 321 distinct PNG; child JVM 1 GiB | checksum per PNG, original owner and last comparison removed |
+| CapturedVolumePublicationComponentTest | real model: 321 checkpoints, 6,634 comparisons, 577 ACTION/OBSERVE entries and 321 distinct PNGs; child JVM 1 GiB | checksum per PNG, original owner and last comparison removed |
 | UiFullValueComponentTest | Extent / fallback, two scenarios with identical preview and distinct suffix, 239/240/241 values | the last scalar removed; secret missing in the entire artifact |
-| UiFullValueBrowserComponentTest | Enter / Space, End, narrow panel, independent cells, geometry without overlap | The summary the content that comes out of the neighbor does not pass the oracle |
+| UiFullValueBrowserComponentTest | Enter / Space, End, narrow panel, independent cells, geometry without overlap | a summary or content overlapping its neighbor fails the oracle |
 | UiPhaseObservationComponentTest | authored profile for SETUP / TEST BODY / TEARDOWN, full body, zero requests and assertions | null and publication after completion refused |
-| ReportingStandaloneInlinePayloadTest in the library | exact round-trip, Unicode, duplicates, buffer edge and private file removed | failure writer and truncated spool keep IOexception / EOF |
+| ReportingStandaloneInlinePayloadTest in the library | exact round-trip, Unicode, duplicates, buffer edge and private file removed | writer failure and truncated spool preserve IOException/EOF |
 
 - The volume sample uses valid synthetic PNG without device or application.
-- Original hashes predate publication; favicons do not enter the catch population.
+- Original hashes precede publication; favicons are excluded from the screenshot population.
 - The source and JAR physically perform the same fixtures; the existing 384 MiB samples and the budgets of the assets remain unchanged.
 
 [Reporting owner contract](../atf-reporting/README.md) shall maintain the selections, measurements and limits.
 
 <a id="ui-fidelity-and-joint-editorial"></a>
 <a id="fidelitate-ui-și-redacție-comună"></a>
-## UI fidelity and joint editorial
+## UI fidelity and shared redaction
 
 | Test | Oracle |
 |---|---|
 | ReportingStandaloneContractTest | payload with whitespace and CRLF stored byte with byte in the model; normalized metadata and compatible null |
-| UiRowProjectionComponentTest | Extent / fallback, ACTION / OBSERVE, ordinal / status, full value, PNG title and original PNG bytes |
+| UiRowProjectionComponentTest | Extent/fallback, ACTION/OBSERVE, ordinal/status, full value, redacted PNG title and original PNG bytes |
 | Custom policy | HtmlReportEvidenceView and Extent renderer consume the same non-idempotent replacement, exactly once at the row boundary |
-| UiRowProjectionBrowserComponentTest | LF / CRLF initial and identical final whitespace in textContent, Enter / Space, End and collapse / reopening |
+| UiRowProjectionBrowserComponentTest | initial LF/CRLF and trailing whitespace identical in textContent; Enter/Space, End and collapse/reopen |
 
 The synthetic canary is rejected throughout HTML, including hidden attributes and channels. Regression retains the existing profiles and limit 240; they do not close the criterion separately for long values of assertions.
 
@@ -1144,7 +1086,7 @@ The synthetic canary is rejected throughout HTML, including hidden attributes an
 | SelfContainedAuditBrowserComponentTest / SelfContainedArtifactOfflineComponentTest | exact values, keyboard, collapse neighbor; HTML detached offline with original PNG |
 | ReportingStandaloneObservationTest | PRE keeps LF / CR and literal entities without executable markup |
 
-They do not execute Android and do not close the business oracle J4. The catches are PNG synthetic distinct for checking the host and transport.
+These probes run no Android code and do not close J4’s business oracle. Distinct synthetic PNGs check ownership and transport.
 
 ## Screenshot viewer contracts
 
@@ -1164,7 +1106,7 @@ The [inline audit contract](../docs/ATF_Inline_Audit_Contract.md) defines source
 <a id="navigarea-rapoartelor-mari"></a>
 ## Large-report navigation
 
-[The incremental navigation contract](../docs/ATF_Large_Report_Navigation.md) keeps all assertions and original PNG with preview 240. The processing of hidden tables is delayed, DOM updates are aggregated, and the search for execution markers is cache- only for a aggregation pass.
+The [incremental navigation contract](../docs/ATF_Large_Report_Navigation.md) retains all assertions and original PNGs with preview 240; hidden-table processing is deferred, DOM updates are batched and execution-marker lookup is cached only within one aggregation pass.
 
 [navigation contract](../docs/ATF_Large_Report_Navigation.md) distinguishes browser acceptance from fresh business/device execution; neutral permanent regressions remain in Reporting Tests.
 
@@ -1172,7 +1114,7 @@ The [inline audit contract](../docs/ATF_Inline_Audit_Contract.md) defines source
 <a id="pornire-la-rece-și-readiness"></a>
 ## Cold startup and readiness
 
-Bootstrep applies the requested view once, independently of load timing. The successful normalization publicly represents; the error does not produce ready. Observers and explicit navigation remain active.
+Bootstrap applies the requested view once, independently of load timing. Successful normalization publishes readiness; failure does not mark it ready, while observers and explicit navigation remain active.
 
 [The cold-start contract](../docs/ATF_Large_Report_Navigation.md) retains fresh-browser 10 s readiness/action and 45 s navigation bounds, canonical PNG payloads, comparisons and preview 240. Bulk acceptance selects at most two source owners.
 
@@ -1190,7 +1132,7 @@ Neutral captured input is verified independently on source and physical JAR, in 
 
 | Permanent contract | Independent oracle |
 |---|---|
-| `UiActionAttributionContractTest` | identical web entries / Android; PASS, FAIL at second action and only OBSERVE-; false driver mutation only in title; legitimate tool names are kept |
+| `UiActionAttributionContractTest` | identical web/Android inputs; PASS, second-action FAIL and OBSERVE-only; title-only false-driver mutation, with legitimate tool names retained |
 | `UiFailureCatalogueContractTest` | interleaved request/validation ACTION and OBSERVE; separate comparison counts, causes, original ordinals and passing sibling |
 | `UiActionAttributionComponentTest` | actual keyboard expansion and Fails backlinks; no helper repairs after navigation; original 10 s action/readiness and 45 s navigation bounds |
 | `UiActionAttributionComponentSuite` | focused Maven/IDE discovery on source and physical JAR |
@@ -1200,38 +1142,37 @@ Neutral captured input is verified independently on source and physical JAR, in 
 <a id="izolarea-tuturor-intrărilor-browser"></a>
 ## Isolation of all browser inputs
 
-`@ReportBrowserTest` performs the class selection once in an exclusive-owned workshop. Methods, iterations and dynamic cases retain the identity of JUnit; each parent result requires the final verdict of the original case. `@BeforeAll` and `@AfterAll` remain common to the selection.
+`@ReportBrowserTest` executes a class selection once in an exclusively owned worker. Methods, iterations and dynamic cases retain their JUnit identities; each parent result requires its original case’s terminal verdict. `@BeforeAll` and `@AfterAll` remain shared by that selection.
 
 | Boundary | Contract |
 |---|---|
-| setup / cleanup | `BrowserResources` keeps the SDK objects concrete; 30 s setup, cleanup 5 s per call SDK effective with the overall legacy limit kept separately |
-| Playwright binary | the workman disables the download; the right binaries are installed before the suite, outside the setup deadline |
-| Chromium Windows | After closing the contexts through SDK, the workshop finishes and confirms the exit of Chromium headless temporarily and its driver in the same budget of cleanup |
-| publication | closing a server or publishing HTML keeps calling phase; only SDK display consumes the term cleanup |
-| discovery JUnit | The workshop discovers the exact selection with Jupiter and performs the same `TestPlan`; `DISCOVERY` has its own diagnosis, in the same budget as the entry into `VERIFY` |
-| verification | 120 s per verification scope and 10 min per class; existing thresholds for actions, navigation and performance remain independent |
-| error | initial cause remains primary; the disposal exceptions keep trying the other resources and become suppressed; a blockage stops the workshop and its own processes |
-| identity | Distinguishing resources remain distinct from the disposal; poor references keep the idempotent closure without retention of SDK objects |
-| selection | absent, foreign, duplicate, zero cases, skip / abort or failed container refutes PASS |
-| initial cause | The test body is captured prior to the disposal; intentionally caught errors are removed from the provisional diagnosis after completion of the body |
-| diagnostic | stdout / stderr Java are UTF-8; invalid native bytes do not replace the original error and the raw file remains preserved |
-| output | The workshop reports use the exclusive short-handed scratch.path and ATF_OWNER to link the output to the diagnostic folder |
-| processes | The sampling of the descendants is separated from the deadline; failure immediately restores the inventory, and a reused PID replaces only the already dead handler itself |
-| Phase channel | incremental reading without log rescan; only the complete frame changes phase, and immutable markers keep the audit |
+| setup / cleanup | `BrowserResources` keeps concrete SDK objects; setup is 30 s and cleanup is 5 s per actual SDK disposal call, separately from the retained legacy global limit |
+| Playwright binary | the worker disables downloads; install matching browser binaries before the suite, outside setup timing |
+| Chromium Windows | after SDK context cleanup, the worker terminates and confirms exit of its temporary headless Chromium and owned driver within the same cleanup budget |
+| publication | closing a server or publishing HTML preserves the caller’s phase; only SDK disposal consumes cleanup time |
+| discovery JUnit | the worker discovers the exact selection through Jupiter and executes that same `TestPlan`; DISCOVERY has its own diagnostics within the verification budget |
+| verification | 120 s per verification scope and a 10 min class lifetime; existing action, navigation and performance thresholds remain independent |
+| error | the original cause stays primary; disposal failures do not prevent attempts to close remaining resources and are suppressed, while a hang terminates only the worker and its owned processes |
+| identity | distinct resources remain distinct at disposal; weak references preserve idempotent closure without retaining SDK objects |
+| selection | missing, foreign or duplicate results, zero cases, skip/abort or failed containers prevent PASS |
+| initial cause | capture test-body failure before disposal; clear provisional diagnostics for intentionally handled exceptions only after the body completes |
+| diagnostic | Java stdout/stderr use UTF-8; invalid native bytes cannot replace the original failure, and the raw log remains available |
+| output | worker reports use short, exclusively owned scratch space; `scratch.path` and `ATF_OWNER` link output to its diagnostic directory |
+| processes | descendant sampling is separate from deadline measurement; failure immediately refreshes inventory, and a reused PID can replace only the worker’s own already-dead handle |
+| Phase channel | incremental reads without rescanning logs; only a complete frame advances the phase, and immutable markers retain the audit trail |
 | inventory | governance inspects typed SDK calls and indirect routes; `AtfReportingBrowserSuite` selects `report-browser` tag |
 
-`reporting-release` profile selects the canon unit suite and browser suite, on source and JAR physical. Controlled customer exercises selection by method, iteration and dynamic case.
+The `reporting-release` profile selects canonical unit and browser suites for source and physical-JAR runs. A controlled client exercises method, iteration and dynamic-case selection.
 
-- A block in the discovery does not start the class lifecycle.
-- An unsolvable ID Unique fails in DISCOVERY.
-- A valid dynamic factory without cases fails in VERIFY and does not certify a
-  Run naked as PASS.
-- A blockage to the test body remains cleanup, with the body's error preserved.
+- A discovery hang never starts the class lifecycle.
+- An unresolved Unique ID fails in DISCOVERY.
+- A valid dynamic factory with no cases fails in VERIFY; an empty run cannot establish PASS.
+- A hang after the test body remains a cleanup failure and preserves the body’s original error.
 
-For Chromium headless from Playwright package on Windows, the workshop correlates PID-ul reported by CDP with its process shaft and parent driver. Finish only the claimed processes and wait for their exit before PASS. A foreign PID or a remaining active process means FAIL.
+For bundled headless Chromium on Windows, the worker correlates the CDP-reported PID with its own process tree and parent driver. It terminates only claimed processes and confirms their exit before PASS; a foreign PID or surviving owned process fails verification.
 
-External browsers, headed and branded, keep the SDK closed.
+External, headed and branded browsers retain SDK-based closure.
 
 The audit session uses the same resource owner and keeps UI configuration for view, timeouts, actions and network monitoring.
 
-Logs, phase markers, stacks and HTML remain in TMP. 240, PNG and original oracles are not replaced by the success of the workshop transport.
+Logs, phase markers, thread dumps and HTML remain in owned TMP. Successful worker transport does not replace the 240 preview, PNG evidence or original test oracles.

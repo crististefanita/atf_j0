@@ -22,10 +22,7 @@ J0 owns neutral publication and permanent source/JAR tests. J1 coordinates consu
 <a id="proveniența-acțiunilor-ui"></a>
 ## Provenence of UI shares
 
-The neutral attribution contract is implemented; the [current library provenance](../../../atf_j1/library-provenance.json) records the delivered pair and dated acceptance.
-
-- The [neutral UI contract](../../atf-reporting/README.md#neutral-ui-attribution-and-failure-ownership) owns truthful headings and native/fallback source-row navigation.
-- The source permanent controls / JAR shall maintain separate assertions, complete written diagnoses and PNG; the compatibility routes shall not double TODO.
+The [neutral UI contract](../../atf-reporting/README.md#neutral-ui-attribution-and-failure-ownership) owns truthful headings and native/fallback source-row navigation; the remaining long-comparison criterion is separate.
 
 <a id="report-ui-assertion-full-evidence-133---long-values-captured-prior-to-forecast"></a>
 <a id="report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview"></a>

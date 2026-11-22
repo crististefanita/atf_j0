@@ -430,3 +430,7 @@ The general cohesion limit remains eight. The exact inventory for the model allo
 - A tenth class is rejected.
 - Replacing a contract with a different type at the same physical count is rejected.
 - The legacy API remains executable; the bridge does not receive a new tag policy.
+
+### Documentation lifecycle
+
+`DocumentationLifecycleGovernanceTest`, selected by `WholeAtfGovernanceSuiteTest`, protects the [feedback promotion rule](../docs/README_Atf_DocumentationBestPractices.md#retaining-and-deleting-feedback): reusable contracts remain at their owner; delivery receipts and completed backlog entries do not enter maintained docs. Negative controls cover wrapped prose, tables, bilingual status markers and closed checklists; literal fenced examples, active criteria and the executable change-control baseline remain valid.

@@ -36,9 +36,8 @@ J0 holds the code, API, native tests, packaging and feedback Test Kit. J1 -J7 ma
 
 <a id="kit-phase-observation---facts-per-phase-independent-verdict"></a>
 <a id="kit-phase-observation--fapte-pe-fază-verdict-independent"></a>
-## KIT-PHASE-OBSERVATION - facts per phase, independent verdict
 
-**Status: Implementation and check.** Immunomovable observations remain separate from assertions and coverage; the consumer adapter holds their publication. [Kit contract](../../atf-test-kit/README.md) and [permanent sample](../../atf-test-kit/src/test/java/atf/testkit/assertions/ComponentAuditExtensionComponentTest.java) keep API and compatibility. Real Maven reports have browser acceptance in J1; IntelliJ verification remains separate and delayed to the consumer.
+[Phase observation contract](../../atf-test-kit/README.md) owns immutable facts separate from assertions and verdict; runner-specific acceptance remains with the consumer.
 
 <a id="kit-concurrency-152---parallel-jupiter-qualification"></a>
 <a id="kit-concurrency-152--calificare-jupiter-paralelă"></a>
@@ -52,8 +51,5 @@ J0 holds the code, API, native tests, packaging and feedback Test Kit. J1 -J7 ma
 
 <a id="kit-launch-plan---neutral-context-for-actual-selection"></a>
 <a id="kit-launch-plan--context-neutru-pentru-selecția-reală"></a>
-## KIT-LAUNCH-PLAN - neutral context for actual selection
 
-Imported through SPI observatory in `atf.testkit.launch`; contract and limits are in [README-ul Kit](../../atf-test-kit/README.md). Adoption and inspection of reports belong to the consumer.Tests do not confuse the result of execution with the number discovered, and the absence of the observer does not authorise a foreign context.
-
-The check-up shall remain in [baseline](../ATF_Test_Changes_Baseline.md); the deck shall not introduce a duplicate maintenance load into the consumption.
+[Launch selection contract](../../atf-test-kit/README.md) defines the neutral context and its limits; adoption belongs to each consumer.

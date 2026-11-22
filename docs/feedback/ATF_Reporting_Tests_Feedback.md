@@ -129,7 +129,7 @@ The permanent samples for inspector, timing, PNG, navigation and cold start are 
 <a id="limita-adaptorului-public-și-a-clientului-api"></a>
 ## Public adapter and API-client boundary
 
-`lib` guide is already compiled and executed on JAR physically via `ReportingLibraryGuideIT`, without the source of the product, Core or Kit in the classSPath. The API compatibility supported and adaptor capabilities, not the portability of the delivered guide, remains open.
+The [library guide](../../lib/README.Reporting.md) owns the portable example; supported API compatibility and adapter capabilities remain open below.
 
 - [ ] Characterize lightweight legacy adapters: requested mandatory screenshots, actions, execution diagnostics and aggregate data either survive publication or receive an explicit capability refusal; a no-op call alone is not auditable evidence.
 - [ ] Exercise a declared customer claimed against JAR physically without classes

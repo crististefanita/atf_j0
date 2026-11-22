@@ -124,7 +124,7 @@ Isolated compilation, physical JAR consumption and rendering prove different bou
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Consumer[consumer] -->|consume| Contract[public contract]
+    Consumer[consumer] -->|consumes| Contract[public contract]
     Contract -->|exposes| Model[semantic model]
     Model -->|supplies| Renderer[renderer]
     Renderer -->|publishes| Artifact[Extent / HTML]
@@ -164,8 +164,7 @@ flowchart LR
   the same adapters, without maintaining a second map;
 - These adapters can be used by consumers in production code only at
   normalisation / interoperability boundary; does not implement policy and become a business layer: execution decides HTTP exchange, validation decides verdict, UI produces action, reporting preserves and publishes the evidence. The consumer keeps only its own context - for example, the tracer and the identity of Shop;
-- any dependency test-scopes outside the canonical consummation is tracked in
-  [feedback-ul activ](../docs/feedback/README.md), not duplicated as TODO here;
+- Track test-scope dependencies outside canonical composition in [active feedback](../docs/feedback/README.md), without duplicating TODOs here.
 - POM and runtime do not require parent of reactor or artifact ATF.
   The guard starts from CodeSourceX of its own tests and inspections the modules liaison of the name of the director or working director;
 - `ReportingLibraryDistributionIntegrationTest` copies only module in one
@@ -176,16 +175,14 @@ flowchart LR
 
 <a id="the-reliability-of-the-query-contract"></a>
 <a id="fidelitatea-contractului-query"></a>
-## The reliability of the query contract
+## Query contract fidelity
 
 `ReportQueryParameters` keeps the pairs and number of appearances. The conversion of an external model reads the `values()` collection prior to the legacy view `asMap()`; a defective user is explicitly refused. `asMap()` only retains the last value by name and is intended for compatibility, not validation.
 
-- `ReportRequest.queryParameters()` and the typed cylinder keep the pairs
-  complete, including `toBuilder()` and Core / reflection adapter. `query()` remains the list-value legacy view-- existing manufacturers remain available.
+- `ReportRequest.queryParameters()` and the typed builder retain all pairs through `toBuilder()` and the Core/reflection adapter; `query()` remains the legacy last-value view, and existing constructors stay available.
 - The signature shall sort the name, keep the order of the occurrence of the same name, and
   Mask sensitive values according to existing policy. It is identity by grouping reliable evidence without authority for business selection or replay.
-- When UI removes all query values, the catch shall retain only one fingerprint
-  Opac. `ReportRequest.queryFingerprint()` preserves this identity by mapper, `toBuilder()` and Thracian; HTML hides the digest and declares the unpaced query without a `redacted-query` parameter. The legacy that has already lost the identity cannot be rebuilt.
+- When UI removes all query values, capture retains only an opaque fingerprint. `ReportRequest.queryFingerprint()` preserves it through mapper, `toBuilder()` and trace; HTML hides the digest and declares the query uncaptured without fabricating a `redacted-query` parameter. Legacy input that already lost this identity cannot be reconstructed.
 
 - Match is a subset with multiplication: `tag=red&tag=blue` requires both
   pairs, and two identical appearances require two observed appearances.
@@ -212,9 +209,9 @@ flowchart LR
     Serialize[builders + assets]
     Audit[contract audit]
     Publish[publication adapters]
-    Vocabulary -->|define| Serialize
+    Vocabulary -->|defines| Serialize
     Runtime -->|supplies| Serialize
-    Serialize -->|Pass through| Audit
+    Serialize -->|passes through| Audit
     Audit -->|published by| Publish
 ```
 
@@ -224,7 +221,7 @@ flowchart LR
 - the lists and constants have the finished vocabulary: tag, class, attributes, view, status and token;
 - `AtfReportHtmlVocabulary.element(...)` and `voidElement(...)` compose the elements without any
   re-enter raw tags into views; `HtmlReportShell` exclusively holds the fallback shellum (`html/head/body/meta/title/style/script`);
-- POJO-uri / Immutable records hold runtime data: quest, JSON, evidence and checks;
+- Immutable POJOs/records hold runtime data: requests, JSON, evidence and checks;
 - builders and renderers transform the model into HTML/CSS/JavaScript;
 - Validators check the output and adapters publish it; dynamic values do not become artificial enumerations.
 </details>
@@ -369,62 +366,56 @@ The consumer builds the values at the composition root; the renderer does not de
 
 <a id="the-commission-shall-adopt-implementing-acts-laying-down-the-rules-for-the-application-of-this-regulation"></a>
 <a id="cauza-publicării-și-scope-urile-deținute"></a>
-## The Commission shall adopt implementing acts laying down the rules for the application of this Regulation.
+## Publication causes and owned scopes
 
-Direct publication and `UiFailureEvidencePublisher` uses the same `ReportPublicationScope` protocol: the original cause is preserved when the closure of evidence fails. The projection of the exchanges belongs to the internal collaborator `ApiEvidencePublisher`; the facade, models and API to the consumers remain the same.
+Direct publication and `UiFailureEvidencePublisher` share the `ReportPublicationScope` protocol: the original cause remains primary if evidence closure fails. The internal `ApiEvidencePublisher` owns exchange projection; consumer facades, models and APIs stay unchanged.
 
 | Situation | Propagated cause | Closing |
 |---|---|---|
-| Body or complete fails | Same initial court, including `Error` | each purchased scope closes once |
-| Body / complete and close fails | initial with close error in suppressed | without reopening the publication |
-| Only Close Failed | Same close error | without additional complete |
-| Close throws the same court as body | initial, without self-pressure | one close test |
-| Child acquisition fails | Same acquisition error | close the prisoner parent without close on the child not obtained |
+| body or complete fails | the same original instance, including `Error` | each acquired scope closes once |
+| body/complete and close fail | the original cause, with the close failure suppressed | no publication replay |
+| only close fails | the same close failure | no additional complete |
+| close throws the same instance as body | the original cause, without self-suppression | one close attempt |
+| child acquisition fails | the same acquisition failure | close the owned parent, never the unacquired child |
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
     Body["Publication"] -->|success| Complete["Complete"]
-    Body -->|Failed| Primary["Initial cause"]
-    Complete -->|success| Close["Single Close"]
-    Complete -->|Failed| Primary
+    Body -->|failure| Primary["Initial cause"]
+    Complete -->|success| Close["One close"]
+    Complete -->|failure| Primary
     Primary -->|cleanup| Close
     Close -->|attaches secondary error| Result["Propagated cause"]
-    Primary -->|keep identity| Result
+    Primary -->|preserves identity| Result
 ```
 
 <details>
 <summary><strong>Legend - ownership, order and projection API</strong></summary>
 
-- The joint publication protocol closes the request and the validations created,
-  including UI standard validation / media and API assertions.
-- The diagram describes the common closure protocol.
-  be separately in possession of the application and validation; the child closes before the parent, including after failure at assertions or complete.
-- A defective child closes before the parent; its or her body and complete body do not
-  be reexecuted to compensate for a close error.
-- API Collaborator receives `UiApiValidationEvidence` and Reporting ports.
-  Keep the API, the exchanges and the assertions assessed at the consumer.
-- Collaborators remaining in-house implementation: without expanding the face of consumption,
-  browser / JUnit dependence, new mode or relaxation of the type limit per package.
-- Flow grouping, screenshot policies, timing and configured preview
-  keep existing contracts; the cleanup does not reassess comparisons.
+- The common publication protocol closes created requests and validations, including standard/media UI validation and API assertions.
+- The diagram describes common closure; the failure publisher separately owns its request and validation, closing child before parent even after assertions or complete fails.
+- A failed child closes before its parent; body and complete are never replayed to compensate for close failure.
+- The API collaborator receives `UiApiValidationEvidence` and Reporting ports, retaining API ownership, exchanges and consumer-evaluated assertions.
+- These collaborators remain internal, without extending the consumer facade, adding browser/JUnit dependencies or modules, or relaxing package type limits.
+- Flow grouping, screenshot policies, timing and configured previews retain their contracts; cleanup does not reevaluate comparisons.
 
 </details>
 
-`UiPublicationFailureComponentTest` sample injects errors through public facade, in outcome, setup, checkpoint, media, trait API, flow unified in / over phases and delegated failure. The matrix also checks the child's acquisition, `Error` identical and multiple errors of cleanup, with child closure before the parent.
+`UiPublicationFailureComponentTest` injects failures through the public facade in outcome, setup, checkpoint, media, API trace, unified flow within/across phases and delegated failure. The matrix also checks child acquisition, identical `Error` instances and multiple cleanup failures, with child-before-parent closure.
 
-`UiFailurePublicationComponentTest` independently challenges the failure, directly and through the facade: ports without cleanup in cascade, partial acquisition, body / complete / close and same `RuntimeException` / `Error` court. The reported business cause remains separate from publication error; comparisons shall not be reassessed.
+`UiFailurePublicationComponentTest` independently probes the failure publisher directly and through the facade: ports without cascading cleanup, partial acquisition, body/complete/close and identical `RuntimeException`/`Error` instances. The reported business cause remains separate from publication failure; comparisons are not reevaluated.
 
 The common rule of verification is in [test guide](../docs/ATF_Testing_Guide.md#proba-fiecărui-owner-de-resurse).
 
 <a id="contract-of-the-report"></a>
 <a id="contractul-raportului"></a>
-## Contract of the report
+## Report contract
 
 <details>
 <summary><strong>Details - report contract</strong></summary>
 
-Canon rules for visible hierarchy, inline glyphs, disclosures, viewport, responsive layout and browser verification are in [Display and layout contract](../docs/ATF_Reporting_Display_Contract.md). The section below only keeps the semantic contract and limits specific to the library implementation.
+The [display and layout contract](../docs/ATF_Reporting_Display_Contract.md) owns visible hierarchy, inline glyphs, disclosures, viewport behavior, responsive layout and browser verification. This section owns semantic behavior and implementation-specific library boundaries.
 
 ```text
 TestCase
@@ -441,42 +432,42 @@ TestCase
 
 | Rule | Contract |
 |---|---|
-| ownership API direct | The response contract validation is the child of the demand that holds the exchange; the assessment table belongs to the Extent validation collapses the validation node; fallback envelops the void table in the original `Assertions · n` standard disclosure. Click, Enter / Space and Fails backlink keeps the owner, rows and PASS / FAIL / WARNING; empty validation does not invent table or discrete. |
-| setup evidence | table `CHECK / EXPECTED / ACTUAL / RESULT` summarises the precondition; actual exchanges remain `API validation` distinct under the same checkpoint `SETUP` |
-| format body | Require / answer keeps the captured format (JSON, form or text); a JSON contract is required by the consumer validator, not deducted from the HTTP method |
-| body absent | Request / reply details remain present; `ABSENT` and `NOT_CAPTURED` have distinct explanations without invented payload; only JSON literal `null` captured becomes JSON document |
-| child-free phase | a non-published content phase remains terminal node: the renderer does not display `＋/−`, does not make it flawless and does not invent steps in the assertions JUnit; actual content published in the phase remains interactive disclosure |
-| component assertions | `Phase.startAssertionStep` publishes a typed child in the owner phase (`SETUP`, `TEST BODY` or `TEARDOWN`) without the need HTTP; `AtfAssertion` rows use the table, the editorial and common statuses in Extent and fallback. The step exists only when the effective assessment of the public assertions is made. |
-| UI evidence | `SETUP` remains setup; in `TEST BODY`, the actions, observations, assertions and verdict UI are published under the sole title `UI validation` |
-| assertions in flow UI | Extent and fallback keep their own disclosure `Assertions · n`, initially collapsed, for both the unified flower per phase and for the compact presentation over phases. All original rows, the configured preview, Enter / Space and the relay have samples at [Reporting Tests](../atf-reporting-tests/README.md#regresia-permanentă-a-fiecărui-defect-reporting). |
+| direct API ownership | Response contract validation is a child of the request that owns the exchange, and its assertion table belongs to that validation. Extent collapses the validation node; fallback wraps a nonempty table in the standard `Assertions · n` disclosure, initially closed. Click, Enter/Space and Fails backlinks preserve ownership, rows and PASS/FAIL/WARNING; empty validation creates neither a table nor a disclosure. |
+| setup evidence | the `CHECK / EXPECTED / ACTUAL / RESULT` table summarizes the precondition; actual exchanges remain distinct `API validation` evidence under the same `SETUP` checkpoint |
+| body format | request/response retain their captured format (JSON, form or text); the consumer validator requires a JSON contract explicitly, rather than inferring it from the HTTP method |
+| absent body | Request/Response details remain present; `ABSENT` and `NOT_CAPTURED` have distinct explanations without fabricated payloads. A captured JSON literal `null` remains a JSON document. |
+| phase without child evidence | a phase with no published content is a leaf: no `＋/−`, no focus target and no invented steps from JUnit assertions; actual published child content retains interactive disclosure |
+| component assertions | `Phase.startAssertionStep` publishes a typed child in its owning phase (`SETUP`, `TEST BODY` or `TEARDOWN`) without requiring HTTP. `AtfAssertion` rows share table, redaction and status rules in Extent/fallback; the step exists only when the test publishes evaluated assertions. |
+| flow context | SETUP retains its setup role; in TEST BODY, actions, observations, assertions and the UI verdict belong to one UI validation node, whose default title is `UI validation` |
+| UI-flow assertions | Extent and fallback retain an initially collapsed `Assertions · n` disclosure for both per-phase unified flow and compact cross-phase presentation. [Reporting Tests](../atf-reporting-tests/README.md#regresia-permanentă-a-fiecărui-defect-reporting) covers original rows, configured preview, Enter/Space and reload. |
 | the context of the flower | `UI flow context · n fields` presents the aggregation metadata per phase. `UI flow provenance · n checkpoints` keeps the origin of checkpoints over phases. Typed identity decides the section; fields HTTP / custom and actual exchanges keep their request / response / execution evidence. |
 | UI `UNIFIED_FLOW` on one or more phases | The consumer calls `UiScenario.unifyAcrossPhases()` before the first phase and `UiPhase.completeFinal(status)` at the terminal phase. Exactly one `TEST BODY` body is eligible, including preparation declared inside that body. On UI-only success, Reporting publishes one UI validation with a ACTION table, a OBSERVE table when observations exist and an assertion table when checks exist, retaining every row in order. An allowed `FINAL` capture appears under Playwright, before the audit. `UI flow provenance` retains phases/checkpoints and verdicts separately from HTTP responses. UI+API, failed setup and explicit multiple-capture policies retain per-checkpoint validations. `completeFinal(FAIL)` in `SETUP` creates neither `TEST BODY` nor a final capture. Without opt-in, existing phase behavior remains. |
-| layout | `＋/−` is inline before the sentence; Request details, Response details and Execution evidence are sister discharges in the quest; Contract validation is its child; UI / API validations are sister copies of the same checkpoint Gherkin |
-| responsive evidence | Header and columns remain semantically visible and aligned to any width of the panel; insufficient space produces local horizontal scroll without overflow of the page, vertical cells or font shrinking |
-| table running | Containers use `height:auto` and `max-height:var(--atf-table-scroll-height)` derived from `AtfReportThemeTokens.TABLE_SCROLL_HEIGHT` (`500px` currently); short content does not reserve empty space, long content runs under the fixed header. Last row and last column remain accessible. JSON / code panels do not enter this contract |
-| common view policy | `ReportTableViewport` and `table-viewport.css` asset are common Extent / fallback; the cylinder implicitly envelops any data table including setup, execution and future families. The rule does not depend on the title, counter, phase or parent `validation`; the wrapper is focused for keyboard scrolls |
-| the limits of the port | single Wrapper per table; layout tables `Status / Details`, children and screenshots do not enter the view. Legacy normalization verifies only the direct parent of the candidate table and reuses existing wrapper |
-| scroll local la input | `table-viewport.js` isolates the wheel and navigation from the keyboard from the host panel; inputs, links, summits and code panels keep their behavior. There is one delegated binding without scans at each gesture |
-| `TECHNICAL TRACE` | all `helm-trace-table` tables are wrapped by the common `atf-trace-table-wrap` marker; the whapper uses `height:auto`, `max-height:var(--atf-table-scroll-height)`, vertical scroll and stick header. Apply in Extent and fallback, strictly in the table, not in the external disclosure or JSON |
-| Request details / retry history | `helm-request-table` metadata table and `retry-history-table` table use `atf-api-table-wrap` wrapper, common ceiling and stick header in Extent and fallback; Request JSON remains outside the wrapper and the external discoloration does not run the table |
-| cardinality labels | `AtfReportLabels` is the common source Extent / fallback: `1 field/check/attempt/entry`, respectively plural for zero and more; publishers do not make up local labels |
+| layout | `＋/−` precedes the sentence inline; Request details, Response details and Execution evidence are sibling disclosures within their request, whose child is Contract validation. UI/API validations are sibling children of one Gherkin checkpoint. |
+| responsive evidence | headers and columns remain semantically visible and aligned at any panel width; insufficient space produces local horizontal scrolling without page overflow, vertical cells or font shrinking |
+| scrollable tables | containers use `height:auto` and `max-height:var(--atf-table-scroll-height)`, derived from `AtfReportThemeTokens.TABLE_SCROLL_HEIGHT` (`500px` currently); short content reserves no empty height, and long content scrolls under a sticky header with its final row/column reachable. JSON/code panels have a separate contract. |
+| shared viewport policy | `ReportTableViewport` and `table-viewport.css` are shared by Extent/fallback; builders wrap all data tables, including setup, execution and future families, independently of title, count, phase or `validation` parent. The wrapper accepts keyboard focus for scrolling. |
+| viewport boundaries | one wrapper per data table; layout tables (`Status / Details`), child content and screenshots are excluded. Legacy normalization examines only the candidate table’s direct parent and reuses an existing wrapper. |
+| local input scrolling | `table-viewport.js` isolates wheel and keyboard navigation from the host panel while preserving inputs, links, summaries and code panels; one delegated binding avoids rescanning on each gesture |
+| `TECHNICAL TRACE` | every `helm-trace-table` uses the shared `atf-trace-table-wrap` markup: `height:auto`, `max-height:var(--atf-table-scroll-height)`, vertical scrolling and a sticky header. This applies to the table in Extent/fallback, separately from the outer disclosure and JSON. |
+| Request details / retry history | the `helm-request-table` metadata table and `retry-history-table` use `atf-api-table-wrap`, the shared height cap and a sticky header in Extent/fallback. Request JSON stays outside that wrapper; the outer disclosure does not own table scrolling. |
+| cardinality labels | `AtfReportLabels` supplies shared Extent/fallback cardinality labels: `1 field/check/attempt/entry`, with plural forms for zero and multiple items; publishers do not create local variants |
 | action number | each action displays `#n` in a dedicated token, `atf-ui-action-number`, compact (`inline-block` / `max-content`); do not reuse the `atf-ui-action-sequence` extensible class |
-| screenshot | inline link to current emoji; payload Base64 for first bounded local appearance or reference (`screenshot-n`) for a weakened state; the fingerprint remains internal and is not displayed in place of the link |
-| action table | relevant actions include `getText` / text extract; time occurs only for actions |
+| screenshot | inline link with the current emoji; Base64 payload for the first occurrence or a bounded local reference (`screenshot-n`) for deduplicated state. Fingerprints stay internal rather than replacing the visible link. |
+| action table | relevant actions include `getText`/text extraction; duration is attached only to actions |
 | failures | `Setup`, `UI action`, `Audit observation` and `Assertion` have distinct causes and `Open in Tests` |
-| navigation | `Tests`, `Category`, `Fails`, `Overview` have accessible names; a transition preserves a single link `active` and `aria-current="page"`, aligned with the visible view- |
+| navigation | Tests, Category, Fails and Overview have accessible names; navigation retains exactly one `active` link and `aria-current="page"`, aligned with the visible view |
 
 This API hierarchy should not be confused with the UI reporting: `UI validation` and `API validation` are semantic copies of the same checkpoint Gherkin, and each `API validation` has its exchanges.The verdict of a JUnit method is not a API demand and should not be introduced as method `ASSERT` / Synthetic route.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    J["Comparison JUnit"] -->|record| R["AtfAssertion"]
+    J["JUnit comparison"] -->|records| R["AtfAssertion"]
     R -->|supplies| S["AssertionStep"]
     S -->|publishes| E["Extent"]
     S -->|publishes| H["Fallback HTML"]
-    E -->|display| V["Audited table"]
-    H -->|display| V
+    E -->|displays| V["Audited table"]
+    H -->|displays| V
 ```
 
 <details>
@@ -500,33 +491,30 @@ flowchart LR
 
 <a id="phase-context-and-execution-diagnosis"></a>
 <a id="context-de-fază-și-diagnostic-de-execuție"></a>
-### Phase context and execution diagnosis
+### Phase context and execution diagnostics
 
-[ReportFailureDescription](src/main/java/atf/reporting/evidence/diagnostic/ReportFailureDescription.java) forms the safe summary of an existing exception: no more than four distinct objects, cause and suppressed in order of the breadth-first, with identity for cycles. Redaction precedes the total limit of 240 characters, including ellipsis. The original graph and verdict do not change; the summary is not proof of demand.
+[ReportFailureDescription](src/main/java/atf/reporting/evidence/diagnostic/ReportFailureDescription.java) summarizes an existing exception safely: at most four distinct objects, with cause and suppressed links visited breadth-first and cycles tracked by identity. Redaction precedes the total 240-character limit, including ellipsis; neither the original graph nor verdict changes, and the summary is not request evidence.
 
-AutoEx and Shop adapt the summary to their own phase and exchange. Generic graph and publication samples Extent / fallback are in [Reporting Tests](../atf-reporting-tests/README.md#diagnosticul-neutru-al-excepțiilor); composition and business rules remain checked in application modules.
+AutoEx and Shop associate that summary with their own phase and exchange. [Reporting Tests](../atf-reporting-tests/README.md#diagnosticul-neutru-al-excepțiilor) owns generic graph and Extent/fallback publication probes; application modules retain composition and business-rule acceptance.
 
 | Input | Owner and projection |
 |---|---|
-| `Phase.detail` | Internal context; do not publish `Audit details`, log table or empty wapper in phase |
-| `Phase.diagnostic(Kind, message)` | explicit diagnosis of the scenario, redacted; does not create demand or business assertion |
-| Request / validation | Keep HTTP evidence and contracts effectively assessed |
+| `Phase.detail` | internal context; it creates no Audit details, log table or empty phase wrapper |
+| `Phase.diagnostic(Kind, message)` | explicit, redacted scenario diagnostics; no fabricated request or business assertion |
+| Request / validation | retains HTTP evidence and actually evaluated contracts |
 
-`ReportPhaseDiagnostic` delimits the compatibility for `Failure cause`, `JUnit failure` and `API contract association`. The rest of the phase details do not become diagnostic by deduction. `ReportPhaseDiagnosticMarkup` is the common projection Extent / fallback; Fails retains the real cause of failed phases.
+`ReportPhaseDiagnostic` provides compatibility boundaries for `Failure cause`, `JUnit failure` and `API contract association`; other phase details are not inferred to be diagnostics. `ReportPhaseDiagnosticMarkup` supplies the shared Extent/fallback projection, while Fails retains the real cause of failed phases.
 
-- In Extent, `extent-scenarios.js` includes the diagnosis in the script panel
-  and eliminates the vendor wrapper; closing hides it, normalization does not double it.
-- Without exchanges, HTTP or PASS is not invented; a diagnosis
-  The Association does not change the JUnit verdict alone.
-- The model retains the status of the source phase; Fails does not assign a failure to the notes
-  from a phase that didn't fail.
+- In Extent, `extent-scenarios.js` places diagnostics inside the scenario panel and removes the vendor wrapper; closing the scenario hides them, and repeated normalization does not duplicate them.
+- Without exchanges, neither HTTP evidence nor contractual PASS is fabricated; an association diagnostic alone cannot change the JUnit verdict.
+- The model retains the source phase status; Fails does not attribute notes from a successful phase to another phase’s failure.
 - `Setup evidence` and the aggregated inspector remain distinct channels.
 
 <a id="api-evidence-attached-to-a-ui-step"></a>
 <a id="dovezi-api-atașate-unui-pas-ui"></a>
 ### API evidence attached to a UI step
 
-A consumer may attach one or more `ReportExecutionEvidence` to the same checkpoint UI via the `UiExtentReportSession.step(...)` overload. Reporting does not create an artificial test and does not recalculate the verdict; it designs the exchange in the existing contract of the quest:
+A consumer can attach one or more `ReportExecutionEvidence` objects to a UI checkpoint through `UiExtentReportSession.step(...)`. Reporting projects them into the existing request contract without creating a synthetic test or reevaluating the verdict:
 
 ```text
 UI checkpoint
@@ -538,71 +526,51 @@ UI checkpoint
         └── Execution evidence → attempts/retries/duration/outcome
 ```
 
-- `request.action`, `request.target`, `evidence.type`, and `evidence.policy` are
-  internal context of checkpoint: remain in the model and in the configured diagnosis, but not published in the tables required / replies. `EvidenceTableFormatter` applies the same Extent projection, fallback and legacy, with exact match of keys, regardless of casing;
-- type `ui-validation` delimiting policy filtering; explicit contracts
-  `api-trace` / `unified-ui-flow` and `ui-failure` catch diagnosis remain unchanged;
-- the UI checkpoint receives neither `Request details`, `Response details` nor a
-  `Status / Details / Info` introduction table for identity or politics. Without public fields / payload, the renderer does not create an empty log;
-- Playwright action targets, screenshots and assertions remain in
-  `UI validation`; real HTTP fields remain public at the API exchange;
-- Displosures are closed by default and belong to the API exchange;
-- in the UI consumption, the target form is' one step Gherkin → UI validation +
-  API validation → exchange discharges'; the two nodes validation are semantic copies of the same step and have their own statuses;
-- `UiApiValidationEvidence` is the only API input for checkpoint, setup,
-  Final catch, trays and the unified flower buffer. Intractions with gross lists of exchanges are removed without overload or fallback. UI-only explicitly uses `UiApiValidationEvidence.empty()`; an observation without checkouts remains an exchange typed without inheriting the UI verdict;
-- `UiApiValidationEvidence` typed publishers separate the assertions UI from those
-  API: correlations are attached to the validation of API, and each exchange retains its own assertions / status. Checkpoint status aggregates up without recoloring the children or brother exchanges.Business verdict is explicit in assertion, not only deducted from HTTP status;
-- `apiTrace(...)` must not produce a second card visible with the same
-  Gherkin title as UI checkpoint. If a consumer has API evidence for the same sentence, the publisher must attach the validation to the existing node or use an equivalent composition without duplication;
-- `Exchange n` is a local identifier in `API validation`; do not return to
-  `API n · ...` flat keys and do not multiply the Gherkin sentence for different quests;
-- `Execution evidence · 1 attempt` cannot remain a repeated title without
-  context: the exchanger must be identified by the parent disclosure or by means of a semantic label per exchange;
-- `API network inspector` only accepts HTTP exchanges and checkpoints
-  their causative; there is no generic channel for diagnosed consoles / pages;
-- `Technical diagnostics` is derived only from failed HTTP exchanges and
-  remains obvious transport, not a Gherkin step or business validation;
-- Technical nodes use the common visual focus, but do not invent a verdict
-  or status for an exchange;
-- the technical children of these nodes inherit the same visual family without
-  receives an artificial verdict or new Gherkin card;
-- UI projection uses the same semantics and editorial policy as API ratio
-  direct: browser headers and volatile headers are filtered and stable headers are optional;
-- bodies use the `reporting.bodyMaxDisplayCharacters` consumer limit;
-- The editor precedes the render; the default is `100`, and `0` deactivates
-  limit for body preview;
+- `request.action`, `request.target`, `evidence.type` and `evidence.policy` are internal checkpoint context, retained in the model/configured diagnostics rather than request/response tables. `EvidenceTableFormatter` applies the same Extent/fallback/legacy projection with exact key matching, independent of case;
+- `ui-validation` bounds policy filtering; explicit `api-trace`/`unified-ui-flow` contracts and `ui-failure` screenshot diagnostics are unchanged;
+- UI checkpoints receive no Request details, Response details or introductory Status/Details/Info identity-policy table; no empty log is created when public fields/payload are absent;
+- Playwright action targets, screenshots and UI assertions remain in UI validation; actual HTTP fields belong to the API exchange;
+- disclosures start closed and belong to their API exchange;
+- the UI consumer hierarchy is `one Gherkin step → UI validation + API validation → exchange disclosures`; both validation nodes are semantic children of that step with their own statuses;
+- `UiApiValidationEvidence` is the sole API input for checkpoints, setup, final capture, trace and unified-flow buffering; raw exchange-list entry points have no overload/fallback. UI-only uses `UiApiValidationEvidence.empty()` explicitly; an exchange observation without checks does not inherit the UI verdict;
+- typed `UiApiValidationEvidence` publication separates UI from API assertions: correlation belongs to API validation, and each exchange retains its own assertions/status. Checkpoint aggregation propagates upward without recoloring siblings; business verdicts are explicit assertions rather than HTTP-status inference;
+- `apiTrace(...)` must not create another visible card with the checkpoint’s Gherkin title; API evidence for the same sentence attaches to its existing node or equivalent composition without duplication;
+- `Exchange n` identifies an exchange locally within API validation; flat `API n · ...` fields and repeated Gherkin sentences are not substitutes;
+- a repeated `Execution evidence · 1 attempt` title needs context from its parent disclosure or a semantic exchange label;
+- API network inspector accepts HTTP exchanges and their causal checkpoints, rather than generic console/page diagnostics;
+- Technical diagnostics derives only from failed HTTP exchanges and remains transport evidence, separate from Gherkin steps and business validation;
+- technical nodes share visual accents without fabricating an exchange verdict or status;
+- their technical children share that visual family without creating another verdict or Gherkin card;
+- UI projection uses the same semantics and redaction policy as direct API reporting: browser headers and volatile response headers are filtered, while stable response headers are optional;
+- body preview uses the consumer’s `reporting.bodyMaxDisplayCharacters`;
+- redaction precedes rendering; the default is `100`, and `0` removes only the body-preview limit;
 - the renderer does not introduce a hardcoded limit;
-- the consumer provides typed data and `atf-reporting` only publishes
-  Semantic contract and verifiable layout, independent of mock, browser and app.
+- the consumer supplies typed facts; `atf-reporting` publishes their semantic contract and verifiable layout independently of mock transport, browser and application.
 
-The verdict is calculated by execution / validation and only published by reporting. The Renderer does not invent statuses.
+Execution and validation supply the business verdict; Reporting aggregates the supplied statuses without substituting a business decision.
 
 <a id="api-execution-completed-unanswered"></a>
 <a id="execuție-api-terminată-fără-răspuns"></a>
-### API execution completed unanswered
+### API execution without a terminal response
 
-`ReportExecutionEvidence` may have absent responses and metadata typed `Termination`; they belong to the execution, separately from HTTP. `ApiExchangeEvidence.publish` maintains the known quest, history and diagnosis including without responses. `publishFailure` also allows the URL-ul resolved by the caller; none of the entries decides the consumer's verdict.
+`ReportExecutionEvidence` can contain an absent response and typed `Termination` metadata, which describes execution separately from HTTP. `ApiExchangeEvidence.publish` preserves the known request, history and diagnostics even without a response; `publishFailure` also accepts a caller-known resolved URL. Neither entry point decides the consumer verdict.
 
-`UiApiValidationEvidence.Exchange` requires captured demand. Without replies, the explicit status different from INFO or the assertions assessed provides the verdict; the absence of both is denied by `IllegalArgumentException` prior to publication. INFO alone is observation, not verdict. An empty API channel remains valid and INFO.
+`UiApiValidationEvidence.Exchange` requires a captured request. Without a response, an explicit non-INFO status or evaluated assertions must supply the verdict; otherwise publication is rejected with `IllegalArgumentException`. INFO alone is observation, while an empty API channel remains valid and INFO.
 
-A FAIL terminal request is indexed in Fails and without assertions via `ReportExecutionFailure`. The context, application and time available come from the same evidence execution; PASS neighbours do not provide identity fallbacks.
+A terminal FAIL request is indexed in Fails through `ReportExecutionFailure`, even without assertions. Its context, request and available timing come from that same execution evidence; neighboring PASS entries cannot supply identity fallbacks.
 
-- Backlink opens the original Execution evidence, including after reload.
-  Extent keeps the `execution` type and its ordinal; fallback follows the order of the common projection. Different types have distinct navigation identities.
-- An expected transport error and judgment PASS is not indexed.
-  terminal and a business comparison FAIL remains distinct evidence, each once; the shortened text is not the key to the deduction.
-- In Fails, the assertion and diagnosis of execution remain distinct entries and
-  The orderly chain of causes appears in a single diagnostic input per scenario; the original rows remain in Tests, and the backlink opens the source row of the diagnosis.
+- Backlinks open the original Execution evidence, including after reload. Extent retains its `execution` type and ordinal; fallback follows shared projection order, with distinct navigation identities for distinct evidence kinds.
+- Expected transport failure evaluated as PASS is not indexed. A terminal cause and an independent failed business comparison remain distinct, each once; truncated text is never a deduplication key.
+- Fails labels assertion and execution-diagnostic entries separately. One diagnostic entry per scenario holds the ordered cause chain; Tests retains the original rows, and its backlink opens the source diagnostic row.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Snapshot["Snapshot"] -->|validate| Verdict["Verdict explicit"]
+    Snapshot["Snapshot"] -->|validate| Verdict["Explicit verdict"]
     Verdict -->|publishes| Evidence["Execution evidence"]
-    Evidence -->|design| History["Tests"]
+    Evidence -->|projects| History["Attempts"]
     Evidence -->|separate| Diagnostic["Diagnostic"]
-    History -->|display| Missing["Unavailable"]
+    History -->|displays| Missing["Unavailable"]
     Diagnostic -->|FAIL| Index["Fails"]
     Index -->|Open original| Evidence
 ```
@@ -610,38 +578,28 @@ flowchart LR
 <details>
 <summary><strong>Legend - Extent parity / fallback and compatibility</strong></summary>
 
-- The `ReportModelAdapters.partialExecution` legacy signal requires availability
-  explicit by Optional; existing Reporting builders remain available. Core models do not enter the standalone library's ranking.
-- The unresponsive Sentinel becomes Unavailable in the history displayed; no
-  invents status, body or response duration for terminal testing.
-- Termination and diagnosis are in the performance disclosure.
-  In the absence of response, no discrete Response details are manufactured.
-- Each valid exchange remains API child in setup, checkpoint, final validation,
-  Unitary trays and flow, including between phases. Lack of response does not filter the exchange and renumerate the neighbors. FAIL / SKIP from assertions dominates PASS transmitted by the caller; PASS for an expected failure requires its explicit verdict.
-- A URL solved unknown remains empty; the route does not become a URL invented or
-  An order replay.Absent termination does not receive an alleged cause.
-- Zero discharges keep the selected transport without claiming that the network
-  was executed or that the manual replica would have checked.
-- The full text is written before the full ceiling of 240
-  characters, including ellipsis; the customised budget applies to the projection.
-- `TerminalExecutionProjectionTest` and `TerminalApiExecutionReportTest`
-  check the model, Extent / fallback, the editor, the keyboard and the last row.
-- `ReportingStandaloneVerdictComponentTest` protects the standalone boundary, and
-  `UiTerminalExchangeReportComponentTest` checks UI / API tree, diagnosis, testing, totals and dislocator in Extent / fallback, with implicit and customized budget. The samples use local snapshots without HTTP Display.
-- The total pass-like in Overview is PASS + WARNING in both renderers;
-  WARNING remains distinct in the tree and does not become a failure in Fails.
+- The legacy `ReportModelAdapters.partialExecution` seam requires explicit Optional availability while retaining existing Reporting constructors; Core model classes remain outside the standalone library classpath.
+- The missing-response sentinel is displayed as Unavailable in history; no HTTP status, body or response duration is fabricated for a terminal attempt.
+- Termination and diagnostics belong in Execution evidence; an absent response does not create a synthetic Response details disclosure.
+- Valid exchanges remain API children in setup, checkpoints, final validation, trace and unified cross-phase flow; absent responses neither drop exchanges nor renumber neighbors. Assertion FAIL/SKIP dominates caller PASS; expected failure requires its explicit PASS verdict.
+- An unknown resolved URL stays empty; a route does not become an invented URL/replay command, and absent termination metadata does not acquire a presumed cause.
+- Zero dispatches retain the selected transport without claiming network execution or verified manual replay.
+- Redact full text before the total 240-character budget including ellipsis; custom budgets apply at projection.
+- `TerminalExecutionProjectionTest` and `TerminalApiExecutionReportTest` cover model, Extent/fallback, redaction, keyboard interaction and final-row access.
+- `ReportingStandaloneVerdictComponentTest` protects the standalone boundary; `UiTerminalExchangeReportComponentTest` checks the UI/API tree, diagnostics, attempts, totals and disclosures in Extent/fallback with default/custom budgets. These use local snapshots without HTTP dispatch.
+- Overview’s pass-like total is PASS + WARNING in both renderers; WARNING remains distinct in the tree and does not become a Fails entry.
 
 The short labels shall be kept as follows:
 
 | In the scheme | Full meaning |
 |---|---|
 | Snapshot | Snapshot consumer |
-| Verdict explicit | status call different from INFO or assessed assertions of the unresponded exchange |
+| Verdict explicit | a non-INFO caller status or evaluated assertions for the response-free exchange |
 | Execution evidence | Execution evidence + Termination |
 | Tests | In order tests |
 | Diagnostic | Performing Diagnosis |
 | Unavailable | Uavailable, without HTTP invented |
-| Fails | index of the case typed, with jump to original proof and identity of navigation retained |
+| Fails | typed cause index linking to original evidence while retaining navigation identity |
 | display | display absence |
 
 </details>
@@ -650,174 +608,146 @@ The short labels shall be kept as follows:
 <a id="decizii-be-fără-verdict-de-succes-implicit"></a>
 ### BE decisions without default success verdict
 
-AutoEx / Shop adapters publish recovery decisions by INFO observations, with the policy and budget in Expected, and the decision, reason and time in Observed. These rows do not represent repeated clicks and do not rewrite a published FAIL. Receiptor and source of policy, operation, trial and time / back / total are auditable observations; body HTTP and the credentials are not captured.
+AutoEx/Shop adapters publish recovery decisions as INFO observations: policy/budget in Expected, decision/reason/timing in Observed. Receipt, policy source, operation, attempt and probe/backoff/total timings are auditable observations, excluding HTTP bodies and credentials. They neither represent repeated clicks nor rewrite an existing FAIL.
 
-The existing projection keeps the disclosures and the ceiling configured after the full text is redacted. The aggregate recovery indicator, SKIP port and the complete UI / UI_API matrix remain in [audit feedback](../docs/feedback/ATF_Reporting_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent).
+The projection retains disclosures and configured limits after full-text redaction. [Recovery audit feedback](../docs/feedback/ATF_Reporting_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent) distinguishes consumer-specific acceptance and remaining shared criteria; INFO publication alone does not establish the complete UI/UI_API matrix.
 
 <a id="background-to-error-prior-to-technical-diagnosis"></a>
 <a id="contextul-erorii-înaintea-diagnosticului-tehnic"></a>
-### Background to error prior to technical diagnosis
+### Failure context before technical diagnostics
 
-`UiFailureContext` designs the first FAIL proof in order of `sequence`: type of exception, operation and number, target, time measured and waiting. The same projection appears in `Failure cause`, Observed and Fails. PASS does not become the cause of any subsequent exception; the lack of failed action or exception is explicit and OBSERVE is still the source.
+`UiFailureContext` projects the first captured FAIL in `sequence` order: exception type, operation/ordinal, target, measured timing and expectation. Failure cause, Observed and Fails share that projection; a prior PASS action cannot become a later exception’s cause. Missing failed action/exception is explicit, and OBSERVE retains its observation role.
 
-- The native message of a timeout belongs to the separate diagnosis in Tests.
-- `elapsed` is the time of the action captured, without deduction of the deadline from the exception.
+- A native timeout message belongs to separate Tests diagnostics.
+- `elapsed` is captured action timing, not a deadline inferred from exception text.
 
-`UiFailureEvidencePublisher` holds the publication of this evidence through neutral ports Reporting; `UiEvidencePublisher` delegates it to the default-paths, without JUnit, browser or reassessment of the business verdict.
+`UiFailureEvidencePublisher` publishes this evidence through neutral Reporting ports. `UiEvidencePublisher` delegates failure-path publication without JUnit, browser dependencies or business-verdict reevaluation.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Captured["Throwable + evidence"] -->|selects| Context["First FAIL proof"]
+    Captured["Throwable + evidence"] -->|selects| Context["First FAIL evidence"]
     Captured -->|preserves| Diagnostic["Diagnostic"]
     Context -->|safe action| Tests["Tests"]
-    Context -->|Safe summary| Fails["Fails"]
-    Diagnostic -->|Safe comments| Tests
+    Context -->|safe summary| Fails["Fails"]
+    Diagnostic -->|safe observations| Tests
     Fails -->|backlink| Tests
 ```
 
 <details>
 <summary><strong>Legend - context, relationships and boundaries</strong></summary>
 
-- The context uses only captured evidence; does not leave a stack for
-  Invent dispatch, HTTP response, navigation confirmed or recovery.
-- Diagnostics `INFO` in Audit Observations keep type and message
-  the primary exception, causes and suppressed, with numbered relationships. The common references and cycles are finished; the throwable and original rows remain intact.
-- Redaction the entire value precedes the configured ceiling, implicitly 240 inclusive
-  ellipsis, and for each diagnosis. Expansion does not publish unlimited gross text.
-- Safe / safe edges include redaction and ceiling; area separation
-  does not create a secondary path for the publication of gross values.
-- Fails prefers the context of the UI assertion to the technical diagnosis of the phase;
-  The diagnosis remains in Tests. API maintains its causal chain and its own owner.
-- FAIL verdict, identity correlation and policy without replication remain
-  responsibilities distinct from this projection.
+- Context uses captured evidence only; parsing a stack must not fabricate dispatch, an HTTP response, confirmed navigation or recovery.
+- INFO Audit observations retain primary exception type/message, causes, suppressed errors and numbered relations. Shared references and cycles remain finite; original Throwable objects and rows are preserved.
+- Each full diagnostic is redacted before its configured budget, default 240 including ellipsis; expansion does not expose unbounded raw text.
+- Diagram edges labeled safe include redaction and bounds; separating surfaces never creates another raw-value publication channel.
+- Fails prioritizes UI assertion context over technical phase diagnostics, which remain in Tests; API retains its own cause chain and owner.
+- FAIL verdict, identity correlation and no-replay policy remain responsibilities separate from this projection.
 
 </details>
 
 | Surface | Observed contract |
 |---|---|
-| Tests → UI action sequence | Operation, target, duration measured and context of first evidence FAIL |
-| Tests → Audit observations | Distinguished INFO diagnoses: type / primary message, causes, suppressed and original observation; each complies with the budget |
-| Fails → Cause | Compact context; native message and redaction marker are not mandatory in this summary |
-| Open in Tests | the scenario and the ordinary of the failed comparison opens the original path in Extent; the phase, the quest / step, validation and discoloration become visible without `Expand all` |
+| Tests → UI action sequence | operation, target, measured duration and context of the first captured FAIL |
+| Tests → Audit observations | distinct INFO diagnostics: primary type/message, causes, suppressed errors and original observation; each respects its budget |
+| Fails → Cause | compact context; native messages and redaction markers are not mandatory in this summary |
+| Open in Tests | scenario and failed-comparison ordinal open the original Extent path; phase, request/step, validation and disclosure become visible without Expand all |
 
-`UiFailureReportContractTest` checks the surfaces through the real UI facade; `UiTimeoutReportComponentTest` checks Extent / fallback to 240 and 18, the redaction of the entire HTML, diagnostic relationships, isolation and backlink.The negative samples detect the elimination of native diagnosis and the exposure of a credential in DOM.
+`UiFailureReportContractTest` checks these surfaces through the real UI facade. `UiTimeoutReportComponentTest` covers Extent/fallback at 240 and 18, whole-HTML redaction, diagnostic relations, isolation and backlinks; negative controls detect missing native diagnostics and a credential exposed in DOM.
 
 <a id="capture-at-the-fault"></a>
 <a id="captura-la-failure"></a>
-### Capture at the fault
+### Failure capture
 
-- Adapter throws `UiCheckpointFailure(message, assertions)` with courts
-  exact of the assertions UI FAIL published in the current scenario.
-- In Fails remains the original assertion; diagnosis of propagation and capture
-  The final remains in `Failure evidence` in Tests, including unified flow.
-- No comparison of titles or messages. Normal exceptions, different courts
-  with the same content, the failures of API and cleanup / independent actions remain separate.
+- The adapter throws `UiCheckpointFailure(message, assertions)` with the exact FAIL assertion instances published in the current UI scenario.
+- Fails retains the original assertion; propagation diagnostics and final capture stay in Tests’ Failure evidence, including unified flow.
+- Correlation does not compare titles/messages; ordinary exceptions, equal-content distinct instances, API failures and independent cleanup/actions retain separate identities.
 
-`Failure evidence` keeps the actions executed and the original cause. `UiFailureScreenshotState` assesses policy before payload:
+Failure evidence retains executed actions and the original cause. `UiFailureScreenshotState` evaluates policy before examining payload:
 
 | Status | Condition | Image link |
 |---|---|---|
-| `DISABLED_BY_POLICY` | Policy excludes capture at failure | absent |
-| `UNAVAILABLE` | Payload null, empty or whitespace | absent |
-| `INVALID` | Base64 incorrect or non-PNG signature | absent |
-| `CAPTURED` | Allowed catch, encoding Base64 and accepted PNG signature | inline with emoji |
+| `DISABLED_BY_POLICY` | policy excludes failure capture | absent |
+| `UNAVAILABLE` | null, empty or whitespace payload | absent |
+| `INVALID` | invalid Base64 or a non-PNG signature | absent |
+| `CAPTURED` | capture permitted, Base64 accepted and PNG signature present | inline with emoji |
 
-- `ReportScreenshot.hasPngSignature(...)` checks the encoding and signature PNG;
-  does not decode pixels and does not guarantee full image integrity.
-- `Screenshot` observation has `OBSERVE` source and `INFO` status; does not become
-  business assertion and does not create a second checkpoint.
-- Extent and fallback shall keep the content of the published actions and catches,
-  not only meters; UI step does not receive fictional HTTP metadata.
+- `ReportScreenshot.hasPngSignature(...)` checks encoding/signature, not decoded pixels or complete image integrity.
+- The Screenshot observation has OBSERVE source and INFO status; it creates neither a business assertion nor another checkpoint.
+- Extent/fallback preserve published actions and captures, rather than just counts; UI steps receive no fictitious HTTP metadata.
 
 <a id="terminal-audit-in-ui-validation"></a>
 <a id="audit-terminal-în-ui-validation"></a>
-### Terminal Audit in UI validation
+### Terminal audit in UI validation
 
 - Terminal contract validation publishes exactly one `Audit screen contract` observation in `Audit observations`, in the same validation as actions, assertions and capture; it does not create a second Gherkin checkpoint.
-- The observation has `OBSERVE` source, does not become Playwright action or assertion
-  duplicate. It shall be recorded prior to drainage of the publication sequence.
-- The remark identifies the subject matter, the contract verdict, the number of assertions,
-  status of the catch and safe URL-ul; does not copy bodywork or secret.
-- Screenshots are outside the action table view immediately after
-  This is the actual profile. The path without catch explicitly declares absence; an invalid payload is not presented as valid PNG.
-- Assertions remain the source of the verdict; a catch does not prove `PASS` alone.
-  `FINAL_ONLY` does not invent the final state after a failed setup.
+- Its OBSERVE source creates neither a Playwright action nor a duplicate assertion; record it before draining the sequence for publication.
+- The observation identifies subject, contract verdict, assertion count, capture state and safe URL without copying bodies or secrets.
+- The screenshot sits outside the action-table viewport, immediately afterward according to the effective profile; absent capture is explicit, and invalid payload is never presented as valid PNG.
+- Assertions supply the verdict; a screenshot alone does not establish PASS. FINAL_ONLY does not invent final state after failed setup.
 
-`ExtentReportUiEvidenceRenderingTest` checks generic DOM and `ACTION` / `OBSERVE` separation; Shop / AutoEx terminal samples check local mappings, the uniqueness and order of `record → drain`. The browser verification of a changed layout remains distinct from these automatic samples.
+`ExtentReportUiEvidenceRenderingTest` checks generic DOM and ACTION/OBSERVE separation; Shop/AutoEx terminal probes check local mapping, uniqueness and record-before-drain order. Browser verification of changed layout remains a separate proof.
 
-`UiAuditLifecycleTest` checks the failure separately, including empty payload, deactivated policy and lack of executed actions. The visible status is observed in `Failure evidence`; internal metadata remain filtered from HTTP.
+`UiAuditLifecycleTest` separately checks failure with empty payload, disabled policy or no executed actions. Visible state is a Failure evidence observation; internal metadata remains excluded from HTTP.
 
 <a id="aggregated-ui--api-flow-inspector"></a>
 <a id="inspector-agregat-pentru-flux-uiapi"></a>
 ### Aggregated UI / API flow inspector
 
-`ReportNetworkInspector.JourneyAggregate` is the semantic projection of the journey; it is not a second stage and does not replace the canonical outlook of an exchange.
+`ReportNetworkInspector.JourneyAggregate` is a semantic journey summary, not a second trace or a replacement for canonical exchange evidence.
 
-The contract for a summary requested shall be:
+When the consumer requests this summary, the publication contract is:
 
-- Lifecyclem shall publish it once after the UI / API checkpoints and evidence failure, just prior to the phase closure;
-- the summary is the last technical node of `TEST BODY` without checkpoint or proof of failure after it;
-- an explicit request without exchanges produces `0 exchanges`; a UI-only profile omits it by not requesting it;
-- The summary remains informative (`PASS`); the verdict belongs to checkpoints and script.
+- Publish it once, after UI/API checkpoints and failure evidence, immediately before closing the phase.
+- It is the last technical node in TEST BODY; no Gherkin step or failure evidence follows it.
+- An explicitly requested summary with no exchanges shows `0 exchanges`; a UI-only consumer can omit it by not requesting one.
+- The summary is informational (`PASS`); checkpoints and the scenario retain their own verdicts.
 
-`networkInspector(..., ReportNetworkCaptureStatus)` Overload adds `Capture coverage`: scope, accepted / retested / excluded / dropped, pending catches, ceiling and separation of setup / causal. `Complete within scope` requires zero losses and zero ongoing catches at snapshot; no future traffic promises. Without optional metadata, API previously does not invent completeness.
+The `networkInspector(..., ReportNetworkCaptureStatus)` overload adds Capture coverage: scope, accepted/retained/excluded/dropped counts, pending exchanges, capacity and the causal split from setup. Complete within scope requires no loss or pending exchanges at the snapshot; it promises no future traffic, and legacy calls without this metadata do not imply completeness.
 
 | Situation | What the report expresses | What it does not infer |
 |---|---|---|
-| Zero exchanges, full catch | there is no causal traffic in the scope at snapshot | absence of all browser traffic |
-| Catch with overflow or ongoing | `Incomplete within scope`, with explicit totals | FAIL business verdict or manufactured requests |
+| zero exchanges, complete capture | there is no causal traffic in the scope at snapshot | absence of all browser traffic |
+| overflow or pending capture | `Incomplete within scope`, with explicit totals | FAIL business verdict or manufactured requests |
 | Setup + causative traffic | The aggregate shall be counted on a causal basis. | doubling precondition in the causative total |
 
-`uiValidation(..., apiEvidence, capturePoint, status)` keeps the terminal exchanges with the final screen as brothers of the UI validation without repetition of the Gherkin sentence. Probes: `NetworkCaptureEvidenceTest` in `atf-reporting-tests`, including artifact and local browser.
+The `uiValidation(..., apiEvidence, capturePoint, status)` overload places terminal exchanges beside the final screen, as siblings under the UI checkpoint without duplicating Gherkin. `NetworkCaptureEvidenceTest` checks the artifact and local browser projection.
 
-`NetworkInspectorSummaryRoleTest` checks order in both randing modes.
+`NetworkInspectorSummaryRoleTest` protects this order in both modes.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Checkpoint["Checkpoint Gherkin"] -->|preserves| Ui["UI validation"]
+    Checkpoint["Gherkin checkpoint"] -->|preserves| Ui["UI validation"]
     Checkpoint -->|preserves| Api["API validation"]
     Api -->|preserves| Evidence["HTTP exchange"]
     Checkpoint -->|indexes| Aggregate["Aggregated inspector"]
-    Aggregate -->|group| Facts["Context transport"]
+    Aggregate -->|groups| Facts["Transport context"]
 ```
 
 <details>
 <summary><strong>Legend - what enters the aggregates and what remains local</strong></summary>
 
-- `authentication` only groups method / source / status / count; semantics is
-  `observed`, not the validation of tokens, issuers or clams; the presence of a Cookie does not certify the identity or authentication of the user;
-- `correlation` shall maintain the link between checkpoint and the resulting exchanges;
-- `transport` numbers observations, success / failure, attempts, retries and
-  provenance live/mock/unknown;
-- `signatures` groups the safe-deposit box with count and statuses and displays it
-  only once as a compact card with method, route, authentication, evidence source and phase;
-- `diagnostics` deducts the failures HTTP after method / route / status / reason and
-  keep `count` and the transport source; browser signals without an associated exchange are not collected and cannot enter the aggregates;
-- JSON bodywork, sensitive headers and execution details remain in the disclosure
-  canonical of the exchange; not copied in summary;
-- the index attached to the inspector's request contains only three facts bound:
-  the number of canonical exchanges, the number of Gherkin steps and the number of unique signatures; the completed steps appear only in `Scenario correlation` and the requests only in `Unique request signatures`;
-- the signature of the request and the digests of the body remain an internal identity for
-  grouping/retry; the public HTML displays only `body=present|absent` and the bounded `internal digest hidden` marker;
-- the consumer selects the evidence before publisher, by contract typed;
-  the renderer does not decide which requirements enter;
-- `Overview → System` is not an owner for trac, auth, diagnostic or body;
-  they belong to the inspector / evidence.
+- Authentication reports only observed method, source, status and counts; it does not validate tokens, issuers, claims or cookie identity.
+- Correlation associates checkpoints with causal exchanges.
+- Transport reports observations, successes/failures, attempts/retries and live/mock/unknown provenance.
+- Signatures group safe facts and counts into one compact card: method, route, authentication evidence, source and phase.
+- Diagnostics deduplicate failed HTTP observations by method/route/status/reason and include transport-source counts; unattached browser messages are excluded.
+- JSON bodies, sensitive headers and execution details remain in canonical exchange evidence rather than being copied into the summary.
+- The request-attached index contains only three bounded facts: canonical exchange count, Gherkin step count and unique signature count. Full steps remain in Scenario correlation and requests in Unique request signatures.
+- Request signatures and body digests are internal grouping/retry identities; HTML shows only `body=present|absent` and the bounded marker `internal digest hidden`.
+- The consumer selects evidence before publication; the renderer does not choose the input.
+- Overview System does not own traces, authentication, diagnostics or bodies.
 
 </details>
 
 The Thracian contract shall be read as follows:
 
-- generic brigade publishes the aggregate in a single collapsed `TRACE` node,
-  with disclosures nested for auth, correlation, transport, signatures and diagnoses;
-- for checkpoints with multiple exchanges, lower- level pipeline
-  keep `API validation → Exchange → request → response → execution` without duplicated JSON; the retry remains in the record of the same exchange;
-- the consumption attaches API validation to the same Gherkin node with `UI validation`;
-  the technical diagnosis of transport comes from the exchange and does not introduce an additional Gherkin sentence.
+- The generic bridge publishes one collapsed TRACE with nested authentication, correlation, transport, signatures and diagnostics.
+- A multi-exchange checkpoint uses `API validation → Exchange → request → response → execution`; JSON is not duplicated, and retries stay within their exchange.
+- API validation attaches to the same Gherkin node as UI validation; transport diagnostics do not create extra Gherkin steps.
 
-The contract is verified by the [`keepsUiAndApiValidationUnderOneGherkinCheckpoint`](../atf-reporting-tests/src/test/java/atf/reporting/ui/ExtentReportUiEvidencePublishingTest.java) component test: the Gherkin title appears once and the validations UI / API and the exchange evidence coexists under that checkpoint. A duplicate Gherkin card is regression of this contract, not an active ToDo.
+[`keepsUiAndApiValidationUnderOneGherkinCheckpoint`](../atf-reporting-tests/src/test/java/atf/reporting/ui/ExtentReportUiEvidencePublishingTest.java) protects a single Gherkin title with UI/API validation and exchange evidence beneath it; a duplicated Gherkin card violates this hierarchy.
 
 </details>
 
@@ -826,18 +756,18 @@ The contract is verified by the [`keepsUiAndApiValidationUnderOneGherkinCheckpoi
 ## Production structure
 
 <details>
-<summary><strong>The inventory of the maintainer - packages, resources and ownership</strong></summary>
+<summary><strong>Maintainer inventory — packages, resources and ownership</strong></summary>
 
 [Package Atlas](src/main/java/atf/reporting/README.md) is the entry for local revision; the inventory below then allows to find concrete details.
 
 <details>
 <summary><strong>Details - production structure</strong></summary>
 
-| Boundary | Owner Main | Verifiable output |
+| Boundary | Primary owner | Verifiable output |
 |---|---|---|
 | semantic/model | `semantic`, `model`, `contract` | Snapshot, execution tree, status and assertions |
 | markup/render | `markup`, `html`, `extent` | Extent nodes and Fallback HTML |
-| asset/theme | `asset`, `theme`, `runtime` | CSS / JavaScript native, vocabulary and manifesto |
+| asset/theme | `asset`, `theme`, `runtime` | native CSS/JavaScript, vocabulary and manifest |
 | audit/publication | `ui/audit`, `artifact`, `publication` | contracts, inspector, workspace and final artifact |
 | input/config | `api`, `configuration`, `evidence` | request / response / evidence typed and policy of output |
 
@@ -861,38 +791,38 @@ atf.reporting
 └── evidence/        transport/UI evidence și style contract
 ```
 
-CSS / JavaScript splits are semantic, not cosmetic. `ExtentReportRuntimeBehaviour` composes core / tests / overview / evidence / navigation / durability / failure; theme / evidence providers own related CSS-ul. No more classes are created just to reduce the number of lines.
+CSS/JavaScript boundaries follow responsibility. `ExtentReportRuntimeBehaviour` composes core/tests/overview/evidence/navigation/duration/failure, while theme/evidence providers own their CSS; classes are not added merely to reduce line counts.
 
-For navigation, the limit is explicit and verifiable: `ExtentReportRuntimeNavigation` composes three native JavaScript assets--DOM contract, discrete and controller - via `ReportAssetComposer`. Java facades remain only semantic and no longer retain inline bodies; component tests check both published functions and manifest The `Scenarios`, `Categories`, the evidence fragments and Overview CSS comply with the same limit; `AtfReportOverviewCss` now composes separate native assets for layout, tag audit, category tables and category status. The same limit is applied to the theme Extent: responsive, base, category / category-status, Fails layout / status, navigation, script and detail are native CSS assets, and Java facades only solve tokens and composition seams. Evidence interaction / table / disclosure / stack and fallback theme uses the same boundary. The published HTML no longer includes `onclick` inline; hash links are the static contract and the native controller activates them by hash.
+`ExtentReportRuntimeNavigation` composes three native JavaScript assets—DOM contract, disclosure and controller—through `ReportAssetComposer`; Java facades retain semantic ownership, tokens and composition order rather than inline function bodies, with component checks for functions and manifest. `Scenarios`, `Categories`, evidence, `AtfReportOverviewCss` layout/tag-audit/category-tables/category-status, Extent responsive/base/category/category-status/Fails layout/status/navigation/scenario/detail CSS, evidence interaction/table/disclosure/stack and fallback theme use the same boundary. Published navigation has no inline `onclick`; hash links are the static contract, activated by the native controller.
 
-The geometry of discoloration is a common contract in Extent and fallback: the usual summers API / UI uses `34px`, `9px 12px` padding and the common line-height. `Unique request signatures` and `Technical diagnostics` rows in the Network Inspector keep the same compact height `34px`, collapsed by default; double summary style does not apply to aggregated rows and does not leave empty vertical space when the title falls in a row. In viewport narrow, text can flow naturally without changing the default height of the ordinary case.
+Disclosure geometry is shared by Extent/fallback: ordinary API/UI summaries use `34px`, `9px 12px` padding and common line-height. Network Inspector `Unique request signatures` and `Technical diagnostics` retain compact `34px` rows, initially collapsed without double-summary styling or empty height when titles fit; narrow viewports allow natural wrapping without changing the ordinary default height.
 
-The height of the table area is a separate contract: `TABLE_SCROLL_HEIGHT` (`500px`) is the common ceiling, published as `--atf-table-scroll-height`. Containers have `height:auto` and `max-height`, thus short content does not reserve empty space and long content runs within the same ceiling. Headers remain fixed; contract covers Overview, audit, UI evidence, aggregates API and `TECHNICAL TRACE` table in `Response details`, plus request metadata and retry history in `atf-api-table-wrap`. Trail and CSS-ul viewXul port are common to Extent renderers and fallback; browser sample checks API directly and API trace Published as a causative brother of a checkpoint UI.
+`TABLE_SCROLL_HEIGHT` (`500px`), published as `--atf-table-scroll-height`, caps table viewports with `height:auto` and shared `max-height`: short content reserves no empty space, long content scrolls locally and headers stay fixed. The contract covers Overview, audit, UI evidence, API aggregates, `TECHNICAL TRACE` inside `Response details`, request metadata and retry history in `atf-api-table-wrap`; shared trace markup/viewport CSS serves both renderers, with browser probes for direct API and causal API evidence beside UI checkpoints.
 
 </details>
 
 <details>
 <summary><strong>Details - runtime Overview, Scenarios, Categories and Fails</strong></summary>
 
-Fallback navigation and Extent document boot follow the same rule: `fallback-navigation.js` and `runtime-boot.js` are native assets and `HtmlReportNavigationScript` and `ExtentReportRuntimeBehaviour` are just facade / publication seams typed. JavaScript Extent modules are injected into the boot placeholder without the boot Java to rebuild executable functions or expressions.
+Fallback navigation and Extent boot use native `fallback-navigation.js` and `runtime-boot.js`; `HtmlReportNavigationScript` and `ExtentReportRuntimeBehaviour` remain typed publication facades. Extent JavaScript modules are injected into the boot placeholder without Java reconstructing executable functions or expressions.
 
-The same limit is now applied to the `ExtentReportRuntimeOverview` family: `Audit`, `Labels`, `Charts` and `Cleanup` family are separate native assets, and the `Fragment` enumeration remains the command of the Order Root. Java no longer contains function bodies; it is exposed by testable facades and `ReportAssetComposer`.
+`ExtentReportRuntimeOverview` uses separate native `Audit`, `Labels`, `Charts` and `Cleanup` assets, with `Fragment` defining composition order. Java exposes them through testable facades and `ReportAssetComposer` rather than containing function bodies.
 
-`ExtentReportRuntimeScenarios` and `ExtentReportRuntimeCategories` use the same border: `extent-scenarios.js` and `extent-categories.js` have browser functions, and Java only keeps the public facades and typed vocabulary. Thus, filtering, script annotations and deep- links to Categories can be checked in a component without re-entering the literal JavaScript in runtime classes.
+`ExtentReportRuntimeScenarios` and `ExtentReportRuntimeCategories` delegate browser functions to `extent-scenarios.js` and `extent-categories.js`, retaining public facades and typed vocabulary. Component tests cover filters, scenario annotations and Category deep links without embedding JavaScript literals in runtime classes.
 
-Evidence follows the same separation: `ExtentReportRuntimeEvidenceDisclosure`, `ExtentReportRuntimeEvidenceFailures` and `ExtentReportRuntimeEvidenceTableLayout` are small Java facades over `extent-evidence-disclosure.js`, `extent-evidence-failures.js` and `extent-evidence-table-layout.js`. The first normalizes request/response/JSON/assertion disclosures, the second projects UI failure evidence, and the third measures actual values and publishes deterministic column widths. Layout stays separate from evidence semantics, with one owner per responsibility.
+Evidence follows the same separation: `ExtentReportRuntimeEvidenceDisclosure`, `ExtentReportRuntimeEvidenceFailures` and `ExtentReportRuntimeEvidenceTableLayout` wrap `extent-evidence-disclosure.js`, `extent-evidence-failures.js` and `extent-evidence-table-layout.js`. They respectively normalize request/response/JSON/assertion disclosures, project UI failure evidence and measure real values for deterministic column widths; layout stays separate from evidence semantics, with one owner per function.
 
-The implementation invariants of these assets are documented here, outside the JavaScript payload: `table-viewport.js` handles keys only while its viewport has focus and leaves nested controls in charge of their own keys. It captures the wheel before vendor handlers to retain local scrolling. Evidence disclosures reuse the canonical media link and listen to `toggle` during capture because that event does not bubble. The JSON disclosure retains its owner and stays separate from the adjacent trace. Scenario normalization moves only explicit diagnostics into the panel and removes the vendor log wrapper. Shared allocation retains measured technical-column widths and distributes only the remaining flexible-content demand. The legacy adapter inspects the table's immediate parent; Java markup owns the new viewports.
+`table-viewport.js` handles keys only while the viewport is focused, preserving nested controls, and captures wheel events before vendor handlers to retain local scrolling; evidence disclosure reuses canonical media links and captures nonbubbling `toggle`, with JSON ownership separate from adjacent trace. Scenario normalization moves only explicit diagnostics into the panel and removes the vendor log wrapper; shared allocation retains measured technical-column widths and distributes unmet flexible-content demand. The legacy adapter checks each table’s immediate parent, while Java markup owns new viewports.
 
-`appendUiFailureEvidence` is running on `request` and `validation` typed nodes: the quest holds API failure and the UI validation holds the failure Playwright / audit / Assertion. `Fail` leaflets are attached to the event table of the same owner, with UI case Concrete; UI- only does not receive the disclosures Request / Response invented. `ExtentReportRuntimeEvidenceLifecycle` holds the order of this normalization.
+`appendUiFailureEvidence` runs on typed `request`/`validation` nodes: requests own API failures, and UI validations own Playwright/audit/assertion failures. The `Fail` leaf attaches to that owner’s event table with its concrete UI cause; UI-only evidence receives no fabricated Request/Response disclosures, and `ExtentReportRuntimeEvidenceLifecycle` owns normalization order.
 
-In Java markup, `ReportEvidenceDisclosure` is the typed model of a collapsible region, while `ReportEvidenceMarkup` supplies the shared disclosure shell and status badge. `AtfReportMarkup.tableHtml` builds canonical key/value tables; `ReportEvidenceJsonFormatter` owns the shared label → redaction → pretty print → display-limit policy. The Extent renderer and HTML fallback receive the same typed `ReportField` list and JSON display policy. Only the publication adapter differs: Extent Markup versus a HTML document. Component/unit tests protect parity without an additional E2E.
+`ReportEvidenceDisclosure` models collapsible areas and `ReportEvidenceMarkup` supplies their shared shell/status badge; `AtfReportMarkup.tableHtml` builds canonical key/value tables, while `ReportEvidenceJsonFormatter` owns label → redaction → pretty print → display-limit. Extent/fallback receive the same typed `ReportField` list and JSON display policy, differing only in publication adapter; component/unit tests protect parity without another E2E.
 
 `AtfReportStatus` is also the unique owner for the inline marker, human label and compact result; renderers do not define local switches for emoji or status text, and the HTML fallback uses the same typed presentation as the UI highlight.
 
-`Fails` is now separated by native responsibilities: detection, context, cause-chain and projection have an asset JS and a facade Java. `ExtentReportFailureRuntime` composes stable order without having function bodies; so tests can independently verify the cause, context and rendering of the fault without browser, and E2E test checks the Deeplink to the exact test.
+Fails separates detection, context, cause-chain and projection into native JS assets with Java facades. `ExtentReportFailureRuntime` composes stable order without function bodies; lower-level tests check cause/context/projection, and E2E checks the exact test deep link.
 
-The final audit of the CSS vocabulary / building and small publishing seeds is covered by the component contracts and the standard / responsive fresh gear. Any future change remains incremental and requires the same evidence; there is no TODO open just because the assets are divided into native files. `AtfUiEvidenceCss` is facade typed over `ui-evidence.css`, and `Duration` and `RuntimeCore` are composed of native JavaScript assets; none of these families assemble large bodies in Java. `ScenarioCss` is facade typed over `theme-scenario.css` and `ExtentReportNavigationView` only publishes markup and hash links; does not generate JavaScript anymore `ExtentReportCategoryMarkup` uses the same semantic construction for the category shell. typed vocabulary governs tags, classes, attributes and empty state, and `atf-fails-view` vendor marker is kept only as the documented insertion boundary. `ExtentReportCategoryMarkupTest` verifies idempotency separately, order in DOM and contract CSS / accessibility. `HtmlReportFailsView` uses the same primitives for Fails fallback, including semantic status, scenario-level and empty state links; thus the Extent / fallback parity is verifiable by LOWER-level tests. `HtmlReportTestsView` and `ExtentReportPublicationPipeline` use the same boundary for scenarios, Phase / request nodes, theme and view identifiers. `ExtentReportScreenshotDeduplicator` keeps the fingerprint only internally for deduction; in the ratio remains the inline link with the current emoji, not a hash displayed. `HtmlReportScriptBuilder` remains only generic infrastructure for typed / custom ports and tests; it is no longer used to build navigation or boot in production. The formatting rule is explained: `.js` / `.css` in the classpath remain multi-line and easy to revise, and `ReportAssetCompactor` compacts only the copy injected into HTML.
+Component contracts and fresh standard/responsive browser verification protect CSS vocabulary/builders and publication seams; changes require the same evidence. `AtfUiEvidenceCss` wraps `ui-evidence.css`, `Duration`/`RuntimeCore` compose native JavaScript, `ScenarioCss` wraps `theme-scenario.css`, and `ExtentReportNavigationView` publishes markup/hash links without executable inline JavaScript. `ExtentReportCategoryMarkup` uses typed tags/classes/attributes/empty-state and retains vendor `atf-fails-view` only as its documented insertion boundary; `ExtentReportCategoryMarkupTest` checks idempotence, DOM order and CSS/accessibility. `HtmlReportFailsView` shares semantic status, scenario deep links and empty-state; `HtmlReportTestsView`/`ExtentReportPublicationPipeline` share the boundary for scenarios, phase/request nodes, themes and view identifiers. `ExtentReportScreenshotDeduplicator` keeps fingerprints internal and visible inline links unchanged; `HtmlReportScriptBuilder` remains generic infrastructure for typed/custom ports and tests rather than production navigation/boot. Classpath `.js`/`.css` stays readable and multiline; `ReportAssetCompactor` compacts only the HTML copy.
 
 </details>
 
@@ -901,9 +831,9 @@ The final audit of the CSS vocabulary / building and small publishing seeds is c
 
 Further migration is incremental and requires an equivalent component contract, live reconciliation and a fresh report; do not mechanically convert every Java constant into a token if that would hide the contract or complicate debugging.
 
-JavaScript functions generated have the same rule of ownership: each published function has a single owner runtime and a single authoritative definition. The orchestration function is not subsequently reunited with another string; the reading of DOM, data derivation and projection in DOM are separate helpers and named after responsibility. `ExtentReportFailureRuntime` maintains one single `failureContext` and a single `renderFails`.
+Each published JavaScript function has one runtime owner and one authoritative definition; later strings do not rebind orchestration functions. DOM reading, data derivation and DOM projection use separate, named helpers; `ExtentReportFailureRuntime` keeps one `failureContext` and one `renderFails`.
 
-The duration is issued by the unique seams with owner, composed by public façade `ExtentReportDurationRuntime`:
+Single-owner seams emit durations, composed by public facade `ExtentReportDurationRuntime`:
 
 | Seam | Responsibility | Component proof |
 |---|---|---|
@@ -922,9 +852,9 @@ The duration is issued by the unique seams with owner, composed by public façad
 - `OverviewDurationProjectionComponentTest` performs the actual asset and checks
   Zero, fallback, identical names, refresh and isolation of status charts.
 
-Navigation also has a separate asset, `extent-navigation-performance.js`, composed by `ExtentReportRuntimeNavigationPerformance`. It does not decide the verdict and writes business content; it only displays an optional diagnostic snapshot through `window.__atfReportPerformance`, with the number / duration of normalisations, relevant bursts, toggle, readiness, loading, first toggle and long- tasks available to the browser. `html` by `data-atf-performance-*` attributes, so that an adapter MCP / component can observe the same evidence without direct access to `window`. The controller consumes this seam by small functions (`atfPerformanceStart/End`, `atfPerformanceBeginReadiness`, `atfPerformanceMarkReady`, `atfPerformanceRecordDisclosureToggle`), so that the component tests can check the ownership and order without browser, and MCP tests can audit the actual cost of a fresh artifact. Java typed Boundary is `ReportRuntimePerformanceSnapshot` + `ReportRuntimePerformanceBudget`: Snapshots can be built from the map returned by the browser, and the budget is configurable for each fixture and produces only technical violations, not business verdict. The native Asset remains formed, and the public compacts it with the rest of `.js`.
+Navigation also owns native `extent-navigation-performance.js`, composed through `ExtentReportRuntimeNavigationPerformance`; its optional `window.__atfReportPerformance` snapshot contains normalization counts/durations, relevant bursts, toggles, readiness, loading, first toggle and available browser long tasks, without business content or verdicts. Mirrored `html` attributes `data-atf-performance-*` expose the same facts to MCP/component adapters, while `atfPerformanceStart/End`, `atfPerformanceBeginReadiness`, `atfPerformanceMarkReady` and `atfPerformanceRecordDisclosureToggle` separate controller calls for ownership/order checks and fresh-artifact browser measurement. `ReportRuntimePerformanceSnapshot` reads the browser map, and fixture-configured `ReportRuntimePerformanceBudget` returns technical violations only; native source stays formatted and publication compacts its HTML copy.
 
-`ReportArtifactInspectorTest` and runtime contracts check the uniqueness and presence of these sessions in HTML published. Dynamic strings are composed locally through small fragments and `String.join`; lists print browser protocol, not runtime data. Any remaining mixed function is justified in feedback through a concrete semantic contract, not through a cosmetic line split.
+`ReportArtifactInspectorTest` and runtime contracts check these seams for uniqueness/presence in published HTML. Dynamic strings use small local fragments and `String.join`; enums type the browser protocol rather than runtime data, and mixed responsibilities require a concrete semantic rationale in feedback.
 
 </details>
 
@@ -933,14 +863,14 @@ Navigation also has a separate asset, `extent-navigation-performance.js`, compos
 
 The `ExtentReportRuntimeModule` registry is the single composition root of the injected runtime. It maps each controller to one `HtmlReportScriptModule` and publishes it in `CORE → TESTS → OVERVIEW → EVIDENCE → NAVIGATION → DURATION → FAILURES → FAILURE_CAUSE` semantic order. `ExtentReportRuntimeBehaviour` orchestrates boot/ready and iterates the registry instead of repeating the class list. `Duration`, `Evidence`, `Overview`, `Navigation`, `Tests` and failure projection can therefore be tested independently; integration checks composition and ordering.
 
-| Controller | Boundary inmate | Main component contract |
+| Controller | Owned boundary | Main component contract |
 |---|---|---|
-| `ExtentReportRuntimeCore` | DOM vocabulary, query, identity and status | Printed primates, unique declarations |
+| `ExtentReportRuntimeCore` | DOM vocabulary, query, identity and status | typed primitives and unique declarations |
 | `ExtentReportRuntimeTests` | Test / Categories filters and scenario projection | status/tag filters, category links |
 | `ExtentReportRuntimeOverview` | audit, summary, chart and percentages | Overview projection without false evidence |
 | `ExtentReportRuntimeEvidence` | roles, disclosure and evidence of failure | request/response/assertion/UI evidence |
 | `ExtentReportRuntimeNavigation` | hash, tab, collapse and Deeplink | navigation and `＋/−` inline |
-| `ExtentReportDurationRuntime` | parsing, measuring, aggregation and publication | durance precedence and clone parity |
+| `ExtentReportDurationRuntime` | parsing, measuring, aggregation and publication | duration precedence and clone parity |
 | `ExtentReportFailureRuntime` | failure states, rows and cause chain | an owner for Fails and Diagnostic |
 
 `ExtentReportRuntimeModuleTest` checks non-empty source, the publication owner, the order of modules and the fact that a JavaScript function is not declared by two modules. It is a cohesion contract, not a cosmetic check of the number of lines; browser behaviour remains checked separately by ATF Debug and Playwright MCP.
@@ -950,16 +880,12 @@ The `ExtentReportRuntimeModule` registry is the single composition root of the i
 <details>
 <summary><strong>Runtime Vocabulary</strong></summary>
 
-- **unique owner** - `ExtentReportRuntimeVocabulary` holds the function name
-  Injected DOM selectors, `data-atf-*` attributes, CSS semantic classes and status finite values;
-- **emission** - `ExtentReportRuntimeCore` publishes primates in stable order,
-  by small emitters; the protocol is not rebuilt in strings concatenations;
-- **composition** - `ExtentReportRuntimeModule` retains semantic order and
-  Mapping each controller to a single asset / modules;
+- **Single owner** — `ExtentReportRuntimeVocabulary` owns injected function names, DOM selectors, `data-atf-*` attributes, semantic CSS classes and finite status values.
+- **Emission** — `ExtentReportRuntimeCore` publishes primitives in stable order through small emitters, without reconstructing the protocol through concatenated strings.
+- **Composition** — `ExtentReportRuntimeModule` retains semantic order and maps each controller to one asset/module.
 - **boundary** - vocabulary, model and assets remain responsibilities of
   the library; fixtures and browsers belong to the consumer;
-- **external proof** - component / integration / E2E matrix, test contracts and
-  the cohesion limit is documented in [README-ul `atf-reporting-tests`](../atf-reporting-tests/README.md).
+- **External verification** — the component/integration/E2E matrix, test contracts and cohesion limit belong to [Reporting Tests](../atf-reporting-tests/README.md).
 
 </details>
 
@@ -985,7 +911,7 @@ The structure of the packages, annotations, mock YAML, Playwright locators and t
 <details>
 <summary><strong>Details - entries and configuration in the library</strong></summary>
 
-`atf-reporting` production only holds the configuration required for publication: `ReportingSettings`, `ExtentReportConfiguration`, the starting context and the YAML loader. The consumer provides the configuration; the reporter validates the limits, output directory, file name, timestamp policy and catch policy before publication.
+Production `atf-reporting` owns only publication configuration: `ReportingSettings`, `ExtentReportConfiguration`, startup context and YAML loader. The consumer supplies configuration; Reporting validates limits, output directory, filename, timestamp policy and typed capture policy before publication.
 
 YAML empty / null and absent / null sections keep defaults. The root and sections `reporting` / `reporting.extent` when contained must be objects. Budgets require full numbers in the range `int`: strictly positive, non-egative body assertions; zero only disables the body ceiling. The breaks and numerical strings are rejected, without conversion or implicit truncation.
 
@@ -995,9 +921,9 @@ The other root sections and the `reporting.console` content belong to other owne
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     Input[typed input] -->|supplies| Model[semantic model]
-    Model -->|enter| Render[renderer]
-    Render -->|Use| Assets[CSS + JavaScript]
-    Assets -->|form| Output[configured artifact]
+    Model -->|enters| Render[renderer]
+    Render -->|uses| Assets[CSS + JavaScript]
+    Assets -->|forms| Output[configured artifact]
 ```
 
 <details>
@@ -1014,51 +940,43 @@ flowchart LR
 
 <a id="policy-typed-for-catch-evidence"></a>
 <a id="politică-tipizată-pentru-dovezile-de-captură"></a>
-### policy typed for catch evidence
+### Typed screenshot evidence policy
 
-`ReportScreenshotPolicy` is the public contract for the policy of publishing the catches UI. No Boolean or arbitrary publisher strings shall be passed; an enum value shall be chosen and the point of capture shall be explicit when a flow marks a final state:
+`ReportScreenshotPolicy` is the public UI screenshot publication policy. Publishers receive an enum rather than arbitrary booleans/strings; a flow declaring a final state supplies an explicit capture point:
 
-The cross-cutting contract - including the difference between flow mode, screening policy, capture source and publisher - is in [`docs/ATF_Evidence_Capture_Contract.md`](../docs/ATF_Evidence_Capture_Contract.md). This README maintains only the part owned by `atf-reporting`: the policy publication list, the validation of the target and the projection in the artifact.
+The [cross-module capture contract](../docs/ATF_Evidence_Capture_Contract.md) distinguishes flow mode, screenshot policy, capture source and publisher. This README owns the publication-policy enum, target validation and artifact projection.
 
 | YAML / API value | `CapturePoint` published | Use |
 |---|---|---|
-| `each-checkpoint` | checkpoint, final, failure | compatible with default behaviour; keep records for each state |
-| `final-only` | final | a long flow only publishes the stated final state explicitly |
+| `each-checkpoint` | checkpoint, final, failure | compatible with the default; retains evidence for each state |
+| `final-only` | final | a long flow publishes only its explicitly declared final state |
 | `failure-only` | failure | compact diagnostic-oriented ratio |
-| `final-and-failure` | final, failure | status of success and evidence of regression are maintained |
-| `none` | niciunul | flow without screen shot, keeping actions and assertions |
+| `final-and-failure` | final, failure | retains successful state and regression evidence |
+| `none` | niciunul | a screenshot-free flow retaining actions and assertions |
 
 - `UiExtentReportSession` exposes the `ReportScreenshotPolicy` overload;
 - `UiPhase` exposes the `ReportScreenshotPolicy.CapturePoint.FINAL` overload;
-- `UiEvidencePublisher` checks the target only when the payload is published;
+- `UiEvidencePublisher` checks the target only when the payload will be published;
 - a missing target cannot produce an orphan screenshot;
-- the contract is checked in `atf-reporting-tests` by unit tests and
-  integration on local HTML without browser and Shop Practice;
+- unit/integration tests in `atf-reporting-tests` verify local HTML without a browser or Practice Shop;
 - the typed sign for extended configuration is `ReportEvidenceProfile`;
 - the profile composes `ReportEvidenceFlowMode`, `ReportScreenshotPolicy`,
   `ReportEvidenceCaptureSource` and `ReportUiActionDetailsMode`;
-- `ReportUiActionDetailsMode` selects `INCLUDED_COLLAPSED` or `SUMMARY_ONLY`;
-  only changes the disclosure of Playwright shares, not capture, assertions or verdict;
-- `ReportEvidenceCaptureProvider` is the public name for the browser or mock;
-  `ReportEvidenceProfile.capture(...)` applies policy before the provider, checks the source and validates the encoding / signature by `ReportScreenshot.hasPngSignature(...)` when the catch is allowed;
+- `ReportUiActionDetailsMode` selects `INCLUDED_COLLAPSED` or `SUMMARY_ONLY`; it changes only Playwright action disclosure, not capture, assertions or verdict;
+- `ReportEvidenceCaptureProvider` is the public seam for browsers or mocks; `ReportEvidenceProfile.capture(...)` applies policy before invoking the provider, checks the source and validates encoding/signature through `ReportScreenshot.hasPngSignature(...)` when capture is allowed;
 - `flowMode` is applied by the reporting lifecycle, not just kept as metadata;
 - `SCREEN_CHECKPOINTS` publishes each sentence of Gherkin independently, as before;
-- `UNIFIED_FLOW` publishes a single Gherkin request for the phase: prefers the last
-  Checkpoint `THEN` (otherwise the last checkpoint) and keeps the script title separate as metadata, without duplicates Gherkin or `Checkpoint N`;
-- shares and assertions UI are aggregated in a single validation UI; exchanges
-  The selected API are grouped in a single API validation sister with UI validation under the same checkpoint Gherkin in order of execution;
-- screening policy remains independent of flow mode: permitted catches
-  publish in the validation of the UI joint, and `FINAL_ONLY` includes only the catch marked `FINAL`;
+- `UNIFIED_FLOW` publishes one Gherkin request per phase, preferring the last `THEN` checkpoint (otherwise the last checkpoint); the scenario title remains separate metadata, without duplicated Gherkin or `Checkpoint N`;
+- UI actions/assertions aggregate into one UI validation; selected API exchanges form one sibling API validation beneath the same Gherkin checkpoint, in execution order;
+- screenshot policy is independent of flow mode: allowed captures appear in the shared UI validation, and `FINAL_ONLY` includes only the `FINAL` capture;
 - The profile is built by built or `fromConfig(...)` and passed to
   `UiExtentReportSession.openConfigured(..., profile)`;
-- profile describes policy and provenance, does not execute browser; mock and
-  Playwright remains in consumer / scope test;
+- the profile describes policy/provenance and never drives a browser; mocks and Playwright stay in consumer/test scope;
 - entry the preferred point for UI session is
   `UiExtentReportOptions.builder(outputDirectory)`;
 - the builder groups `fileName`, `AtfConsoleSink`, `ReportEvidenceProfile` and
   `timestampEnabled` and historical overloads remain compatibility delegations;
-- configuration only reloads once, and `openConfiguredResolved` can
-  disable the timestamp without rebuilding a second configuration.
+- configuration loads once; `openConfiguredResolved` can disable timestamps without reconstructing a second configuration.
 
 <a id="json-evidence-and-ui-rendering-components"></a>
 <a id="dovezi-json-și-componentele-de-randare-ui"></a>
@@ -1076,8 +994,7 @@ HTTP's contract separates the direction of the format, including for non-JSON ex
   the implicit delegation of `body(...)`; to preserve typed metadata explicitly implements the new channel;
 - `ApiExchangeEvidence` classifies the urlencoded / multipart form as `FORM`, document
   JSON valid as `JSON` even if MIME- is `text/html` and the rest as `TEXT`; MIME-ul upstream is not rewritten;
-- the labels are `REQUEST/RESPONSE JSON`, `REQUEST/RESPONSE FORM BODY` or
-  `REQUEST/RESPONSE BODY`, for body only `AVAILABLE`; `ABSENT` explains the confirmed lack of the body, `NOT_CAPTURED` explains the lack of evidence. None of these two states publish a JSON document. The text captured `null` remains available JSON, distinct from both states.
+- Labels are `REQUEST/RESPONSE JSON`, `REQUEST/RESPONSE FORM BODY` or `REQUEST/RESPONSE BODY` only for `AVAILABLE` bodies. `ABSENT` explains confirmed absence and `NOT_CAPTURED` explains missing evidence; neither publishes a JSON document, while captured `null` remains available JSON.
 
 <a id="fidelity-of-the-request-and-the-assertion-owner"></a>
 <a id="fidelitatea-request-ului-și-ownerul-aserțiunilor"></a>
@@ -1085,20 +1002,20 @@ HTTP's contract separates the direction of the format, including for non-JSON ex
 
 | Typed input | Publication |
 |---|---|
-| `ReportRequestHeaders.observed(captured)` | observed headers are authoritative; noise browser filtering and the editorial does not add `Accept` or `Content-Type` |
-| `ReportRequestHeaders.configured(defaults, overrides)` | The composition of the robot declares the actual defaults; the override replaces the box-insensitive key |
+| `ReportRequestHeaders.observed(captured)` | observed headers are authoritative; browser-noise filtering and redaction add neither `Accept` nor `Content-Type` |
+| `ReportRequestHeaders.configured(defaults, overrides)` | the composition root declares effective defaults; overrides replace keys case-insensitively |
 | `ReportRequest.builder(method, path)` | observation without default headers; `body(text, availability)` keeps content and availability separately |
 | `ReportRequest.toBuilder()` | immutable copying with the source of the headers, authentication and availability kept |
-| `ReportRequest(...)` existing manufacturers | compatibility for API JSON ATF client; not browser catches |
+| existing `ReportRequest(...)` constructors | compatibility for the ATF JSON API client, not browser captures |
 
-Request details and manual replay consume the same header projection. The response's MIME- does not supply the request's MIME-. The legacy `json(...)` port may explicitly receive JSON `null`; that does not prove a captured HTTP body and does not replace `ReportBodyAvailability`.
+Request details and manual replay use the same header projection. Response MIME does not supply request MIME; legacy `json(...)` may explicitly receive JSON `null`, which proves no captured HTTP body and does not replace `ReportBodyAvailability`.
 
 | Owner / case | Contract Fails |
 |---|---|
 | `ReportEvidenceOwner.UI/API` | is a valid and snapshots; `data-atf-evidence-owner` takes priority over the heuristic legacy, is not deducted from the free title |
 | UI FAIL | `STEP`, without propagating status to API PASS |
 | API FAIL | `REQUEST`, validation, cause and checkpoint of Gherkin owner; UI PASS remains independent |
-| API FAIL correlation, PASS exchanges | `API correlation`, not the PASS sister request or duration |
+| API FAIL correlation, PASS exchanges | `API correlation`, not the sibling PASS request or its duration |
 
 <a id="fidelitatea-json"></a>
 
@@ -1136,35 +1053,32 @@ Common protection for bodywork already implemented:
 - Escaping / status / publication are primitive common in `ExtentUiEvidenceMarkup`;
 - each fragment can be tested in a component and the session tests check
   actual composition and inline screenshot;
-- Semantic shellum for discoloration is reused by Extent and fallback
-  HTML by `ReportEvidenceMarkup`;
-- start, accessible title, glyphs and closure not copy in each
-  renderer;
-- The body remains responsible for the concrete renderer: Extent can publish
-  specific vendor markup, and the fallback keeps `<pre>`.
+- Extent and fallback HTML reuse the semantic disclosure shell through `ReportEvidenceMarkup`;
+- opening markup, accessible title, glyph and closing markup are not copied into each renderer;
+- the concrete renderer owns the body: Extent can publish vendor-specific markup, while fallback retains `<pre>`.
 
 <a id="normalization-of-evidence-in-the-artifact"></a>
 <a id="normalizarea-dovezilor-în-artefact"></a>
-### Normalization of evidence in the artifact
+### Evidence normalization in the artifact
 
-Normalisation is a boundary of publication, not a second source of evidence:
+Normalization is a publication boundary, not a second evidence source:
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Java[renderer Java] -->|publishes| Canonical["Canonical Disclosure"]
+    Java[Java renderer] -->|publishes| Canonical["Canonical disclosure"]
     Canonical -->|preserves| Dom["Request / response / trace"]
-    Legacy[JavaScript legacy] -->|complete| Dom
+    Legacy[Legacy JavaScript] -->|completes| Dom
 ```
 
 <details>
 <summary><strong>Legend - who writes and who just completes</strong></summary>
 
-- Java renderer publishes canonical discoloration and typed metadata;
-- JavaScript only completes the missing vendor legacy rows;
-- any existing disclosure is not replaced or is not re-serialized unnecessarily;
-- JSON, JSON response and execution trac remain together in DOM;
-- The idempotence is checked in `atf-reporting-tests`, including the artifact HTML.
+- The Java renderer publishes the canonical disclosure and typed metadata.
+- JavaScript fills only missing legacy vendor rows.
+- An existing disclosure is neither replaced nor needlessly reserialized.
+- Request JSON, response JSON and execution trace remain together in the DOM.
+- `atf-reporting-tests` verifies idempotence, including the published HTML artifact.
 
 </details>
 
@@ -1174,132 +1088,113 @@ flowchart LR
 <a id="publicare-și-ieșire"></a>
 ## Publication and output
 
-The output is configured by `reporting.extent.outputDirectory` and `fileName`; UI runtime uses the UI directory configured by the test separately. The documentation describes only the output policy and the square, not the concrete reports generated.
+Output is configured through `reporting.extent.outputDirectory` and `fileName`; the UI runtime separately uses the test’s configured UI directory. Documentation describes output policy and patterns, not concrete generated report names.
 
-`ExtentReportSession.close()` holds the completion and confirmation of the publication:
+`ExtentReportSession.close()` owns finalization and publication confirmation:
 
-The manufacturer's arguments and metadata are validated prior to the acquisition. If the renderer initialization or loading assets fails after the acquisition, the session releases the workspace and retains the primary cause, including for `Error`.
+Constructor arguments and metadata are validated before acquisition. If renderer initialization or asset loading fails after acquisition, the session releases its workspace and preserves the primary cause, including `Error`.
 
 | Lifecycle | Extent | HTML fallback |
 |---|---|---|
-| `flush()` | update status status staked; previous report remains public | write the current snapshots at destination |
-| `close()` | complete and publish; release workspace | publish the last snapshot |
-| thread | session concluded to the thread that created it | without a guard; the consumer serialises access |
-| path | absolute and normalized at opening | keep the path. you prefer an absolute path |
+| `flush()` | updates staged state; the previous report remains public | writes the current snapshot to the destination |
+| `close()` | finalizes and publishes; releases the workspace | publishes the final snapshot |
+| thread | confined to its creating thread | no guard; the consumer serializes access |
+| path | absolute and normalized at opening | retains the supplied path; prefer an absolute path |
 
-The joint port does not promise that `flush()` is committed. Purposes close child → parent prior to the session.
+The common port does not promise that `flush()` commits publication. Close scopes child → parent before closing the session.
 
-A mistake after the completion starts leaves the marked session closed; a new close does not try to republish. Extent refusal for the wrong thread precedes completion and does not close the session. The caller checks the result before announcing the artifact.
+Failure after finalization starts leaves the session closed; another close does not retry publication. Extent rejects a wrong thread before finalization without closing the session; the caller checks the result before announcing the artifact.
 
-- complete the nodes, make the flush, publish the artifact staged and confirm
-  the existence of the final file;
-- only after confirmation send `REPORT_PUBLISHED` synchronization with absolute path
-  normalized;
-- re-closure does not issue a duplicate and failed publication does not announce success;
-- sink is diagnostic: its failure does not change the test verdict;
-- display and 8oin- the console belongs to
-  [ATF Console](../atf-console/README.md); event does not automatically activate each consumer.
+- Finalize nodes, flush, publish the staged artifact and confirm that the final file exists.
+- Only after confirmation, send `REPORT_PUBLISHED` to the sink with the normalized absolute path.
+- Repeated closure emits no duplicate, and failed publication announces no success.
+- The sink is diagnostic; its failure does not change the test verdict.
+- Console presentation and opt-in belong to [ATF Console](../atf-console/README.md); the event does not automatically enable every consumer.
 
-Spark's clearance treats bounded both `AccessDeniedException` and the other `FileSystemException`: maximum four attempts with 50 ms between them. I / O error of another type is not re-tested; the limit is exhausted and the interruption stops the cleanup and retains the mark of the threaded.
+Spark asset cleanup retries both `AccessDeniedException` and other `FileSystemException` failures at most four times, with 50 ms between attempts. Other I/O failures are not retried; exhaustion propagates, and interruption stops cleanup while preserving the thread’s interrupt flag.
 
 <a id="delayed-navigation-and-explicit-interaction"></a>
 <a id="navigare-amânată-și-interacțiune-explicită"></a>
-### Delayed navigation and explicit interaction
+### Deferred navigation and explicit interaction
 
-- `atfOpenTest` is associated with the delayed opening of the current sailing generation.
-- A new jump or explicit interaction in Tests invalidates the previous callback.
-  A mouse closure, Enter or Space remains in effect.
-- At each transition, the tabs reset their state and the visible destination
-  receives `active` and `aria-current="page"`. Deeplink follows the same path.
-- Icon links include the label on the accessible name.
+- `atfOpenTest` associates deferred opening with the current navigation generation.
+- A new jump or explicit Tests interaction invalidates the previous callback; closure by mouse, Enter or Space remains in effect.
+- Each transition resets tab state and gives the visible destination `active` and `aria-current="page"`; deep links follow the same path.
+- Icon links include their label in the accessible name.
 
 <a id="return-to-failed-comparison"></a>
 <a id="revenirea-la-comparația-eșuată"></a>
-#### Return to Failed Comparison
+#### Return to the failed comparison
 
-In Extent, Fails keeps the type of proof and its order in the original scenario, along with the script class and index. The identifier is kept in hash, including after reload; truncated text is not used for identification.
+In Extent, Fails retains evidence type and ordinal within the original scenario, alongside class and scenario index. The hash preserves this identity across reloads; truncated text is never used as an identifier.
 
-The audit shall distinguish the causes of the scenarios that hold them:
+The audit distinguishes causes from their owning scenarios:
 
-| Fact | Meaning and expected |
+| Fact | Meaning and expected behavior |
 |---|---|
-| `failureCount` | atomic rows Fails; a scenario may have several causes |
-| `failedScenarioCount` | distinct identity owner + scenario index; compared to the Statutes of the independent manifesto |
-| the manufacturer of the four arguments legacy | keep the format with a summary row per scenario; atomic extraction shall transmit explicitly the number of scenarios |
-| record pattern Java | Deconstruction uses the five components; the preserved legacy manufacturer does not imply the same importance for the patents at recompiling |
+| `failureCount` | atomic Fails rows; one scenario may have several causes |
+| `failedScenarioCount` | distinct owner + scenario-index identities; compared with independent manifest statuses |
+| legacy four-argument constructor | retains one summary row per scenario; atomic extraction also supplies the scenario count explicitly |
+| Java record pattern | deconstruction uses all five components; retaining the legacy constructor does not preserve pattern arity on recompilation |
 
-The document starts collapsing. Backlink reveals the exact proof and all her ancestors; rest of the tree remains closed.
+The document starts collapsed. The backlink reveals the exact evidence and all its ancestors; the rest of the tree stays closed.
 
-- The order only counts the original comparisons.
-  add a cause and cannot move the destination after normalisation of HTML.
-- Groups with the same label shall each keep their own comparison and cause;
-  reverse navigation and reload use the same typed identity.
+- The ordinal counts only original comparisons; a derived visual summary adds no cause and cannot shift the destination after HTML normalization.
+- Groups with identical labels retain their own comparison and cause; reverse navigation and reload use the same typed identity.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Index["Fails"] -->|identify| Scenario["Scenario + ordinary type +"]
-    Scenario -->|Open up| Path["Phase / step / validation"]
-    Path -->|show| Row["Original proof"]
+    Index["Fails"] -->|identifies| Scenario["Scenario + type + ordinal"]
+    Scenario -->|opens| Path["Phase / step / validation"]
+    Path -->|shows| Row["Original evidence"]
 ```
 
 <details>
-<summary><strong>Legend - exact path and independent evidence</strong></summary>
+<summary><strong>Legend — exact path and independent proof</strong></summary>
 
-- `openScenarioFailurePath` solves indexed row and only opens ancestors
-  Its including the step-assertion and native disclosures. SETUP, TEST BODY and TEARDOWN use the same path; a checkpoint subsequently does not open the first step.
-- `PublishedFailureNavigationComponentTest` checks UI / API / component, panels
-  narrow and desktop, keyboard, reload and repeated navigation. Repeated labels and identical previews cannot substitute the identity of comparison.
-- The Oracle shall verify visibility before any assisted expansion; and
-  Reject the closed phase under a visible scenario. Neighbor PASS remains broken; verdict and columns of original comparison are kept.
-- A FAIL without comparisons indexes existing execution diagnoses on
-  Fails show DIAGNOSTIC and EVIDENCE; do not produce expected, current, contractual validations or HTTP identity. Extent aggregate the chain in one entry Fails, and Tests keeps the discoloration of each phase; fallback keeps one entry Fails navigable per phase. The cause respects the configured budget.
-- Fallback keeps semantic projection order: phase diagnoses, then
-  The backlink opens the original discoloration and keeps the route to the reload, including when the diagnoses are intercaled. The route holds the scroller: restores after the document initialization and the layout of the columns without automatically restoring the position competently by the browser.
-- `PublishedFailureNavigationEdgeComponentTest` checks these edges separately,
-  configured previews, keyboard, scroll and negative control for hidden ancestor. Opening legacy and exact ones reuse the same function of the Reveal.
+- `openScenarioFailurePath` resolves the indexed row and opens only its ancestors, including assertion-step and native disclosures. SETUP, TEST BODY and TEARDOWN use the same path; a later checkpoint does not open the first step.
+- `PublishedFailureNavigationComponentTest` checks UI/API/component evidence, narrow/desktop panels, keyboard, reload and repeated navigation; repeated labels and identical previews cannot replace comparison identity.
+- The oracle checks visibility before assisted expansion and rejects a closed phase beneath a visible scenario; the PASS neighbor stays collapsed, and the original verdict and comparison columns remain intact.
+- A FAIL without comparisons indexes existing phase execution diagnostics with an explicit type. Fails shows DIAGNOSTIC and EVIDENCE without inventing expected/actual, contract validations or HTTP identity; Extent aggregates the chain into one Fails entry while Tests retains each phase disclosure, and fallback keeps a navigable entry per phase. Causes respect the configured budget.
+- Fallback retains semantic projection order: phase diagnostics, then child comparisons in tree order. The backlink opens the original disclosure and preserves its reload route, including interleaved diagnostics; that route owns scroll restoration after document initialization and column layout, without competing automatic browser restoration.
+- `PublishedFailureNavigationEdgeComponentTest` separately covers these edges, configured previews, keyboard, scrolling and a hidden-ancestor negative control; legacy and exact opening reuse the same reveal function.
 
 </details>
 
 <a id="prosperity-of-visual-evidence"></a>
 <a id="prospețimea-dovezii-vizuale"></a>
-### Prosperity of visual evidence
+### Fresh visual evidence
 
-A HTML generated prior to reuploading classes or reportable resources is a historical artifact, not evidence for current code. For any visual audit:
+HTML generated before reporting classes or resources were rebuilt is historical, not evidence for current code. For a visual audit:
 
-- regenerate the ratio after the cylinder containing the change;
-- check the component / integration tests first, then the fresh report;
-- does not reopen a ToDo from an old artifact if the current renderer already has
-  contract and appropriate test;
-- if the old artifact contradicts the current contract, mark it stale and don't it
-  copy in feedback or README.
+- regenerate the report after the build containing the change;
+- check component/integration tests first, then the fresh report;
+- do not reopen a ToDo from an old artifact when the current renderer already has the corresponding contract and test;
+- mark an artifact stale if it contradicts the current contract; do not copy it into feedback or a README.
 
-Internal digestion for grouping does not become human evidence: HTML publicly only projects the bounded state (`body=present|absent`, `internal digest hidden`).
+Internal grouping digests are not human evidence; public HTML shows only bounded state (`body=present|absent`, `internal digest hidden`).
 
 `ReportPublicationCoordinator` has the following responsibilities:
 
-- protect the publication path, the location and competition;
-- can use the internal identity / hash for ownership and reenactment, without
-  be shown in HTML as a replacement for human evidence;
-- apply the return bound after the atomic attempt on filesystems that can keep
-  temporary file opened;
-- allows non-atomic fallback only for
-  `AtomicMoveNotSupportedException`;
-- Propate persistent error after the last test;
-- keep the retry in production publication boundary, not test-kit and not in
-  browser.
+- protects the publication path, lock and concurrency;
+- can use internal identity/hashes for ownership and deduplication without showing them in HTML as a substitute for human evidence;
+- applies bounded retries after the atomic attempt on filesystems that may temporarily retain an open file;
+- permits nonatomic fallback only for `AtomicMoveNotSupportedException`;
+- propagates persistent failure after the last attempt;
+- keeps retries in the production publication boundary, not in Test Kit or the browser.
 
 <a id="verification-for-contributions"></a>
 <a id="verificare-pentru-contribuții"></a>
 ## Verification for contributions
 
-`mvn -f atf-reporting/pom.xml test` native neck explicitly selects `atf.reporting.standalone` package and fails if it fails to find tests. `BUILD SUCCESS` without any class / case execution proves the library contract.
+The native `mvn -f atf-reporting/pom.xml test` gate explicitly selects `atf.reporting.standalone` and fails by default if no tests are discovered. `BUILD SUCCESS` with no executed classes/cases proves no library contract.
 
 | Control | Contract to be kept |
 |---|---|
-| [Release Reporting Tests](../atf-reporting-tests/README.md) | `reporting-release` profile: complete unit suite and source browser samples / JAR with recorded CodeSource; native neck remains separate |
-| Negative controls | Quest and duration of the correct phase, single initialization and original PNG |
-| Host Fails | class, separate from the native `.detail-body`; hash / reload and selection tests keep diagnosis; the full tree opens through backlink |
+| [Release Reporting Tests](../atf-reporting-tests/README.md) | the `reporting-release` profile runs the full unit suite and source/JAR browser probes with recorded CodeSource; the native gate stays separate |
+| Negative controls | the correct request and phase duration, single initialization and original PNG |
+| Host Fails | a dedicated class, separate from native `.detail-body`; hash/reload and Tests selection retain diagnostics, and the backlink opens the full ancestor path |
 
 [ReportingStandaloneVerdictComponentTest](src/test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java) is the native component sample for lifecycle, status and snapshot, with JUnit `@Tag("component")`, without external ATF imports or browser. The browser projection is checked separately in [ReportingVerdictProjectionComponentTest](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/verdict/ReportingVerdictProjectionComponentTest.java).
 
@@ -1346,17 +1241,17 @@ The checklist here is just a quick map. The regulatory checklist, with mandatory
 README maintains validated contracts, limits and test criteria; the condition of the gaping remains in [feedback registry](../docs/feedback/README.md). A rule enters here only after it is confirmed by the code and live tests; until then there is auditable feedback, not stable documentation.
 
 <details>
-<summary><strong>Details - native browser assets and Java government</strong></summary>
+<summary><strong>Details — native browser assets and Java governance</strong></summary>
 
 The CSS- and JavaScript shipped in HTML remain in `src/main/resources`, in small files grouped by responsibility (`theme`, `overview`, `evidence`, `navigation`, `filters`, `runtime-core`, `duration`). Overview separately uses `overview-layout.css`, `overview-tag-audit.css`, `overview-category-tables.css` and `overview-category-status.css`; scenarios use `theme-scenario.css`, with no duplicated CSS rule in the Java facade. `ReportAsset` is the single asset vocabulary; `ReportAssetManifest.production()` is the validated, ordered publication-boundary inventory. The manifest rejects duplicate assets/paths/owners, resources outside the reporting namespace, incompatible extensions and missing assets. `ReportAssetLoader` reads the classpath resource. `ReportAssetComposer` resolves Java tokens, including finite colors, and produces the final body while retaining typed asset identity. Runtime facades retain explicit composition order. The same boundary serves nine `duration-*.js` assets and three `runtime-core-*.js` assets; JavaScript fragments retain semantic ownership and Java facades retain only composition order.
 
-The native sources `.css` and `.js` remain formed on several lines in the classpath for review, debugging and component testing. `ReportAssetLoader.load(...)` and `render(...)` expose this readable source; `loadForPublication(...)` and `renderForPublication(...)` only pass the copy intended for HTML via `ReportAssetCompactor`. Remove the whitespace and the safe comments outside the quoted values, keep the significant text spaces, selectors and phrases JS / CSS and do not change native files. Thus HTML Extent does not receive unnecessary indentation enters and the source remains easy to maintain and test separately.
+Native `.css` and `.js` resources remain formatted across multiple lines for review, debugging and component tests. `ReportAssetLoader.load(...)` and `render(...)` expose readable source, while `loadForPublication(...)` and `renderForPublication(...)` pass only the HTML copy through `ReportAssetCompactor`; it removes safe whitespace/comments outside quoted values, preserves significant text/selectors/expressions and leaves native files unchanged.
 
-`ReportAssetSizeInventory` measures bytes separately for each native source and published copy, aggregated on format and owner. It is a diagnostic and contract test tool. `ReportAssetSizeBudget` receives the limits from the consummation configuration for total, format and owner and produces only the observed violations; it has no hardcoded baseline. HTML / evidence bundler is budgeted in the consumer, where the complete artifact exists, not in the library such an optimization can be verified without converting the name or hash of the artifact into API.
+`ReportAssetSizeInventory` measures bytes separately for native sources and published copies, grouped by format and owner. `ReportAssetSizeBudget` applies consumer-supplied total/format/owner limits with no hardcoded baseline; HTML/evidence bundle budgeting belongs to the consumer that owns the complete artifact, without making an artifact name or hash part of the API.
 
-The native sources JavaScript / CSS use LF, governed by `.gitattributes` of the module; budgets remain comparable in Windows / Linux checkouts. Compact only changes the published copy.
+Native JavaScript/CSS uses LF under the module’s `.gitattributes`, keeping Windows/Linux budgets comparable; compaction changes only the published copy.
 
-Java facades (`AtfFallbackTheme`, `AtfReportOverviewCss`, CSS facades / evidence, `HtmlReportNavigationScript`, `ExtentReportRuntimeEvidenceRoles` and `ExtentReportRuntimeTestFilters`) remain API facades. They do not reconstruct the script's body by large concatenations; Java `ExtentReportRuntimeTestsVocabulary.Template` governs the asset placeholders and the common functions (`aggregateClassDurations`, `captureDomContract`) come from the central runtime vocabulary, not from facade isolated strings.The contract is checked separately by asset tests, component and browser E2E.
+Java facades (`AtfFallbackTheme`, `AtfReportOverviewCss`, theme/evidence CSS facades, `HtmlReportNavigationScript`, `ExtentReportRuntimeEvidenceRoles` and `ExtentReportRuntimeTestFilters`) retain integration ownership for assets, tokens and composition order, without large script concatenations. `ExtentReportRuntimeTestsVocabulary.Template` governs placeholders, and shared functions (`aggregateClassDurations`, `captureDomContract`) come from the central runtime vocabulary; asset, component and browser E2E tests check their respective contracts.
 
 </details>
 
@@ -1367,14 +1262,14 @@ Java facades (`AtfFallbackTheme`, `AtfReportOverviewCss`, CSS facades / evidence
 <details>
 <summary><strong>Details - consistency of the status transmitted by the caller</strong></summary>
 
-`ReportStatusAggregator.resolve(...)` reconciles caller status with actual results of child rows and goals. Business assessment remains on the consumer; Reporting does not again compare expected to current.
+`ReportStatusAggregator.resolve(...)` reconciles caller status with actual child-row and scope results. The consumer retains business evaluation; Reporting does not compare expected and actual again.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Rows["Rated rows"] -->|reconciled| Verdict["Actual status"]
-    Verdict -->|Close| Scope["Scopes + Parents"]
-    Scope -->|design| Views["Snapshot + views"]
+    Rows["Evaluated rows"] -->|reconciles| Verdict["Effective status"]
+    Verdict -->|closes| Scope["Scopes + parents"]
+    Scope -->|projects| Views["Snapshot + views"]
 ```
 
 <details>
@@ -1382,77 +1277,62 @@ flowchart LR
 
 - The effective severity cannot be reduced by `complete(PASS)` or
   `complete(SKIP)` when there is a row or child FAIL.
-- `AtfAssertion.resultStatus` maintains the policy evaluated; `passed=false` with
-  `resultStatus=PASS` is rejected prior to publication. An explicit SKIP is valid.
-- Absent status contributes INFO; the INFO observation does not invent a verdict
-  business. An expected exception is assessed prior to reporting and can produce PASS.
-- Console, Tests, Categories, Fails and Overview receive the reconciled verdict;
-  SKIP comparison does not become the cause of FAIL of a nested demand.
-- Repeated `assertions(...)` calls replace the unpublished set, including
-  The name and verdict in the recorder. Snapshots keep the demands intoxicated without storing the full values of comparison in semantic population.
-- UI buffer keeps the checkpoint verdict before publication
-  UNIFIED_FLOW, including over phases. Each sister-writer keeps its result.
-- The budget drawn up shall be by default 240 including ellipse; status not calculated
-  of preview, badge or HTML.
+- `AtfAssertion.resultStatus` retains the evaluated policy; `passed=false` with `resultStatus=PASS` is rejected before publication. Explicit SKIP is valid.
+- An absent completion status contributes INFO; an INFO observation supplies no business verdict. An expected exception is evaluated before reporting and can produce PASS.
+- Console, Tests, Categories, Fails and Overview receive the reconciled verdict; a SKIP comparison does not become the failure cause of a nested request.
+- Repeated `assertions(...)` calls replace the unpublished set, including its name and recorder verdict. Snapshots retain nested requests without storing full comparison values in the semantic population.
+- The UI buffer retains checkpoint verdicts before UNIFIED_FLOW publication, including across phases. Each sibling scenario keeps its own result.
+- The redacted preview defaults to 240 characters including ellipsis; status is never calculated from preview text, badges or HTML.
 
 </details>
 
 <a id="evidence-ui-and-setup-in-fallback"></a>
 <a id="evidence-ui-și-setup-în-fallback"></a>
-### Evidence UI and setup in fallback
+### UI evidence and setup in fallback
 
-`ReportRequestUiEvidence` keeps the actions, catches and disclosure in the fallback snapshots; the meters do not replace the auditable content. `ReportSetupEvidenceMarkup` designs the same setup comparisons in both renderers.
+`ReportRequestUiEvidence` retains actions, screenshots and disclosure mode in fallback snapshots; counters do not replace auditable content. `ReportSetupEvidenceMarkup` projects the same setup comparisons in both renderers.
 
-- Expected / current are fully written before the configured ceiling,
-  240 including ellipse; a FAIL beyond the preview remains FAIL.
+- Expected/actual values are fully redacted before the configured limit, which defaults to 240 characters including ellipsis; a failure beyond the preview remains FAIL.
 - `publishSetup` maintains the status of the already assessed assertions, even if
   the caller provides PASS; Reporting does not reassess the comparison in the text displayed.
-- A request with ACTION shares shall not be accepted by a separate inline catch at most.
-  The gallery without actions and media validations maintain their behaviour; the incompatible input is refused prior to the mutation, with the valid recoverable status.
-- `UiSetupFallbackParityComponentTest` checks 240/18, the inspection catch,
-  Enter / Space, verdict and absence of a fictional HTTP in Extent / fallback.
+- A request containing ACTION entries accepts at most one distinct inline screenshot. Action-free galleries and media validations retain their behavior; incompatible input is rejected before mutation, leaving valid state recoverable.
+- `UiSetupFallbackParityComponentTest` checks limits 240/18, inspectable screenshots, Enter/Space, verdict and the absence of fabricated HTTP in Extent/fallback.
 
 <a id="the-astronomical-nature-of-the-scope-transitions"></a>
 <a id="atomicitatea-tranzițiilor-de-scope"></a>
-### The astronomical nature of the scope transitions
+### Atomic scope transitions
 
-Semantic record validates the transition before the model, nodes, meters or notifications mutation. Extent and fallback use the same decision; a rejected call keeps the snapshots and allows the publication of the valid status.
+The semantic recorder validates transitions before changing the model, nodes, counters or notifications. Extent and fallback use the same decision; rejected calls preserve the snapshot and allow valid state to be published.
 
 | Operation | Contract |
 |---|---|
-| `complete(status)` valid | one transition; evidence of children retains FAIL / SKIP / INFO / WARNING policy |
-| repeated or parent complete with open copies | refusal without effect; children can be closed, then parent completed normally |
+| `complete(status)` valid | one transition; child evidence retains its FAIL/SKIP/INFO/WARNING policy |
+| repeated completion, or parent completion with open children | rejected without effects; close the children, then complete the parent normally |
 | `close()` after completion | idempotent; no notifications or duplicate publication |
-| `close()` prior to completion, without open copies | complete FAIL; does not invent a PASS business result |
-| `close()` with open copies | I refuse without abandonment of the parent or deconstruction of the meters |
-| writing after completion / closure of session | refusal before mutation; snapshots remain inspectable |
-| error in closing / publishing the session | the case is spreading; the session is closed and the second close does not try to republish |
+| `close()` before completion, with no open children | complete FAIL; does not invent a PASS business result |
+| `close()` with open children | rejected without abandoning the parent or decrementing counters |
+| writes after completion/session closure | refusal before mutation; snapshots remain inspectable |
+| error in closing / publishing the session | the cause propagates; the session closes, and a second close does not retry publication |
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     Caller["Call"] -->|validate| Decision["Semantic decision"]
-    Decision -->|accept| State["Status"]
-    State -->|design| Renderer["Extent / fallback"]
-    Decision -->|refuse| Intact["Status intact"]
+    Decision -->|accept| State["State"]
+    State -->|projects| Renderer["Extent / fallback"]
+    Decision -->|refuse| Intact["State intact"]
 ```
 
 <details>
 <summary><strong>Legend - validated lifecycle prior to effects</strong></summary>
 
-- The refusal of protocol shall not create nodes, evidence, statuses or partial events.
-- The default FAIL closure shall retain the safe verdict of an incomplete scope;
-  The closure of children is explicit, without rollback or retry hidden in the renderer.
-- Console is best- effort in both renderers; diagnostic error does not interrupt
-  transition and does not change the verdict. UI composer has [publication protocol](#cauza-publicării-și-scope-urile-deținute): same original cause and secondary close errors in suppressed.
-- The assertion collections are captured once before the update
-  the model and recorder; a null element does not delete the previous valid rows.
-- The network aggregate occupies a single semantic slot, regardless of the replacement or
-  the details added later; null is the noop on a demand still open.
-- `ReportingScopeAtomicityComponentTest` adds evidence for invalid payload,
-  exchange, aggregate replaced and publication errors without business comparisons.
-- `ReportScopeAtomicityComponentTest` checks public ports, late mutations,
-  nested requirements, recoverable refusal, closed session and single notification.
+- Protocol rejection creates no nodes, evidence, statuses or partial events.
+- Default FAIL closure preserves a safe verdict for an incomplete scope; child closure is explicit, with no hidden renderer rollback or retry.
+- Console output is best effort in both renderers; a diagnostic failure does not interrupt the transition or change the verdict. The UI composer has its own [publication protocol](#cauza-publicării-și-scope-urile-deținute): the original cause remains primary and secondary close failures are suppressed.
+- Assertion collections are captured once before model and recorder updates; a null element does not erase previous valid rows.
+- The network aggregate occupies one semantic slot, regardless of replacement or details added later; null is a no-op on an open request.
+- `ReportingScopeAtomicityComponentTest` covers invalid payloads, changing inputs, aggregate replacement and publication failures without business comparisons.
+- `ReportScopeAtomicityComponentTest` checks public ports, late mutations, nested requests, recoverable rejection, closed sessions and single notification.
 
 </details>
 
@@ -1465,38 +1345,38 @@ flowchart LR
 <details>
 <summary><strong>Details - safe projection of assertions</strong></summary>
 
-`AssertionAuditReport` publishes phases and steps of assertions via `AtfReportPorts.Session`; it is not dependent on JUnit, Test Kit or Validation. The consumer provides him with its identity, rated rows, phase status and diagnosis.
+`AssertionAuditReport` publishes assertion phases and steps through `AtfReportPorts.Session`, without JUnit, Test Kit or Validation dependencies. The consumer supplies identity, evaluated rows, phase status and diagnostics.
 
-`AssertionAuditReport.publishStep` publishes and a non-HTTP group in a phase owned by the caller without closing it. Reuse the aggregation of typed statuses; an evaluated FAIL cannot be weakened by a requested PASS and an empty group does not produce steps.
+`AssertionAuditReport.publishStep` publishes a non-HTTP group inside a caller-owned phase without closing it. It reuses typed status aggregation: an evaluated FAIL cannot be weakened by a requested PASS, and an empty group creates no step.
 
-`ReportAssertionSummary` holds the neutral summary to be expected and the failures used by the consumers.It redacts by field name before the full budget of 240, including ellipse; complete rows and business decision remain at the call.
+`ReportAssertionSummary` supplies neutral expected/failure summaries for consumers. It redacts by field name before applying its own default 240-character limit, including ellipsis; full rows and business decisions remain with the caller.
 
-JSON valid is redacted semantically prior to formatting: Unicode keys, syntax / array / object sensitive values and duplicate fields are treated without loss of unsensitive fields. JSON channel explained omits the invalid document; free text and syntax of locators keep the textual editor without wearing imposed.
+Valid JSON is semantically redacted before formatting: Unicode keys, sensitive scalar/array/object values and duplicate fields are handled without losing nonsensitive fields. An explicit JSON channel omits an invalid document; free text and locator syntax retain textual redaction without forced parsing.
 
-The phases of this publisher open after evaluation. `ReportPhaseTiming` overload receives separately the duration of the execution already measured and the number of callbacks; the publication of the snapshots does not replace the time of the method.
+This publisher opens phases after evaluation. Its `ReportPhaseTiming` overload receives the measured execution duration and callback count separately; snapshot publication time does not replace method time.
 
-The budget shall be configured in YAML Reporting and captured at the opening of the session. The implicit shall be 240; only positive whole values shall be accepted:
+The budget is configured in Reporting YAML and captured when the session opens. It defaults to 240 and accepts only positive integers:
 
 ```yaml
 reporting:
   assertionMaxDisplayCharacters: 240
 ```
 
-`Overview → System` displays `Assertion preview = N characters` from the actual renderer setting, including fallback. The metadata of the consumer and the aggregation of scenarios cannot overwrite this fact. A joint session keeps the same budget for its duration; the configuration change requires a new session.
+`Overview → System` shows `Assertion preview = N characters` from the renderer’s actual setting, including fallback. Consumer metadata and scenario aggregation cannot override this fact; a shared session keeps the same budget throughout its lifetime, and a configuration change requires a new session.
 
-`AssertionAuditRun.assertionMaxDisplayCharacters()` provides the same budget to the AutoEx / Shop components adapters before collection. Thus a value configured over 240 is not prematurely cut to default. `bodyMaxDisplayCharacters` and HTTP capture limits are separate policies.
+`AssertionAuditRun.assertionMaxDisplayCharacters()` supplies the same budget to AutoEx/Shop component adapters before collection, so values configured above 240 are not prematurely cut to the default. `bodyMaxDisplayCharacters` and HTTP capture limits are separate policies.
 
 <details>
-<summary><strong>Budget Map - Session setting or diagnostic helper</strong></summary>
+<summary><strong>Budget map — session setting or diagnostic helper</strong></summary>
 
 | Surface | Source | Meaning |
 |---|---|---|
-| assertions rows and value in the System | [ReportingSettings](src/main/java/atf/reporting/configuration/ReportingSettings.java) | `assertionMaxDisplayCharacters` is positive, default 240; capture per session |
-| body display | same configuration | `bodyMaxDisplayCharacters` is independent, default 100; 0 deactivates only the body display ceiling |
-| diagnostic summary of the exception | [ReportFailureDescription](src/main/java/atf/reporting/evidence/diagnostic/ReportFailureDescription.java) | the helper redacts and caps on the default 240 constant; does not read the session setting |
-| diagnostic summary of comparisons | [ReportAssertionSummary](src/main/java/atf/reporting/evidence/diagnostic/ReportAssertionSummary.java) | Same default own limit; summary does not recalculate the verdict |
+| assertion rows and the System value | [ReportingSettings](src/main/java/atf/reporting/configuration/ReportingSettings.java) | positive `assertionMaxDisplayCharacters`, default 240; captured per session |
+| body display | same configuration | independent `bodyMaxDisplayCharacters`, default 100; 0 disables only the body display limit |
+| diagnostic summary of the exception | [ReportFailureDescription](src/main/java/atf/reporting/evidence/diagnostic/ReportFailureDescription.java) | the helper redacts and caps at its own default constant of 240; it does not read session settings |
+| diagnostic summary of comparisons | [ReportAssertionSummary](src/main/java/atf/reporting/evidence/diagnostic/ReportAssertionSummary.java) | the same separate default limit; the summary does not recalculate the verdict |
 
-The extension of the line limit does not automatically extend the diagnostic summary or capture HTTP. The samples of these helpers are at [Reporting Tests](../atf-reporting-tests/README.md#diagnosticul-neutru-al-excepțiilor); the display limit does not allow the publication of a secret or gross value.
+Increasing a row limit does not automatically enlarge diagnostic summaries or HTTP capture. Helper probes belong to [Reporting Tests](../atf-reporting-tests/README.md#diagnosticul-neutru-al-excepțiilor); a display limit never authorizes secret or raw-value publication.
 
 </details>
 
@@ -1504,72 +1384,55 @@ The extension of the line limit does not automatically extend the diagnostic sum
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
     Raw[Full values] -->|evaluate| Verdict[Verdict]
-    Raw -->|draft| Safe[Safe text]
-    Safe -->|design| Preview[Limited preview]
-    Budget[Budget solved] -->|limit| Preview
-    Budget -->|display| System[Overview · System]
-    Verdict -->|preserves| Row[Audited rate]
-    Preview -->|complete| Row
+    Raw -->|redacts| Safe[Safe text]
+    Safe -->|projects| Preview[Limited preview]
+    Budget[Resolved budget] -->|limit| Preview
+    Budget -->|displays| System[Overview · System]
+    Verdict -->|preserves| Row[Audited row]
+    Preview -->|completes| Row
 ```
 
 <details>
 <summary><strong>Legend - text before ceiling</strong></summary>
 
 - The diagram describes data to runtime, not Maven dependencies.
-- The resolved budget configures the collector and the renderer; System shows value
-  Same session, without an implicit copied into the consumer metadata.
-- The collector receives a display policy at the composition root; JSON complete
-  is redacted before cutting, so that a long secret does not lose context of the key.
-- Full value decides the verdict; the report receives only safe and limited text,
-  240 charter default including `…`. Expansion does not published an unlimited dump.
-- E2E direct assertions and action values use the same total budget
-  Extent and fallback, including Fails; `…` marking within limit.
-- Fails prioritises failed action and time measured before headline
-  the exception; a multiline stack does not consume the context of triage.
-- `AssertionPreviewBudgetTest` and `BoundedFailureEvidenceComponentTest` check
-  the decoded limit, the complete wording and absence of gross dumping; the context sample is in `UiSetupFailureEvidenceComponentTest`.
-- `ReportingPreviewConfigurationComponentTest` checks YAML default / configured,
-  System in both renderere, contradictory metadata and refugee of negative values. Consular scoops check 18/240/480 individually and through suite.
-- `LegacyPreviewBudgetComponentTest` checks direct UI ports in the browser,
-  240/18 limits, secrets across the cut border and different verdict beyond preview. Fails and backlink use the limit captured by the script.
-- `Component assertions` remains initially collapsed in Extent and fallback; a diagnosis
-  Without comparison, they do not invent a step or a HTTP request.
-- Assumption interruption keeps `SKIP` and diagnosis `Abort reason`;
-  a real failure of an unsummed assertion retains `FAIL`.
-- `AssertionAuditPublicationComponentTest` protects the editorial section in both renderers;
-  `ComponentAssertionStepReportTest` protects interaction, the last line and Fails → Tests.
+- The resolved budget configures both collector and renderer; System shows that session’s value, without a default copied into consumer metadata.
+- The composition root supplies the collector’s display policy; full JSON is redacted before truncation so a long secret cannot lose its key context.
+- Full values determine the verdict; the report receives only safe, bounded text, defaulting to 240 characters including `…`. Expansion does not expose an unlimited raw dump.
+- Direct E2E assertions and action values use the same total budget in Extent/fallback, including Fails; `…` counts toward the limit.
+- Fails prioritizes the failed action and measured time before the exception headline; a multiline stack does not consume the initial triage context.
+- `AssertionPreviewBudgetTest` and `BoundedFailureEvidenceComponentTest` check the decoded limit, full redaction and absence of raw dumps; `UiSetupFailureEvidenceComponentTest` protects context.
+- `ReportingPreviewConfigurationComponentTest` checks default/configured YAML, System in both renderers, contradictory metadata and rejection of nonpositive values. Consumer scope probes check 18/240/480 individually and through a suite.
+- `LegacyPreviewBudgetComponentTest` checks direct UI ports in a real browser, limits 240/18, secrets across the truncation boundary and verdict differences beyond the preview. Fails and its backlink use the budget captured by the scenario.
+- `Component assertions` starts collapsed in Extent/fallback; a diagnostic without comparisons creates neither an assertion step nor an HTTP request.
+- Assumption aborts retain `SKIP` and `Abort reason`; a real unconsumed assertion failure retains `FAIL`.
+- `AssertionAuditPublicationComponentTest` protects redaction in both renderers; `ComponentAssertionStepReportTest` protects interaction, the last row and Fails → Tests.
 
 </details>
 
 <a id="diagnosis-without-failed-comparison"></a>
 <a id="diagnostic-fără-comparație-eșuată"></a>
-### Diagnosis without failed comparison
+### Diagnostics without a failed comparison
 
-An exception after successful checks or prior to the first comparison produces a diagnosis of execution. `Fails` retains the cause of the phase and the link to the test; does not select a PASS row as a failed comparison.
+An exception after successful checks or before the first comparison produces an execution diagnostic. `Fails` retains the phase cause and test link; it does not select a PASS row as a failed comparison.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Checks["Comparison"] -->|preserves| Tests["Tests"]
-    Error["Exception"] -->|keep the cause| Diagnostic["Phase Diagnosis"]
-    Diagnostic -->|identify| Fails["Fails → Tests"]
+    Checks["Comparisons"] -->|preserves| Tests["Tests"]
+    Error["Exception"] -->|keep the cause| Diagnostic["Phase diagnostic"]
+    Diagnostic -->|identifies| Fails["Fails → Tests"]
 ```
 
 <details>
 <summary><strong>Legend - comparisons and exceptions with separate evidence</strong></summary>
 
-- `AssertionStep` identifies the component proof. Without a step of assertions,
-  The diagnosis without transport remains `execution`; no owner API is inferred.
-- The omitted `REQUEST` index and the duration of HTTP when there is no associated request;
-  do not publish `No response duration recorded` for component error.
-- `failureValidationCandidate` selects only failed comparisons; a table
-  prior to PASS remains available in Tests without becoming the cause of error.
-- Classification uses verdict metadata or `RESULT` cell; a `❌`
-  Expected / current is an audited value, not a failed comparison.
-- The uncompared phases shall be maintained for duration, including measured zero.
-  Internal metadata do not create an expansion control without content.
-- `ComponentExecutionDiagnosticReportTest` checks Extent / fallback, diagnosis
-  without comparison, those 42 rows of collapsible rows, keyboard and ceiling of 240.
+- `AssertionStep` identifies component evidence. Without an assertion step, a nontransport diagnostic remains `execution`; no API owner is inferred.
+- The index omits `REQUEST` and HTTP duration when no associated request exists; it does not show `No response duration recorded` for a component failure.
+- `failureValidationCandidate` selects only failed comparisons; an earlier PASS table remains available in Tests without becoming the failure cause.
+- Classification uses verdict metadata or the `RESULT` cell; `❌` in expected/actual is an audited value, not a failed comparison.
+- Executed phases without comparisons retain their timing, including measured zero; metadata alone creates no control.
+- `ComponentExecutionDiagnosticReportTest` checks Extent/fallback, 42 collapsible rows, keyboard access and the 240-character limit.
 
 </details>
 
@@ -1577,35 +1440,28 @@ flowchart LR
 <a id="timing-măsurat-înaintea-publicării"></a>
 ### Timing measured prior to publication
 
-`AtfReportPorts.Phase.executionTiming(...)` accepts a single typed value for the phase. Extent and fallback keep it in semantic snapshots; manufacturers and publishers without explicit timeouts keep their existing behaviour.
+`AtfReportPorts.Phase.executionTiming(...)` accepts one typed timing value per phase. Extent/fallback retain it in the semantic snapshot; constructors and publishers without explicit timing keep their existing behavior.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Execution["Implementation"] -->|provide| Timing["ReportPhaseTiming"]
-    Timing -->|design| Phase["Phase"]
-    Phase -->|sum| Scenario["Total"]
-    Publication["Publication"] -->|explain| Detail["Tooltip"]
-    Capture["Catch"] -->|explain| Detail
+    Execution["Execution"] -->|provides| Timing["ReportPhaseTiming"]
+    Timing -->|projects| Phase["Phase"]
+    Phase -->|sums| Scenario["Totals"]
+    Publication["Publication"] -->|explains| Detail["Tooltip"]
+    Capture["Capture"] -->|explains| Detail
 ```
 
 <details>
 <summary><strong>Legend - execution, publication and aggregation</strong></summary>
 
-- The phase Badge uses execution, including callback comparisons.
-  The tooltip indicates the number of callbacks and the cost of publishing snapshots. The explanation comes from the same Java format for Extent and fallback; JavaScript projects the text received in metadata.
-- Typed metadata keep original nanoseconds; display rounded up
-  Zero does not become positive.
-- The scenario sums up direct phases and the class direct scenarios.
-  the publication and technical badge of the `Component assertions` step shall not be added to the inclusive execution of the phase. Expansion shall not change the source or total.
-- These amounts represent cumulative time-run, not the suite's wall- clock;
-  parallel executions can overlap. Fallback only publishes the amount when all phases have known timing. Do not replace the absent information by zero.
-- In Extent, internal metadata are moved to phase and the technical row is removed;
-  no additional public event or required HTTP fictitious.
-- Publication is measured separately at phase level; does not include final flurry
-  Console lifecycle continues to describe the purpose of the publication.
-- The UI gear shall have its own measurement; their time shall not be added
-  execution and is not used as a latency HTTP.
+- The phase badge shows execution time, including callback comparisons; the tooltip gives callback count and snapshot publication cost. A shared Java formatter supplies the explanation for Extent/fallback, and JavaScript projects that metadata text.
+- Typed metadata retains original nanoseconds; display rounds up to milliseconds before common formatting, without turning zero into a positive duration.
+- A scenario sums its direct phases and a class its direct scenarios; publication time and the technical `Component assertions` step badge are not added over inclusive phase execution. Expansion changes neither source nor total.
+- These sums are cumulative execution time, not suite wall-clock time; parallel runs can overlap. Fallback publishes a sum only when every phase has known timing, without substituting zero for missing data.
+- Extent moves internal metadata into the phase and removes the technical row; no extra public event or fabricated HTTP request appears.
+- Phase publication is measured separately, excluding final session flush; console lifecycle still describes the publication scope.
+- Instrumented UI capture has its own measurement, which is neither added to execution nor used as HTTP latency.
 - `ReportPhaseTimingComponentTest` checks semantic parity, Tests / Overview,
   zero values, totals without doubling and reopening with keyboard.
 
@@ -1621,7 +1477,7 @@ Masking of UI shares and the configured budget of assertions, implicitly 240, is
 
 <a id="timing-e2e-at-runtime-owner"></a>
 <a id="timing-e2e-la-ownerul-runtime"></a>
-### Timing E2E at runtime Owner
+### E2E timing at the runtime owner
 
 `UiPhase.executionTiming(...)` is already measured; `UiPhase.measureExecution()` opens the explicit measurement held by runtime. The two options are exclusive for the same phase.
 
@@ -1629,22 +1485,21 @@ Masking of UI shares and the configured budget of assertions, implicitly 240, is
 
 | Interval | What it measures and where it closes |
 |---|---|
-| execution | Monotonous time between phase opening and completion, without instrumented catches / publication |
-| catches | `UiPhaseExecution.capture(...)`; including failed catch, distinct from the latency HTTP |
+| execution | monotonic time from phase opening to completion, excluding instrumented capture/publication |
+| capture | `UiPhaseExecution.capture(...)`, including failed capture; distinct from HTTP latency |
 | publication of evidence | UI publishers, delayed flower and phase projection to snapshot; do not add over execution |
 | cleanup and resources | runtime stops execution before final cleanup and browser release |
-| flush HTML | the session completes it separately; does not enter into operation or at the cost of publication before snapshot |
+| flush HTML | finalized separately by the session; excluded from execution and publication cost before snapshot |
 | Legacy source without timing | remains `aggregated`; unknown time does not become zero measured |
 
-AutoEx stops TEST BODY before the final lifecycle; Shop measures SETUP and TEST BODY separately and does not invent an incomplete body for setting. Both consumers' catches pass through the same reusable Boundary Reporting, without any JUnit or Test Kit dependency in the main runtime.
+AutoEx stops TEST BODY before final lifecycle work; Shop measures SETUP/TEST BODY separately and creates no body for incomplete setup. Both consumers use the same reusable Reporting capture boundary, without JUnit or Test Kit dependencies in main runtime.
 
 <details>
 <summary><strong>Metadata, totals and samples</strong></summary>
 
 - `ReportPhaseTiming` maintains execution, number of intervals and optional
   `ReportPhaseEvidenceTiming`; the two-argument legacy manufacturer remains compatible.
-- `data-atf-execution-duration-ms`, `data-atf-capture-duration-ms` and
-  `data-atf-publication-duration-ms` describes distinct sources; the missing catch as a measurement is not published as known zero.
+- `data-atf-execution-duration-ms`, `data-atf-capture-duration-ms` and `data-atf-publication-duration-ms` identify separate sources; unmeasured capture is not published as known zero.
 - Tests, Category and Overview use typed execution once. Expanding,
   Extent native timestamps and publication in the terminal phase do not replace it.
 - `UiPhaseExecutionTest` maintains the primary cause and tests the controlled clock;
@@ -1663,62 +1518,57 @@ AutoEx stops TEST BODY before the final lifecycle; Shop measures SETUP and TEST 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Scope["Class / suite"] -->|hold| Run["AssertionAuditRun"]
-    Run -->|publishes| Worker["Thread report"]
-    Invocation["JUnit Invoys"] -->|preserves| Audit["Isolated audit"]
-    Audit -->|supplies| Scenario["Screenplays"]
-    Worker -->|group| Scenario
-    Worker -->|Close| Artifact["Extent HTML"]
+    Scope["Class / suite"] -->|owns| Run["AssertionAuditRun"]
+    Run -->|publishes| Worker["Report thread"]
+    Invocation["JUnit invocations"] -->|preserves| Audit["Isolated audit"]
+    Audit -->|supplies| Scenario["Scenarios"]
+    Worker -->|groups| Scenario
+    Worker -->|closes| Artifact["Extent HTML"]
 ```
 
 <details>
 <summary><strong>Legend - ownership and actual thread of the session</strong></summary>
 
-- `extent(...)` captures the configuration and creates the session on the report thread;
-  scenario and close operations are running synchronously on the same thread.
-- JUnit tests and comparisons remain on their threads. Publication does not reexecute
-  The business and does not relax the Thread Guard in `ExtentReportSession`.
-- A claim only closes the borrowed scenario; the class / suite owner closes
-  the session and the workshop, including after a publication error.
-- Identical titles do not replace the identity of scenarios; phases and assertions
-  any claim may not be borrowed by any other claim.
-- The work already sent is completed once; a stopped call is
-  keep the indicator to be interrupted. The path configuration and notification policy are captured prior to publication and the notification follows the existing final artifact.
+- `extent(...)` captures configuration and creates the session on the report thread; scenario operations and close run synchronously on that thread.
+- JUnit tests and comparisons stay on their own threads; publication neither reruns business logic nor relaxes the `ExtentReportSession` thread guard.
+- An invocation closes only its borrowed scenario; the class/suite owner closes the session and worker, including after publication failure.
+- Identical titles do not replace scenario identity; one invocation cannot borrow another’s phases or assertions.
+- Submitted work completes once, and an interrupted caller retains its interrupt flag; path configuration and notification policy are captured before publication, with notification following the existing final artifact.
 
 </details>
 
-`AssertionAuditRunComponentTest` checks the ownership. causes and competition; consumer samples check the Jupiter scope and the policy of final notification. The configuration budget of the session and the `Component assertions` step collapse are maintained.
+`AssertionAuditRunComponentTest` checks ownership, causes and concurrency; consumer probes check Jupiter scope and final notification policy. The configured session budget and initially collapsed `Component assertions` step remain intact.
 
 <a id="lizability-of-evidence-in-narrow-panels"></a>
 <a id="lizibilitatea-dovezilor-în-panouri-înguste"></a>
-### Lizability of evidence in narrow panels
+### Readable evidence in narrow panels
 
-The window width and the width available to the table are different measurements. Extent indentation can leave a narrow panel right in a desktop window. `table-viewport.css` keeps the table, visible header and cells on the columns; does not turn the rows into cards at a breakpoint.
+Window width and available table width are different measurements; Extent indentation can create a narrow panel inside a desktop window. `table-viewport.css` preserves the table, visible header and aligned columns rather than turning rows into cards at a breakpoint.
 
-The same allocator measures the header, values, font and padding in Extent and fallback, including capitals / lowercase applied visually via CSS. The table occupies the entire width available; technical columns remain compact and the space is first distributed to the demand for unsatisfied content, then proportionally to flexible columns.
+The shared allocator measures headers, values, font and padding in Extent/fallback, including CSS text transformations. Tables fill available width; technical columns stay compact, and remaining space first satisfies unmet content demand, then is shared proportionally among flexible columns.
 
-The policy covers the setup, assertions, Actions / Audit, API evidence and the Overview / Category / System tables. The latter reuse their container and the numerical totals remain compact; the existing colgroups follow the common allocation. The runtime added worktables receive the same policy, including the common viewport when their initial marker does not have a container.
+This policy covers setup, assertions, Actions/Audit, API evidence and Overview/Category/System tables. Dashboard tables reuse their container and retain compact numeric totals; existing colgroups and later runtime failure tables use the same allocation, with a shared viewport added when missing.
 
-The categories table of scenarios receives the same view; `Status` and `Timestamp` are compact technical columns. Adaptation of `Status/Details` structural tables does not apply to data tables, including in narrow panels. On narrow screen, the Fails index and details begin after the visible navigation bar; the absence of overflow of the document does not prove this accessibility alone.
+The Categories scenario table uses the same viewport, with compact `Status` and `Timestamp` columns; structural `Status/Details` adaptation never applies to data tables. On narrow screens, the Fails index/details start after the visible navigation bar; absence of document overflow alone does not prove accessibility.
 
-In fallback, the grid allows the content panel to narrow without widening the document. Fails cards share long messages on rows and use the container width to place the value observed under the error identification.
+Fallback allows the content panel to shrink without widening the document. Fails cards wrap long messages and use container width to place observed values below failure identity.
 
 | Situation | Presentation |
 |---|---|
-| Article 429 (1) (b) of CRR | table across width without artificial edge to the right; surplus is to be given to the content columns |
-| Some values are long | the columns are given the remaining space; status and time shall retain the measured width |
-| The panel does not allow for any letterheads and legible base | local horizontal scroll with header and all accessible columns |
+| Article 429 (1) (b) of CRR | full-width table without an artificial right margin; surplus goes to content columns |
+| Some values are long | those columns receive remaining space; status/time retain their measured width |
+| the panel cannot fit headers and a readable minimum | local horizontal scroll keeps the header and every column accessible |
 | Resize, new text or reopening | incremental invalidation and recalculation without reassessment of assertions |
 
-The sticky Header, the common font and the vertical ceiling are kept; a short table occupies only the height of its content. There are no minimum table widths required by the number of columns.
+Sticky headers, the shared font and vertical cap remain intact; short tables use only their content height. Table minimum widths are not imposed by column count.
 
-The text maxim in pixels is not capped: two long messages remain distinguishable, including the same number of characters. Gutter does not reserve empty space to the right; only the scrollbar required content reduces the useful width.
+Measured text widths are not capped; two long messages remain distinguishable even with equal character counts. The gutter reserves no empty right-hand space; only a required scrollbar reduces usable width.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":24}}}%%
 flowchart LR
-    Width["Panel width"] -->|decide| Layout{"Useful space"}
-    Layout -->|Enough| Columns["Column on full width"]
+    Width["Panel width"] -->|decides| Layout{"Useful space"}
+    Layout -->|sufficient| Columns["Full-width columns"]
     Layout -->|insufficient| Rows["Local horizontal scroll"]
     Rows -->|preserves| Columns
     Columns -->|preserves| Evidence["Header + values + verdicts"]
@@ -1734,14 +1584,11 @@ flowchart LR
   the contents shall be placed vertically when the container does not allow two columns.
 - The preview of the assertions is drawn up before the configured ceiling, implicitly 240 characters;
   rearranging CSS does not alter text or verdict.
-- `NarrowEvidenceReadabilityComponentTest` checks 1803/1280/591/392 px viewports
-  and 591/392/719/720/721 px panels in a desktop view. Check the useful width, font, header, last column, final turn and reopening with the keyboard, along with negative projection and backlink Fails → Tests.
+- `NarrowEvidenceReadabilityComponentTest` checks 1803/1280/591/392 px viewports and 591/392/719/720/721 px panels inside a desktop viewport: usable width, font, header, last column/row, keyboard reopening, negative projection and Fails → Tests.
 - `TableViewportBrowserComponentTest` rejects hidden header, vertical cells
   and the horizontal scroll locked, in addition to existing samples for the ceiling and clipping.
-- `EvidenceColumnSizingComponentTest` compares geometry with physical width
-  available including setup, dashboard, colgroup, competing texts and naked gutter; a marker of layout present does not certify the rendering alone.
-- `PublishedEvidenceTableComponentTest` checks UI / API / UI + API publications
-  both renderers with inventory and independent values, 12/40 rows and the projections Tes / Overview / Categories / Fails. Negative controls also cover overlapping navigation over Fails and breaking technical letterheads in letters; the percentages of a column are not aesthetic oracle.
+- `EvidenceColumnSizingComponentTest` compares geometry with physically available width, including setup, dashboard, colgroups, competing text and empty gutters; a layout marker alone does not certify rendering.
+- `PublishedEvidenceTableComponentTest` checks UI/API/UI+API publications in both renderers with independent inventories/values, 12/40 rows and Tests/Overview/Categories/Fails projections; negative controls include navigation overlapping Fails and technical headers broken into letters. A column percentage is not an aesthetic oracle.
 
 </details>
 
@@ -1783,30 +1630,30 @@ The command selects the sample called and builds the dependencies; does not decl
 The contracts delivered are described in the sections of the owners. The gaps remain in feedback, with [permanent regression](../atf-reporting-tests/README.md#regresia-permanentă-a-fiecărui-defect-reporting) before correction and a new JAR.
 <a id="public-comments-without-transport"></a>
 <a id="observații-publice-fără-transport"></a>
-## Public comments without transport
+## Public observations without transport
 
 Typed observations publish non-transport facts through a shared Extent/fallback projection.
 
-`AssertionAuditReport.phase(..., observations)` publishes the facts provided by the caller in the same phase as `Component assertions`, as independent INFO nodes. The list is optional; an observation does not become assertion, quest or verdict. A renderer without the capacity of observations refuses publication, and the status of the phase remains the one solved by the owner.
+`AssertionAuditReport.phase(..., observations)` publishes caller-supplied facts as independent INFO nodes beside `Component assertions`. Observations are optional and supply no assertion, request or verdict; an adapter without observation support rejects publication, while the phase retains its owner-resolved status.
 
 | Boundary | Contract |
 |---|---|
 | Port and model | `Phase.supportsObservations()`, `Phase.observation(ReportObservation)`; title-based model, fields, bodies TEXT / JSON and references |
-| Verdict | INFO without quest / invented validation; does not weaken FAIL / SKIP; the unqualified adapter refuses publication |
+| Verdict | INFO without fabricated requests/validations; cannot weaken FAIL/SKIP; an unsupported adapter rejects publication |
 | Context | `Phase.detail` remains internal; semantic snapshots keep labels, without values / bodies or artefacts |
 | Projection | before booking / preview, collapse discourse and accessible body with keyboard up to the end |
-| Bugete | fields / assertions default 240; body default 100 standalone, configured independently by each consumer; evaluation receives full input |
+| Bugete | fields/assertions default to 240; standalone bodies default to 100, independently configured by each consumer; evaluation receives full input |
 | URI | filet / http / https are references without fetch; credential / query / fragment and active schemes refused; the location redacted does not persist in href |
 | Compatibility | `ObservationStep` / `ObservationSnapshot` extend the sealed trees; supported binary symbols and source- exhaustive switches request separate compatibility checks when sealed trees evolve |
-| Return | glyphs depends on the summary / open itself; End / Home / PageUp / PageDown uses the common `atf-observation-body` scroller; bulk expend retains local evidence status |
+| Return | the glyph follows its own summary/open state; End/Home/PageUp/PageDown use shared `atf-observation-body` scrolling, and bulk expansion preserves local evidence state |
 | Owner | complete raw to call; native regressions, composition / browser and JAR physical gate at J0 |
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":28,"padding":8,"diagramPadding":16}}}%%
 flowchart LR
-    Caller["Caller"] -->|date typed| Observation["Observation INFO"]
-    Observation -->|joint projection| Extent["Extent"]
-    Observation -->|joint projection| Html["Fallback"]
+    Caller["Caller"] -->|typed data| Observation["INFO observation"]
+    Observation -->|shared projection| Extent["Extent"]
+    Observation -->|shared projection| Html["Fallback"]
     Observation -->|reference, no fetch| Raw["External artifact"]
 ```
 
@@ -1821,15 +1668,15 @@ flowchart LR
 
 <a id="local-state-of-expansion"></a>
 <a id="starea-locală-a-expandărilor"></a>
-## Local state of expansion
+## Local disclosure state
 
 | Action | Contract |
 |---|---|
-| click / Enter / Space on Extent script | changes only the scenario; its phases are reset according to local contract |
-| Open Neighbor Screen | its phases, demands, validations and evidence keep its status and visibility |
-| Expand all / Collapse all | explicit action on the active Owner tree; evidence disclosures remain local controls |
-| fallback | each native disclosure remains independent, including mouse and keyboard |
-| assertion | original value and verdict, preview default 240; DOM hidden does not certify visible proof |
+| click / Enter / Space on Extent script | changes only the selected scenario; its phases reset according to the local contract |
+| Open Neighbor Screen | its phases, requests, validations and evidence retain state and visibility |
+| Expand all / Collapse all | explicit action on the active owner’s tree; evidence disclosures remain local controls |
+| fallback | each native disclosure stays independent for mouse and keyboard |
+| assertion | original value/verdict, default preview 240; hidden DOM does not establish visible evidence |
 
 <a id="binary-tags-and-compatibility"></a>
 <a id="taguri-și-compatibilitate-binară"></a>
@@ -1849,37 +1696,37 @@ Normalization does not hold business rules or renderer status. The deck is not a
 
 <a id="background-system-and-fallback-index"></a>
 <a id="context-system-și-index-fallback"></a>
-## Background System and Fallback index
+## System context and fallback index
 
-Both public renderere Environment, Runtime, OS, Client, Reporting and Assertion preview. Host facts are captured at the opening of the session; lack of value does not invent a client, endpoint or transport. The default custodian is configured per execution.
+Both renderers publish Environment, Runtime, OS, Client, Reporting and Assertion preview. Host facts are captured at session opening; missing values invent no client, endpoint or transport, and the default Client is Configured per execution.
 
 | Surface | Contract |
 |---|---|
-| HtmlReportSession.updateEnvironment | goes typed through the allowlist and the newsletter; update null / after close is refused prior to mutation |
+| HtmlReportSession.updateEnvironment | typed update through the allowlist and redaction; null/after-close updates are rejected before mutation |
 | overrides | Environment, Client and explicit optional fields are kept; the snapshots of the caller remain immutable |
-| facts calculate | Fallback publishes its own identity; the actual preview is ReportingSettings, implicitly 240 |
+| computed facts | Fallback publishes its own identity; the actual preview is ReportingSettings, implicitly 240 |
 | index fallback | title and class in neutral colors; Pass / Fail / Skip in separate badge with the same href and original ID |
 | access | Wrapping without hiding / truncation, visible focus and Enter to original scenario |
 
-The permanent samples check the data in the visible System table, contrast to the text of at least 4,5:1 and lack of overflow to 1280 and 392 px. Mutants remove only one fact or reinsert the badge on the entire link; they are refused.
+Permanent probes inspect the visible System table, text contrast of at least 4.5:1 and absence of overflow at 1280/392 px. Mutants removing one fact or applying the badge to the whole link are rejected.
 
 <a id="inspection-of-the-explicit-intent-artifact"></a>
 <a id="inspecția-artifactului-cu-intenție-explicită"></a>
 ## Inspection of the explicit-intent artifact
 
-Declare a [ReportArtifactProfile](src/main/java/atf/reporting/artifact/ReportArtifactProfile.java) with renderer, scenarios, phases and mandatory evidence. `ReportArtifactInspector.inspect(path, profile)` and `inspectFresh` overload keep the profile in `ProfileInspection`. The profile-free version keeps the strict contract Extent / HTTP; a legitimate report without HTTP uses the explicit overload.
+Declare a [ReportArtifactProfile](src/main/java/atf/reporting/artifact/ReportArtifactProfile.java) with renderer, scenarios, phases and mandatory evidence. `ReportArtifactInspector.inspect(path, profile)` and the `inspectFresh` overload retain it in `ProfileInspection`; profile-free inspection keeps the strict legacy Extent/HTTP contract, so legitimate non-HTTP reports use the explicit overload.
 
 | Responsibility | Contract |
 |---|---|
 | the intention of the caller | identity of class / scenario, phases, statuses, observation fields / bodies, assertion rows or exchange and mandatory HTTP channels |
 | Inspector | DOM original, exact inventory and verdict; same policy of operational resources for Extent / fallback and declared profile |
-| public outcome | complete inventory, unique and consistent diagnoses; an empty, partial or contradictory result is not in line |
+| public outcome | complete inventory with unique, consistent diagnostics; empty, partial or contradictory results are noncompliant |
 | business comparison | Expected / current and full evaluation belong to the caller; profile does not recalculate business values from the preview |
 | browser | visibility, keyboard, geometry and Deeplink remain separate from static inspection |
 
 - Without fictional HTTP; the elimination of a mandatory request is non-compliant.
 - Verdicts and API legacy are maintained; reconstruction uses `ProfileInspection`.
-- External resources and operational evidence are denied, with owner / attribute / reference in diagnosis; text paths and documentary links remain valid. PNG removes require a unique inline target.
+- External operational resources/evidence are rejected with owner/attribute/reference diagnostics; text paths and documentation links remain valid. Deduplicated PNGs require one unique inline target.
 
 <a id="titles-and-profile-labels"></a>
 <a id="titluri-și-etichete-ale-profilului"></a>
@@ -1888,10 +1735,10 @@ Declare a [ReportArtifactProfile](src/main/java/atf/reporting/artifact/ReportArt
 | Input | Extent contract and fallback |
 |---|---|
 | Titles and labels | Literal text in HTML. Spark encodes the keys in the Timeline script separately. |
-| Multiline tags | `ReportArtifactProfile.visibleLabel` projects LF, CRLF, tab, NBSP and repeated spaces to the text compared to DOM. |
-| Values and bodies | The assertions retain their fully evaluated verdict and default 240 preview.Bodies follow their budget and keep the whitespace captured. |
+| Multiline tags | The profile accepts original text; `ReportArtifactProfile.visibleLabel` projects LF, CRLF, tabs, NBSP and repeated spaces into DOM-comparable text. |
+| Values and bodies | Assertions retain fully evaluated verdicts and default preview 240; bodies follow their own budget and retain captured whitespace. |
 
-[Permanent sample](../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions) checks both renderers and refuses to use the title converted into the mark, even if the visible text coincides.
+[Permanent probes](../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions) check both renderers and reject titles converted into markup even when visible text matches.
 
 <a id="origin-of-durations-under-a-captured-phase"></a>
 <a id="originea-duratelor-sub-o-fază-capturată"></a>
@@ -1900,14 +1747,14 @@ Declare a [ReportArtifactProfile](src/main/java/atf/reporting/artifact/ReportArt
 | Level | value and label |
 |---|---|
 | the phase with explicit timing | execution provided, tagged Execution; children are not added over it |
-| Require with executions typed | total transport provided, tagged Transport, including real zero |
+| request with typed executions | total transport provided, tagged Transport, including real zero |
 | Extent scope created at publication | Time of publication, tagged Publication; not representing transport or business execution |
 | assertion-step fallback below captured phase | Publication label not numerically invented |
 | timing absent | Legacy behavior is preserved; unknown does not become zero |
 
-Validation of fallback without its own clock shall not be made for a numerical duration.
+A fallback validation without its own clock receives no fabricated numeric duration.
 
-Assertions use the common discoloration with a visible indicator plus / minus, ARIA status and mouse / Enter / Space access. The table remains collapsed by default with the same four columns and default preview 240. Permanent regressions are in [Reporting Tests](../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions).
+Assertions reuse the shared disclosure with a visible plus/minus indicator, ARIA state and mouse/Enter/Space access. The table starts collapsed, retaining four columns and default preview 240; permanent regressions belong to [Reporting Tests](../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions).
 
 <a id="publication-of-png-at-large-volume"></a>
 <a id="publicarea-png-la-volum-mare"></a>
@@ -1917,11 +1764,11 @@ Large PNG Payloads remain in the private session spooler until atomic publicatio
 
 | Stage | Contract |
 |---|---|
-| internal catch | PNG complete on disk; same identity for identical payload |
-| transformare | Assets / navigation operates on the compact HTML structure without UTF-16 copies of PNG |
-| restaurare | fixed buffers write Base64 entirely in the atomic file; HTML final is autonomous |
-| cleanup | closed spool and eliminated at success / failure; the destination is replaced only after full restoration |
-| limit | model Extent / Spark and text still use heap proportional to evidence; there is no universal ceiling |
+| internal capture | PNG complete on disk; same identity for identical payload |
+| transformation | Assets / navigation operates on the compact HTML structure without UTF-16 copies of PNG |
+| restoration | fixed buffers stream complete Base64 into the atomic file; final HTML is self-contained |
+| cleanup | spool closed/deleted on success or failure; destination replaced only after complete restoration |
+| limit | Extent/Spark models and text still use heap proportional to evidence; no universal ceiling |
 
 The captured timing contract separates publication duration, allocations and observed memory from the captured execution interval.
 
@@ -1929,25 +1776,25 @@ The captured timing contract separates publication duration, allocations and obs
 <a id="actionobserve--preview-și-valori-complete"></a>
 ## ACTION / OBSERVE - preview and complete values
 
-INCLUDED_COLLAPSED keeps expected / fully observed, redacted and with HTML escaping, in the same cell.
+INCLUDED_COLLAPSED retains complete expected/observed values in the same cell, after redaction and HTML escaping.
 
 | Surface | Policy |
 |---|---|
 | preview | 240 default; summary compact in a visual row with text available in DOM |
-| value complete | initial closed disclosure, newline / Unicode / order / last preserved scalar |
-| security and verdict | before both projections; the catch verdict shall not be reassessed |
-| keyboard | Enter / Space for each Disclosure; End / Home and scroll in the existing Focusable Viewport |
+| full value | initially closed disclosure; newlines, Unicode, order and final scalar preserved |
+| security and verdict | redaction precedes both projections; the captured verdict is not reevaluated |
+| keyboard | Enter/Space on each disclosure; End/Home and scrolling in the existing focusable viewport |
 | SUMMARY_ONLY | keep explicit omission of ACTION details |
 | body display limit | control the bodies, independent of these cells |
-| comments by phase | UiPhase.observation (ReportObservation) delegate neutral port; supportsObservations () exposes capability |
-| lifecycle | refusal after completion and publication excluded from measured time frame; zero requirements or made-up assertions |
+| phase observations | UiPhase.observation(ReportObservation) delegates to the neutral port; supportsObservations() exposes the capability |
+| lifecycle | rejected after completion; publication excluded from measured timing; no fabricated requests/assertions |
 
 Assertions values have separate contracts: the already reduced text of the caller cannot be rebuilt. [The remaining criterion](../docs/feedback/ATF_Android_UI_Reporting_Feedback.md) delimits that family.
 
 <a id="fitness-of-the-ui-line-and-drafting-policy"></a>
 <a id="fidelitatea-rândului-ui-și-politica-de-redactare"></a>
 <a id="fitness-of-the-ui-line-and-redaction-policy"></a>
-## Fitness of the UI line and redaction policy
+## UI row fidelity and redaction policy
 
 | Boundary | Contract |
 |---|---|
@@ -1973,19 +1820,19 @@ A custom replacement is checked precisely, including when it is not idempotent. 
 | UI | Same structure plus PNG original to checkpoint |
 | text PRE | LF initial, CR / LF and the final whitespace preserved after the editorial / limitation |
 
-240 provides body budget remaining distinct. The caller does not replace comparisons with the reading statuses of XML and does not ask the renderer to deduce the verdict.
+The 240-character preview and body budget remain separate. Callers do not replace comparisons with XML-derived statuses or ask the renderer to infer verdicts.
 
 <a id="screenshot-viewer-and-independent-readers"></a>
 <a id="viewer-de-capturi-și-cititori-independenți"></a>
 ## Screenshot viewer and independent readers
 
-PNG evidence opens in one shared Extent/fallback viewer using the available browser viewport. Fit mode preserves the full image and aspect ratio; Original size is an explicit inspection mode. Closing or Escape restores the clicked checkpoint, keyboard focus, disclosure state and reading position.
+A shared Extent/fallback viewer displays PNG evidence within the available viewport, preserving the complete image and aspect ratio; original size is an explicit mode. Closing it or pressing Escape restores checkpoint, focus, disclosure and reading position.
 
-- Deduplicated captures resolve the original bytes without clicking or selecting the canonical owner; the local caption remains attached to the clicked checkpoint.
-- Mouse, Enter and Space open the same viewer; resize recomputes fit, and controls remain keyboard accessible without browser/OS fullscreen.
-- The producer supplies meaningful test purpose, effective setup/inputs, independent expected values and clear evidence limits; hashes and raw file dumps do not establish business correctness.
+- Deduplicated screenshots resolve original bytes without clicking/selecting the canonical owner; the local caption stays attached to the clicked checkpoint.
+- Mouse, Enter and Space open the same viewer; resizing recalculates fit, and controls remain keyboard-accessible without browser/OS fullscreen.
+- The producer supplies test purpose, effective setup/inputs, independent expectations and clear evidence limits; hashes and raw dumps establish no business correctness.
 
-The [inline contract](../docs/ATF_Inline_Audit_Contract.md) separates primary audit content from optional technical provenance. Permanent neutral [reference contracts](../atf-reporting-tests/src/test/java/atf/reporting/observation/ScreenshotReferenceComponentTest.java) and [browser journeys](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/screenshot/ScreenshotViewerBrowserComponentTest.java) cover the viewport and return context; Android capture/oracles stay in the consumer.
+The [inline contract](../docs/ATF_Inline_Audit_Contract.md) separates primary audit content from optional technical provenance. Permanent neutral [reference contracts](../atf-reporting-tests/src/test/java/atf/reporting/observation/ScreenshotReferenceComponentTest.java) and [browser paths](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/screenshot/ScreenshotViewerBrowserComponentTest.java) cover viewport and return behavior; Android capture/oracles stay with the consumer.
 
 <a id="large-report-navigation"></a>
 <a id="navigarea-rapoartelor-mari"></a>

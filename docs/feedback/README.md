@@ -57,18 +57,9 @@ Do not enter functionality just to achieve a note; prioritise the proven correct
 
 <a id="checked-contracts-and-controls"></a>
 <a id="contracte-și-controale-verificate"></a>
-## Checked contracts and controls
+## Contract owners
 
-| Boundary | Delivered contract and retained proof |
-|---|---|
-| Consumer guides | [Gate JAR/POM](../ATF_Platform_Libraries.md) |
-| Core | [Consumer contract](../ATF_Core_Consumer.md): source / native ownership, body / deadline cancellation and independent acceptance on JAR |
-| Disclosure and governance | [Display contract](../ATF_Reporting_Display_Contract.md): criteria 114/100 are delivered |
-| Recovery in Maven reports | [Contract delivered](ATF_Reporting_Feedback.md#ui-recovery-audit-01--încercări-inspectabile-în-extent); IntelliJ verification remains delayed at the consumer |
-| Extent navigation and starting the verification browser | [Navigation contract](../ATF_Large_Report_Navigation.md) and [sample set](../../atf-reporting-tests/README.md#setup-browser-și-verdict-terminal) |
-| System, Inspector and Timing | [Display contract](../ATF_Reporting_Display_Contract.md) and [Reporting contract](../../atf-reporting/README.md): criteria 117/66/62/83/124 are delivered |
-| Publication memory and ACTION / OBSERVE integral | [Reporting contract](../../atf-reporting/README.md) criteria 131/132 have been removed from active priorities; source sample / JAR remains |
-| Documentation and controls | [Atlas](../ATF_Context_Atlas.md), [architecture](../ATF_Architecture.md), [test](../ATF_Testing_Guide.md) and [baseline](../ATF_Test_Changes_Baseline.md#controale-tehnice-verificate) keep real Git contracts and bases |
+The [atlas](../ATF_Context_Atlas.md) routes reusable contracts to their normative owners; [test-change controls](../ATF_Test_Changes_Baseline.md) retain immutable Git bases. Consumer delivery receipts and completed criteria are not duplicated in this backlog.
 
 <a id="requirements-transferred-to-j1"></a>
 <a id="cerințe-transferate-în-j1"></a>

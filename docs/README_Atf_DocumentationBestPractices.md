@@ -80,7 +80,7 @@ flowchart LR
     Live -->|inspects| Classify
     Classify -->|assigns| Owner
     Owner -->|protects| Gate
-    Gate -->|stable evidence| Owner
+    Gate -->|validates rule| Owner
     Classify -->|reproducible gap| Feedback
     Feedback -->|reconciles| Reconcile
     Reconcile -->|updates| Live
@@ -117,6 +117,11 @@ Feedback is a backlog of gaps, not a second README or a log of closed decisions.
 - do not delete a module README or stable contract because it has no ToDos: it is usage documentation, not a backlog;
 - keep the file if at least one real gap or active `testChanges` control remains, even if the rest can be promoted or removed;
 - do not close, rewrite, or delete a `testChanges` control just because it expired or a new commit appeared: compare changes to the baseline and follow the [test changes baseline](ATF_Test_Changes_Baseline.md) and [test governance](../atf-tests/README.md#test-change-governance).
+- promote only a reusable rule or usage instruction; a completed ToDo does not become a delivery summary in the project README;
+- keep consumer verification receipts, dated verdicts and run counts beside their owned package, outside maintained documentation; preserve historical provenance and executable change-control bases;
+- remove completed checklist items and closed status sections; retain minimal compatibility links only when they still route readers to the normative owner.
+
+[Documentation lifecycle governance](../atf-tests/src/test/java/atf/api/tests/governance/documentation/hygiene/DocumentationLifecycleGovernanceTest.java) rejects recognizable consumer receipts and completed backlog markers in both editions. It preserves literal examples, open criteria and the technical change-control registry; live code and owner tests still decide whether a criterion is actually complete.
 
 Governance tests remain a protected contract. If the target document fails, fix the document; change the test rule only through direct feedback, a named owner, a reason, and a new criterion, as described in the `atf-tests` README.
 
@@ -472,9 +477,9 @@ Official documentation describes the current API, ownership, configuration, limi
 
 <a id="other-including-mixtures-of-mixtures-of-two-or-more-of-the-foregoing-products"></a>
 <a id="ediții-de-limbă-întreținute"></a>
-## Other, including mixtures of mixtures of two or more of the foregoing products
+## Maintained language editions
 
-The main branch contains the English documentation; main _ RO contains the Romanian correspondent. The code and configurations remain identical, except for the language of the documentation declared. Keep the commands, API identifiers, explicit pathways and anchors when translating visible prose and diagrams labels.
+Branch `main` contains English documentation; `main_RO` contains its Romanian counterpart. Code and configuration remain identical apart from the declared documentation language. Preserve commands, API identifiers, paths and anchors when translating prose and diagram labels.
 
 The comparator checks the full Markdown inventory, structure, destinations of links and joint implementation. The revised inventories are fixed on Git commits in config / documentation-editions.json; the identity of the current artifacts remains in library-provenance.json.
 

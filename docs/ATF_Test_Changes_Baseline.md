@@ -4726,3 +4726,21 @@ testChanges:
 ```
 
 </details>
+
+<details>
+<summary>Documentation lifecycle governance control</summary>
+
+```yaml
+testChanges:
+  - id: J0-DOC-LIFECYCLE-GUARD-20261122
+    status: VERIFIED
+    base: 61d6d69f627e475e1d6a9efc1e75983394d1641e
+    expires: 2026-12-22
+    reason: "Prevent consumer delivery receipts and completed backlog entries from polluting maintained documentation; preserve owner contracts, open criteria and executable historical controls."
+    proof: mvn -B -ntp -pl atf-tests -am "-Dtest=AtfWorkspaceMaintenanceSuite" "-Datf.maintenance.j0=<source-workspace>" "-Datf.maintenance.j1=<consumer-workspace>" "-Datf.governance.testChanges.baseRef=61d6d69f627e475e1d6a9efc1e75983394d1641e" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/hygiene/DocumentationLifecycleGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/WholeAtfGovernanceSuiteTest.java
+```
+
+</details>
