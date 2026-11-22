@@ -73,6 +73,7 @@ The audit of the source structure belongs to the manufacturer's building. Runtim
 | [REPORT-UI-ASSERTION-FULL-EVIDENCE-133](ATF_Android_UI_Reporting_Feedback.md#report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview) | 88 — existing criterion | full UI values captured before caller preview; source/JAR owner and redaction proof remain separate |
 | `REPORT-PUBLIC-API-43` | 81 = 31 + 24 + 17 + 9 | API supported, compatibility and adaptor capabilities are not sufficiently delimited |
 | [Reporting Tests](ATF_Reporting_Tests_Feedback.md#report-test-audit-60--o-dovadă-identificabilă-pentru-fiecare-scenariu) | 80 = 31 + 24 + 18 + 7 | separate criterion of consumption: oracle per scenario and container fallback |
+| [REPORT-DURATION-SCENARIO-WALL-141](#report-duration-scenario-wall-141--elapsed-vs-aggregated-step-time) | 76 = 30 + 23 + 16 + 7 | a consumer's elapsed scenario time and displayed step aggregate need an explicit distinction |
 | `REPORT-RELEASE-CONTRACT-45` | 73 = 25 + 22 + 17 + 9 | Runtime / vendor matrix, repeater and external metadata are not yet a complete policy |
 | `REPORT-OBSERVATION-CONTRACT` | 72 = 29 + 20 + 16 + 7 | profile declares generic observations, but not UI validation with screen shot and identity PNG |
 | [REPORT-FALLBACK-RESULT-WIDTH-101](#report-fallback-result-width-101--regresie-geometrică-pentru-badge) | 64 = 24 + 19 + 15 + 6 | Absence of a geometric oracle of WARNING badge in RESULT cell |
@@ -348,6 +349,15 @@ The current metadata is corrected; the remaining criterion is guard coverage, wi
 - [ ] Compare the same text and the same claims with small and large parts, on frozen input: characters, body count / nodes, heap, duration and octets HTML. Control separately the technical inventory of sources of mandatory comparison data.
 - [ ] Qualify a budget or an explicit refusal prior to memory exhaustion, without eliminating comparisons, changing the verdict or trunking the mandatory values. Do not increase the default 240 preview- to mask the problem.
 - [ ] Sharing the hashish manifestation and larger parts are input optimizations of the consumer; they do not prove that the renderer is qualified for any body cardinality. Generic natives and packaging stay here.
+
+<a id="report-duration-scenario-wall-141--elapsed-vs-aggregated-step-time"></a>
+<a id="report-duration-scenario-wall-141--timp-total-față-de-suma-pașilor"></a>
+## REPORT-DURATION-SCENARIO-WALL-141 - elapsed vs aggregated step time
+
+**Priority: 76/100 = 30 + 23 + 16 + 7. Owner: Reporting runtime and Reporting Tests.** J7's real-browser Saved/Finished probe (`chess/atf-tests/src/test/java/ro/atf/chess/ChessWebMatchListPlaywrightE2e.java`) used the published `atf-reporting:1.0.0-j25` JAR at Chess source commit `8500f443a5f830e082aa0b41b7d061c3fe3b943e`. Its raw scenario and TEST BODY badges recorded about `01:31:508`, and the scenario retained `data-atf-measured-duration-ms=91508`. After the report runtime initialized, both visible badges showed `2.396 s`, the sum of recorded child durations. The test passed; this is a timing presentation finding, not a verdict failure. [Current aggregation decision](../../atf-reporting/src/main/resources/atf/reporting/javascript/duration-aggregation.js) also prefers child totals when children exist and no explicit execution marker is present. First check whether a newer qualified JAR already distinguishes these two clocks.
+
+- [ ] In a frozen Extent and fallback fixture, retain the measured elapsed interval and the child aggregate separately. Label the visible value by source so the reader cannot mistake publication or summed action time for scenario wall time; never manufacture execution duration from a child.
+- [ ] Add a browser control for a slow uninstrumented wait around fast recorded steps, another with explicit phase execution timing, and a class aggregate. Verify Overview, Tests, tooltip/ARIA and full expansion agree on what each duration means. Re-run the J7 consumer probe against the released JAR before closing.
 
 <a id="report-profile-labels---convention-of-visible-text"></a>
 <a id="report-profile-labels--convenția-textului-vizibil"></a>
