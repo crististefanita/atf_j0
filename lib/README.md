@@ -57,7 +57,7 @@ flowchart LR
 
 <a id="only-one-requirement-with-evidence"></a>
 <a id="o-singură-cerință-cu-dovezi"></a>
-## O singură cerință, cu dovezi
+## O singură constatare cu dovezi
 
 - Consemnați în J0 proiectul, coordonata/hash-ul efectiv, selecția/profilul, rezultatul așteptat și observat, reproducerea minimă și dovezile păstrate.
 - Dacă originea este neclară, păstrați o singură constatare neconfirmată în J0 până la izolare; nu copiați checklist-ul în fiecare proiect.
