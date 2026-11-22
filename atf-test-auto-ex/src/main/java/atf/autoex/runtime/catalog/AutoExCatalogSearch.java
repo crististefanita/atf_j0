@@ -6,15 +6,25 @@ import atf.autoex.support.catalog.AutoExCatalogAssertions;
 import atf.ui.playwright.AtfLocator;
 import atf.ui.playwright.PlaywrightActionSequence;
 import com.microsoft.playwright.Page;
-import com.microsoft.playwright.Locator;
-import com.microsoft.playwright.options.WaitUntilState;
-import com.microsoft.playwright.options.WaitForSelectorState;
 import java.net.URI;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-/** One catalog submission; URL and visible first result confirm completion within the same budget. */
+/** One owned GET and a fresh healthy DOM confirm one catalog click within the original budget. */
 public final class AutoExCatalogSearch {
+    private static final String CONTENT = """
+        state => {
+          if (performance.timeOrigin === state.previous || document.readyState === 'loading') return false;
+          const visible = e => e && e.getClientRects().length > 0 && !['hidden','collapse'].includes(getComputedStyle(e).visibility);
+          const normalize = text => text?.replace(/[\\u200b\\u00ad]/g, '').trim().replace(/\\s+/g, ' ');
+          const busy = [...document.body.querySelectorAll('*')].find(e => visible(e) && normalize(e.innerText) === state.busy);
+          if (busy) return {kind:'busy',text:normalize(busy.innerText)};
+          const first = document.querySelector(state.products);
+          const text = normalize(first?.innerText);
+          return visible(first) && text === normalize(state.expected) ? {kind:'product',text} : false;
+        }
+        """;
     private final Page page;
     private final PlaywrightActionSequence actions;
     private final URI products;
@@ -29,45 +39,69 @@ public final class AutoExCatalogSearch {
         if (query == null || query.isBlank() || expectedProduct == null || expectedProduct.isBlank()) {
             throw new IllegalArgumentException("Search requires a query and expected product");
         }
-        var readiness = new SearchReadiness(query.trim(), expectedProduct);
-        try {
-            actions.clickAndAwait(new AtfLocator(page.locator(AutoExSelectors.SEARCH_BUTTON), AutoExSelectors.SEARCH_BUTTON),
+        try (var document = new AutoExSearchDocument(page)) {
+            var readiness = new SearchReadiness(query.trim(), expectedProduct, document);
+            try {
+                actions.clickAndAwait(new AtfLocator(page.locator(AutoExSelectors.SEARCH_BUTTON), AutoExSelectors.SEARCH_BUTTON),
                     "catalog search is submitted and the configured product is ready", readiness);
-        } catch (IllegalStateException failure) {
-            throw new IllegalStateException("Catalog search not confirmed; " + readiness.description(), failure);
+            } catch (IllegalStateException failure) {
+                throw new IllegalStateException("Catalog search not confirmed; " + readiness.description(), failure);
+            }
         }
     }
 
-    /** Native locator polling follows document replacement without replaying the pointer action. */
+    /** Native DOM polling follows document replacement without replaying the pointer action. */
     private final class SearchReadiness implements Consumer<PlaywrightActionSequence.ObservationBudget> {
         private final String query;
         private final String expectedProduct;
-        private final Locator result = page.locator(AutoExSelectors.SEARCH_RESULT_PRODUCT_NAME).first();
+        private final AutoExSearchDocument document;
         private String location = "<not observed>";
-        private String awaiting = "matching search URL";
+        private String awaiting = "owned search document response";
+        private String dom = "<not inspected>";
 
-        private SearchReadiness(String query, String expectedProduct) {
+        private SearchReadiness(String query, String expectedProduct, AutoExSearchDocument document) {
             this.query = query;
             this.expectedProduct = expectedProduct;
+            this.document = document;
         }
 
         @Override public void accept(PlaywrightActionSequence.ObservationBudget budget) {
-            page.waitForURL(url -> AutoExCatalogAssertions.matchesSearchLocation(products, query, url),
-                    new Page.WaitForURLOptions().setWaitUntil(WaitUntilState.COMMIT)
-                            .setTimeout(budget.remainingMilliseconds()));
-            location = page.url();
-            awaiting = "visible first product " + expectedProduct;
-            result.and(page.getByText(expectedProduct, new Page.GetByTextOptions().setExact(true)))
-                    .waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE)
-                            .setTimeout(budget.remainingMilliseconds()));
-            location = page.url();
-            if (!AutoExCatalogAssertions.matchesSearchLocation(products, query, location)) {
-                throw new IllegalStateException("Search location changed during product confirmation");
+            try {
+                document.awaitResponse(budget);
+                location = document.url();
+                awaiting = "matching search URL and successful HTTP";
+                document.requireSearch(products, query);
+                awaiting = "visible first product " + expectedProduct + " in a fresh document, or terminal store state";
+                dom = "<no qualifying visible state confirmed>";
+                var observed = page.waitForFunction(CONTENT,
+                        Map.of("previous", document.previousOrigin(), "busy", AutoExSelectors.STORE_BUSY_MESSAGE,
+                            "products", AutoExSelectors.SEARCH_RESULT_PRODUCT_NAME, "expected", expectedProduct),
+                        new Page.WaitForFunctionOptions().setTimeout(budget.remainingMilliseconds()));
+                try {
+                    var content = (Map<?, ?>) observed.jsonValue();
+                    dom = (String) content.get("text");
+                    if ("busy".equals(content.get("kind")))
+                        throw new IllegalStateException("Store unavailable during search: queue full; " + document.description());
+                    if (!"product".equals(content.get("kind"))) throw new IllegalStateException("Unexpected search document state");
+                } finally { observed.dispose(); }
+                document.requireSingleRequest();
+                requireCurrentLocation();
+                awaiting = "confirmed";
+            } finally {
+                location = page.url();
+                actions.information("Catalog search response", AutoExRoutes.PRODUCTS.path(),
+                    "owned GET, new document and configured first product; one click, no replay", description());
             }
         }
 
+        private void requireCurrentLocation() {
+            location = page.url();
+            if (!AutoExCatalogAssertions.matchesSearchLocation(products, query, location))
+                throw new IllegalStateException("Search location changed during document confirmation");
+        }
+
         private String description() {
-            return "awaiting=" + awaiting + "; last confirmed url=" + location;
+            return "awaiting=" + awaiting + "; " + document.description() + "; DOM=" + dom + "; observed page URL=" + location;
         }
     }
 }

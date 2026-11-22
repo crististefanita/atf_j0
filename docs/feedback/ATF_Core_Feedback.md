@@ -1,5 +1,9 @@
+<a id="core---contracts-and-maintenance-routes"></a>
+<a id="core--contracte-și-trasee-de-mentenanță"></a>
 # Core — contracte și trasee de mentenanță
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 J0 deține execuția transporturilor, anularea, redactarea și promovarea fișierelor. Contractele și probele permanente sunt în [Core README](../../atf-core/README.md); consumerii păstrează acceptanța propriului deployment.
@@ -8,6 +12,8 @@ J0 deține execuția transporturilor, anularea, redactarea și promovarea fișie
 <a id="core-console-redaction-124--sanitize-every-emitted-console-channel"></a>
 <a id="core-transport-cancel-125--retain-ownership-of-the-upstream-http-future"></a>
 
+<a id="contracts-held-at-the-owner"></a>
+<a id="contracte-păstrate-la-owner"></a>
 ## Contracte păstrate la owner
 
 | Boundary | Contract și probă permanentă |
@@ -20,6 +26,8 @@ J0 deține execuția transporturilor, anularea, redactarea și promovarea fișie
 
 Anularea unei operații deja expediate nu confirmă rollback și nu autorizează replay. Probele Core nu certifică aplicația, brokerul, dispozitivul ori ASR-ul consumerului.
 
+<a id="where-the-following-gap-is-recorded"></a>
+<a id="unde-se-înregistrează-următoarea-lacună"></a>
 ## Unde se înregistrează următoarea lacună
 
 - Trigger, coordonată/hash, reproducere minimă, așteptat/observat și criteriu negativ; o problemă a unui transport nu se generalizează la celălalt.

@@ -1,10 +1,12 @@
+<a id="reporting-security---secure-projection-of-evidence"></a>
+<a id="reporting-security--proiecția-sigură-a-dovezilor"></a>
 # Reporting security — proiecția sigură a dovezilor
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
-Pachetul redactează valori pentru publicare. Observația integrală și verdictul
-aparțin callerului; parsarea pentru display nu execută cereri și nu reevaluează
-comparațiile. Contextul bibliotecii este în [atlasul local](../README.md).
+Pachetul redactează valori pentru publicare. Observația integrală și verdictul aparțin callerului; parsarea pentru display nu execută cereri și nu reevaluează comparațiile. Contextul bibliotecii este în [atlasul local](../README.md).
 
 | Intrare | Contract | Limită |
 |---|---|---|
@@ -14,6 +16,8 @@ comparațiile. Contextul bibliotecii este în [atlasul local](../README.md).
 | `JsonEvidenceRedactor` | streaming, inclusiv nesting, Unicode și câmpuri duplicate | nu rescrie inputul callerului sau datele folosite la asociere |
 | `MultipartEvidenceRedactor` | protejează câmpurile multipart și variantele lor de credentiale | structura și politica formatului rămân explicite |
 
+<a id="projection-order"></a>
+<a id="ordinea-proiecției"></a>
 ## Ordinea proiecției
 
 ```mermaid
@@ -39,6 +43,8 @@ flowchart LR
 
 </details>
 
+<a id="minimum-evidence-and-context"></a>
+<a id="probe-și-context-minim"></a>
 ## Probe și context minim
 
 - `JsonEvidenceRedactionComponentTest` verifică întregul artifact Extent/fallback
@@ -46,8 +52,6 @@ flowchart LR
 - `JsonEvidenceRedactorTest` verifică nesting, valori non-string, chei duplicate,
   replacement configurat, input invalid și păstrarea textului fără JSON.
 - Identitatea query-ului și ascunderea amprentelor aparțin
-  [ReportRequestSignature](../api/ReportRequestSignature.java); plafonul și
-  formatarea aparțin [evidence](../evidence/README.md).
+  [ReportRequestSignature](../api/ReportRequestSignature.java); plafonul și formatarea aparțin [evidence](../evidence/README.md).
 
-Probele de compoziție rămân în proiectul intern Reporting Tests. Pachetul de
-producție și această hartă nu aduc JUnit, Core, UI ori Kit în JAR-ul bibliotecii.
+Probele de compoziție rămân în proiectul intern Reporting Tests. Pachetul de producție și această hartă nu aduc JUnit, Core, UI ori Kit în JAR-ul bibliotecii.

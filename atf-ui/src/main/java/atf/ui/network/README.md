@@ -1,11 +1,17 @@
+<a id="ui-network--capture-identity-and-listener-cleanup"></a>
+<a id="ui-network--captură-identitate-și-eliberarea-listenerelor"></a>
 # UI network — captură, identitate și eliberarea listenerelor
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 Pachetul observă traficul browserului și păstrează un jurnal bounded. Nu trimite
 request-uri, nu atribuie verdict business și nu publică noduri Extent.
 Sesiunea de browser deține pagina; inspectorul deține propriile listener-e.
 
+<a id="entry-points-and-responsibilities"></a>
+<a id="intrări-și-responsabilități"></a>
 ## Intrări și responsabilități
 
 | Când investighezi | Citește întâi | Limita |
@@ -17,6 +23,8 @@ Sesiunea de browser deține pagina; inspectorul deține propriile listener-e.
 | trafic acceptat și capacitate | [UiNetworkCapturePolicy](UiNetworkCapturePolicy.java) | politică de captură, nu criteriu business |
 | compactare și repetări | [UiNetworkInspector.presentationObservations](UiNetworkInspector.java) | vedere de prezentare; jurnalul raw păstrează și răspunsul ulterior eșuat |
 
+<a id="invariants-to-preserve"></a>
+<a id="invariante-de-păstrat"></a>
 ## Invariante de păstrat
 
 - Captura este refuzată în timpul atașării incomplete și după close, înainte de
@@ -33,6 +41,8 @@ Sesiunea de browser deține pagina; inspectorul deține propriile listener-e.
   recuperarea valorilor. Inputul legacy deja redactat, fără amprentă, rămâne necunoscut.
   Adapterul de raportare nu publică digestul și nu tratează placeholder-ul drept query.
 
+<a id="tests-to-run-before-a-change"></a>
+<a id="probe-înainte-de-schimbare"></a>
 ## Probe înainte de schimbare
 
 | Contract | Probă de pornire |
@@ -45,4 +55,4 @@ Sesiunea de browser deține pagina; inspectorul deține propriile listener-e.
 
 Condițiile de retenție și exemplele consumer sunt în [contractul modulului](../../../../../../README.md).
 
-Continuă orientarea în [atlasul de context ATF](../../../../../../../docs/ATF_Context_Atlas.md).
+Continuă orientarea în [ghidul modulului UI](../../../../../../../atf-ui/README.md).

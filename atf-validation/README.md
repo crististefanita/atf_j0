@@ -1,3 +1,5 @@
+<a id="atf-validation--contracts-independent-of-the-rendering-engine"></a>
+<a id="atf-validation--contracte-independente-de-motorul-de-randare"></a>
 # ATF Validation — contracte independente de motorul de randare
 
 `atf-validation` este modulul care transformă un `ApiResponse` și un contract
@@ -5,6 +7,8 @@ de response într-o decizie verificabilă și într-un set de assertions publica
 Este un JAR reutilizabil: nu face HTTP, nu cunoaște Extent și nu construiește
 HTML/CSS.
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 **Trasee rapide:** [API public](#responsabilități-publice) · [Audit componentă](#limita-față-de-auditul-testelor-componente) · [Comparator AI](#comparatorul-ai--contract-implementat) · [Probe locale](#verificare-rapidă)
@@ -15,6 +19,8 @@ HTML/CSS.
 | outcome + evidence sink | semantic publication | port neutru către reporting |
 | invalid payload | failure evidence | fără renderer în runtime |
 
+<a id="core-diagram"></a>
+<a id="diagramă-de-bază"></a>
 ## Diagramă de bază
 
 Diagrama arată fluxul de date și colaborarea runtime; nu este graful de
@@ -24,8 +30,8 @@ rădăcină și în `docs/ATF_Architecture.md`.
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Core["Core"] -->|alimentează| Validation["Validation"]
-    Tests["Reporting tests"] -. fixtures .-> Validation
+    Core["Core JAR"] -->|alimentează| Validation["Validation"]
+    Tests["Teste locale ale modulului"] -. fixture-uri .-> Validation
     Validation -->|calculează| Decision["Verdict typed"]
     Decision -->|publică| Sink["Sink"]
     Sink -->|adaptează| Adapter["Adaptor"]
@@ -45,7 +51,7 @@ Etichetele scurte păstrează următorul sens:
 | În schemă | Sens complet |
 |---|---|
 | Core | core models |
-| Reporting tests | reporting tests |
+| Teste de modul | teste unitare și componente atf-validation |
 | Verdict typed | typed decision |
 | Sink | validation sink |
 | Adaptor | consumer adapter |
@@ -63,9 +69,12 @@ Direcția este intenționată:
 - consumerul mapează decizia către portul reporting folosit de propria compoziție;
 - `atf-reporting` deține exclusiv Extent, HTML, CSS, asset-urile și finalizarea
   artifactului, fără dependență de acest modul;
-- `atf-reporting-tests` test scope verifică modulele prin fake-uri deterministe și
-  scenarii de integrare; `atf-tests` păstrează numai guvernanța globală a reactorului.
+- testele locale ale modulului verifică modulul de validare prin fake-uri deterministe;
+  `atf-tests` acoperă guvernanța întregului reactor fără să preia
+  comportamentul aplicațiilor.
 
+<a id="choose-the-validation-form"></a>
+<a id="alege-forma-validării"></a>
 ## Alege forma validării
 
 | Caz | Intrare și rezultat | Verificarea potrivită |
@@ -83,6 +92,8 @@ Pentru adopție, începe cu un rezultat pur și un sink controlat; adaugă
 integrarea rendererului numai la ownerul adaptorului. [Utilizarea ca JAR](#utilizare-ca-jar)
 și [proba locală](#verificare-rapidă) delimitează dependențele și acceptanța.
 
+<a id="public-responsibilities"></a>
+<a id="responsabilități-publice"></a>
 ## Responsabilități publice
 
 | Componentă | Responsabilitate | Nu deține |
@@ -108,6 +119,8 @@ inclusiv adapterul pentru schema I/O. Fațada păstrează compatibilitatea DSL-u
 deduplicarea și regula one-shot; `ValidationEvaluator` rămâne singurul owner al
 deciziei aggregate și al politicii strict/warning.
 
+<a id="reporting-port"></a>
+<a id="portul-către-raportare"></a>
 ## Portul către raportare
 
 Validarea nu primește `ExtentTest`, `ExtentReports` sau un tip concret de request.
@@ -128,6 +141,8 @@ publică statusul calculat și se închide determinist. Consumerul poate adapta
 această evidence către portul reporting pe care îl folosește; `atf-reporting`
 nu importă acest modul și nu primește direct `ValidationDecision`.
 
+<a id="primary-cause-and-rejection-before-evaluation"></a>
+<a id="cauza-primară-și-refuzul-înaintea-evaluării"></a>
 ### Cauza primară și refuzul înaintea evaluării
 
 `ResponseContractReporter` separă evaluarea, publicarea și închiderea:
@@ -158,6 +173,8 @@ API și UI împart forma tabelului; verdictul și ownerul evidence-ului rămân
 specifice verificării. Consumerul alege sesiunea individuală sau partajată de
 suită și păstrează rezultatul fiecărui scenariu.
 
+<a id="boundary-with-component-test-audits"></a>
+<a id="limita-față-de-auditul-testelor-componente"></a>
 ### Limita față de auditul testelor componente
 
 - `ResponseContract` și `ValidationEvaluator` evaluează contracte API; nu există
@@ -170,7 +187,7 @@ suită și păstrează rezultatul fiecărui scenariu.
   schimbă verdictul. Mesajul auditabil trebuie să explice diferența în limita
   configurată, inclusiv când diferența este dincolo de preview.
 - Componentele AutoEx și Shop folosesc
-  [fațada JUnit auditabilă din Test Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră),
+  [fațada JUnit auditabilă din Test Kit](../lib/README.TestKit.md#scope-și-integrare),
   adaptată de consumer la `AssertionStep` Reporting. Extensia evaluatorului pur
   este descrisă separat ca [design amânat](#evaluator-general-pentru-modele).
 
@@ -207,6 +224,8 @@ Etichetele scurte păstrează următorul sens:
 
 </details>
 
+<a id="general-evaluator-for-models"></a>
+<a id="evaluator-general-pentru-modele"></a>
 ### Evaluator general pentru modele
 
 Propunerea `CONSUMER-COMPONENT-ASSERTIONS-01` este o extensie amânată.
@@ -229,6 +248,8 @@ Aceste contracte sunt utilizabile independent de un evaluator general nou.
 
 </details>
 
+<a id="locale-independent-http-vocabulary"></a>
+<a id="vocabular-http-independent-de-locale"></a>
 ### Vocabular HTTP independent de locale
 
 Comparația case-insensitive Content-Type și identitatea regulii pentru un
@@ -239,6 +260,8 @@ de conținut declarată de caller; nu devine clasificator MIME ori parser de bod
 verifică aceeași decizie nominală, refuzul unui tip diferit și identitatea regulii
 în `tr-TR`; testul izolează și restaurează starea JVM.
 
+<a id="separation-rules"></a>
+<a id="reguli-de-separare"></a>
 ## Reguli de separare
 
 1. Nu se adaugă importuri Extent, HTML, CSS sau JUnit în `src/main` al acestui
@@ -254,6 +277,8 @@ verifică aceeași decizie nominală, refuzul unui tip diferit și identitatea r
 7. `atf-validation` nu deschide sau închide sesiunea de raportare; lifecycle-ul
    aparține testului/execution, iar rendererul aparține reporting.
 
+<a id="contract-tests"></a>
+<a id="teste-de-contract"></a>
 ## Teste de contract
 
 Testele modulului protejează separat:
@@ -270,9 +295,11 @@ Testele modulului protejează separat:
 
 Testele sunt ratchet tests: când un contract eșuează, se repară
 implementarea, nu se relaxează assertion-ul pentru a face build-ul verde.
-Validarea vizuală a artifactului rămâne responsabilitatea suitei din
-`atf-reporting-tests`; verificarea manuală finală folosește ATF Debug/TAB MCP.
+Acceptanța vizuală a raportului consumerului aparține testului local care îl
+publică; verificarea manuală finală folosește ATF Debug/TAB MCP.
 
+<a id="ai-comparator--implemented-contract"></a>
+<a id="comparatorul-ai--contract-implementat"></a>
 ## Comparatorul AI — contract implementat
 
 `atf.validation.ai` evaluează output-ul furnizat de consumer. Expected-ul
@@ -310,6 +337,8 @@ Limitele implementării rămân explicite:
 - Modelele țintă și deciziile de boundary sunt în [designul AI](../docs/ATF_AI_Evaluation_Design.md); schemele propuse nu sunt semnături suplimentare ale API-ului implementat.
 - `REGEX_RESTRICTED` cere un matcher cu execuție limitată; scorul tehnic existent nu este încă o rubrică business configurabilă pe caz.
 
+<a id="jar-usage"></a>
+<a id="utilizare-ca-jar"></a>
 ## Utilizare ca JAR
 
 Un consumator care are nevoie numai de validare depinde de:
@@ -326,6 +355,8 @@ Pentru raportare Extent se adaugă separat `atf-reporting` și se furnizează un
 `ValidationSink`. Astfel pachetele pot fi versionate și reutilizate fără ca un
 consumator de contracte să tragă în classpath rendererul sau asset-urile HTML.
 
+<a id="quick-verification"></a>
+<a id="verificare-rapidă"></a>
 ## Verificare rapidă
 
 | Decizie | Sursă și limită |
@@ -348,6 +379,8 @@ trecerea întregului modul. Trecerea contractului nu validează transportul, ren
 
 </details>
 
+<a id="json-contract-and-schema-subset"></a>
+<a id="contract-json-și-subset-de-schemă"></a>
 ## Contract JSON și subset de schemă
 
 Evaluarea parsează cel mult o dată body-ul în contextul apelului. Documentul
@@ -377,6 +410,8 @@ Strict produce FAIL, iar politica warning păstrează rândurile negative și
 starea WARNING. Valorile integrale decid verdictul; proiecția auditului
 păstrează preview-ul 240, fără reevaluare în renderer.
 
+<a id="proofs-and-integration"></a>
+<a id="probe-și-integrare"></a>
 ### Probe și integrare
 
 Regresii permanente: [prezență și containere](src/test/java/atf/validation/JsonPresenceContractTest.java)
@@ -384,6 +419,8 @@ Regresii permanente: [prezență și containere](src/test/java/atf/validation/Js
 Acceptanța API sintetică în Extent/fallback verifică separat verdictul,
 rândurile și preview-ul; nu demonstrează transport real sau acuratețe speech.
 
+<a id="content-type--semantic-json-classification"></a>
+<a id="content-type--clasificare-semantică-json"></a>
 ### Content-Type — clasificare semantică JSON
 
 `contentTypeJson()` delegă tipul/subtipul concret către `MediaTypes.isJson` din
@@ -411,16 +448,10 @@ păstrează headerul observat, redactat și limitat după evaluare.
 protejează cele cinci contracte, strict/warning, nominale și parametri
 înșelători; acceptanța portului neutru și a artifactului rămâne la consumer.
 
+<a id="shared-parser-and-data-ownership"></a>
+<a id="parser-comun-și-proprietatea-datelor"></a>
 ### Parser comun și proprietatea datelor
 
-Documentele complete folosesc Core JsonDocuments: fără duplicate ori
+Documentele complete folosesc JsonDocuments din Core: fără duplicate ori
 trailing content, cu decimale exacte. Validation păstrează diagnosticele și
 politica proprie pentru null; nu deține un mapper strict paralel.
-
-## Preview and audit boundaries
-
-ValidationTable stores redacted, bounded expected/actual values after the caller evaluates the complete inputs. Its default 240-character preview does not establish full-value retention or change an independently captured FAIL.
-
-- `ValidationTable` bounds previews by UTF-16 code units, so a cut can split a supplementary character. The full input still determines the verdict; see the [preview implementation](src/main/java/atf/validation/evaluation/ValidationTable.java).
-- Long safe values needed for audit must be retained before preview, with explicit disclosure budgets; Reporting cannot reconstruct a discarded suffix.
-- This display limitation is separate from strict JSON/MIME decisions, literal redaction and the once-only validation predicate.

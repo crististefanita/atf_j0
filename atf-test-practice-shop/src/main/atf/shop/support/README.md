@@ -1,5 +1,9 @@
+<a id="shop-support--screen-contracts-and-causal-evidence"></a>
+<a id="shop-support--contracte-de-ecran-și-dovezi-cauzale"></a>
 # Shop support — contracte de ecran și dovezi cauzale
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 Pachetul adaptează observațiile Shop la contracte de ecran, validări și dovezi
@@ -7,10 +11,12 @@ API. Rămâne în main; harness-ul JUnit și selecția suitei rămân în test.
 Modelul Shop este reperul consumer pentru această separare, nu o regulă de
 copiere a endpoint-urilor sau a politicilor sale în AutoEx.
 
+<a id="entry-points-and-responsibilities"></a>
+<a id="intrări-și-responsabilități"></a>
 ## Intrări și responsabilități
 
 Conversia din [ShopApiEvidenceMapper](api/ShopApiEvidenceMapper.java) păstrează
-[query-ul typed](../../../../../../atf-reporting/README.md#fidelitatea-contractului-query)
+[query-ul typed](../../../../../../atf-reporting/README.md#dovezi-api-atașate-unui-pas-ui)
 pentru identitatea agregatului; view-ul legacy rămâne separat. Perechile disponibile
 se păstrează integral. Pentru captura browser redactată, jurnalul și `withTrace`
 conservă numai amprenta opacă; nu reconstruiesc valori sau parametri din placeholder.
@@ -42,6 +48,8 @@ un grup de aserțiuni nu mai este reprezentat printr-un request `ASSERT` artific
 | ce fapt a produs catalogul | [ShopCatalogObservation](catalog/ShopCatalogObservation.java) | listener-e, request curent, receipt și document; fără decizie de refresh |
 | de unde vine adresa observată | [ShopPostalLookup](billing/ShopPostalLookup.java) și [ShopBillingPage](../pages/ShopBillingPage.java) | cerere nouă, tuple curent, răspuns complet și DOM concordant |
 
+<a id="invariants-to-preserve"></a>
+<a id="invariante-de-păstrat"></a>
 ## Invariante de păstrat
 
 - Expected-ul vine din configurație/fixture; actual-ul se citește independent.
@@ -64,6 +72,8 @@ un grup de aserțiuni nu mai este reprezentat printr-un request `ASSERT` artific
   unicul refresh home. Readiness-ul consumă același `ObservationBudget`; GET/QUERY
   și ultimul request eligibil rămân politica Shop, distinctă de observerul BE strict.
 
+<a id="tests-and-related-contracts"></a>
+<a id="probe-și-vecini"></a>
 ## Probe și vecini
 
 | Contract | Probă de pornire |
@@ -83,4 +93,4 @@ Contractele și probele celorlalte checkpoint-uri rămân în [contractul modulu
 Scope-ul reutilizabil are [contract la UI](../../../../../../atf-ui/README.md#scope-ul-listener-elor-de-observație).
 Lookup-ul observă traficul aplicației; nu execută un al doilea GET și nu suprascrie câmpurile generate.
 
-Continuă orientarea în [atlasul de context ATF](../../../../../../docs/ATF_Context_Atlas.md).
+Continuă orientarea în [ghidul modulului Shop](../../../../../../atf-test-practice-shop/README.md).

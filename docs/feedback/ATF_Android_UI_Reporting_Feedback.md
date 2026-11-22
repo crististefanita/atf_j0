@@ -1,33 +1,37 @@
 # Android UI evidence — current neutral Reporting boundaries
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 Registrul urmărește probele neutre ale bibliotecii Reporting și acceptanța lor pe JAR. Adaptorul Android deține captura și oracolul aplicației.
 
+<a id="decision-and-boundary"></a>
+<a id="decizie-și-boundary"></a>
 ## Decizie și boundary
 
-J0 owns neutral publication and permanent source/JAR tests. J1 coordinates
-consumer handoffs; J4 owns ADB, full-display capture and application oracles.
-The [current library provenance](../../../atf_j1/library-provenance.json) is separate from
-frozen J10/J13 witnesses and from a new device execution.
+J0 deține publicarea neutră și testele permanente sursă/JAR. J1 coordonează consumerii; J4 deține ADB, captura integrală a display-ului și oracolele aplicației. [proveniența curentă a bibliotecii](../../../atf_j1/library-provenance.json) este separat de martorii J10/J13 înghețați și de o nouă execuție pe dispozitiv.
 
-| Current residual | Owner and closure boundary |
+| Current residual | Owner și limita închiderii |
 |---|---|
-| Long UI comparisons, criterion 133 | capture before caller preview, safe disclosure and source/JAR negatives |
-| Observation routes | explicit media versus empty-comparison THEN, with independent flow-mode characterization |
-| Additional volume witness | [REPORT-COMPONENT-FRAGMENTS](ATF_Reporting_Feedback.md#report-component-fragments--costul-multor-corpuri-mici) tracks the neutral publication measurements |
+| Comparații UI lungi, criteriul 133 | captură înainte de preview-ul callerului, disclosure sigur și negative pe sursă/JAR |
+| Rute de observație | media explicit versus THEN fără comparații, cu o caracterizare independentă a modului flow |
+| Martor suplimentar pentru volum | [REPORT-COMPONENT-FRAGMENTS](ATF_Reporting_Feedback.md#report-component-fragments--costul-multor-corpuri-mici) urmărește măsurătorile neutre ale publicării |
 
+<a id="provenence-of-ui-shares"></a>
+<a id="proveniența-acțiunilor-ui"></a>
 ## Proveniența acțiunilor UI
 
-The neutral attribution contract is implemented; the [current library provenance](../../../atf_j1/library-provenance.json) records the delivered pair and dated acceptance.
+Contractul neutru de atribuire este implementat; [proveniența curentă a bibliotecii](../../../atf_j1/library-provenance.json) înregistrează perechea livrată și acceptanța datată.
 
-- The [neutral UI contract](../../atf-reporting/README.md#neutral-ui-attribution-and-failure-ownership) owns truthful headings and native/fallback source-row navigation.
-- Permanent source/JAR controls preserve separate assertions, complete redacted diagnostics and PNGs; compatibility routes carry no duplicate TODO.
+- [Contractul UI neutru](../../atf-reporting/README.md#neutral-ui-attribution-and-failure-ownership) deține titlurile fidele și navigarea nativă/fallback către rândul sursă.
+- Controalele permanente sursă/JAR păstrează aserțiunile separate, diagnosticele redactate complete și PNG-urile; rutele de compatibilitate nu dublează TODO.
 
+<a id="report-ui-assertion-full-evidence-133---long-values-captured-prior-to-forecast"></a>
+<a id="report-ui-assertion-full-evidence-133--valori-lungi-capturate-înainte-de-preview"></a>
 ## REPORT-UI-ASSERTION-FULL-EVIDENCE-133 — valori lungi capturate înainte de preview
 
-**Prioritate: 88/100.** Criteriu distinct rezultat din completarea handoff-ului J4;
-celulele ACTION/OBSERVE rezolvate nu îl închid.
+**Prioritate: 88/100.** Criteriu distinct rezultat din completarea handoff-ului J4; celulele ACTION/OBSERVE rezolvate nu îl închid.
 
 - [ ] Delimitați valoarea integrală capturată de preview-ul callerului: Kit poate transmite deja numai text redus, pe care Reporting nu îl poate reconstitui.
 - [ ] Definiți proiecția sigură pentru expected/actual UI lungi, cu preview 240 și disclosure corelat la scenariu/fază/checkpoint/comparație; fără reevaluare sau secrete ascunse.
@@ -38,66 +42,71 @@ J4 păstrează temporar corpurile TEXT native cu body limit explicit pentru valo
 
 J4 deține calificarea aplicației și a accesului ADB pe dispozitiv; probele neutre Reporting nu folosesc dispozitivul. Consultați [contractul curent de captură și ownership](../../../atf_j4/docs/reporting/ATF_Android.md#capture-and-ownership).
 
-## Observation routes and large-publication follow-up
+<a id="observation-routes-and-large-publication-follow-up"></a>
+<a id="rute-de-observație-și-urmărirea-publicațiilor-mari"></a>
+## Rute de observație și urmărirea publicațiilor mari
 
-- [ ] Characterize empty-comparison THEN versus explicit media, including INDIVIDUAL/UNIFIED_FLOW and OBSERVE-only inputs. Document intentional outcome-only behavior or diagnose unsupported capture requests; never recommend invented assertions.
+- [ ] Caracterizați THEN fără comparații față de media explicită, inclusiv INDIVIDUAL/UNIFIED_FLOW și intrări numai OBSERVE-. Documentați comportamentul intenționat bazat doar pe rezultat sau refuzul capturilor nesusținute; nu recomandați aserțiuni inventate.
 
-The [J4 audit contract](../../../atf_j4/docs/reporting/ATF_Audit.md) owns
-producer-specific volume qualification and detached HTML acceptance. The old
-J13 memory result applies only to its bounded fixture; it does not promise
-unbounded publication capacity.
+[J4 audit contract](../../../atf_j4/docs/reporting/ATF_Audit.md) deține calificarea de volum specifică producătorului și acceptanța HTML detașată. Rezultatul vechi de memorie J13 se aplică numai fixture-ului limitat; nu promite capacitate nelimitată.
 
 <details>
-<summary><strong>Delivered contracts and historical handoff routes</strong></summary>
+<summary><strong>Contracte încheiate și rute istorice de predare</strong></summary>
 
+<a id="mandatory-requirements"></a>
+<a id="cerințe-obligatorii"></a>
 ## Cerințe obligatorii
 
 [Composite screenshot evidence](../ATF_Inline_Audit_Contract.md#composite-screenshot-evidence) owns the stable composition, failure, identity and source/JAR boundaries.
 
+<a id="j0-minimum-sample-matrix"></a>
+<a id="matricea-minimă-de-probă-j0"></a>
 ## Matricea minimă de probă J0
 
-[Composite evidence acceptance](../ATF_Inline_Audit_Contract.md#composite-evidence-acceptance) preserves the neutral fixture and mutation matrix. Consumer device acceptance is separate.
+[Composite evidence acceptance](../ATF_Inline_Audit_Contract.md#composite-evidence-acceptance) păstrează fixture-ul neutru și matricea de mutații. Acceptanța dispozitivului rămâne separată.
 
+<a id="generic-and-handoff-retention"></a>
+<a id="restanță-generică-și-handoff"></a>
 ## Restanță generică și handoff
 
-Active J0 residuals are listed in the current table above. [J1/J4 coordination](../../../atf_j1/docs/feedback/ATF_Consumer_Reporting_Handoff_Feedback.md) owns device inputs and application assertions.
+Restanțele J0 active sunt în tabelul curent de mai sus. [coordonarea J1/J4](../../../atf_j1/docs/feedback/ATF_Consumer_Reporting_Handoff_Feedback.md) deține intrările dispozitivului și aserțiunile aplicației.
 
+<a id="report-publication-memory-131---full-copies-of-the-publication"></a>
+<a id="report-publication-memory-131--copii-integrale-la-publicare"></a>
 ## REPORT-PUBLICATION-MEMORY-131 — copii integrale la publicare
 
-Closed for the verified 321-checkpoint, 1 GiB source/JAR fixture in the original J13 acceptance. The [Reporting owner contract](../../atf-reporting/README.md) preserves the bounded publication contract. This bounded proof does not promise unbounded publication capacity.
+Închis pentru fixture-ul sursă/JAR verificat cu 321 checkpoint-uri și 1 GiB, din acceptanța J13 originală. [Reporting owner contract](../../atf-reporting/README.md) păstrează contractul de publicare limitat. Proba nu promite capacitate nelimitată.
 
+<a id="report-action-full-evidence-132---expected--observed-beyond-the-forecast"></a>
+<a id="report-action-full-evidence-132--expectedobserved-dincolo-de-preview"></a>
 ## REPORT-ACTION-FULL-EVIDENCE-132 — expected/observed dincolo de preview
 
-The [ACTION/OBSERVE contract](../../atf-reporting/README.md#actionobserve--preview-și-valori-complete) owns complete redacted values, preview 240 and permanent suffix/owner negatives.
+[ACTION/OBSERVE contract](../../atf-reporting/README.md#actionobserve--preview-și-valori-complete) deține valorile redactate complete, preview-ul 240 și negativele permanente pentru sufix/owner.
 
 ## Observation-only screenshot handoff
 
-The frozen J13 missing-frame witness is historical. [inline audit contract](../ATF_Inline_Audit_Contract.md) retains explicit media publication with zero invented assertions; the separate empty-comparison route matrix above remains open.
+Martorul J13 înghețat pentru cadrul lipsă este istoric. [inline audit contract](../ATF_Inline_Audit_Contract.md) păstrează publicarea media explicită fără aserțiuni inventate; matricea separată pentru rute fără comparații rămâne deschisă.
 
 </details>
 
-## Full assertion capture — caller and renderer responsibilities
+<a id="full-assertion-capture--caller-and-renderer-responsibilities"></a>
+<a id="capturarea-integrală-a-aserțiunilor--responsabilitățile-callerului-și-rendererului"></a>
+## Capturarea integrală a aserțiunilor — responsabilitățile callerului și rendererului
 
-Kit `RecordedAssertions` accepts an `AssertionValueDisplay` with an optional observer of `Projection` values. The observer receives full redacted text, while recorded rows retain bounded previews. The remaining work is to connect that capture to Reporting and define retention where `ValidationTable` or consumer adapters supply bounded values.
+`RecordedAssertions` din Kit acceptă `AssertionValueDisplay` cu observer opțional pentru valorile `Projection`. Observerul primește textul redactat complet, iar rândurile păstrează preview-uri limitate. Rămâne conectarea capturii la Reporting și definirea retenției când `ValidationTable` sau adaptoarele furnizează valori deja limitate.
 
-- [ ] Coordinate capture with the [J0 Test Kit owner](ATF_Common_Test_Support_Feedback.md#retenția-comparațiilor--coordonare-cu-reporting) and [J1 integration](../../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md). Keep preview 240, evaluate the original comparison once and redact before display.
-- [ ] Add a neutral composition witness whose first mismatch lies after preview and an independent negative that removes only the retained suffix; full ACTION/OBSERVE disclosure does not by itself close assertion capture.
+- [ ] Coordonați captura cu [J0 Test Kit owner](ATF_Common_Test_Support_Feedback.md#retenția-comparațiilor--coordonare-cu-reporting) și [J1 integration](../../../atf_j1/docs/feedback/ATF_Common_Test_Support_Feedback.md). Păstrați preview-ul 240, evaluați comparația originală o singură dată și redactați înaintea afișării.
+- [ ] Adăugați un martor neutru de compoziție cu primul mismatch după preview și un negativ independent care elimină numai sufixul păstrat; disclosure-ul ACTION/OBSERVE integral nu închide singur captura aserțiunilor.
 
+<a id="report-setup-media-completeness---sample-set-only-with-average"></a>
+<a id="report-setup-media-completeness--probă-setup-numai-cu-media"></a>
 ## REPORT-SETUP-MEDIA-COMPLETENESS — probă setup numai cu media
 
-**Lacună de regresie · responsabil Reporting.** Codul live transmite captura
-setup nenulă către `request.screenshot(...)`, iar
-`UiSetupFallbackParityComponentTest` verifică setup cu acțiuni și comparații,
-în Extent și fallback. Martorul J22 descrie o versiune veche și nu dovedește o
-pierdere în binarul curent. Lipsește o probă izolată pentru setup cu media, dar
-fără acțiuni și comparații, cu asocierea exactă a PNG-ului la owner.
+**Lacună de regresie · responsabil Reporting.** Codul live transmite captura setup nenulă către `request.screenshot(...)`, iar `UiSetupFallbackParityComponentTest` verifică setup cu acțiuni și comparații, în Extent și fallback. Martorul J22 descrie o versiune veche și nu dovedește o pierdere în binarul curent. Lipsește o probă izolată pentru setup cu media, dar fără acțiuni și comparații, cu asocierea exactă a PNG-ului la owner.
 
 - [ ] Adăugați cazul setup media-only fără pași inventați; verificați payload-ul
-      prin legătura ownerului, dimensiuni/pixeli și hash, astfel încât logo-ul sau
-      captura unui sibling să nu satisfacă oracolul.
+      prin legătura ownerului, dimensiuni/pixeli și hash, astfel încât logo-ul sau captura unui sibling să nu satisfacă oracolul.
 - [ ] Calificați sursa și JAR-ul fizic în Extent/fallback pe ruta acceptată și
-      confirmați că viewerul revine la același owner. Nu deduceți suport OBSERVE
-      numai din acceptarea unui screenshot de setup.
+      confirmați că viewerul revine la același owner. Nu deduceți suport OBSERVE numai din acceptarea unui screenshot de setup.
 
-Un test cu raster sintetizat este probă neutră de raportare, nu execuție Android;
-J4 califică separat capturarea device-ului și payload-ul furnizat de adaptor.
+Un test cu raster sintetizat este probă neutră de raportare, nu execuție Android; J4 califică separat capturarea device-ului și payload-ul furnizat de adaptor.

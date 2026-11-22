@@ -16,15 +16,15 @@ public class AtfMaintenanceProcessDocumentationGovernanceTest {
     void workspaceProtocolConnectsFeedbackGatesConsumerAcceptanceAndPromotion() throws Exception {
         var root = AtfGovernanceTestSupport.locateProjectRoot();
         String synchronization = Files.readString(root.resolve("docs/ATF_Workspace_Synchronization.md"));
-        int protocolStart = synchronization.indexOf("## Protocolul fiecărui increment");
-        int protocolEnd = synchronization.indexOf("## Proveniență și relocare", protocolStart);
+        int protocolStart = synchronization.indexOf("<a id=\"maintenance-increment-protocol\"></a>");
+        int protocolEnd = synchronization.indexOf("<a id=\"provenance-and-relocation\"></a>", protocolStart);
         assertTrue(protocolStart >= 0 && protocolEnd > protocolStart, "the maintenance protocol section has stable boundaries");
         String protocol = synchronization.substring(protocolStart, protocolEnd);
         assertTrue(protocol.contains("flowchart LR"));
         assertTrue(protocol.contains("Feedback"));
-        assertTrue(protocol.contains("Teste native"));
+        assertTrue(protocol.contains("OwnerTests["));
         assertTrue(protocol.contains("Whole J0"));
-        assertTrue(protocol.contains("Acceptanță pereche"));
+        assertTrue(protocol.contains("Pair["));
         assertTrue(protocol.contains("J1"));
         assertTrue(protocol.contains("JAR + POM"));
         assertTrue(protocol.contains("Origin"));
@@ -34,7 +34,7 @@ public class AtfMaintenanceProcessDocumentationGovernanceTest {
         assertTrue(governance.contains("AtfWorkspaceMaintenanceSuite"));
         assertTrue(governance.contains("AtfMaintenanceWorkspacePairSuite"));
         assertTrue(governance.contains("WholeAtfGovernanceSuiteTest"));
-        assertTrue(governance.contains("| Poartă |"));
+        assertTrue(governance.contains("| Poartă |") || governance.contains("| Gate |"));
         assertTrue(governance.contains("-Datf.maintenance.j0="));
         assertTrue(governance.contains("-Datf.maintenance.j1="));
         assertTrue(governance.contains("read-only"));
@@ -48,25 +48,26 @@ public class AtfMaintenanceProcessDocumentationGovernanceTest {
     @Test
     void orchestrationDecisionKeepsLangGraphOptionalAndMavenAuthoritative() throws Exception {
         Path root = AtfGovernanceTestSupport.locateProjectRoot();
-        String feedback = Files.readString(root.resolve("docs/feedback/ATF_Maintenance_Feedback.md"));
-        String heading = "### Când merită evaluat LangGraph?";
+        String feedback = Files.readString(root.resolve("docs/ATF_Workspace_Synchronization.md"));
+        String heading = "<a id=\"orchestration-runtime-decision\"></a>";
         int start = feedback.indexOf(heading);
-        assertTrue(start >= 0, "the maintenance feedback documents the orchestration decision");
+        assertTrue(start >= 0, "the owner protocol documents the orchestration decision");
 
         int opening = feedback.indexOf("```mermaid", start);
         int closing = opening < 0 ? -1 : feedback.indexOf("```", opening + "```mermaid".length());
         assertTrue(opening > start && closing > opening, "the orchestration decision has a closed Mermaid diagram");
         String diagram = feedback.substring(opening, closing);
         assertTrue(diagram.contains("flowchart LR"));
-        assertTrue(diagram.contains("RuntimeNeed -->|nu| MavenGates"));
-        assertTrue(diagram.contains("RuntimeNeed -->|da| LangGraph"));
-        assertTrue(diagram.contains("LangGraph -->|lansează porțile| MavenGates"));
-        assertTrue(diagram.contains("Maven/JUnit<br/>sursa verdictului"));
+        assertTrue(java.util.regex.Pattern.compile("RuntimeNeed -->\\|[^|]+\\| MavenGates").matcher(diagram).find());
+        assertTrue(java.util.regex.Pattern.compile("RuntimeNeed -->\\|[^|]+\\| LangGraph").matcher(diagram).find());
+        assertTrue(java.util.regex.Pattern.compile("LangGraph -->\\|[^|]+\\| MavenGates").matcher(diagram).find());
+        assertTrue(diagram.contains("Maven/JUnit<br/>"));
 
         String rationale = feedback.substring(start, opening).toLowerCase(java.util.Locale.ROOT);
-        assertTrue(rationale.contains("ramurile finite"));
-        assertTrue(rationale.contains("nu justifică un runtime nou"));
-        assertTrue(rationale.contains("stare durabilă"));
-        assertTrue(rationale.contains("aprobare umană"));
+        boolean english = atf.api.tests.governance.documentation.language.DocumentationLanguagePolicy.read(root).equals("en");
+        assertTrue(rationale.contains(english ? "finite branches" : "ramurile finite"));
+        assertTrue(rationale.contains(english ? "do not justify a new runtime" : "nu justifică un runtime nou"));
+        assertTrue(rationale.contains(english ? "durable state" : "stare durabilă"));
+        assertTrue(rationale.contains(english ? "human approval" : "aprobare umană"));
     }
 }

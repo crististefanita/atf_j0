@@ -1,5 +1,9 @@
+<a id="test-kit--junit-classification-and-audit"></a>
+<a id="test-kit--clasificare-și-audit-junit"></a>
 # Test Kit — clasificare și audit JUnit
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 Kit oferă adnotări, comparații evaluate și lifecycle neutru. JAR-ul nu pornește browser, broker ori ADB și nu publică singur Extent.
@@ -13,6 +17,8 @@ Kit oferă adnotări, comparații evaluate și lifecycle neutru. JAR-ul nu porne
 | Faze și cleanup | ComponentAuditExtension / ComponentAuditAdapter, TestRunInitialization, FailureAwareCleanup. |
 | Politici și resurse | Resolverele Atf*Policy; readResourceUtf8 pentru classpath/JAR, requiredPath pentru fișier real. |
 
+<a id="minimal-example"></a>
+<a id="exemplu-minim"></a>
 ## Exemplu minim
 
 Adaptorul deține recorderul și publică rezultatul; o nepotrivire păstrează excepția JUnit originală:
@@ -25,6 +31,8 @@ public static void verifyState(RecordedAssertions audit, String actual) {
 }
 ```
 
+<a id="scope-and-integration"></a>
+<a id="scope-și-integrare"></a>
 ## Scope și integrare
 
 - Dependență atf.api:atf-test-kit cu versiunea atf.testkit.version din POM-ul proiectului. Folosiți test scope în produs; compile este justificat numai pentru suportul main al unui modul de test. Nu includeți Kit în APK/aplicație.
@@ -37,13 +45,11 @@ public static void verifyState(RecordedAssertions audit, String actual) {
 
 Mentenanță, cod, teste și feedback: [atf_j0](README.md#mentenanță-și-feedback).
 
+<a id="real-junit-launch-plan"></a>
+<a id="planul-real-al-lansării-junit"></a>
 ## Planul real al lansării JUnit
 
-Pachetul `atf.testkit.launch` observă sesiunea launcherului prin SPI-ul public
-`LauncherSessionListener`. Nu execută teste și nu deschide resurse consumer.
-`TestLaunchContext.capture(context)` returnează un `Optional<TestLaunchSnapshot>`
-imuabil pentru invocarea curentă: selectorii cererii, inventarul filtrat din
-`TestPlan`, numărul descoperit inițial și înregistrările dinamice la captură.
+Pachetul `atf.testkit.launch` observă sesiunea launcherului prin SPI-ul public `LauncherSessionListener`. Nu execută teste și nu deschide resurse consumer. `TestLaunchContext.capture(context)` returnează un `Optional<TestLaunchSnapshot>` imuabil pentru invocarea curentă: selectorii cererii, inventarul filtrat din `TestPlan`, numărul descoperit inițial și înregistrările dinamice la captură.
 
 - Asocierea cererii folosește identitatea configurației planului; o cerere
   străină sau indisponibilă nu înlocuiește proveniența planului executat.
@@ -52,11 +58,8 @@ imuabil pentru invocarea curentă: selectorii cererii, inventarul filtrat din
 - Numărul descoperit include teste dezactivate și exclude înregistrările
   dinamice ulterioare; nu reprezintă numărul de teste trecute sau executate.
 - Dacă observerul SPI este dezactivat, captura este absentă. Pentru un plan
-  descoperit într-o altă sesiune, inventarul și numărul rămân disponibile,
-  iar proveniența selectorilor spune explicit că cererea nu este disponibilă.
+  descoperit într-o altă sesiune, inventarul și numărul rămân disponibile, iar proveniența selectorilor spune explicit că cererea nu este disponibilă.
 - Dependența `junit-platform-launcher` este opțională; consumerul care lansează
   testele o furnizează. Biblioteca nu depinde de Reporting, UI sau consumeri.
 
-`TestLaunchPlanComponentTest` probează selecții directe și filtrate, scope-uri
-imbricate/concurente, planuri executate ulterior, teste dezactivate, înregistrări
-dinamice și absența punții.
+`TestLaunchPlanComponentTest` probează selecții directe și filtrate, scope-uri imbricate/concurente, planuri executate ulterior, teste dezactivate, înregistrări dinamice și absența punții.

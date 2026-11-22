@@ -12,7 +12,9 @@ import java.util.regex.Pattern;
 
 /** Deliberately narrow architecture claims, compared with direct Maven declarations rather than another inventory. */
 final class DocumentedBuildContracts {
-    private static final Pattern MODULES = Pattern.compile("Reactorul păstrează exact cele (\\d+) module existente\\.");
+    static final Pattern MODULES = Pattern.compile(
+            "(?:Reactorul păstrează exact cele (?<romanian>\\d+) module existente|"
+                    + "The reactor retains exactly (?:the )?(?<english>\\d+) existing modules)\\.");
     private static final Map<String, String> CONSUMERS = Map.of(
             "Shop", AtfModuleIds.PRACTICE_SHOP, "AutoEx", AtfModuleIds.AUTOMATION_EXERCISE);
     private DocumentedBuildContracts() { }
@@ -23,8 +25,9 @@ final class DocumentedBuildContracts {
         int actual = children(child(pom(root.resolve("pom.xml")), "modules"), "module").size();
         if (!count.find()) failures.add(diagnostic(1, "reactor modules", "missing declaration", Integer.toString(actual), "pom.xml"));
         else {
-            if (!Integer.toString(actual).equals(count.group(1))) failures.add(diagnostic(line(document, count.start()),
-                    "reactor modules", count.group(1), Integer.toString(actual), "pom.xml"));
+            String declared = count.group("romanian") == null ? count.group("english") : count.group("romanian");
+            if (!Integer.toString(actual).equals(declared)) failures.add(diagnostic(line(document, count.start()),
+                    "reactor modules", declared, Integer.toString(actual), "pom.xml"));
             if (count.find()) failures.add(diagnostic(line(document, count.start()), "reactor modules", "duplicate declaration", "one declaration", "pom.xml"));
         }
         for (var consumer : CONSUMERS.entrySet()) inspectConsumer(root, document, consumer.getKey(), consumer.getValue(), failures);
@@ -36,8 +39,10 @@ final class DocumentedBuildContracts {
         boolean present = children(child(pom(root.resolve("pom.xml")), "modules"), "module").stream()
                 .anyMatch(entry -> entry.getTextContent().strip().equals(module));
         String actual = present ? dependencyScope(pom(root.resolve(source)), AtfModuleIds.TEST_KIT) : "absent";
+        List<String> headers = List.of("| Consumer | `compile` | `test` |",
+                "| Consumator | `compile` | `test` |");
         List<String> rows = document.lines()
-                .dropWhile(value -> !value.equals("| Consumer | `compile` | `test` |"))
+                .dropWhile(value -> !headers.contains(value))
                 .skip(1).takeWhile(value -> value.startsWith("|"))
                 .filter(value -> value.startsWith("| " + label + " |")).toList();
         String declared = "missing declaration";

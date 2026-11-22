@@ -1,7 +1,8 @@
+<a id="atf-java-documentation"></a>
+<a id="documentația-atf-java"></a>
 # Documentația ATF Java
 
-Acest director este indexul contractelor stabile ale ATF Java și al
-designurilor de proiect marcate explicit ca propuneri.
+Acest director este indexul contractelor stabile ale ATF Java și al designurilor de proiect marcate explicit ca propuneri.
 
 - arhitectură și boundaries;
 - adăugare de teste API;
@@ -9,9 +10,10 @@ designurilor de proiect marcate explicit ca propuneri.
 - build, staging și sync sigur;
 - feedback activ și criterii de închidere.
 
-Documentele descriu framework-ul și ownerii lui, nu un run sau un artifact
-particular.
+Documentele descriu framework-ul și ownerii lui, nu un run sau un artifact particular.
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 | Pentru | Citește întâi |
@@ -21,9 +23,7 @@ particular.
 | problemă încă deschisă | [registrul feedback-urilor](feedback/README.md); contractele livrate rămân la owner |
 | Kafka/Podman în J2 | [atlasul WIP](../../atf_j2/docs/ATF_Context_Atlas.md); nu este o extensie web a J1 |
 
-J0 deține implementarea și regresiile Reporting; J1 deține scenariile AutoEx/Shop.
-J2 a început bootstrap-ul pentru cozi și mesaje;
-[harta workspace-urilor](ATF_Workspace_Synchronization.md) separă infrastructura copiată de contractele și acceptanța mesageriei.
+J0 deține implementarea și regresiile Reporting; J1 deține scenariile AutoEx/Shop. J2 a început bootstrap-ul pentru cozi și mesaje; [harta workspace-urilor](ATF_Workspace_Synchronization.md) separă infrastructura copiată de contractele și acceptanța mesageriei.
 
 | Nivel | Documente | Întrebarea la care răspund |
 |---|---|---|
@@ -43,9 +43,10 @@ J2 a început bootstrap-ul pentru cozi și mesaje;
 | execuție | [ATF_Build_And_Execution_Safety.md](ATF_Build_And_Execution_Safety.md) | cum lucrăm fără să oprim run-uri? |
 | feedback / guvernanță | [feedback/README.md](feedback/README.md), documentele active pe owner și [ATF_Test_Changes_Baseline.md](ATF_Test_Changes_Baseline.md) | ce gap observabil, regulă sau control tehnic de tranziție rămâne? |
 
-Indexul păstrează harta; detaliile sunt în documentul ownerului și cresc în
-specificitate pe măsură ce coborâm în pagină.
+Indexul păstrează harta; detaliile sunt în documentul ownerului și cresc în specificitate pe măsură ce coborâm în pagină.
 
+<a id="core-diagram"></a>
+<a id="diagramă-de-bază"></a>
 ## Diagramă de bază
 
 ```mermaid
@@ -67,21 +68,22 @@ flowchart LR
 - `Guides` și contractele descriu folosirea stabilă a framework-ului;
 - `Safety` descrie staging-ul, sync-ul și gate-urile de execuție;
 - `Practices` descrie regulile transversale, iar `Feedback` păstrează numai gap-uri
-  reproductibile și ownership-ul lor.
-Etichetele scurte păstrează următorul sens:
+  reproductibile și ownership-ul lor. Etichetele scurte păstrează următorul sens:
 
 | În schemă | Sens complet |
 |---|---|
 | Index | docs index |
 | Arhitectură | architecture |
-| Ghiduri | guides + contracts |
+| Ghiduri | ghiduri + contracte |
 | Build safety | build safety |
-| Bune practici | best practices |
+| Bune practici | bune practici |
 | Feedback | feedback + owner docs |
 | orientează | orientează spre |
 
 </details>
 
+<a id="recommended-reading-order"></a>
+<a id="ordinea-recomandată-de-lectură"></a>
 ## Ordinea recomandată de lectură
 
 | Scop | Documente de pornire |
@@ -122,8 +124,7 @@ Ordinea completă de lectură este păstrată colapsată mai jos:
 12. [../atf-ui/README.md](../atf-ui/README.md) — politicile generice și adaptorul
    Playwright.
 13. [../atf-reporting-tests/src/test/java/atf/ui/tests/extent/README.md](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/README.md)
-   — contractul stabil pentru selecția API, mock-backed expected projection,
-   secțiuni Extent și validarea UI reutilizabilă.
+   — contractul stabil pentru selecția API, mock-backed expected projection, secțiuni Extent și validarea UI reutilizabilă.
 14. [../atf-debug-ui/README.md](../atf-debug-ui/README.md) — publicarea
    read-only a unui HTML pentru investigație manuală în Playwright/TAB MCP.
 15. [ATF_Api_Test_Guide.md](ATF_Api_Test_Guide.md) — pașii minimali pentru un test API nou.
@@ -136,9 +137,7 @@ Ordinea completă de lectură este păstrată colapsată mai jos:
 19. [ATF_Build_And_Execution_Safety.md](ATF_Build_And_Execution_Safety.md) —
    build, sincronizare și validare fără oprirea execuțiilor existente.
 20. [README_Atf_BestPractices.md](README_Atf_BestPractices.md) — indexul regulilor;
-   [README_Atf_CodeBestPractices.md](README_Atf_CodeBestPractices.md) pentru cod,
-   OOP și testare; [README_Atf_DocumentationBestPractices.md](README_Atf_DocumentationBestPractices.md)
-   pentru structură, diagrame și lizibilitate.
+   [README_Atf_CodeBestPractices.md](README_Atf_CodeBestPractices.md) pentru cod, OOP și testare; [README_Atf_DocumentationBestPractices.md](README_Atf_DocumentationBestPractices.md) pentru structură, diagrame și lizibilitate.
 21. [ATF_Testing_Guide.md](ATF_Testing_Guide.md) — alegerea layer-ului, matricea
     module × layer și dovada potrivită pentru UI/API și raportare.
 22. [feedback/README.md](feedback/README.md) — ToDo active, criterii de închidere
@@ -152,18 +151,17 @@ Ordinea completă de lectură este păstrată colapsată mai jos:
 
 </details>
 
-Harta modulelor are un singur owner: [ATF_Architecture.md](ATF_Architecture.md).
-Acest index oferă doar trasee de lectură și trimiteri către contractele detaliate.
+Harta modulelor are un singur owner: [ATF_Architecture.md](ATF_Architecture.md). Acest index oferă doar trasee de lectură și trimiteri către contractele detaliate.
 
+<a id="change-workflow-for-every-change"></a>
+<a id="regula-de-lucru-pentru-orice-schimbare"></a>
 ## Regula de lucru pentru orice schimbare
 
 ```text
 cod și feedback live → staging separat → teste relevante → audit artifact/UI → promovare selectivă
 ```
 
-Păstrează rulările existente; nu copia artefactele generate în surse.
-Detaliile operaționale sunt în
-[ATF_Build_And_Execution_Safety.md](ATF_Build_And_Execution_Safety.md).
+Păstrează rulările existente; nu copia artefactele generate în surse. Detaliile operaționale sunt în [ATF_Build_And_Execution_Safety.md](ATF_Build_And_Execution_Safety.md).
 
 | Stare | Locul normativ |
 |---|---|
@@ -172,9 +170,10 @@ Detaliile operaționale sunt în
 | Gap încă deschis | [registrul de feedback](feedback/README.md) și documentul ownerului |
 | Analiză închisă sau datată | În afara documentației normative |
 
-Testele aplicației rămân la consumer. Astfel, `atf-reporting` poate fi folosit
-ca JAR fără dependență de `atf-reporting-tests`.
+Testele aplicației rămân la consumer. Astfel, `atf-reporting` poate fi folosit ca JAR fără dependență de `atf-reporting-tests`.
 
+<a id="promotional-rule"></a>
+<a id="regula-de-promovare"></a>
 ### Regula de promovare
 
 - **când:** un ToDo devine parte din soluție;
@@ -183,15 +182,15 @@ ca JAR fără dependență de `atf-reporting-tests`.
 - **interdicție:** feedback-ul nu este sursa normativă pentru o capabilitate deja
   livrată.
 
+<a id="documentation-rules"></a>
+<a id="reguli-de-documentație"></a>
 ## Reguli de documentație
 
 - README-urile descriu contracte, ownership și fluxuri reproductibile.
 - Numele documentelor descriptive folosesc `ATF_<PascalCase>`; acronimul `ATF`
-  apare o singură dată, în primul segment. README-ul unui modul rămâne
-  `README.md`, iar indexul feedback-ului rămâne `docs/feedback/README.md`.
+  apare o singură dată, în primul segment. README-ul unui modul rămâne `README.md`, iar indexul feedback-ului rămâne `docs/feedback/README.md`.
 - README-urile normative și contractele de modul nu conțin scoruri, timestamp-uri,
-  nume de rapoarte sau stări intermediare; scorurile de prioritizare sunt
-  rezervate feedback-ului și nu exprimă calitatea contractului stabil.
+  nume de rapoarte sau stări intermediare; scorurile de prioritizare sunt rezervate feedback-ului și nu exprimă calitatea contractului stabil.
 - Nu se păstrează linkuri către artefacte HTML generate; se documentează doar
   tipul de output, locația configurabilă și criteriul de verificare.
 - O diagramă trebuie să reflecte responsabilitățile și fluxurile existente;
@@ -201,10 +200,12 @@ ca JAR fără dependență de `atf-reporting-tests`.
 - Orice schimbare vizuală sau de navigare se verifică în artifactul HTML și,
   când este relevant, prin interacțiune în TAB MCP.
 
+<a id="mandatory-verification-for-the-rated-ui-ratio"></a>
+<a id="verificare-obligatorie-pentru-raportul-ui-randat"></a>
+<a id="mandatory-verification-of-the-rendered-ui-report"></a>
 ### Verificare obligatorie pentru raportul UI randat
 
-Orice schimbare de clasă mare, CSS, markup, disclosure sau evidence urmează
-aceeași probă, indiferent dacă raportul este produs dinamic sau auditat static:
+Orice schimbare de clasă mare, CSS, markup, disclosure sau evidence urmează aceeași probă, indiferent dacă raportul este produs dinamic sau auditat static:
 
 ```text
 GENERATED_API: setup → API/mock → API report → ATF Debug/browser MCP
@@ -218,12 +219,10 @@ STATIC_*:      HTML existent → ATF Debug/browser MCP
 - **API report:** POST/PUT cu request/response JSON valide, nevid și reconciliat cu `ValidationResult`;
 - **Verdict:** cel puțin un caz pozitiv și unul negativ.
 
-Build-ul se face în staging extern, sub `${ATF_STAGING_ROOT}`, nu în staging-ul
-proiectului; raportul fresh se copiază în
-`${ATF_REPORT_OUTPUT_DIR}` sau subdirectorul UI configurat numai după verificarea prin
-ATF Debug UI și browser MCP. Browserul Windows real și oprirea rulărilor curente
-sunt interzise.
+Build-ul se face în staging extern, sub `${ATF_STAGING_ROOT}`, nu în staging-ul proiectului; raportul fresh se copiază în `${ATF_REPORT_OUTPUT_DIR}` sau subdirectorul UI configurat numai după verificarea prin ATF Debug UI și browser MCP. Browserul Windows real și oprirea rulărilor curente sunt interzise.
 
+<a id="short-vocabulary"></a>
+<a id="vocabular-scurt"></a>
 ## Vocabular scurt
 
 - `test` = intenția de produs verificată
@@ -234,6 +233,8 @@ sunt interzise.
 - `scenario` = testul complet, cu fazele și verdictul final
 - `artifact` = raportul HTML autonom rezultat după finalizarea sesiunii
 
+<a id="how-do-you-check-the-index"></a>
+<a id="cum-verifici-indexul"></a>
 ## Cum verifici indexul
 
 | Întrebare | Autoritate și probă |
@@ -242,15 +243,14 @@ sunt interzise.
 | Cine deține contractul? | [Arhitectura](ATF_Architecture.md) și POM-ul ownerului; linkul din index nu transferă responsabilitatea |
 | Este regula livrată? | Codul și proba ownerului; [feedback-ul](feedback/README.md) separă restanța de contract |
 
-Validitatea linkurilor nu certifică semantica unui contract. Comanda gate-ului
-și limitele lui sunt la [ATF Tests](../atf-tests/README.md#verificare-rapidă).
+Validitatea linkurilor nu certifică semantica unui contract. Comanda gate-ului și limitele lui sunt la [ATF Tests](../atf-tests/README.md#verificare-rapidă).
 
+<a id="core-as-library---owner-and-deployment"></a>
+<a id="core-ca-bibliotecă--owner-și-deployment"></a>
 ## Core ca bibliotecă — owner și deployment
 
-J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module.
-[Contractul Core](ATF_Core_Consumer.md) separă sursa și publicarea de acceptanța independentă a fiecărui consumator J1–J7.
-Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
+J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module. [Contractul Core](ATF_Core_Consumer.md) separă sursa și publicarea de acceptanța independentă a fiecărui consumator J1–J7. Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 
 ## Library distribution contracts
 
-The [distribution contract](ATF_Core_Consumer.md) defines source ownership, flat binary consumption and independent acceptance. Coordinates and hashes are read from consumer provenance; execution notes stay with the packaged library under [evidence retention](ATF_Workspace_Synchronization.md#release-evidence-retention).
+[distribution contract](ATF_Core_Consumer.md) definește ownership-ul sursei, consumul binar plat și acceptanța independentă. Coordonatele și hash-urile vin din proveniența consumerului; notele de execuție rămân lângă biblioteca împachetată în [retenția dovezilor](ATF_Workspace_Synchronization.md#release-evidence-retention).

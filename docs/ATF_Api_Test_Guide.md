@@ -1,5 +1,10 @@
+<a id="guide-to-add-a-api-test-to-atf-java"></a>
+<a id="ghid-pentru-adăugarea-unui-test-api-în-atf-java"></a>
+<a id="guide-to-adding-an-api-test-in-atf-java"></a>
 # Ghid pentru adăugarea unui test API în ATF Java
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 - scop: un test API determinist, semantic și reproductibil;
@@ -8,14 +13,15 @@
 - arhitectură: [ATF_Architecture.md](ATF_Architecture.md);
 - raportare: [ATF_Reporting_Contract.md](ATF_Reporting_Contract.md).
 
+<a id="binding-steps"></a>
+<a id="pașii-obligatorii"></a>
+<a id="required-steps"></a>
 ## Pașii obligatorii
 
 - [ ] definește comportamentul API și criteriul de acceptare;
 - [ ] verifică ruta, modelul, serviciul și validatorul existente;
 - [ ] păstrează vocabularul rutelor la owner: `MockRoutePaths` acoperă serviciul
-      demo al modulului `atf-mock`, nu rutele fiecărui consumer; pentru live,
-      `ApiLiveTransportCatalog` oferă transport generic cu endpoint declarat și
-      opt-in explicit;
+      demo al modulului `atf-mock`, nu rutele fiecărui consumer; pentru live, `ApiLiveTransportCatalog` oferă transport generic cu endpoint declarat și opt-in explicit;
 - [ ] adaugă serviciu semantic numai când operația are sens de domeniu;
 - [ ] execută prin executor și transport injectat; testul nu construiește clientul HTTP;
 - [ ] grupează verificările response-ului într-un singur tabel de assertions;
@@ -34,6 +40,9 @@
 
 </details>
 
+<a id="minimum-structure-of-a-scenario"></a>
+<a id="structura-minimă-a-unui-scenariu"></a>
+<a id="minimum-scenario-structure"></a>
 ## Structura minimă a unui scenariu
 
 ```mermaid
@@ -75,16 +84,16 @@ Etichetele scurte păstrează următorul sens:
 
 </details>
 
-Pentru un test simplu, TEST BODY trebuie să conțină request-ul și validarea
-lui. Pentru lifecycle, fazele sunt create numai când au conținut real. Un nod
-TEST BODY nu repetă failure-urile care apar deja în tabelul de assertions; faza
-arată doar sumarul, iar diagnosticul detaliat rămâne sub validation.
+Pentru un test simplu, TEST BODY trebuie să conțină request-ul și validarea lui. Pentru lifecycle, fazele sunt create numai când au conținut real. Un nod TEST BODY nu repetă failure-urile care apar deja în tabelul de assertions; faza arată doar sumarul, iar diagnosticul detaliat rămâne sub validation.
 
+<a id="what-checks-a-api-test"></a>
+<a id="ce-verifică-un-test-api"></a>
+<a id="what-an-api-test-verifies"></a>
 ## Ce verifică un test API
 
 Un validator poate grupa în același tabel:
 
-| Assertion | Expected | Actual | Result |
+| Assertion | Expected | Actual | Rezultat |
 |---|---|---|---|
 | HTTP status | codul și textul așteptat | răspunsul primit | PASS/FAIL/WARNING |
 | Content-Type | tipul acceptat | header-ul primit | PASS/FAIL |
@@ -92,14 +101,12 @@ Un validator poate grupa în același tabel:
 | câmp obligatoriu | valoare sau tip | valoarea primită | PASS/FAIL/WARNING |
 | relație | resursa asociată | rezultatul verificării | PASS/FAIL |
 
-Nu se creează câte un nod pentru fiecare assertion. Tabelul este agregat pentru
-response-ul curent, astfel încât toate abaterile să fie vizibile împreună.
+Nu se creează câte un nod pentru fiecare assertion. Tabelul este agregat pentru response-ul curent, astfel încât toate abaterile să fie vizibile împreună.
 
-Corelarea alege observația curentă înaintea evaluării statusului, conform
-[contractului dovezii](ATF_Evidence_Capture_Contract.md#alegerea-dovezii-înaintea-verdictului).
-Un răspuns de eroare și lipsa capturii au diagnostice distincte; un 2xx mai vechi
-nu poate înlocui dovada operației evaluate.
+Corelarea alege observația curentă înaintea evaluării statusului, conform [contractului dovezii](ATF_Evidence_Capture_Contract.md#alegerea-dovezii-înaintea-verdictului). Un răspuns de eroare și lipsa capturii au diagnostice distincte; un 2xx mai vechi nu poate înlocui dovada operației evaluate.
 
+<a id="duration-and-status-in-the-report"></a>
+<a id="durată-și-status-în-raport"></a>
 ## Durată și status în raport
 
 Regula vizibilă este:
@@ -111,10 +118,10 @@ Regula vizibilă este:
 - o durată Extent inclusivă nu se adună din nou cu descendenții;
 - timestamp-ul nu este durată și nu apare ca o coloană în `Tests`.
 
-Unitatea, geometria și paleta badge-urilor sunt contracte vizuale comune, nu
-reguli API; sursa normativă este
-[contractul Reporting Display](ATF_Reporting_Display_Contract.md#tokens-vizuale).
+Unitatea, geometria și paleta badge-urilor sunt contracte vizuale comune, nu reguli API; sursa normativă este [contractul Reporting Display](ATF_Reporting_Display_Contract.md#tokens-vizuale).
 
+<a id="separation-of-responsibilities"></a>
+<a id="separarea-responsabilităților"></a>
 ## Separarea responsabilităților
 
 ```text
@@ -128,22 +135,16 @@ Report session              -> arbore și evidence
 Scenario                    -> ordine și intenție
 ```
 
-Dacă testul începe să conțină JSON de infrastructură, CSS, markup Extent,
-politici de retry sau endpoint-uri literale, responsabilitatea este în locul
-greșit.
+Dacă testul începe să conțină JSON de infrastructură, CSS, markup Extent, politici de retry sau endpoint-uri literale, responsabilitatea este în locul greșit.
 
-`ApiLiveTransportCatalog` nu descoperă host-ul serviciului și nu selectează
-automat o rută de business: consumerul îi furnizează endpoint-ul din configurația
-sa, apoi catalogul validează modul `LIVE`, opt-in-ul și originea request-ului.
-Contractul serviciului și rutele lui rămân în modulul consumerului.
+`ApiLiveTransportCatalog` nu descoperă host-ul serviciului și nu selectează automat o rută de business: consumerul îi furnizează endpoint-ul din configurația sa, apoi catalogul validează modul `LIVE`, opt-in-ul și originea request-ului. Contractul serviciului și rutele lui rămân în modulul consumerului.
 
+<a id="hand-replay-and-actual-requests"></a>
+<a id="replay-manual-și-request-uri-reale"></a>
+<a id="manual-replay-and-real-requests"></a>
 ## Replay manual și request-uri reale
 
-Raportul API este sursa de pași reproductibili: `METHOD`, `URL`, headers
-efective, `REQUEST JSON`, `RESPONSE JSON`, `TRANSPORT PROVENANCE` și
-`MANUAL REPLAY`. În acceptance, un URL real configurat este numai metadata a
-mock-ului; raportul îl marchează `ACCEPTANCE / MOCK` și `NOT EXECUTABLE`. Nu se
-copiează un cURL dintr-un raport mock ca și cum ar fi fost executat.
+Raportul API este sursa de pași reproductibili: `METHOD`, `URL`, headers efective, `REQUEST JSON`, `RESPONSE JSON`, `TRANSPORT PROVENANCE` și `MANUAL REPLAY`. În acceptance, un URL real configurat este numai metadata a mock-ului; raportul îl marchează `ACCEPTANCE / MOCK` și `NOT EXECUTABLE`. Nu se copiează un cURL dintr-un raport mock ca și cum ar fi fost executat.
 
 Request-urile reale sunt separate și opt-in:
 
@@ -153,11 +154,9 @@ api:
   baseUri: https://<real-api-host>/<base-path>
 ```
 
-Transportul live cere mod și opt-in explicite la composition root, plus un
-endpoint validat de `ApiLiveTransportCatalog`. Configurația generică poate citi
-`atf.api.live.optIn` sau `ATF_API_LIVE_OPT_IN`; gate-urile consumerilor au politici proprii.
+Transportul live cere mod și opt-in explicite la composition root, plus un endpoint validat de `ApiLiveTransportCatalog`. Configurația generică poate citi `atf.api.live.optIn` sau `ATF_API_LIVE_OPT_IN`; gate-urile consumerilor au politici proprii.
 
-| Lansare | Gate curent | Owner |
+| Lansare | Gate curent | Responsabil |
 |---|---|---|
 | Catalog generic configurat | profil `live` și opt-in de transport | `atf-core` |
 | API AutoEx | opt-in-uri independente `atf.autoex.api.readonly.live.enabled` și `atf.autoex.api.live.enabled` | [AutoEx](../atf-test-auto-ex/README.md#api-direct-și-limita-evidence-ului-uiapi) |
@@ -169,20 +168,23 @@ endpoint validat de `ApiLiveTransportCatalog`. Configurația generică poate cit
 - fără network pentru testele care nu declară explicit profilul `live`;
 - fără placeholder acceptance și fără request în afara originii endpoint-ului selectat.
 
+<a id="report-ownershipwwnnnnnnnnnnnnnnnnnnnnnnnnnn"></a>
+<a id="ownership-ul-raportului"></a>
+<a id="report-ownership"></a>
 ## Ownership-ul raportului
 
-Suita nu garantează singură raport comun: adaptorul trebuie să dețină explicit
-sesiunea și finalizarea. AutoEx declară scope `suite` pentru API și păstrează
-scope `class` la lansare individuală; Shop are o singură clasă în suita API live.
+Suita nu garantează singură raport comun: adaptorul trebuie să dețină explicit sesiunea și finalizarea. AutoEx declară scope `suite` pentru API și păstrează scope `class` la lansare individuală; Shop are o singură clasă în suita API live.
 
 - Auditul Shop se deschide înaintea clientului și credentialelor și se publică
   după cleanup, inclusiv pe ieșiri de eșec. Lipsa răspunsului nu inventează status sau body HTTP.
 - Un HTTP respins păstrează request-ul, răspunsul disponibil și comparațiile FAIL;
   o clasă reușită nu acoperă eșecul clasei-surori din artifactul comun.
 - Componentele fără trafic publică verificări prin adaptorul de componentă,
-  fără request-uri sintetice; contractul este în
-  [ghidul de testare](ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
+  fără request-uri sintetice; contractul este în [ghidul de testare](ATF_Testing_Guide.md#auditul-componentelor-consumerilor).
 
+<a id="cleanup-and-faillure"></a>
+<a id="cleanup-și-failure"></a>
+<a id="cleanup-and-failure"></a>
 ## Cleanup și failure
 
 - resursa creată se înregistrează imediat în registry-ul scenariului;
@@ -191,6 +193,9 @@ scope `class` la lansare individuală; Shop are o singură clasă în suita API 
 - statusul final respectă aceeași precedence peste tot;
 - un test skip nu simulează un pass și nu publică assertions inventate.
 
+<a id="verification-of-the-report"></a>
+<a id="verificarea-raportului"></a>
+<a id="verifying-the-report"></a>
 ## Verificarea raportului
 
 După testele offline și rularea scenariului:
@@ -205,6 +210,5 @@ După testele offline și rularea scenariului:
 - [ ] verifică Fails: o singură zonă, sumar schematic și link stabil;
 - [ ] confirmă că nu apar resurse externe sau folder auxiliar Extent.
 
-Validarea vizuală este parte din testul de raportare. Build-ul verde singur nu
-este suficient când schimbarea atinge DOM-ul sau CSS-ul.
+Validarea vizuală este parte din testul de raportare. Build-ul verde singur nu este suficient când schimbarea atinge DOM-ul sau CSS-ul.
 

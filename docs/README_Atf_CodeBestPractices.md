@@ -1,15 +1,14 @@
+<a id="atf-best-practices--code-and-testing"></a>
+<a id="bune-practici-atf--cod-și-testare"></a>
 # Bune practici ATF — cod și testare
 
-Acest document este owner-ul regulilor de implementare: module, OOP, modele,
-constante, asset-uri de raportare și stratificarea testelor. Pentru redactarea
-README-urilor și a feedback-ului se folosește
-[README_Atf_DocumentationBestPractices.md](README_Atf_DocumentationBestPractices.md).
+Acest document este owner-ul regulilor de implementare: module, OOP, modele, constante, asset-uri de raportare și stratificarea testelor. Pentru redactarea README-urilor și a feedback-ului se folosește [README_Atf_DocumentationBestPractices.md](README_Atf_DocumentationBestPractices.md).
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
-**Trasee rapide:** [ownership](#limite-de-responsabilitate-și-proprietari) ·
-[OOP](#oop-și-modele) · [layere](#structura-testelor) ·
-[probe](#verificarea-regulilor-de-cod)
+**Trasee rapide:** [ownership](#limite-de-responsabilitate-și-proprietari) · [OOP](#oop-și-modele) · [layere](#structura-testelor) · [probe](#verificarea-regulilor-de-cod)
 
 Codul ATF trebuie să fie ușor de citit din boundary spre detaliu:
 
@@ -36,7 +35,7 @@ Etichetele scurte păstrează următorul sens:
 | Intenție | intenție de test |
 | Boundary | boundary explicit |
 | Model typed | model typed |
-| Policy | policy / validator pur |
+| Politică | policy / validator pur |
 | Adaptor | adapter extern |
 | Dovadă | evidence / artifact |
 
@@ -54,18 +53,16 @@ Etichetele scurte păstrează următorul sens:
 <summary><strong>Harta de lectură</strong></summary>
 
 - [ownership](#limite-de-responsabilitate-și-proprietari),
-  [suport E2E](#suport-e2e-reutilizabil-fără-abstractizare-forțată) și
-  [schimbări protejate](#contracte-protejate-și-schimbări-controlate);
+  [suport E2E](#suport-e2e-reutilizabil-fără-abstractizare-forțată) și [schimbări protejate](#contracte-protejate-și-schimbări-controlate);
 - [OOP și coeziune](#oop-și-modele),
-  [constante](#constante-enum-uri-și-string-uri) și
-  [importuri statice](#importuri-statice);
+  [constante](#constante-enum-uri-și-string-uri) și [importuri statice](#importuri-statice);
 - [raportare](#raportare-html-css-și-javascript),
-  [structura testelor](#structura-testelor),
-  [configurare și căi](#configurare-și-căi) și
-  [consolă](#consolă-și-raportare).
+  [structura testelor](#structura-testelor), [configurare și căi](#configurare-și-căi) și [consolă](#consolă-și-raportare).
 
 </details>
 
+<a id="responsibility-boundaries-and-owners"></a>
+<a id="limite-de-responsabilitate-și-proprietari"></a>
 ## Limite de responsabilitate și proprietari
 
 | Zonă | Responsabilitate | Nu deține |
@@ -86,34 +83,24 @@ consumer test
   → HTML/Extent artifact
 ```
 
-`atf-reporting` trebuie să poată fi compilat și consumat independent. Orice
-dependență către mock, browser sau fixture de aplicație rămâne în test scope-ul
-consumerului. Compatibilitatea legacy se face într-un adapter cu owner și test,
-nu prin reflecție răspândită în renderer.
+`atf-reporting` trebuie să poată fi compilat și consumat independent. Orice dependență către mock, browser sau fixture de aplicație rămâne în test scope-ul consumerului. Compatibilitatea legacy se face într-un adapter cu owner și test, nu prin reflecție răspândită în renderer.
 
+<a id="reusable-e2e-support-without-forced-abstraction"></a>
+<a id="suport-e2e-reutilizabil-fără-abstractizare-forțată"></a>
 ## Suport E2E reutilizabil fără abstractizare forțată
 
-Shop și AutoEx repetă unele responsabilități de test, dar diferența nu justifică
-un modul UI nou. Prima țintă este mult mai mică: mutarea în `atf-test-kit` doar a
-primitivelor neutre care se repetă și pot fi testate fără browser sau site.
+Shop și AutoEx repetă unele responsabilități de test, dar diferența nu justifică un modul UI nou. Prima țintă este mult mai mică: mutarea în `atf-test-kit` doar a primitivelor neutre care se repetă și pot fi testate fără browser sau site.
 
 - `atf-test-kit` deține deja `TestRunInitialization`, `CloseOnceResource`,
-  `FailureAwareCleanup`, `FailureEvidenceCleanup` și `ArmedCleanup`;
-  reutilizează aceste contracte, nu recrea inițializarea sau cleanup-ul local.
+  `FailureAwareCleanup`, `FailureEvidenceCleanup` și `ArmedCleanup`; reutilizează aceste contracte, nu recrea inițializarea sau cleanup-ul local.
 - Shop este modelul de referință pentru alinierea AutoEx: păstrează contractele
-  business, ownership-ul și dovezile auditabile Shop, apoi extrage capabilitatea
-  neutră aplicabilă ambilor consumeri. Coeziunea internă Shop poate fi îmbunătățită;
-  regula nu cere copierea selectorilor ori a flow-ului său în AutoEx.
+  business, ownership-ul și dovezile auditabile Shop, apoi extrage capabilitatea neutră aplicabilă ambilor consumeri. Coeziunea internă Shop poate fi îmbunătățită; regula nu cere copierea selectorilor ori a flow-ului său în AutoEx.
 - Kit-ul nu primește Playwright, `Page`, sesiuni Extent, profile de captură,
-  network inspector, YAML consumer sau vocabulary de journey. `atf-ui` îl
-  consumă deja în test scope; dependența inversă ar crea un ciclu.
+  network inspector, YAML consumer sau vocabulary de journey. `atf-ui` îl consumă deja în test scope; dependența inversă ar crea un ciclu.
 - Extensiile JUnit care deschid browserul, raportează evidence și închid sesiunea
-  sunt astăzi adaptoare în `src/test` pentru fiecare consumer. Ținta refactorizării
-  este un adaptor minim peste capabilități la owner, nu mutarea extensiei întregi
-  în main; un helper JUnit comun intră în Kit numai cu un contract neutru demonstrat.
+  sunt astăzi adaptoare în `src/test` pentru fiecare consumer. Ținta refactorizării este un adaptor minim peste capabilități la owner, nu mutarea extensiei întregi în main; un helper JUnit comun intră în Kit numai cu un contract neutru demonstrat.
 - Codul folosit exclusiv de teste nu stă în `src/main` doar pentru că un gate
-  clasifică orice pachet `support` drept reutilizabil; ownership-ul se determină
-  din apelanți, dependențe și source-set.
+  clasifică orice pachet `support` drept reutilizabil; ownership-ul se determină din apelanți, dependențe și source-set.
 - `SETUP` și `TEST BODY` pot fi opționale în adaptoare, fără a impune aceeași
   secvență de business tuturor consumatorilor.
 - AutoEx .NET nu consumă librăria Java; reutilizarea între limbaje înseamnă
@@ -128,15 +115,14 @@ primitivelor neutre care se repetă și pot fi testate fără browser sau site.
   semantica rețelei, păstrează-l local;
 - nu crea un modul nou pentru a ascunde un contract încă neclar.
 
-Boundary-ul neutru al infrastructurii comune este documentat în
-[README-ul Test Kit](../atf-test-kit/README.md); source-set-ul și compoziția
-concretă rămân în README-ul ownerului fiecărui consumer.
+Boundary-ul neutru al infrastructurii comune este documentat în [README-ul Test Kit](../atf-test-kit/README.md); source-set-ul și compoziția concretă rămân în README-ul ownerului fiecărui consumer.
 
+<a id="the-test-expresses-intent-main-owns-the-capability"></a>
+<a id="testul-exprimă-intenția-main-deține-capabilitatea"></a>
 ### Testul exprimă intenția, main deține capabilitatea
 
 - Mută în `src/main` logica reutilizabilă numai la ownerul real: runtime de
-  aplicație la consumer, browser la UI, model/publicare la Reporting și
-  infrastructură de test neutră în Kit-ul existent.
+  aplicație la consumer, browser la UI, model/publicare la Reporting și infrastructură de test neutră în Kit-ul existent.
 - Nu muta în main oracolul, fixture-ul artificial sau un runner ascuns ca să
   golești un director. Numele `support` nu decide source-set-ul.
 - Păstrează testul declarativ: precondiție, acțiune business și rezultat observat;
@@ -148,8 +134,7 @@ concretă rămân în README-ul ownerului fiecărui consumer.
 - Adaptoarele dependente de JUnit rămân minime la granița de execuție;
   extinderea unui API comun nu introduce dependențe UI/Reporting în Kit.
 
-Matricea de ownership a runtime-ului livrat explică ce poate fi refactorizat
-fără mutarea infrastructurii JUnit în artifactele aplicațiilor:
+Matricea de ownership a runtime-ului livrat explică ce poate fi refactorizat fără mutarea infrastructurii JUnit în artifactele aplicațiilor:
 
 | Responsabilitate | Owner live | Intrări și limită |
 |---|---|---|
@@ -160,23 +145,19 @@ fără mutarea infrastructurii JUnit în artifactele aplicațiilor:
 | Selecție, fixture și ownership de suită | adaptoarele consumerilor în test | JUnit Store, rezoluția contextului și scope-ul claselor |
 | Cleanup neutru de test | primitivele existente din Kit | ordinea și cauzele, prin callback-uri fără browser sau Extent |
 
-Acești owneri sunt contracte existente. O extracție nouă cere cele două utilizări
-reale și probele negative ale gate-ului de mai sus; o mutare de clase nu dovedește
-singură achiziția parțială, izolarea scope-ului sau păstrarea cauzei.
+Acești owneri sunt contracte existente. O extracție nouă cere cele două utilizări reale și probele negative ale gate-ului de mai sus; o mutare de clase nu dovedește singură achiziția parțială, izolarea scope-ului sau păstrarea cauzei.
 
-Flow-ul business, flow-ul UI, acțiunile compuse și operația Playwright atomică
-au contracte diferite; validarea produce rezultate tipizate înaintea proiecției
-în raport. Boundary-urile și probele țintă sunt în
-[ghidul de testare](ATF_Testing_Guide.md#separarea-flow-urilor-business-ui-și-a-validărilor).
+Flow-ul business, flow-ul UI, acțiunile compuse și operația Playwright atomică au contracte diferite; validarea produce rezultate tipizate înaintea proiecției în raport. Boundary-urile și probele țintă sunt în [ghidul de testare](ATF_Testing_Guide.md#separarea-flow-urilor-business-ui-și-a-validărilor).
 
 - Deciziile de reutilizare sunt în [atlas](ATF_Context_Atlas.md#reutilizare-fără-mutarea-politicii-aplicației).
 - [Acceptanța business a consumerilor](ATF_Testing_Guide.md#acceptanța-business-individual-și-prin-suită)
   descrie dovada cerută înaintea reducerii selecției.
 
+<a id="protected-contracts-and-controlled-changes"></a>
+<a id="contracte-protejate-și-schimbări-controlate"></a>
 ## Contracte protejate și schimbări controlate
 
-README-urile ownerilor și testele-gate existente sunt parte din contractul de
-mentenanță, nu material de curățare incidentală.
+README-urile ownerilor și testele-gate existente sunt parte din contractul de mentenanță, nu material de curățare incidentală.
 
 - [ ] Un gate existent nu este șters, relaxat, redenumit sau dezactivat doar
       pentru a face verde un run.
@@ -189,6 +170,8 @@ mentenanță, nu material de curățare incidentală.
 - [ ] O regulă închisă este promovată în README-ul ownerului, iar feedback-ul
       este eliminat sau arhivat numai după ce testul confirmă închiderea.
 
+<a id="oop-and-models"></a>
+<a id="oop-și-modele"></a>
 ## OOP și modele
 
 - [ ] O clasă are un motiv dominant de schimbare.
@@ -197,19 +180,17 @@ mentenanță, nu material de curățare incidentală.
 - [ ] Un `record`/POJO reprezintă o zonă semantică stabilă: setup, request,
       response, assertion, evidence, section sau verdict.
 - [ ] Metadata de run pentru `Overview/System` folosește un snapshot typed și
-      allowlist-uit (`ReportEnvironmentField`/`ReportEnvironmentSnapshot`);
-      `Map<String,String>` rămâne numai boundary de compatibilitate.
+      allowlist-uit (`ReportEnvironmentField`/`ReportEnvironmentSnapshot`); `Map<String,String>` rămâne numai boundary de compatibilitate.
 - [ ] Builder-ul gestionează opționale; validatorul verifică invariants; niciunul
       nu ascunde efecte externe.
 - [ ] Interfața reprezintă un port real care poate fi observat, înlocuit sau
       izolat (`ReportSource`, `ReportValidator`, `BrowserActions`).
 - [ ] I/O, transport, browser și randare sunt adapters separate.
 
-Un split de clasă este justificat de boundary semantic — facade, provider,
-extractor, validator, publisher sau lifecycle — nu doar de numărul de linii.
-Nu se creează pachete `misc` și nu se mută mecanic fișiere doar pentru a atinge
-un număr.
+Un split de clasă este justificat de boundary semantic — facade, provider, extractor, validator, publisher sau lifecycle — nu doar de numărul de linii. Nu se creează pachete `misc` și nu se mută mecanic fișiere doar pentru a atinge un număr.
 
+<a id="package-cohesion--eight-class-threshold"></a>
+<a id="coeziunea-pachetelor--pragul-de-opt-clase"></a>
 ### Coeziunea pachetelor — pragul de opt clase
 
 ```text
@@ -234,12 +215,11 @@ un pachet
 <details>
 <summary><strong>De ce pragul nu se rezolvă prin mutări mecanice</strong></summary>
 
-Pragul de opt clase este un semnal de navigare și coeziune, nu o regulă de
-formatare. Un pachet mare poate ascunde mai multe motive de schimbare; un
-split bun separă ownership-ul și păstrează dependențele lizibile. Nu se creează
-pachete artificiale și nu se șterg clase fără dovadă de nefolosire.
+Pragul de opt clase este un semnal de navigare și coeziune, nu o regulă de formatare. Un pachet mare poate ascunde mai multe motive de schimbare; un split bun separă ownership-ul și păstrează dependențele lizibile. Nu se creează pachete artificiale și nu se șterg clase fără dovadă de nefolosire.
 </details>
 
+<a id="constants-enums-and-strings"></a>
+<a id="constante-enum-uri-și-string-uri"></a>
 ## Constante, enum-uri și string-uri
 
 Valorile stabile ale contractului nu se repetă ca string-uri brute.
@@ -268,6 +248,8 @@ Valorile stabile ale contractului nu se repetă ca string-uri brute.
 - [ ] Un oracol wire independent poate păstra explicit payload-ul și numele
       câmpurilor așteptate; nu se generează expected-ul prin serializerul testat.
 
+<a id="static-imports"></a>
+<a id="importuri-statice"></a>
 ### Importuri statice
 
 Importurile statice sunt o scurtătură de citire, nu o scurtătură de ownership:
@@ -284,6 +266,8 @@ import static atf.shop.tests.api.support.PracticeShopApiScenarioFixture.PRODUCT_
 import static org.junit.jupiter.api.Assertions.assertEquals;
 ```
 
+<a id="reporting-html-css-and-javascript"></a>
+<a id="raportare-html-css-și-javascript"></a>
 ## Raportare: HTML, CSS și JavaScript
 
 ```mermaid
@@ -325,12 +309,11 @@ Etichetele scurte păstrează următorul sens:
 - [ ] Orice schimbare de markup/CSS/JS are test component și artifact fresh
       verificat în ATF Debug/browser MCP.
 
+<a id="test-structure"></a>
+<a id="structura-testelor"></a>
 ## Structura testelor
 
-`support` este zonă auxiliară, nu al cincilea nivel de test.
-Strategia de selecție, matricea module × layer și proof-ul potrivit fiecărui
-boundary sunt deținute de [ATF_Testing_Guide.md](ATF_Testing_Guide.md); această
-secțiune păstrează convențiile de structură și lizibilitate a codului de test.
+`support` este zonă auxiliară, nu al cincilea nivel de test. Strategia de selecție, matricea module × layer și proof-ul potrivit fiecărui boundary sunt deținute de [ATF_Testing_Guide.md](ATF_Testing_Guide.md); această secțiune păstrează convențiile de structură și lizibilitate a codului de test.
 
 ```text
 src/test/java/<owner>/
@@ -351,19 +334,18 @@ src/test/java/<owner>/
 - [ ] Adnotarea este sursa de adevăr; path-ul este doar convenție și diagnostic.
 - [ ] Nu se creează directoare goale pentru layere inexistente.
 - [ ] Support-ul nu devine layer executabil. Store-ul și extensia JUnit sunt
-      test-only; runtime-ul main poate deține resurse prin porturi explicite,
-      fără dependențe JUnit/Kit și cu probe pentru achiziție și cleanup.
+      test-only; runtime-ul main poate deține resurse prin porturi explicite, fără dependențe JUnit/Kit și cu probe pentru achiziție și cleanup.
 - [ ] E2E rămâne mic, configurabil și selectează scenarii punctuale prin
       adnotări/configurație typed.
 - [ ] Combinațiile exhaustive sunt coborâte în unit/component/integration.
 
-Pentru API, mock-ul poate furniza `pass`, `fail`, `warning` și `skip`. Pentru
-UI, inputul poate fi un raport static sau unul generat; validarea verifică
-structura și randarea observabilă, fără să inventeze rezultate de business.
+Pentru API, mock-ul poate furniza `pass`, `fail`, `warning` și `skip`. Pentru UI, inputul poate fi un raport static sau unul generat; validarea verifică structura și randarea observabilă, fără să inventeze rezultate de business.
 
 <details>
 <summary><strong>Modelul unui test ATF elegant și plug-and-play</strong></summary>
 
+<a id="design-order"></a>
+<a id="ordinea-de-proiectare"></a>
 ### Ordinea de proiectare
 
 1. **Alege layer-ul** — unit, component, integration sau E2E.
@@ -380,6 +362,8 @@ structura și randarea observabilă, fără să inventeze rezultate de business.
 7. **Închide prin owner** — extension/harness-ul închide browserul, transportul
    și sesiunea; testul nu adaugă `try/catch/finally`.
 
+<a id="preferred-shape"></a>
+<a id="forma-preferată"></a>
 ### Forma preferată
 
 ```text
@@ -393,6 +377,8 @@ class BusinessJourneyTest {
 }
 ```
 
+<a id="readability-rules"></a>
+<a id="reguli-de-lizibilitate"></a>
 ### Reguli de lizibilitate
 
 - un test are un singur motiv de failure și un singur rezultat dominant;
@@ -409,18 +395,20 @@ class BusinessJourneyTest {
 - importurile statice sunt nominale și fac testul mai ușor de citit numai când
   owner-ul rămâne evident.
 
+<a id="visual-criterion-for-a-good-test"></a>
+<a id="criteriu-vizual-pentru-un-test-bun"></a>
 ### Criteriu vizual pentru un test bun
 
 ```text
 metadata → fixture → flow → observed assertions → evidence
 ```
 
-Dacă cititorul vede înainte de flow inițializări de browser, directoare de
-raport, request factory, selectori sau cleanup, composition root-ul este prea
-încărcat și responsabilitatea trebuie mutată într-un harness/support typed.
+Dacă cititorul vede înainte de flow inițializări de browser, directoare de raport, request factory, selectori sau cleanup, composition root-ul este prea încărcat și responsabilitatea trebuie mutată într-un harness/support typed.
 
 </details>
 
+<a id="test-data-and-initial-setup-with-external-effects"></a>
+<a id="date-de-test-și-configurare-inițială-cu-efect-extern"></a>
 ### Date de test și configurare inițială cu efect extern
 
 Un test autentificat separă sursa contului de journey-ul pe care îl verifică:
@@ -436,24 +424,21 @@ Un test autentificat separă sursa contului de journey-ul pe care îl verifică:
 - cheia de reuse corespunde scope-ului declarat (metodă, class-run sau suită),
   iar acel scope se dovedește comportamental, nu doar printr-un test al map-ului;
 - raportul rezumă check-urile în `Setup evidence`, păstrează API exchange-ul
-  separat când este colectat și redactează credențiale/date personale din
-  acțiuni, assertions și capturi.
+  separat când este colectat și redactează credențiale/date personale din acțiuni, assertions și capturi.
 
-Detaliul contractului E2E aparține consumerului; forma generică a evidence-ului
-este deținută de [ATF Reporting Contract](ATF_Reporting_Contract.md#context-intern-și-diagnostic-al-scenariului).
+Detaliul contractului E2E aparține consumerului; forma generică a evidence-ului este deținută de [ATF Reporting Contract](ATF_Reporting_Contract.md#context-intern-și-diagnostic-al-scenariului).
 
+<a id="configuration-and-paths"></a>
+<a id="configurare-și-căi"></a>
 ## Configurare și căi
 
 - [ ] Nicio cale absolută nu apare în cod, comentarii, mesaj sau README.
 - [ ] Root-ul, staging-ul și output-ul sunt rezolvate la boundary-ul de
       configurație/I/O.
 - [ ] Discovery-ul de module/source-root și traversal-ul generic de fișiere stau
-      în `atf-core.files`; testele nu reimplementează `locateModuleRoot()`,
-      `sourceFiles()`, `user.dir` traversal sau `Files.walk` pentru aceeași
-      responsabilitate.
+      în `atf-core.files`; testele nu reimplementează `locateModuleRoot()`, `sourceFiles()`, `user.dir` traversal sau `Files.walk` pentru aceeași responsabilitate.
 - [ ] Helper-ul generic primește markere relative și excluderi explicite;
-      nu cunoaște module concrete, package-uri de produs sau reguli ascunse ale
-      unui singur test.
+      nu cunoaște module concrete, package-uri de produs sau reguli ascunse ale unui singur test.
 - [ ] Un helper nou se adaugă numai dacă API-ul existent nu exprimă contractul;
       în acest caz se extinde ownerul `files`, nu se creează o copie în consumer.
 - [ ] YAML-ul configurează fixture și runtime; adnotarea exprimă selecția și
@@ -461,19 +446,13 @@ este deținută de [ATF Reporting Contract](ATF_Reporting_Contract.md#context-in
 - [ ] Un output este referit prin nume logic sau placeholder configurabil,
       niciodată prin `Path.toString()` într-un raport permanent.
 
+<a id="console-and-reporting"></a>
+<a id="consolă-și-raportare"></a>
 ## Consolă și raportare
 
-Consola și detaliile UI/API sunt active implicit în Reporting și Shop,
-inclusiv fără YAML; opt-out-ul este explicit prin `reporting.console`.
-Producătorul redactează datele, `atf-console` le formatează, iar proiecția nu
-schimbă verdictul. `ConsoleDefaultsGovernanceTest` protejează configurația și
-composition root-urile.
+Consola și detaliile UI/API sunt active implicit în Reporting și Shop, inclusiv fără YAML; opt-out-ul este explicit prin `reporting.console`. Producătorul redactează datele, `atf-console` le formatează, iar proiecția nu schimbă verdictul. `ConsoleDefaultsGovernanceTest` protejează configurația și composition root-urile.
 
-Testele modulelor, suportul și resursele lor se schimbă numai cu un control
-tehnic structurat, exceptând `atf-test-practice-shop`. Guvernanța verifică
-SHA-ul baseline-ului, controlul exact, starea, expirarea și comanda de probă;
-regula include testele de guvernanță înseși. Procedura și configurarea CI sunt
-în [README-ul atf-tests](../atf-tests/README.md#guvernanța-schimbării-testelor).
+Testele modulelor, suportul și resursele lor se schimbă numai cu un control tehnic structurat, exceptând `atf-test-practice-shop`. Guvernanța verifică SHA-ul baseline-ului, controlul exact, starea, expirarea și comanda de probă; regula include testele de guvernanță înseși. Procedura și configurarea CI sunt în [README-ul atf-tests](../atf-tests/README.md#guvernanța-schimbării-testelor).
 
 Regula de separare pentru consolă și reporting este:
 
@@ -485,6 +464,8 @@ Regula de separare pentru consolă și reporting este:
 <details>
 <summary><strong>Regula `try/catch`: support/runtime versus teste</strong></summary>
 
+<a id="desired-behavior"></a>
+<a id="comportamentul-dorit"></a>
 ### Comportamentul dorit
 
 Regula ATF este separată pe boundary:
@@ -525,11 +506,7 @@ try (ExtentReportSession session = ExtentReportSession.openConfigured()) {
 }
 ```
 
-Un parser poate converti o eroare într-un `Optional`/`Result` numai dacă absența
-este parte din contract. Dacă inputul este malformed, caller-ul trebuie să poată
-produce un failure distinct. Un validator UI poate păstra o linie `AtfAssertion`
-cu status FAIL pentru o indisponibilitate, dar nu are voie să ocolească statusul,
-să piardă cauza sau să lase scenariul PASS.
+Un parser poate converti o eroare într-un `Optional`/`Result` numai dacă absența este parte din contract. Dacă inputul este malformed, caller-ul trebuie să poată produce un failure distinct. Un validator UI poate păstra o linie `AtfAssertion` cu status FAIL pentru o indisponibilitate, dar nu are voie să ocolească statusul, să piardă cauza sau să lase scenariul PASS.
 
 Checklist obligatoriu pentru un modul de test:
 
@@ -547,6 +524,8 @@ Checklist obligatoriu pentru un modul de test:
 
 </details>
 
+<a id="change-protocol"></a>
+<a id="protocol-de-schimbare"></a>
 ## Protocol de schimbare
 
 - [ ] Recitește codul live și identifică owner-ul.
@@ -562,6 +541,8 @@ Checklist obligatoriu pentru un modul de test:
 - [ ] Mută regula stabilă în README-ul ownerului și păstrează în feedback doar
       gap-ul rămas.
 
+<a id="completion-criteria"></a>
+<a id="criterii-de-finalizare"></a>
 ## Criterii de finalizare
 
 - [ ] Responsabilitatea este mai clară decât înainte.
@@ -575,6 +556,8 @@ Checklist obligatoriu pentru un modul de test:
 - [ ] Documentația nu conține date de rulare, timestamp-uri, numărări de run,
       căi locale, linkuri `file:///` sau artifacte generate.
 
+<a id="code-rule-verification"></a>
+<a id="verificarea-regulilor-de-cod"></a>
 ## Verificarea regulilor de cod
 
 | Regulă | Owner executabil | Limita probei |
@@ -584,15 +567,13 @@ Checklist obligatoriu pentru un modul de test:
 | Coeziunea pachetelor | [AtfPackageCohesionGovernanceTest](../atf-tests/src/test/java/atf/api/tests/governance/AtfPackageCohesionGovernanceTest.java) | limita de inventar nu justifică împărțirea mecanică a unei clase |
 | Layer și surse Java | [AtfTestLayerArchitectureTest](../atf-tests/src/test/java/atf/api/tests/governance/layers/AtfTestLayerArchitectureTest.java) | include rădăcinile din POM; nu demonstrează acoperirea funcțională |
 
-[Comanda whole-ATF](../atf-tests/README.md#verificare-rapidă) rulează în staging.
-Testele unit/component ale ownerului verifică comportamentul schimbat;
-verdele guvernanței nu substituie aceste probe sau auditul de raport.
+[Comanda whole-ATF](../atf-tests/README.md#verificare-rapidă) rulează în staging. Testele unit/component ale ownerului verifică comportamentul schimbat; verdele guvernanței nu substituie aceste probe sau auditul de raport.
 
+<a id="module-reassessment-rubric"></a>
+<a id="rubrica-reevaluării-modulelor"></a>
 ## Rubrica reevaluării modulelor
 
-Nota modulului evaluează codul livrat și probele lui, separat de nota README-ului,
-readiness-ul unei propuneri și prioritatea backlog-ului. Aceeași rubrică se
-aplică tuturor modulelor; punctajele motivate se raportează în canalul reviziei.
+Nota modulului evaluează codul livrat și probele lui, separat de nota README-ului, readiness-ul unei propuneri și prioritatea backlog-ului. Aceeași rubrică se aplică tuturor modulelor; punctajele motivate se raportează în canalul reviziei.
 
 | Atribut | Maximum | Ce susține punctajul |
 |---|---:|---|
@@ -603,20 +584,12 @@ aplică tuturor modulelor; punctajele motivate se raportează în canalul revizi
 | Operare | 10 | configurare explicită, execuție și output auditabile, fără resurse ascunse |
 
 - Un false PASS, pierderea cauzei funcționale, contaminarea unui scope sau un
-  shutdown fără limită, reproduse în boundary-ul declarat, împiedică declararea
-  unei note peste 91 până la rezolvarea și verificarea criteriului.
+  shutdown fără limită, reproduse în boundary-ul declarat, împiedică declararea unei note peste 91 până la rezolvarea și verificarea criteriului.
 - Închiderea include proba negativă care eșuează pe comportamentul anterior,
-  regresiile adiacente și guvernanța existentă; simpla adăugare a unui test nu
-  acordă puncte dacă oracolul repetă implementarea.
+  regresiile adiacente și guvernanța existentă; simpla adăugare a unui test nu acordă puncte dacă oracolul repetă implementarea.
 - Pentru consumeri și schimbări vizibile în raportare, verificați câte un caz
-  relevant individual și prin suită, în Extent/fallback unde se aplică; păstrați
-  raportul unic, timing-ul, aserțiunile și expandările. Unit și fixture-urile
-  Reporting își păstrează categoriile, fără artifacte business fabricate.
+  relevant individual și prin suită, în Extent/fallback unde se aplică; păstrați raportul unic, timing-ul, aserțiunile și expandările. Unit și fixture-urile Reporting își păstrează categoriile, fără artifacte business fabricate.
 - Lipsa unei lacune demonstrate cere revalidare țintită, nu o refactorizare
-  inventată pentru punctaj. Numărul de module, clase, teste ori linii nu
-  substituie calitatea și nu extinde funcționalitatea incrementului.
+  inventată pentru punctaj. Numărul de module, clase, teste ori linii nu substituie calitatea și nu extinde funcționalitatea incrementului.
 
-Reevaluarea folosește codul live după sync și probele executate în staging;
-nu promite automat puncte pentru închiderea unor checkbox-uri. Regula de
-[păstrare a scorurilor în canal](README_Atf_DocumentationBestPractices.md#rubrica-reviziei-editoriale)
-se aplică și acestei evaluări, fără scorecard datat în contractele proiectului.
+Reevaluarea folosește codul live după sync și probele executate în staging; nu promite automat puncte pentru închiderea unor checkbox-uri. Regula de [păstrare a scorurilor în canal](README_Atf_DocumentationBestPractices.md#rubrica-reviziei-editoriale) se aplică și acestei evaluări, fără scorecard datat în contractele proiectului.

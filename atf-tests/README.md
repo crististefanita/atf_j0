@@ -1,5 +1,9 @@
+<a id="atf-tests--whole-reactor-governance"></a>
+<a id="atf-tests--guvernanță-whole-reactor"></a>
 # ATF Tests — guvernanță whole-reactor
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 **Trasee rapide:** [Whole-ATF](#suita-whole-atf-și-reziduul-de-compatibilitate) · [Mentenanță J0/J1](#mentenanța-perechii-j0j1) · [Rădăcini Java](#inventarul-comun-al-surselor-java) · [Controale Git](#guvernanța-schimbării-testelor) · [Gate și limite](#verificare-rapidă)
@@ -27,18 +31,17 @@ flowchart LR
 - `Checks` grupează verificările de arhitectură, scope și siguranță runtime;
 - muchia punctată arată guard-ul aplicat consumatorilor, nu ownership transferat către governance;
 - consumatorii folosesc bibliotecile prin dependințe explicite, iar governance-ul
-  verifică această direcție fără să devină runtime.
-Etichetele scurte păstrează următorul sens:
+  verifică această direcție fără să devină runtime. Etichetele scurte păstrează următorul sens:
 
 | În schemă | Sens complet |
 |---|---|
 | Guard-uri | architecture + runtime guards |
 | Consumeri | consumer modules |
-| Librării ATF | ATF libraries |
+| Librării ATF | Librării ATF |
 
 </details>
 
-| Responsabilitate | Owner | Excludere explicită |
+| Responsabilitate | Responsabil | Excludere explicită |
 |---|---|---|
 | reactor, POM și dependency direction | `atf-tests` | nu modifică production code |
 | source/package ownership și module placement | `ArchitectureModuleBoundaryTest`, `ArchitectureOwnershipBoundaryTest` | nu deține selectorii unei aplicații |
@@ -47,6 +50,8 @@ Etichetele scurte păstrează următorul sens:
 | Practice Shop purchase journey | `atf-test-practice-shop` | nu se copiază aici |
 | reporting contract/API/UI composition | `atf-reporting-tests` | nu se mută în governance |
 
+<a id="choose-the-gate-for-the-change"></a>
+<a id="alege-gate-ul-după-schimbare"></a>
 ## Alege gate-ul după schimbare
 
 | Schimbare | Intrare | Ce confirmă |
@@ -56,21 +61,15 @@ Etichetele scurte păstrează următorul sens:
 | dependență, package ori source-set | [whole-ATF](#suita-whole-atf-și-reziduul-de-compatibilitate) | boundary-ul executabil al reactorului |
 | rezultat business sau randare | testul modulului owner | comportamentul efectiv, suplimentar față de guvernanță |
 
-Un gate structural verde certifică regulile pe care le implementează.
-Fidelitatea unei propoziții, verdictul unui raport și rezultatul aplicației
-cer și proba ownerului; comenzile `proof` din YAML se execută separat.
+Un gate structural verde certifică regulile pe care le implementează. Fidelitatea unei propoziții, verdictul unui raport și rezultatul aplicației cer și proba ownerului; comenzile `proof` din YAML se execută separat.
 
-Pentru IntelliJ și Maven folosește același [staging cu Git real](../docs/ATF_Build_And_Execution_Safety.md#staging-pentru-guvernanța-schimbării-testelor).
-Harta de [rădăcini Java](#inventarul-comun-al-surselor-java) explică layout-urile
-consumerilor înaintea oricărei mutări de teste.
+Pentru IntelliJ și Maven folosește același [staging cu Git real](../docs/ATF_Build_And_Execution_Safety.md#staging-pentru-guvernanța-schimbării-testelor). Harta de [rădăcini Java](#inventarul-comun-al-surselor-java) explică layout-urile consumerilor înaintea oricărei mutări de teste.
 
+<a id="maintenance-of-the-j0--j1-pair"></a>
+<a id="mentenanța-perechii-j0j1"></a>
 ## Mentenanța perechii J0/J1
 
-`AtfWorkspaceMaintenanceSuite` este entry point-ul combinat: rulează
-`WholeAtfGovernanceSuiteTest` în J0 și acceptanța read-only a perechii J0/J1.
-Feedback-ul ownerului rămâne sursa criteriului și a probei comportamentale;
-această colecție adaugă verificările whole-reactor și de boundary între
-workspace-uri, fără să marcheze automat feedback-ul ca închis.
+`AtfWorkspaceMaintenanceSuite` este entry point-ul combinat: rulează `WholeAtfGovernanceSuiteTest` în J0 și acceptanța read-only a perechii J0/J1. Feedback-ul ownerului rămâne sursa criteriului și a probei comportamentale; această colecție adaugă verificările whole-reactor și de boundary între workspace-uri, fără să marcheze automat feedback-ul ca închis.
 
 | Poartă | Ce verifică | Rol în feedback |
 |---|---|---|
@@ -78,12 +77,7 @@ workspace-uri, fără să marcheze automat feedback-ul ca închis.
 | `AtfMaintenanceWorkspacePairGovernanceTest` | ownership sursă/binar, cele cinci perechi JAR/POM și catalogul de biblioteci fără referințe la alte workspaces | verifică boundary-ul declarat pentru workspace-urile selectate |
 | `AtfWorkspaceMaintenanceSuite` | ambele porți de mai sus într-o invocare | gate comun înainte de reconciliere; nu înlocuiește testele native ale consumerului la adoptarea unui JAR nou |
 
-Rădăcinile `ATF_MAINTENANCE_J0` și `ATF_MAINTENANCE_J1` trebuie să indice
-checkout-uri verificate înainte de rulare. Rădăcinile J0 și J1 sunt obligatorii,
-explicite și absolute; suita refuză
-căile lipsă sau relative, nu descoperă proiecte în vecinătate și nu modifică
-niciun workspace. J1 este citit ca sursă de acceptanță; nu este actualizat de
-această suită.
+Rădăcinile `ATF_MAINTENANCE_J0` și `ATF_MAINTENANCE_J1` trebuie să indice checkout-uri verificate înainte de rulare. Rădăcinile J0 și J1 sunt obligatorii, explicite și absolute; suita refuză căile lipsă sau relative, nu descoperă proiecte în vecinătate și nu modifică niciun workspace. J1 este citit ca sursă de acceptanță; nu este actualizat de această suită.
 
 ```powershell
 if (-not $env:ATF_MAINTENANCE_J0 -or -not $env:ATF_MAINTENANCE_J1) { throw 'Set both workspace root variables first.' }
@@ -95,25 +89,21 @@ mvn -B -pl atf-tests -am "-Dtest=AtfWorkspaceMaintenanceSuite" `
   "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
-Pentru depanarea izolată a relației de workspace, `AtfMaintenanceWorkspacePairSuite`
-rulează numai a doua poartă. La schimbarea unui contract binar, rulează separat
-și suitele native ale consumerului pentru comportamentul efectiv al aplicației.
-Fluxul și limitele porților sunt în
-[protocolul workspace-urilor](../docs/ATF_Workspace_Synchronization.md#protocolul-fiecărui-increment).
+Pentru depanarea izolată a relației de workspace, `AtfMaintenanceWorkspacePairSuite` rulează numai a doua poartă. La schimbarea unui contract binar, rulează separat și suitele native ale consumerului pentru comportamentul efectiv al aplicației. Fluxul și limitele porților sunt în [protocolul workspace-urilor](../docs/ATF_Workspace_Synchronization.md#protocolul-fiecărui-increment).
 
+<a id="government-of-source-or-binary-deployment"></a>
+<a id="guvernanța-deployment-ului-sursă-sau-binar"></a>
 ## Guvernanța deployment-ului sursă sau binar
 
 | Deployment | Module live | Cu harness Reporting în TMP |
 |---|---:|---:|
 | sursă canonică | 12 | inclus |
-| binar journeys, implicit | 10 | 11 |
+| trasee binare, implicite | 10 | 11 |
 | binar foundation, explicit | 8 | 9 |
 
 Un modul declarat lipsă este eroare; profilele nu sunt deduse din directoare.
 
-`WholeAtfGovernanceSuiteTest` păstrează aceeași selecție explicită în J1 și în
-producător. [Pachetul deployment](src/test/java/atf/api/tests/governance/distribution/README.md)
-selectează dovada după declarația Maven, fără a deduce excepții din fișiere lipsă.
+`WholeAtfGovernanceSuiteTest` păstrează aceeași selecție explicită în J1 și în producător. [Pachetul deployment](src/test/java/atf/api/tests/governance/distribution/README.md) selectează dovada după declarația Maven, fără a deduce excepții din fișiere lipsă.
 
 | Regulă | Reporting sursă | Reporting binar |
 |---|---|---|
@@ -124,21 +114,15 @@ selectează dovada după declarația Maven, fără a deduce excepții din fișie
 | identitate | modul sursă local | versiune, JAR/POM, proveniență unică, POM embedded și hash-ul CodeSource-ului |
 | test layer | sursele native și adnotările lor | catalog native inclus în proveniență; fără a-l prezenta drept execuție locală a sursei |
 
-Modul șters, coordonată absentă/greșită, artifact alterat și dependență ascunsă
-au controale negative. Mutantul factual funcționează pentru 8/9/10/11/12 module;
-asta nu autorizează un reactor cu module eliminate din catalog.
+Modul șters, coordonată absentă/greșită, artifact alterat și dependență ascunsă au controale negative. Mutantul factual funcționează pentru 8/9/10/11/12 module; asta nu autorizează un reactor cu module eliminate din catalog.
 
-Controlul Git folosește baza reală de review a fiecărui proiect. Sincronizarea
-surselor comune nu copiază `.git`, POM-ul reactorului, JAR-ul sau controale
-cu baza celuilalt proiect; eligibilitatea se verifică distinct.
+Controlul Git folosește baza reală de review a fiecărui proiect. Sincronizarea surselor comune nu copiază `.git`, POM-ul reactorului, JAR-ul sau controale cu baza celuilalt proiect; eligibilitatea se verifică distinct.
 
+<a id="whole-atf-suite-and-compatibility-residue"></a>
+<a id="suita-whole-atf-și-reziduul-de-compatibilitate"></a>
 ## Suita whole-ATF și reziduul de compatibilitate
 
-[`ReportUiActionAdapters`](src/test/java/atf/ui/tests/support/reporting/ReportUiActionAdapters.java)
-este suport de compatibilitate în source-set-ul de test, nu test executabil sau
-cod de producție. Prezența lui nu transferă ownership-ul testelor UI ori al
-reportingului către `atf-tests`; `ArchitectureOwnershipBoundaryTest` protejează
-această limită.
+[`ReportUiActionAdapters`](src/test/java/atf/ui/tests/support/reporting/ReportUiActionAdapters.java) este suport de compatibilitate în source-set-ul de test, nu test executabil sau cod de producție. Prezența lui nu transferă ownership-ul testelor UI ori al reportingului către `atf-tests`; `ArchitectureOwnershipBoundaryTest` protejează această limită.
 
 ```text
 src/test/java/atf/api/tests/governance/
@@ -163,20 +147,14 @@ src/test/java/atf/api/tests/governance/
 └── WholeAtfGovernanceSuiteTest.java
 ```
 
-`WholeAtfGovernanceSuiteTest` este entry point-ul explicit pentru verificarea
-întregului reactor. El grupează verificările fără să mute responsabilitatea
-testelor de reporting în acest modul:
+`WholeAtfGovernanceSuiteTest` este entry point-ul explicit pentru verificarea întregului reactor. El grupează verificările fără să mute responsabilitatea testelor de reporting în acest modul:
 
 - `ArchitectureModuleBoundaryTest` — reactor, POM, direcția dependențelor,
-  importuri interzise, output de proces, stare statică și eliminarea
-  `atf-execution`;
+  importuri interzise, output de proces, stare statică și eliminarea `atf-execution`;
 - `ArchitectureOwnershipBoundaryTest` — placement-ul modulelor, package roots,
   ownership-ul reporting/UI și absența duplicărilor;
 - `AtfPackageCohesionGovernanceTest` — coeziunea package-urilor de producție
-  guvernate și a source-set-urilor de test din fiecare modul al reactorului,
-  inclusiv `atf-test-practice-shop`, `atf-test-kit` și `atf-reporting-tests`;
-  pragul este de maximum opt clase, iar diagnosticul identifică modulul,
-  package-ul și clasele concrete pentru orice hotspot nou sau excepție stale;
+  guvernate și a source-set-urilor de test din fiecare modul al reactorului, inclusiv `atf-test-practice-shop`, `atf-test-kit` și `atf-reporting-tests`; pragul este de maximum opt clase, iar diagnosticul identifică modulul, package-ul și clasele concrete pentru orice hotspot nou sau excepție stale;
 - `AtfSourceReadabilityGovernanceTest` — importuri duplicate în sursele Maven main/test și invocații ATF complet calificate în reporting tests; comentariile și literalii sunt excluși lexical;
 - `layers.AtfTestLayerArchitectureTest` — inventariază rădăcinile `sourceDirectory` și `testSourceDirectory` din POM (cu default Maven), apoi verifică nivelul fiecărei clase executabile; fixture-urile imbricate nu schimbă nivelul clasei exterioare;
 - `layers.ConsumerSuiteCoverageGovernanceTest` — exact trei suite principale per consumer, fără clase omise, selecții suprapuse sau amestec local/E2E/API live; citește declarația ownerului și selectorii executabili, fără comentarii ori fixture-uri nested promovate la gate. Probează și scope-ul explicit al rapoartelor componentelor;
@@ -186,35 +164,21 @@ testelor de reporting în acest modul:
 - `governance.documentation.DynamicPathDocumentationArchitectureTest` — documentație
   relocabilă, fără căi de mașină sau nume de artifact generate concret;
 - `governance.documentation.DocumentationReadmeStructureGovernanceTest` — un titlu,
-  prezentare executivă obligatorie în README-ul rădăcină, `Overview`/`Pe scurt`
-  în documentele locale, `<details>` echilibrate și linkuri locale rezolvabile;
-  verifică și rutele J0–J7 din tabelul de workspace-uri;
+  prezentare executivă obligatorie în README-ul rădăcină, `Overview`/`Pe scurt` în documentele locale, `<details>` echilibrate și linkuri locale rezolvabile; verifică și rutele J0–J7 din tabelul de workspace-uri;
 - `governance.documentation.DocumentationStyleGovernanceTest` — stil semantic ATF:
-  fence-uri tipizate, headings fără salturi, bullets `-` și fără font/CSS/HTML
-  prezentational în README-uri și în documentul arhitectural canonic;
+  fence-uri tipizate, headings fără salturi, bullets `-` și fără font/CSS/HTML prezentational în README-uri și în documentul arhitectural canonic;
 - `governance.documentation.DocumentationProseGovernanceTest` — limitează proza
-  rapid scan la cel mult trei propoziții pe paragraf și două paragrafe dense
-  consecutive; responsabilitățile, limitele și relațiile dense trebuie mutate în
-  bullets, tabele, diagrame sau `<details>`;
+  rapid scan la cel mult trei propoziții pe paragraf și două paragrafe dense consecutive; responsabilitățile, limitele și relațiile dense trebuie mutate în bullets, tabele, diagrame sau `<details>`;
 - `governance.documentation.DocumentationTargetGovernanceTest` — exemplu
-  plug-and-play cu `@DocumentationTarget("atf-test-practice-shop/README.md")`; aceeași clasă
-  poate valida orice README prin toate modulele de documentație;
+  plug-and-play cu `@DocumentationTarget("atf-test-practice-shop/README.md")`; aceeași clasă poate valida orice README prin toate modulele de documentație;
 - `governance.documentation.DocumentationDiagramGovernanceTest` — orientare `LR`,
-  legendă imediată, fence-uri echilibrate și relații etichetate în README-urile
-  non-root;
+  legendă imediată, fence-uri echilibrate și relații etichetate în README-urile non-root;
 - `governance.documentation.DocumentationGovernanceSupport` — vocabular comun pentru
-  diagnostice: cod, fișier, linie, regulă și remediere. Nu ascunde excepții și nu
-  transformă un feedback în „pass”.
+  diagnostice: cod, fișier, linie, regulă și remediere. Nu ascunde excepții și nu transformă un feedback în „pass”.
 
-Fiecare abatere de documentație trebuie să indice dinamic: ce fișier și linie au
-fost găsite, ce regulă este încălcată și ce modificare minimă o poate remedia.
-Un README poate rămâne intenționat roșu în timpul reconcilierii; suita trebuie să
-facă gap-ul reproductibil, nu să-l îngroape într-o excepție.
+Fiecare abatere de documentație trebuie să indice dinamic: ce fișier și linie au fost găsite, ce regulă este încălcată și ce modificare minimă o poate remedia. Un README poate rămâne intenționat roșu în timpul reconcilierii; suita trebuie să facă gap-ul reproductibil, nu să-l îngroape într-o excepție.
 
-Testele de guvernanță sunt contract protejat: nu se modifică, dezactivează sau
-relaxează pentru a transforma un README roșu în pass. Se schimbă numai pe baza
-unui feedback direct care modifică regula, ownerul, criteriul sau dovada cerută;
-în caz contrar se repară documentul țintă.
+Testele de guvernanță sunt contract protejat: nu se modifică, dezactivează sau relaxează pentru a transforma un README roșu în pass. Se schimbă numai pe baza unui feedback direct care modifică regula, ownerul, criteriul sau dovada cerută; în caz contrar se repară documentul țintă.
 
 Pentru o verificare punctuală, se schimbă doar valoarea adnotării:
 
@@ -224,16 +188,11 @@ class ReportingReadmeGovernanceTest {
 }
 ```
 
-Testul țintit apelează aceleași validatoare ca suita whole-ATF: structură,
-stil, proză, diagrame, relocatabilitate și nume de artifacte.
+Testul țintit apelează aceleași validatoare ca suita whole-ATF: structură, stil, proză, diagrame, relocatabilitate și nume de artifacte.
 
-Declarația repeatable `DocumentationTarget` aparține
-`atf.testkit.documentation`; lista țintelor și validatorii rămân aici.
-[Contractul adnotărilor](../docs/ATF_Test_Infrastructure_Annotations.md) explică
-ownership-ul și limitele de compoziție.
+Declarația repeatable `DocumentationTarget` aparține `atf.testkit.documentation`; lista țintelor și validatorii rămân aici. [Contractul adnotărilor](../docs/ATF_Test_Infrastructure_Annotations.md) explică ownership-ul și limitele de compoziție.
 
-Astfel, `atf-reporting-tests` nu mai deține verificări care inspectează întregul
-repository; păstrează doar boundary-ul API/UI propriu compoziției reporting.
+Astfel, `atf-reporting-tests` nu mai deține verificări care inspectează întregul repository; păstrează doar boundary-ul API/UI propriu compoziției reporting.
 
 <details>
 <summary><strong>Ținta de curățare urmărită în feedback</strong></summary>
@@ -248,11 +207,11 @@ repository; păstrează doar boundary-ul API/UI propriu compoziției reporting.
 
 </details>
 
+<a id="shared-java-source-inventory"></a>
+<a id="inventarul-comun-al-surselor-java"></a>
 ## Inventarul comun al surselor Java
 
-`layers.AtfJavaSourceInventory` este suport de test în `atf-tests`, folosit
-de guvernanța nivelurilor și a lizibilității. Citește aceleași rădăcini pentru
-fiecare POM, inclusiv `src/main` și `src/test` din Shop.
+`layers.AtfJavaSourceInventory` este suport de test în `atf-tests`, folosit de guvernanța nivelurilor și a lizibilității. Citește aceleași rădăcini pentru fiecare POM, inclusiv `src/main` și `src/test` din Shop.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
@@ -278,9 +237,10 @@ flowchart LR
 - Inventarul citește căile literale din POM; nu înlocuiește effective POM,
   moștenirea ori activarea profilelor Maven. Comentariile XML nu declară rădăcini.
 - Guard-ul expresiilor rămâne limitat la reporting tests și păstrează cele
-  trei adaptoare revizuite. Detectează namespace-urile ATF actuale și legacy,
-  constructori și apeluri pe mai multe linii, fără exemplele din comentarii/literale.
+  trei adaptoare revizuite. Detectează namespace-urile ATF actuale și legacy, constructori și apeluri pe mai multe linii, fără exemplele din comentarii/literale.
 
+<a id="two-inventories-with-distinct-responsibilities"></a>
+<a id="două-inventare-cu-responsabilități-distincte"></a>
 ### Două inventare cu responsabilități distincte
 
 | Intrare | Ce inspectează | Limita probei |
@@ -288,56 +248,36 @@ flowchart LR
 | `atf.api.tests.governance.layers.AtfJavaSourceInventory` | rădăcinile Maven main/test pentru guard-urile de nivel și lizibilitate | selecția literală și excluderile descrise mai sus |
 | `atf.core.files.AtfJavaSourceInventory` | declarațiile de package dintr-o rădăcină deja aleasă, pentru coeziune | nu rezolvă POM-uri și nu demonstrează acoperirea inventarului Maven |
 
-Un test verde al grupării Core nu închide lacuna de selecție a guard-urilor
-Maven. [Criteriul de acoperire](README.md#inventarul-comun-al-surselor-java)
-cere compararea surselor compilabile cu cele efectiv inspectate.
+Un test verde al grupării Core nu închide lacuna de selecție a guard-urilor Maven. [Criteriul de acoperire](README.md#inventarul-comun-al-surselor-java) cere compararea surselor compilabile cu cele efectiv inspectate.
 
-[Proba inventarului](src/test/java/atf/api/tests/governance/AtfSourceReadabilityGovernanceTest.java)
-compilează independent surse în package-uri `target`/`artifacts` și cere detectarea
-încălcării din fiecare fișier; output-ul modulului rămâne în afara selecției.
+[Proba inventarului](src/test/java/atf/api/tests/governance/AtfSourceReadabilityGovernanceTest.java) compilează independent surse în package-uri `target`/`artifacts` și cere detectarea încălcării din fiecare fișier; output-ul modulului rămâne în afara selecției.
 
+<a id="test-change-governance"></a>
+<a id="guvernanța-schimbării-testelor"></a>
 ## Guvernanța schimbării testelor
 
-Testele din modulele ATF se schimbă prin controale tehnice structurate, legate
-de cerința ownerului. Singura
-excepție este `atf-test-practice-shop`; limita
-de coeziune și celelalte reguli de arhitectură continuă să i se aplice.
+Testele din modulele ATF se schimbă prin controale tehnice structurate, legate de cerința ownerului. Singura excepție este `atf-test-practice-shop`; limita de coeziune și celelalte reguli de arhitectură continuă să i se aplice.
 
 | Control | Regulă |
 |---|---|
-| Scope | toate fișierele din `<modul>/src/test/`, inclusiv suport, resurse și suite; `pom.xml` rădăcină și POM-urile modulelor, cu excepția exactă Shop |
+| Domeniu | toate fișierele din `<modul>/src/test/`, inclusiv suport, resurse și suite; `pom.xml` rădăcină și POM-urile modulelor, cu excepția exactă Shop |
 | Cerere/control | bloc YAML `testChanges`, ID unic, `ACTIVE` în feedback-ul ownerului sau `VERIFIED` în baseline, motiv, comandă Maven de probă, expirare și SHA-ul baseline-ului |
 | Fișiere | căi relative exacte; fără wildcard, traversal sau owneri multipli pentru aceeași schimbare |
 | Ștergere / redenumire | `allowDelete: true` pentru vechea cale; redenumirea este evaluată ca ștergere + adăugare |
 | Diferență Git | committed față de baseline, staged, unstaged și fișiere noi; nici testele noi ignorate de Git nu sunt exceptate |
 | Eșec infrastructură | checkout sau baseline invalid, conflict ori YAML invalid produc FAIL, nu skip |
 
-`TestChangeGovernanceTest`, `TestChangePolicyTest` și `GitTestChangesTest` sunt
-incluse în `WholeAtfGovernanceSuiteTest`. Probe negative verifică cereri lipsă,
-închise, expirate, incomplete, cu baseline străin, duplicate și ștergeri
-neautorizate; fixture-ul Git real verifică și nume cu spații și redenumiri.
+`TestChangeGovernanceTest`, `TestChangePolicyTest` și `GitTestChangesTest` sunt incluse în `WholeAtfGovernanceSuiteTest`. Probe negative verifică cereri lipsă, închise, expirate, incomplete, cu baseline străin, duplicate și ștergeri neautorizate; fixture-ul Git real verifică și nume cu spații și redenumiri.
 
-La lansare locală, inclusiv IntelliJ, baza implicită este `HEAD`. Pentru o
-ramură completă se setează `-Datf.governance.testChanges.baseRef=<review-base>`;
-CI cere explicit această proprietate sau `ATF_TEST_CHANGE_BASE_REF` și refuză
-valoarea literală `HEAD`. Baza trebuie să fie un strămoș al commitului curent;
-cererea fixează SHA-ul rezolvat, nu un ref mobil.
+La lansare locală, inclusiv IntelliJ, baza implicită este `HEAD`. Pentru o ramură completă se setează `-Datf.governance.testChanges.baseRef=<review-base>`; CI cere explicit această proprietate sau `ATF_TEST_CHANGE_BASE_REF` și refuză valoarea literală `HEAD`. Baza trebuie să fie un strămoș al commitului curent; cererea fixează SHA-ul rezolvat, nu un ref mobil.
 
+<a id="documents-and-responsibilities"></a>
+<a id="documente-și-responsabilități"></a>
 ### Documente și responsabilități
 
-[DocumentationLinkGovernanceTest](src/test/java/atf/api/tests/governance/documentation/links/DocumentationLinkGovernanceTest.java)
-verifică destinațiile locale și fragmentele tuturor README-urilor și documentelor
-Markdown din `docs`, inclusiv atlase, arhitectură și feedback. Output-urile
-generate sunt excluse. [Probele ancorelor](src/test/java/atf/api/tests/governance/documentation/DocumentationAnchorGovernanceTest.java)
-verifică inclusiv un titlu redenumit într-un document care nu se numește README.
-Ambele intră în suita whole-ATF; `@DocumentationTarget` aplică aceeași verificare
-și documentelor selectate explicit. Existența țintei nu certifică sensul etichetei.
+[DocumentationLinkGovernanceTest](src/test/java/atf/api/tests/governance/documentation/links/DocumentationLinkGovernanceTest.java) verifică destinațiile locale și fragmentele tuturor README-urilor și documentelor Markdown din `docs`, inclusiv atlase, arhitectură și feedback. Output-urile generate sunt excluse. [Probele ancorelor](src/test/java/atf/api/tests/governance/documentation/DocumentationAnchorGovernanceTest.java) verifică inclusiv un titlu redenumit într-un document care nu se numește README. Ambele intră în suita whole-ATF; `@DocumentationTarget` aplică aceeași verificare și documentelor selectate explicit. Existența țintei nu certifică sensul etichetei.
 
-[DocumentedBuildContractTest](src/test/java/atf/api/tests/governance/documentation/factual/DocumentedBuildContractTest.java)
-compară modulele și scope-ul Kit cu POM-urile reale.
-[DocumentedUiGeometryContractTest](src/test/java/atf/api/tests/governance/documentation/factual/DocumentedUiGeometryContractTest.java)
-extinde aceeași limită factuală la geometria numerică selectată, fără surse Reporting.
-Ambele probe sunt selectate explicit de `WholeAtfGovernanceSuiteTest`.
+[DocumentedBuildContractTest](src/test/java/atf/api/tests/governance/documentation/factual/DocumentedBuildContractTest.java) compară modulele și scope-ul Kit cu POM-urile reale. [DocumentedUiGeometryContractTest](src/test/java/atf/api/tests/governance/documentation/factual/DocumentedUiGeometryContractTest.java) extinde aceeași limită factuală la geometria numerică selectată, fără surse Reporting. Ambele probe sunt selectate explicit de `WholeAtfGovernanceSuiteTest`.
 
 | Afirmație delimitată | Sursă executabilă | Refuz observabil |
 |---|---|---|
@@ -347,14 +287,9 @@ Ambele probe sunt selectate explicit de `WholeAtfGovernanceSuiteTest`.
 | CSS și DPR din exemplul UI | `UiViewportScale` pentru intrările declarate | geometria derivată nu concordă cu modelul executabil |
 | ieșire, zoom, CSS și DPR în Shop/AutoEx | YAML-ul livrat și același model UI | fiecare câmp numeric poate fi refuzat independent; fără un registru paralel de valori |
 
-Mutanții schimbă numai documentul; YAML-ul și POM-ul rămân intacte. Lipsa,
-duplicarea și o declarație ascunsă într-un fence sunt refuzate cu document,
-linie, valoare declarată/observată și sursa executabilă.
+Mutanții schimbă numai documentul; YAML-ul și POM-ul rămân intacte. Lipsa, duplicarea și o declarație ascunsă într-un fence sunt refuzate cu document, linie, valoare declarată/observată și sursa executabilă.
 
-Guard-ul numeric verifică intenția configurată și modelul de layout, nu pixeli
-de screenshot. [Probele native UI](../atf-ui/README.md#geometria-nativă-a-contextului)
-verifică separat pointerul, viewport-ul, DPR și captura browserului.
-Ambiguitățile prozei și afirmațiile neselectate păstrează review-ul manual.
+Guard-ul numeric verifică intenția configurată și modelul de layout, nu pixeli de screenshot. [Probele native UI](../atf-ui/README.md#geometria-nativă-a-contextului) verifică separat pointerul, viewport-ul, DPR și captura browserului. Ambiguitățile prozei și afirmațiile neselectate păstrează review-ul manual.
 
 | Informație | Owner documentar | Conținut |
 |---|---|---|
@@ -363,10 +298,7 @@ Ambiguitățile prozei și afirmațiile neselectate păstrează review-ul manual
 | Control tehnic verificat | [Registrul verificat](../docs/ATF_Test_Changes_Baseline.md) | context business, roluri, lifecycle și intrări `VERIFIED` colapsate |
 | Comportament stabil | README-ul sau contractul ownerului | regula implementată și demonstrată |
 
-Parserul descoperă blocurile YAML în toate documentele Markdown din
-`docs/feedback` și în `docs/ATF_Test_Changes_Baseline.md`. Procedura proiectului
-ține controalele `ACTIVE` lângă feedback-ul ownerului și controalele `VERIFIED`
-în baseline; nu este necesar un registru activ separat.
+Parserul descoperă blocurile YAML în toate documentele Markdown din `docs/feedback` și în `docs/ATF_Test_Changes_Baseline.md`. Procedura proiectului ține controalele `ACTIVE` lângă feedback-ul ownerului și controalele `VERIFIED` în baseline; nu este necesar un registru activ separat.
 
 <details>
 <summary><strong>Schema controlului și efectul câmpurilor</strong></summary>
@@ -391,6 +323,8 @@ Parserul descoperă blocurile YAML în toate documentele Markdown din
 
 </details>
 
+<a id="reconciliation-and-closure"></a>
+<a id="reconciliere-și-închidere"></a>
 ### Reconciliere și închidere
 
 1. Inspectează sursele live, criteriul funcțional și diferența față de baza revizuirii.
@@ -400,30 +334,21 @@ Parserul descoperă blocurile YAML în toate documentele Markdown din
 5. Mută controlul în baseline-ul `VERIFIED` dacă diff-ul încă îl cere, păstrând ID-ul și eliminând blocul `ACTIVE` din feedback.
 6. Elimină controlul când baza folosită de gate nu mai raportează schimbările acoperite; verifică din nou corespondența diff–control.
 
-`VERIFIED` atestă incrementul verificat, separat de acceptanța întregii cerințe.
-Gate-ul validează metadatele și corespondența diff–control; comenzile `proof`
-se execută separat, iar aprobarea unei schimbări de regulă rămâne explicită.
+`VERIFIED` atestă incrementul verificat, separat de acceptanța întregii cerințe. Gate-ul validează metadatele și corespondența diff–control; comenzile `proof` se execută separat, iar aprobarea unei schimbări de regulă rămâne explicită.
 
-La expirare sau schimbarea bazei se revizuiesc perimetrul și dovada înaintea
-actualizării controlului. Controalele active nu au un fișier dedicat: ele stau
-în feedback-ul ownerului numai cât timp sunt necesare; procedura rămâne aici, iar
-indexul `docs/feedback/README.md` se păstrează permanent.
+La expirare sau schimbarea bazei se revizuiesc perimetrul și dovada înaintea actualizării controlului. Controalele active nu au un fișier dedicat: ele stau în feedback-ul ownerului numai cât timp sunt necesare; procedura rămâne aici, iar indexul `docs/feedback/README.md` se păstrează permanent.
 
+<a id="console-detail-governance"></a>
+<a id="guvernanța-detaliilor-la-consolă"></a>
 ## Guvernanța detaliilor la consolă
 
-`ConsoleDefaultsGovernanceTest` protejează detaliile implicite și conectarea
-UI/API în Reporting și Shop. Testele comportamentale din `atf-console` și
-`ReportingTestConsoleTest` verifică formatarea și livrarea evenimentelor;
-override-ul YAML `false` rămâne suportat.
+`ConsoleDefaultsGovernanceTest` protejează detaliile implicite și conectarea UI/API în Reporting și Shop. Testele comportamentale din `atf-console` și `ReportingTestConsoleTest` verifică formatarea și livrarea evenimentelor; override-ul YAML `false` rămâne suportat.
 
+<a id="separate-consumer-modules"></a>
+<a id="module-consumatoare-separate"></a>
 ## Module consumatoare separate
 
-Testarea site-ului `https://practicesoftwaretesting.com` este izolată în
-`atf-test-practice-shop`. Acolo sunt YAML-ul, configurația checkout-ului,
-locators, page objects, flow-urile și testele component/E2E. Flow-ul principal
-guest nu cere un secret. `ShopNewAccountPurchaseE2eTest` creează un cont
-sintetic; `ShopAuthenticatedPurchaseE2eTest` folosește fixture-ul local când
-rulează separat și reutilizează contul nou în `ShopE2eSuite`.
+Testarea site-ului `https://practicesoftwaretesting.com` este izolată în `atf-test-practice-shop`. Acolo sunt YAML-ul, configurația checkout-ului, locators, page objects, flow-urile și testele component/E2E. Flow-ul principal guest nu cere un secret. `ShopNewAccountPurchaseE2eTest` creează un cont sintetic; `ShopAuthenticatedPurchaseE2eTest` folosește fixture-ul local când rulează separat și reutilizează contul nou în `ShopE2eSuite`.
 
 ```text
 atf-test-practice-shop/src/
@@ -442,12 +367,10 @@ atf-test-practice-shop/src/
 └── test/resources/atf-practice-shop.yaml
 ```
 
-`atf-tests` nu deține clase de business, locatoare, flow-uri sau fixture-uri
-Practice Shop/AutoEx. Poate scana sursele consumerilor pentru reguli whole-ATF
-și arhitectură cross-module, fără să importe clasele lor de test. Testele care
-verifică aplicația externă rămân la consumer; cele care verifică modelul și
-randarea generică a raportului rămân în `atf-reporting-tests`.
+`atf-tests` nu deține clase de business, locatoare, flow-uri sau fixture-uri Practice Shop/AutoEx. Poate scana sursele consumerilor pentru reguli whole-ATF și arhitectură cross-module, fără să importe clasele lor de test. Testele care verifică aplicația externă rămân la consumer; cele care verifică modelul și randarea generică a raportului rămân în `atf-reporting-tests`.
 
+<a id="running-and-staging"></a>
+<a id="rulare-și-staging"></a>
 ## Rulare și staging
 
 ```text
@@ -456,15 +379,12 @@ mvn -pl atf-tests -am test
 mvn -pl atf-tests -am "-Dtest=ConsumerModuleArchitectureGovernanceTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
-Comenzile de business sunt la [Shop](../atf-test-practice-shop/README.md#cum-se-verifică-modulul)
-și [AutoEx](../atf-test-auto-ex/README.md#rulare), cu opt-in-urile proprii.
+Comenzile de business sunt la [Shop](../atf-test-practice-shop/README.md#cum-se-verifică-modulul) și [AutoEx](../atf-test-auto-ex/README.md#rulare), cu opt-in-urile proprii.
 
-Build-urile se fac într-un staging extern (`${ATF_STAGING_ROOT}/...`), fără a
-opri execuții active. Se sincronizează numai fișierele aprobate, după recitirea
-live și reconcilierea modificărilor paralele; nu se copiază `target`, `artifacts`
-sau cache-uri peste live. Procedura normativă este
-[`docs/ATF_Build_And_Execution_Safety.md`](../docs/ATF_Build_And_Execution_Safety.md).
+Build-urile se fac într-un staging extern (`${ATF_STAGING_ROOT}/...`), fără a opri execuții active. Se sincronizează numai fișierele aprobate, după recitirea live și reconcilierea modificărilor paralele; nu se copiază `target`, `artifacts` sau cache-uri peste live. Procedura normativă este [`docs/ATF_Build_And_Execution_Safety.md`](../docs/ATF_Build_And_Execution_Safety.md).
 
+<a id="ownership-rule"></a>
+<a id="regula-responsabilităților"></a>
 ## Regula responsabilităților
 
 ```text
@@ -474,29 +394,22 @@ reporting contracts / Extent composition → atf-reporting-tests
 renderer / HTML / CSS / public reporting API → atf-reporting
 ```
 
-Regulile generale OOP, locator boundary și layering sunt în
-[`docs/README_Atf_BestPractices.md`](../docs/README_Atf_BestPractices.md), iar
-statusul mutării este în [`docs/feedback/README.md`](../docs/feedback/README.md).
+Regulile generale OOP, locator boundary și layering sunt în [`docs/README_Atf_BestPractices.md`](../docs/README_Atf_BestPractices.md), iar statusul mutării este în [`docs/feedback/README.md`](../docs/feedback/README.md).
 
+<a id="readme-links-to-sections"></a>
+<a id="linkuri-readme-către-secțiuni"></a>
 ### Linkuri README către secțiuni
 
-Guard-ul de structură rezolvă calea și fragmentul Markdown, pe fișierul sursă
-sau cross-file. Indexul păstrează Unicode, sufixele heading-urilor duplicate și
-ancorele HTML explicite; ignoră exemplele din fences backtick/tilde și păstrează
-linia originală în diagnostic. Căile și fragmentele percent-encoded se decodează
-fără a transforma `+` în spațiu.
+Guard-ul de structură rezolvă calea și fragmentul Markdown, pe fișierul sursă sau cross-file. Indexul păstrează Unicode, sufixele heading-urilor duplicate și ancorele HTML explicite; ignoră exemplele din fences backtick/tilde și păstrează linia originală în diagnostic. Căile și fragmentele percent-encoded se decodează fără a transforma `+` în spațiu.
 
-`DocumentationAnchorGovernanceTest` probează și ștergerea heading-ului după un
-link valid: `DOC-README-ANCHOR` identifică README-ul, linia și remedierea, chiar
-dacă heading-ul dispărut mai apare într-un exemplu fenced. Regula de heading
-urmează [convenția GitHub](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#section-links).
+`DocumentationAnchorGovernanceTest` probează și ștergerea heading-ului după un link valid: `DOC-README-ANCHOR` identifică README-ul, linia și remedierea, chiar dacă heading-ul dispărut mai apare într-un exemplu fenced. Regula de heading urmează [convenția GitHub](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#section-links).
 
+<a id="quick-check"></a>
+<a id="quick-verification"></a>
+<a id="verificare-rapidă"></a>
 ## Verificare rapidă
 
-În comenzile whole-ATF, înlocuiți `<review-base>` cu SHA-ul/ref-ul real al
-revizuirii, prezent în istoricul stage-ului și aliniat controalelor Git.
-[Resolverul bazei](src/test/java/atf/api/tests/governance/changes/GitTestChanges.java)
-acceptă fallback `HEAD` numai local; CI cere explicit baza și refuză `HEAD`.
+În comenzile whole-ATF, înlocuiți `<review-base>` cu SHA-ul/ref-ul real al revizuirii, prezent în istoricul stage-ului și aliniat controalelor Git. [Resolverul bazei](src/test/java/atf/api/tests/governance/changes/GitTestChanges.java) acceptă fallback `HEAD` numai local; CI cere explicit baza și refuză `HEAD`.
 
 | Decizie | Sursă și limită |
 |---|---|
@@ -513,16 +426,15 @@ Rulați din rădăcina unui [staging extern](../docs/ATF_Build_And_Execution_Saf
 mvn -B -pl atf-tests -am "-Dtest=WholeAtfGovernanceSuiteTest,DocumentationAnchorGovernanceTest" "-Dsurefire.failIfNoSpecifiedTests=false" "-Datf.governance.testChanges.baseRef=<review-base>" test
 ```
 
-Comanda selectează proba numită și construiește dependențele; nu declară
-trecerea întregului modul. Gate-ul nu dovedește un journey business ori randarea artifactului.
+Comanda selectează proba numită și construiește dependențele; nu declară trecerea întregului modul. Gate-ul nu dovedește un journey business ori randarea artifactului.
 
 </details>
 
+<a id="binary-bridge-in-the-reporting-model"></a>
+<a id="puntea-binară-din-modelul-reporting"></a>
 ### Puntea binară din modelul Reporting
 
-Pragul general de coeziune rămâne opt. Inventarul exact pentru model admite
-opt contracte active și unica fațadă deprecated ReportTagNormalizer, a cărei
-implementare este în ownerul semantic ReportTags.
+Pragul general de coeziune rămâne opt. Inventarul exact pentru model admite opt contracte active și unica fațadă deprecated ReportTagNormalizer, a cărei implementare este în ownerul semantic ReportTags.
 
 - O a zecea clasă este refuzată.
 - Înlocuirea unui contract cu alt tip, la același număr fizic, este refuzată.

@@ -1,20 +1,28 @@
-# Console and Mock — library ownership
+<a id="console-and-mock--library-ownership"></a>
+<a id="console-și-mock--ownership-ul-bibliotecilor"></a>
+# Console și Mock — ownership-ul bibliotecilor
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
-J0 owns the common Console and Mock implementation and native tests. J1–J7 reutilizează JAR-urile și trimit aici constatările generice; adaptoarele, cataloagele și oracolele domeniului rămân locale.
+J0 deține implementarea comună Console/Mock și testele native. J1–J7 reutilizează JAR-urile și trimit aici constatările generice; adaptoarele, cataloagele și oracolele domeniului rămân locale.
 
-## Delivered ownership contract
+<a id="delivered-ownership-contract"></a>
+<a id="contractul-de-ownership-livrat"></a>
+## Contractul de ownership livrat
 
-[Platform library consumption](../ATF_Platform_Libraries.md) defines standalone publication, physical-JAR integrity, native-test retention and independent consumer acceptance. Closed extraction requirements are removed from the active backlog; the current package retains detailed execution evidence in owned TMP. Existing Core/Reporting and J1 UI findings remain separate.
+[Consumul bibliotecilor platformei](../ATF_Platform_Libraries.md) definește publicarea standalone, integritatea JAR fizic, păstrarea testelor native și acceptanța independentă. Extracțiile închise ies din backlog; pachetul curent păstrează dovezile detaliate în TMP propriu. Constatările Core/Reporting și J1 UI rămân separate.
 
-## MOCK-FAULT-SCRIPT-111 — compare the two existing failure fixtures before extracting
+<a id="mock-fault-script-111--compare-the-two-existing-failure-fixtures-before-extracting"></a>
+<a id="mock-fault-script-111--comparați-cele-două-fixture-uri-de-eșec-existente-înaintea-extracției"></a>
+## MOCK-FAULT-SCRIPT-111 — comparați cele două fixture-uri de eșec existente înaintea extracției
 
-Priority: 78/100. J2's TerminalFailureFixtures and ConvergenceFailureFixtures repeat finite transport sequencing, dispatch counting and exceptional completion. J0 now owns the Mock library; J2 retains the domain oracles and independent acceptance.
+Prioritate: 78/100. TerminalFailureFixtures și ConvergenceFailureFixtures din J2 repetă secvențierea finită a transportului, numărarea expedierilor și finalizarea excepțională. J0 deține biblioteca Mock; J2 păstrează oracolele de domeniu și acceptanța independentă.
 
-- [ ] Compare the concrete fixture requirements before adding an API; extract only a demonstrated common primitive, with no new Maven module.
-- [ ] If justified, keep the plan immutable and invocation state local; create a fresh exception for each execution and distinguish dispatched attempts, matched routes and completed responses.
-- [ ] Preserve method, MIME, auth, query, JSON/numeric matching, strict ordering and exhaustion failure. Keep OrderContract, saga and SQL witness policy in J2.
-- [ ] Add native public-contract negatives in J0 and run both original J2 matrices on the physical JAR, including original/suppressed causes and failing sinks.
+- [ ] Comparați cerințele concrete ale fixture-urilor înaintea unui API nou; extrageți numai o primitivă comună demonstrată, fără modul Maven nou.
+- [ ] Dacă se justifică, păstrați planul imuabil și starea locală invocării; creați o excepție nouă la fiecare execuție și distingeți încercările expediate, rutele potrivite și răspunsurile finalizate.
+- [ ] Păstrați metoda, MIME, autentificarea, query-ul, matching-ul JSON/numeric, ordinea strictă și eșecul la epuizare. Politica martorilor OrderContract, saga și SQL rămâne în J2.
+- [ ] Adăugați negative native pentru contractul public în J0 și rulați ambele matrice J2 originale pe JAR fizic, inclusiv cauze originale/suppressed și sink-uri eșuate.
 
-Closure requires reduced duplication and the same independent domain oracles, without importing consumer code into Mock. The publication extraction does not implement this optional primitive or certify live messaging.
+Închiderea cere duplicare redusă și aceleași oracole de domeniu independente, fără importarea consumerului în Mock. Extragerea publicației nu implementează această primitivă opțională și nu certifică mesageria live.

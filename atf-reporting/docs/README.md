@@ -1,17 +1,20 @@
+<a id="atf-reporting---portable-context-of-the-library"></a>
+<a id="atf-reporting--context-portabil-al-bibliotecii"></a>
 # ATF Reporting — context portabil al bibliotecii
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
-Acesta este punctul de intrare care poate însoți sursa Reporting în afara
-reactorului ATF. Linkurile de aici rămân în modul; orientarea completă în cod
-este în [atlasul producției](../src/main/java/atf/reporting/README.md).
-Contractele de adopție sunt în [README-ul modulului](../README.md).
+Acesta este punctul de intrare care poate însoți sursa Reporting în afara reactorului ATF. Linkurile de aici rămân în modul; orientarea completă în cod este în [atlasul producției](../src/main/java/atf/reporting/README.md). Contractele de adopție sunt în [README-ul modulului](../README.md).
 
 - Biblioteca primește fapte și verdicte și publică Extent sau fallback HTML;
   HTTP-ul, browserul și comparațiile business sunt deținute de caller.
 - JAR-ul este thin și necesită dependențele runtime declarate în [POM](../pom.xml),
   pe Java 21. Independența de modulele ATF nu elimină dependențele externe.
 
+<a id="library-limit"></a>
+<a id="limita-bibliotecii"></a>
 ## Limita bibliotecii
 
 ```mermaid
@@ -27,22 +30,20 @@ flowchart LR
 
 | Element | Sens și limită |
 |---|---|
-| Consumer | execută operația, deține expected-ul și decide verdictul; poate fi orice aplicație Java |
+| Consumator | execută operația, deține expected-ul și decide verdictul; poate fi orice aplicație Java |
 | Porturi typed | contracte de raportare, fără obiecte Core, Playwright, Kit ori JUnit obligatorii |
 | Reporting JAR | modele, proiecții și renderere; folosește Jackson YAML, ExtentReports, FreeMarker și Jsoup prin Maven |
 | HTML | artifact cu resursele necesare vizualizării; autonomia HTML nu îl transformă pe JAR într-un fat JAR |
 
-Muchiile reprezintă fluxul dovezii, nu dependențe Maven între module ATF.
-Observația, identitatea de captură, semnătura de prezentare și cheia selecției
-business au roluri distincte; un sumar nu autorizează replay.
+Muchiile reprezintă fluxul dovezii, nu dependențe Maven între module ATF. Observația, identitatea de captură, semnătura de prezentare și cheia selecției business au roluri distincte; un sumar nu autorizează replay.
 
 </details>
 
+<a id="inflows-consumed-and-minimum-context"></a>
+<a id="intrări-consumate-și-context-minim"></a>
 ## Intrări consumate și context minim
 
-Acestea sunt intrări existente în cod, nu o promisiune că orice clasă publică
-este API stabil pentru release. Delimitarea compatibilității și a capabilităților
-adaptoarelor trebuie încheiată înaintea distribuirii unei versiuni susținute.
+Acestea sunt intrări existente în cod, nu o promisiune că orice clasă publică este API stabil pentru release. Delimitarea compatibilității și a capabilităților adaptoarelor trebuie încheiată înaintea distribuirii unei versiuni susținute.
 
 | Scop | Citește întâi | Ce furnizează callerul |
 |---|---|---|
@@ -57,12 +58,10 @@ adaptoarelor trebuie încheiată înaintea distribuirii unei versiuni susținute
 | inspecție artifact | [ReportArtifactInspector](../src/main/java/atf/reporting/artifact/ReportArtifactInspector.java), [ReportArtifactProfile](../src/main/java/atf/reporting/artifact/ReportArtifactProfile.java) | renderer și inventarul obligatoriu explicit; varianta legacy păstrează Extent/HTTP |
 | verificare semantică | [AtfReportSemanticSnapshot](../src/main/java/atf/reporting/semantic/AtfReportSemanticSnapshot.java) | comparație a populației și statusurilor, separat de inspecția DOM |
 
-Pentru configurație se citesc [ReportingSettings](../src/main/java/atf/reporting/configuration/ReportingSettings.java)
-și [loaderul YAML](../src/main/java/atf/reporting/configuration/AtfReportConfigurationLoader.java).
-Bugetul implicit al assertion-urilor este 240; proiecția sigură nu recalculează
-verdictul din textul scurtat. Redactorul se aplică înaintea bugetului de display;
-acoperirea fiecărui format sensibil cere probă proprie, fără garanție universală.
+Pentru configurație se citesc [ReportingSettings](../src/main/java/atf/reporting/configuration/ReportingSettings.java) și [loaderul YAML](../src/main/java/atf/reporting/configuration/AtfReportConfigurationLoader.java). Bugetul implicit al assertion-urilor este 240; proiecția sigură nu recalculează verdictul din textul scurtat. Redactorul se aplică înaintea bugetului de display; acoperirea fiecărui format sensibil cere probă proprie, fără garanție universală.
 
+<a id="four-distinct-samples-of-extraction"></a>
+<a id="patru-probe-distincte-ale-extracției"></a>
 ## Patru probe distincte ale extracției
 
 | Probă | Condiția de acceptare | Ce nu demonstrează singură |
@@ -75,66 +74,45 @@ acoperirea fiecărui format sensibil cere probă proprie, fără garanție unive
 <details>
 <summary><strong>Limita actuală a gate-ului și izolarea probei externe</strong></summary>
 
-Gate-ul local este [ReportingStandaloneDependencyTest](../src/test/java/atf/reporting/standalone/ReportingStandaloneDependencyTest.java).
-Pornește de la CodeSource-ul testelor și inspectează propriul modul; numele
-directorului și prezența reactorului nu sunt condiții de succes.
-[Probele negative](../src/test/java/atf/reporting/standalone/StandaloneBoundaryRulesTest.java)
-protejează importurile externe ATF, dependențele Maven și parent-ul interzis.
+Gate-ul local este [ReportingStandaloneDependencyTest](../src/test/java/atf/reporting/standalone/ReportingStandaloneDependencyTest.java). Pornește de la CodeSource-ul testelor și inspectează propriul modul; numele directorului și prezența reactorului nu sunt condiții de succes. [Probele negative](../src/test/java/atf/reporting/standalone/StandaloneBoundaryRulesTest.java) protejează importurile externe ATF, dependențele Maven și parent-ul interzis.
 
-`ReportingLibraryDistributionIntegrationTest` automatizează proba în proiectul
-intern de testare. În reactor izolează sursa și execută testele native;
-într-un consumer binar pornește de la JAR-ul încărcat și POM-ul inclus în acesta.
-Ambele forme sunt consumate de un proiect Maven extern, cu aceleași probe.
+`ReportingLibraryDistributionIntegrationTest` automatizează proba în proiectul intern de testare. În reactor izolează sursa și execută testele native; într-un consumer binar pornește de la JAR-ul încărcat și POM-ul inclus în acesta. Ambele forme sunt consumate de un proiect Maven extern, cu aceleași probe.
 
-[Auditul sursei Java](../src/test/java/atf/reporting/standalone/source/ReportingSourceArchitectureTest.java)
-este nativ la producător; contractele de fațadă și delegare nu sunt eliminate.
-Consumerul runtime nu are nevoie de acele fișiere Java și nu le înlocuiește
-prin verificări dezactivate.
+[Auditul sursei Java](../src/test/java/atf/reporting/standalone/source/ReportingSourceArchitectureTest.java) este nativ la producător; contractele de fațadă și delegare nu sunt eliminate. Consumerul runtime nu are nevoie de acele fișiere Java și nu le înlocuiește prin verificări dezactivate.
 
-În consumerul extern, classpath-ul aplicației conține JAR-ul Reporting și
-tranzitivele sale, fără clase ATF din `target/classes`, Core, UI, Kit, JUnit sau
-Playwright. Exemplul consumerului se compilează separat. Prezența unor JAR-uri
-în cache nu înseamnă că ele sunt dependențe runtime ale bibliotecii.
+În consumerul extern, classpath-ul aplicației conține JAR-ul Reporting și tranzitivele sale, fără clase ATF din `target/classes`, Core, UI, Kit, JUnit sau Playwright. Exemplul consumerului se compilează separat. Prezența unor JAR-uri în cache nu înseamnă că ele sunt dependențe runtime ale bibliotecii.
 
-Controlul negativ modifică numai o copie TMP a JAR-ului; elimină o resursă din
-[manifestul de assets](../src/main/java/atf/reporting/asset/ReportAsset.java)
-și verifică refuzul [loaderului](../src/main/java/atf/reporting/asset/ReportAssetLoader.java).
-Nu schimbă sursa, cache-ul Maven de lucru ori artifactul publicat.
-Constructorul sau publicarea refuzată păstrează raportul anterior și eliberează
-workspace-ul; proba externă verifică și acest rollback.
+Controlul negativ modifică numai o copie TMP a JAR-ului; elimină o resursă din [manifestul de assets](../src/main/java/atf/reporting/asset/ReportAsset.java) și verifică refuzul [loaderului](../src/main/java/atf/reporting/asset/ReportAssetLoader.java). Nu schimbă sursa, cache-ul Maven de lucru ori artifactul publicat. Constructorul sau publicarea refuzată păstrează raportul anterior și eliberează workspace-ul; proba externă verifică și acest rollback.
 
 </details>
 
+<a id="preparation-for-a-supported-release"></a>
+<a id="pregătire-pentru-un-release-susținut"></a>
 ## Pregătire pentru un release susținut
 
 - Păstrați contractul și probele locale în modul. Verificările care necesită
-  runner, browser sau compoziție ATF rămân în proiectul intern de testare și
-  nu devin dependențe ale JAR-ului distribuit.
+  runner, browser sau compoziție ATF rămân în proiectul intern de testare și nu devin dependențe ale JAR-ului distribuit.
 - Declarați API-ul susținut, compatibilitatea și capabilitățile opționale înainte
   de a ascunde sau muta clase publice. Inventariați apelurile reale ale consumerilor.
 - Definiți politica versiunilor, POM-ul distribuit, resursele, licențele și
   documentele care însoțesc artifactul. Un package local nu este un release.
 - Verificați semantica și apoi DOM-ul: FAIL după diferență dincolo de 240,
-  redacție, expandare, navigare către dovadă și indexarea cauzei terminale.
-  Snapshot-ul semantic singur nu certifică interacțiunile din HTML.
+  redacție, expandare, navigare către dovadă și indexarea cauzei terminale. Snapshot-ul semantic singur nu certifică interacțiunile din HTML.
 - Păstrați măsurătorile callerului distincte de timpul publicării. Nu inventați
   durate pentru răspunsuri lipsă și nu schimbați protocolul de flush/close implicit.
 - Acest atlas este document sursă. Includerea în pachetul distribuit și
-  portabilitatea tuturor README-urilor din modul rămân criterii separate;
-  linkurile locale de aici nu repară automat ieșirile din celelalte documente.
+  portabilitatea tuturor README-urilor din modul rămân criterii separate; linkurile locale de aici nu repară automat ieșirile din celelalte documente.
 
+<a id="local-maintenance-and-samples"></a>
+<a id="întreținere-și-probe-locale"></a>
 ## Întreținere și probe locale
 
-[Contractele standalone](../src/test/java/atf/reporting/standalone/ReportingStandaloneContractTest.java)
-verifică valorile de bază și redactarea acoperită de fixture-uri.
-[Verdictele componentei](../src/test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java)
-verifică propagarea statusurilor și refuzul inputului terminal nejudecat.
-Aceste probe nu înlocuiesc analiza limitelor redacției ori oracolele browser.
+[Contractele standalone](../src/test/java/atf/reporting/standalone/ReportingStandaloneContractTest.java) verifică valorile de bază și redactarea acoperită de fixture-uri. [Verdictele componentei](../src/test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java) verifică propagarea statusurilor și refuzul inputului terminal nejudecat. Aceste probe nu înlocuiesc analiza limitelor redacției ori oracolele browser.
 
-O schimbare de intrare, invariantă sau owner actualizează această hartă și
-README-ul pachetului în același increment. Rulările, hash-urile și rezultatele
-datate rămân în TMP; documentația păstrează contractul și limitele sale actuale.
+O schimbare de intrare, invariantă sau owner actualizează această hartă și README-ul pachetului în același increment. Rulările, hash-urile și rezultatele datate rămân în TMP; documentația păstrează contractul și limitele sale actuale.
 
+<a id="publication-and-full-evidence"></a>
+<a id="publicare-și-dovezi-complete"></a>
 ## Publicare și dovezi complete
 
 | Contract portabil | Intrare |
@@ -147,9 +125,9 @@ Biblioteca primește dovezi și verdicturi capturate; nu execută aplicația sau
 
 ## Minimal binary consumer
 
-Declare `atf.api:atf-reporting` with the version installed from the distributed POM, then let Maven resolve that POM's runtime dependencies. Core, Kit, JUnit, Playwright and producer implementation directories are unnecessary for this example; the JAR is thin rather than a bundled runtime.
+Declară `atf.api:atf-reporting` cu versiunea instalată din POM distribuit, apoi lasă Maven să rezolve dependențele runtime ale acelui POM. Core, Kit, JUnit, Playwright și directoarele sursă ale producătorului nu sunt necesare exemplului; JAR este thin, fără runtime inclus.
 
-Place this class in a consumer's main source set and compile with its normal Maven build. Pass an owned TMP output path and the observed state; the caller compares it independently before publishing, closes the report on both outcomes and fails the process when the state differs.
+Puneți clasa în sursele main ale consumerului și compilați cu build-ul Maven normal. Furnizați o cale de output TMP proprie și starea observată; callerul compară independent înaintea publicării, închide raportul în ambele cazuri și oprește procesul cu eșec la diferență.
 
 ```java
 import atf.reporting.contract.AtfAssertion;
@@ -177,6 +155,6 @@ public final class MinimalBinaryReport {
 }
 ```
 
-- `READY` produces a passing comparison and a successful process result.
-- `BROKEN` retains the failing comparison in the completed HTML and raises AssertionError.
-- This demonstrates existing API consumption; supported API classification, complete companion-document distribution and the full release gate remain separate contracts.
+- `READY` produce o comparație trecută și un rezultat de proces reușit.
+- `BROKEN` păstrează comparația eșuată în HTML finalizat și ridică AssertionError.
+- Aceasta demonstrează consumul API existent; clasificarea API susținută, distribuția completă a documentelor însoțitoare și gate-ul integral de release rămân contracte separate.

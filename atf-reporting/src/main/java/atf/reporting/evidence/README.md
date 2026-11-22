@@ -1,13 +1,15 @@
+<a id="atf-reporting-evidence---observed-data-format-and-dislocure"></a>
+<a id="atf-reporting-evidence--date-observate-format-și-disclosure"></a>
+<a id="atf-reporting-evidence---observed-data-format-and-disclosure"></a>
 # ATF Reporting Evidence — date observate, format și disclosure
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
-Pachetul transformă dovezile primite în tabele și markup. Deține politica de
-display și prezentarea capturilor existente; nu capturează ecranul și nu
-execută operația pentru a completa un rând lipsă.
+Pachetul transformă dovezile primite în tabele și markup. Deține politica de display și prezentarea capturilor existente; nu capturează ecranul și nu execută operația pentru a completa un rând lipsă.
 
-[Atlas](../README.md) · [Profil UI](profile/ReportEvidenceProfile.java) ·
-[Contractul de display](../../../../../../README.md#lizibilitatea-dovezilor-în-panouri-înguste)
+[Atlas](../README.md) · [Profil UI](profile/ReportEvidenceProfile.java) · [Contractul de display](../../../../../../README.md#lizibilitatea-dovezilor-în-panouri-înguste)
 
 | Schimbare | Sursa | Responsabilitate |
 |---|---|---|
@@ -19,6 +21,9 @@ execută operația pentru a completa un rând lipsă.
 | sumar de excepție | [ReportFailureDescription](diagnostic/ReportFailureDescription.java) | graf bounded, redactare înainte de 240; fără decizie business |
 | imaginea atașată acțiunilor | [UiActionScreenshotPolicy](policy/UiActionScreenshotPolicy.java) | cardinalitate, fără captură browser |
 
+<a id="the-reading-pipelineum-together"></a>
+<a id="pipeline-ul-de-citit-împreună"></a>
+<a id="the-reading-pipeline-together"></a>
 ## Pipeline-ul de citit împreună
 
 - Modelul păstrează faptele complete pentru verdict și asociere; copia de
@@ -39,8 +44,7 @@ execută operația pentru a completa un rând lipsă.
 - Verdictul se păstrează din intrarea typed. Trunchierea textului nu produce o
   comparație nouă și nu transformă expected/actual egale vizual în PASS.
 - [Redactorul JSON](../security/JsonEvidenceRedactor.java) interpretează cheia
-  semantică înaintea valorii; maschează și scalare/array/obiect, păstrează
-  câmpurile duplicate și nu modifică valorile folosite de caller la verdict.
+  semantică înaintea valorii; maschează și scalare/array/obiect, păstrează câmpurile duplicate și nu modifică valorile folosite de caller la verdict.
 - [Sumarul assertion-urilor](diagnostic/ReportAssertionSummary.java) este numai
   diagnostic sigur, cu redacție per câmp și plafon 240; nu reevaluează comparațiile.
 
@@ -48,31 +52,27 @@ execută operația pentru a completa un rând lipsă.
 
 ## Probe
 
-[ReportEvidenceJsonFormatterTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/evidence/markup/ReportEvidenceJsonFormatterTest.java), [ReportEvidenceTableTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/evidence/ReportEvidenceTableTest.java) și
-[ReportEvidenceStyleContractTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/evidence/ReportEvidenceStyleContractTest.java) verifică proiecția; controalele de renderer și
-browser sunt în [Reporting Tests](../../../../../../../atf-reporting-tests/README.md#tabele-publicate-și-inventar-independent).
+[ReportEvidenceJsonFormatterTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/evidence/markup/ReportEvidenceJsonFormatterTest.java), [ReportEvidenceTableTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/evidence/ReportEvidenceTableTest.java) și [ReportEvidenceStyleContractTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/evidence/ReportEvidenceStyleContractTest.java) verifică proiecția; controalele de renderer și browser sunt în [Reporting Tests](../../../../../../../atf-reporting-tests/README.md#tabele-publicate-și-inventar-independent).
 
-Pentru o modificare de secret/buget se citesc și
-[SensitiveDataRedactor](../security/SensitiveDataRedactor.java) și
-[ReportingSettings](../configuration/ReportingSettings.java); pentru geometrie,
-contextul continuă la [runtime și assets](../runtime/README.md).
+Pentru o modificare de secret/buget se citesc și [SensitiveDataRedactor](../security/SensitiveDataRedactor.java) și [ReportingSettings](../configuration/ReportingSettings.java); pentru geometrie, contextul continuă la [runtime și assets](../runtime/README.md).
 
 
+<a id="action--observe-complete-values"></a>
+<a id="valorile-complete-actionobserve"></a>
 ## Valorile complete ACTION/OBSERVE
 
-| Owner | Contract |
+| Responsabil | Contract |
 |---|---|
 | [UiEvidenceValueMarkup](ui/UiEvidenceValueMarkup.java) | redactează o singură valoare; preview 240 și disclosure complet în aceeași celulă |
 | [ACTION](ui/ExtentUiActionRenderer.java) și [OBSERVE](ui/ExtentUiObservationRenderer.java) | folosesc aceeași proiecție în Extent și fallback, cu ordinal și status capturate |
 
 SUMMARY_ONLY rămâne explicit; body display limit și valorile assertions au contracte separate.
 
+<a id="a-single-owner-for-the-row-ui"></a>
+<a id="un-singur-owner-pentru-rândul-ui"></a>
 ## Un singur owner pentru rândul UI
 
-[UiEvidenceRowMarkup](ui/UiEvidenceRowMarkup.java) proiectează operation, ordinal,
-target și valorile capturate pentru ACTION și OBSERVE, cu aceeași politică de redactare.
-[UiEvidenceValueMarkup](ui/UiEvidenceValueMarkup.java) păstrează preview-ul 240 și
-textul integral, inclusiv începutul și finalul whitespace-ului în DOM.
+[UiEvidenceRowMarkup](ui/UiEvidenceRowMarkup.java) proiectează operation, ordinal, target și valorile capturate pentru ACTION și OBSERVE, cu aceeași politică de redactare. [UiEvidenceValueMarkup](ui/UiEvidenceValueMarkup.java) păstrează preview-ul 240 și textul integral, inclusiv începutul și finalul whitespace-ului în DOM.
 
 - ACTION păstrează coloana TIME; OBSERVE păstrează structura fără timp.
 - Fallback deleagă recordurile originale; titlul PNG folosește politica rendererului.

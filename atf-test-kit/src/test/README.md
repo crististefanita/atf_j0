@@ -1,9 +1,15 @@
+<a id="tests-of-the-joint-infrastructure"></a>
+<a id="testele-infrastructurii-comune"></a>
 # Testele infrastructurii comune
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 J0 califică primitivele Kit separat de regulile aplicațiilor și de renderer. [Contractul Kit](../../README.md) deține API-ul; [strategia comună](../../../docs/ATF_Testing_Guide.md) delimitează nivelurile și responsabilitățile.
 
+<a id="meal-and-other-articles-of-animal-hair"></a>
+<a id="familii-și-oracole"></a>
 ## Familii și oracole
 
 | Familie | Proprietate verificată |
@@ -15,6 +21,8 @@ J0 califică primitivele Kit separat de regulile aplicațiilor și de renderer. 
 | Căi și timp | Limite de output și intervale măsurate prin ceasuri controlate. |
 | Publicație | POM independent, namespace și CodeSource pe JAR, fără implementări paralele. |
 
+<a id="implementation-and-limits"></a>
+<a id="execuție-și-limite"></a>
 ## Execuție și limite
 
 Într-o [copie TMP proprie](../../../docs/ATF_Build_And_Execution_Safety.md), JDK 21 și Maven rulează POM-ul fără parent. Clasele-fixture cu eșec intenționat sunt lansate de testele lor; nu se selectează direct.

@@ -1,15 +1,14 @@
+<a id="atf-ai--reference-design-for-evaluation-and-agentic-workflow"></a>
+<a id="atf-ai--design-de-referință-pentru-evaluare-și-workflow-agentic"></a>
 # ATF AI — design de referință pentru evaluare și workflow agentic
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
-Acesta este documentul de design al proiectului pentru două boundary-uri:
-evaluarea deterministă a output-ului AI și guvernanța schimbărilor propuse de
-un agent. Modelele și guard-urile de mai jos sunt ținte de proiectare, nu
-semnături complete sau funcționalități declarate livrate.
+Acesta este documentul de design al proiectului pentru două boundary-uri: evaluarea deterministă a output-ului AI și guvernanța schimbărilor propuse de un agent. Modelele și guard-urile de mai jos sunt ținte de proiectare, nu semnături complete sau funcționalități declarate livrate.
 
-Reactorul păstrează exact cele 12 module existente, inclusiv pentru designul AI.
-Separările de mai jos sunt responsabilități și pachete la ownerii actuali;
-nu propun un modul Maven suplimentar.
+Reactorul păstrează exact cele 12 module existente, inclusiv pentru designul AI. Separările de mai jos sunt responsabilități și pachete la ownerii actuali; nu propun un modul Maven suplimentar.
 
 | Tip de informație | Sursă autoritară |
 |---|---|
@@ -18,15 +17,13 @@ nu propun un modul Maven suplimentar.
 | Modele țintă, separări și condiții de adoptare | acest design |
 | Reguli generale deja executabile | [ATF Tests](../atf-tests/README.md), [ghidul de testare](ATF_Testing_Guide.md) |
 
-Se preiau contracte observabile și pattern-uri, nu business, scoruri sau
-orchestrarea codebase-urilor de referință. Designul nu autorizează generare de
-cod, conectarea unui provider ori relaxarea testelor de guvernanță.
+Se preiau contracte observabile și pattern-uri, nu business, scoruri sau orchestrarea codebase-urilor de referință. Designul nu autorizează generare de cod, conectarea unui provider ori relaxarea testelor de guvernanță.
 
+<a id="reading-map"></a>
+<a id="hartă-de-lectură"></a>
 ## Hartă de lectură
 
-Documentul separă contractul de evaluare AI de guvernanța workflow-ului agentic.
-Folosește intervalul potrivit în funcție de întrebarea de design; existența unei
-scheme în partea țintă nu înseamnă că API-ul este implementat.
+Documentul separă contractul de evaluare AI de guvernanța workflow-ului agentic. Folosește intervalul potrivit în funcție de întrebarea de design; existența unei scheme în partea țintă nu înseamnă că API-ul este implementat.
 
 | Parte | Secțiuni | Pentru ce este utilă |
 |---|---|---|
@@ -35,24 +32,17 @@ scheme în partea țintă nu înseamnă că API-ul este implementat.
 | Surse și modelul ATF | [31–40](#31-starea-workflow-ului-agentic) | referințe, readiness, pattern-uri comparate, designul candidat și deciziile acceptate/amânate/respinse |
 | Limita curentă | [41–42](#41-regula-de-recalibrare) | recalibrare față de codul live și distincția dintre design și implementare |
 
-Pentru comportamentul deja livrat, începe cu
-[ATF Validation](../atf-validation/README.md#comparatorul-ai--contract-implementat);
-pentru prioritizare și lacune, citește separat
-[feedback-ul AI](feedback/README_AI_Evaluation.md).
+Pentru comportamentul deja livrat, începe cu [ATF Validation](../atf-validation/README.md#comparatorul-ai--contract-implementat); pentru prioritizare și lacune, citește separat [feedback-ul AI](feedback/README_AI_Evaluation.md).
 
+<a id="1-purpose-and-boundary"></a>
+<a id="1-scop-și-limită"></a>
 ## 1. Scop și limită
 
-Acest document definește cerințele necesare pentru ca ATF Java să susțină
-evaluarea AI la nivel auditabil, repetabil și extensibil.
+Acest document definește cerințele necesare pentru ca ATF Java să susțină evaluarea AI la nivel auditabil, repetabil și extensibil.
 
-Schemele din capitolele 4–18 sunt modelul țintă, nu semnăturile complete ale
-API-ului livrat. Forma implementată este documentată în
-[ATF Validation](../atf-validation/README.md#comparatorul-ai--contract-implementat);
-intent/review/state, valorile normalizate separate și registrul de run nu sunt
-declarate implementate prin simpla lor prezență în scheme.
+Schemele din capitolele 4–18 sunt modelul țintă, nu semnăturile complete ale API-ului livrat. Forma implementată este documentată în [ATF Validation](../atf-validation/README.md#comparatorul-ai--contract-implementat); intent/review/state, valorile normalizate separate și registrul de run nu sunt declarate implementate prin simpla lor prezență în scheme.
 
-Nu descrie un provider AI, un prompt framework sau un produs de business.
-Definește contractele neutre prin care un consumer poate spune:
+Nu descrie un provider AI, un prompt framework sau un produs de business. Definește contractele neutre prin care un consumer poate spune:
 
 ```text
 acesta este cazul controlat
@@ -66,14 +56,13 @@ Sunt excluse securitatea, secretele și CLI-ul.
 
 Principiul de bază:
 
-> ATF Java nu trebuie să devină proprietarul semanticii de business AI. Trebuie
-> să devină proprietarul evaluării deterministe, evidence-ului, verdictului și
-> proiecției auditabile.
+> ATF Java nu trebuie să devină proprietarul semanticii de business AI. Trebuie > să devină proprietarul evaluării deterministe, evidence-ului, verdictului și > proiecției auditabile.
 
+<a id="2-maturity-objective"></a>
+<a id="2-obiectiv-de-maturitate"></a>
 ## 2. Obiectiv de maturitate
 
-Un caz AI este evaluat numai dacă următoarea succesiune este demonstrată de
-date și teste:
+Un caz AI este evaluat numai dacă următoarea succesiune este demonstrată de date și teste:
 
 ```text
 case versionat
@@ -90,18 +79,22 @@ case versionat
 
 Un `200 OK`, un text plauzibil sau un run verde nu sunt suficiente.
 
+<a id="3-normative-rules"></a>
+<a id="3-reguli-normative"></a>
 ## 3. Reguli normative
 
+<a id="r-01--expected-is-separate-from-output"></a>
+<a id="r-01--expected-ul-este-separat-de-output"></a>
 ### R-01 — Expected-ul este separat de output
 
-Evaluatorul primește separat `expected case`, `observed output` și `evaluation
-policy`. Expected-ul nu poate fi construit din output sau din raport.
+Evaluatorul primește separat `expected case`, `observed output` și `evaluation policy`. Expected-ul nu poate fi construit din output sau din raport.
 
 **Invarianță:** modificarea output-ului nu modifică expected-ul.
 
-**Gate:** component test care construiește expected-ul înainte de invocation și
-verifică faptul că evaluatorul nu îl mută sau îl completează automat.
+**Gate:** component test care construiește expected-ul înainte de invocation și verifică faptul că evaluatorul nu îl mută sau îl completează automat.
 
+<a id="r-02--every-verdict-has-a-cause"></a>
+<a id="r-02--fiecare-verdict-are-cauză"></a>
 ### R-02 — Fiecare verdict are cauză
 
 Orice `PASS`, `FAIL`, `WARNING`, `SKIP` sau verdict AI special are:
@@ -115,31 +108,39 @@ Orice `PASS`, `FAIL`, `WARNING`, `SKIP` sau verdict AI special are:
 
 Verdictele fără cauză sunt diagnostice, nu dovezi.
 
+<a id="r-03--a-score-does-not-hide-a-critical-failure"></a>
+<a id="r-03--scorul-nu-ascunde-eșecul-critic"></a>
 ### R-03 — Scorul nu ascunde eșecul critic
 
-Un caz cu scor 98 poate fi `FAIL` dacă are un hard-fail. Score-ul este agregare;
-hard-fail-ul este regulă de acceptare.
+Un caz cu scor 98 poate fi `FAIL` dacă are un hard-fail. Score-ul este agregare; hard-fail-ul este regulă de acceptare.
 
+<a id="r-04--fallback-is-not-ai-quality"></a>
+<a id="r-04--fallback-ul-nu-este-ai-quality"></a>
 ### R-04 — Fallback-ul nu este AI quality
 
-Fallback-ul poate fi acceptat ca rezultat operațional dacă este declarat, dar nu
-intră în scorul calității modelului.
+Fallback-ul poate fi acceptat ca rezultat operațional dacă este declarat, dar nu intră în scorul calității modelului.
 
+<a id="r-05--the-renderer-does-not-decide"></a>
+<a id="r-05--renderer-ul-nu-decide"></a>
 ### R-05 — Renderer-ul nu decide
 
-Extent, fallback HTML și UI audit proiectează snapshot-ul semantic. Nu recalculează
-score, hard-fail, grounding sau state.
+Extent, fallback HTML și UI audit proiectează snapshot-ul semantic. Nu recalculează score, hard-fail, grounding sau state.
 
+<a id="r-06--the-browser-verifies-effects-not-internal-truth"></a>
+<a id="r-06--browser-ul-verifică-efectul-nu-adevărul-intern"></a>
 ### R-06 — Browser-ul verifică efectul, nu adevărul intern
 
-Browserul verifică vizibilitatea și coerența verdictului, evidence-ului și
-review-ului. Comparatorul rămâne în evaluator.
+Browserul verifică vizibilitatea și coerența verdictului, evidence-ului și review-ului. Comparatorul rămâne în evaluator.
 
 <details>
 <summary>Modelul țintă — contracte, rubrică, proiecții și matricea de testare</summary>
 
+<a id="4-ai-case-contract"></a>
+<a id="4-contractul-cazului-ai"></a>
 ## 4. Contractul cazului AI
 
+<a id="41-identity-and-version"></a>
+<a id="41-identitate-și-versiune"></a>
 ### 4.1 Identitate și versiune
 
 ```text
@@ -157,13 +158,13 @@ AiEvaluationCase
   scoringPolicyId
 ```
 
-`caseId` identifică scenariul semantic. `caseVersion` identifică așteptarea
-aprobată. O schimbare de expected fără schimbarea versiunii este drift.
+`caseId` identifică scenariul semantic. `caseVersion` identifică așteptarea aprobată. O schimbare de expected fără schimbarea versiunii este drift.
 
+<a id="42-input-reference"></a>
+<a id="42-referința-de-intrare"></a>
 ### 4.2 Referința de intrare
 
-Inputul este referit printr-un identificator de fixture controlat, nu prin path
-local, nume de artifact sau timestamp.
+Inputul este referit printr-un identificator de fixture controlat, nu prin path local, nume de artifact sau timestamp.
 
 Input reference trebuie să răspundă la:
 
@@ -172,6 +173,8 @@ Input reference trebuie să răspundă la:
 - ce date erau intenționat absente;
 - ce versiune de fixture a fost folosită.
 
+<a id="43-expected-intent"></a>
+<a id="43-intenția-așteptată"></a>
 ### 4.3 Intenția așteptată
 
 Intentul este enum sau vocabulary typed, nu text liber:
@@ -183,8 +186,12 @@ REQUEST_MORE_INFORMATION | NO_ACTION
 
 Evaluatorul distinge intent greșit, review greșit și state final greșit.
 
+<a id="5-expected-field-contract"></a>
+<a id="5-contractul-câmpurilor-așteptate"></a>
 ## 5. Contractul câmpurilor așteptate
 
+<a id="51-field-expectations"></a>
+<a id="51-așteptări-pentru-câmpuri"></a>
 ### 5.1 Așteptări pentru câmpuri
 
 ```text
@@ -199,9 +206,10 @@ AiFieldExpectation
   missingPolicy
 ```
 
-`fieldPath` este semantic și stabil. Nu este selector CSS, index JSON accidental
-sau label vizual.
+`fieldPath` este semantic și stabil. Nu este selector CSS, index JSON accidental sau label vizual.
 
+<a id="52-required-comparison-modes"></a>
+<a id="52-moduri-obligatorii"></a>
 ### 5.2 Moduri obligatorii
 
 | Mod | Regulă |
@@ -218,6 +226,8 @@ sau label vizual.
 
 Nu se acceptă `contains` generic drept comparație semantică.
 
+<a id="53-comparison-result"></a>
+<a id="53-rezultatul-comparației"></a>
 ### 5.3 Rezultatul comparației
 
 ```text
@@ -243,9 +253,10 @@ UNEXPECTED_PRESENT | NORMALIZATION_REJECTED | TYPE_MISMATCH |
 SOURCE_UNSUPPORTED
 ```
 
-Implementarea produce comparații immutable cu expected/observed, sursa declarată,
-reason code și referința opacă la output. Mesajul de assertion nu este contract.
+Implementarea produce comparații immutable cu expected/observed, sursa declarată, reason code și referința opacă la output. Mesajul de assertion nu este contract.
 
+<a id="6-missing-information-and-the-prohibition-on-invention"></a>
+<a id="6-informații-lipsă-și-interdicția-de-a-inventa"></a>
 ## 6. Informații lipsă și interdicția de a inventa
 
 Evaluatorul distinge:
@@ -268,17 +279,12 @@ AiMissingInformationResult
   reasonCode
 ```
 
-Invenția unei entități critice produce `INVENTED_CRITICAL_ENTITY`, iar lipsa
-unui câmp critic dintr-o sursă declarată prezentă produce
-`MISSING_CRITICAL_FIELD`, indiferent de score. Dacă sursa este `UNKNOWN`, nu se
-pretinde grounding și nu se numește automat valoarea „inventată”.
+Invenția unei entități critice produce `INVENTED_CRITICAL_ENTITY`, iar lipsa unui câmp critic dintr-o sursă declarată prezentă produce `MISSING_CRITICAL_FIELD`, indiferent de score. Dacă sursa este `UNKNOWN`, nu se pretinde grounding și nu se numește automat valoarea „inventată”.
 
-Aceste cazuri sunt acoperite prin probe component: output omis pentru source
-present, output inventat pentru source absent, expected ABSENT în contradicție
-cu source present și field suplimentar nedeclarat în output. Ultimul produce
-`UNDECLARED_OUTPUT_FIELD` și hard-fail implicit; o politică explicită îl poate
-tolera, dar comparația rămâne mismatch și reduce score-ul.
+Aceste cazuri sunt acoperite prin probe component: output omis pentru source present, output inventat pentru source absent, expected ABSENT în contradicție cu source present și field suplimentar nedeclarat în output. Ultimul produce `UNDECLARED_OUTPUT_FIELD` și hard-fail implicit; o politică explicită îl poate tolera, dar comparația rămâne mismatch și reduce score-ul.
 
+<a id="7-grounding-and-source-references"></a>
+<a id="7-fundamentare-și-referințe-la-surse"></a>
 ## 7. Fundamentare și referințe la surse
 
 ### 7.1 Contract
@@ -293,9 +299,10 @@ AiSourceReference
   supportStatus
 ```
 
-`sourceType` poate fi `INPUT_FIELD`, `DOCUMENT_SPAN`, `EVENT`, `API_RESPONSE`
-sau tip extins de consumer.
+`sourceType` poate fi `INPUT_FIELD`, `DOCUMENT_SPAN`, `EVENT`, `API_RESPONSE` sau tip extins de consumer.
 
+<a id="72-rules"></a>
+<a id="72-reguli"></a>
 ### 7.2 Reguli
 
 - fiecare câmp cu `sourceRequirement` are reference;
@@ -314,8 +321,7 @@ AiGroundingObservation
   reasonCode
 ```
 
-Rezultate minime: `SUPPORTED`, `UNSUPPORTED`, `AMBIGUOUS`, `NOT_REQUIRED`,
-`MISSING_REFERENCE`.
+Rezultate minime: `SUPPORTED`, `UNSUPPORTED`, `AMBIGUOUS`, `NOT_REQUIRED`, `MISSING_REFERENCE`.
 
 **Slice implementat în `atf-validation`:**
 
@@ -326,8 +332,12 @@ Rezultate minime: `SUPPORTED`, `UNSUPPORTED`, `AMBIGUOUS`, `NOT_REQUIRED`,
   reference-ul din afara allowlist-ului produce `UNSUPPORTED_GROUNDING`.
 - Payload-ul, promptul și credentialele nu pot intra în aceste tipuri.
 
+<a id="8-review-and-workflow-state"></a>
+<a id="8-review-și-workflow-state"></a>
 ## 8. Review și workflow state
 
+<a id="81-review-action"></a>
+<a id="81-acțiunea-de-revizuire"></a>
 ### 8.1 Acțiunea de revizuire
 
 ```text
@@ -339,9 +349,10 @@ AiReviewExpectation
   correctionRequired
 ```
 
-Acțiuni: `ACCEPT`, `REJECT`, `REQUEST_MORE_INFORMATION`, `ESCALATE`,
-`NO_REVIEW`.
+Acțiuni: `ACCEPT`, `REJECT`, `REQUEST_MORE_INFORMATION`, `ESCALATE`, `NO_REVIEW`.
 
+<a id="82-state-transition"></a>
+<a id="82-tranziția-de-stare"></a>
 ### 8.2 Tranziția de stare
 
 ```text
@@ -355,6 +366,8 @@ AiStateObservation
 
 Un state final corect nu repară o tranziție intermediară invalidă.
 
+<a id="83-invariants"></a>
+<a id="83-invariante"></a>
 ### 8.3 Invariante
 
 - review obligatoriu nu poate fi omis;
@@ -363,6 +376,8 @@ Un state final corect nu repară o tranziție intermediară invalidă.
 - persistence failure este separat de model failure;
 - retry-ul tehnic nu este o nouă decizie AI.
 
+<a id="9-model-invocation-and-fallback"></a>
+<a id="9-apelarea-modelului-și-soluția-de-rezervă"></a>
 ## 9. Apelarea modelului și soluția de rezervă
 
 ### 9.1 Contract
@@ -386,18 +401,14 @@ InvocationMode
   REAL_AI | MOCK_MODEL | EXPLICIT_FALLBACK | UNKNOWN
 ```
 
-| Mode | AI quality score | Interpretare |
+| Mod | AI quality score | Interpretare |
 |---|---:|---|
 | `REAL_AI` | permis, cu evidence completă | evaluare AI propriu-zisă |
 | `MOCK_MODEL` | interzis | test de integrare/comparator |
 | `EXPLICIT_FALLBACK` | interzis | evidence operațională separată |
 | `UNKNOWN` | interzis | hard-fail pentru test AI |
 
-`AiInvocationEvidence` păstrează doar referințe opace, nu prompturi, payload-uri,
-tokeni sau credentiale. `REAL_AI` primește quality score numai când are
-invocation/provider/model, interval temporal, output și toate cele patru
-referințe; `MOCK_MODEL` și `EXPLICIT_FALLBACK` rămân `NOT_EVALUATED` pentru
-calitatea modelului.
+`AiInvocationEvidence` păstrează doar referințe opace, nu prompturi, payload-uri, tokeni sau credentiale. `REAL_AI` primește quality score numai când are invocation/provider/model, interval temporal, output și toate cele patru referințe; `MOCK_MODEL` și `EXPLICIT_FALLBACK` rămân `NOT_EVALUATED` pentru calitatea modelului.
 
 Output valid fără invocation evidence se clasifică explicit:
 
@@ -405,8 +416,12 @@ Output valid fără invocation evidence se clasifică explicit:
 SILENT_FALLBACK | MISSING_INVOCATION_EVIDENCE | UNCLASSIFIED_OUTPUT
 ```
 
+<a id="10-scoring-and-critical-failure-policy"></a>
+<a id="10-punctaj-și-politica-eșecurilor-critice"></a>
 ## 10. Punctaj și politica eșecurilor critice
 
+<a id="101-default-rubric"></a>
+<a id="101-rubrică-implicită"></a>
 ### 10.1 Rubrică implicită
 
 | Criteriu | Puncte |
@@ -422,6 +437,8 @@ SILENT_FALLBACK | MISSING_INVOCATION_EVIDENCE | UNCLASSIFIED_OUTPUT
 
 Scoring policy este identificată prin `scoringPolicyId` și versionată.
 
+<a id="102-critical-failure-catalog"></a>
+<a id="102-catalogul-eșecurilor-critice"></a>
 ### 10.2 Catalogul eșecurilor critice
 
 | Code | Condiție |
@@ -436,6 +453,8 @@ Scoring policy este identificată prin `scoringPolicyId` și versionată.
 | `UNDECLARED_OUTPUT_FIELD` | output-ul conține un field care nu există în contractul case-ului |
 | `INCOMPLETE_EVIDENCE` | verdictul nu poate fi reconstruit |
 
+<a id="103-final-verdict"></a>
+<a id="103-verdict-final"></a>
 ### 10.3 Verdict final
 
 ```text
@@ -462,6 +481,8 @@ INCOMPLETE_EVIDENCE > HARD_FAIL > FAIL > TRIAGE_REQUIRED
 
 `SKIP` rămâne stare distinctă și nu intră în rata de succes.
 
+<a id="11-semantic-snapshot-and-immutability"></a>
+<a id="11-instantaneu-semantic-și-imuabilitate"></a>
 ## 11. Instantaneu semantic și imuabilitate
 
 Evaluatorul produce un `AiEvaluationSnapshot` immutable după închiderea cazului.
@@ -495,6 +516,8 @@ Invariante:
 | Imutabilitate | copii defensive; fixed-clock și mutation tests |
 | Rămâne deschis | evidence index/run correlation extins, trace metadata și lifecycle integration |
 
+<a id="12-integration-with-the-atf-lifecycle"></a>
+<a id="12-integrarea-cu-ciclul-de-viață-atf"></a>
 ## 12. Integrarea cu ciclul de viață ATF
 
 ```text
@@ -522,11 +545,14 @@ un singur checkpoint semantic
        └── score summary
 ```
 
-Nu se creează un al doilea card pentru AI doar fiindcă output-ul este redat în
-altă secțiune.
+Nu se creează un al doilea card pentru AI doar fiindcă output-ul este redat în altă secțiune.
 
+<a id="13-reporting-and-projections"></a>
+<a id="13-raportare-și-proiecții"></a>
 ## 13. Raportare și proiecții
 
+<a id="report-overview-section"></a>
+<a id="secțiunea-overview-din-raport"></a>
 ### Secțiunea Overview din raport
 
 Afișează agregat:
@@ -539,6 +565,8 @@ Afișează agregat:
 - missing-evidence count;
 - regression count.
 
+<a id="test-details"></a>
+<a id="detaliile-testului"></a>
 ### Detaliile testului
 
 Pentru fiecare caz sunt navigabile:
@@ -555,11 +583,14 @@ Pentru fiecare caz sunt navigabile:
 10. hard-fail-uri;
 11. evidence și trace.
 
+<a id="failures-and-parity"></a>
+<a id="fails-și-parity"></a>
 ### Fails și parity
 
-Fiecare failure critic este individual și navigabil. Extent și fallback sunt
-comparate prin snapshot semantic, nu prin string equality HTML.
+Fiecare failure critic este individual și navigabil. Extent și fallback sunt comparate prin snapshot semantic, nu prin string equality HTML.
 
+<a id="14-regression-comparison"></a>
+<a id="14-compararea-regresiilor"></a>
 ## 14. Compararea regresiilor
 
 Identitatea baseline-ului este:
@@ -592,9 +623,11 @@ Reguli:
 - `SKIP → PASS` nu este improvement fără evidence validă;
 - `REAL_AI → FALLBACK` este regresie de invocation indiferent de output.
 
+<a id="15-architecture-and-responsibilities"></a>
+<a id="15-arhitectură-și-responsabilități"></a>
 ## 15. Arhitectură și responsabilități
 
-| Contract | Owner | Interdicție |
+| Contract | Responsabil | Interdicție |
 |---|---|---|
 | case și expected | consumer / composition root | nu intră în renderer |
 | field comparator | `atf-validation` sau modul AI dedicat | nu intră în UI |
@@ -606,39 +639,45 @@ Reguli:
 | layer/coverage guards | `atf-test-kit`, `atf-tests` | nu se relaxează pentru AI |
 | production package cohesion | `atf-validation` + `atf-tests` | pachetele comparatorului și boundary-urile `grounding` / `invocation` păstrează limita guvernată; inventarul curent aparține README-ului modulului |
 
+<a id="16-required-tests"></a>
+<a id="16-teste-obligatorii"></a>
 ## 16. Teste obligatorii
 
 ### Unit
 
 - toate comparison modes;
 - normalizare deterministă;
-- allowed variants;
-- required/critical semantics;
-- missing information;
-- grounding reason codes;
-- score calculation;
+- variante acceptate;
+- semantică obligatorie/critică;
+- informații lipsă;
+- coduri de motivare a fundamentării;
+- calculul scorului;
 - hard-fail și verdict precedence;
-- regression delta.
+- diferența față de baseline-ul de regresie.
 
-### Component
+<a id="component"></a>
+<a id="componentă"></a>
+### Componentă
 
-- case + expected + observed → snapshot;
+- caz + valoare așteptată + valoare observată → snapshot;
 - output inventat → hard-fail;
 - review omis → hard-fail;
-- source unsupported → grounding failure;
-- unknown invocation → evidence failure;
-- mock model → non-quality verdict;
-- fallback explicit → evidence-only;
+- sursă neacceptată → eșec de fundamentare;
+- invocare necunoscută → eșec de dovezi;
+- model mock → verdict în afara evaluării calității;
+- fallback explicit → numai dovezi;
 - snapshot immutable după complete.
 
-### Integration
+<a id="integration"></a>
+<a id="integrare"></a>
+### Integrare
 
-- provider/mock exchange + invocation evidence;
-- correlation request/output/validation;
-- phase/checkpoint attachment;
-- Extent/fallback snapshot parity;
+- schimb provider/mock și dovezi de invocare;
+- corelare request/output/validation;
+- atașarea la fază/checkpoint;
+- paritate snapshot Extent/fallback;
 - regression baseline și delta;
-- multi-field, multi-exchange case.
+- caz cu mai multe câmpuri și schimburi.
 
 ### E2E
 
@@ -651,6 +690,8 @@ Numai când există comportament vizibil:
 - evidence disclosure-urile sunt navigabile;
 - nu există duplicare UI/API/AI validation.
 
+<a id="architecture"></a>
+<a id="arhitectură"></a>
 ### Arhitectură
 
 - evaluatorul nu importă rendererul;
@@ -660,6 +701,8 @@ Numai când există comportament vizibil:
 - fiecare public seam are proof class;
 - snapshot-ul este renderer-neutral.
 
+<a id="17-failure-taxonomy"></a>
+<a id="17-taxonomia-eșecurilor"></a>
 ## 17. Taxonomia eșecurilor
 
 | Categorie | Semnificație | Separare obligatorie |
@@ -675,9 +718,10 @@ Numai când există comportament vizibil:
 | `SCHEMA` | output invalid ca formă | nu este valoare business greșită |
 | `PERSISTENCE` | rezultat nepăstrat | nu este model quality |
 
-Fiecare failure are owner probabil, dar ownerul nu se deduce din mesajul liber
-al exception-ului.
+Fiecare failure are owner probabil, dar ownerul nu se deduce din mesajul liber al exception-ului.
 
+<a id="18-acceptance-criteria"></a>
+<a id="18-criterii-de-acceptare"></a>
 ## 18. Criterii de acceptare
 
 Implementarea este acceptată numai când:
@@ -700,33 +744,34 @@ Implementarea este acceptată numai când:
 
 </details>
 
+<a id="19-architectural-increment-order"></a>
+<a id="19-ordinea-arhitecturală-a-incrementelor"></a>
 ## 19. Ordinea arhitecturală a incrementelor
 
 Comparator → snapshot și referințe → lifecycle → proiecții → regresii → UI proof.
 
-Fiecare increment păstrează boundary-ul precedent și cere caz nominal și
-negativ. Starea și criteriile de livrare nu se dublează aici; sunt în
-[feedback-ul activ](feedback/README_AI_Evaluation.md#gap-uri-rămase-pentru-evaluator).
+Fiecare increment păstrează boundary-ul precedent și cere caz nominal și negativ. Starea și criteriile de livrare nu se dublează aici; sunt în [feedback-ul activ](feedback/README_AI_Evaluation.md#gap-uri-rămase-pentru-evaluator).
 
+<a id="20-evaluator-status"></a>
+<a id="20-starea-evaluatorului"></a>
 ## 20. Starea evaluatorului
 
-Cerințele nelivrate și criteriile lor sunt exclusiv în
-[gap-urile evaluatorului](feedback/README_AI_Evaluation.md#gap-uri-rămase-pentru-evaluator).
+Cerințele nelivrate și criteriile lor sunt exclusiv în [gap-urile evaluatorului](feedback/README_AI_Evaluation.md#gap-uri-rămase-pentru-evaluator).
 
 <details>
 <summary>Workflow agentic — proposal, handoff, guard-uri și plan de validare propuse</summary>
 
+<a id="21-deep-analysis--two-axes-that-must-not-be-confused"></a>
+<a id="21-analiză-profundă--două-axe-care-nu-trebuie-confundate"></a>
 ## 21. Analiză profundă — două axe care nu trebuie confundate
 
 ### 21.1 `AI-assisted workflow`
 
 `AI-assisted workflow` răspunde la întrebarea:
 
-> Cum poate un agent să propună, modifice și extindă teste ATF fără să strice
-> contractele, layer-ele, ownership-ul sau evidence-ul?
+> Cum poate un agent să propună, modifice și extindă teste ATF fără să strice > contractele, layer-ele, ownership-ul sau evidence-ul?
 
-Acesta nu măsoară calitatea modelului testat. Măsoară calitatea procesului prin
-care agentul produce schimbări în framework și teste.
+Acesta nu măsoară calitatea modelului testat. Măsoară calitatea procesului prin care agentul produce schimbări în framework și teste.
 
 În forma actuală, ATF Java are deja protecții importante pentru agent:
 
@@ -738,8 +783,7 @@ care agentul produce schimbări în framework și teste.
 - schimbările testelor cer scope YAML exact, baseline Git, expirare și proof;
 - artifactul poate fi auditat în browser, nu doar citit ca text.
 
-Registrul `testChanges` este deja executabil pentru autorizarea scope-ului,
-nu pentru evaluarea semantică a propunerii agentului. Rămâne contractul complet:
+Registrul `testChanges` este deja executabil pentru autorizarea scope-ului, nu pentru evaluarea semantică a propunerii agentului. Rămâne contractul complet:
 
 ```text
 agent proposal
@@ -764,17 +808,15 @@ Fără această separare, un agent poate produce cod care compilează, dar:
 - lasă documentația în urmă față de cod;
 - transformă un run verde într-o concluzie de calitate.
 
+<a id="212-actual-ai-evaluation"></a>
+<a id="212-ai-evaluation-propriu-zis"></a>
 ### 21.2 `AI evaluation propriu-zis`
 
 `AI evaluation` răspunde la întrebarea:
 
-> Este output-ul AI corect, complet, grounded, rutat și explicabil pentru cazul
-> controlat?
+> Este output-ul AI corect, complet, grounded, rutat și explicabil pentru cazul > controlat?
 
-Această axă folosește contractele din capitolele 4–18. Agentul care scrie testul
-nu trebuie să fie judecătorul final al output-ului său. Evaluarea trebuie să fie
-executată de reguli, comparatoare, fixtures și evidence independente de textul
-agentului.
+Această axă folosește contractele din capitolele 4–18. Agentul care scrie testul nu trebuie să fie judecătorul final al output-ului său. Evaluarea trebuie să fie executată de reguli, comparatoare, fixtures și evidence independente de textul agentului.
 
 Separarea obligatorie este:
 
@@ -786,9 +828,10 @@ governance verifică forma schimbării
 reporting-ul publică snapshot-ul
 ```
 
-Un agent poate explica un failure, dar nu poate transforma singur un failure în
-`PASS`, nu poate inventa expected-ul după output și nu poate relaxa un hard-fail.
+Un agent poate explica un failure, dar nu poate transforma singur un failure în `PASS`, nu poate inventa expected-ul după output și nu poate relaxa un hard-fail.
 
+<a id="213-interaction-between-the-axes"></a>
+<a id="213-interacțiunea-dintre-axe"></a>
 ### 21.3 Interacțiunea dintre axe
 
 | Situație | Ce evaluăm | Ce nu deducem |
@@ -799,15 +842,13 @@ Un agent poate explica un failure, dar nu poate transforma singur un failure în
 | Raportul este frumos | proiecția evidence-ului | nu dovedește un verdict corect |
 | Modelul produce output plauzibil | comparația semantică | nu dovedește grounding sau invocation real |
 
-Un scor de workflow și un scor de AI quality trebuie să rămână două valori
-distincte în orice feedback viitor.
+Un scor de workflow și un scor de AI quality trebuie să rămână două valori distincte în orice feedback viitor.
 
+<a id="22-what-to-extract-from-atf1-and-what-not-to-import"></a>
+<a id="22-ce-extragem-din-atf1-și-ce-nu-importăm"></a>
 ## 22. Ce extragem din ATF1 și ce nu importăm
 
-ATF1 conține idei utile în documentele de pretraining, orchestration, execution
-and understand, reporting și score overview. Nu trebuie importată metodologia
-ca atare. Trebuie extrase doar principiile care întăresc contractele deja
-existente în ATF Java.
+ATF1 conține idei utile în documentele de pretraining, orchestration, execution and understand, reporting și score overview. Nu trebuie importată metodologia ca atare. Trebuie extrase doar principiile care întăresc contractele deja existente în ATF Java.
 
 | Idee ATF1 | Valoare transferabilă | Formă coerentă în ATF Java | Ce nu importăm |
 |---|---|---|---|
@@ -821,15 +862,17 @@ existente în ATF Java.
 | cold score cap | formă bună nu compensează lipsa substanței | hard cap pentru missing business/evidence proof | score wall decorativ sau scoruri paralele |
 | feedback per run | următorul agent învață din failure-ul precedent | feedback compilat cu `lesson`, `owner`, `next proof` | jurnal narativ lung fără efect asupra deciziei |
 
-Concluzia este că ATF trebuie să adopte disciplina de memorie, proof și
-handoff, nu întreaga economie de runs, slots, prompts și state files din ATF1.
+Concluzia este că ATF trebuie să adopte disciplina de memorie, proof și handoff, nu întreaga economie de runs, slots, prompts și state files din ATF1.
 
+<a id="23-atf-native-model-for-agentic-test-creation"></a>
+<a id="23-model-atf-native-pentru-agentic-test-creation"></a>
 ## 23. Model ATF-native pentru agentic test creation
 
+<a id="231-agent-proposed-change-contract"></a>
+<a id="231-contractul-schimbării-propuse-de-agent"></a>
 ### 23.1 Contractul schimbării propuse de agent
 
-Înainte de implementare, orice schimbare agentic relevantă trebuie să poată fi
-reprezentată printr-un contract bounded:
+Înainte de implementare, orice schimbare agentic relevantă trebuie să poată fi reprezentată printr-un contract bounded:
 
 ```text
 AtfAgentChangeProposal
@@ -859,10 +902,11 @@ Semantica este strictă:
 - `documentationImpact` spune ce README/feedback se schimbă;
 - `knownLimits` împiedică agentul să vândă o dovadă parțială ca soluție completă.
 
+<a id="232-handoff-contract"></a>
+<a id="232-contractul-de-handoff"></a>
 ### 23.2 Contractul de handoff
 
-După implementare, agentul trebuie să poată lăsa următoarea informație
-reconstructibilă:
+După implementare, agentul trebuie să poată lăsa următoarea informație reconstructibilă:
 
 ```text
 AtfAgentChangeHandoff
@@ -876,9 +920,10 @@ AtfAgentChangeHandoff
   nextProof
 ```
 
-Handoff-ul nu este un rezumat de conversație. Este o referință rece între
-source diff, test, gate și artifact.
+Handoff-ul nu este un rezumat de conversație. Este o referință rece între source diff, test, gate și artifact.
 
+<a id="233-proposed-flow"></a>
+<a id="233-fluxul-propus"></a>
 ### 23.3 Fluxul propus
 
 ```mermaid
@@ -886,7 +931,7 @@ source diff, test, gate și artifact.
 flowchart LR
     Agent["Proposal"] -->|compară| Baseline["Baseline"]
     Baseline -->|definește| Contract["Contract"]
-    Contract -->|verifică| Owner["Owner"]
+    Contract -->|verifică| Owner["Responsabil"]
     Owner -->|limitează| Implement["Change"]
     Implement -->|dovedește| Unit["Tests"]
     Unit -->|alimentează| Governance["Governance"]
@@ -907,27 +952,27 @@ Etichetele scurte păstrează următorul sens:
 |---|---|
 | Baseline | Live baseline |
 | Contract | Change contract |
-| Owner | Owner/layer check |
-| Change | Scoped implementation |
+| Responsabil | Owner/layer check |
+| Schimbare | Scoped implementation |
 | Tests | Focused tests |
 | Evidence | Evidence/artifact |
 | Feedback | Compiled feedback |
-| Decision | Next agent decision |
+| Decizie | Next agent decision |
 
 </details>
 
-Regula de oprire: dacă baseline-ul, ownerul sau proof plan-ul nu sunt clare,
-agentul nu începe o refactorizare largă. Produce gap diagnostic și cere un
-contract mai îngust.
+Regula de oprire: dacă baseline-ul, ownerul sau proof plan-ul nu sunt clare, agentul nu începe o refactorizare largă. Produce gap diagnostic și cere un contract mai îngust.
 
+<a id="24-recommended-direction-for-atf-tests"></a>
+<a id="24-direcția-recomandată-pentru-atf-tests"></a>
 ## 24. Direcția recomandată pentru `atf-tests`
 
-Da, `atf-tests` este locul potrivit pentru guvernanță transversală, dar nu pentru
-generarea de teste de produs și nu pentru logică de agent.
+Da, `atf-tests` este locul potrivit pentru guvernanță transversală, dar nu pentru generarea de teste de produs și nu pentru logică de agent.
 
-`atf-tests` ar trebui să verifice proprietăți ale schimbării agentic, nu să
-înțeleagă business-ul fiecărui consumer.
+`atf-tests` ar trebui să verifice proprietăți ale schimbării agentic, nu să înțeleagă business-ul fiecărui consumer.
 
+<a id="241-proposed-guards--design-only-not-implementation"></a>
+<a id="241-guard-uri-propuse--doar-design-nu-implementare"></a>
 ### 24.1 Guard-uri propuse — doar design, nu implementare
 
 | Guard propus | Ce verifică | Failure util pentru agent |
@@ -944,6 +989,8 @@ generarea de teste de produs și nu pentru logică de agent.
 | `AgentFixtureIsolationGovernanceTest` | fixture-ul nu depinde de state global implicit | „separă contextul per test” |
 | `AgentChangeHandoffGovernanceTest` | schimbarea lasă delta, gates, verdict și gap-uri | „handoff incomplet pentru următorul agent” |
 
+<a id="242-what-a-guard-must-produce"></a>
+<a id="242-ce-trebuie-să-producă-un-guard"></a>
 ### 24.2 Ce trebuie să producă un guard
 
 Fiecare guard trebuie să emită diagnostic structurat:
@@ -960,10 +1007,10 @@ minimalRemediation
 proofRequired
 ```
 
-Mesajul trebuie să fie suficient pentru ca agentul să poată face o corecție
-locală fără să ghicească intenția. Guard-ul nu trebuie să genereze patch-uri
-automat și nu trebuie să ascundă excepții prin allowlist generic.
+Mesajul trebuie să fie suficient pentru ca agentul să poată face o corecție locală fără să ghicească intenția. Guard-ul nu trebuie să genereze patch-uri automat și nu trebuie să ascundă excepții prin allowlist generic.
 
+<a id="243-guard-order"></a>
+<a id="243-ordinea-guard-urilor"></a>
 ### 24.3 Ordinea guard-urilor
 
 Ordinea este importantă; altfel agentul repară simptomele în ordinea greșită:
@@ -979,16 +1026,16 @@ Ordinea este importantă; altfel agentul repară simptomele în ordinea greșit�
 8. artifact/handoff completeness
 ```
 
-Un failure de owner trebuie raportat înaintea unui failure de formatting al
-raportului. Un failure de evidence trebuie raportat înaintea scorului de
-business.
+Un failure de owner trebuie raportat înaintea unui failure de formatting al raportului. Un failure de evidence trebuie raportat înaintea scorului de business.
 
+<a id="25-atf-pretraining-reduced-to-essentials"></a>
+<a id="25-pretraining-atf-redus-la-esențial"></a>
 ## 25. Pretraining ATF redus la esențial
 
-Nu recomandăm un pretraining separat, cu prompturi și artefacte numeroase.
-Recomandăm un `cold baseline read` bounded, executat înaintea unei schimbări
-agentic semnificative.
+Nu recomandăm un pretraining separat, cu prompturi și artefacte numeroase. Recomandăm un `cold baseline read` bounded, executat înaintea unei schimbări agentic semnificative.
 
+<a id="251-minimum-input"></a>
+<a id="251-input-minim"></a>
 ### 25.1 Input minim
 
 Agentul recitește numai:
@@ -1001,6 +1048,8 @@ Agentul recitește numai:
 6. ultimul artifact sau snapshot relevant, dacă schimbarea este vizuală/
    semantică.
 
+<a id="252-minimum-output"></a>
+<a id="252-output-minim"></a>
 ### 25.2 Output minim
 
 Produce un card scurt:
@@ -1017,9 +1066,10 @@ negative case = ...
 documentation impact = ...
 ```
 
-Nu este permis ca agentul să preia scor, verdict sau business dintr-un benchmark
-fără să verifice codul și testele locale.
+Nu este permis ca agentul să preia scor, verdict sau business dintr-un benchmark fără să verifice codul și testele locale.
 
+<a id="253-when-the-baseline-is-insufficient"></a>
+<a id="253-când-baseline-ul-este-insuficient"></a>
 ### 25.3 Când baseline-ul este insuficient
 
 Agentul trebuie să se oprească diagnostic dacă:
@@ -1031,11 +1081,14 @@ Agentul trebuie să se oprească diagnostic dacă:
 - expected-ul business nu este obiectiv;
 - schimbarea ar cere simultan mai mult de un owner major.
 
-Acesta este un `BLOCKED_FOR_BASELINE`, nu un failure de implementare și nu un
-motiv pentru a inventa o arhitectură paralelă.
+Acesta este un `BLOCKED_FOR_BASELINE`, nu un failure de implementare și nu un motiv pentru a inventa o arhitectură paralelă.
 
+<a id="26-actual-ai-evaluation-in-this-workflow"></a>
+<a id="26-ai-evaluation-propriu-zis-în-acest-workflow"></a>
 ## 26. AI evaluation propriu-zis în acest workflow
 
+<a id="261-distinct-roles"></a>
+<a id="261-roluri-distincte"></a>
 ### 26.1 Roluri distincte
 
 | Rol | Responsabilitate | Nu are voie |
@@ -1047,6 +1100,8 @@ motiv pentru a inventa o arhitectură paralelă.
 | reporting | publică snapshot-ul | să recalculeze score-ul |
 | reviewer | decide dacă limita rămasă este acceptabilă | să transforme lipsa evidence în pass |
 
+<a id="262-agent-generated-tests-must-contain-observable-facts"></a>
+<a id="262-testul-generat-de-agent-trebuie-să-conțină-facts-observabile"></a>
 ### 26.2 Testul generat de agent trebuie să conțină facts observabile
 
 Pentru un test AI, assertion-ul trebuie să fie construit din facts:
@@ -1066,16 +1121,16 @@ Nu este acceptabil:
 assertTrue("AI result looks correct");
 ```
 
-Este necesar un assertion semantic care poate alimenta `AiFieldComparison`,
-`AiGroundingObservation`, `AiReviewObservation` sau `AiStateObservation`.
+Este necesar un assertion semantic care poate alimenta `AiFieldComparison`, `AiGroundingObservation`, `AiReviewObservation` sau `AiStateObservation`.
 
+<a id="263-the-generated-test-must-not-be-the-evaluator"></a>
+<a id="263-testul-generat-nu-trebuie-să-fie-evaluatorul"></a>
 ### 26.3 Testul generat nu trebuie să fie evaluatorul
 
-Agentul poate genera fixture-ul și wiring-ul, dar score policy trebuie să fie
-reutilizată din evaluator. Dacă fiecare test își scrie propriul calcul de scor,
-rezultatele nu mai sunt comparabile și governance-ul nu mai poate identifica
-drift-ul.
+Agentul poate genera fixture-ul și wiring-ul, dar score policy trebuie să fie reutilizată din evaluator. Dacă fiecare test își scrie propriul calcul de scor, rezultatele nu mai sunt comparabile și governance-ul nu mai poate identifica drift-ul.
 
+<a id="264-quality-score-and-workflow-score"></a>
+<a id="264-quality-score-și-workflow-score"></a>
 ### 26.4 Quality score și workflow score
 
 Trebuie păstrate separat:
@@ -1088,18 +1143,15 @@ agent workflow score
   = owner, layer, proof, evidence, documentation, handoff
 ```
 
-Un agent poate avea workflow score 100 și să producă un test care demonstrează
-că modelul are quality score 42. Aceasta este o execuție bună a unui test care a
-găsit o problemă reală.
+Un agent poate avea workflow score 100 și să producă un test care demonstrează că modelul are quality score 42. Aceasta este o execuție bună a unui test care a găsit o problemă reală.
 
-Invers, un test poate afișa AI quality 96, dar să aibă workflow score scăzut
-dacă expected-ul a fost inventat, invocation-ul nu este dovedit sau assertion-ul
-este literal.
+Invers, un test poate afișa AI quality 96, dar să aibă workflow score scăzut dacă expected-ul a fost inventat, invocation-ul nu este dovedit sau assertion-ul este literal.
 
+<a id="27-compiled-feedback-for-the-next-agent"></a>
+<a id="27-feedback-compilat-pentru-următorul-agent"></a>
 ## 27. Feedback compilat pentru următorul agent
 
-Feedback-ul trebuie să fie scurt în suprafața de consum, dar suficient de precis
-pentru reparare:
+Feedback-ul trebuie să fie scurt în suprafața de consum, dar suficient de precis pentru reparare:
 
 ```text
 AtfAgentFeedback
@@ -1116,6 +1168,8 @@ AtfAgentFeedback
   notToDo
 ```
 
+<a id="271-constructive-example"></a>
+<a id="271-exemplu-constructiv"></a>
 ### 27.1 Exemplu constructiv
 
 ```text
@@ -1128,6 +1182,8 @@ nextProofClass = component + report contract
 notToDo = do not add a second E2E journey
 ```
 
+<a id="272-feedback-order"></a>
+<a id="272-ordinea-feedback-ului"></a>
 ### 27.2 Ordinea feedback-ului
 
 Feedback-ul compilat trebuie să răspundă în această ordine:
@@ -1140,36 +1196,38 @@ Feedback-ul compilat trebuie să răspundă în această ordine:
 6. care este dovada următoare;
 7. ce soluție aparentă trebuie evitată.
 
-Această ordine reduce tendința agentului de a face refactorizare largă după un
-failure local.
+Această ordine reduce tendința agentului de a face refactorizare largă după un failure local.
 
+<a id="28-constructive-feedback-on-the-atf-java-direction"></a>
+<a id="28-feedback-constructiv-asupra-direcției-atf-java"></a>
 ## 28. Feedback constructiv asupra direcției ATF Java
 
+<a id="strength-to-preserve"></a>
+<a id="punct-forte-de-păstrat"></a>
 ### Punct forte de păstrat
 
-ATF Java are deja un boundary foarte bun între test contract, runtime, verdict,
-reporting și browser audit. Nu trebuie înlocuit cu un agent runtime sau cu un
-framework de prompturi în production.
+ATF Java are deja un boundary foarte bun între test contract, runtime, verdict, reporting și browser audit. Nu trebuie înlocuit cu un agent runtime sau cu un framework de prompturi în production.
 
+<a id="main-gap"></a>
+<a id="gap-principal"></a>
 ### Gap principal
 
-Guvernanța actuală exprimă deja scope-ul, motivul, baseline-ul și proba prin
-`testChanges`. Nu exprimă încă proposal-ul semantic complet: expected delta,
-layer minim justificat, facts observabile și handoff reconstructibil.
+Guvernanța actuală exprimă deja scope-ul, motivul, baseline-ul și proba prin `testChanges`. Nu exprimă încă proposal-ul semantic complet: expected delta, layer minim justificat, facts observabile și handoff reconstructibil.
 
+<a id="secondary-gap"></a>
+<a id="gap-secundar"></a>
 ### Gap secundar
 
-AI evaluation este definită conceptual prin case, expected, observed, score și
-evidence, dar nu este încă conectată la un workflow de generare a testelor care
-poate produce automat un failure explicabil pentru agent.
+AI evaluation este definită conceptual prin case, expected, observed, score și evidence, dar nu este încă conectată la un workflow de generare a testelor care poate produce automat un failure explicabil pentru agent.
 
+<a id="greatest-risk"></a>
+<a id="riscul-cel-mai-mare"></a>
 ### Riscul cel mai mare
 
-Adăugarea directă a unei “AI layer” în `atf-reporting` sau `atf-core` ar amesteca
-business semantics, provider details și rendering. Aceasta ar crește aparent
-capability-ul, dar ar scădea reutilizabilitatea și ar face score-ul greu de
-reconstruit.
+Adăugarea directă a unei “AI layer” în `atf-reporting` sau `atf-core` ar amesteca business semantics, provider details și rendering. Aceasta ar crește aparent capability-ul, dar ar scădea reutilizabilitatea și ar face score-ul greu de reconstruit.
 
+<a id="recommended-direction"></a>
+<a id="direcția-recomandată"></a>
 ### Direcția recomandată
 
 1. păstrează evaluatorul și case model renderer-neutral;
@@ -1181,6 +1239,8 @@ reconstruit.
    README-urilor;
 7. implementează întâi contractul și gate-urile, apoi orice orchestrare agentic.
 
+<a id="29-decision-before-implementation"></a>
+<a id="29-decizie-înainte-de-implementare"></a>
 ## 29. Decizie înainte de implementare
 
 Nu se implementează încă nimic până când nu sunt aprobate următoarele decizii:
@@ -1197,46 +1257,52 @@ Nu se implementează încă nimic până când nu sunt aprobate următoarele dec
 | handoff | care este minimul necesar pentru următorul agent? |
 | scope | ce guard-uri sunt generic whole-ATF și ce rămâne consumer-specific? |
 
-Regula recomandată: prima implementare trebuie să fie un set mic de guard-uri
-de governance și un feedback contract, nu un agent complet.
+Regula recomandată: prima implementare trebuie să fie un set mic de guard-uri de governance și un feedback contract, nu un agent complet.
 
+<a id="30-proposed-validation-plan-implementation-not-yet-started"></a>
+<a id="30-plan-de-validare-propus-fără-implementare-încă"></a>
 ## 30. Plan de validare propus, fără implementare încă
 
+<a id="stage-a--contract-review"></a>
+<a id="etapa-a--contract-review"></a>
 ### Etapa A — contract review
 
-Se validează vocabulary-ul, ownerii, severity și câmpurile obligatorii ale
-proposal/handoff/feedback. Niciun test nou de produs.
+Se validează vocabulary-ul, ownerii, severity și câmpurile obligatorii ale proposal/handoff/feedback. Niciun test nou de produs.
 
+<a id="stage-b--governance-proof"></a>
+<a id="etapa-b--dovada-de-guvernanță"></a>
 ### Etapa B — dovada de guvernanță
 
-Se proiectează câteva fixture-uri artificiale care demonstrează că guard-urile
-detectează owner greșit, layer prea larg, literal verdict, evidence lipsă și
-documentation drift.
+Se proiectează câteva fixture-uri artificiale care demonstrează că guard-urile detectează owner greșit, layer prea larg, literal verdict, evidence lipsă și documentation drift.
 
+<a id="stage-c--one-agentic-pilot-test"></a>
+<a id="etapa-c--un-singur-test-agentic-pilot"></a>
 ### Etapa C — un singur test agentic pilot
 
-Se alege un seam mic din `atf-reporting-tests`, nu un flow business mare.
-Pilotul trebuie să producă proposal, diff, focused test, gate result și feedback.
+Se alege un seam mic din `atf-reporting-tests`, nu un flow business mare. Pilotul trebuie să producă proposal, diff, focused test, gate result și feedback.
 
+<a id="stage-d--ai-evaluation-pilot"></a>
+<a id="etapa-d--ai-evaluation-pilot"></a>
 ### Etapa D — AI evaluation pilot
 
-Se folosește un caz controlat cu expected/observed simplu, un failure critic și
-un caz de fallback. Se validează că quality score rămâne separat de workflow
-score.
+Se folosește un caz controlat cu expected/observed simplu, un failure critic și un caz de fallback. Se validează că quality score rămâne separat de workflow score.
 
+<a id="stage-e--expansion-decision"></a>
+<a id="etapa-e--decizie-de-extindere"></a>
 ### Etapa E — decizie de extindere
 
-Doar dacă pilotul produce feedback reparabil și evidence reconstructibil se
-extind guard-urile către restul reactorului.
+Doar dacă pilotul produce feedback reparabil și evidence reconstructibil se extind guard-urile către restul reactorului.
 
 </details>
 
+<a id="31-agentic-workflow-status"></a>
+<a id="31-starea-workflow-ului-agentic"></a>
 ## 31. Starea workflow-ului agentic
 
-Proposal, handoff, facts și separarea scorurilor sunt urmărite în
-[gap-urile workflow-ului](feedback/README_AI_Evaluation.md#gap-uri-de-design-pentru-workflow-ul-agentic).
-Acest design nu este autorizație pentru implementarea claselor sau a modulelor propuse.
+Proposal, handoff, facts și separarea scorurilor sunt urmărite în [gap-urile workflow-ului](feedback/README_AI_Evaluation.md#gap-uri-de-design-pentru-workflow-ul-agentic). Acest design nu este autorizație pentru implementarea claselor sau a modulelor propuse.
 
+<a id="32-sources-reviewed-for-this-extension"></a>
+<a id="32-surse-analizate-pentru-această-extindere"></a>
 ## 32. Surse analizate pentru această extindere
 
 ATF Java:
@@ -1258,10 +1324,10 @@ ${ATF1_ROOT}/test-framework/docs/prompts/md-en/reporting.md
 ${ATF1_ROOT}/test-framework/docs/prompts/md-en/score-overview-reference.md
 ```
 
-Principiul de utilizare a acestor surse: extragem pressure, proof, handoff,
-anti-copy și cold baseline; nu importăm verdicturi, scoruri, business sau o
-metodologie paralelă.
+Principiul de utilizare a acestor surse: extragem pressure, proof, handoff, anti-copy și cold baseline; nu importăm verdicturi, scoruri, business sau o metodologie paralelă.
 
+<a id="33-atf-contract-sources"></a>
+<a id="33-surse-contractuale-atf"></a>
 ## 33. Surse contractuale ATF
 
 - [`ATF_Architecture.md`](ATF_Architecture.md)
@@ -1279,30 +1345,30 @@ Implementarea vertical slice analizată live:
 - `../atf-test-practice-shop/src/main/atf/shop`;
 - `../atf-reporting/src/main/java/atf/reporting`.
 
+<a id="34-readiness-and-evidence"></a>
+<a id="34-readiness-și-dovezi"></a>
 ## 34. Readiness și dovezi
 
-Scorurile, capabilitățile efective și limitele se calibrează numai în
-[scorecard-ul feedback-ului](feedback/README_AI_Evaluation.md#scorecard-executiv).
-Acest document nu păstrează un al doilea set de scoruri sau rezultate de rulare.
+Scorurile, capabilitățile efective și limitele se calibrează numai în [scorecard-ul feedback-ului](feedback/README_AI_Evaluation.md#scorecard-executiv). Acest document nu păstrează un al doilea set de scoruri sau rezultate de rulare.
 
 <details>
 <summary>Pattern-uri de referință — .NET, ATF1 și boundary-ul agentic propus</summary>
 
+<a id="35-patterns-extracted-from-the-reference-net-suite"></a>
+<a id="35-pattern-uri-extrase--suita-net-de-referință"></a>
 ## 35. Pattern-uri extrase — suita .NET de referință
 
-Suita .NET nu implementează un evaluator AI generic. Valoarea ei pentru ATF este
-mai precisă: arată cum trebuie separat un workflow de business, un read model
-typed, un verdict semantic, retry-ul și proiecția de evidence.
+Suita .NET nu implementează un evaluator AI generic. Valoarea ei pentru ATF este mai precisă: arată cum trebuie separat un workflow de business, un read model typed, un verdict semantic, retry-ul și proiecția de evidence.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
     Scenario["Scenario state"] -->|owns| Workflow["Workflow"]
-    Workflow -->|calls| Gateway["Gateway"]
-    Gateway -->|returns| ReadModel["Read model"]
+    Workflow -->|apelează| Gateway["Gateway"]
+    Gateway -->|returnează| ReadModel["Read model"]
     ReadModel -->|feeds| Validator["Validator"]
-    Validator -->|binds| Evidence["Evidence"]
-    Evidence -->|projects| Report["Report"]
+    Validator -->|leagă| Evidence["Evidence"]
+    Evidence -->|proiecte| Report["Report"]
 ```
 
 <details>
@@ -1332,10 +1398,12 @@ Etichetele scurte păstrează următorul sens:
 | Read model | Typed read model |
 | Validator | Expected vs actual validator |
 | Evidence | Evidence adapter |
-| Report | Extent / report projection |
+| Raport | Extent / report projection |
 
 </details>
 
+<a id="351-what-to-adopt-from-net"></a>
+<a id="351-ce-adoptăm-din-net"></a>
 ### 35.1 Ce adoptăm din .NET
 
 ```text
@@ -1355,9 +1423,11 @@ transport / UI observation
 - `VoyageBusinessEvidencePolicy` confirmă că banda `exploratory` nu poate fi confundată cu dovadă contractuală;
 - `ApiAuthenticationEvidence` confirmă că raportarea auth este observație tehnică, nu dovadă de validare a tokenului.
 
+<a id="352-gaps-found-in-the-net-source"></a>
+<a id="352-gap-uri-descoperite-în-sursa-net"></a>
 ### 35.2 Gap-uri descoperite în sursa .NET
 
-| Gap | Risc dacă este copiat în ATF fără reducere | Decizie |
+| Lacună | Risc dacă este copiat în ATF fără reducere | Decizie |
 |---|---|---|
 | contractele AI sunt legate de quote/review/email/PDF | un modul generic ar ajunge să cunoască business-ul consumerului | adoptăm forma typed, nu numele sau payload-ul |
 | modurile `MockAdvisory` / known projection gap | un agent poate interpreta warning-ul ca succes | fiecare advisory trebuie legat de lane, motiv, owner, expirare și test negativ |
@@ -1369,9 +1439,10 @@ transport / UI observation
 | `BrowserRequestRetryPolicy` din .NET | retry-ul UI este permis numai când request-ul a lipsit și nu există failure matching | adoptăm regula ca guard de siguranță; Java nu face replay implicit și cere proof de idempotency pentru orice retry de mutație |
 | `FrontendAssetNetworkObserver` din .NET | request/response/failure pentru asset-uri sunt separate de API evidence | Java nu amestecă asset traffic cu API inspector; request-failed API capture este typed și rămâne evidence explicit, nu warning ascuns |
 
-Regula sintetizată: adoptăm **disciplinele de boundary**, nu importăm modelul
-business .NET în `atf-core` sau `atf-reporting`.
+Regula sintetizată: adoptăm **disciplinele de boundary**, nu importăm modelul business .NET în `atf-core` sau `atf-reporting`.
 
+<a id="36-patterns-extracted-from-atf1-test-framework"></a>
+<a id="36-pattern-uri-extrase--atf1-test-framework"></a>
 ## 36. Pattern-uri extrase — ATF1 `test-framework`
 
 ATF1 aduce două lucruri distincte și trebuie citit pe două niveluri:
@@ -1384,9 +1455,9 @@ ATF1 aduce două lucruri distincte și trebuie citit pe două niveluri:
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
     ColdRead["Baseline"] -->|informs| Frontier["Decision"]
-    Frontier -->|permits| Run["Run"]
+    Frontier -->|permite| Run["Run"]
     Run -->|freezes| Freeze["Snapshot"]
-    Freeze -->|supports| Score["Score"]
+    Freeze -->|susține| Score["Score"]
     Score -->|feeds| Learn["Feedback"]
 ```
 
@@ -1413,14 +1484,16 @@ Etichetele scurte păstrează următorul sens:
 | În schemă | Sens complet |
 |---|---|
 | Baseline | Cold baseline |
-| Decision | Frontier decision |
-| Run | Governed run |
-| Snapshot | Diff + artifacts + state |
+| Decizie | Frontier decision |
+| Rulare | Governed run |
+| Instantaneu | Diff + artifacts + state |
 | Score | Business / proof score |
 | Feedback | Feedback + next decision |
 
 </details>
 
+<a id="361-atf1-limits-to-close-in-the-agentic-workflow"></a>
+<a id="361-limitele-atf1-care-trebuie-închise-în-workflow-ul-agentic"></a>
 ### 36.1 Limitele ATF1 care trebuie închise în workflow-ul agentic
 
 - prompturile și starea de run sunt documentate, nu tipizate într-un contract
@@ -1430,13 +1503,14 @@ Etichetele scurte păstrează următorul sens:
 - `StepLogger` păstrează status și text, dar nu are `expected`, `observed`,
   `grounding`, `invocation` și `evidenceReference` typed;
 - `ConfigManager`, `ReportingManager` și `DriverManager` au state static/global;
-  un workflow agentic trebuie să declare izolarea și să nu presupună execuții
-  paralele sigure fără proof;
+  un workflow agentic trebuie să declare izolarea și să nu presupună execuții paralele sigure fără proof;
 - contract tests care se încheie doar cu `assertTrue(true)` dovedesc cel mult
   absența unei excepții; nu trebuie folosite ca dovadă de correctness semantic;
 - adapterul Extent/Allure este o bază bună de reutilizat, dar modelul AI trebuie
   să rămână renderer-neutral și să fie comparat înainte de proiecție.
 
+<a id="362-what-to-adopt-and-not-adopt-from-atf1"></a>
+<a id="362-ce-adoptăm-și-ce-nu-adoptăm-din-atf1"></a>
 ### 36.2 Ce adoptăm și ce nu adoptăm din ATF1
 
 | Adoptăm | Nu adoptăm |
@@ -1449,29 +1523,27 @@ Etichetele scurte păstrează următorul sens:
 | render/link audit la publicare | HTML-ul ca autoritate a verdictului |
 | adapter contract și lifecycle tests | `StepLogger` text ca substitut pentru un model semantic |
 
+<a id="37-synthesis-two-different-outputs-of-the-same-workflow"></a>
+<a id="37-sinteza-două-produse-diferite-ale-aceluiași-workflow"></a>
 ## 37. Sinteza: două produse diferite ale aceluiași workflow
 
-Workflow-ul agentic ar trebui să ajute la **crearea și verificarea unui test**.
-Evaluatorul AI ar trebui să verifice **output-ul AI din test**. Ele trebuie
-să folosească aceeași infrastructură de evidence, dar nu aceeași metrică.
+Workflow-ul agentic ar trebui să ajute la **crearea și verificarea unui test**. Evaluatorul AI ar trebui să verifice **output-ul AI din test**. Ele trebuie să folosească aceeași infrastructură de evidence, dar nu aceeași metrică.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; } .edgeLabel [data-id=\"L_QualityProof_SharedEvidence_0\"] foreignObject { transform: translate(0px, -28px); }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
 flowchart LR
-    AgentChange["Agent change"] -->|scores| WorkflowProof[Workflow score]
-    AiCase["AI case"] -->|scores| QualityProof[AI quality score]
-    WorkflowProof -->|publishes| SharedEvidence["Evidence"]
-    QualityProof -->|publishes| SharedEvidence
+    AgentChange["Agent change"] -->|scoruri| WorkflowProof[Workflow score]
+    AiCase["AI case"] -->|scoruri| QualityProof[AI quality score]
+    WorkflowProof -->|publică| SharedEvidence["Evidence"]
+    QualityProof -->|publică| SharedEvidence
     Governance["Governance"] -->|guards| WorkflowProof
-    SharedEvidence -->|projects| Report["Report"]
+    SharedEvidence -->|proiecte| Report["Report"]
 ```
 
 <details>
 <summary><strong>Legendă — separarea workflow-ului de calitatea AI</strong></summary>
 
-Workflow score măsoară dacă schimbarea agentului este guvernată corect. AI
-quality score măsoară output-ul AI. Ambele publică facts în aceeași evidență,
-iar raportarea doar o proiectează.
+Workflow score măsoară dacă schimbarea agentului este guvernată corect. AI quality score măsoară output-ul AI. Ambele publică facts în aceeași evidență, iar raportarea doar o proiectează.
 
 Etichetele scurte păstrează următorul sens:
 
@@ -1480,8 +1552,8 @@ Etichetele scurte păstrează următorul sens:
 | Agent change | Agent proposes test change |
 | AI case | AI case runs |
 | Evidence | Shared evidence contract |
-| Governance | Whole-ATF governance |
-| Report | Renderer-neutral report projection |
+| Guvernanță | Guvernanță Whole-ATF |
+| Raport | Renderer-neutral report projection |
 
 </details>
 
@@ -1492,14 +1564,13 @@ Etichetele scurte păstrează următorul sens:
 | evidence trust | poate un reviewer reconstrui verdictul? | `atf-validation` + reporting contract | missing reference, duplicate exchange, unknown invocation |
 | publication | proiecția este navigabilă și fidelă? | `atf-reporting` + composition tests | HTML/Extent/fallback drift |
 
-Un workflow score de 100 poate identifica un model AI cu quality score 42. Acest
-rezultat este util și nu trebuie „reparat” prin relaxarea testului.
+Un workflow score de 100 poate identifica un model AI cu quality score 42. Acest rezultat este util și nu trebuie „reparat” prin relaxarea testului.
 
+<a id="38-design-candidate--composition-in-existing-modules"></a>
+<a id="38-candidat-de-design--compoziție-în-modulele-existente"></a>
 ## 38. Candidat de design — compoziție în modulele existente
 
-Aceasta este o propunere de design, nu o autorizație de implementare.
-Compoziția rămâne **test-only, opt-in și provider-neutral**; responsabilitățile
-se distribuie între ownerii existenți, fără un proiect Maven nou.
+Aceasta este o propunere de design, nu o autorizație de implementare. Compoziția rămâne **test-only, opt-in și provider-neutral**; responsabilitățile se distribuie între ownerii existenți, fără un proiect Maven nou.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
@@ -1529,12 +1600,14 @@ Etichetele scurte păstrează următorul sens:
 | Kit | Declarații neutre · Kit |
 | Gates | Proposal și gates · Tests |
 | Consumeri | Compoziție · consumeri |
-| Validation | Evaluator · Validation |
+| Validare | Evaluator · Validation |
 | Reporting | Snapshot · Reporting |
 | Reporting Tests | Probe · Reporting Tests |
 
 </details>
 
+<a id="381-allowed-responsibilities"></a>
+<a id="381-responsabilități-permise"></a>
 ### 38.1 Responsabilități permise
 
 - `AtfAgentChangeProposal`: owner, boundary, baseline, expected delta, layer și
@@ -1551,6 +1624,8 @@ Etichetele scurte păstrează următorul sens:
   `atf-test-kit`, fără a crea un layer nou;
 - adapter opțional către raportare prin contract semantic, nu prin HTML direct.
 
+<a id="382-mandatory-prohibitions"></a>
+<a id="382-interdicții-obligatorii"></a>
 ### 38.2 Interdicții obligatorii
 
 - nu rulează un provider AI în production ATF;
@@ -1565,10 +1640,11 @@ Etichetele scurte păstrează următorul sens:
   sunt necunoscute;
 - nu transformă fallback, mock sau advisory în AI quality score.
 
+<a id="383-conceptual-plug-and-play-configuration"></a>
+<a id="383-configurare-conceptuală-plug-and-play"></a>
 ### 38.3 Configurare conceptuală plug-and-play
 
-Configurarea de mai jos este doar forma de decizie care trebuie validată; nu
-trebuie încă introdusă în YAML-ul ATF live:
+Configurarea de mai jos este doar forma de decizie care trebuie validată; nu trebuie încă introdusă în YAML-ul ATF live:
 
 ```yaml
 agentTestKit:
@@ -1590,14 +1666,13 @@ agentTestKit:
     machineReadable: true
 ```
 
-Valoarea configurării este să selecteze **gates și proof**, nu să selecteze
-adevărul business. Business expected rămâne în consumerul care deține cazul.
+Valoarea configurării este să selecteze **gates și proof**, nu să selecteze adevărul business. Business expected rămâne în consumerul care deține cazul.
 
+<a id="39-governance-tests-derived-from-the-two-sources"></a>
+<a id="39-teste-de-guvernanță-derivate-din-cele-două-surse"></a>
 ## 39. Teste de guvernanță derivate din cele două surse
 
-Lista următoare este o suită propusă, nu implementată încă. Fiecare regulă
-trebuie să poată pica intenționat pe un fixture artificial și să explice
-remedierea fără să inspecteze markup-ul ca sursă de verdict.
+Lista următoare este o suită propusă, nu implementată încă. Fiecare regulă trebuie să poată pica intenționat pe un fixture artificial și să explice remedierea fără să inspecteze markup-ul ca sursă de verdict.
 
 | Rule ID propus | Ce guvernează | Mesajul minim așteptat |
 |---|---|---|
@@ -1623,8 +1698,12 @@ baseline → owner → layer → dependency → expected/observed → retry/evid
          → negative case → lane/advisory → documentation → handoff
 ```
 
+<a id="40-design-decision-after-analyzing-the-two-codebases"></a>
+<a id="40-decizie-de-design-după-analiza-celor-două-codebase-uri"></a>
 ## 40. Decizie de design după analiza celor două codebase-uri
 
+<a id="adopt-as-atf-principles"></a>
+<a id="adoptăm-ca-principii-atf"></a>
 ### Adoptăm ca principii ATF
 
 - typed boundary la marginea transportului;
@@ -1636,6 +1715,8 @@ baseline → owner → layer → dependency → expected/observed → retry/evid
 - cold baseline, claim → proof → artifact și handoff rece;
 - guvernanță care produce diagnostics reparabile, nu patch-uri opace.
 
+<a id="defer-until-there-is-a-vertical-pilot"></a>
+<a id="amânăm-până-există-un-pilot-vertical"></a>
 ### Amânăm până există un pilot vertical
 
 - provider AI sau orchestration framework în runtime;
@@ -1645,24 +1726,22 @@ baseline → owner → layer → dependency → expected/observed → retry/evid
 - cuplarea workflow-ului agentic la renderer în locul contractului semantic;
 - modificarea automată a testelor de guvernanță.
 
-Aceste limite rămân valabile pentru compoziția agentică și pentru orice provider
-AI. Ele nu blochează un boundary tehnic separat, deja util pentru un consumer UI:
-observarea bounded și redacted a traficului browserului. Inspectorul de rețea nu
-este agent, evaluator AI și nu decide verdictul business.
+Aceste limite rămân valabile pentru compoziția agentică și pentru orice provider AI. Ele nu blochează un boundary tehnic separat, deja util pentru un consumer UI: observarea bounded și redacted a traficului browserului. Inspectorul de rețea nu este agent, evaluator AI și nu decide verdictul business.
 
+<a id="401-implemented-vertical-slice--ui-network-observation"></a>
+<a id="401-vertical-slice-implementat--network-observation-pentru-ui"></a>
 ### 40.1 Vertical slice implementat — network observation pentru UI
 
-Închis și promovat în [ATF UI](../atf-ui/README.md). Inspectorul dovedește
-observația traficului; nu reprezintă evaluare AI și nu autorizează replay-ul
-mutațiilor. Nu mai există un ToDo AI pentru această capabilitate.
+Închis și promovat în [ATF UI](../atf-ui/README.md). Inspectorul dovedește observația traficului; nu reprezintă evaluare AI și nu autorizează replay-ul mutațiilor. Nu mai există un ToDo AI pentru această capabilitate.
 
+<a id="402-implemented-vertical-slice--ai-comparator-and-invocation-evidence"></a>
+<a id="402-felie-verticală-implementată--comparator-ai-și-dovezi-despre-apel"></a>
 ### 40.2 Felie verticală implementată — comparator AI și dovezi despre apel
 
-Contractul executabil și probele sunt promovate în
-[ATF Validation](../atf-validation/README.md#comparatorul-ai--contract-implementat).
-Munca rămasă este indexată numai în [gap-urile active](feedback/README_AI_Evaluation.md#gap-uri-rămase-pentru-evaluator),
-inclusiv clasificarea `AMBIGUOUS`, registrul de dovezi și publicarea.
+Contractul executabil și probele sunt promovate în [ATF Validation](../atf-validation/README.md#comparatorul-ai--contract-implementat). Munca rămasă este indexată numai în [gap-urile active](feedback/README_AI_Evaluation.md#gap-uri-rămase-pentru-evaluator), inclusiv clasificarea `AMBIGUOUS`, registrul de dovezi și publicarea.
 
+<a id="explicitly-reject"></a>
+<a id="respingem-explicit"></a>
 ### Respingem explicit
 
 - `WARN + return` în scenarii contractuale;
@@ -1675,12 +1754,14 @@ inclusiv clasificarea `AMBIGUOUS`, registrul de dovezi și publicarea.
 
 </details>
 
+<a id="41-recalibration-rule"></a>
+<a id="41-regula-de-recalibrare"></a>
 ## 41. Regula de recalibrare
 
-Codul și probele decid livrarea. Designul se modifică numai când se schimbă
-un contract sau o decizie arhitecturală; starea, scorurile și gap-urile rămân în
-[feedback-ul activ](feedback/README_AI_Evaluation.md).
+Codul și probele decid livrarea. Designul se modifică numai când se schimbă un contract sau o decizie arhitecturală; starea, scorurile și gap-urile rămân în [feedback-ul activ](feedback/README_AI_Evaluation.md).
 
+<a id="42-implementation-boundary"></a>
+<a id="42-limita-de-implementare"></a>
 ## 42. Limita de implementare
 
 - Compoziția agentică și configurarea sa rămân propuneri test-only, opt-in și provider-neutral, în cele 12 module existente.

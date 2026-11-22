@@ -2,6 +2,9 @@ package atf.api.tests.governance.documentation;
 
 import atf.testkit.AtfComponentTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,6 +21,25 @@ public class DocumentationDiagramGovernanceTest {
     private static final int ROOT_MODULE_MAP_MAX_EDGE_LABEL_CHARS = 12;
     private static final Pattern NODE_LABEL = Pattern.compile("^\\w+\\[(.+)]$");
     private static final Pattern EDGE_LABEL = Pattern.compile("(?:-->|-\\.->)\\|([^|]+)\\|");
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Harta modulelor", "Module map"})
+    void rootModuleMapBudgetAppliesToBothEditions(String heading, @TempDir Path root) throws Exception {
+        Path readme = root.resolve("README.md");
+        String diagram = "# Owner\n\n## " + heading + "\n\n```mermaid\nflowchart LR\n"
+                + "A[\"Neutral\"]\nB[\"Read model\"]\nA -->|uses| B\n```\n\n"
+                + "<details>\n<summary>Legend — module boundary</summary>\n\nContract.\n</details>\n";
+        Files.writeString(readme, diagram);
+        var valid = new java.util.ArrayList<DocumentationGovernanceSupport.Violation>();
+        validate(readme, root, valid);
+        DocumentationGovernanceSupport.assertNoViolations("Localized root diagram", valid);
+        Files.writeString(readme, diagram.replace("Read model", "An intentionally excessive node label"));
+        var invalid = new java.util.ArrayList<DocumentationGovernanceSupport.Violation>();
+        validate(readme, root, invalid);
+        org.junit.jupiter.api.Assertions.assertTrue(invalid.stream()
+                .anyMatch(value -> value.code().equals("DOC-DIAG-COMPACT")),
+                "Translating a heading must not bypass the root diagram budget");
+    }
 
     @Test
     void nonRootReadmeDiagramsKeepTheDocumentedVisualContract() throws Exception {
@@ -121,7 +143,7 @@ public class DocumentationDiagramGovernanceTest {
         if (!path.normalize().equals(root.resolve("README.md").normalize())) return false;
         for (int index = opening - 1; index >= 0; index--) {
             String line = lines.get(index).trim();
-            if (line.startsWith("## ")) return line.equals("## Harta modulelor");
+            if (line.startsWith("## ")) return line.equals("## Harta modulelor") || line.equals("## Module map");
         }
         return false;
     }

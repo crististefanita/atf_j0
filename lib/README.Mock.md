@@ -1,9 +1,15 @@
+<a id="mock--deterministic-http-transport"></a>
+<a id="mock--transport-http-determinist"></a>
 # Mock — transport HTTP determinist
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 `atf-mock` înlocuiește portul Core `ApiTransport` cu un catalog local de răspunsuri. Folosiți-l pentru componente și contracte offline, cu intrări controlate și un fallback explicit.
 
+<a id="minimal-example"></a>
+<a id="exemplu-minim"></a>
 ## Exemplu minim
 
 `mock.yaml` în directorul de lucru:
@@ -29,6 +35,8 @@ var response = mock.send(ApiRequest.of("GET", "/health"),
 
 `response.status()` este `200`; o cerere fără rută potrivită primește fallback-ul `500`. Testul compară independent răspunsul cu rezultatul așteptat.
 
+<a id="catalog-and-matching"></a>
+<a id="catalog-și-potrivire"></a>
 ## Catalog și potrivire
 
 | Necesitate | API sau contract |

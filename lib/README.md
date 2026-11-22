@@ -1,9 +1,15 @@
+<a id="atf-libraries---j0-source-and-maintenance"></a>
+<a id="biblioteci-atf--sursă-și-mentenanță-j0"></a>
 # Biblioteci ATF — sursă și mentenanță J0
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 J0 deține bibliotecile Core, Reporting, Console, Mock și Test Kit: cod, API, teste, împachetare și feedback. Codul rămâne în modulele sursă ale acestui proiect; consumerii ATF reutilizează perechile JAR/POM verificate.
 
+<a id="usage-guidelines"></a>
+<a id="ghiduri-de-utilizare"></a>
 ## Ghiduri de utilizare
 
 | Bibliotecă | Ce oferă | Folosiți-o pentru |
@@ -14,18 +20,22 @@ J0 deține bibliotecile Core, Reporting, Console, Mock și Test Kit: cod, API, t
 | [Mock](README.Mock.md) | Transport HTTP determinist | Componente și contracte offline, cu catalog propriu. |
 | [Test Kit](README.TestKit.md) | `atf-test-kit` · audit și lifecycle JUnit neutru | Clasificare, comparații și suportul testelor. |
 
+<a id="maintenance-and-feedback"></a>
+<a id="mentenanță-și-feedback"></a>
 ## Mentenanță și feedback
 
 | Bibliotecă | Codul întreținut în J0 | Backlog canonic în J0 |
 |---|---|---|
 | Core | [atf-core](../atf-core/README.md) | [Feedback](../docs/feedback/ATF_Core_Feedback.md) |
 | Reporting | [atf-reporting](../atf-reporting/README.md) | [Feedback](../docs/feedback/ATF_Reporting_Feedback.md) |
-| Console | [atf-console](../atf-console/README.md) | [Feedback](../docs/feedback/ATF_Console_Mock_Feedback.md) |
+| Consolă | [atf-console](../atf-console/README.md) | [Feedback](../docs/feedback/ATF_Console_Mock_Feedback.md) |
 | Mock | [atf-mock](../atf-mock/README.md) | [Feedback](../docs/feedback/ATF_Console_Mock_Feedback.md) |
 | Test Kit | [atf-test-kit](../atf-test-kit/README.md) | [Feedback](../docs/feedback/ATF_Common_Test_Support_Feedback.md) |
 
 [Registrul J0](../docs/feedback/README.md#biblioteci-comune) este punctul de intrare pentru toate proiectele. Regresiile generice de compoziție și randare Reporting rămân în [atf-reporting-tests](../atf-reporting-tests/README.md); celelalte teste native stau lângă implementarea bibliotecii.
 
+<a id="working-flow"></a>
+<a id="fluxul-de-lucru"></a>
 ## Fluxul de lucru
 
 ```mermaid
@@ -45,6 +55,8 @@ flowchart LR
 
 </details>
 
+<a id="only-one-requirement-with-evidence"></a>
+<a id="o-singură-cerință-cu-dovezi"></a>
 ## O singură cerință, cu dovezi
 
 - Consemnați în J0 proiectul, coordonata/hash-ul efectiv, selecția/profilul, rezultatul așteptat și observat, reproducerea minimă și dovezile păstrate.
@@ -52,6 +64,8 @@ flowchart LR
 - Regulile de business, capturarea Android, modelele ASR și infrastructura brokerului rămân la ownerul consumerului. Un task demonstrat exclusiv local se mută acolo cu o trimitere scurtă din criteriul inițial.
 - Închideți criteriul numai după controlul negativ, regresia corectată și acceptanța relevantă; păstrați contractul stabil în documentație, fără ToDo-uri rezolvate sau cronologii de release.
 
+<a id="timing-and-governance"></a>
+<a id="sincronizare-și-guvernanță"></a>
 ## Sincronizare și guvernanță
 
 1. Comparați codul live și schimbările locale înainte de modificare; păstrați bazele Git și configurația fiecărui proiect.

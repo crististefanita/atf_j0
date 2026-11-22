@@ -1,5 +1,9 @@
+<a id="atf--cross-cutting-contract-for-configurable-evidence-capture"></a>
+<a id="atf--contract-transversal-pentru-capturarea-configurabilă-a-dovezilor"></a>
 # ATF — contract transversal pentru capturarea configurabilă a dovezilor
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 - soluție generică pentru evidence vizual și tehnic;
@@ -9,11 +13,10 @@
 - verifică suportul mai întâi prin teste unitare, component și integration;
 - folosește E2E doar pentru efectul observabil în browser.
 
-Acest document fixează contractul transversal. Profilul typed este implementat în
-`atf-reporting`; adapterul concret de browser/mock rămâne responsabilitatea
-consumerului și nu este ascuns în renderer. Practice Shop este un consumer de
-referință; nu este owner-ul soluției.
+Acest document fixează contractul transversal. Profilul typed este implementat în `atf-reporting`; adapterul concret de browser/mock rămâne responsabilitatea consumerului și nu este ascuns în renderer. Practice Shop este un consumer de referință; nu este owner-ul soluției.
 
+<a id="core-diagram"></a>
+<a id="diagramă-de-bază"></a>
 ## Diagramă de bază
 
 ```mermaid
@@ -50,17 +53,19 @@ Etichetele scurte păstrează următorul sens:
 | Config | typed profile · și configurație |
 | Flow | flow coordinator |
 | Ledger | evidence ledger · acțiuni + assertions |
-| Policy | capture policy |
+| Politică | capture policy |
 | Provider | capture provider · browser sau mock |
 | Payload | typed screenshot · payload |
-| Input | report input · semantic |
+| Intrare | report input · semantic |
 | Publisher | report publisher |
 | Extent | Extent HTML |
-| Fixtures | deterministic fixtures · în test scope |
+| Fixture-uri | deterministic fixtures · în test scope |
 | autorizează | permite înainte de apel |
 
 </details>
 
+<a id="independent-evidence-dimensions"></a>
+<a id="dimensiuni-independente-ale-dovezilor"></a>
 ## Dimensiuni independente ale dovezilor
 
 | Axă | Întrebarea | Valori de contract | Owner conceptual |
@@ -70,11 +75,7 @@ Etichetele scurte păstrează următorul sens:
 | capture source | de unde vine payload-ul? | `BROWSER`, `MOCK`, `CUSTOM_PROVIDER` | adapterul consumerului / test scope |
 | action details mode | cât din acțiunile deja capturate se dezvăluie? | `INCLUDED_COLLAPSED`, `SUMMARY_ONLY` | renderer generic; consumerul alege profilul |
 
-`flow mode` și `screenshot policy` sunt independente. Un flow unificat poate avea
-`FINAL_ONLY`, `FAILURE_ONLY`, `FINAL_AND_FAILURE` sau `NONE`; un flow pe checkpoint-uri
-poate păstra `EACH_CHECKPOINT` fără să schimbe rendererul. `action details mode`
-schimbă numai disclosure-ul acțiunilor: nu filtrează capturarea și nu schimbă
-asserțiile ori verdictul.
+`flow mode` și `screenshot policy` sunt independente. Un flow unificat poate avea `FINAL_ONLY`, `FAILURE_ONLY`, `FINAL_AND_FAILURE` sau `NONE`; un flow pe checkpoint-uri poate păstra `EACH_CHECKPOINT` fără să schimbe rendererul. `action details mode` schimbă numai disclosure-ul acțiunilor: nu filtrează capturarea și nu schimbă asserțiile ori verdictul.
 
 <details>
 <summary><strong>Starea live</strong></summary>
@@ -85,40 +86,28 @@ asserțiile ori verdictul.
 - **existent**: `atf-reporting-tests` are fixture-uri PNG deterministe și verifică
   policy-ul fără browser;
 - **existent**: `ReportEvidenceProfile` compune typed `ReportEvidenceFlowMode`,
-  `ReportScreenshotPolicy`, `ReportEvidenceCaptureSource` și
-  `ReportUiActionDetailsMode`; mapping-ul se poate face prin `fromConfig(...)` sau
-  builder și traversează `UiExtentReportSession`;
+  `ReportScreenshotPolicy`, `ReportEvidenceCaptureSource` și `ReportUiActionDetailsMode`; mapping-ul se poate face prin `fromConfig(...)` sau builder și traversează `UiExtentReportSession`;
 - **distincție**: setările `reporting.extent` rămân configurarea publisherului;
   `evidence.flowMode` și mapping-ul unui flow nu se ascund în acel loader;
 - **implementat**: `ReportEvidenceCaptureProvider` este seam-ul browser-neutral;
-  `ReportEvidenceProfile.capture(point, title, target, provider)` filtrează înainte
-  de apel, verifică source-ul declarat și refuză target-ul lipsă ori payload-ul
-  care nu este PNG Base64. Mock-ul determinist și adapterul Playwright folosesc
-  același contract;
+  `ReportEvidenceProfile.capture(point, title, target, provider)` filtrează înainte de apel, verifică source-ul declarat și refuză target-ul lipsă ori payload-ul care nu este PNG Base64. Mock-ul determinist și adapterul Playwright folosesc același contract;
 - **implementat**: `SCREEN_CHECKPOINTS` păstrează fiecare request Gherkin;
-  `UNIFIED_FLOW` bufferizează checkpoint-urile UI dintr-o fază și publică un
-  singur request Gherkin: ultimul `THEN` disponibil, sau ultimul checkpoint ca
-  fallback. Numele scenariului/fazei rămân metadata distinctă, fără children
-  `Checkpoint N` și fără duplicarea propoziției în details;
+  `UNIFIED_FLOW` bufferizează checkpoint-urile UI dintr-o fază și publică un singur request Gherkin: ultimul `THEN` disponibil, sau ultimul checkpoint ca fallback. Numele scenariului/fazei rămân metadata distinctă, fără children `Checkpoint N` și fără duplicarea propoziției în details;
 - **implementat**: toate acțiunile/assertions UI sunt publicate într-o singură
-  validare `UI validation`; dacă profilul conține API evidence, exchange-urile
-  rămân într-o singură validare `API validation`, soră cu validarea UI sub același
-  checkpoint Gherkin și în ordinea execuției;
+  validare `UI validation`; dacă profilul conține API evidence, exchange-urile rămân într-o singură validare `API validation`, soră cu validarea UI sub același checkpoint Gherkin și în ordinea execuției;
 - **independent**: screenshot policy decide capturile înainte de buffer; numai
   capturile permise ajung în validarea UI agregată (`FINAL_ONLY` → captura finală);
 - **implementat**: `INCLUDED_COLLAPSED` și `SUMMARY_ONLY` schimbă disclosure-ul
-  acțiunilor deja înregistrate, fără să elimine dovezi de aserțiune sau să modifice
-  verdictul; testele component acoperă ambele randări;
+  acțiunilor deja înregistrate, fără să elimine dovezi de aserțiune sau să modifice verdictul; testele component acoperă ambele randări;
 - **boundary**: consumerul furnizează semantică și profile, iar reporting-ul
-  deține grouping-ul generic. Practice Shop doar mapează config-ul propriu și nu
-  conține reguli de publisher;
+  deține grouping-ul generic. Practice Shop doar mapează config-ul propriu și nu conține reguli de publisher;
 
 </details>
 
-Policy-ul de publicare existent rămâne API public al librăriei reporting. Contractul
-transversal este evidențiat separat pentru a putea fi reutilizat ulterior de un
-test-kit sau de o bibliotecă de compoziție, fără a confunda publisherul cu executorul.
+Policy-ul de publicare existent rămâne API public al librăriei reporting. Contractul transversal este evidențiat separat pentru a putea fi reutilizat ulterior de un test-kit sau de o bibliotecă de compoziție, fără a confunda publisherul cu executorul.
 
+<a id="responsibilities-and-limits"></a>
+<a id="responsabilități-și-limite"></a>
 ## Responsabilități și limite
 
 ```mermaid
@@ -152,7 +141,7 @@ Etichetele scurte păstrează următorul sens:
 | În schemă | Sens complet |
 |---|---|
 | Test Kit | generic test-kit · profile + annotations |
-| Consumer | consumer composition · flow semantic |
+| Consumator | consumer composition · flow semantic |
 | Adaptor | consumer capture adapter |
 | UI | atf-ui · browser operations |
 | Ledger | evidence ledger |
@@ -164,6 +153,8 @@ Etichetele scurte păstrează următorul sens:
 
 </details>
 
+<a id="implementation-and-testing-order"></a>
+<a id="ordinea-de-implementare-și-de-testare"></a>
 ## Ordinea de implementare și de testare
 
 ```mermaid
@@ -192,13 +183,15 @@ Etichetele scurte păstrează următorul sens:
 |---|---|
 | Contract | contract + model |
 | Unit | unit · policy și cardinalitate |
-| Component | component · mock image + HTML |
-| Integration | integration · session + publisher |
+| Componentă | component · mock image + HTML |
+| Integrare | integration · session + publisher |
 | Browser adapter | optional browser adapter · HTML static |
 | Consumer E2E | consumer E2E · proof minimal |
 
 </details>
 
+<a id="minimum-contract-for-every-implementation"></a>
+<a id="contract-minim-pentru-orice-implementare"></a>
 ## Contract minim pentru orice implementare
 
 - `PASS`, `FAIL`, `WARNING` și `SKIP` rămân statusuri semantice independente de captură;
@@ -212,11 +205,11 @@ Etichetele scurte păstrează următorul sens:
 - HTML-ul este verificat direct pentru text, structură, referință media și disclosure;
 - Playwright nu intră în modelele de production.
 
+<a id="generic-configuration"></a>
+<a id="configurație-generică"></a>
 ## Configurație generică
 
-Configurația trebuie să poată fi furnizată prin YAML sau printr-un builder typed.
-Cheile de mai jos sunt un contract conceptual; numele finale se aliniază cu
-implementarea aprobată, fără a lega soluția de Practice Shop:
+Configurația trebuie să poată fi furnizată prin YAML sau printr-un builder typed. Cheile de mai jos sunt un contract conceptual; numele finale se aliniază cu implementarea aprobată, fără a lega soluția de Practice Shop:
 
 ```yaml
 evidence:
@@ -235,6 +228,8 @@ evidence:
   folosește enum-urile sau builder-ul typed, fără string-uri propagate în renderer;
 - configurarea publisherului (`reporting.extent`) rămâne separată de profilul evidence.
 
+<a id="api-and-ui-reuse"></a>
+<a id="reutilizare-api-și-ui"></a>
 ## Reutilizare API și UI
 
 Aceeași strategie se aplică dovezilor API fără a introduce browser:
@@ -245,16 +240,16 @@ Aceeași strategie se aplică dovezilor API fără a introduce browser:
 - publisher: disclosure-uri și HTML semantic;
 - test: fixture → component → integration → audit browser numai pentru efectul UI.
 
-Captura vizuală este o variantă de evidence, nu un motiv pentru a duplica rendererul,
-session lifecycle-ul sau testele de status.
+Captura vizuală este o variantă de evidence, nu un motiv pentru a duplica rendererul, session lifecycle-ul sau testele de status.
 
+<a id="select-evidence-before-the-verdict"></a>
+<a id="alegerea-dovezii-înaintea-verdictului"></a>
 ### Alegerea dovezii înaintea verdictului
 
 Contractul de corelare separă alegerea observației de evaluarea rezultatului:
 
 - Consumerul leagă operația de invocare, metodă, rută și ordinea capturilor.
-  Un status 4xx/5xx este rezultat de evaluat; nu exclude captura pentru a găsi
-  un răspuns de succes anterior.
+  Un status 4xx/5xx este rezultat de evaluat; nu exclude captura pentru a găsi un răspuns de succes anterior.
 - O evaluare nouă înlocuiește selecția checkpoint-ului, inclusiv cu lista goală.
   Comparațiile și exchange-ul păstrează aceeași identitate și aceeași fereastră.
 - Absența păstrează comparațiile FAIL și diagnosticul, fără status/body fabricat.
@@ -262,12 +257,13 @@ Contractul de corelare separă alegerea observației de evaluarea rezultatului:
 - Reporting publică modelul primit; corelarea și refuzul unei dovezi străine
   aparțin consumerului, fără recitirea serviciului sau repetarea acțiunii.
 
-Aceste reguli sunt cerințe ale boundary-ului; un comparator de valori corect
-nu demonstrează singur că fiecare adaptor selectează dovada potrivită.
+Aceste reguli sunt cerințe ale boundary-ului; un comparator de valori corect nu demonstrează singur că fiecare adaptor selectează dovada potrivită.
 
+<a id="further-reading"></a>
+<a id="unde-se-aprofundează"></a>
 ## Unde se aprofundează
 
-| Întrebare | Owner |
+| Întrebare | Responsabil |
 |---|---|
 | care este contractul transversal al capturii? | acest document |
 | cum publică reporting-ul policy-ul și HTML-ul? | [`atf-reporting/README.md`](../atf-reporting/README.md) |
@@ -277,5 +273,4 @@ nu demonstrează singur că fiecare adaptor selectează dovada potrivită.
 | cum mapează un consumer propriul YAML și flow? | README-ul consumerului |
 | ce mai lipsește și cum se închide? | [`feedback/README.md`](feedback/README.md) și feedback-ul ownerului |
 
-Nu se copiază această matrice în fiecare modul. README-ul local păstrează numai
-ownership-ul și linkul către contractul transversal.
+Nu se copiază această matrice în fiecare modul. README-ul local păstrează numai ownership-ul și linkul către contractul transversal.

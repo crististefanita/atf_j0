@@ -1,9 +1,11 @@
+<a id="atf--test-infrastructure-annotations"></a>
+<a id="atf--adnotări-de-infrastructură-pentru-teste"></a>
 # ATF — adnotări de infrastructură pentru teste
 
-Acest document descrie API-ul implementat în `atf-test-kit` și aplicarea lui
-de către consumatori. Kit-ul furnizează declarații și rezolvare neutră;
-consumatorul deține resursele, execuția și publicarea dovezilor.
+Acest document descrie API-ul implementat în `atf-test-kit` și aplicarea lui de către consumatori. Kit-ul furnizează declarații și rezolvare neutră; consumatorul deține resursele, execuția și publicarea dovezilor.
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 | Axă | API / package | Responsabilitate |
@@ -19,9 +21,7 @@ consumatorul deține resursele, execuția și publicarea dovezilor.
 | Setup API | `setup.api.ApiScenarioSetup`, `ApiTestRef` | metode exacte sau familii definite de consumator |
 | Documentație | `documentation.DocumentationTarget` și containerul repeatable | documente selectate pentru validatoarele consumatorului |
 
-Prefixul comun este `atf.testkit`. Kit-ul definește API de infrastructură a
-testelor, însă scope-ul Maven este o proprietate a fiecărei muchii din POM, nu a
-adnotării. `atf-reporting` rămâne utilizabil independent de Test Kit.
+Prefixul comun este `atf.testkit`. Kit-ul definește API de infrastructură a testelor, însă scope-ul Maven este o proprietate a fiecărei muchii din POM, nu a adnotării. `atf-reporting` rămâne utilizabil independent de Test Kit.
 
 | Consumator live | Scope în POM | Motiv / limită observată |
 |---|---|---|
@@ -29,12 +29,10 @@ adnotării. `atf-reporting` rămâne utilizabil independent de Test Kit.
 | `atf-test-auto-ex`, `atf-test-practice-shop`, `atf-tests`, `atf-reporting-tests` | `test` | folosesc vocabularul Test Kit în probe și adaptoare JUnit; runtime-ul consumerilor din main nu importă Kit |
 | `atf-console` | `optional` + `compile` | extensia JUnit din `src/main` citește adnotări și policy resolvers; API-ul rămâne infrastructură de test |
 
-Nu deduce scope-ul din numele modulului sau din adnotare. Pentru o schimbare de
-ambalare, verifică simultan `pom.xml`, importurile din `src/main`/`src/test` și
-guard-ul de arhitectură; nu modifica scope-ul doar pentru a face tabelul să pară
-uniform. Harta dependențelor este în [ATF Architecture](ATF_Architecture.md),
-iar cazul Practice Shop este detaliat în [README-ul consumerului](../atf-test-practice-shop/README.md).
+Nu deduce scope-ul din numele modulului sau din adnotare. Pentru o schimbare de ambalare, verifică simultan `pom.xml`, importurile din `src/main`/`src/test` și guard-ul de arhitectură; nu modifica scope-ul doar pentru a face tabelul să pară uniform. Harta dependențelor este în [ATF Architecture](ATF_Architecture.md), iar cazul Practice Shop este detaliat în [README-ul consumerului](../atf-test-practice-shop/README.md).
 
+<a id="composition-and-roles"></a>
+<a id="compoziție-și-roluri"></a>
 ## Compoziție și roluri
 
 ```mermaid
@@ -70,6 +68,8 @@ Etichetele scurte păstrează următorul sens:
 
 </details>
 
+<a id="level-channel-and-tags"></a>
+<a id="nivel-canal-și-tag-uri"></a>
 ## Nivel, canal și tag-uri
 
 | Declarație | Efect |
@@ -82,12 +82,7 @@ Etichetele scurte păstrează următorul sens:
 | Tag-uri suplimentare JUnit | selecție locală definită de consumator |
 | Etichete Extent / Categories | metadata publicată de consumator; nu rezultă automat din resolverul canalului |
 
-Nivelul selectează stratul piramidei; canalul selectează tipul execuției.
-`@AtfE2eTest` poate fi folosit ca meta-adnotare pentru compoziția infrastructurii
-repetate a unui consumer; canalul și politica specifică scenariului rămân
-declarate pe testul concret. Auditul browser al unui raport API are canalul
-`UI`, deoarece verifică pagina raportului; setup-ul API rămâne o precondiție
-separată.
+Nivelul selectează stratul piramidei; canalul selectează tipul execuției. `@AtfE2eTest` poate fi folosit ca meta-adnotare pentru compoziția infrastructurii repetate a unui consumer; canalul și politica specifică scenariului rămân declarate pe testul concret. Auditul browser al unui raport API are canalul `UI`, deoarece verifică pagina raportului; setup-ul API rămâne o precondiție separată.
 
 ```java
 import atf.testkit.AtfE2eTest;
@@ -104,9 +99,10 @@ class ReportAuditTest {
 }
 ```
 
-Exemplul prezintă declarațiile; consumatorul trebuie să le citească și să le
-aplice. Kit-ul nu înregistrează automat o extensie JUnit sau un browser.
+Exemplul prezintă declarațiile; consumatorul trebuie să le citească și să le aplice. Kit-ul nu înregistrează automat o extensie JUnit sau un browser.
 
+<a id="channel-resolution"></a>
+<a id="rezolvarea-canalului"></a>
 ### Rezolvarea canalului
 
 | Situație | Comportament implementat |
@@ -121,9 +117,10 @@ aplice. Kit-ul nu înregistrează automat o extensie JUnit sau un browser.
 | Fără declarație în ierarhie | `Optional.empty()`; adaptorul decide compatibilitatea legacy |
 | Canal nesuportat de adaptor | `TestChannelPlan.requireSupported(...)` eșuează înaintea resurselor |
 
-`TestChannelPlan` este imutabil și păstrează canalul și clasa care l-a declarat.
-Contractul este per clasă; nu există override de canal per metodă.
+`TestChannelPlan` este imutabil și păstrează canalul și clasa care l-a declarat. Contractul este per clasă; nu există override de canal per metodă.
 
+<a id="current-consumers"></a>
+<a id="consumatorii-actuali"></a>
 ### Consumatorii actuali
 
 | Consumator | Aplicare |
@@ -132,16 +129,13 @@ Contractul este per clasă; nu există override de canal per metodă.
 | Shop API audit | cere canal `API` înaintea instalării capturii apelurilor |
 | Reporting Tests | composition root-ul UI refuză un canal declarat diferit de `UI` |
 
-În Shop, `UI_API` cere binding nevid, inspector activ și allowlist înaintea
-browserului. `UI` elimină selecția dovezilor API; YAML-ul păstrează controlul
-capturilor și permisiunilor externe.
+În Shop, `UI_API` cere binding nevid, inspector activ și allowlist înaintea browserului. `UI` elimină selecția dovezilor API; YAML-ul păstrează controlul capturilor și permisiunilor externe.
 
+<a id="console-message-policy"></a>
+<a id="politica-mesajelor-de-consolă"></a>
 ### Politica mesajelor de consolă
 
-`@AtfConsoleMessages` este o declarație per clasă, neutră față de formatter și
-stdout. `AtfConsoleTestExtension` rezolvă politica înaintea testului; adaptorii
-UI/API reutilizează sink-ul activ prin `AtfConsoleTestContext.configuredSink()`.
-Astfel, evenimentele rămân în același formatter și nu se dublează.
+`@AtfConsoleMessages` este o declarație per clasă, neutră față de formatter și stdout. `AtfConsoleTestExtension` rezolvă politica înaintea testului; adaptorii UI/API reutilizează sink-ul activ prin `AtfConsoleTestContext.configuredSink()`. Astfel, evenimentele rămân în același formatter și nu se dublează.
 
 ```java
 @AtfConsoleMessages(AtfConsoleMessages.Policy.DETAILS)
@@ -156,17 +150,15 @@ class ApiContractTest { }
 | `SUMMARY` | păstrează lifecycle-ul/verdictul și suprimă evenimentele detail/code |
 | `OFF` | suprimă proiecția pentru clasa curentă |
 
-Dezactivarea YAML (`reporting.console.enabled: false`) rămâne autoritară; nici
-`DETAILS` nu o reactivează. Declarațiile meta-adnotate sunt acceptate,
-subclasa poate suprascrie superclass-ul, iar politicile diferite la același
-nivel eșuează înaintea execuției. Fără adnotare, comportamentul nu se schimbă.
+Dezactivarea YAML (`reporting.console.enabled: false`) rămâne autoritară; nici `DETAILS` nu o reactivează. Declarațiile meta-adnotate sunt acceptate, subclasa poate suprascrie superclass-ul, iar politicile diferite la același nivel eșuează înaintea execuției. Fără adnotare, comportamentul nu se schimbă.
 
 - `@TestFactory` nu primește callbacks de lifecycle pentru fiecare copil; folosește `AtfConsoleTestContext.dynamicTest(owner, name, body)` când ai nevoie de policy și verdict per copil.
 
+<a id="declared-be-recovery"></a>
+<a id="recuperare-be-declarată"></a>
 ## Recuperare BE declarată
 
-`@AtfUiRecovery` din `atf.testkit.recovery` se aplică pe clasă, metodă sau
-adnotare compusă. Declarația nu activează recuperarea când YAML-ul este OFF.
+`@AtfUiRecovery` din `atf.testkit.recovery` se aplică pe clasă, metodă sau adnotare compusă. Declarația nu activează recuperarea când YAML-ul este OFF.
 
 ```java
 @AtfUiRecovery(AtfUiRecovery.Mode.READ_ONLY)
@@ -176,9 +168,7 @@ class CatalogChecks {
 }
 ```
 
-Resolverul neutru fixează modul și sursa înaintea resurselor în extensiile
-AutoEx/Shop. Clasa apropiată stabilește baza, metoda restrânge și conflictele
-de același nivel sunt respinse.
+Resolverul neutru fixează modul și sursa înaintea resurselor în extensiile AutoEx/Shop. Clasa apropiată stabilește baza, metoda restrânge și conflictele de același nivel sunt respinse.
 
 <details>
 <summary><strong>Limite și probe</strong></summary>
@@ -192,16 +182,15 @@ de același nivel sunt respinse.
 - `AtfUiRecoveryResolverTest` și probele `AutoExBackendRecoveryComponentTest` /
   `ShopBackendRecoveryComponentTest` protejează precedența și binding-ul YAML.
 - Cheile exacte și capturarea pasivă sunt la [UI](../atf-ui/README.md#recuperare-be-prin-observație-pasivă),
-  [AutoEx](../atf-test-auto-ex/README.md#politica-be-a-catalogului) și
-  [Shop](../atf-test-practice-shop/README.md#politica-be-a-catalogului).
+  [AutoEx](../atf-test-auto-ex/README.md#politica-be-a-catalogului) și [Shop](../atf-test-practice-shop/README.md#politica-be-a-catalogului).
 
 </details>
 
+<a id="ui-evidence-intent"></a>
+<a id="intenția-de-ui-evidence"></a>
 ## Intenția de UI evidence
 
-`@AtfUiEvidence` este o declarație class-level în `atf-test-kit`. Separă forma
-flow-ului, politica de captură și detaliile acțiunilor. Nu pornește browserul,
-nu capturează imagini și nu publică evidence.
+`@AtfUiEvidence` este o declarație class-level în `atf-test-kit`. Separă forma flow-ului, politica de captură și detaliile acțiunilor. Nu pornește browserul, nu capturează imagini și nu publică evidence.
 
 ```java
 @AtfUiEvidence(
@@ -221,22 +210,17 @@ Reguli de ownership:
 - adnotarea are retenție `RUNTIME` și target `TYPE`/`ANNOTATION_TYPE`; nu există selecție per
   metodă;
 - `AtfUiEvidenceResolver` construiește planul imutabil înainte de resurse;
-  adaptorul mapează valorile neutre în profilul său de raportare; `atf-test-kit` nu
-  depinde de `atf-reporting`;
+  adaptorul mapează valorile neutre în profilul său de raportare; `atf-test-kit` nu depinde de `atf-reporting`;
 - resolverul caută cea mai apropiată clasă declarantă, inclusiv meta-adnotări.
-  Axele explicite complementare se combină; conflictele aceleiași axe eșuează.
-  Declarația locală complet `CONFIGURED` revine la bază. Interfețele și clasele
-  enclosing nu sunt surse implicite și nu există instalare automată a harness-ului;
+  Axele explicite complementare se combină; conflictele aceleiași axe eșuează. Declarația locală complet `CONFIGURED` revine la bază. Interfețele și clasele enclosing nu sunt surse implicite și nu există instalare automată a harness-ului;
 - adnotările locale, precum `ShopE2eTestSupport.WithE2eHarness`, păstrează
-  resursele și opțiunile specifice consumerului (de exemplu harness-ul și
-  detaliile acțiunilor), fără să dubleze axele comune;
+  resursele și opțiunile specifice consumerului (de exemplu harness-ul și detaliile acțiunilor), fără să dubleze axele comune;
 - testul Test Kit verifică target-ul, retenția și valorile implicite, iar testele
-  componente ale consumerilor verifică mapping-ul; nu este un test de renderer
-  sau de captură reală în browser.
+  componente ale consumerilor verifică mapping-ul; nu este un test de renderer sau de captură reală în browser.
 
 Mapping-ul adnotării este responsabilitatea adaptorului consumer:
 
-| Consumer | Efect implementat |
+| Consumator | Efect implementat |
 |---|---|
 | AutoEx | aplică toate axele peste `reports.evidence`; capturile absente în YAML moștenesc Reporting |
 | Shop | aplică toate axele peste `reporting`; conflictul explicit cu harness-ul eșuează. Profilul fiecărui scenariu și Overview-ul comun rămân distincte |
@@ -249,6 +233,8 @@ Mapping-ul adnotării este responsabilitatea adaptorului consumer:
 - Reducerea suitei live are criterii distincte în
   [acceptanța business a consumerilor](ATF_Testing_Guide.md#acceptanța-business-individual-și-prin-suită).
 
+<a id="opt-in-to-the-report-path"></a>
+<a id="opt-in-pentru-calea-raportului"></a>
 ## Opt-in pentru calea raportului
 
 `@AtfReportPath` este dezactivată implicit și poate fi declarată direct sau ca meta-adnotare.
@@ -277,29 +263,25 @@ Mapping-ul adnotării este responsabilitatea adaptorului consumer:
 - `AtfConsoleMessages` își păstrează regulile de conflict; precedența directă
   de mai sus aparține politicii `AtfReportPath`.
 
+<a id="ownership-per-class-or-run"></a>
+<a id="ownership-per-clasă-sau-execuție"></a>
 ## Ownership per clasă sau execuție
 
-`TestRunScope` citește parametrul JUnit `atf.test.run.scope`: `class` este implicit,
-iar `suite` trebuie declarat explicit. Numele clasei ori ID-ul textual JUnit nu aleg scope-ul.
+`TestRunScope` citește parametrul JUnit `atf.test.run.scope`: `class` este implicit, iar `suite` trebuie declarat explicit. Numele clasei ori ID-ul textual JUnit nu aleg scope-ul.
 
-| Consumer | Aplicare curentă | Închidere |
+| Consumator | Aplicare curentă | Închidere |
 |---|---|---|
 | API AutoEx | suita partajează un raport; clasa individuală păstrează raport propriu | adaptorul înregistrează resursa în Store-ul ownerului |
 | Componente AutoEx/Shop | clasa individuală are un raport; suitele canonice declară `suite` explicit | `ScopedTestResource` închide sesiunea; invocările închid numai scenariul împrumutat |
 | Cont autentificat Shop | suita poate reutiliza identitatea sintetică pregătită explicit | se eliberează referința; nu se șterge contul remote |
 
-`ScopedTestValue.close()` uită valoarea, fără să închidă obiectul stocat sau să
-șteargă o resursă împrumutată. Contractul neutru și probele sunt la
-[Test Kit](../atf-test-kit/README.md#valori-cu-ownership-per-clasă-sau-execuție);
-consumerul păstrează politica resursei și limitele mutațiilor externe.
-`ScopedTestResource.close()` închide obiectul achiziționat o singură dată;
-acesta este contractul potrivit pentru sesiunea de raport deținută de clasă/suită.
+`ScopedTestValue.close()` uită valoarea, fără să închidă obiectul stocat sau să șteargă o resursă împrumutată. Contractul neutru și probele sunt la [Test Kit](../atf-test-kit/README.md#valori-cu-ownership-per-clasă-sau-execuție); consumerul păstrează politica resursei și limitele mutațiilor externe. `ScopedTestResource.close()` închide obiectul achiziționat o singură dată; acesta este contractul potrivit pentru sesiunea de raport deținută de clasă/suită.
 
+<a id="ui-directories-with-distinct-anchors"></a>
+<a id="directoare-ui-cu-ancore-distincte"></a>
 ## Directoare UI cu ancore distincte
 
-Consumatorul apelează `ReportOutputDirectory.resolve(projectRoot, uiReportBase, owner)`.
-Resolverul calculează și verifică destinația; crearea directorului și publicarea
-fișierului aparțin consumatorului.
+Consumatorul apelează `ReportOutputDirectory.resolve(projectRoot, uiReportBase, owner)`. Resolverul calculează și verifică destinația; crearea directorului și publicarea fișierului aparțin consumatorului.
 
 | Declarație | Destinație |
 |---|---|
@@ -316,24 +298,19 @@ fișierului aparțin consumatorului.
   are nevoie de un mediu care permite crearea linkului.
 - Kit-ul nu descoperă proiectul și nu reordonează opțiunile YAML.
 
-Reporting Tests caută mai întâi rădăcina reactorului în strămoșii resursei UI
-încărcate, prin markerul `atf-reporting/pom.xml`, apoi în strămoșii directorului
-de pornire; absența markerului este eroare explicită. Furnizează baza
-`<project-root>/artifacts/reports/ui`. În această compoziție, acea bază înlocuiește
-directorul UI încărcat din YAML; `atf.ui.report` selectează inputul auditului.
+Reporting Tests caută mai întâi rădăcina reactorului în strămoșii resursei UI încărcate, prin markerul `atf-reporting/pom.xml`, apoi în strămoșii directorului de pornire; absența markerului este eroare explicită. Furnizează baza `<project-root>/artifacts/reports/ui`. În această compoziție, acea bază înlocuiește directorul UI încărcat din YAML; `atf.ui.report` selectează inputul auditului.
 
-E2E-urile Reporting declară directorul project-relative
-`artifacts/reports/ui/e2e`. În staging, proiectul este checkout-ul extern;
-adnotarea nu redirecționează output-ul în proiectul live.
+E2E-urile Reporting declară directorul project-relative `artifacts/reports/ui/e2e`. În staging, proiectul este checkout-ul extern; adnotarea nu redirecționează output-ul în proiectul live.
 
-Smoke-testul manual al compoziției IntelliJ este necesar numai la schimbări
-relevante:
+Smoke-testul manual al compoziției IntelliJ este necesar numai la schimbări relevante:
 
 - rulează suitele cu working directory la root-ul reactorului și la
   `atf-reporting`, conform [ghidului suitei Extent](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/README.md#rulare-directă-din-intellij);
 - testele componente verifică separat rezolvarea deterministă a căilor, dar nu
   lansează IntelliJ.
 
+<a id="api-setup-and-documentation"></a>
+<a id="setup-api-și-documentație"></a>
 ## Setup API și documentație
 
 | Declarație | Ce oferă kit-ul | Ce aplică consumatorul |
@@ -343,15 +320,12 @@ relevante:
 | `ApiScenarioSetup(families = ...)` | nume de familii | fallback când selecția exactă lipsește |
 | `DocumentationTarget("module/README.md")` | declarație repeatable RUNTIME pe clasă | verifică path-ul și execută validatoarele |
 
-În Reporting Tests, referințele exacte au prioritate față de familii;
-catalogul, mock-ul și executarea rămân în modulul consumator.
-`ApiScenarioSelection` rămâne model neutru în Core; declarațiile de adnotare
-sunt în TestKit, fără dependență Core main către kit.
+În Reporting Tests, referințele exacte au prioritate față de familii; catalogul, mock-ul și executarea rămân în modulul consumator. `ApiScenarioSelection` rămâne model neutru în Core; declarațiile de adnotare sunt în TestKit, fără dependență Core main către kit.
 
-`ApiScenarioSetup` și `DocumentationTarget` nu folosesc resolverele
-compoziționale ale canalului/output-ului. Nu se deduce pentru ele un suport
-generic de meta-adnotări, superclass sau override per metodă.
+`ApiScenarioSetup` și `DocumentationTarget` nu folosesc resolverele compoziționale ale canalului/output-ului. Nu se deduce pentru ele un suport generic de meta-adnotări, superclass sau override per metodă.
 
+<a id="probes-and-acceptance-limits"></a>
+<a id="probe-și-limite-de-acceptanță"></a>
 ## Probe și limite de acceptanță
 
 | Boundary | Probe existente | Limită |
@@ -360,17 +334,11 @@ generic de meta-adnotări, superclass sau override per metodă.
 | Consolă | `AtfConsoleMessagePolicyResolverTest`, `AtfConsoleMessagePolicyTest`, Shop E2E/API și API resource tests | policy, precedență, conflict, override global și consumatori deterministici; concurența/lifecycle dinamic rămâne o probă separată |
 | Canal și activare | `AtfTestChannelResolverTest`, `AtfE2eActivationPolicyTest`, `ShopE2eTestSupportTest`, `ShopApiCallAuditPreflightTest`, `ConsumerModuleArchitectureGovernanceTest` | rezolvarea neutră UI/API/UI_API și precedența activării sunt probate separat; extensiile păstrează semnalele consumerului. Paritatea raportului și ownership-ul verdictelor aparțin Reporting, nu resolverului |
 | UI evidence | `AtfUiEvidenceContractTest`, `AtfUiEvidenceResolverTest`, `AutoExEvidenceProfileComponentTest`, `ShopE2eContextEvidenceProfileTest`, `ReportEvidenceProfileIntegrationTest` | resolverul și mapping-ul consumerilor au probe proprii; agregarea peste faze este opt-in Reporting, iar echivalența tuturor profilelor business rămâne criteriu distinct la consumer |
-| Ownership | `TestRunScopeComponentTest`, `AutoExApiReportScopeComponentTest`, `ShopAccountScopeComponentTest` | scope explicit, lansări succesive izolate și eliberare la owner; referința partajată nu acordă permisiune de mutație sau cleanup remote |
+| Apartenență | `TestRunScopeComponentTest`, `AutoExApiReportScopeComponentTest`, `ShopAccountScopeComponentTest` | scope explicit, lansări succesive izolate și eliberare la owner; referința partajată nu acordă permisiune de mutație sau cleanup remote |
 | Calea raportului | `AtfReportPathPolicyResolverTest`, `AtfReportPathOptInTest`, `AtfConsoleTestExtensionIntegrationTest` | absență/opt-in/override, meta-adnotări, conflict și agregare pentru report owner |
 | Output | `ReportOutputDirectoryTest`, `UiReportSubdirectoryTest`, `AtfUiConfigurationLoaderTest` | ancore, inheritance/compoziție, cicluri, conflicte, path-uri invalide și working directory extern; containment-ul este probat prin symlink când e permis și directory junction ca fallback Windows |
 | Setup | `ApiScenarioSetupCatalogTest`, `ApiScenarioManifestTest`, `ApiSelectionMockPublisherComponentTest` | selecție și compoziție locală, fără servicii externe |
 | Documentație | `DocumentationTargetGovernanceTest` și suita whole-ATF | declarația repeatable selectează aceleași validatoare |
 | Browser local | `UiThenDisclosureSanityTest`, `ApiReportRenderedEvidenceComponentTest`, `SelectedApiTestsReportUiTest` | disclosure, reconciliere mock/câmpuri/query și navigarea fazei; nu certifică launcherul IntelliJ sau întreaga integrare API/UI_API |
 
-Selecția canalelor este un contract închis; redeschiderea cere un consumer nou
-sau o regresie. Paritatea și verdicturile au probe la ownerul
-[Reporting Tests](../atf-reporting-tests/README.md); controalele Git verificate sunt în
-[baseline](ATF_Test_Changes_Baseline.md#controale-tehnice-verificate).
-Pentru dovezi și layout, contractele normative rămân
-[Reporting](ATF_Reporting_Contract.md), [display/layout](ATF_Reporting_Display_Contract.md)
-și [captura evidence](ATF_Evidence_Capture_Contract.md).
+Selecția canalelor este un contract închis; redeschiderea cere un consumer nou sau o regresie. Paritatea și verdicturile au probe la ownerul [Reporting Tests](../atf-reporting-tests/README.md); controalele Git verificate sunt în [baseline](ATF_Test_Changes_Baseline.md#controale-tehnice-verificate). Pentru dovezi și layout, contractele normative rămân [Reporting](ATF_Reporting_Contract.md), [display/layout](ATF_Reporting_Display_Contract.md) și [captura evidence](ATF_Evidence_Capture_Contract.md).

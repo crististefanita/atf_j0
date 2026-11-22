@@ -1,10 +1,12 @@
+<a id="atf-reporting-html---renderer-fallback-and-semantic-population"></a>
+<a id="atf-reporting-html--rendererul-fallback-și-populația-semantică"></a>
 # ATF Reporting HTML — rendererul fallback și populația semantică
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
-Fallback-ul construiește views din aceeași populație imutabilă de scenarii și
-dovezi. Nu este un browser și nu repară observații lipsă; semantica se verifică
-împotriva snapshot-ului comun, separat de diferențele vizuale față de Extent.
+Fallback-ul construiește views din aceeași populație imutabilă de scenarii și dovezi. Nu este un browser și nu repară observații lipsă; semantica se verifică împotriva snapshot-ului comun, separat de diferențele vizuale față de Extent.
 
 [Atlas](../README.md) · [Modele](../model/README.md) · [Extent](../extent/README.md)
 
@@ -13,10 +15,12 @@ dovezi. Nu este un browser și nu repară observații lipsă; semantica se verif
 | sesiune și output | [HtmlReportSession](HtmlReportSession.java) | render, flush și close |
 | stare în construcție | [HtmlReportSemanticDocument](HtmlReportSemanticDocument.java) | identitate, ordine și snapshot-ul execuției |
 | lifecycle | [scope](scope) | porturile scenariului/fazei/request-ului/validării |
-| views | [Tests](HtmlReportTestsView.java), [Overview](HtmlReportOverviewView.java), [Fails](HtmlReportFailsView.java) | proiecții peste același model |
+| vederi | [Tests](HtmlReportTestsView.java), [Prezentare generală](HtmlReportOverviewView.java), [Fails](HtmlReportFailsView.java) | proiecții peste același model |
 | dovezi | [HtmlReportEvidenceView](evidence/HtmlReportEvidenceView.java) | markup și politica de display comună |
 | shell și navigare | [HtmlReportShell](HtmlReportShell.java), [script](script/HtmlReportNavigationScript.java) | document și interacțiuni fallback |
 
+<a id="from-status-to-document"></a>
+<a id="de-la-stare-la-document"></a>
 ## De la stare la document
 
 - Documentul mutabil este transformat în `ReportExecutionModel` imutabil;
@@ -26,11 +30,9 @@ dovezi. Nu este un browser și nu repară observații lipsă; semantica se verif
 - Views Tests, Categories, Fails și Overview provin din aceeași execuție;
   diagnosticul unei faze nu devine automat o aserțiune business nouă.
 - Contextul unui flow UI unificat folosește disclosure-ul neutru comun,
-  separat de response evidence; validările sale au propriul `Assertions · n`,
-  colapsat inițial. Agregarea per fază nu este reclasificată drept compactare.
+  separat de response evidence; validările sale au propriul `Assertions · n`, colapsat inițial. Agregarea per fază nu este reclasificată drept compactare.
 - Titlurile scenariilor și claselor rămân integrale și se împachetează în
-  sidebar. Sub sau la 760 px, navigarea precede articolul pe o singură coloană;
-  anchor-ul, statusul și identitatea scenariului rămân cele originale.
+  sidebar. Sub sau la 760 px, navigarea precede articolul pe o singură coloană; anchor-ul, statusul și identitatea scenariului rămân cele originale.
 
 <details>
 <summary><strong>Diferențe care trebuie citite explicit</strong></summary>
@@ -46,14 +48,11 @@ dovezi. Nu este un browser și nu repară observații lipsă; semantica se verif
 
 </details>
 
+<a id="evidence-and-contract-of-the-session"></a>
+<a id="probe-și-contractul-sesiunii"></a>
 ## Probe și contractul sesiunii
 
-[HtmlReportSessionTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/html/HtmlReportSessionTest.java) și [AtfReportSemanticSnapshotTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/semantic/AtfReportSemanticSnapshotTest.java) verifică modelul și
-paritatea; [UiFallbackFailureEvidenceTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/ui/UiFallbackFailureEvidenceTest.java) păstrează cauza și izolarea scenariilor.
-Probe de browser și responsive sunt la [Reporting Tests](../../../../../../../atf-reporting-tests/README.md).
+[HtmlReportSessionTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/html/HtmlReportSessionTest.java) și [AtfReportSemanticSnapshotTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/semantic/AtfReportSemanticSnapshotTest.java) verifică modelul și paritatea; [UiFallbackFailureEvidenceTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/ui/UiFallbackFailureEvidenceTest.java) păstrează cauza și izolarea scenariilor. Probe de browser și responsive sunt la [Reporting Tests](../../../../../../../atf-reporting-tests/README.md).
 
-Semantica flush/publicare/path/threading este declarată în
-[contractul sesiunii](../../../../../../README.md#publicare-și-ieșire).
-Consumerul așteaptă momentul de publicare al rendererului ales și serializează
-accesul fallback; portul comun nu promite acces concurent.
+Semantica flush/publicare/path/threading este declarată în [contractul sesiunii](../../../../../../README.md#publicare-și-ieșire). Consumerul așteaptă momentul de publicare al rendererului ales și serializează accesul fallback; portul comun nu promite acces concurent.
 

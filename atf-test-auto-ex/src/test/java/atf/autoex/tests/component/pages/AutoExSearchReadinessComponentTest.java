@@ -6,6 +6,7 @@ import atf.autoex.tests.extension.AutoExComponentTest;
 import atf.ui.config.UiBrowserConfiguration;
 import atf.ui.playwright.AtfLocator;
 import atf.ui.playwright.PlaywrightUiSession;
+import atf.ui.playwright.PlaywrightPagePreparation;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.Test;
 import java.net.*;
@@ -55,7 +56,12 @@ class AutoExSearchReadinessComponentTest {
         try (var browser = PlaywrightUiSession.open(new UiBrowserConfiguration(base, "chromium", true,
                 Duration.ofMillis(700), Duration.ofSeconds(5), 1000, 800, 100, true))) {
             for (int index = 1; index <= searches; index++) {
-                browser.page().navigate(base + "/start");
+                var prepared = new PlaywrightPagePreparation(browser.page(), Duration.ofSeconds(5)).navigate(base + "/start");
+                var image = javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(prepared.viewportPng()));
+                assertTrue(image != null, "Fixture setup produces a decoded native viewport before measured input");
+                assertEquals(base + "/start", prepared.url(), "Prepared document belongs to this fixture");
+                assertEquals(1000, image.getWidth(), "Prepared viewport width");
+                assertEquals(800, image.getHeight(), "Prepared viewport height");
                 var actions = browser.newActionSequence();
                 actions.fill(new AtfLocator(browser.page().locator(AutoExSelectors.SEARCH_INPUT), AutoExSelectors.SEARCH_INPUT),
                         "Blue Top", "query entered");
@@ -65,12 +71,18 @@ class AutoExSearchReadinessComponentTest {
                     var failure = assertThrows(IllegalStateException.class, () -> search.submit("Blue Top", "Blue Top"));
                     assertTrue(failure.getMessage().contains(correctLocation
                             ? "awaiting=visible first product Blue Top" : "awaiting=matching search URL"));
-                    assertTrue(failure.getMessage().contains(correctLocation ? "search=Blue%20Top" : "<not observed>"));
+                    assertTrue(failure.getMessage().contains(correctLocation ? "search=Blue%20Top" : "search=wrong"));
                     assertNotNull(failure.getCause());
                 }
+                // The response-level rejection can precede commit; synchronize only this independent storage oracle.
+                browser.page().waitForURL(base + "/products?search=" + (correctLocation ? "Blue%20Top" : "wrong"),
+                        new com.microsoft.playwright.Page.WaitForURLOptions()
+                                .setWaitUntil(com.microsoft.playwright.options.WaitUntilState.DOMCONTENTLOADED));
                 assertEquals(Integer.toString(index), browser.page().evaluate("sessionStorage.getItem('submissions')"));
                 assertEquals(pass, actions.snapshot().getLast().status() == atf.core.reporting.contract.AtfReportStatus.PASS);
-                assertEquals(2, actions.snapshot().size());
+                assertEquals(3, actions.snapshot().size());
+                assertEquals("Catalog search response", actions.snapshot().get(1).operation());
+                assertTrue(actions.snapshot().get(1).observed().contains("document=GET; HTTP 200"));
             }
         } finally { server.stop(0); }
     }

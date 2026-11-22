@@ -1,12 +1,15 @@
+<a id="atf---j0-reference-and-consumption-synchronisation"></a>
+<a id="atf--referința-j0-și-sincronizarea-consumerilor"></a>
+<a id="atf--j0-reference-and-consumer-synchronization"></a>
 # ATF — referința J0 și sincronizarea consumerilor
 
 [Owner, feedback și sincronizare](../lib/README.md) descrie contractul celor cinci biblioteci; această pagină păstrează protocolul workspace-urilor.
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
-`atf_j0` deține codul, testele și feedback-ul Core, Reporting, Console, Mock și Test Kit; `demo2` rămâne istoric.
-Implementările Core/Reporting/Console/Mock/Test Kit și toate testele lor native rămân aici; fiecare destinație
-primește și verifică livrarea potrivită propriului deployment.
+`atf_j0` deține codul, testele și feedback-ul Core, Reporting, Console, Mock și Test Kit; `demo2` rămâne istoric. Implementările Core/Reporting/Console/Mock/Test Kit și toate testele lor native rămân aici; fiecare destinație primește și verifică livrarea potrivită propriului deployment.
 
 | Workspace | Rol | Suprafață existentă |
 |---|---|---|
@@ -20,9 +23,10 @@ primește și verifică livrarea potrivită propriului deployment.
 | `atf_j7` | Chess Lab, consumator al celor cinci biblioteci | bootstrap Maven din perechile JAR/POM din `lib` și calificare proprie a motorului, a rapoartelor și a APK-ului |
 | `demo2` | historical source workspace | nu mai este destinație activă de mentenanță sau sync |
 
-J1 poate avea schimbări comune în lucru. Referința J0 nu autorizează
-suprascrierea lor: reconcilierea compară baza, diferența și proba fiecărui owner.
+J1 poate avea schimbări comune în lucru. Referința J0 nu autorizează suprascrierea lor: reconcilierea compară baza, diferența și proba fiecărui owner.
 
+<a id="delivery-direction"></a>
+<a id="direcția-livrării"></a>
 ## Direcția livrării
 
 ```mermaid
@@ -52,6 +56,8 @@ flowchart LR
 
 </details>
 
+<a id="choosing-a-workspace"></a>
+<a id="alegerea-workspace-ului"></a>
 ## Alegerea workspace-ului
 
 | Schimbare | Owner și limită |
@@ -61,10 +67,10 @@ flowchart LR
 | contracte pentru cozi și mesaje | J2, cu propriul catalog și bootstrap; nu moștenește automat scenariile web din J1 |
 | infrastructură comună | ownerul comportamentului și consumatorii afectați; reconciliere selectivă, fără mirror sau proprietate exclusivă asupra întregului ATF |
 
-J2 este WIP: trei componente verifică oracole MOCK, iar Setup configurează
-Kafka în Podman prin scripturi. Clientul Kafka Java și acceptanța reală
-rămân distincte; infrastructura copiată nu le demonstrează.
+J2 este WIP: trei componente verifică oracole MOCK, iar Setup configurează Kafka în Podman prin scripturi. Clientul Kafka Java și acceptanța reală rămân distincte; infrastructura copiată nu le demonstrează.
 
+<a id="delivered-changes"></a>
+<a id="ce-se-propagă"></a>
 ## Ce se propagă
 
 | Schimbare în referință | Livrare către fiecare consumer | Dovadă necesară |
@@ -83,12 +89,16 @@ rămân distincte; infrastructura copiată nu le demonstrează.
 - Feedback-ul Core/Reporting/Console/Mock/Test Kit are owner în J0; cerințele comune nonbibliotecă sunt coordonate în J1. [Test Kit](ATF_Test_Kit_Library.md) este distribuit ca bibliotecă în J1–J7; sursa și nativele rămân în J0. Feedback-ul unei implementări comune
   se închide în alt deployment numai după sincronizarea și proba codului său.
 
+<a id="maintenance-increment-protocol"></a>
+
+<a id="increment-protocol"></a>
+<a id="protocolul-fiecărui-increment"></a>
 ## Protocolul fiecărui increment
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":32,"padding":8,"diagramPadding":16}}}%%
 flowchart LR
-    Feedback["Feedback<br/>trigger + criterion"] -->|delimitează| Owner["Owner<br/>J0 source"]
+    Feedback["Feedback<br/>trigger și criteriu"] -->|delimitează| Owner["Owner<br/>J0 source"]
     Owner -->|izolează| Stage["TMP stage"]
     Stage -->|probează| OwnerTests["Teste native<br/>ale ownerului"]
     OwnerTests -->|gate local| Gate["Whole J0<br/>guvernanță"]
@@ -112,8 +122,7 @@ flowchart LR
 - Staging-ul probează schimbarea izolată. Codul, testele și documentația se
   reconciliază înainte de promovare.
 - Numai o schimbare de bibliotecă produce o pereche nouă JAR/POM. Poarta
-  perechii verifică ownership-ul și artefactele; dacă J1 adoptă binarul, testele
-  native J1 verifică separat comportamentul consumerului.
+  perechii verifică ownership-ul și artefactele; dacă J1 adoptă binarul, testele native J1 verifică separat comportamentul consumerului.
 - Muchiile punctate întorc eșecul la feedback cu gap-ul concret; nu închid
   automat cerința la primul gate verde.
 - `Origin` primește numai fișierele aprobate și reconciliate, fără output-uri
@@ -140,17 +149,17 @@ Etichetele scurte păstrează următorul sens:
 3. Repară la owner și păstrează regresia permanentă. O problemă generică de
    randare, verdict ori expandare primește probă în `atf-reporting-tests`.
 4. Pentru un candidat Reporting, construiește și verifică snapshot-ul fixat;
-   rulează harness-ul pe JAR-ul real în consumerul TMP. Nu construi din nou
-   sursa vecină pentru a satisface contractul binar.
+   rulează harness-ul pe JAR-ul real în consumerul TMP. Nu construi din nou sursa vecină pentru a satisface contractul binar.
 5. Verifică separat fiecare consumer: bootstrap Maven/IDE, tranzitive,
-   CodeSource/hash, guvernanță și adaptoarele afectate. Schimbările de raport
-   cer Extent/fallback, timing, assertions colapsabile, expandări și limita 240.
+   CodeSource/hash, guvernanță și adaptoarele afectate. Schimbările de raport cer Extent/fallback, timing, assertions colapsabile, expandări și limita 240.
 6. Promovează numai fișierele reconciliate prin [guard-ul Core](../atf-core/README.md#manifest-și-promovare-guarded).
    Dacă o țintă diferă de baseline, oprește acea promovare și revalidează diferența.
 7. Recitește livrabilele live și consemnează starea fiecărei ținte. Un J1 verde
-   nu devine dovadă pentru J2, iar promovarea per fișier nu este o tranzacție
-   atomică distribuită între proiecte.
+   nu devine dovadă pentru J2, iar promovarea per fișier nu este o tranzacție atomică distribuită între proiecte.
 
+<a id="provenance-and-relocation"></a>
+
+<a id="proveniență-și-relocare"></a>
 ## Proveniență și relocare
 
 | Informație | Regula de păstrare |
@@ -161,8 +170,7 @@ Etichetele scurte păstrează următorul sens:
 | diferențe CRLF/LF | se explică separat; echivalența textuală nu substituie hash-ul byte cu byte al unui artifact sau al intrărilor publicate |
 | controale Git | baze reale per checkout; controalele istorice nu se rebazează prin înlocuire de text |
 
-Build-ul și promovarea urmează [procesul izolat](ATF_Build_And_Execution_Safety.md).
-Contractul inventarului este la [ownerul guvernanței](../atf-tests/README.md#inventarul-comun-al-surselor-java).
+Build-ul și promovarea urmează [procesul izolat](ATF_Build_And_Execution_Safety.md). Contractul inventarului este la [ownerul guvernanței](../atf-tests/README.md#inventarul-comun-al-surselor-java).
 
 | Boundary comun | Contract și limită |
 |---|---|
@@ -170,32 +178,59 @@ Contractul inventarului este la [ownerul guvernanței](../atf-tests/README.md#in
 | MIME și headere | negative distincte, o singură expediere; fiecare destinație verifică snapshot-ul propriu |
 | sursă versus binar | acceptanța Core nu rescrie proveniența Reporting și nu certifică brokerul real |
 
-Domeniile consumerilor sunt distincte: J1 deține scenariile web AutoEx/Shop,
-iar J2 este destinat cozilor și mesajelor. Acceptanța MOCK verifică integrarea ATF și Reporting; scenariile de broker au contracte și probe proprii.
+Domeniile consumerilor sunt distincte: J1 deține scenariile web AutoEx/Shop, iar J2 este destinat cozilor și mesajelor. Acceptanța MOCK verifică integrarea ATF și Reporting; scenariile de broker au contracte și probe proprii.
 
 Acceptanța J2 Eventuate și limita hostului sunt în [dovada consumerului](../../atf_j2/docs/ATF_J2_Verification.md); instalarea prerequisites nu certifică engine ori broker.
 
+<a id="j2-without-browser-modules---distinct-perimeter"></a>
+<a id="j2-fără-module-browser--perimetru-distinct"></a>
 ## J2 fără module browser — perimetru distinct
 
-J2 declară cinci module sursă: platforma, SQL, Setup, Eventuate și guvernanța; Core și Reporting sunt biblioteci externe.
-[Scope-ul J2](../../atf_j2/docs/ATF_J2_Scope.md) delimitează contractul fără
-UI/Debug sau Playwright; retragerea este implementată în checkout-ul J2.
+J2 declară cinci module sursă: platforma, SQL, Setup, Eventuate și guvernanța; Core și Reporting sunt biblioteci externe. [Scope-ul J2](../../atf_j2/docs/ATF_J2_Scope.md) delimitează contractul fără UI/Debug sau Playwright; retragerea este implementată în checkout-ul J2.
 
-Nu restaurați modulele browser prin sync. Atlasele, README-urile și feedback-urile
-rămân adaptate domeniului fiecărui deployment; contractele comune se reconciliază
-selectiv, iar backlog-ul Reporting și cel web rămân la ownerii J0/J1.
+Nu restaurați modulele browser prin sync. Atlasele, README-urile și feedback-urile rămân adaptate domeniului fiecărui deployment; contractele comune se reconciliază selectiv, iar backlog-ul Reporting și cel web rămân la ownerii J0/J1.
 
+<a id="core-as-library---owner-and-deployment"></a>
+<a id="core-ca-bibliotecă--owner-și-deployment"></a>
 ## Core ca bibliotecă — owner și deployment
 
-J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module.
-[Contractul Core](ATF_Core_Consumer.md) separă sursa și publicarea de acceptanța independentă a fiecărui consumator J1–J7.
-Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
+J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module. [Contractul Core](ATF_Core_Consumer.md) separă sursa și publicarea de acceptanța independentă a fiecărui consumator J1–J7. Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 
-## Release evidence retention
+<a id="release-evidence-retention"></a>
+<a id="păstrarea-dovezilor-de-release"></a>
+## Păstrarea dovezilor de release
 
-- Project README files, atlases and `docs` describe current contracts and ownership; they do not accumulate per-release library improvement narratives or verification notes.
-- Keep one current verification note per library in its producer packaging stage, beside the effective publication POM. Builds, logs and HTML evidence stay in owned TMP.
-- Consumer `library-provenance.json` records the current coordinate, hashes, original `buildStage` and `currentAcceptance.evidence` location. Consumer `lib` retains the latest Core, Reporting, Console, Mock and Test Kit JAR/POM pairs plus its dedicated README; no release notes are stored there.
-- Superseded notes are retired after their durable contracts have been reconciled. Historical build/test facts and original evidence paths remain provenance, explicitly marked as retired; they are not current document targets or fresh acceptance.
+- Fișierele README, atlasele și `docs` descriu contracte și ownership curente; nu acumulează narațiuni de îmbunătățire sau note de verificare per release.
+- Păstrează o notă curentă per bibliotecă în staging-ul de împachetare al producătorului, lângă POM efectiv. Build-urile, logurile și dovezile HTML rămân în TMP propriu.
+- `library-provenance.json` al consumerului înregistrează coordonata curentă, hash-urile, `buildStage` original și locația `currentAcceptance.evidence`. `lib` păstrează ultimele perechi Core, Reporting, Console, Mock și Test Kit JAR/POM și propriul README; fără note de release acolo.
+- Notele depășite sunt retrase după reconcilierea contractelor durabile. Faptele istorice și căile originale ale dovezilor rămân proveniență, marcate ca retrase; nu sunt ținte curente sau acceptanță nouă.
 
-Each current note is retained with its matching package; its coordinate and JAR/POM hashes must match the distributed pair. Documentation maintenance alone neither rebuilds a library nor repeats its recorded tests.
+Fiecare notă curentă rămâne lângă pachetul corespunzător; coordonata și hash-urile JAR/POM trebuie să corespundă perechii distribuite. Mentenanța documentară singură nu reconstruiește biblioteca și nu repetă testele înregistrate.
+
+<a id="orchestration-runtime-decision"></a>
+
+<a id="when-should-langgraph-be-considered"></a>
+<a id="când-merită-evaluat-langgraph"></a>
+### Când merită evaluat LangGraph?
+
+Ramurile finite `cu JAR` și `fără JAR` sunt acoperite de suite și feedback;
+singure, nu justifică un runtime nou. Reevaluarea are sens când procesul cere
+stare durabilă peste întreruperi, aprobare umană sau reluarea controlată a unui
+traseu dinamic. Maven/JUnit rămâne autoritatea verdictului testelor.
+
+```mermaid
+flowchart LR
+    Increment["Increment ATF"] -->|evaluează| RuntimeNeed{"Cere stare durabilă,<br/>reluare sau aprobare umană?"}
+    RuntimeNeed -->|nu| MavenGates["Porți Maven/JUnit<br/>autoritatea verdictului"]
+    RuntimeNeed -->|da| LangGraph["Evaluează LangGraph<br/>ca orchestrator"]
+    LangGraph -->|rulează porțile| MavenGates
+```
+
+<details>
+<summary><strong>Legendă — când orchestrarea are un scop operațional</strong></summary>
+
+- Suitele existente acoperă ramurile finite; Mermaid explică traseul.
+- Starea durabilă, revizuirea sau reluarea pot justifica evaluarea unui orchestrator; diagrama nu îl introduce ca dependență.
+- Orice orchestrator rulează aceleași porți Maven/JUnit; testele ATF păstrează autoritatea verdictului.
+
+</details>

@@ -1,11 +1,15 @@
+<a id="atf-government---source-or-binary-deployment"></a>
+<a id="guvernanță-atf--deployment-sursă-sau-binar"></a>
 # Guvernanță ATF — deployment sursă sau binar
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
-Acest pachet adaptează suprafața inspectată, păstrând regulile și selecția
-suitei. Producătorul verifică sursele Core/Reporting; consumerul verifică biblioteca
-publicată și încărcată, fără surse fictive ori teste dezactivate.
+Acest pachet adaptează suprafața inspectată, păstrând regulile și selecția suitei. Producătorul verifică sursele Core/Reporting; consumerul verifică biblioteca publicată și încărcată, fără surse fictive ori teste dezactivate.
 
+<a id="catalogue-declared"></a>
+<a id="catalogul-declarat"></a>
 ## Catalogul declarat
 
 Catalogul este declarat prin Maven; un modul ori POM lipsă rămâne refuzat.
@@ -13,17 +17,13 @@ Catalogul este declarat prin Maven; un modul ori POM lipsă rămâne refuzat.
 | Profil | Module live | Harness explicit în TMP |
 |---|---:|---:|
 | sursă Core/Reporting | 12 | inclus |
-| journeys cu Core binar | 9 | 10 |
+| trasee cu Core binar | 9 | 10 |
 | foundation cu Core sursă (fixture) | 8 | 9 |
 | Eventuate cu Core binar, fără UI | 7 | 8 |
 
-`atf.consumer.profile=foundation` exclude Shop/AutoEx; absența directoarelor
-nu selectează profilul, iar harness-ul nedeclarat nu este acceptat.
+`atf.consumer.profile=foundation` exclude Shop/AutoEx; absența directoarelor nu selectează profilul, iar harness-ul nedeclarat nu este acceptat.
 
-Distribuția binară citește JAR-ul și POM-ul direct din `lib`, cu aceeași
-verificare de proveniență, POM inclus și CodeSource. O copie imbricată nu
-substituie artifactul cerut la calea declarată. `lib` are numai JAR-ul și POM-ul;
-hash-urile și catalogul probelor native sunt în `library-provenance.json`, la rădăcină.
+Distribuția binară citește JAR-ul și POM-ul direct din `lib`, cu aceeași verificare de proveniență, POM inclus și CodeSource. O copie imbricată nu substituie artifactul cerut la calea declarată. `lib` are numai JAR-ul și POM-ul; hash-urile și catalogul probelor native sunt în `library-provenance.json`, la rădăcină.
 
 | Intrare | Responsabilitate | Probă |
 |---|---|---|
@@ -32,6 +32,8 @@ hash-urile și catalogul probelor native sunt în `library-provenance.json`, la 
 | [ReportingGovernanceSurface](ReportingGovernanceSurface.java) | POM, ownership, proveniență și dependențe din sursă/JAR | [proveniență și mutanți](ReportingGovernanceSurfaceTest.java) |
 | [DeploymentFixture](DeploymentFixture.java) / [BinaryReportingFixture](BinaryReportingFixture.java) | fixture-uri private, cu mutații izolate | fără schimbarea sursei producătorului, cache-ului ori JAR-ului live |
 
+<a id="elaboration-of-the-surface"></a>
+<a id="alegerea-suprafeței"></a>
 ## Alegerea suprafeței
 
 - Un harness declarat păstrează integral auditurile surselor și fișierele cerute.
@@ -61,6 +63,8 @@ flowchart LR
 
 </details>
 
+<a id="invariants-and-limits"></a>
+<a id="invariante-și-limite"></a>
 ## Invariante și limite
 
 - Foundation refuză profile necunoscute, override pe sursa Reporting, module comune lipsă și surse shadow Shop/AutoEx, inclusiv namespace-uri ascunse în alte module.
@@ -81,18 +85,16 @@ flowchart LR
 - `jdeps` este parte din JDK-ul necesar verificării; lipsa lui este refuz,
   fără fallback la un control textual mai slab.
 
+<a id="maintenance"></a>
+<a id="întreținere"></a>
 ## Întreținere
 
-O schimbare de packaging actualizează catalogul, dovada și ambele deployment-uri
-în același increment. Retragerea Reporting Tests cere decizie și acceptanță
-separate; nu este activată prin absența unui director sau prin această adaptare.
+O schimbare de packaging actualizează catalogul, dovada și ambele deployment-uri în același increment. Retragerea Reporting Tests cere decizie și acceptanță separate; nu este activată prin absența unui director sau prin această adaptare.
 
+<a id="core-source-or-binary"></a>
+<a id="core-sursă-sau-binar"></a>
 ## Core sursă sau binar
 
-`atf.core.version` selectează explicit Core extern; simpla dispariție a
-directorului nu poate micșora catalogul. Consumerii refuză orice director
-Core shadow, inclusiv fără POM, și orice fișier suplimentar în lib.
+`atf.core.version` selectează explicit Core extern; simpla dispariție a directorului nu poate micșora catalogul. Consumerii refuză orice director Core shadow, inclusiv fără POM, și orice fișier suplimentar în lib.
 
-J0 verifică în continuare stilul și implementarea sursei Core. J1–J6 verifică
-POM-ul și clasele publicate, dependențele bytecode și hash-ul CodeSource;
-[Core contract](../../../../../../../../../docs/ATF_Core_Consumer.md) separă aceste probe.
+J0 verifică în continuare stilul și implementarea sursei Core. J1–J6 verifică POM-ul și clasele publicate, dependențele bytecode și hash-ul CodeSource; [Core contract](../../../../../../../../../docs/ATF_Core_Consumer.md) separă aceste probe.

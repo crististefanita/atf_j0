@@ -1,13 +1,14 @@
+<a id="atf-reporting-model---immeasurable-facts-and-common-projections"></a>
+<a id="atf-reporting-model--fapte-imutabile-și-proiecții-comune"></a>
 # ATF Reporting Model — fapte imutabile și proiecții comune
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
-Pachetul descrie faptele de execuție și dovezile fără a porni transportul sau
-browserul. Modelele imutabile se disting de agregatele mutabile care le
-construiesc în `semantic` și în documentul fallback.
+Pachetul descrie faptele de execuție și dovezile fără a porni transportul sau browserul. Modelele imutabile se disting de agregatele mutabile care le construiesc în `semantic` și în documentul fallback.
 
-[Atlas](../README.md) · [API și adaptoare](../api/README.md) ·
-[Contracte typed](../contract/AtfReportPorts.java)
+[Atlas](../README.md) · [API și adaptoare](../api/README.md) · [Contracte typed](../contract/AtfReportPorts.java)
 
 | Model sau mecanism | Sursa | Context esențial |
 |---|---|---|
@@ -18,6 +19,8 @@ construiesc în `semantic` și în documentul fallback.
 | construcția semantică | [recorder](../semantic/AtfReportSemanticRecorder.java), [state](../semantic/AtfReportSemanticState.java) | mutație încapsulată și snapshot imutabil |
 | durate | [timing](timing) | durate măsurate și disponibilitate, separat de publicare |
 
+<a id="identity-status-and-availability"></a>
+<a id="identitate-status-și-disponibilitate"></a>
 ## Identitate, status și disponibilitate
 
 - `ClassSnapshot.name` identifică ownerul clasei; `ScenarioSnapshot` are `id`,
@@ -25,15 +28,11 @@ construiesc în `semantic` și în documentul fallback.
 - Statusul transmis de caller se reconciliază cu dovezile conform contractului
   de raportare; un renderer nu reevaluează comparația folosind textul afișat.
 - Absența response-ului nu se transformă în status HTTP 200 sau într-un body
-  inventat. Canalul API gol este diferit de un snapshot terminal. Fără response,
-  callerul furnizează un status diferit de INFO sau aserțiuni evaluate;
-  metadata de transport nu decide singură succesul.
+  inventat. Canalul API gol este diferit de un snapshot terminal. Fără response, callerul furnizează un status diferit de INFO sau aserțiuni evaluate; metadata de transport nu decide singură succesul.
 - Overview numără PASS + WARNING în totalul pass-like, conform contractului;
-  WARNING rămâne distinct în scenariu și nu intră în Fails. Collectorul comun
-  păstrează aceeași populație pentru totaluri, categorii și failure-uri.
+  WARNING rămâne distinct în scenariu și nu intră în Fails. Collectorul comun păstrează aceeași populație pentru totaluri, categorii și failure-uri.
 - [ReportExecutionFailure](diagnostic/ReportExecutionFailure.java) proiectează
-  cauza transportului, iar collectorul o indexează numai dintr-un request FAIL.
-  Lipsa response-ului nu transformă un eșec așteptat PASS într-un failure de index.
+  cauza transportului, iar collectorul o indexează numai dintr-un request FAIL. Lipsa response-ului nu transformă un eșec așteptat PASS într-un failure de index.
 
 <details>
 <summary><strong>Tipuri ușor de confundat</strong></summary>
@@ -49,14 +48,12 @@ construiesc în `semantic` și în documentul fallback.
 
 </details>
 
+<a id="verification"></a>
+<a id="verificare"></a>
 ## Verificare
 
-[AtfReportSemanticSnapshotTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/semantic/AtfReportSemanticSnapshotTest.java) compară populațiile rendererelor;
-[ReportingStandaloneVerdictComponentTest](../../../../../test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java) păstrează verdictul local, iar
-[ReportTransportTimingTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/api/timing/ReportTransportTimingTest.java) verifică disponibilitatea duratelor.
+[AtfReportSemanticSnapshotTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/semantic/AtfReportSemanticSnapshotTest.java) compară populațiile rendererelor; [ReportingStandaloneVerdictComponentTest](../../../../../test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java) păstrează verdictul local, iar [ReportTransportTimingTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/api/timing/ReportTransportTimingTest.java) verifică disponibilitatea duratelor.
 
-Probele sunt legate din [modul](../../../../../../README.md#verificare-rapidă)
-și [Reporting Tests](../../../../../../../atf-reporting-tests/README.md).
+Probele sunt legate din [modul](../../../../../../README.md#verificare-rapidă) și [Reporting Tests](../../../../../../../atf-reporting-tests/README.md).
 
-Contractul inputului terminal și proba Extent/fallback sunt la
-[ownerul execuției fără răspuns](../../../../../../README.md#execuție-api-terminată-fără-răspuns).
+Contractul inputului terminal și proba Extent/fallback sunt la [ownerul execuției fără răspuns](../../../../../../README.md#execuție-api-terminată-fără-răspuns).

@@ -1,9 +1,15 @@
+<a id="console--execution-diagnostics"></a>
+<a id="console--diagnostic-pentru-execuție"></a>
 # Console — diagnostic pentru execuție
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 `atf-console` proiectează evenimentele ATF în stdout/stderr: lifecycle, durate și detalii configurabile. Este util pentru urmărirea unei rulări Maven sau IntelliJ; artifactul HTML este produs de [Reporting](README.Reporting.md).
 
+<a id="minimal-example"></a>
+<a id="exemplu-minim"></a>
 ## Exemplu minim
 
 Fragment într-o metodă; politica este explicită, iar stream-ul rămâne în adaptor:
@@ -26,6 +32,8 @@ reporting:
     detailsEnabled: false
 ```
 
+<a id="integration-and-options"></a>
+<a id="integrare-și-opțiuni"></a>
 ## Integrare și opțiuni
 
 | Intenție | Alegere |

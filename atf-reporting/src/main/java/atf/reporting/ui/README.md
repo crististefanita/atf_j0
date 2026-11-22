@@ -1,10 +1,12 @@
+<a id="atf-reporting-ui---from-checkpoint-to-renderer-ports"></a>
+<a id="atf-reporting-ui--de-la-checkpoint-la-porturile-rendererului"></a>
 # ATF Reporting UI — de la checkpoint la porturile rendererului
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
-Pachetul compune dovezi UI/API deja observate. Deține lifecycle-ul scenariului,
-gruparea checkpoint-urilor și publicarea; browserul, endpointul și decizia
-business aparțin consumerului.
+Pachetul compune dovezi UI/API deja observate. Deține lifecycle-ul scenariului, gruparea checkpoint-urilor și publicarea; browserul, endpointul și decizia business aparțin consumerului.
 
 [Atlas](../README.md) · [Contractul modulului](../../../../../../README.md#contractul-raportului)
 
@@ -17,6 +19,8 @@ business aparțin consumerului.
 | schimburi API ale checkpoint-ului | [UiApiValidationEvidence](validation/UiApiValidationEvidence.java), [publisher](UiEvidencePublisher.java) | `ApiEvidencePublisher` este colaborator privat nested |
 | cauza eșecului și captura permisă | [publisher failure](failure/UiFailureEvidencePublisher.java) | diagnostic și publicare, fără captură nouă |
 
+<a id="route-of-change"></a>
+<a id="traseul-unei-modificări"></a>
 ## Traseul unei modificări
 
 - Consumerul transmite acțiuni, assertions și captura deja disponibile.
@@ -36,12 +40,9 @@ business aparțin consumerului.
 - Aserțiunile API ale unui exchange nu se reasociază cu vecinul după textul
   trunchiat. Un canal gol și un exchange fără response sunt situații distincte.
 - Colaboratorul API este privat în `UiEvidencePublisher` și publică fiecare
-  exchange valid, inclusiv fără response. Boundary-ul cere request și, fără
-  response, verdict explicit ori aserțiuni evaluate; INFO singur nu îl furnizează.
-  Diagnosticul și attempts rămân în Execution evidence, fără Response details inventat.
+  exchange valid, inclusiv fără response. Boundary-ul cere request și, fără response, verdict explicit ori aserțiuni evaluate; INFO singur nu îl furnizează. Diagnosticul și attempts rămân în Execution evidence, fără Response details inventat.
 - Diagnosticul terminal este inspectabil în Tests și indexat pentru request-ul
-  FAIL prin [contractul comun](../../../../../../README.md#execuție-api-terminată-fără-răspuns).
-  Backlink-ul deschide execution evidence original, fără identitate împrumutată de la vecin.
+  FAIL prin [contractul comun](../../../../../../README.md#execuție-api-terminată-fără-răspuns). Backlink-ul deschide execution evidence original, fără identitate împrumutată de la vecin.
 - Succesiunea Given/When/Then folosește contextul scenariului; continuările AND
   nu sunt o înlocuire globală a keyword-urilor în HTML.
 - Timing-ul execuției și cel al publicării sunt fapte separate; rendererul nu
@@ -49,6 +50,8 @@ business aparțin consumerului.
 
 </details>
 
+<a id="active-evidence-and-criteria"></a>
+<a id="probe-și-criterii-active"></a>
 ## Probe și criterii active
 
 - [UiApiValidationContractComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/ui/validation/UiApiValidationContractComponentTest.java): forma și asocierea canalului API.
@@ -58,13 +61,11 @@ business aparțin consumerului.
 - [UiPublicationFailureComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/ui/publication/UiPublicationFailureComponentTest.java): body, achiziție și close prin fațada publică.
 - [UiPhaseTimingLifecycleComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/ui/timing/UiPhaseTimingLifecycleComponentTest.java) și [ReportGherkinSequenceTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/gherkin/ReportGherkinSequenceTest.java): timing și vocabular.
 
-Probele de compoziție și browser sunt în [Reporting Tests](../../../../../../../atf-reporting-tests/README.md).
-Boundary-ul standalone este verificat în
-[biblioteca Reporting](../../../../../../src/test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java).
-API-ul susținut și extragerea proiecției pure au
-[criterii distincte](../../../../../../../docs/feedback/ATF_Reporting_Feedback.md).
+Probele de compoziție și browser sunt în [Reporting Tests](../../../../../../../atf-reporting-tests/README.md). Boundary-ul standalone este verificat în [biblioteca Reporting](../../../../../../src/test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java). API-ul susținut și extragerea proiecției pure au [criterii distincte](../../../../../../../docs/feedback/ATF_Reporting_Feedback.md).
 
 
+<a id="neutral-observations-on-uiphase"></a>
+<a id="observații-neutre-pe-uiphase"></a>
 ## Observații neutre pe UiPhase
 
 [UiPhase](UiExtentReportSession.java) expune observation și supportsObservations prin lifecycle-ul existent.

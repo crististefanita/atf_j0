@@ -1,33 +1,35 @@
-# ATF workspace rules
+<a id="atf-workspace-rules"></a>
+<a id="regulile-workspace-ului-atf"></a>
+# Regulile workspace-ului ATF
 
-- Use the sibling workspace `atf_j0` (`../atf_j0`) as the current Core/Reporting/Console/Mock
-  source and test reference.
-  `demo2` is historical; do not edit or synchronize it for new work.
-- Read `docs/ATF_Workspace_Synchronization.md` and
-  `docs/ATF_Build_And_Execution_Safety.md` before changing or delivering code.
-- Keep Reporting implementation/native tests in `atf_j0/atf-reporting` and
-  permanent mock, contract and browser regressions in `atf_j0/atf-reporting-tests`.
-- After a library change in J0, assess each affected initialized consumer in
-  `atf_j1`–`atf_j6`; deliver and validate them separately. Inspect each
-  project's current scope before promotion; one consumer's result never implies
-  another's acceptance.
-- J2 keeps its existing Git and messaging scope. Its explicit Eventuate profile includes Setup and excludes Shop, AutoEx, UI and Debug UI; do not restore those modules or Playwright in J2.
-- Keep Core implementation and native tests only in J0. Binary consumers
-  retain the latest Core, Reporting, Console, Mock and Test Kit JAR/POM pairs directly in `lib`,
-  with one root provenance file. Do not copy Reporting source or its harness
-  into the live binary consumers.
-- Reconcile common code and consumer adapters selectively in both directions.
-  Preserve local work, reactor POMs, configurations and independent Git bases.
-  A successful file promotion is not an atomic transaction across workspaces.
-- Build/test only in owned TMP staging; keep generated reports/cache/output
-  there. Preserve the 240-character default reporting preview and auditable,
-  collapsible component/E2E assertions.
-- Keep owner documentation and feedback current with the actual code and
-  tests. Preserve historical build provenance; a directory rename alone does
-  not require a new Reporting version or imply a fresh test execution.
+- Folosește workspace-ul frate `atf_j0` (`../atf_j0`) ca referință curentă
+  pentru sursele și testele Core/Reporting/Console/Mock.
+  `demo2` este istoric; nu îl edita sau sincroniza pentru lucrări noi.
+- Citește `docs/ATF_Workspace_Synchronization.md` și
+  `docs/ATF_Build_And_Execution_Safety.md` înainte de schimbarea sau livrarea codului.
+- Păstrează implementarea/testele native Reporting în `atf_j0/atf-reporting` și
+  regresiile permanente cu mock, contract și browser în `atf_j0/atf-reporting-tests`.
+- După o schimbare de bibliotecă în J0, evaluează fiecare consumer inițializat
+  afectat din `atf_j1`–`atf_j7`; livrează și validează separat. Inspectează
+  domeniul actual al fiecărui proiect înaintea promovării; rezultatul unui
+  consumer nu implică acceptanța altuia.
+- J2 își păstrează domeniul Git și de mesagerie. Profilul Eventuate explicit include Setup și exclude Shop, AutoEx, UI și Debug UI; nu restaura aceste module sau Playwright în J2.
+- Păstrează implementarea și testele native Core numai în J0. Consumerii binari
+  păstrează ultimele perechi JAR/POM Core, Reporting, Console, Mock și Test Kit direct în `lib`,
+  cu o singură proveniență la rădăcină. Nu copia sursa Reporting sau harness-ul ei
+  în consumerii binari live.
+- Reconciliază selectiv codul comun și adaptoarele consumerilor în ambele direcții.
+  Păstrează lucrul local, POM-urile reactorului, configurațiile și bazele Git independente.
+  Promovarea unui fișier nu este o tranzacție atomică între workspace-uri.
+- Rulează build-ul/testele numai în staging TMP propriu; păstrează acolo
+  rapoartele/cache-ul/output-ul generate. Păstrează preview-ul implicit de 240 de
+  caractere și aserțiunile componentelor/E2E auditabile și colapsabile.
+- Păstrează documentația și feedback-ul ownerului aliniate cu codul și testele.
+  Păstrează proveniența istorică; redenumirea unui director nu cere o versiune
+  Reporting nouă și nu implică o execuție nouă a testelor.
 
-- Keep active J0 feedback limited to Core/Reporting/Console/Mock and Test Kit, including generic Reporting tests. J0 owns Test Kit implementation/native governance; J1–J6 consume its flat JAR/POM pair without parallel Kit source. J1 coordinates other shared-module criteria and consumer handoffs; preserve domain ownership and independent acceptance in every affected consumer. Compatibility routes may remain in J0 without duplicated TODOs.
+- Limitează feedback-ul J0 activ la Core/Reporting/Console/Mock și Test Kit, inclusiv testele generice Reporting. J0 deține implementarea și guvernanța nativă Test Kit; J1–J7 consumă perechea JAR/POM plată fără surse Kit paralele. J1 coordonează celelalte criterii comune și predările între consumeri; păstrează ownership-ul și acceptanța independentă. Rutele de compatibilitate pot rămâne în J0 fără TODO-uri duplicate.
 
-- Keep project README files and docs focused on current contracts. Retain only the current Reporting verification note beside its producer package in owned TMP; record its location in current consumer provenance. Do not accumulate per-release verification Markdown in docs or consumer lib. Preserve historical build/test provenance.
+- Păstrează README-urile și documentele centrate pe contracte curente. Reține numai nota curentă de verificare Reporting lângă pachetul producătorului în TMP propriu; înregistrează locația în proveniența curentă a consumerului. Nu acumula verificări Markdown per release în docs sau lib. Păstrează proveniența istorică a build-urilor/testelor.
 
-- Official documentation describes current contracts, not iterative Core/Reporting improvements. Keep library release chronology, dated acceptance counts and scorecards outside official README/atlas/contract documents; retain current packaging evidence beside the matching library. Report review scores in the conversation and keep actionable gaps at their owner.
+- Documentația oficială descrie contracte curente, fără istoricul îmbunătățirilor Core/Reporting. Păstrează cronologia release-urilor, numerele execuțiilor datate și scorecard-urile în afara README-urilor/atlaselor/contractelor oficiale; dovezile curente rămân lângă bibliotecă. Raportează notele în conversație și păstrează lacunele concrete la owner.

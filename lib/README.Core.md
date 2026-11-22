@@ -1,5 +1,9 @@
+<a id="core--shared-contracts-and-mechanisms"></a>
+<a id="core--contracte-și-mecanisme-comune"></a>
 # Core — contracte și mecanisme comune
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 `atf-core` oferă vocabularul și mecanismele reutilizabile ale ATF. Folosiți-l pentru a compune adaptoare și execuții, păstrând regulile aplicației în consumer.
@@ -12,6 +16,8 @@
 | Eliberarea resurselor în ordine inversă | `CleanupRegistry` |
 | Sincronizare selectivă cu verificarea baseline-ului | `AtfPromotionManifest`, `AtfPromotionGuard` |
 
+<a id="minimal-example"></a>
+<a id="exemplu-minim"></a>
 ## Exemplu minim
 
 Fragment într-o metodă care poate propaga `IOException`; construiește datele fără a trimite un request:
@@ -31,6 +37,8 @@ var total = body.path("total").decimalValue();
 
 `url` este `https://example.test/api/orders/42`. `JsonDocuments` respinge cheile duplicate și conținutul rămas după document; numerele zecimale nu trec prin `double`.
 
+<a id="use-in-atf"></a>
+<a id="utilizare-în-atf"></a>
 ## Utilizare în ATF
 
 - Injectați un `ApiTransport` în `ApiExecutor`; transportul real sau mock se alege explicit la compoziție.

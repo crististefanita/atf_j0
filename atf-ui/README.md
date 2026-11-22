@@ -1,3 +1,5 @@
+<a id="atf-ui--browser-context-and-playwright-session"></a>
+<a id="atf-ui--browser-context-și-sesiune-playwright"></a>
 # ATF UI — browser, context și sesiune Playwright
 
 `atf-ui` este infrastructura runtime pentru browserul Playwright. Configurează
@@ -5,9 +7,11 @@ browserul, contextul, pagina, timeout-urile, viewport-ul, screenshot-ul și
 recorderul de acțiuni. Nu conține testele UI ale raportului, rendererul HTML,
 publisherul Extent sau page objects de produs.
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
-**Context local:** [playwright](src/main/java/atf/ui/playwright/README.md) · [network](src/main/java/atf/ui/network/README.md) · [atlas ATF](../docs/ATF_Context_Atlas.md).
+**Ghiduri locale:** [playwright](src/main/java/atf/ui/playwright/README.md) · [network](src/main/java/atf/ui/network/README.md).
 
 **Trasee rapide:** [Acțiuni](#acțiuni-și-locatori) · [Politica BE](#recuperare-be-prin-observație-pasivă) · [Captură și limite](#inspectorul-de-rețea--limită-generică-de-responsabilitate) · [Probă locală](#verificare-rapidă)
 
@@ -17,6 +21,8 @@ publisherul Extent sau page objects de produs.
 | Playwright actions | neutral action records | fără Extent |
 | captură și geometrie nativă | dovezi UI și dimensiuni măsurabile | adaptate către Reporting de consumer |
 
+<a id="core-diagram"></a>
+<a id="diagramă-de-bază"></a>
 ## Diagramă de bază
 
 ```mermaid
@@ -35,8 +41,9 @@ flowchart LR
 - configurația descrie browserul și evidence-ul generic;
 - sesiunea compune browser, context și page, apoi înregistrează acțiuni;
 - atf-ui livrează payload-ul către consumer, nu decide verdictul și nu construiește HTML/CSS/Extent;
-- publisherul HTML aparține Reporting; `UiScreenAudit` deține observația generică
-  a ecranului în UI, iar probele browser ale artifactului aparțin Reporting Tests;
+- publisherul HTML aparține bibliotecii Reporting selectate; `UiScreenAudit`
+  deține observația generică a ecranului în UI, iar testele locale ale consumerului
+  verifică artifactele publicate de scenariile lor;
 - scenariul concret și verdictul business rămân la consumer.
 Etichetele scurte păstrează următorul sens:
 
@@ -65,30 +72,33 @@ Etichetele scurte păstrează următorul sens:
 |---|---|
 | browser, context, page, viewport, timeout | `atf-ui` |
 | acțiuni Playwright primitive și recorder neutru | `atf-ui` |
-| page objects, flows și testele declarative | modulul consumer; `atf-reporting-tests` pentru propriul audit al rapoartelor |
-| snapshot contract și validatori de browser | `atf-reporting` production + `atf-reporting-tests` test scope |
+| page objects, flows și teste declarative | modulele consumatoare Shop sau AutoEx |
+| contractul Reporting selectat și ieșirea randată | ghidul bibliotecii; testele consumatorilor verifică integrarea locală |
 | HTML, CSS, Extent lifecycle și publisher | `atf-reporting` |
-| mock, API scenarios și contract validation | `atf-reporting-tests` test scope + modulele API |
+| scenarii API cu mock și contracte ale aplicației | testele consumatorilor Shop sau AutoEx |
 
 `atf-ui` nu importă executorul de audit și publisherul de secțiune: validarea
 statică și proiecția raportului aparțin `atf-reporting`, iar scenariile E2E sunt
-în [README-ul auditului browser](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/README.md).
+în [README-ul auditului browser](../atf-reporting/README.md).
 Modulul UI nu publică Extent și nu emite assertions de secțiune.
 
+<a id="integration-path"></a>
+<a id="traseul-de-integrare"></a>
 ## Traseul de integrare
 
-| Intenție | Owner și intrare | Dovadă |
+| Intenție | Responsabil și intrare | Dovadă |
 |---|---|---|
-| deschide browserul și contextul | [PlaywrightUiSession](src/main/java/atf/ui/playwright/PlaywrightUiSession.java) | [lifecycle, scală nativă și configurare](src/test/java/atf/ui/playwright/PlaywrightUiSessionTest.java) |
+| deschide browserul și contextul | [PlaywrightUiSession](src/main/java/atf/ui/playwright/PlaywrightUiSession.java) | [scală nativă și configurare](src/test/java/atf/ui/playwright/PlaywrightUiSessionTest.java) |
 | activează un control o dată | [click cu postcondiție](#click-unic-cu-postcondiție-explicită) | deadline comun și refuzul replay-ului |
-| verifică deadline-ul fără wall-clock fragil | [buget determinist](#deadline-determinist-al-clickului-cu-postcondiție) | [ObservationBudgetComponentTest](src/test/java/atf/ui/playwright/ObservationBudgetComponentTest.java) |
-| observă backend-ul fără mutație | [recuperare BE](#recuperare-be-prin-observație-pasivă) | trace typed și operație read-only declarată |
+| observă backend-ul fără modificări | [recuperare BE](#recuperare-be-prin-observație-pasivă) | urmărit tipizat și operație declarată numai pentru citire |
 | colectează trafic sau capturi | [inspector](#inspectorul-de-rețea--limită-generică-de-responsabilitate) / [audit ecran](#audit-comun-al-ecranului) | observație bounded, fără verdict business |
 
 Rezultatul aplicației aparține consumerului, iar HTML-ul aparține Reporting.
 Proba de scală verifică viewport-ul CSS și DPR native; snapshot-ul de metadata
 descrie configurația și nu substituie măsurătoarea browserului.
 
+<a id="session-lifecycle-and-evidence-boundary"></a>
+<a id="lifecycle-ul-sesiunii-și-limita-probei"></a>
 ### Lifecycle-ul sesiunii și limita probei
 
 `PlaywrightUiSession` deține Playwright, browser, context, pagină și inspector.
@@ -108,6 +118,8 @@ hook public de fault. [Componenta nativă](src/test/java/atf/ui/playwright/Playw
 verifică separat browserul, scala și pointerul. Probele listener-elor rămân
 distincte: ele nu substituie ownership-ul sesiunii ori politica contului consumer.
 
+<a id="runtime-components"></a>
+<a id="componentele-runtime"></a>
 ## Componentele runtime
 
 - `UiBrowserConfiguration` — browser, headless, timeout, navigation timeout și
@@ -124,14 +136,16 @@ descoperă YAML de proiect, nu rezolvă outputuri și nu primește decizii de au
 consumerul compune politicile generice și publică artifactul prin
 `atf-reporting`.
 
+<a id="generic-configuration-without-a-redundant-flag"></a>
+<a id="configurație-generică-fără-flag-redundant"></a>
 ## Configurație generică, fără flag redundant
 
 `atf-ui` expune doar valori care descriu execuția browserului și capturarea
 generică. Nu este owner pentru `report.directory`, `apiSetup`, `audit` sau
-`filePrefix`; aceste valori sunt test-only și aparțin configurației interne a
-modulului `atf-reporting`:
+`filePrefix`; aceste setări sunt selectate de consumer și consumate de
+biblioteca Reporting. `atf-ui` nu le citește:
 
-[`atf-reporting-tests/src/test/resources/atf-reporting-ui.yaml`](../atf-reporting-tests/src/test/resources/atf-reporting-ui.yaml)
+[`Contractul bibliotecii Reporting`](../atf-reporting/README.md)
 
 ```yaml
 ui:
@@ -159,11 +173,13 @@ ui:
 - `viewport.width` și `viewport.height` exprimă dimensiunea cerută a capturii;
   viewport-ul CSS efectiv se calculează separat;
 - valoarea este validată în intervalul `25..200`, iar lipsa cheii păstrează `100`;
-- YAML-ul auditului Extent, override-urile `-Datf.ui.config`/`-Datf.ui.report`
-  și rezoluția raportului inspectat aparțin harness-ului din
-  `atf-reporting-tests`, nu bibliotecii `atf-reporting` sau adaptorului `atf-ui`.
-  Fiecare consumer deține separat configurația aplicației sale.
+- configurația raportului Extent, override-urile de raport și alegerea
+  artifactului inspectat aparțin compoziției locale a consumerului, nu
+  adaptorului generic `atf-ui`. Fiecare consumer deține separat configurația
+  aplicației sale.
 
+<a id="native-context-geometry"></a>
+<a id="geometria-nativă-a-contextului"></a>
 ### Geometria nativă a contextului
 
 Implicitul generic al `zoomPercent` este `100`; valorile configurate ale
@@ -228,6 +244,8 @@ flowchart LR
 
 </details>
 
+<a id="geometry-fixture-gate"></a>
+<a id="gate-ul-fixture-ului-de-geometrie"></a>
 ### Gate-ul fixture-ului de geometrie
 
 Fixture-ul UI pregătește cele cinci documente, layout-ul și captura nativă
@@ -271,11 +289,14 @@ flowchart LR
 
 </details>
 
+<a id="actions-and-locators"></a>
+<a id="acțiuni-și-locatori"></a>
 ## Acțiuni și locatori
 
 `atf-ui` poate executa o operație pe un `AtfLocator`, dar nu decide selectorul
-și nu știe intenția business. Locator facade-urile sunt în `atf-reporting-tests`
-test scope:
+și nu știe intenția business. Locatorii, page object-urile și intenția business
+aparțin consumerului; `atf-ui` furnizează operațiile generice pentru browser și
+locator:
 
 Vocabularul DOM reutilizabil este însă deținut aici, aproape de runtime-ul UI:
 
@@ -318,6 +339,8 @@ Report*Locators
   `waitFor`, `waitForCondition`, `waitForURL`;
 - `waitForTimeout` nu este API de stabilizare acceptat.
 
+<a id="native-waiting-and-uniqueness"></a>
+<a id="așteptare-nativă-și-unicitate"></a>
 ### Așteptare nativă și unicitate
 
 `Click`, `Fill` și `Select option` păstrează operația strictă Playwright.
@@ -390,6 +413,8 @@ Etichetele scurte păstrează următorul sens:
 
 </details>
 
+<a id="single-click-with-explicit-postcondition"></a>
+<a id="click-unic-cu-postcondiție-explicită"></a>
 ### Click unic cu postcondiție explicită
 
 `PlaywrightActionSequence.clickAndAwait` confirmă o postcondiție read-only
@@ -435,6 +460,8 @@ Etichetele scurte păstrează următorul sens:
 
 </details>
 
+<a id="ui-locator-conventions"></a>
+<a id="convenții-pentru-locatori-ui"></a>
 ### Convenții pentru locatori UI
 
 CSS este alegerea implicită pentru contractele DOM stabile. Preferă un selector
@@ -488,6 +515,8 @@ override de bootstrap:
 - validatorul pur din `atf-reporting` decide dacă snapshot-ul DOM corespunde
   proiecției așteptate.
 
+<a id="readiness-with-a-shared-deadline"></a>
+<a id="readiness-cu-deadline-comun"></a>
 ### Readiness cu deadline comun
 
 `awaitVisible(AtfLocator, Consumer<ObservationBudget>)` compune pregătirea
@@ -508,6 +537,8 @@ callback-ul primește numai restul bugetului, nu o metodă de resetare a lui.
 originală, lipsa replay-ului și obligația verificării native. Contractele
 `clickAndAwait`, pointer/JavaScript și retry read-only își păstrează probele separate.
 
+<a id="explicit-javascript-activation"></a>
+<a id="activare-javascript-explicită"></a>
 ### Activare JavaScript explicită
 
 `clickWithJavaScript(AtfLocator, String, Runnable)` este opt-in pentru un control
@@ -528,6 +559,8 @@ o postcondiție read-only care aruncă eroare dacă efectul așteptat lipsește.
 documentul principal și în iframe-uri same-origin/izolate. Fixture-ul este HTML
 neutru deținut de `atf-ui`, nu o reclamă sau o pagină business simulată.
 
+<a id="instrumented-download-without-replay"></a>
+<a id="download-instrumentat-fără-replay"></a>
 ### Download instrumentat fără replay
 
 `PlaywrightActionSequence.download(...)` armează listener-ul înaintea clickului,
@@ -541,6 +574,8 @@ transmite bugetul rămas observației callerului și cere evenimentul Download r
 - Cauza originală și cleanup-ul distinct rămân inspectabile. Proba generică este
   `PlaywrightDownloadComponentTest`; fixture-urile aplicației rămân la consumer.
 
+<a id="screen-validation-and-screenshots"></a>
+<a id="validarea-ecranului-și-capturi-de-ecran"></a>
 ## Validarea ecranului și capturi de ecran
 
 `UiScreenValidation.capture(page, configuration, title)` returnează un payload
@@ -567,8 +602,10 @@ acțiuni reale Playwright
 Nu se atașează aceeași imagine la fiecare assertion și nu se folosește un
 assert Java care ascunde acțiunea din raport. Contractul complet de cardinalitate,
 markup și randare este în
-[`atf-reporting/README.md`](../atf-reporting/README.md).
+[atlasul Reporting JAR](../atf-reporting/README.md).
 
+<a id="shared-screen-audit"></a>
+<a id="audit-comun-al-ecranului"></a>
 ### Audit comun al ecranului
 
 - `atf.ui.audit.UiScreenAudit` înregistrează observația de ecran și poate
@@ -578,6 +615,8 @@ markup și randare este în
 - Reutilizează `UiScreenValidation.Evidence.hasScreenshotPayload()`; o captură
   cerută, dar absentă sau invalidă, nu consumă dovezile anterioare.
 
+<a id="backend-recovery-through-passive-observation"></a>
+<a id="recuperare-be-prin-observație-pasivă"></a>
 ## Recuperare BE prin observație pasivă
 
 `UiBackendRecovery` coordonează o singură operație semantică în documentul curent.
@@ -617,7 +656,7 @@ flowchart LR
 Observația INFO are durata de rând zero; probe/backoff/total sunt măsurători
 explicite în metadata, iar totalul cumulativ nu se însumează peste fiecare rând.
 Durata explicită a fazei E2E rămâne distinctă de totalul scope-ului BE, conform
-[contractului timing typed](../atf-reporting/README.md#timing-e2e-la-ownerul-runtime).
+[contractului timing typed](../atf-reporting/README.md#timing-măsurat-înaintea-publicării).
 Etichetele scurte păstrează următorul sens:
 
 | În schemă | Sens complet |
@@ -670,8 +709,10 @@ cererilor anterioare scope-ului nu îl pot autoriza.
 `UiRecoveryConfigurationTest`, `UiRecoveryLoopTest` și
 `UiBackendRecoveryComponentTest` verifică politica, deadline-ul și browserul.
 Operațiile aplicației sunt în main la consumeri; declarația neutră este în
-[Kit](../atf-test-kit/README.md#declarația-neutră-pentru-recuperare-be).
+[Kit](../lib/README.TestKit.md#scope-și-integrare).
 
+<a id="observation-listener-scope"></a>
+<a id="scope-ul-listener-elor-de-observație"></a>
 ## Scope-ul listener-elor de observație
 
 Contabilitatea `ObservationBudget` are [probă cu ticks controlați](src/test/java/atf/ui/playwright/ObservationBudgetComponentTest.java):
@@ -739,10 +780,12 @@ callerului; nu introduce transport, replay ori un timeout nou.
 `ShopCatalogLifecycleComponentTest` probează nominalul, atașarea parțială,
 cauzele identice/distincte și callback-urile reținute.
 
+<a id="network-inspector--generic-responsibility-boundary"></a>
+<a id="inspectorul-de-rețea--limită-generică-de-responsabilitate"></a>
 ## Inspectorul de rețea — limită generică de responsabilitate
 
 Fluxul cross-module și baseline-ul setup/causal au un singur owner în
-[diagrama arhitecturii](../docs/ATF_Architecture.md#capturarea-și-selecția-traficului-ui).
+[diagrama arhitecturii](../docs/ATF_Architecture.md#ui-traffic-capture-and-selection).
 
 `UiNetworkInspector` este opt-in și restrâns la host-urile configurate:
 
@@ -925,35 +968,24 @@ request-failed inventează un response/verdict sau o mutație este reluată făr
 contract de idempotency. Orice extindere de retry rămâne o decizie separată a
 consumerului și nu schimbă politica generică fail-closed.
 
+<a id="what-does-not-belong-in-atf-ui"></a>
+<a id="ce-nu-se-pune-în-atf-ui"></a>
 ## Ce nu se pune în `atf-ui`
 
 - teste JUnit sau colecții API;
-- `UiConfiguration`, `UiAuditSuiteConfiguration`, loaderul YAML și contextul
-  pentru `atf.ui.config`/`atf.ui.report` — sunt configurație de test a
-  raportării și stau în `atf-reporting-tests/src/test/java/.../support/config`;
-- `SectionAuditCheckExecutor`, `SectionAuditCheckPolicy` sau
-  `ExtentSectionAuditPublisher`;
-- `ReportProjection`, reguli pentru Tests/Fails/Categories sau contractul static HTML;
+- configurația specifică a raportului, setup-ul API și compoziția auditului;
+- locatorii, fixture-urile și așteptările business specifice aplicației;
 - HTML/CSS/Extent nodes sau finalizarea artifactului;
 - page objects, selectorii produsului și flows de business;
 - fallback la un artifact arbitrar sau modificarea inputului API.
 
-Aceste limite sunt intenționate: `atf-ui` rămâne reutilizabil și testabil ca
-runtime Playwright, `atf-reporting` rămâne reutilizabil ca librărie de raportare,
-iar `atf-reporting-tests` deține compoziția testelor librăriei, de la componentă
-și integration până la E2E și adaptoarele browser.
+Aceste limite sunt intenționate: `atf-ui` furnizează adaptorul local Playwright,
+iar biblioteca Reporting versionată furnizează publicarea rapoartelor.
+Practice Shop și AutoEx păstrează scenariile, adaptoarele și verificările
+rapoartelor în modulele lor J1.
 
-## Deadline determinist al clickului cu postcondiție
-
-`ObservationBudgetComponentTest` verifică aritmetica și ownerul real
-`clickAndAwait` cu un ceas monoton controlat: pointerul, observațiile succesive
-și întoarcerea callback-ului consumă același deadline. Constructorii injectabili
-rămân package-private; execuția obișnuită folosește `System.nanoTime`.
-
-Durata raportată de recorder rămâne măsurată real, separat de ceasul probei.
-Probele browser verifică starea și activarea după pregătirea fixture-ului;
-nu deduc propagarea deadline-ului dintr-un prag wall-clock al sistemului.
-
+<a id="verification"></a>
+<a id="verificare"></a>
 ## Verificare
 
 Teste runtime/config:
@@ -962,11 +994,10 @@ Teste runtime/config:
 mvn -pl atf-ui -am test
 ```
 
-Testele de raport UI se rulează din composition module-ul
-`atf-reporting-tests`, de exemplu:
+Rulează verificarea locală de componentă care publică raport, de exemplu:
 
 ```text
-mvn -pl atf-reporting-tests -am -Dtest=SelectedApiTestsReportUiTest test
+mvn -pl atf-test-auto-ex -am -Dtest=AutoExE2eOverviewNarrativeComponentTest -Dsurefire.failIfNoSpecifiedTests=false test
 ```
 
 Build și audit:
@@ -983,8 +1014,10 @@ Build și audit:
 Pentru procesul de sync și siguranță vezi
 [`docs/ATF_Build_And_Execution_Safety.md`](../docs/ATF_Build_And_Execution_Safety.md);
 pentru contractul vizual vezi
-[`atf-reporting/README.md`](../atf-reporting/README.md).
+[atlasul Reporting JAR](../atf-reporting/README.md).
 
+<a id="quick-verification"></a>
+<a id="verificare-rapidă"></a>
 ## Verificare rapidă
 
 | Decizie | Sursă și limită |
@@ -1006,3 +1039,61 @@ Comanda selectează proba numită și construiește dependențele; nu declară
 trecerea întregului modul. Retenția completă nu probează livrarea tuturor subscriberilor ori cauzalitatea unei acțiuni.
 
 </details>
+
+<a id="full-context-screenshots"></a>
+<a id="capturi-de-ecran-cu-context-complet"></a>
+## Capturi de ecran cu context complet
+
+Fiecare captură de ecran folosită drept dovadă a unui test păstrează contextul
+din jurul paginii. Parcursurile Shop și AutoEx folosesc zoom-ul configurat de
+70% și viewport-ul complet al browserului; Android păstrează întregul ecran fizic
+și orientarea acestuia.
+
+| Limită | Comportament cerut |
+|---|---|
+| Captură | Folosește viewport-ul complet al paginii; păstrează navigarea, conținutul din jur și toate marginile cadrului |
+| Zoom | Păstrează scara configurată în contextul browserului; Shop/AutoEx folosesc 70% pentru a expune mai mult context |
+| Detalii suplimentare | Un prim-plan al unei regiuni sau al unui element poate completa imaginea cu contextul original, dar nu o poate înlocui |
+| Viewer-ul raportului | Încadrează imaginea sursă integrală în ecranul disponibil, păstrând proporțiile și toate marginile |
+| Document integral | Captura explicită full-page păstrează înălțimea documentului; înălțimea configurată pentru output nu o decupează |
+| Acoperirea probelor | Oracolele de pixeli verifică toate cele patru colțuri la 70/100% și contextul suplimentar din partea de jos la 70%; testele independente de geometrie își păstrează scările proprii |
+
+[Regresia geometriei native](src/test/java/atf/ui/playwright/geometry/PlaywrightPointerGeometryComponentTest.java)
+verifică pixelii PNG capturați, nu numai configurația. Contractul acestui owner
+acoperă captura, geometria viewer-ului și contextul consumerului.
+
+<a id="explicit-fixture-preparation"></a>
+<a id="pregătirea-explicită-a-fixture-ului"></a>
+## Pregătirea explicită a fixture-ului
+
+[`PlaywrightPagePreparation`](src/main/java/atf/ui/playwright/PlaywrightPagePreparation.java)
+pregătește documentul înaintea unei operații native măsurate. Apelanții o aleg
+explicit; acțiunile runtime obișnuite își păstrează comportamentul existent.
+
+| Fază | Operație nativă | Buget și autoritate |
+|---|---|---|
+| Încărcarea documentului | `navigate` sau `setContent` | bugetul de navigare existent pornește o singură dată |
+| Contextul documentului curent | atașare `:root` | bugetul de navigare rămas; fără selectarea sau mutarea țintei |
+| Viewport randat | PNG nativ, animații permise | același buget rămas; fără click, fill sau acțiune forțată |
+| Input nativ și postcondiție | recorderul existent | bugetul original al acțiunii; vizibilitate/stabilitate/hit testing stricte și fără replay |
+
+- Receipt-ul expune octeții PNG proaspeți ai viewport-ului, durata pregătirii și
+  URL-ul documentului. Octeții sunt copiați defensiv; eșecul capturii sau
+  finalizarea întârziată nu autorizează input.
+- Un document randat nu certifică o țintă dezactivată, acoperită, în mișcare sau
+  readonly. Aceste refuzuri și postcondiția falsă păstrează deadline-ul original al acțiunii.
+- Pregătirea fixture-ului consumă un singur buget finit de navigare în toate
+  etapele; atașarea și captura nu primesc timeout reînnoit.
+
+<a id="deterministic-click-deadline-with-a-postcondition"></a>
+<a id="deadline-determinist-al-clickului-cu-postcondiție"></a>
+## Deadline determinist al clickului cu postcondiție
+
+`ObservationBudgetComponentTest` verifică aritmetica și ownerul real
+`clickAndAwait` cu un ceas monoton controlat: pointerul, observațiile succesive
+și întoarcerea callback-ului consumă același deadline. Constructorii injectabili
+rămân package-private; execuția obișnuită folosește `System.nanoTime`.
+
+Durata raportată de recorder rămâne măsurată real, separat de ceasul probei.
+Probele browser verifică starea și activarea după pregătirea fixture-ului;
+nu deduc propagarea deadline-ului dintr-un prag wall-clock al sistemului.

@@ -1,76 +1,84 @@
-# Large report navigation — retained evidence, incremental work
+<a id="large-report-navigation--retained-evidence-incremental-work"></a>
+<a id="navigarea-rapoartelor-mari--dovezi-păstrate-lucru-incremental"></a>
+# Navigarea rapoartelor mari — dovezi păstrate, lucru incremental
 
 ## Contract
 
-Large HTML reports retain every supplied comparison and original inline PNG.
-Navigation changes when layout and timing metadata are prepared, not which
-evidence is published or how a test verdict is evaluated.
+Rapoartele HTML mari păstrează toate comparațiile furnizate și fiecare PNG original inclus în raport. Navigarea se schimbă atunci când sunt pregătite metadatele de layout și timp, nu lista dovezilor publicate și nici evaluarea verdictului testului.
 
-| Responsibility | Invariant |
+| Responsabilitate | Invariantă |
 |---|---|
-| assertion cells | native default preview remains 240; independent captured verdicts and complete supplied bodies remain unchanged |
-| hidden tables | no eager wrapper, intrinsic measurement or resize subscription before visibility; known hidden views also skip geometry reads |
-| layout changes | coalesce affected roots once per animation frame; descendants of a pending ancestor do not trigger another subtree scan |
-| screenshot dialogs | unrelated appended UI does not rescan every table in the document; original PNG bytes, local captions and return context remain intact |
-| timing | resolve a card's original execution marker once per aggregation pass; reset the cache at the next pass, including absent markers |
-| projected views | capture the source-owner/scenario index once per projection pass and share it across Category, Fails and Overview |
-| view selection | Tests, Category, Fails and Overview keep the visible pane, the sole current navigation link and the URL fragment in sync, including after native Spark rewrites the links |
-| dynamic content | identical class/open writes are ignored; actual mutations are coalesced before content invalidation; real child/text mutations increment a content revision; new/reopened/resized tables receive native column allocation; removed tables retire resize observations |
-| renderer scope | the table allocator is shared by Extent and fallback; duration aggregation belongs to Extent |
+| celule de aserțiuni | preview-ul nativ implicit rămâne 240; verdictele capturate separat și corpurile complete furnizate rămân neschimbate |
+| tabele ascunse | nu se creează wrapper-e, măsurători intrinseci sau abonări la redimensionare înainte de afișare; vizualizările cunoscute ca ascunse sar și peste citirile geometriei |
+| schimbări de layout | rădăcinile afectate se grupează o singură dată per cadru de animație; descendenții unui strămoș deja programat nu declanșează o nouă scanare a subarborilor |
+| dialoguri cu capturi | interfața adăugată fără legătură nu rescanează fiecare tabel din document; octeții PNG originali, descrierile locale și contextul de revenire rămân intacte |
+| timp | markerul original de execuție al unui card se rezolvă o dată per trecere de agregare; cache-ul se resetează la trecerea următoare, inclusiv când markerul lipsește |
+| vizualizări proiectate | indexul sursă-owner/scenariu se capturează o dată per trecere de proiecție și se partajează între Category, Fails și Overview |
+| view selection | Tests, Category, Fails și Overview sincronizează panoul vizibil, singurul link curent și fragmentul URL, inclusiv după rescrierea linkurilor de către Spark nativ |
+| conținut dinamic | scrierile identice pentru class/open sunt ignorate; mutațiile reale se grupează înaintea invalidării conținutului; schimbările reale de copii/text măresc revizia conținutului; tabelele noi/redeschise/redimensionate primesc alocarea nativă a coloanelor; tabelele eliminate își retrag observarea redimensionării |
+| scope-ul rendererului | alocatorul de tabele este partajat de Extent și fallback; agregarea duratelor aparține Extent |
 
-The report stays self-contained. This change does not move evidence to another
-file, virtualize away owners, remove screenshots or substitute observations
-for assertion rows.
+Raportul rămâne autonom. Această schimbare nu mută dovezile într-un alt fișier, nu elimină ownerii prin virtualizare, nu șterge capturi și nu înlocuiește rândurile de aserțiuni cu observații.
 
-## Permanent verification
+<a id="permanent-verification"></a>
+<a id="verificare-permanentă"></a>
+## Verificare permanentă
 
-| Owner | Proof |
+| Responsabil | Dovadă |
 |---|---|
-| LargeNavigationFixture | four original owners, 600 comparison groups, 12,004 captured comparison rows and four complete synthetic PNG checkpoints |
-| LargeReportNavigationBrowserComponentTest | repeated owner switches, targeted assertion/PNG paths and return; bulk expansion on the neutral fixture or at most two explicitly selected external owners; per-owner SHA-256 inventory of original cells/bodies and canonical PNG payloads/references before/after; a one-character payload mutation is rejected |
-| EvidenceTableVisibilityComponentTest | identical presentation writes do not remeasure; actual cell-style changes do; known hidden views skip geometry; closed evidence remains structurally untouched; opening/reopening and direct text-node mutation receive full measured columns |
-| NavigationSelectionBrowserComponentTest | Chromium checks the four view transitions and the sole accessible current link. The distribution fixture checks the four semantic targets and fragment listener on HTML from the physical JAR. |
-| RecordedPublicationTimingComponentTest | execution and transport stay independent of publication; removed/replaced markers refresh at a subsequent aggregation |
-| adjacent browser families | standard UI/API tables, fallback layout, disclosure state, source labels and whole-frame screenshot viewport/return contracts |
+| LargeNavigationFixture | patru owneri originali, 600 de grupuri de comparație, 12.004 rânduri de comparație capturate și patru checkpoint-uri PNG sintetice complete |
+| LargeReportNavigationBrowserComponentTest | comutări repetate între owneri, căi vizate pentru aserțiuni/PNG și revenire; extindere în masă pe fixture-ul neutru sau pentru cel mult doi owneri externi selectați explicit; inventar SHA-256 per owner pentru celulele/corpurile originale și payload-urile/referințele PNG canonice, înainte/după; se refuză o mutație de un singur caracter a payload-ului |
+| EvidenceTableVisibilityComponentTest | scrierile identice de prezentare nu declanșează remăsurare; schimbările reale ale stilului celulei o fac; vizualizările cunoscute ca ascunse sar peste geometrie; dovezile închise rămân structural intacte; deschiderea/redeschiderea și mutația directă a nodului text primesc coloane măsurate complet |
+| NavigationSelectionBrowserComponentTest | Chromium verifică cele patru tranziții și singurul link curent accesibil. Fixture-ul distribuției verifică cele patru ținte semantice și listenerul fragmentelor pe HTML din JAR fizic. |
+| RecordedPublicationTimingComponentTest | execuția și transportul rămân independente de publicare; markerii eliminați/înlocuiți se actualizează la următoarea agregare |
+| familii de browser învecinate | tabele standard UI/API, layout fallback, stare a disclosure-ului, etichete sursă și contractele viewport/revenire pentru captura integrală |
 
-- The optional atf.navigation.input property defaults to targeted paths.
-- An explicit atf.navigation.expandOwners accepts at most two distinct, zero-based owner indices; duplicates, negative/out-of-range indices and unbounded requests are rejected.
-- Each selected owner is expanded once, with the same canonical evidence inventory before and after.
-- This verifies publication/rendering, not a fresh business or device execution.
+- Proprietatea opțională `atf.navigation.input` folosește implicit căi vizate.
+- `atf.navigation.expandOwners` acceptă explicit cel mult doi indici owner
+  distincți, numerotați de la zero; indecșii duplicați, negativi/în afara intervalului și cererile nelimitate sunt refuzate.
+- Fiecare owner selectat se extinde o singură dată, cu același inventar canonic
+  de dovezi înainte și după.
+- Aceasta verifică publicarea/randarea, nu o execuție business sau pe dispozitiv
+  proaspătă.
 
-## Measurement and boundaries
+<a id="measurement-and-boundaries"></a>
+<a id="măsurare-și-limite"></a>
+## Măsurare și limite
 
-- Browser readiness, owner interaction and publication clocks have different scopes.
-- A passing screenshot contract does not certify a fresh Android execution or its business oracle.
-- Very large required evidence still consumes parser, layout and image memory; a content budget is not a total HTML or browser-heap guarantee.
-- Performance observations never turn a captured FAIL into PASS.
+- Ceasurile pentru readiness-ul browserului, interacțiunea cu ownerul și
+  publicare au scope-uri diferite.
+- Trecerea contractului capturilor nu certifică o execuție Android nouă și nici
+  oracolul ei business.
+- Dovezile obligatorii foarte mari consumă în continuare memorie pentru parser,
+  layout și imagini; bugetul de conținut nu garantează o limită pentru întregul HTML sau heap-ul browserului.
+- Observațiile de performanță nu transformă niciodată un FAIL capturat în PASS.
 
-The producer owns permanent source/JAR regressions. Consumer provenance records the current binary and independent acceptance; archived Android rendering does not certify a fresh device run.
+Producătorul deține regresiile permanente sursă/JAR. Proveniența consumerului înregistrează binarul curent și acceptanța independentă; randarea Android arhivată nu certifică o rulare nouă pe dispozitiv.
 
-## Cold startup and readiness
+<a id="cold-startup-and-readiness"></a>
+<a id="pornire-la-rece-și-readiness"></a>
+## Pornire la rece și readiness
 
-| Lifecycle | Required behavior |
+| Lifecycle | Comportament cerut |
 |---|---|
-| DOMContentLoaded/load | initialize once and activate only the requested hash target; an empty hash opens Overview |
-| native Spark load | reconcile the four navigation hrefs after the vendor rewrites them; do not reactivate or restart the readiness clock |
-| readiness | run initial structural normalization in a coalesced task even when visual frames are deferred; publish only after success |
-| page load | record the completed navigation timing independently; an unfinished load remains unknown rather than zero |
-| dynamic content | retain observers, revision invalidation and scheduled normalization for later mutations |
-| deadlines | readiness/action 10,000 ms; navigation 45,000 ms; existing API matrices retain 5,000 ms |
+| DOMContentLoaded/load | inițializează o singură dată și activează numai ținta hash solicitată; un hash gol deschide Overview |
+| încărcarea nativă Spark | reconciliază cele patru href-uri de navigare după rescrierea lor de către vendor; nu reactivează și nu repornește ceasul readiness |
+| readiness | rulează normalizarea structurală inițială într-un task agregat chiar dacă frame-urile vizuale sunt amânate; publică numai după succes |
+| încărcarea paginii | înregistrează separat timpul de navigare încheiat; o încărcare nefinalizată rămâne necunoscută, nu zero |
+| conținut dinamic | păstrează observerii, invalidarea reviziei și normalizarea programată pentru mutațiile ulterioare |
+| deadline-uri | readiness/acțiune 10.000 ms; navigare 45.000 ms; matricile API existente păstrează 5.000 ms |
 
-[ColdStartReadinessComponentTest](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/navigation/ColdStartReadinessComponentTest.java)
-checks five initial destinations, startup scenario deep links, native link
-repair and repeated load. It verifies that readiness waits for real structural
-normalization and that Tests controls work when animation frames are withheld.
-An external atf.cold.input runs three fresh Chromium processes against the same complete artifact.
+[ColdStartReadinessComponentTest](../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/navigation/ColdStartReadinessComponentTest.java) verifică cinci destinații inițiale, deep-link-uri de scenariu la startup, repararea linkurilor native și load repetat. Confirmă că readiness așteaptă normalizarea structurală reală și că Tests funcționează cu frame-urile de animație suspendate. Un atf.cold.input extern rulează trei procese Chromium noi pe același artefact complet.
 
-## Native timeline labels
+<a id="native-timeline-labels"></a>
+<a id="etichete-native-pentru-timeline"></a>
+## Etichete native pentru timeline
 
-| Boundary | Invariant |
+| Limită | Invariantă |
 |---|---|
-| Spark template | encode the full timeline owner key as a JSON string; preserve quotes, line breaks, backslashes and Unicode |
-| captured data | retain the exact caller label and original duration; no trimming or inferred verdict |
-| vendor upgrade | fail explicitly when the pinned native key expression changes, instead of silently publishing invalid script |
-| permanent proof | TimelineTitleEncodingComponentTest executes the real embedded script and rejects browser errors; timestamp regressions stay separate |
+| șablon Spark | codifică cheia owner-ului timeline completă ca șir JSON; păstrează ghilimelele, întreruperile de linie, backslash-urile și Unicode |
+| date capturate | păstrează exact eticheta callerului și durata originală; fără tăiere sau verdict dedus |
+| upgrade de vendor | eșuează explicit când se schimbă expresia cheii native fixate, în loc să publice în tăcere un script invalid |
+| dovadă permanentă | TimelineTitleEncodingComponentTest execută scriptul încorporat real și refuză erorile browserului; regresiile timestamp-ului rămân separate |
 
-The producer owns implementation and permanent source/JAR tests. Consumers retain their independent application oracles; dated external witnesses do not become fresh acceptance.
+Producătorul deține implementarea și testele permanente sursă/JAR. Consumerii își păstrează oracolele independente; martorii externi datați nu devin acceptanță nouă.

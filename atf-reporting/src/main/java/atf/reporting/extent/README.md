@@ -1,15 +1,16 @@
+<a id="atf-reporting-extent---purposes-and-publication-of-the-final-artifact"></a>
+<a id="atf-reporting-extent--scope-uri-și-publicarea-artifactului-final"></a>
 # ATF Reporting Extent — scope-uri și publicarea artifactului final
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
-Pachetul adaptează porturile de raportare la arborele Extent și deține
-publicarea finală. Lifecycle-ul este separat de postprocesarea HTML-ului;
-niciuna nu execută scenariul consumerului.
+Pachetul adaptează porturile de raportare la arborele Extent și deține publicarea finală. Lifecycle-ul este separat de postprocesarea HTML-ului; niciuna nu execută scenariul consumerului.
 
-[Atlas](../README.md) · [Publicare](../../../../../../README.md#publicare-și-ieșire) ·
-[Renderer fallback](../html/README.md)
+[Atlas](../README.md) · [Publicare](../../../../../../README.md#publicare-și-ieșire) · [Renderer fallback](../html/README.md)
 
-| Schimbare | Sursa de pornire | Owner |
+| Schimbare | Sursa de pornire | Responsabil |
 |---|---|---|
 | intrare și thread-ul sesiunii | [ExtentReportSession](session/ExtentReportSession.java) | path, configurație și finalizare |
 | scenariu, fază și ierarhie | [ExtentReportTree](session/ExtentReportTree.java), [lifecycle nod](session/ExtentNodeLifecycle.java) | arbore și tranziții |
@@ -18,6 +19,8 @@ niciuna nu execută scenariul consumerului.
 | transformarea Spark în HTML autonom | [PublicationPipeline](session/ExtentReportPublicationPipeline.java) | assets, navigare, Overview și deduplicare |
 | ore Categories în format 24h | [TimestampReporter](session/ExtentReportTimestampReporter.java) | adaptor punctual al template-ului vendor |
 
+<a id="order-that-matters"></a>
+<a id="ordinea-care-contează"></a>
 ## Ordinea care contează
 
 - `flush()` scrie outputul vendor în staging. `close()` finalizează nodurile,
@@ -43,23 +46,20 @@ niciuna nu execută scenariul consumerului.
 
 </details>
 
+<a id="prohibitions-and-consolidation"></a>
+<a id="probe-și-consolidare"></a>
 ## Probe și consolidare
 
-[ReportingStandaloneVerdictComponentTest](../../../../../test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java) verifică contracte locale;
-[UiPublicationFailureComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/ui/publication/UiPublicationFailureComponentTest.java) și probele de publicare din
-[Reporting Tests](../../../../../../../atf-reporting-tests/README.md) completează fault-path-ul și artifactul.
+[ReportingStandaloneVerdictComponentTest](../../../../../test/java/atf/reporting/standalone/ReportingStandaloneVerdictComponentTest.java) verifică contracte locale; [UiPublicationFailureComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/ui/publication/UiPublicationFailureComponentTest.java) și probele de publicare din [Reporting Tests](../../../../../../../atf-reporting-tests/README.md) completează fault-path-ul și artifactul.
 
-Diferențele de flush, publicare și threading față de fallback sunt declarate în
-[contractul sesiunii](../../../../../../README.md#publicare-și-ieșire).
-Delimitarea API-ului susținut păstrează
-[criterii active](../../../../../../../docs/feedback/ATF_Reporting_Feedback.md#report-public-api-43--suprafață-susținută-și-ownership).
-La o modificare de finalizare se citesc și [assets](../asset/ReportAssetLoader.java)
-și [runtime](../runtime/README.md), deoarece HTML-ul final include aceste două boundary-uri.
+Diferențele de flush, publicare și threading față de fallback sunt declarate în [contractul sesiunii](../../../../../../README.md#publicare-și-ieșire). Delimitarea API-ului susținut păstrează [criterii active](../../../../../../../docs/feedback/ATF_Reporting_Feedback.md#report-public-api-43--suprafață-susținută-și-ownership). La o modificare de finalizare se citesc și [assets](../asset/ReportAssetLoader.java) și [runtime](../runtime/README.md), deoarece HTML-ul final include aceste două boundary-uri.
 
 
+<a id="publication-memory"></a>
+<a id="memoria-publicării"></a>
 ## Memoria publicării
 
-| Owner | Responsabilitate |
+| Responsabil | Responsabilitate |
 |---|---|
 | [ExtentReportPublicationPipeline](session/ExtentReportPublicationPipeline.java) | ordonează transformările, restaurarea și înlocuirea atomică |
 | [InlinePngPayloadStore](publication/InlinePngPayloadStore.java) | spool privat PNG, identitate stabilă în sesiune, buffere fixe și cleanup la succes/eșec |

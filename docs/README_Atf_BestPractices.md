@@ -1,16 +1,17 @@
+<a id="atf-best-practices--index-and-governance"></a>
+<a id="bune-practici-atf--index-și-guvernanță"></a>
 # Bune practici ATF — index și guvernanță
 
-Acesta este punctul de intrare pentru regulile transversale ATF. Nu duplică
-reguli de cod sau reguli editoriale; trimite către documentul care deține
-fiecare contract. Contractele stabile sunt protejate de testele și guard-urile
-lor, iar feedback-ul rămâne registrul dinamic al gap-urilor.
+Acesta este punctul de intrare pentru regulile transversale ATF. Nu duplică reguli de cod sau reguli editoriale; trimite către documentul care deține fiecare contract. Contractele stabile sunt protejate de testele și guard-urile lor, iar feedback-ul rămâne registrul dinamic al gap-urilor.
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
-Regulile se împart în trei proprietari: cod și arhitectură, documentație și
-feedback dinamic. Fiecare regulă stabilă are un singur owner și o dovadă
-verificabilă.
+Regulile se împart în trei proprietari: cod și arhitectură, documentație și feedback dinamic. Fiecare regulă stabilă are un singur owner și o dovadă verificabilă.
 
+<a id="choosing-a-document"></a>
+<a id="cum-alegi-documentul"></a>
 ## Cum alegi documentul
 
 | Întrebarea | Document owner | Conține |
@@ -22,6 +23,8 @@ verificabilă.
 | Care este arhitectura modulelor? | [ATF_Architecture.md](ATF_Architecture.md) | module, dependențe și direcția boundary-urilor |
 | Cum se verifică build-ul și sincronizarea? | [ATF_Build_And_Execution_Safety.md](ATF_Build_And_Execution_Safety.md) | staging, build, browser gate și sync live |
 
+<a id="shared-rule-stable-contract-dynamic-feedback"></a>
+<a id="regula-comună-contract-stabil-feedback-dinamic"></a>
 ## Regula comună: contract stabil, feedback dinamic
 
 ```mermaid
@@ -48,6 +51,8 @@ flowchart LR
 
 </details>
 
+<a id="quick-checklist"></a>
+<a id="checklist-rapid"></a>
 ## Checklist rapid
 
 - [ ] Am identificat owner-ul înainte să schimb codul sau documentația.
@@ -60,9 +65,10 @@ flowchart LR
 - [ ] Feedback-ul conține doar gap-ul rămas, nu o copie a regulii închise.
 - [ ] Linkurile sunt relative și rezistă mutării checkout-ului.
 
-Pentru implementare se citește documentul ownerului, apoi README-ul modulului
-afectat. Acest index trebuie să rămână scurt și stabil.
+Pentru implementare se citește documentul ownerului, apoi README-ul modulului afectat. Acest index trebuie să rămână scurt și stabil.
 
+<a id="verifying-the-rule-at-its-owner"></a>
+<a id="verificarea-regulii-la-owner"></a>
 ## Verificarea regulii la owner
 
 | Ce schimbi | Probă de pornire | Limită |
@@ -71,6 +77,4 @@ afectat. Acest index trebuie să rămână scurt și stabil.
 | README și legende | [Validatorii documentari](README_Atf_DocumentationBestPractices.md#verificarea-editorială-la-owner) | structura validă cere în continuare confruntare cu sursa live |
 | Test protejat | [Politica testChanges](../atf-tests/README.md#guvernanța-schimbării-testelor) | o schimbare editorială nu autorizează relaxarea testului |
 
-Gate-ul se execută în [TMP](ATF_Build_And_Execution_Safety.md), prin comanda
-[ATF Tests](../atf-tests/README.md#verificare-rapidă). Nu copiați checklist-ul
-în README-ul fiecărui modul; documentați acolo doar aplicarea lui concretă.
+Gate-ul se execută în [TMP](ATF_Build_And_Execution_Safety.md), prin comanda [ATF Tests](../atf-tests/README.md#verificare-rapidă). Nu copiați checklist-ul în README-ul fiecărui modul; documentați acolo doar aplicarea lui concretă.

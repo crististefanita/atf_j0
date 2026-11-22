@@ -1,10 +1,12 @@
+<a id="inline-evidence---auditable-composition-contract"></a>
+<a id="dovezi-inline--contract-de-compoziție-auditabilă"></a>
 # Dovezi inline — contract de compoziție auditabilă
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
-Un singur HTML poate agrega multe teste; fiecare invocare își păstrează
-propriul scenariu, fazele, comparațiile și verdictul. Cititorul nu trebuie
-să deschidă XML, JSON, properties ori loguri externe pentru a verifica propoziția.
+Un singur HTML poate agrega multe teste; fiecare invocare își păstrează propriul scenariu, fazele, comparațiile și verdictul. Cititorul nu trebuie să deschidă XML, JSON, properties ori loguri externe pentru a verifica propoziția.
 
 | Boundary | Responsabilitate | API existent |
 |---|---|---|
@@ -33,6 +35,8 @@ flowchart LR
 
 </details>
 
+<a id="profiles-without-external-references"></a>
+<a id="profilul-fără-referințe-externe"></a>
 ## Profilul fără referințe externe
 
 | Cerință a profilului | Compoziție |
@@ -45,20 +49,22 @@ flowchart LR
 | fără screenshot la componentă | legitim; nu se inventează PNG pentru aspect de E2E |
 | E2E cu PNG | bytes originali, titlu semantic, invocare/fază/checkpoint originale |
 
-Artifact este în continuare o referință opțională pentru alți consumatori;
-Reporting nu citește fișierul referit. Profilul de mai sus se obține prin
-modelele publice existente, fără un switch global care schimbă alte rapoarte.
+Artifact este în continuare o referință opțională pentru alți consumatori; Reporting nu citește fișierul referit. Profilul de mai sus se obține prin modelele publice existente, fără un switch global care schimbă alte rapoarte.
 
 - Inspectorul public califică DOM-ul în Extent, fallback și profilul declarat: resurse embedded, referințe interne rezolvabile și ținte PNG canonice unice.
 - Dovezile operative externe sunt refuzate, cu owner/atribut/referință în diagnostic; căile text, XML/JSON escaped și linkurile de documentare rămân valide.
 - Inspecția nu accesează rețeaua și nu șterge fișierele callerului; autonomia interactivă are probă offline distinctă.
 
-## Reader context and configurable detail
+<a id="reader-context-and-configurable-detail"></a>
+<a id="contextul-cititorului-și-detalii-configurabile"></a>
+## Contextul cititorului și detalii configurabile
 
-The producer supplies the purpose, effective setup/inputs, independent expected values and evidence limits needed by a reader without repository access. Hashes belong to optional technical provenance; they establish byte identity, not business correctness. Renderer settings remain neutral: assertion preview and body display budgets are separate from consumer-owned game grouping or selection policies.
+Producătorul furnizează scopul, setup-ul/intrările efective, expected-uri independente și limitele necesare unui cititor fără repository. Hash-urile sunt proveniență tehnică opțională: stabilesc identitatea octeților, nu corectitudinea business. Rendererul rămâne neutru: preview-ul aserțiunilor și bugetele corpului sunt separate de gruparea sau selecția jocului deținute de consumer.
 
-A summary profile must declare its scope and omissions. Display policy never changes the original evaluation, and missing mandatory evidence cannot be labeled COMPLETE audit acceptance. Large structures are grouped semantically before publication, with the caller retaining every comparison and input required by its claim.
+Un profil sumar declară domeniul și omisiunile. Politica de afișare nu schimbă evaluarea originală, iar lipsa dovezii obligatorii nu poate primi acceptanță de audit COMPLETE. Structurile mari se grupează semantic înaintea publicării; callerul păstrează fiecare comparație și intrare necesară afirmației sale.
 
+<a id="text-and-full-values"></a>
+<a id="text-și-valori-complete"></a>
 ## Text și valori complete
 
 - Corpurile JSON păstrează valorile tipizate, ordinea listelor și numerele exacte; formatarea nu este oracol.
@@ -66,15 +72,16 @@ A summary profile must declare its scope and omissions. Display policy never cha
 - Primitivele PRE au un owner comun în ReportEvidenceMarkup; valoarea literală nu devine markup executabil.
 - Un dump brut al unui fișier nu înlocuiește proiecția semantică: înainte / input / după și comparațiile evaluate trebuie să fie lizibile.
 
-Valorile assertions deja reduse de caller nu pot fi reconstruite. Criteriul
-133 pentru acel boundary rămâne separat; corpurile complete nu îl închid implicit.
+Valorile assertions deja reduse de caller nu pot fi reconstruite. Criteriul 133 pentru acel boundary rămâne separat; corpurile complete nu îl închid implicit.
 
 ## Full-image viewer target
 
-The expanded image viewer must use the available browser viewport, with small bounded controls, while fitting the complete source image and preserving its aspect ratio. The default fit view has no clipped edges or image scroll; portrait/landscape margins are preferable to crop or stretch. Original-size inspection is an explicit mode and preserves the immutable source bytes.
+Viewerul expandat folosește viewport-ul disponibil, controale mici cu limite explicite și imaginea sursă completă, cu proporțiile păstrate. Potrivirea implicită nu taie margini și nu cere scroll în imagine; marginile portret/peisaj sunt preferabile decupării sau întinderii. Inspecția la dimensiunea originală este explicită și păstrează octeții sursă imuabili.
 
-Closing, Escape and fit/zoom transitions must preserve the active invocation, disclosure state, scroll position and keyboard focus. Browser/OS fullscreen is optional and requires an explicit user action; viewport fit must work without that permission or API. The viewer preserves this return context in both renderers; historical release artifacts remain dated witnesses.
+Închiderea, Escape și tranzițiile fit/zoom păstrează invocarea activă, disclosure-ul, scroll-ul și focusul. Fullscreen browser/OS este opțional și cere acțiunea explicită a utilizatorului; potrivirea în viewport funcționează fără acea permisiune sau API. Ambele renderere păstrează revenirea; artefactele istorice rămân martori datați.
 
+<a id="permanent-acceptance"></a>
+<a id="acceptanță-permanentă"></a>
 ## Acceptanță permanentă
 
 | Probă | Oracol |
@@ -89,42 +96,32 @@ Implementarea probelor este în [Reporting Tests](../atf-reporting-tests/README.
 
 ## Composite screenshot evidence
 
-A checkpoint retains the supplied action sequence, comparisons, observations and
-original capture under its own scenario, phase and ordinal. The caller owns
-capture and evaluation; Reporting owns faithful publication and navigation.
+Un checkpoint păstrează acțiunile furnizate, comparațiile, observațiile și captura originală sub propriul scenariu, fază și ordinal. Callerul deține captura și evaluarea; Reporting deține publicarea fidelă și navigarea.
 
-Observation-only screenshots use the explicit uiValidationAsMedia route.
-The empty-comparison THEN/flow-mode matrix remains separately characterized
-in feedback; a general step overload is not an implicit media capability.
+Capturile doar de observație folosesc ruta uiValidationAsMedia explicită. Matricea THEN/flow-mode fără comparații rămâne caracterizată separat în feedback; un overload generic de pas nu implică suport media.
 
 | Boundary | Stable contract |
 |---|---|
-| Composition | Keep keyword, title, target, ordinal, ordered actions, comparisons and the corresponding PNG together |
-| Comparisons | Retain name, expected, actual and the captured result; a summary cannot replace individual checks |
-| Screenshot | Preserve complete original PNG bytes at the correct checkpoint; a file link or gallery-only image cannot establish ownership |
-| Observation | Keep visual facts as INFO; explicit consumer WARNING and functional FAIL retain their separate meaning |
-| Failure | Retain completed evidence and the original throwable when action, capture, publication or cleanup fails |
-| Identity | Same-title owners remain distinct; invocation, checkpoint, comparison and capture are separate populations |
-| Renderers | Extent/fallback preserve semantic inputs, order, result and capture identity |
-| Library | Keep ADB, browser execution and application oracles outside the Reporting runtime; verify the physical JAR separately |
+| Compoziție | Păstrează împreună cuvântul-cheie, titlul, ținta, ordinalul, acțiunile ordonate, comparațiile și PNG corespunzător |
+| Comparații | Retain name, expected, actual and the captured result; a summary cannot replace individual checks |
+| Screenshot | Păstrează octeții PNG originali compleți la checkpoint-ul corect; un link de fișier sau o imagine numai în galerie nu stabilește ownership-ul |
+| Observație | Păstrează faptele vizuale ca INFO; WARNING explicit și FAIL funcțional ale consumerului își păstrează sensul separat |
+| Eșec | Păstrează dovezile finalizate și excepția originală la eșecul acțiunii, capturii, publicării sau cleanup-ului |
+| Identitate | Ownerii cu același titlu rămân distincți; invocarea, checkpoint-ul, comparația și captura sunt populații separate |
+| Renderere | Extent/fallback preserve semantic inputs, order, result and capture identity |
+| Bibliotecă | Păstrează ADB, execuția browser și oracolele aplicației în afara runtime-ului Reporting; verifică separat JAR fizic |
 
-Whole-context capture and 70% web geometry belong to the
-[J1 UI contract](../../atf_j1/atf-ui/README.md#full-context-screenshots).
-[Full-display Android capture](../../atf_j4/docs/reporting/ATF_Android.md#capture-and-ownership)
-retains its independent device acceptance.
+Captura întregului context și geometria web la 70% aparțin [J1 UI contract](../../atf_j1/atf-ui/README.md#full-context-screenshots). [Full-display Android capture](../../atf_j4/docs/reporting/ATF_Android.md#capture-and-ownership) își păstrează acceptanța independentă pe dispozitiv.
 
 ## Composite evidence acceptance
 
 | Neutral fixture | Required evidence | Independent negative |
 |---|---|---|
-| Functional checkpoint | two ordered actions, two distinct comparisons and exact PNG | reverse an ordinal or remove only the second comparison |
-| Negative result | captured FAIL with expected/actual and its screenshot | replace only that result with PASS |
-| Observation | factual visual state, original capture and explicit warning when supplied | move the observation to a same-title sibling |
-| Intermediate failure | completed actions, available capture and original throwable | fail publication/close and retain the business cause |
-| Multiple owners | matching captions with distinct phases/results and stable Tests/Fails/Overview identity | change only ordering or ownership |
-| Physical JAR | declared pair and assets, with no producer source on the consumer runtime classpath | remove an asset or introduce shadow source |
+| Functional checkpoint | două acțiuni ordonate, două comparații distincte și PNG exact | inversează un ordinal sau elimină numai a doua comparație |
+| Negative result | captured FAIL with expected/actual and its screenshot | înlocuiește numai acel rezultat cu PASS |
+| Observație | stare vizuală factuală, captură originală și avertizare explicită atunci când este furnizată | mută observația la un sibling cu același titlu |
+| Eșec intermediar | acțiuni finalizate, captură disponibilă și excepția originală | fail publication/close and retain the business cause |
+| Owneri multipli | caption-uri identice cu faze/rezultate distincte și identitate stabilă în Tests/Fails/Overview | modifică numai ordinea sau ownership-ul |
+| JAR fizic | perechea și asset-urile declarate, fără sursa producătorului în classpath-ul runtime al consumerului | remove an asset or introduce shadow source |
 
-A marker found in script/CSS or a neighboring owner cannot satisfy the oracle.
-[Delivered source/JAR families](feedback/ATF_Reporting_Tests_Feedback.md) and
-[remaining capture boundaries](feedback/ATF_Android_UI_Reporting_Feedback.md)
-retain distinct acceptance scopes.
+Un marker din script/CSS sau de la un owner vecin nu satisface oracolul. [Familii sursă/JAR livrate](feedback/ATF_Reporting_Tests_Feedback.md) și [remaining capture boundaries](feedback/ATF_Android_UI_Reporting_Feedback.md) păstrează domenii de acceptanță distincte.

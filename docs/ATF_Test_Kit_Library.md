@@ -1,9 +1,15 @@
+<a id="test-kit---common-library"></a>
+<a id="test-kit--biblioteca-comună"></a>
 # Test Kit — biblioteca comună
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 J0 deține codul, API-ul, nativele, împachetarea și feedback-ul Test Kit. J1–J7 păstrează adaptoarele și oracolele domeniului și consumă o singură pereche JAR/POM direct în `lib`, cu ghid local și proveniență la rădăcină; guvernanța implementării rămâne în J0.
 
+<a id="contract-retained"></a>
+<a id="contractul-păstrat"></a>
 ## Contractul păstrat
 
 | Suprafață | Utilizare și limită |
@@ -35,6 +41,8 @@ flowchart LR
 
 </details>
 
+<a id="maintenance-and-distribution"></a>
+<a id="mentenanță-și-distribuție"></a>
 ## Mentenanță și distribuție
 
 1. Reconciliați diferențele live și păstrați API-ul comun. POM-ul publicat devine independent de parent, cu versiuni vendor explicite, JDK 21 și build reproductibil.
@@ -47,9 +55,11 @@ Console păstrează dependența Kit opțională din publicația sa; consumerul d
 
 Runnerul păstrează motorul JUnit Jupiter în dependențele sale de test; Kit expune API-ul, fără să furnizeze automat engine-ul sau un lansator pentru aplicație.
 
+<a id="acceptance-of-each-consumer"></a>
+<a id="acceptanța-fiecărui-consumer"></a>
 ## Acceptanța fiecărui consumer
 
-| Consumer | Probă necesară și limită |
+| Consumator | Probă necesară și limită |
 |---|---|
 | J1 — web | Componentă Shop/AutoEx, individual și suită, lifecycle și aserțiuni colapsabile; capturarea rămâne la UI. |
 | J2 — mesagerie | Componente SQL/Eventuate și profilul explicit Extent/fallback; fără module browser ori certificare implicită a brokerului. |
@@ -61,6 +71,8 @@ Runnerul păstrează motorul JUnit Jupiter în dependențele sale de test; Kit e
 
 Un FAIL controlat rămâne FAIL cu aceeași cauză și aceleași comparații. Un test nedescoperit, un container eșuat sau o sursă paralelă nu califică migrarea. Nicio acceptanță nu se transferă între proiecte.
 
+<a id="local-jar-guide"></a>
+<a id="ghidul-local-al-jar-ului"></a>
 ## Ghidul local al JAR-ului
 
 Fiecare `lib/README.TestKit.md` este contractul local, suficient fără acces la J0: dependență și scope corecte, adnotări, un exemplu compilat, lifecycle, configurare și limitele preview-ului. Explicați explicit că publicarea Extent cere adaptorul consumerului. Exemplele se verifică pe perechea distribuită, fără surse paralele.
@@ -68,6 +80,4 @@ Fiecare `lib/README.TestKit.md` este contractul local, suficient fără acces la
 - `GuideBundle.publish` verifică explicit cele cinci biblioteci. KitLibraryGuideIT probează exemplul și controalele de compilare/bootstrap pe perechea selectată.
 - Unitățile pure păstrează politica lor; migrarea nu le impune raportarea de componentă/E2E.
 
-Footerul trimite mentenanța și constatările către [feedback-ul Kit din J0](feedback/ATF_Common_Test_Support_Feedback.md).
-Retenția sigură a valorilor înainte de preview rămâne criteriu deschis;
-preview-ul respectă limita fără să rupă perechile Unicode și are regresie permanentă.
+Footerul trimite mentenanța și constatările către [feedback-ul Kit din J0](feedback/ATF_Common_Test_Support_Feedback.md). Retenția sigură a valorilor înainte de preview rămâne criteriu deschis; preview-ul respectă limita fără să rupă perechile Unicode și are regresie permanentă.

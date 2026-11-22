@@ -105,6 +105,34 @@ class PlaywrightPointerGeometryComponentTest {
             assertEquals(0x0000ff,image.getRGB(image.getWidth()-20,5)&0xffffff);
         }
     }
+    @ParameterizedTest @ValueSource(ints={70,100})
+    void viewportCaptureRetainsEveryEdgeAndSurroundingPageContext(int zoom) throws Exception {
+        var configuration=new UiBrowserConfiguration(java.net.URI.create("about:blank"),"chromium",true,
+                Duration.ofMillis(850),Duration.ofSeconds(5),1440,1000,zoom,true);
+        try(var session=PlaywrightUiSession.open(configuration)){
+            var page=session.page();
+            new PlaywrightPagePreparation(page,configuration.navigationTimeout()).setContent("""
+                <!doctype html><style>body{margin:0;background:#f5f6fa;font:24px Arial}
+                header{padding:40px}aside{position:absolute;top:150px;left:60px}main{margin:40px 360px}
+                .corner{position:fixed;width:40px;height:40px;z-index:2}
+                #tl{top:0;left:0;background:red}#tr{top:0;right:0;background:lime}
+                #bl{bottom:0;left:0;background:blue}#br{bottom:0;right:0;background:yellow}
+                #more-context{position:absolute;left:100px;top:1100px;width:100px;height:50px;background:purple}</style>
+                <header>Page context around the current action</header><aside>Navigation and account context</aside>
+                <main><h1>Current checkpoint</h1><button>Current action target</button><p>Surrounding content remains visible.</p></main>
+                <i id='tl' class='corner'></i><i id='tr' class='corner'></i><i id='bl' class='corner'></i><i id='br' class='corner'></i>
+                <div id='more-context'>More context</div>
+                """);
+            var evidence=UiScreenValidation.capture(page,UiScreenValidationConfiguration.defaults(),"complete page context");
+            var image=ImageIO.read(new ByteArrayInputStream(Base64.getDecoder().decode(evidence.base64Png())));
+            assertTrue(Math.abs(image.getWidth()-1440)<=1);assertTrue(Math.abs(image.getHeight()-1000)<=1);
+            assertEquals(0xff0000,image.getRGB(5,5)&0xffffff,"The top-left context edge is retained");
+            assertEquals(0x00ff00,image.getRGB(image.getWidth()-6,5)&0xffffff,"The top-right context edge is retained");
+            assertEquals(0x0000ff,image.getRGB(5,image.getHeight()-6)&0xffffff,"The bottom-left context edge is retained");
+            assertEquals(0xffff00,image.getRGB(image.getWidth()-6,image.getHeight()-6)&0xffffff,"The bottom-right context edge is retained");
+            if(zoom==70)assertEquals(0x800080,image.getRGB(135,775)&0xffffff,"Seventy percent exposes context below the unscaled viewport");
+        }
+    }
     @Test void captureMasksUseTheSameGeometryAsTheNativePointer() throws Exception {
         try(var fixture=new PointerGeometryFixture();var session=open(fixture,70)){
             var page=session.page();fixture.openReady(page);

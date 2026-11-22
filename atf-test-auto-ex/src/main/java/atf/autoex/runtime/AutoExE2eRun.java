@@ -267,16 +267,26 @@ public final class AutoExE2eRun implements AutoExPurchaseSession {
     /** API checks own their actual catalog exchange; they are never UI assertions. */
     public void apiCheckpoint(AutoExTraceStep step, List<AtfAssertion> assertions) {
         String catalogPath = AutoExRoutes.PRODUCTS_API.path();
-        browser.networkInspector().awaitAfter(networkCursor,
+        var selected = browser.networkInspector().awaitAfter(networkCursor,
                 observation -> GET.value().equals(observation.method())
                         && catalogPath.equals(observation.path()), null);
         UiApiValidationEvidence captured = networkValidationSinceCursor();
-        boolean found = captured.exchanges().stream()
-                .anyMatch(exchange -> catalogPath.equals(exchange.evidence().request().path()));
-        List<AtfAssertion> correlations = found ? List.of() : List.of(
-                new AtfAssertion("Catalog API evidence", catalogPath, "not observed", false));
+        long selectedSequence = selected.map(UiNetworkObservation::sequence).orElse(-1L);
+        List<UiApiValidationEvidence.Exchange> selectedExchanges = captured.exchanges().stream()
+                .filter(exchange -> selected.isPresent()
+                        && exchange.evidence().trace().sequence() == selectedSequence
+                        && GET.value().equals(exchange.evidence().request().method())
+                        && catalogPath.equals(exchange.evidence().request().path()))
+                .toList();
+        boolean uniquelyCaptured = selectedExchanges.size() == 1;
+        String expected = "one captured GET " + catalogPath + " at sequence " + selectedSequence;
+        String actual = selected.isEmpty() ? "not observed"
+                : selectedExchanges.size() + " captured exchanges match the selected sequence";
+        List<AtfAssertion> correlations = uniquelyCaptured ? List.of() : List.of(
+                new AtfAssertion("Catalog API evidence", expected, actual, false));
         var apiValidation = new UiApiValidationEvidence(correlations, captured.exchanges().stream()
-                .map(exchange -> catalogPath.equals(exchange.evidence().request().path())
+                .map(exchange -> uniquelyCaptured
+                        && exchange.evidence().trace().sequence() == selectedSequence
                         ? new UiApiValidationEvidence.Exchange(exchange.evidence(), assertions)
                         : exchange).toList());
         var keyword = narrative.next(step.keyword());

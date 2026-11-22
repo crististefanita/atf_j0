@@ -1,10 +1,12 @@
+<a id="atf-reporting-runtime---interactions-in-html-published"></a>
+<a id="atf-reporting-runtime--interacțiuni-în-html-ul-publicat"></a>
 # ATF Reporting Runtime — interacțiuni în HTML-ul publicat
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
-Pachetul compune controllerele JavaScript care rulează în raportul publicat.
-`runtime/tests` deține fila Tests din HTML; este cod de producție și nu conține
-scenarii JUnit sau teste business ale consumerilor.
+Pachetul compune controllerele JavaScript care rulează în raportul publicat. `runtime/tests` deține fila Tests din HTML; este cod de producție și nu conține scenarii JUnit sau teste business ale consumerilor.
 
 [Atlas](../README.md) · [Assets și vocabular](../../../../../../README.md#contracte-și-feedback)
 
@@ -17,14 +19,14 @@ scenarii JUnit sau teste business ale consumerilor.
 | durate și proiecții | [duration runtime](core/ExtentReportDurationRuntime.java) | `duration-*` |
 | vocabular DOM și token-uri | [AtfReportHtmlVocabulary](../markup/vocabulary/AtfReportHtmlVocabulary.java) | selectori și atribute comune markup/runtime |
 
+<a id="from-native-source-to-artifact"></a>
+<a id="de-la-sursa-nativă-la-artifact"></a>
 ## De la sursa nativă la artifact
 
 - [ReportAsset](../asset/ReportAsset.java) și manifestul dețin identitatea,
   formatul, path-ul și ordinea inventarului validat.
 - [Loaderul](../asset/ReportAssetLoader.java) citește classpath-ul;
-  [composerul](../asset/ReportAssetComposer.java) rezolvă token-urile și produce
-  copia de publicare. Resursele rămân în [javascript](../../../../resources/atf/reporting/javascript)
-  și [css](../../../../resources/atf/reporting/css).
+  [composerul](../asset/ReportAssetComposer.java) rezolvă token-urile și produce copia de publicare. Resursele rămân în [javascript](../../../../resources/atf/reporting/javascript) și [css](../../../../resources/atf/reporting/css).
 - Facade-urile runtime și [tema](../theme/AtfReportTheme.java) păstrează ordinea
   compoziției. Pipeline-ul rendererului include rezultatul în HTML-ul autonom.
 
@@ -43,16 +45,11 @@ scenarii JUnit sau teste business ale consumerilor.
 
 </details>
 
+<a id="minimum-evidence-and-context"></a>
+<a id="probe-și-context-minim"></a>
 ## Probe și context minim
 
-[ReportAssetContractTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/asset/ReportAssetContractTest.java) și [ReportAssetCompactorTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/asset/ReportAssetCompactorTest.java) verifică resursele;
-[ExtentReportRuntimeEvidenceComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/runtime/evidence/ExtentReportRuntimeEvidenceComponentTest.java) verifică runtime-ul compus.
-[PublishedFailureNavigationComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationComponentTest.java) verifică vizibilitatea comparației
-după backlink, cu un control negativ care ascunde un ancestor.
-[PublishedFailureNavigationEdgeComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationEdgeComponentTest.java) completează diagnosticele fără
-comparații, fallback-ul și păstrarea rutei/scroll-ului.
+[ReportAssetContractTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/asset/ReportAssetContractTest.java) și [ReportAssetCompactorTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/asset/ReportAssetCompactorTest.java) verifică resursele; [ExtentReportRuntimeEvidenceComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/runtime/evidence/ExtentReportRuntimeEvidenceComponentTest.java) verifică runtime-ul compus. [PublishedFailureNavigationComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationComponentTest.java) verifică vizibilitatea comparației după backlink, cu un control negativ care ascunde un ancestor. [PublishedFailureNavigationEdgeComponentTest](../../../../../../../atf-reporting-tests/src/test/java/atf/ui/tests/extent/component/failurecontext/PublishedFailureNavigationEdgeComponentTest.java) completează diagnosticele fără comparații, fallback-ul și păstrarea rutei/scroll-ului.
 
-Aceste probe sunt în [Reporting Tests](../../../../../../../atf-reporting-tests/README.md).
-O schimbare de interacțiune cere și artifact fresh în browser; inspecția textului
-JavaScript nu demonstrează click-ul, geometria sau expandarea completă.
+Aceste probe sunt în [Reporting Tests](../../../../../../../atf-reporting-tests/README.md). O schimbare de interacțiune cere și artifact fresh în browser; inspecția textului JavaScript nu demonstrează click-ul, geometria sau expandarea completă.
 

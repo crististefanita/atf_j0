@@ -1,16 +1,16 @@
+<a id="atf-context-atlas---inputs-ownership-and-evidence"></a>
+<a id="atlas-de-context-atf--intrări-ownership-și-probe"></a>
 # Atlas de context ATF — intrări, ownership și probe
 
 [Referința J0 și sincronizarea consumerilor](ATF_Workspace_Synchronization.md) fixează ownership-ul, starea țintelor și dovada fiecărei livrări.
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
-J0 deține implementarea și regresiile Reporting; J1 deține scenariile AutoEx/Shop.
-J2 este WIP pentru framework și teste Kafka/mesagerie, cu Setup PowerShell în Podman;
-[harta workspace-urilor](ATF_Workspace_Synchronization.md) separă infrastructura copiată de contractele și acceptanța mesageriei.
+J0 deține implementarea și regresiile Reporting; J1 deține scenariile AutoEx/Shop. J2 este WIP pentru framework și teste Kafka/mesagerie, cu Setup PowerShell în Podman; [harta workspace-urilor](ATF_Workspace_Synchronization.md) separă infrastructura copiată de contractele și acceptanța mesageriei.
 
-Atlasul reduce contextul inițial pentru un cititor sau un AI: alegi boundary-ul,
-identifici contractul și proba, apoi deschizi numai sursa relevantă și callerul
-său. Codul, POM-ul și testele live rămân autoritatea pentru ceea ce există.
+Atlasul reduce contextul inițial pentru un cititor sau un AI: alegi boundary-ul, identifici contractul și proba, apoi deschizi numai sursa relevantă și callerul său. Codul, POM-ul și testele live rămân autoritatea pentru ceea ce există.
 
 | Subiect | Hartă locală | Citește codul când |
 |---|---|---|
@@ -48,6 +48,8 @@ său. Codul, POM-ul și testele live rămân autoritatea pentru ceea ce există.
 
 </details>
 
+<a id="boundary-of-fidelity"></a>
+<a id="boundary-uri-de-fidelitate"></a>
 ## Boundary-uri de fidelitate
 
 | Schimbare | Contract și probă |
@@ -58,6 +60,8 @@ său. Codul, POM-ul și testele live rămân autoritatea pentru ceea ce există.
 | sursă compilabilă versus output | [ATF Tests](../atf-tests/README.md#inventarul-comun-al-surselor-java); descoperire POM separată de parcurgerea rădăcinii Java |
 | credentiale în formularul API AutoEx | [auditul fixture-ului](../atf-test-auto-ex/README.md#credentiale-în-aserțiunile-componente-api); egalitatea map-ului original, proiecție publică și diagnostic fără parola brută |
 
+<a id="background"></a>
+<a id="traseul-de-context"></a>
 ## Traseul de context
 
 ```mermaid
@@ -79,11 +83,12 @@ flowchart LR
 | Contract + probă | regula stabilă și testul care o protejează |
 | Cod + caller | implementarea live, configurația și efectele asupra callerului |
 
-Muchiile sunt pași de lectură și întreținere, nu dependențe Maven. Atlasul
-pornește investigația; nu înlocuiește verificarea sursei afectate.
+Muchiile sunt pași de lectură și întreținere, nu dependențe Maven. Atlasul pornește investigația; nu înlocuiește verificarea sursei afectate.
 
 </details>
 
+<a id="minimum-context-for-a-change"></a>
+<a id="context-minim-pentru-o-schimbare"></a>
 ## Context minim pentru o schimbare
 
 | Decizie inițială | Sursa de adevăr | Limita ei |
@@ -94,8 +99,7 @@ pornește investigația; nu înlocuiește verificarea sursei afectate.
 | schimbare Kafka/Podman? | [atlasul J2](../../atf_j2/docs/ATF_Context_Atlas.md), apoi Setup și configurația | trei componente MOCK și scripturi existente; clientul Java/brokerul real sunt WIP |
 
 1. Citește harta pachetului și secțiunea relevantă din README-ul modulului.
-   Înaintea refactorizării, reconciliază feedback-ul ownerului cu sursa live și
-   precizează proba de închidere; actualizează constatarea pe parcursul incrementului.
+   Înaintea refactorizării, reconciliază feedback-ul ownerului cu sursa live și precizează proba de închidere; actualizează constatarea pe parcursul incrementului.
 2. Deschide intrarea indicată, callerul și proba pozitivă/negativă; extinde
    căutarea numai când apare o dependență sau o contradicție concretă.
 3. Verifică POM-ul pentru scope, configurația pentru deadline/policy și testul
@@ -103,12 +107,15 @@ pornește investigația; nu înlocuiește verificarea sursei afectate.
 4. După schimbare, actualizează harta apropiată și linkul de intrare dacă s-au
    mutat responsabilitatea, invariantul ori proba. Gap-urile rămân în feedback.
 
+<a id="cross-cutting-points"></a>
+<a id="repere-transversale"></a>
 ## Repere transversale
 
+<a id="composition-and-life"></a>
+<a id="compoziție-și-durata-de-viață"></a>
 ### Compoziție și durata de viață
 
-Un raport comun nu înseamnă browser, cont sau stare business comune.
-Urmărește ownerul resursei și adaptorul runnerului înaintea unei extracții.
+Un raport comun nu înseamnă browser, cont sau stare business comune. Urmărește ownerul resursei și adaptorul runnerului înaintea unei extracții.
 
 | Boundary | Intrare și hartă | Ce rămâne separat |
 |---|---|---|
@@ -117,16 +124,13 @@ Urmărește ownerul resursei și adaptorul runnerului înaintea unei extracții.
 | componente auditate | [ghidul auditului](ATF_Testing_Guide.md#auditul-componentelor-consumerilor) → extensia consumerului → [Kit](../atf-test-kit/README.md#comparații-junit-cu-dovadă-neutră) | comparația JUnit se evaluează o dată; biblioteca Reporting primește dovada neutră |
 | browser și acțiuni | [PlaywrightUiSession](../atf-ui/src/main/java/atf/ui/playwright/PlaywrightUiSession.java) → [operații UI](../atf-ui/src/main/java/atf/ui/playwright/README.md) | sesiunea deține browser/context/page; secvența nouă are propriul jurnal de acțiuni |
 
-Suportul reutilizabil aparține main-ului ownerului; fixture-urile controlate și
-wiring-ul JUnit rămân în test. Cele două POM-uri consumer păstrează Kit în
-`test` scope; [matricea arhitecturii](ATF_Architecture.md) și POM-ul fixează dependențele.
+Suportul reutilizabil aparține main-ului ownerului; fixture-urile controlate și wiring-ul JUnit rămân în test. Cele două POM-uri consumer păstrează Kit în `test` scope; [matricea arhitecturii](ATF_Architecture.md) și POM-ul fixează dependențele.
 
+<a id="business-failure-and-isolation-of-the-following-scenario"></a>
+<a id="failure-business-și-izolarea-următorului-scenariu"></a>
 ### Failure business și izolarea următorului scenariu
 
-Pornește de la acceptanța explicită
-[Shop](../atf-test-practice-shop/README.md#acceptanța-failure-urilor-business) sau
-[AutoEx](../atf-test-auto-ex/README.md#acceptanța-failure-urilor-business).
-Fixture-urile alterează observația, iar journey-ul și expected-ul rămân cele reale.
+Pornește de la acceptanța explicită [Shop](../atf-test-practice-shop/README.md#acceptanța-failure-urilor-business) sau [AutoEx](../atf-test-auto-ex/README.md#acceptanța-failure-urilor-business). Fixture-urile alterează observația, iar journey-ul și expected-ul rămân cele reale.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":24,"padding":6,"diagramPadding":20}}}%%
@@ -153,13 +157,9 @@ flowchart LR
 
 </details>
 
-CLI-ul acceptă numai numărul exact de FAIL-uri intenționate și succese, aceeași
-cauză primară în JUnit, mutațiile numărate și un HTML per lansare. Verifică
-fiecare owner/scenariu/fază în artifact, cu captura identificabilă și totaluri
-Tests/Fails/Overview; o dovadă a sibling-ului nu satisface invocarea curentă.
+CLI-ul acceptă numai numărul exact de FAIL-uri intenționate și succese, aceeași cauză primară în JUnit, mutațiile numărate și un HTML per lansare. Verifică fiecare owner/scenariu/fază în artifact, cu captura identificabilă și totaluri Tests/Fails/Overview; o dovadă a sibling-ului nu satisface invocarea curentă.
 
-Checkpoint-ul anterior erorii generice rămâne PASS, iar cauza ulterioară are
-diagnostic FAIL distinct. Fixture-urile negative nu intră în selecțiile canonice.
+Checkpoint-ul anterior erorii generice rămâne PASS, iar cauza ulterioară are diagnostic FAIL distinct. Fixture-urile negative nu intră în selecțiile canonice.
 
 | Ramură suplimentară | Intrare și oprire |
 |---|---|
@@ -167,6 +167,8 @@ diagnostic FAIL distinct. Fixture-urile negative nu intră în selecțiile canon
 | după PASS | `boundaries` la ambii consumeri; AutoEx deleagă checkpoint-ul de creare înaintea erorii, Shop folosește checkpoint intermediar și finalizează numai vecinul sănătos |
 | audit fără aplicație | `audit <artifact-expectations.json>` verifică HTML-ul deja livrat și mutanții locali; nu pornește journey-ul ori o mutație remote |
 
+<a id="owner-decides-by-effect"></a>
+<a id="ownerul-se-decide-după-efect"></a>
 ### Ownerul se decide după efect
 
 | Responsabilitate | Owner și limită de dependență | Ce păstrează consumerul |
@@ -183,16 +185,13 @@ diagnostic FAIL distinct. Fixture-urile negative nu intră în selecțiile canon
 | probe neutre de raportare și compoziție | [Reporting Tests](../atf-reporting-tests/README.md) | proba adaptorului real și traseul business rămân Shop/AutoEx |
 | guvernanță cross-module și probe negative | [ATF Tests](../atf-tests/README.md) | respectarea contractului, fără excepții locale pentru refactor |
 
-Un import Reporting într-un test Shop nu îl transformă într-un test generic.
-O probă care verifică extensia JUnit reală, configurația aplicației sau selecția
-comenzii rămâne la consumer. Un fixture neutru de HTML, renderer ori lifecycle
-fără politică de aplicație aparține testelor ownerului infrastructurii.
+Un import Reporting într-un test Shop nu îl transformă într-un test generic. O probă care verifică extensia JUnit reală, configurația aplicației sau selecția comenzii rămâne la consumer. Un fixture neutru de HTML, renderer ori lifecycle fără politică de aplicație aparține testelor ownerului infrastructurii.
 
+<a id="re-use-without-moving-application-policy"></a>
+<a id="reutilizare-fără-mutarea-politicii-aplicației"></a>
 ### Reutilizare fără mutarea politicii aplicației
 
-Compară cele două utilizări reale înaintea unei extracții. Compoziția INFO are
-owner UI, iar cleanup-ul runnerului consumă Kit în test scope; asemănarea unui
-constructor sau a unui import nu justifică încă un API generic.
+Compară cele două utilizări reale înaintea unei extracții. Compoziția INFO are owner UI, iar cleanup-ul runnerului consumă Kit în test scope; asemănarea unui constructor sau a unui import nu justifică încă un API generic.
 
 | Pereche inspectată | Decizie și motiv |
 |---|---|
@@ -204,10 +203,10 @@ constructor sau a unui import nu justifică încă un API generic.
 | CLI-urile de acceptanță Shop / AutoEx | `ScopedAcceptanceRun` din Kit restaurează override-ul și colectează artifactele callerului; launcherul JUnit, politica contului și oracolul browser rămân la consumer |
 | bridge de consolă și prefixuri de artifact | compoziție a aplicației; biblioteca Reporting primește sink și metadata, fără dependențe Core/Console/JUnit noi |
 
-`ScopedTestValue`, `CloseOnceResource` și `TestRunInitialization` rămân primitivele
-Kit folosite de harness-uri. Fixture-ul de eroare, browserul și politica
-endpoint-ului nu se mută în Kit pentru a uniformiza forma claselor.
+`ScopedTestValue`, `CloseOnceResource` și `TestRunInitialization` rămân primitivele Kit folosite de harness-uri. Fixture-ul de eroare, browserul și politica endpoint-ului nu se mută în Kit pentru a uniformiza forma claselor.
 
+<a id="minimum-investigation-routes"></a>
+<a id="trasee-minime-de-investigație"></a>
 ### Trasee minime de investigație
 
 | Simptom / schimbare | Ordinea lecturii și proba necesară |
@@ -228,11 +227,10 @@ endpoint-ului nu se mută în Kit pentru a uniformiza forma claselor.
 | timeout GET reînnoit în adaptorul AutoEx | [proba nativă](../atf-test-auto-ex/src/test/java/atf/autoex/tests/component/navigation/AutoExReadOnlyBudgetBoundaryComponentTest.java) măsoară timeout-urile efectiv trimise browserului, separat de aritmetica ceasului UI; un pointer și două recuperări read-only |
 | bibliotecă Reporting extrasă | [contextul portabil](../atf-reporting/docs/README.md) → POM → gate local izolat → consumer Maven extern cu JAR real; verificarea reactorului singură este insuficientă |
 
-Păstrați adaptarea aplicației în main și glue-ul JUnit în test. Kit-ul oferă
-primitive neutre, nu primește browserul ori politică business. O extracție cere
-două utilizări reale, diferențe explicite și o probă care ar refuza vechiul
-comportament; mutarea aceleiași clase într-un alt modul nu este această probă.
+Păstrați adaptarea aplicației în main și glue-ul JUnit în test. Kit-ul oferă primitive neutre, nu primește browserul ori politică business. O extracție cere două utilizări reale, diferențe explicite și o probă care ar refuza vechiul comportament; mutarea aceleiași clase într-un alt modul nu este această probă.
 
+<a id="contracts-and-governance"></a>
+<a id="contracte-și-guvernanță"></a>
 ### Contracte și guvernanță
 
 | Decizie | Owner de pornire |
@@ -245,23 +243,15 @@ comportament; mutarea aceleiași clase într-un alt modul nu este această prob�
 | criterii încă nedemonstrate | [registrul feedback-urilor](feedback/README.md) |
 | biblioteca Reporting și documentația sa proprie | [contractul Reporting](../atf-reporting/README.md) |
 
-Shop este excepția explicită a [controlului Git testChanges](../atf-tests/README.md#guvernanța-schimbării-testelor),
-nu a arhitecturii, coeziunii ori verificărilor comportamentale. Nu adăuga path-uri
-Shop într-un control formal și nu deduce din această excepție că un test poate fi relaxat.
+Shop este excepția explicită a [controlului Git testChanges](../atf-tests/README.md#guvernanța-schimbării-testelor), nu a arhitecturii, coeziunii ori verificărilor comportamentale. Nu adăuga path-uri Shop într-un control formal și nu deduce din această excepție că un test poate fi relaxat.
 
-Reporting este tratat ca bibliotecă la boundary-ul consumat. Atlasul consumerilor
-nu copiază inventarul intern, rendererul sau contractele sale; acestea rămân în
-documentația bibliotecii, inclusiv când artifactul este livrat separat ca JAR.
+Reporting este tratat ca bibliotecă la boundary-ul consumat. Atlasul consumerilor nu copiază inventarul intern, rendererul sau contractele sale; acestea rămân în documentația bibliotecii, inclusiv când artifactul este livrat separat ca JAR.
 
+<a id="read-the-proof-at-the-checked-level"></a>
+<a id="citește-dovada-la-nivelul-verificat"></a>
 ### Citește dovada la nivelul verificat
 
-La investigarea tranziției AutoEx, separă documentul GET, observația DOM și
-gate-ul business al produsului. [Contractul de tranziție](../atf-test-auto-ex/README.md#confirmarea-tranziției-către-produs)
-deține bugetul unic; dublurile Purchase implementează portul typed și probează
-oprirea înaintea checkpoint-ului ori a mutației, fără simularea unui click reușit.
-Ceasul injectabil package-private și proba `ObservationBudgetComponentTest`
-sunt la UI; browserul consumerului verifică documentul, produsul și activarea,
-fără oracle wall-clock sau cursa slow-520.
+La investigarea tranziției AutoEx, separă documentul GET, observația DOM și gate-ul business al produsului. [Contractul de tranziție](../atf-test-auto-ex/README.md#confirmarea-tranziției-către-produs) deține bugetul unic; dublurile Purchase implementează portul typed și probează oprirea înaintea checkpoint-ului ori a mutației, fără simularea unui click reușit. Ceasul injectabil package-private și proba `ObservationBudgetComponentTest` sunt la UI; browserul consumerului verifică documentul, produsul și activarea, fără oracle wall-clock sau cursa slow-520.
 
 | Dovadă disponibilă | Limita de interpretare | Ownerul criteriului |
 |---|---|---|
@@ -270,22 +260,19 @@ fără oracle wall-clock sau cursa slow-520.
 | jurnal cu `201` urmat de `500` | prezentarea poate compacta; selecția business citește observațiile eligibile și nu moștenește PASS-ul vechi | [comanda curentă Shop](../atf-test-practice-shop/README.md#dovada-comenzii-curente) |
 | guard documentar verde | confirmă regulile implementate de guard; sensul afirmației se confruntă cu POM/sursă, independent de text | [fidelitate factuală](../atf-tests/README.md#documente-și-responsabilități) |
 
-Feedback-ul indică lipsa și criteriul de închidere, README-ul ownerului descrie
-contractul, iar baseline-ul `VERIFIED` autorizează o diferență Git precisă.
-Aceste trei roluri nu se substituie; [procesul de păstrare](README_Atf_DocumentationBestPractices.md#păstrarea-și-ștergerea-feedback-ului)
-decide ce se mută sau se elimină după dovadă.
+Feedback-ul indică lipsa și criteriul de închidere, README-ul ownerului descrie contractul, iar baseline-ul `VERIFIED` autorizează o diferență Git precisă. Aceste trei roluri nu se substituie; [procesul de păstrare](README_Atf_DocumentationBestPractices.md#păstrarea-și-ștergerea-feedback-ului) decide ce se mută sau se elimină după dovadă.
 
+<a id="maintenance-without-drift"></a>
+<a id="întreținere-fără-drift"></a>
 ## Întreținere fără drift
 
 - Linkurile și fragmentele atlasului sunt verificate de
-  [guvernanța linkurilor documentare](../atf-tests/src/test/java/atf/api/tests/governance/documentation/links/DocumentationLinkGovernanceTest.java),
-  împreună cu README-urile și celelalte documente din `docs`.
+  [guvernanța linkurilor documentare](../atf-tests/src/test/java/atf/api/tests/governance/documentation/links/DocumentationLinkGovernanceTest.java), împreună cu README-urile și celelalte documente din `docs`.
 
 - Fiecare hartă păstrează intrările stabile, ownership-ul, invarianti cu sursă și
   probele relevante. Nu copiază întregul arbore, API-ul sau implementarea.
 - Checklist-urile din bunele practici sunt criterii recurente de review;
-  restanțele implementării sunt în feedback. O bifă procedurală nu este un
-  defect și nu se șterge pentru a declara un backlog închis.
+  restanțele implementării sunt în feedback. O bifă procedurală nu este un defect și nu se șterge pentru a declara un backlog închis.
 - Un refactor actualizează harta în același increment. O contradicție se rezolvă
   din cod/POM/test; o intenție neimplementată este etichetată în feedback.
 - Nu păstra count-uri, note sau un PASS datat ca garanție de comportament.
@@ -295,12 +282,14 @@ decide ce se mută sau se elimină după dovadă.
 - Reia hash-urile live înaintea promovării. Contextul citit anterior nu autorizează
   suprascrierea schimbărilor paralele și nu certifică automat noua combinație.
 
+<a id="core-as-library---owner-and-deployment"></a>
+<a id="core-ca-bibliotecă--owner-și-deployment"></a>
 ## Core ca bibliotecă — owner și deployment
 
-J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module.
-[Contractul Core](ATF_Core_Consumer.md) separă sursa și publicarea de acceptanța independentă a fiecărui consumator J1–J7.
-Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
+J0 păstrează sursa și testele native Core; reactorul sursă are în continuare 12 module. [Contractul Core](ATF_Core_Consumer.md) separă sursa și publicarea de acceptanța independentă a fiecărui consumator J1–J7. Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 
+<a id="reporting-inspector-and-time-sources"></a>
+<a id="inspectorul-și-sursele-de-timp-reporting"></a>
 ## Inspectorul și sursele de timp Reporting
 
 | Context de pornire | Invariantă și probă |
@@ -309,17 +298,17 @@ Testele native se păstrează în J0, iar acceptanța pe binar rulează în TMP.
 | [Durate sub faza capturată](../atf-reporting/README.md#originea-duratelor-sub-o-fază-capturată) | Execution, Transport și Publication distincte, fără dublare ori zero inventat |
 | [Probe permanente](../atf-reporting-tests/README.md#probe-inspector-timing-și-indicator-assertions) | nominale, mutanți, browser și JAR fizic; niciun cod business în biblioteca autonomă |
 
-Consumerii care păstrează apelul legacy al inspectorului primesc în continuare contractul strict Extent/HTTP.
-Adopția overload-ului explicit și acceptanța aplicației sunt decizii ale consumerului, separate de distribuția binarului.
+Consumerii care păstrează apelul legacy al inspectorului primesc în continuare contractul strict Extent/HTTP. Adopția overload-ului explicit și acceptanța aplicației sunt decizii ale consumerului, separate de distribuția binarului.
 
-## Cold report initialization
+<a id="cold-report-initialization"></a>
+<a id="inițializarea-raportului-la-rece"></a>
+## Inițializarea raportului la rece
 
-[The navigation contract](ATF_Large_Report_Navigation.md#cold-startup-and-readiness)
-links the lifecycle owner, truthful readiness, native link repair and permanent
-neutral regressions. [navigation contract](ATF_Large_Report_Navigation.md) records
-the source/JAR boundary and independent consumer checks.
+[The navigation contract](ATF_Large_Report_Navigation.md#cold-startup-and-readiness) leagă ownerul lifecycle-ului, readiness-ul real, repararea linkurilor native și regresiile neutre permanente. [navigation contract](ATF_Large_Report_Navigation.md) înregistrează limita sursă/JAR și verificările independente ale consumerilor.
 
 
-## Shared platform libraries
+<a id="shared-platform-libraries"></a>
+<a id="bibliotecile-comune-ale-platformei"></a>
+## Bibliotecile comune ale platformei
 
 Reactorul J0 are 12 module sursă. [Contractul bibliotecilor](ATF_Platform_Libraries.md) definește cei cinci owneri, distribuția plată, bootstrap-ul Maven/IntelliJ și acceptanța independentă a consumerilor. Testele native Console/Mock rămân în J0; adaptoarele și cataloagele rămân locale.

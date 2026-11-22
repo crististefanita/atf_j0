@@ -1,10 +1,12 @@
+<a id="atf-reporting-api---transport-and-audit-models-without-executor-http"></a>
+<a id="atf-reporting-api--modele-de-transport-și-audit-fără-executor-http"></a>
 # ATF Reporting API — modele de transport și audit fără executor HTTP
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
-Pachetul normalizează fapte de request/response și verifică un contract API din
-evidence deja furnizat. Nu trimite cereri, nu autentifică un client și nu reia
-operații; acele responsabilități rămân în consumer.
+Pachetul normalizează fapte de request/response și verifică un contract API din evidence deja furnizat. Nu trimite cereri, nu autentifică un client și nu reia operații; acele responsabilități rămân în consumer.
 
 [Atlas](../README.md) · [Fidelitatea query-ului](../../../../../../README.md#fidelitatea-contractului-query)
 
@@ -16,6 +18,8 @@ operații; acele responsabilități rămân în consumer.
 | ce măsoară attempt-urile? | [ReportTransportTiming](evidence/ReportTransportTiming.java), [sumarul](evidence/ReportExecutionSummary.java) | date observate, inclusiv response indisponibil |
 | ce verifică artifactul API? | [ApiReportContractAuditor](contract/ApiReportContractAuditor.java) | audit pur al contractului, fără endpoint live |
 
+<a id="data-flow"></a>
+<a id="fluxul-datelor"></a>
 ## Fluxul datelor
 
 - Intrarea typed este preferată; adaptorul legacy citește accessorii ceruți și
@@ -31,11 +35,9 @@ operații; acele responsabilități rămân în consumer.
 - `ReportQueryParameters.values()` păstrează aparițiile; `asMap()` este view
   legacy cu ultima valoare pe nume. Eticheta lizibilă nu este identitatea completă.
 - `ReportRequest.queryParameters()` păstrează aceste perechi prin builder și
-  adaptarea externă. Semnătura sigură păstrează multiplicitatea și ordinea
-  aparițiilor aceluiași nume; politica de mascare a credentialelor rămâne explicită.
+  adaptarea externă. Semnătura sigură păstrează multiplicitatea și ordinea aparițiilor aceluiași nume; politica de mascare a credentialelor rămâne explicită.
 - Când politica de captură a eliminat valorile, `queryFingerprint()` păstrează
-  numai identitatea opacă. Nu reconstruiește perechile; digestul nu apare în HTML.
-  Schimbarea query-ului prin builder invalidează amprenta capturii precedente.
+  numai identitatea opacă. Nu reconstruiește perechile; digestul nu apare în HTML. Schimbarea query-ului prin builder invalidează amprenta capturii precedente.
 - `partialExecution(...)` cere explicit disponibilitatea response-ului din
   snapshot-ul extern; istoricul și termination nu fabrică un răspuns nou.
 - Semnătura pentru prezentare și identitatea request-ului nu autorizează replay.
@@ -44,14 +46,15 @@ operații; acele responsabilități rămân în consumer.
 
 </details>
 
+<a id="samples-and-adjacent-context"></a>
+<a id="probe-și-context-adiacent"></a>
 ## Probe și context adiacent
 
 - [TerminalExecutionProjectionTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/api/execution/terminal/TerminalExecutionProjectionTest.java): adaptarea unui snapshot parțial și diagnosticul terminal.
 - [ReportTransportTimingTest](../../../../../../../atf-reporting-tests/src/test/java/atf/reporting/api/timing/ReportTransportTimingTest.java): durate și disponibilitate, fără timp inventat.
 - Contractele de query și asociere sunt legate din [Reporting Tests](../../../../../../../atf-reporting-tests/README.md#fidelitatea-query-ului-și-asocierea-mock).
 
-Pentru statusul unui exchange atașat UI se citește și
-[UiApiValidationEvidence](../ui/validation/UiApiValidationEvidence.java).
+Pentru statusul unui exchange atașat UI se citește și [UiApiValidationEvidence](../ui/validation/UiApiValidationEvidence.java).
 
 - Fără response, verdictul vine explicit de la caller sau din aserțiunile evaluate;
   inputul nejudecat este refuzat înaintea publicării.

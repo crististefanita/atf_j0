@@ -1,7 +1,11 @@
+<a id="built-and-safe-execution-for-atf"></a>
+<a id="build-și-execuție-sigură-pentru-atf"></a>
 # Build și execuție sigură pentru ATF
 
 Pentru sursele Core și Reporting din `atf_j0` și consumerii afectați J1–J7, aplică [protocolul workspace-ului](ATF_Workspace_Synchronization.md) înaintea sync-ului selectiv.
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 - live-ul este contextul de lucru și sursa de sincronizare;
@@ -10,6 +14,8 @@ Pentru sursele Core și Reporting din `atf_j0` și consumerii afectați J1–J7,
 - artifactul final se publică numai după verificarea în TAB MCP;
 - procesele și rulările existente nu se opresc.
 
+<a id="isolated-workflow"></a>
+<a id="fluxul-izolat"></a>
 ## Fluxul izolat
 
 ```mermaid
@@ -49,6 +55,8 @@ Etichetele scurte păstrează următorul sens:
 
 </details>
 
+<a id="actions-to-avoid"></a>
+<a id="ce-nu-se-face"></a>
 ## Ce nu se face
 
 - nu se opresc procese sau rulări existente;
@@ -56,12 +64,13 @@ Etichetele scurte păstrează următorul sens:
 - nu se șterg target, bin, obj, artifacts sau fișierele altui proces;
 - nu se reutilizează un staging care poate aparține unei alte execuții;
 - nu se rulează două build-uri Maven în același checkout sau stage: ambele
-  folosesc `target`, iar un `clean` concurent poate produce false-negative de
-  classloading în Surefire; fiecare execuție are staging propriu;
+  folosesc `target`, iar un `clean` concurent poate produce false-negative de classloading în Surefire; fiecare execuție are staging propriu;
 - nu se suprascrie raportul deschis de utilizator;
 - nu se deschide browserul Windows pentru validarea raportului; interacțiunea se
   face în TAB MCP.
 
+<a id="safe-configuration-resolution"></a>
+<a id="rezolvarea-sigură-a-configurației"></a>
 ## Rezolvarea sigură a configurației
 
 ```mermaid
@@ -75,12 +84,7 @@ flowchart LR
 <details>
 <summary><strong>Legendă — configurație capturată la composition root</strong></summary>
 
-Configurația de raportare este capturată o singură dată, la composition root.
-O cale YAML relativă se rezolvă față de `startDirectory`-ul capturat, iar
-`reporting.extent.outputDirectory` se rezolvă față de directorul YAML. Căile
-care ies prin `..` din acel director sunt respinse înainte de publicare. Astfel
-două rulări IntelliJ cu rădăcini diferite nu pot ajunge accidental la același
-output printr-un `user.dir` schimbat sau printr-un path relativ ambiguu.
+Configurația de raportare este capturată o singură dată, la composition root. O cale YAML relativă se rezolvă față de `startDirectory`-ul capturat, iar `reporting.extent.outputDirectory` se rezolvă față de directorul YAML. Căile care ies prin `..` din acel director sunt respinse înainte de publicare. Astfel două rulări IntelliJ cu rădăcini diferite nu pot ajunge accidental la același output printr-un `user.dir` schimbat sau printr-un path relativ ambiguu.
 
 Etichetele scurte păstrează următorul sens:
 
@@ -92,6 +96,8 @@ Etichetele scurte păstrează următorul sens:
 
 </details>
 
+<a id="change-workflow-for-every-change"></a>
+<a id="regula-de-lucru-pentru-orice-schimbare"></a>
 ## Regula de lucru pentru orice schimbare
 
 ```mermaid
@@ -121,24 +127,13 @@ flowchart LR
 <details>
 <summary><strong>Detalii operaționale — staging, artifact și publicare</strong></summary>
 
-Codul live și testele existente sunt contextul curent; staging-ul este doar
-locul sigur de lucru și nu devine automat o nouă sursă de adevăr. Nu opri
-procesele existente și nu reutiliza directorul altui proces.
+Codul live și testele existente sunt contextul curent; staging-ul este doar locul sigur de lucru și nu devine automat o nouă sursă de adevăr. Nu opri procesele existente și nu reutiliza directorul altui proces.
 
-La refresh comparați hash-urile: o sursă copiată poate avea timestamp anterior
-claselor din `target`, iar Maven poate reutiliza acele clase. Folosiți un stage
-nou sau invalidați incrementalul numai în copia proprie, după terminarea
-build-ului anterior; păstrați dovezile deja produse în TMP.
+La refresh comparați hash-urile: o sursă copiată poate avea timestamp anterior claselor din `target`, iar Maven poate reutiliza acele clase. Folosiți un stage nou sau invalidați incrementalul numai în copia proprie, după terminarea build-ului anterior; păstrați dovezile deja produse în TMP.
 
-Raportul trebuie să fie nou, timestamped și păstrat în staging; nu se
-suprascrie raportul deschis sau output-ul unei rulări. În TAB MCP se verifică
-tab-uri, filtre, disclosure-uri, deep-link-uri, request/validation, Fails și
-Overview după caz.
+Raportul trebuie să fie nou, timestamped și păstrat în staging; nu se suprascrie raportul deschis sau output-ul unei rulări. În TAB MCP se verifică tab-uri, filtre, disclosure-uri, deep-link-uri, request/validation, Fails și Overview după caz.
 
-Înainte de publicare, staging-ul se compară cu live-ul actual. Se păstrează
-numai sursele și documentele aprobate; `target`, `artifacts`, cache-urile,
-log-urile și output-urile generate nu se propagă. După sincronizare se recitesc
-fișierele atinse și se verifică linkurile.
+Înainte de publicare, staging-ul se compară cu live-ul actual. Se păstrează numai sursele și documentele aprobate; `target`, `artifacts`, cache-urile, log-urile și output-urile generate nu se propagă. După sincronizare se recitesc fișierele atinse și se verifică linkurile.
 
 </details>
 
@@ -157,6 +152,8 @@ Etichetele scurte păstrează următorul sens:
 
 </details>
 
+<a id="software-guard-for-livestaging-sync"></a>
+<a id="guard-software-pentru-sync-livestaging"></a>
 ### Guard software pentru sync live↔staging
 
 ```mermaid
@@ -175,26 +172,9 @@ flowchart LR
 - **Guard**: drift-ul prezent la prevalidarea baseline-ului oprește lotul înainte de primul fișier; destinația este revalidată și la fiecare copiere.
 - **Sync**: înlocuirea este atomică per fișier aprobat; lotul nu este tranzacțional și nu implementează rollback sau ștergere implicită.
 
-Protocolul de mai sus are și un mecanism executabil, nu doar o convenție
-operațională. Înainte de editare, composition root-ul capturează fișierele
-aprobate prin `AtfPromotionManifest.capture(liveRoot, approvedFiles)` și poate
-scrie manifestul JSON pentru auditul procesului. După gate-ul din staging,
-`AtfPromotionGuard.promote(stagingRoot, liveRoot, baseline)` verifică drift-ul
-paralel și înlocuiește atomic fiecare fișier din manifest. O modificare sau
-creare detectată la verificarea inițială oprește lotul înainte de primul fișier;
-o cale absentă în baseline este singura aprobare explicită pentru crearea unui fișier
-nou. Nu se face overwrite neaprobat, reset sau ștergere implicită. Manifestul
-stochează numai căi relative, prezență, dimensiuni și digest-uri, nu căi locale
-absolute și nu este inclus în raportul HTML.
+Protocolul de mai sus are și un mecanism executabil, nu doar o convenție operațională. Înainte de editare, composition root-ul capturează fișierele aprobate prin `AtfPromotionManifest.capture(liveRoot, approvedFiles)` și poate scrie manifestul JSON pentru auditul procesului. După gate-ul din staging, `AtfPromotionGuard.promote(stagingRoot, liveRoot, baseline)` verifică drift-ul paralel și înlocuiește atomic fiecare fișier din manifest. O modificare sau creare detectată la verificarea inițială oprește lotul înainte de primul fișier; o cale absentă în baseline este singura aprobare explicită pentru crearea unui fișier nou. Nu se face overwrite neaprobat, reset sau ștergere implicită. Manifestul stochează numai căi relative, prezență, dimensiuni și digest-uri, nu căi locale absolute și nu este inclus în raportul HTML.
 
-Guard-ul prevalidează întregul plan înaintea primei scrieri: surse regulate,
-eligibile și deschizabile pentru citire, cu căile reconciliate cu manifestul.
-O sursă ulterioară absentă sau neeligibilă ori un părinte existent al destinației
-care nu este director refuză lotul fără modificări live. Preflight-ul nu creează
-părinții lipsă; directoarele se creează numai pentru fișierul executat.
-Execuția revalidează fiecare destinație; un eșec I/O ori drift apărut ulterior
-poate lăsa un lot parțial promovat. Atomicitatea rămâne per fișier, fără rollback
-al lotului; probele permanente sunt la [Core](../atf-core/README.md#manifest-și-promovare-guarded).
+Guard-ul prevalidează întregul plan înaintea primei scrieri: surse regulate, eligibile și deschizabile pentru citire, cu căile reconciliate cu manifestul. O sursă ulterioară absentă sau neeligibilă ori un părinte existent al destinației care nu este director refuză lotul fără modificări live. Preflight-ul nu creează părinții lipsă; directoarele se creează numai pentru fișierul executat. Execuția revalidează fiecare destinație; un eșec I/O ori drift apărut ulterior poate lăsa un lot parțial promovat. Atomicitatea rămâne per fișier, fără rollback al lotului; probele permanente sunt la [Core](../atf-core/README.md#manifest-și-promovare-guarded).
 
 - Verificați și recitiți starea efectivă după orice eroare; nu interpretați
   excepția ca dovadă că niciun fișier nu s-a schimbat.
@@ -203,9 +183,7 @@ al lotului; probele permanente sunt la [Core](../atf-core/README.md#manifest-și
 - Lock-ul coordonează promotorii care îl folosesc; revalidarea per fișier nu
   transformă editorii externi în participanți la o tranzacție.
 
-Ordinea dovezilor este: cod live → teste → artifact HTML → interacțiune TAB MCP
-→ documentație. Dacă două surse se contrazic, nu se declară succesul până când
-diferența nu este investigată și reconciliată.
+Ordinea dovezilor este: cod live → teste → artifact HTML → interacțiune TAB MCP → documentație. Dacă două surse se contrazic, nu se declară succesul până când diferența nu este investigată și reconciliată.
 
 Exemplu PowerShell, cu căi înlocuite de operator:
 
@@ -218,29 +196,20 @@ robocopy $source $stage /E /XD '.git' 'target' 'artifacts' 'spark' 'bin' 'obj' /
 mvn -o -f "$stage\pom.xml" test
 ```
 
-Pentru execuția Java se păstrează aceeași regulă într-un staging extern
-checkout-ului, de exemplu `${ATF_STAGING_ROOT}/Atf-java-feedback-<id>`. Sursele se
-resynchronizează înainte de build; `target`, rapoartele și dump-urile rămân
-excluse din sync. Testele de raportare acceptă
-`-Datf.test.reportDirectory=<stage>\artifacts\reports`, iar testul configured
-report folosește `-Datf.report.config=<stage>\atf.yaml`; astfel raportul de
-verificat este determinist sub `<stage>\artifacts\reports`, indiferent de
-working directory-ul IDE/Maven.
+Pentru execuția Java se păstrează aceeași regulă într-un staging extern checkout-ului, de exemplu `${ATF_STAGING_ROOT}/Atf-java-feedback-<id>`. Sursele se resynchronizează înainte de build; `target`, rapoartele și dump-urile rămân excluse din sync. Testele de raportare acceptă `-Datf.test.reportDirectory=<stage>\artifacts\reports`, iar testul configured report folosește `-Datf.report.config=<stage>\atf.yaml`; astfel raportul de verificat este determinist sub `<stage>\artifacts\reports`, indiferent de working directory-ul IDE/Maven.
 
 </details>
 
+<a id="staging-for-test-change-governance"></a>
+<a id="staging-pentru-guvernanța-schimbării-testelor"></a>
 ### Staging pentru guvernanța schimbării testelor
 
-`TestChangeGovernanceTest` cere un checkout Git real și baseline-ul revizuirii.
-O copie simplă fără istoric nu constituie dovadă pentru acest gate și eșuează
-explicit; nu se dezactivează verificarea pentru a face staging-ul verde.
+`TestChangeGovernanceTest` cere un checkout Git real și baseline-ul revizuirii. O copie simplă fără istoric nu constituie dovadă pentru acest gate și eșuează explicit; nu se dezactivează verificarea pentru a face staging-ul verde.
 
 - Staging-ul pornește fără checkout și preia snapshot-ul live, inclusiv absența
-  fișierelor șterse sau relocate. Verifică inventarul față de live; o clonă cu
-  checkout nu poate reintroduce implicit copia veche din `HEAD`.
+  fișierelor șterse sau relocate. Verifică inventarul față de live; o clonă cu checkout nu poate reintroduce implicit copia veche din `HEAD`.
 - Ref-ul remote se identifică înainte de fetch; nu se presupune numele `main`.
-  Fetch-ul nu autorizează pull, reset ori overwrite al refactorizărilor locale;
-  starea live și baza reală de review rămân intrări distincte ale reconcilierii.
+  Fetch-ul nu autorizează pull, reset ori overwrite al refactorizărilor locale; starea live și baza reală de review rămân intrări distincte ale reconcilierii.
 
 
 - Creează o clonă locală izolată, fără checkout și fără hardlink-uri.
@@ -249,8 +218,7 @@ explicit; nu se dezactivează verificarea pentru a face staging-ul verde.
 - Păstrează diferența surselor față de baseline; nu o ascunde printr-un commit
   artificial al snapshot-ului înaintea verificării.
 - Rulează cu `-Datf.governance.testChanges.baseRef=<review-base>`; controlul de schimbare fixează
-  SHA-ul acelei baze. CI cere explicit baza, iar checkout-ul live nu este reutilizat
-  pentru output-uri intermediare.
+  SHA-ul acelei baze. CI cere explicit baza, iar checkout-ul live nu este reutilizat pentru output-uri intermediare.
 
 Exemplul completează sincronizarea de surse de mai sus:
 
@@ -261,6 +229,8 @@ robocopy . $stage /E /XD .git target artifacts spark bin obj /XF '*.log' '*.loca
 mvn -f "$stage\pom.xml" '-Dtest=WholeAtfGovernanceSuiteTest' '-Dsurefire.failIfNoSpecifiedTests=false' '-Datf.governance.testChanges.baseRef=<review-base>' test
 ```
 
+<a id="the-reactor-is-mandatory-for-contracts-between-modules"></a>
+<a id="reactorul-este-obligatoriu-pentru-contracte-între-module"></a>
 ### Reactorul este obligatoriu pentru contracte între module
 
 ```mermaid
@@ -269,7 +239,7 @@ flowchart LR
     Changed["ATF change"] -->|declanșează| Reactor["reactor gate"]
     Reactor -->|dovedește| SameSources["same-stage"]
     Standalone["reporting"] -->|declanșează| Isolated["standalone gate"]
-    Isolated -->|dovedește| IsolatedProof["isolated proof"]
+    Isolated -->|dovedește| IsolatedProof["dovadă izolată"]
 ```
 
 <details>
@@ -279,32 +249,19 @@ flowchart LR
 - **Standalone gate**: `mvn -f atf-reporting/pom.xml test`; verifică reporting-ul izolat, fără consumatori.
 - **Proof**: rezultatul trebuie să provină din sursele stage-ului, nu dintr-un JAR local vechi.
 
-Când un modul de test consumă API-uri schimbate în `atf-core`, `atf-ui` sau
-alte module ale reactorului, verificarea se rulează cu `-am` (de exemplu
-`mvn -pl atf-reporting-tests -am test`). Pentru librăria standalone, `mvn -f atf-reporting/pom.xml test`
-este gate-ul izolat intenționat; un `mvn -pl atf-reporting-tests test` izolat poate
-rezolva un JAR instalat anterior din repository-ul local și poate raporta
-constructori/metode lipsă care nu există în sursele stage-ului. Rezultatul
-izolat este acceptabil numai după un reactor build verde sau dacă dependențele
-folosite sunt explicit construite din același stage; altfel nu este dovadă
-pentru codul live.
+Când un modul de test consumă API-uri schimbate în `atf-core`, `atf-ui` sau alte module ale reactorului, verificarea se rulează cu `-am` (de exemplu `mvn -pl atf-reporting-tests -am test`). Pentru librăria standalone, `mvn -f atf-reporting/pom.xml test` este gate-ul izolat intenționat; un `mvn -pl atf-reporting-tests test` izolat poate rezolva un JAR instalat anterior din repository-ul local și poate raporta constructori/metode lipsă care nu există în sursele stage-ului. Rezultatul izolat este acceptabil numai după un reactor build verde sau dacă dependențele folosite sunt explicit construite din același stage; altfel nu este dovadă pentru codul live.
 
-După un re-sync în același staging, timestamp-urile păstrate de copiere pot fi
-mai vechi decât clasele deja compilate, chiar dacă semnătura sursei s-a schimbat.
-Un mesaj Maven `Nothing to compile` nu dovedește atunci echivalența sursă/class.
-Folosește un staging nou sau `clean test` numai în staging-ul privat, după
-terminarea build-ului propriu; checkout-ul live și output-ul altor execuții
-nu se curăță. Artifactele deja produse rămân separat de `target`.
+După un re-sync în același staging, timestamp-urile păstrate de copiere pot fi mai vechi decât clasele deja compilate, chiar dacă semnătura sursei s-a schimbat. Un mesaj Maven `Nothing to compile` nu dovedește atunci echivalența sursă/class. Folosește un staging nou sau `clean test` numai în staging-ul privat, după terminarea build-ului propriu; checkout-ul live și output-ul altor execuții nu se curăță. Artifactele deja produse rămân separat de `target`.
 
 - O compilare întreruptă poate lăsa fișiere `.class` incomplete, chiar dacă
-  Maven le consideră actuale. `ClassFormatError` cere verificarea output-ului
-  compilat înaintea schimbării sursei sau a aserțiunilor.
+  Maven le consideră actuale. `ClassFormatError` cere verificarea output-ului compilat înaintea schimbării sursei sau a aserțiunilor.
 - După terminarea execuției proprii, reconstruiește output-ul afectat într-un
-  staging nou ori privat, apoi repetă verificarea completă afectată; testele
-  executate cu bytecode incomplet nu certifică sursele live.
+  staging nou ori privat, apoi repetă verificarea completă afectată; testele executate cu bytecode incomplet nu certifică sursele live.
 
 </details>
 
+<a id="periodic-feedback-and-build-sync-loop"></a>
+<a id="bucla-periodică-de-sync-pentru-feedback-și-build"></a>
 ### Bucla periodică de sync pentru feedback și build
 
 ```mermaid
@@ -319,22 +276,11 @@ flowchart LR
 <details>
 <summary><strong>Legendă — reluarea unui ToDo și izolarea output-ului</strong></summary>
 
-La fiecare reluare a unui ToDo se pornește de la checkout-ul live, se recreează
-staging-ul și se copiază numai sursele; `target`, rapoartele HTML, capturile și
-dump-urile nu sunt surse de adevăr și nu se sincronizează înapoi. După build se
-leagă dovada de codul sincronizat prin trei identificatori: commit/snapshot-ul
-de lucru, artifactul timestamped și verificarea interactivă în TAB MCP. Dacă
-un agent lucrează într-o altă locație, aceeași secvență se repetă înainte de
-fiecare build; nu se acceptă un artifact vechi ca dovadă pentru codul live.
+La fiecare reluare a unui ToDo se pornește de la checkout-ul live, se recreează staging-ul și se copiază numai sursele; `target`, rapoartele HTML, capturile și dump-urile nu sunt surse de adevăr și nu se sincronizează înapoi. După build se leagă dovada de codul sincronizat prin trei identificatori: commit/snapshot-ul de lucru, artifactul timestamped și verificarea interactivă în TAB MCP. Dacă un agent lucrează într-o altă locație, aceeași secvență se repetă înainte de fiecare build; nu se acceptă un artifact vechi ca dovadă pentru codul live.
 
-Publicația pe aceeași cale finală este serializată printr-un lock per cale în
-directorul temporar al procesului; lock-ul nu este scris lângă raport și nu
-schimbă staging-ul privat al sesiunii.
+Publicația pe aceeași cale finală este serializată printr-un lock per cale în directorul temporar al procesului; lock-ul nu este scris lângă raport și nu schimbă staging-ul privat al sesiunii.
 
-Fiecare staging Extent este marcat printr-un fișier versionat și ținut sub un
-lease exclusiv cât timp sesiunea este activă. După o întrerupere forțată,
-operatorul poate rula explicit sweeper-ul bounded din
-`atf.reporting.publication.ReportStagingWorkspace`, de exemplu:
+Fiecare staging Extent este marcat printr-un fișier versionat și ținut sub un lease exclusiv cât timp sesiunea este activă. După o întrerupere forțată, operatorul poate rula explicit sweeper-ul bounded din `atf.reporting.publication.ReportStagingWorkspace`, de exemplu:
 
 ```java
 var result = ReportStagingWorkspace.sweep(
@@ -342,17 +288,10 @@ var result = ReportStagingWorkspace.sweep(
         Duration.ofHours(1));
 ```
 
-Sweeper-ul inspectează numai directoarele `.atf-extent-session-*` marcate direct
-sub `reportDirectory`, păstrează workspace-urile fresh, active, malformate sau
-nemarcate și returnează cardinalitatea `scanned/deleted/skipped/failures`.
-Implicit procesează cel mult 256 de candidate; pentru operaționalizare se poate
-folosi overload-ul cu `maxCandidates`, iar `limitReached=true` face limitarea
-observabilă în test și în diagnostic.
+Sweeper-ul inspectează numai directoarele `.atf-extent-session-*` marcate direct sub `reportDirectory`, păstrează workspace-urile fresh, active, malformate sau nemarcate și returnează cardinalitatea `scanned/deleted/skipped/failures`. Implicit procesează cel mult 256 de candidate; pentru operaționalizare se poate folosi overload-ul cu `maxCandidates`, iar `limitReached=true` face limitarea observabilă în test și în diagnostic.
 
 <id> este unic pentru sesiunea curentă. Dacă există fișiere modificate local,
-se verifică înainte ca sincronizarea să nu le suprascrie. Orice proiect extern
-care rulează în paralel își redirecționează output-ul în propriile directoare
-de staging; build-ul ATF Java folosește separat `target` și artifactele sale.
+se verifică înainte ca sincronizarea să nu le suprascrie. Orice proiect extern care rulează în paralel își redirecționează output-ul în propriile directoare de staging; build-ul ATF Java folosește separat `target` și artifactele sale.
 
 Etichetele scurte păstrează următorul sens:
 
@@ -366,6 +305,8 @@ Etichetele scurte păstrează următorul sens:
 
 </details>
 
+<a id="jvm-memory-for-tests-and-publication"></a>
+<a id="memoria-jvm-pentru-teste-și-publicare"></a>
 ## Memoria JVM pentru teste și publicare
 
 | Proces | Configurație | Rol |
@@ -385,9 +326,10 @@ Etichetele scurte păstrează următorul sens:
 - Un `OutOfMemoryError: Java heap space` la finalizare invalidează publicarea,
   chiar dacă metodele de test au trecut; verifică și exit code-ul Maven.
 - Nu dezactiva capturile pentru a masca lipsa de heap. Cei 2 GiB sunt bugetul
-  implicit, nu o garanție pentru orice volum; fork-urile concurente și
-  browserele consumă memorie suplimentară.
+  implicit, nu o garanție pentru orice volum; fork-urile concurente și browserele consumă memorie suplimentară.
 
+<a id="what-to-sync-and-what-to-exclude"></a>
+<a id="ce-se-sincronizează-și-ce-nu"></a>
 ## Ce se sincronizează și ce nu
 
 Se pot propaga numai surse și documente revizuite explicit:
@@ -404,16 +346,13 @@ Nu se propagă:
 - log-uri, dump-uri și fișiere temporare;
 - fișiere create de un alt proces în checkout-ul live.
 
-Sincronizarea înapoi este o operație selectivă, după review de diff. Dacă există
-modificări concurente în același fișier, se oprește doar editarea acelui fișier
-și se recitește conținutul live; nu se repară prin overwrite sau reset.
+Sincronizarea înapoi este o operație selectivă, după review de diff. Dacă există modificări concurente în același fișier, se oprește doar editarea acelui fișier și se recitește conținutul live; nu se repară prin overwrite sau reset.
 
+<a id="preventing-accidental-rollback-when-returning-from-staging"></a>
+<a id="regula-anti-undo-la-revenirea-din-staging"></a>
 ### Regula anti-undo la revenirea din staging
 
-Staging-ul este o copie de lucru, nu o sursă autoritară. La revenirea în live nu
-se face mirror al directorului și nu se copiază recursiv staging-ul peste
-checkout. Se promovează numai fișierele din zona task-ului, după această
-secvență:
+Staging-ul este o copie de lucru, nu o sursă autoritară. La revenirea în live nu se face mirror al directorului și nu se copiază recursiv staging-ul peste checkout. Se promovează numai fișierele din zona task-ului, după această secvență:
 
 ```text
 live actual → baseline pentru fișierele aprobate
@@ -430,10 +369,11 @@ La reconciliere, live-ul rămâne autoritar pentru modificările apărute în pa
 - conflictul devine ToDo explicit și oprește promovarea acelui fișier;
 - celelalte fișiere aprobate și rulările active pot continua.
 
+<a id="the-staging-report"></a>
+<a id="raportul-din-staging"></a>
 ## Raportul din staging
 
-Raportul generat în staging este singura sursă pentru verificarea vizuală a
-schimbării. În TAB MCP:
+Raportul generat în staging este singura sursă pentru verificarea vizuală a schimbării. În TAB MCP:
 
 1. se deschide exact artifactul din staging;
 2. se verifică Tests, Category, Fails și Overview;
@@ -444,9 +384,10 @@ schimbării. În TAB MCP:
 6. se verifică faptul că Overview este implicit și că nodurile de evidence sunt
    colapsate implicit.
 
-O verificare statică a HTML-ului este utilă, dar nu înlocuiește click-ul în TAB
-MCP pentru schimbări de layout, selector, collapse, tab sau scroll.
+O verificare statică a HTML-ului este utilă, dar nu înlocuiește click-ul în TAB MCP pentru schimbări de layout, selector, collapse, tab sau scroll.
 
+<a id="completion-criteria-for-a-safe-execution"></a>
+<a id="criterii-de-finalizare-pentru-o-execuție-sigură"></a>
 ## Criterii de finalizare pentru o execuție sigură
 
 - procesul existent nu a fost oprit;

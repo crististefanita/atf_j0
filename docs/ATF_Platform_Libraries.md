@@ -1,7 +1,11 @@
-# ATF — platform library consumption
+<a id="atf--platform-library-consumption"></a>
+<a id="atf--consumul-bibliotecilor-platformei"></a>
+# ATF — consumul bibliotecilor platformei
 
 [Owner, feedback și sincronizare](../lib/README.md) descrie fluxul comun cu J0; această pagină detaliază integrarea tehnică.
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 J0 este reactorul producător cu 12 module. Deține implementarea și testele native Core, Reporting, Console, Mock și Test Kit. J1–J7 consumă direct din `lib` câte o singură pereche curentă JAR/POM pentru fiecare bibliotecă; adaptoarele, configurația și acceptanța aplicațiilor rămân locale.
@@ -17,11 +21,13 @@ J0 este reactorul producător cu 12 module. Deține implementarea și testele na
 | J6 | 5 | Hold’em WIP; adoptare doar în scope-ul de test al holdem-app, fără surse producătoare sau harness |
 | J7 | 1 | Chess Lab. Reactorul Maven califică motorul, rapoartele și perechile din lib prin atf-tests. |
 
+<a id="console-and-mock-limits"></a>
+<a id="limitele-console-și-mock"></a>
 ## Limitele Console și Mock
 
 | Bibliotecă | Dependențe de producție | Responsabilitate |
 |---|---|---|
-| Console | Core, Jackson YAML, JUnit API; Test Kit opțional pentru bridge-ul JUnit | Formatare neutră a evenimentelor, stdout configurat și proiecția ciclului de viață JUnit |
+| Consolă | Core, Jackson YAML, JUnit API; Test Kit opțional pentru bridge-ul JUnit | Formatare neutră a evenimentelor, stdout configurat și proiecția ciclului de viață JUnit |
 | Mock | Core și Jackson YAML; Kit și JUnit sunt doar pentru teste | Înlocuitor determinist pentru portul HTTP, JSON strict și potrivire exactă a rutei/query-ului/valorilor numerice |
 | Reporting | Fără dependențe de module ATF | HTML/Extent/fallback, proiecția auditului și randare |
 
@@ -29,6 +35,8 @@ Console păstrează bridge-ul JUnit existent. Consumatorii care îl folosesc dec
 
 Console și Mock nu depind de Reporting, Validation sau modulele aplicațiilor. Fixture-urile business și cataloagele YAML rămân la consumator.
 
+<a id="source-binary-flow"></a>
+<a id="fluxul-sursăbinar"></a>
 ## Fluxul sursă–binar
 
 ```mermaid
@@ -50,6 +58,8 @@ flowchart LR
 
 </details>
 
+<a id="maven-and-intellij"></a>
+<a id="maven-și-intellij"></a>
 ## Maven și IntelliJ
 
 Rulați din rădăcina consumatorului, într-o copie TMP deținută:
@@ -63,6 +73,8 @@ Faza `validate` din POM-ul rădăcină instalează cele cinci perechi reale POM/
 
 Comenzile native ale bibliotecilor rulează numai în J0. Acceptanța pe un JAR publicat compilează testele native în TMP fără să copieze clase de producție, verifică `CodeSource` real și păstrează oracolele negative. Nu selectați direct fixture-urile JUnit imbricate: eșecurile lor intenționate sunt verificate de testul exterior.
 
+<a id="integrity-and-maintenance"></a>
+<a id="integritate-și-mentenanță"></a>
 ## Integritate și mentenanță
 
 - `lib` conține zece artifacte binare, indexul și cinci ghiduri de utilizare: cinci perechi JAR/POM, fără repository imbricat, versiuni vechi, surse sau note de verificare.
@@ -74,6 +86,8 @@ Comenzile native ale bibliotecilor rulează numai în J0. Acceptanța pe un JAR 
 
 Consultați [sincronizarea workspace-urilor](ATF_Workspace_Synchronization.md) și [execuția izolată](ATF_Build_And_Execution_Safety.md). Ownerii surselor sunt [Console](../atf-console/README.md) și [Mock](../atf-mock/README.md).
 
+<a id="executable-guides-on-binary-publication"></a>
+<a id="ghiduri-executabile-pe-publicația-binară"></a>
 ## Ghiduri executabile pe publicația binară
 
 Profilul Maven `library-guides` verifică exemplele Java/YAML direct din cele cinci README-uri livrate în lib. Ownerii sunt `CoreLibraryGuideIT`, `ConsoleLibraryGuideIT` și `MockLibraryGuideIT` în modulele native, `KitLibraryGuideIT` în Test Kit, respectiv `ReportingLibraryGuideIT` în atf-reporting-tests. Suportul neutru din Test Kit compilează și execută consumerul; oracolele rămân la biblioteci.
@@ -100,6 +114,8 @@ Profilul cere teste prezente; bundle-ul absent sau un proces refuzat/eșuat nu d
 
 Logurile, sursele extrase și HTML-urile rămân în TMP; această verificare nu certifică un browser, device, broker sau ASR real.
 
+<a id="test-kit-as-library"></a>
+<a id="test-kit-ca-bibliotecă"></a>
 ## Test Kit ca bibliotecă
 
 [Test Kit](ATF_Test_Kit_Library.md) are owner de cod, native și feedback în J0. J1–J7 consumă perechea din lib și [ghidul local](../lib/README.TestKit.md); verifică binarul și integrarea, fără surse Kit paralele. Console păstrează bridge-ul opțional, iar produsul declară Kit numai în test scope.

@@ -1,5 +1,9 @@
+<a id="reporting--auditable-evidence-and-reports"></a>
+<a id="reporting--dovezi-și-rapoarte-auditabile"></a>
 # Reporting — dovezi și rapoarte auditabile
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
 Reporting publică datele, comparațiile și verdictul callerului în Extent/fallback, fără Core ori Kit.
@@ -12,6 +16,8 @@ Reporting publică datele, comparațiile și verdictul callerului în Extent/fal
 | HTTP observat | `request.execution(ReportExecutionEvidence)`, cu `ReportResponse` |
 | Capturi | `UiExtentReportSession`; PNG integral |
 
+<a id="minimal-example"></a>
+<a id="exemplu-minim"></a>
 ## Exemplu minim
 
 Individual: `try (var run = open(output)) { publish(run, actual); }`. Suita păstrează run-ul și deschide un scenariu per invocare:
@@ -45,9 +51,11 @@ public static void publish(AssertionAuditRun run, String actual) {
 }
 ```
 
+<a id="scope-and-integration"></a>
+<a id="scope-și-integrare"></a>
 ## Scope și integrare
 
-| Owner | Închidere și limită |
+| Responsabil | Închidere și limită |
 |---|---|
 | AssertionAuditRun | Deține sesiunea; close publică HTML-ul final. |
 | run.open(identity) | Împrumută sesiunea; close închide scenariul invocării. |

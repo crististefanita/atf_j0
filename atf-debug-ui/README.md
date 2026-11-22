@@ -6,16 +6,20 @@ verifică boundary-ul loopback, traversal-ul, pornirea paralelă și politica de
 memorie, nu un produs UI. Publică numai pe `127.0.0.1` directorul care conține
 artifactul ales și tipărește URL-ul care trebuie deschis în Playwright/TAB MCP.
 
+<a id="at-a-glance"></a>
+<a id="pe-scurt"></a>
 ## Pe scurt
 
-| Pas | Owner | Rezultat |
+| Pas | Responsabil | Rezultat |
 |---:|---|---|
-| 1 | launcher | validează path-ul și root-ul |
-| 2 | loopback server | servește read-only HTML/CSS/JS |
-| 3 | Playwright/TAB MCP | verifică DOM, click, screenshot și consolă |
+| 1 | lansator | validează calea și rădăcina |
+| 2 | server local | servește HTML/CSS/JS fără scriere |
+| 3 | Playwright/TAB MCP | verifică DOM-ul, clickul, captura de ecran și consola |
 
 Nu este browser de produs și nu înlocuiește gate-ul E2E.
 
+<a id="core-diagram"></a>
+<a id="diagramă-de-bază"></a>
 ## Diagramă de bază
 
 ```mermaid
@@ -30,7 +34,7 @@ sequenceDiagram
     D->>D: validează fișierul și root-ul
     D-->>A: afișează URL loopback
     A->>P: navighează la URL-ul afișat
-    P->>H: GET HTML/CSS/JS/read-only
+    P->>H: GET HTML/CSS/JS/doar-citire
     P-->>A: snapshot, click, screenshot, console, network
 ```
 
@@ -56,9 +60,11 @@ Responsabilitățile rămân separate:
 | `atf-reporting` | generează și publică HTML-ul Extent |
 | `atf-debug-ui` | servește read-only artifactul local pe loopback |
 | `atf-ui` | deține politicile generice și adaptorul Java Playwright |
-| `atf-reporting-tests` / `atf.ui.tests.extent` | verificări automate UI pentru rapoarte Extent |
+| Teste consumatoare Shop/AutoEx | verificări locale ale rapoartelor Extent generate |
 | agentul + TAB MCP | investigație manuală interactivă |
 
+<a id="startup"></a>
+<a id="pornire"></a>
 ## Pornire
 
 Din IntelliJ rulează `atf.debugui.AtfDebugUiLauncher` cu argumentele:
@@ -79,6 +85,8 @@ taburile, filtrele, nodurile expandabile, DOM-ul, console errors, network și
 randarea. Serverul rămâne activ până la `Ctrl+C`; `--port 0` alege automat un
 port liber și permite rulări paralele în directoare diferite.
 
+<a id="verifying-static-or-generated-reports"></a>
+<a id="verificare-pentru-raport-static-sau-dinamic"></a>
 ## Verificare pentru raport static sau dinamic
 
 ATF Debug UI este ultima verificare interactivă, nu un simplu server de fișiere.
@@ -117,10 +125,13 @@ mvn -pl atf-debug-ui -am test
 ```
 
 Testul verifică publicarea HTML și blocarea traversal-ului către fișiere din
-afara root-ului. Nu se adaugă un modul separat pentru teste: testele automate
-UI de audit Extent rămân în `atf-reporting-tests/src/test/java/atf/ui/tests/extent`;
-`atf-tests` deține doar testul de guvernanță globală; nu conține teste de browser.
+afara root-ului. Nu se adaugă un modul separat pentru testele de raportare:
+Practice Shop și AutoEx verifică scenariile locale de raport în modulele lor;
+`atf-tests` deține guvernanța reactorului și documentației, nu journey-urile
+de raport ale aplicației.
 
+<a id="closing-owned-connections"></a>
+<a id="închiderea-conexiunilor-deținute"></a>
 ### Închiderea conexiunilor deținute
 
 Serverul urmărește socketurile acceptate. Close oprește acceptarea, închide
@@ -133,6 +144,8 @@ verifică request-uri incomplete, clienți idle și închidere concurentă, folo
 readiness loopback și un deadline al probei. GET/HEAD, streaming-ul read-only,
 realpath și refuzul traversal-ului păstrează contractele existente.
 
+<a id="parallel-runs-and-memory"></a>
+<a id="rulări-paralele-și-memorie"></a>
 ### Rulări paralele și memorie
 
 Fiecare sesiune Debug UI este un JVM separat. Launcher-ul aplică fail-fast dacă
@@ -158,7 +171,7 @@ insuficient: launcher-ul folosește consola, care încarcă și bibliotecile de 
   modul, cu separatorul platformei.
 
 Nu se opresc procesele altui agent. Dacă hostul este deja saturat, testele
-reporting pot fi rulate izolat cu `-DforkCount=0`; acest mod este o măsură de
+care produc rapoarte pot fi rulate izolat cu `-DforkCount=0`; acest mod este o măsură de
 diagnostic/resurse, nu schimbă contractul testelor și nu devine implicit pentru
 execuțiile normale.
 
@@ -179,6 +192,8 @@ java -Xms16m -Xmx128m -XX:MaxMetaspaceSize=64m -cp $launcherClasspath atf.debugu
 automat classpath-ul runtime al modulului; setează aceleași limite în
 `VM options` și `--html <report-path> --port 0` în `Program arguments`.
 
+<a id="uri-path-identity"></a>
+<a id="identitatea-path-ului-uri"></a>
 ## Identitatea path-ului URI
 
 | Intrare | Rezultat |

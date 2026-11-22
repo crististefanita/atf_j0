@@ -1,14 +1,14 @@
+<a id="atf-best-practices--documentation"></a>
+<a id="bune-practici-atf--documentație"></a>
 # Bune practici ATF — documentație
 
-Acest document este owner-ul regulilor pentru README-uri, diagrame, tabele,
-legende, linkuri și feedback. Regulile de cod, OOP și testare sunt în
-[README_Atf_CodeBestPractices.md](README_Atf_CodeBestPractices.md).
+Acest document este owner-ul regulilor pentru README-uri, diagrame, tabele, legende, linkuri și feedback. Regulile de cod, OOP și testare sunt în [README_Atf_CodeBestPractices.md](README_Atf_CodeBestPractices.md).
 
+<a id="at-a-glance--what-a-readme-should-provide"></a>
+<a id="pe-scurt--ce-trebuie-să-ofere-un-readme"></a>
 ## Pe scurt — ce trebuie să ofere un README
 
-Un README bun este o hartă navigabilă a unui contract, nu un jurnal de lucru și
-nu o copie a codului. Primul ecran trebuie să fie suficient pentru orientare;
-linkurile conduc către aprofundare, nu sunt condiție pentru a înțelege scopul.
+Un README bun este o hartă navigabilă a unui contract, nu un jurnal de lucru și nu o copie a codului. Primul ecran trebuie să fie suficient pentru orientare; linkurile conduc către aprofundare, nu sunt condiție pentru a înțelege scopul.
 
 | Întrebarea cititorului | Dovada vizibilă în primul ecran |
 |---|---|
@@ -30,21 +30,19 @@ Regula de economie:
 <summary><strong>Harta de lectură</strong></summary>
 
 - [ownership și promovare](#responsabilitatea-documentelor-și-promovarea-feedback-ului),
-  [păstrarea/ștergerea feedback-ului](#păstrarea-și-ștergerea-feedback-ului) și
-  [procesul de revizuire](#procesul-de-redactare-și-revizuire);
+  [păstrarea/ștergerea feedback-ului](#păstrarea-și-ștergerea-feedback-ului) și [procesul de revizuire](#procesul-de-redactare-și-revizuire);
 - [primul ecran](#structura-recomandată-a-primului-ecran),
-  [diagrame](#diagrame-o-întrebare-o-perspectivă) și
-  [tabele/disclosure](#tabele-bullets-și-disclosure);
+  [diagrame](#diagrame-o-întrebare-o-perspectivă) și [tabele/disclosure](#tabele-bullets-și-disclosure);
 - [durabilitatea linkurilor](#denumiri-linkuri-și-durabilitate),
-  [feedback](#feedback-fără-zgomot) și
-  [criterii de finalizare](#criterii-de-finalizare).
+  [feedback](#feedback-fără-zgomot) și [criterii de finalizare](#criterii-de-finalizare).
 
 </details>
 
+<a id="atf-house-style--consistency-without-local-fonts"></a>
+<a id="stilul-intern-atf--uniformitate-fără-fonturi-locale"></a>
 ## Stilul intern ATF — uniformitate fără fonturi locale
 
-Uniformitatea README-urilor se obține prin Markdown semantic, nu prin CSS sau
-fonturi injectate în fiecare document:
+Uniformitatea README-urilor se obține prin Markdown semantic, nu prin CSS sau fonturi injectate în fiecare document:
 
 - fontul, dimensiunea și culoarea aparțin rendererului Markdown;
 - README-urile folosesc un singur `#`, secțiuni `##`, subsections progresive și
@@ -55,15 +53,16 @@ fonturi injectate în fiecare document:
 - stilul vizual este exprimat prin titluri, bullets, tabele minimale, diagrame și
   `<details>`, nu prin markup de prezentare dependent de un singur viewer;
 - `DocumentationStyleGovernanceTest` protejează această regulă pentru toate
-  README-urile și documentele normative Markdown desemnate, precum
-  `docs/ATF_Architecture.md`; explică dinamic fișierul, linia, regula și remedierea.
+  README-urile și documentele normative Markdown desemnate, precum `docs/ATF_Architecture.md`; explică dinamic fișierul, linia, regula și remedierea.
 
+<a id="document-ownership-and-feedback-promotion"></a>
+<a id="responsabilitatea-documentelor-și-promovarea-feedback-ului"></a>
 ## Responsabilitatea documentelor și promovarea feedback-ului
 
-Documentația stabilă și feedback-ul au ritmuri diferite. README-ul ownerului
-descrie contractul validat; feedback-ul se schimbă dinamic pe măsură ce apar
-dovezi, se închid TODO-uri sau se modifică limita rămasă.
+Documentația stabilă și feedback-ul au ritmuri diferite. README-ul ownerului descrie contractul validat; feedback-ul se schimbă dinamic pe măsură ce apar dovezi, se închid TODO-uri sau se modifică limita rămasă.
 
+<a id="approved-baseline-takes-precedence"></a>
+<a id="precedența-baseline-ului-aprobat"></a>
 ### Precedența baseline-ului aprobat
 
 - root README-ul aprobat este baseline-ul editorial și vizual al proiectului;
@@ -76,8 +75,7 @@ dovezi, se închid TODO-uri sau se modifică limita rămasă.
 - root README-ul, testele-gate și contractele normative se schimbă numai prin
   cerință explicită, motiv documentat, aprobare și dovadă nouă.
 - testele de guvernanță din `atf-tests` nu se modifică, dezactivează sau relaxează
-  pentru a face un README să treacă; orice schimbare a regulii cere feedback
-  direct, owner clar, motiv și un criteriu nou verificabil.
+  pentru a face un README să treacă; orice schimbare a regulii cere feedback direct, owner clar, motiv și un criteriu nou verificabil.
 
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-28px); overflow: visible; } .node rect { rx: 6px; ry: 6px; } .edgeLabel [data-id=\"L_Gate_Owner_0\"] foreignObject { transform: translate(0px, -18px); }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":24}}}%%
@@ -116,17 +114,16 @@ flowchart LR
 
 </details>
 
+<a id="retaining-and-deleting-feedback"></a>
+<a id="păstrarea-și-ștergerea-feedback-ului"></a>
 ### Păstrarea și ștergerea feedback-ului
 
-Feedback-ul este un backlog de lacune, nu un al doilea README și nici un jurnal
-al deciziilor deja închise. Înainte de a șterge un fișier, reconciliază fiecare
-secțiune cu codul, testul ownerului și README-ul normativ:
+Feedback-ul este un backlog de lacune, nu un al doilea README și nici un jurnal al deciziilor deja închise. Înainte de a șterge un fișier, reconciliază fiecare secțiune cu codul, testul ownerului și README-ul normativ:
 
 - mută regula stabilă în README-ul ownerului înainte să elimini explicația din
   feedback; păstrează un singur owner normativ și linkuri către acesta;
 - șterge secțiunile închise după ce criteriul este demonstrat și contractul
-  necesar există la owner; nu păstra istoricul raportului, artifactului sau
-  execuției ca substitut pentru cerință;
+  necesar există la owner; nu păstra istoricul raportului, artifactului sau execuției ca substitut pentru cerință;
 - șterge fișierul de feedback numai dacă nu mai conține niciun criteriu
   neîndeplinit și niciun control activ care trebuie reconciliat;
 - un README de modul sau un contract stabil nu se șterge pentru că nu are
@@ -134,18 +131,15 @@ secțiune cu codul, testul ownerului și README-ul normativ:
 - păstrează fișierul dacă există cel puțin un gap real sau un control `testChanges`
   activ, chiar dacă restul conținutului poate fi promovat ori eliminat;
 - nu închide, rescrie sau șterge un control `testChanges` doar pentru că a
-  expirat ori a apărut un commit nou: compară schimbările față de baseline și
-  aplică procedura din [baseline-ul schimbărilor de teste](ATF_Test_Changes_Baseline.md)
-  și [guvernanța testelor](../atf-tests/README.md#guvernanța-schimbării-testelor).
+  expirat ori a apărut un commit nou: compară schimbările față de baseline și aplică procedura din [baseline-ul schimbărilor de teste](ATF_Test_Changes_Baseline.md) și [guvernanța testelor](../atf-tests/README.md#guvernanța-schimbării-testelor).
 
-Testele de guvernanță rămân contract protejat. Dacă documentul țintă nu trece,
-se repară documentul; regula testului se schimbă numai prin feedback direct,
-owner, motiv și criteriu nou, conform README-ului `atf-tests`.
+Testele de guvernanță rămân contract protejat. Dacă documentul țintă nu trece, se repară documentul; regula testului se schimbă numai prin feedback direct, owner, motiv și criteriu nou, conform README-ului `atf-tests`.
 
+<a id="writing-and-review-process"></a>
+<a id="procesul-de-redactare-și-revizuire"></a>
 ## Procesul de redactare și revizuire
 
-Fiecare document trece prin aceeași buclă. Nu începem de la un raport vechi și
-nu marcăm un TODO ca rezolvat numai pentru că textul a fost modificat.
+Fiecare document trece prin aceeași buclă. Nu începem de la un raport vechi și nu marcăm un TODO ca rezolvat numai pentru că textul a fost modificat.
 
 - [ ] recitește codul, POM-ul, testele și README-ul live al ownerului;
 - [ ] identifică întrebarea documentului și cititorul principal;
@@ -156,8 +150,7 @@ nu marcăm un TODO ca rezolvat numai pentru că textul a fost modificat.
 - [ ] verifică toate linkurile relative, naming-ul și delimitarea `<details>`;
 - [ ] aliniază feedback-ul cu codul și testele înainte de închidere.
 
-La revizuirile arhitecturale, păstrează o trasabilitate scurtă pentru fiecare
-afirmație care poate schimba o decizie tehnică:
+La revizuirile arhitecturale, păstrează o trasabilitate scurtă pentru fiecare afirmație care poate schimba o decizie tehnică:
 
 ```text
 afirmație → sursă live → README owner → test/guard → verificare executată
@@ -169,10 +162,7 @@ Sursa live trebuie să fie cea care deține faptul:
 - codul public pentru API și ownership;
 - testul pentru comportamentul verificat.
 
-O diagramă sau un raport generat este o reprezentare ori o dovadă de run, nu
-sursa canonică. Dacă sursa, documentația și verificarea nu concordă, documentează
-drift-ul ca gap; nu transforma comportamentul observat într-un contract
-intenționat fără confirmare.
+O diagramă sau un raport generat este o reprezentare ori o dovadă de run, nu sursa canonică. Dacă sursa, documentația și verificarea nu concordă, documentează drift-ul ca gap; nu transforma comportamentul observat într-un contract intenționat fără confirmare.
 
 Rezumatul verificărilor distinge explicit nivelurile executate:
 
@@ -183,17 +173,15 @@ Rezumatul verificărilor distinge explicit nivelurile executate:
 | build/test de modul | compilarea și testele efectiv incluse în comanda rulată | suite neincluse sau medii externe |
 | randare/UI | aspectul artifactului și scenariul observat | validitatea generală a contractului ori toate configurațiile |
 
-Raportează comanda și nivelul efectiv rulat; marchează separat `passed`, `not run`
-și `blocked`. O comandă documentată, un path de artifact sau un test omis din
-cauza unei precondiții nu constituie dovadă de trecere.
+Raportează comanda și nivelul efectiv rulat; marchează separat `passed`, `not run` și `blocked`. O comandă documentată, un path de artifact sau un test omis din cauza unei precondiții nu constituie dovadă de trecere.
 
-Un document este gata când cititorul poate decide unde să continue fără să
-caute prin alte README-uri pentru scopul, ownerul sau limita principală.
+Un document este gata când cititorul poate decide unde să continue fără să caute prin alte README-uri pentru scopul, ownerul sau limita principală.
 
+<a id="recommended-first-screen-structure"></a>
+<a id="structura-recomandată-a-primului-ecran"></a>
 ## Structura recomandată a primului ecran
 
-Ordinea nu este o explicație despre „cum să citești” proiectul; este o regulă
-de compoziție pentru ca documentul să poată fi parcurs natural:
+Ordinea nu este o explicație despre „cum să citești” proiectul; este o regulă de compoziție pentru ca documentul să poată fi parcurs natural:
 
 1. **Titlu clar** — spune ce boundary sau rezultat descrie documentul;
 2. **Orientare** — `Overview` în engleză sau `Pe scurt` în română, conform limbii proiectului, cu două-trei idei despre scop, proprietar și limite;
@@ -214,10 +202,11 @@ Reguli de spațiere și digestie:
 - dacă un tabel secundar aparține aceleiași diagrame, pune-l în legenda
   compusă, nu într-o a doua legendă consecutivă.
 
+<a id="diagrams-one-question-one-perspective"></a>
+<a id="diagrame-o-întrebare-o-perspectivă"></a>
 ## Diagrame: o întrebare, o perspectivă
 
-Fiecare diagramă trebuie să răspundă unei singure întrebări și să aibă un titlu
-care poate fi înțeles fără contextul capitolului anterior.
+Fiecare diagramă trebuie să răspundă unei singure întrebări și să aibă un titlu care poate fi înțeles fără contextul capitolului anterior.
 
 | Întrebarea | Formă preferată | Limită |
 |---|---|---|
@@ -241,24 +230,19 @@ Pattern-ul obligatoriu este:
 - `TB` este acceptabil pentru o hartă grupată când relația principală este între
   niveluri sau boundary-uri, nu între pași succesivi;
 - într-o hartă `TB`, modulele din fiecare grup pot fi dispuse pe orizontală;
-  direcția semantică este verticală, dar lectura vizuală rămâne compactă pe
-  lățime;
+  direcția semantică este verticală, dar lectura vizuală rămâne compactă pe lățime;
 - alegerea `TB` este justificată dacă păstrează gruparea, reduce muchiile
-  încrucișate, evită etichetele rupte sau face varianta `LR` mai lată și mai
-  greu de urmărit;
+  încrucișate, evită etichetele rupte sau face varianta `LR` mai lată și mai greu de urmărit;
 - nu folosim `TB` pentru a ascunde o schemă nesimplificată: reducem nodurile,
-  grupăm semantic conținutul și verificăm explicit costul vizual al ambelor
-  orientări;
+  grupăm semantic conținutul și verificăm explicit costul vizual al ambelor orientări;
 - diagramele deja aprobate nu se normalizează mecanic la `LR`; baseline-ul lor
   rămâne valabil până la o cerință explicită de schimbare;
 - `sequenceDiagram` când ordinea interacțiunilor este mai importantă decât
   gruparea modulelor;
 - pentru un flow de date sau evidence, evităm schema radială cu un singur nod
-  central și multe săgeți lungi: construim întâi o coloană principală
-  stânga → dreapta și ramificăm doar detaliile locale;
+  central și multe săgeți lungi: construim întâi o coloană principală stânga → dreapta și ramificăm doar detaliile locale;
 - dacă un nod are mai mult de două ramificații vizibile, introducem o grupare
-  semantică locală sau separăm întrebarea în două diagrame; nu lăsăm săgețile
-  să traverseze întreaga schemă;
+  semantică locală sau separăm întrebarea în două diagrame; nu lăsăm săgețile să traverseze întreaga schemă;
 - nodul poartă numai conceptul necesar relației; modulele, clasele, tehnologiile
   și listele lungi se mută în legendă sau în tabelul colapsat;
 - evităm chenarele mari obținute din etichete cu multe rânduri: scurtăm nodul,
@@ -276,25 +260,24 @@ Pattern-ul obligatoriu este:
 - o schemă orizontală nu trebuie lățită artificial cu noduri secundare;
 - săgețile au o singură semnificație și aceasta este explicată în legendă;
 - pentru relațiile de ownership, consum sau flow, etichetați muchia direct cu un
-  verb scurt (`guvernează`, `consumă`, `validează`, `publică`); nu obligați
-  cititorul să deducă relația numai din poziția nodurilor;
+  verb scurt (`guvernează`, `consumă`, `validează`, `publică`); nu obligați cititorul să deducă relația numai din poziția nodurilor;
 - eticheta muchiei nu repetă numele nodurilor și nu devine o propoziție; detaliile
   despre clase, module sau scope rămân în legenda colapsată;
 - textul de pe muchie este mai mic decât textul nodului: explică relația fără să
   concureze cu conceptele principale;
 - într-un același README, diagramele folosesc aceeași bază vizuală — font,
-  padding, densitate și stil de săgeată; `rankSpacing` poate varia numai pentru
-  densitate sau pentru lizibilitatea etichetelor, fără să schimbe orientarea;
+  padding, densitate și stil de săgeată; `rankSpacing` poate varia numai pentru densitate sau pentru lizibilitatea etichetelor, fără să schimbe orientarea;
 - culorile nu sunt singura formă de diferențiere;
 - clasele, metodele și valorile care nu schimbă orientarea rămân în README-ul
   ownerului sau în tabelul colapsat.
 
 </details>
 
+<a id="formal-criteria-for-a-tb-exception"></a>
+<a id="criteriul-formal-pentru-o-excepție-tb"></a>
 ### Criteriul formal pentru o excepție `TB`
 
-O diagramă `TB` este acceptată numai dacă toate condițiile următoare sunt
-adevărate:
+O diagramă `TB` este acceptată numai dacă toate condițiile următoare sunt adevărate:
 
 - întrebarea cere separarea unor grupuri, straturi sau boundary-uri;
 - fiecare grup are o compoziție internă scurtă și lizibilă pe orizontală;
@@ -303,10 +286,11 @@ adevărate:
 - legenda explică relația dintre niveluri fără să repete mecanic diagrama;
 - cititorul poate identifica direcția și ownership-ul fără zoom sau crop.
 
+<a id="reference-pattern-module-map"></a>
+<a id="pattern-de-referință-harta-modulelor"></a>
 ### Pattern de referință: Harta modulelor
 
-`Harta modulelor` este exemplul pozitiv pentru ATF deoarece combină orientarea
-orizontală cu detaliul controlat:
+`Harta modulelor` este exemplul pozitiv pentru ATF deoarece combină orientarea orizontală cu detaliul controlat:
 
 - grupuri semantice, nu inventar Maven brut;
 - puține muchii principale și ownership explicit;
@@ -320,19 +304,19 @@ orizontală cu detaliul controlat:
 - modulele care nu sunt producție — consumers și governance — sunt delimitate;
 - contractele locale rămân în README-urile modulelor.
 
-La revizuirea unei alte diagrame, nu adăugăm noduri doar pentru că există în
-cod. Întrebarea diagramei decide ce rămâne vizibil.
+La revizuirea unei alte diagrame, nu adăugăm noduri doar pentru că există în cod. Întrebarea diagramei decide ce rămâne vizibil.
 
+<a id="tables-bullets-and-disclosure"></a>
+<a id="tabele-bullets-și-disclosure"></a>
 ## Tabele, bullets și disclosure
 
-Bullets sunt preferate când informația este o listă de decizii. Tabelul este
-preferat când cititorul trebuie să compare coloane sau să aleagă un owner.
+Bullets sunt preferate când informația este o listă de decizii. Tabelul este preferat când cititorul trebuie să compare coloane sau să aleagă un owner.
 
+<a id="visible-prose-rule"></a>
+<a id="regula-prozei-vizibile"></a>
 ### Regula prozei vizibile
 
-În zona parcursă rapid, informația trebuie să poată fi scanată fără a citi
-fraze consecutive. Pentru fiecare secțiune alegem forma care comprimă cel mai
-bine decizia:
+În zona parcursă rapid, informația trebuie să poată fi scanată fără a citi fraze consecutive. Pentru fiecare secțiune alegem forma care comprimă cel mai bine decizia:
 
 - **bullets** — responsabilități, limite, reguli, criterii și pași;
 - **tabel** — comparații între module, owneri, input/output sau niveluri de test;
@@ -340,10 +324,7 @@ bine decizia:
 - **un paragraf scurt** — doar pentru scopul secțiunii și concluzia ei;
 - **`<details>`** — rationale, excepții, exemple lungi și tabele secundare.
 
-Nu folosim un bloc de text pentru a descrie o listă, o relație sau o comparație
-care poate fi exprimată schematic. Dacă o explicație depășește orientarea
-imediată, o mutăm în legenda colapsată sau în README-ul ownerului; nu încărcăm
-primul ecran ca să evităm un link.
+Nu folosim un bloc de text pentru a descrie o listă, o relație sau o comparație care poate fi exprimată schematic. Dacă o explicație depășește orientarea imediată, o mutăm în legenda colapsată sau în README-ul ownerului; nu încărcăm primul ecran ca să evităm un link.
 
 - [ ] coloanele sunt scurte și semantice: `Owner`, `Input`, `Output`, `Gate`,
       `Verdict`;
@@ -356,11 +337,7 @@ primul ecran ca să evităm un link.
 - [ ] textul lung nu este pus într-o celulă care provoacă overflow;
 - [ ] claims importante urmează relația `claim → owner → test/guard`.
 
-`DocumentationProseGovernanceTest` verifică această regulă în toate README-urile
-de owner: un paragraf parcurs rapid are implicit cel mult trei propoziții, iar o
-secțiune nu înșiră mai mult de două paragrafe dense consecutive. Pragurile sunt
-constante explicite în test, nu o euristică ascunsă; dacă regula se schimbă, se
-calibrează acolo și se păstrează același diagnostic dinamic.
+`DocumentationProseGovernanceTest` verifică această regulă în toate README-urile de owner: un paragraf parcurs rapid are implicit cel mult trei propoziții, iar o secțiune nu înșiră mai mult de două paragrafe dense consecutive. Pragurile sunt constante explicite în test, nu o euristică ascunsă; dacă regula se schimbă, se calibrează acolo și se păstrează același diagnostic dinamic.
 
 Pentru o verificare punctuală, fără duplicarea regulilor în fiecare modul:
 
@@ -370,9 +347,7 @@ Pentru o verificare punctuală, fără duplicarea regulilor în fiecare modul:
   validatoarelor;
 - diagnosticul păstrează fișierul, linia, regula și remedierea minimă.
 
-O legendă bună explică nodurile, săgețile, limitele și tabelul colapsat al
-aceleiași diagrame. Nu repetă mecanic textul vizibil și nu devine al doilea
-document de arhitectură.
+O legendă bună explică nodurile, săgețile, limitele și tabelul colapsat al aceleiași diagrame. Nu repetă mecanic textul vizibil și nu devine al doilea document de arhitectură.
 
 Pentru diagramele de module:
 
@@ -383,11 +358,11 @@ Pentru diagramele de module:
 - validarea semantică se face prin compararea cu POM-urile relevante, nu printr-un
   test care potrivește rigid formularea liberă a diagramei.
 
+<a id="documenting-evidence-by-purpose"></a>
+<a id="documentarea-dovezilor-în-funcție-de-scop"></a>
 ### Documentarea dovezilor în funcție de scop
 
-Când un README descrie un raport, fiecare fapt trebuie pus în zona care îi
-exprimă sensul. Folosește o singură schemă canonică și trimite la owner pentru
-detalii, în loc să copiezi arborele complet în fiecare modul:
+Când un README descrie un raport, fiecare fapt trebuie pus în zona care îi exprimă sensul. Folosește o singură schemă canonică și trimite la owner pentru detalii, în loc să copiezi arborele complet în fiecare modul:
 
 | Fapt documentat | Zonă canonică | Evită |
 |---|---|---|
@@ -397,36 +372,29 @@ detalii, în loc să copiezi arborele complet în fiecare modul:
 | rezultat al journey-ului | propoziția Gherkin care afirmă rezultatul | repetarea aceleiași propoziții pentru UI și API |
 | sumar de network | un aggregate terminal, dacă este cerut | a doua listă de request-uri sau payload repetat |
 
-`SETUP` poate include o pregătire cu efect extern dacă este selectată explicit;
-`Setup evidence` rezumă check-urile, iar acțiunile și exchange-urile rămân dovezi
-tehnice separate sub checkpoint-ul cauzal. Într-un pas mixt, `UI validation` și
-`API validation` sunt frați ai aceleiași propoziții Gherkin. Contractul complet
-este deținut de [ATF Reporting Contract](ATF_Reporting_Contract.md); README-ul
-consumerului explică numai modul său de configurare.
+`SETUP` poate include o pregătire cu efect extern dacă este selectată explicit; `Setup evidence` rezumă check-urile, iar acțiunile și exchange-urile rămân dovezi tehnice separate sub checkpoint-ul cauzal. Într-un pas mixt, `UI validation` și `API validation` sunt frați ai aceleiași propoziții Gherkin. Contractul complet este deținut de [ATF Reporting Contract](ATF_Reporting_Contract.md); README-ul consumerului explică numai modul său de configurare.
 
+<a id="project-overview-and-links-to-documentation-owners"></a>
+<a id="prezentarea-proiectului-și-legături-către-proprietarii-documentației"></a>
 ## Prezentarea proiectului și legături către proprietarii documentației
 
-Root-ul trebuie să fie self-explanatory ca overview al produsului, dar nu trebuie
-să conțină contractele interne ale tuturor modulelor.
+Root-ul trebuie să fie self-explanatory ca overview al produsului, dar nu trebuie să conțină contractele interne ale tuturor modulelor.
 
 - root: scop, flux principal, harta modulelor, guvernanță și referințe;
 - `docs/README.md`: indexul documentației și ordinea de aprofundare;
 - README de modul: ownership, input/output, boundary, contract și teste;
 - document normativ: un contract transversal care deservește mai multe module;
-  o capabilitate reutilizabilă nu se ascunde în README-ul unui consumer și nu se
-  confundă cu publisherul unui singur modul;
+  o capabilitate reutilizabilă nu se ascunde în README-ul unui consumer și nu se confundă cu publisherul unui singur modul;
 - feedback: gap-uri dinamice și criterii de închidere;
 - artifacte generate: evidence temporară, niciodată navigație normativă.
 
-Linkurile din root trebuie să răspundă natural la „unde aprofundez?” și să nu
-introducă o a doua versiune a aceleiași hărți. O referință bună are o etichetă
-semantică și o întrebare clară, nu doar un path.
+Linkurile din root trebuie să răspundă natural la „unde aprofundez?” și să nu introducă o a doua versiune a aceleiași hărți. O referință bună are o etichetă semantică și o întrebare clară, nu doar un path.
 
+<a id="naming-links-and-durability"></a>
+<a id="denumiri-linkuri-și-durabilitate"></a>
 ## Denumiri, linkuri și durabilitate
 
-README-ul unui modul rămâne `README.md`. Documentele descriptive folosesc
-`ATF_<PascalCase>` sau `README_Atf_<PascalCase>`: acronimul poate apărea în
-primul segment, iar segmentele următoare au doar inițiala mare.
+README-ul unui modul rămâne `README.md`. Documentele descriptive folosesc `ATF_<PascalCase>` sau `README_Atf_<PascalCase>`: acronimul poate apărea în primul segment, iar segmentele următoare au doar inițiala mare.
 
 | Stabil și documentabil | Volatil și exclus din documentația normativă |
 |---|---|
@@ -467,10 +435,11 @@ primul segment, iar segmentele următoare au doar inițiala mare.
 - [ ] documentația rămâne validă după mutarea checkout-ului și următoarea
       execuție.
 
+<a id="feedback-without-noise"></a>
+<a id="feedback-fără-zgomot"></a>
 ## Feedback fără zgomot
 
-Feedback-ul este singura zonă care se schimbă intenționat dinamic. El nu trebuie
-să concureze cu README-urile stabile.
+Feedback-ul este singura zonă care se schimbă intenționat dinamic. El nu trebuie să concureze cu README-urile stabile.
 
 - [ ] fiecare ToDo are owner, prioritate, reproducere, criteriu de închidere și
       nivel de test;
@@ -479,25 +448,22 @@ să concureze cu README-urile stabile.
 - [ ] scorul 1–100 din backlog indică prioritatea și nu este confundat cu un
       scor editorial al documentului;
 - [ ] un scor editorial folosește criterii declarate și dovezi din codul live,
-      linkuri, ownership și lizibilitate; este comparativ, nu o țintă de
-      acceptare și nu înlocuiește verificarea factuală; într-un clasament,
-      toate documentele folosesc aceeași rubrică și aceleași ponderi;
+      linkuri, ownership și lizibilitate; este comparativ, nu o țintă de acceptare și nu înlocuiește verificarea factuală; într-un clasament, toate documentele folosesc aceeași rubrică și aceleași ponderi;
 - [ ] nu se păstrează rapoarte HTML, capturi, timestamp-uri sau rezultate ale
       unui run ca documentație permanentă;
 - [ ] când gap-ul este închis, regula stabilă se promovează în README-ul
       ownerului, iar itemul se elimină sau se arhivează justificat;
 - [ ] înainte de eliminarea fișierului, se verifică linkurile și țintele
-      `@DocumentationTarget`; o țintă încă guvernată se reduce la un index scurt
-      către owner până la schimbarea explicită a selecției, fără relaxarea testelor;
+      `@DocumentationTarget`; o țintă încă guvernată se reduce la un index scurt către owner până la schimbarea explicită a selecției, fără relaxarea testelor;
 - [ ] dacă codul și testul nu confirmă închiderea, feedback-ul rămâne deschis;
 - [ ] conflictul sau drift-ul live/staging devine feedback auditabil, nu
       overwrite implicit.
 
+<a id="editorial-review-rubric"></a>
+<a id="rubrica-reviziei-editoriale"></a>
 ### Rubrica reviziei editoriale
 
-Nota editorială măsoară documentul verificat, nu readiness-ul codului și nici
-prioritatea backlog-ului. Aceeași rubrică se aplică tuturor documentelor din
-setul revizuit; un rezultat peste 90 nu închide un ToDo nedemonstrat.
+Nota editorială măsoară documentul verificat, nu readiness-ul codului și nici prioritatea backlog-ului. Aceeași rubrică se aplică tuturor documentelor din setul revizuit; un rezultat peste 90 nu închide un ToDo nedemonstrat.
 
 | Criteriu | Maximum | Dovadă urmărită |
 |---|---:|---|
@@ -507,10 +473,10 @@ setul revizuit; un rezultat peste 90 nu închide un ToDo nedemonstrat.
 | Lizibilitate | 20 | primul ecran clar, proză scurtă, tabele/scheme și detalii proporționate |
 | Verificabilitate | 20 | acceptanță reproductibilă și boundary de probă; limitările sunt explicite |
 
-Revizia indică setul evaluat, punctajele și verificările executate în răspunsul
-de livrare. Documentele normative păstrează rubrica și contractele, fără note
-datate, istorice de rulări sau artifacte locale.
+Revizia indică setul evaluat, punctajele și verificările executate în răspunsul de livrare. Documentele normative păstrează rubrica și contractele, fără note datate, istorice de rulări sau artifacte locale.
 
+<a id="completion-criteria"></a>
+<a id="criterii-de-finalizare"></a>
 ## Criterii de finalizare
 
 - [ ] primul ecran este self-explanatory;
@@ -523,26 +489,45 @@ datate, istorice de rulări sau artifacte locale.
 - [ ] contractul este în README-ul ownerului, iar feedback-ul conține doar gap-ul;
 - [ ] documentul a fost recitit împreună cu codul live.
 
+<a id="owner-editorial-review"></a>
+<a id="verificarea-editorială-la-owner"></a>
 ## Verificarea editorială la owner
 
 | Dimensiune | Probă nativă | Ce mai cere review manual |
 |---|---|---|
-| Structură | [README structure](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationReadmeStructureGovernanceTest.java) | primul ecran și traseul cititorului |
+| Structură | [Structura README](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationReadmeStructureGovernanceTest.java) | primul ecran și traseul cititorului |
 | Linkuri și fragmente | [toate documentele guvernate](../atf-tests/src/test/java/atf/api/tests/governance/documentation/links/DocumentationLinkGovernanceTest.java) și [probe negative](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationAnchorGovernanceTest.java) | sensul etichetei și afirmația de lângă link |
 | Stil și proză | [style](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationStyleGovernanceTest.java) și [prose](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationProseGovernanceTest.java) | formularea exactă, densitatea utilă și primul ecran |
 | Diagrame și legende | [diagram governance](../atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationDiagramGovernanceTest.java) | randare, geometrie și păstrarea sensului |
 | Fidelitate factuală | cod/POM/test la owner, plus [harta modulelor](ATF_Architecture.md) | limita dintre comportament livrat, probă executată și propunere |
 
-Comanda de [guvernanță](../atf-tests/README.md#verificare-rapidă) se rulează în
-staging; artifactele Markdown randate se inspectează în TAB MCP. Rubrica
-editorială rămâne cea [de mai sus](#rubrica-reviziei-editoriale), fără praguri
-sau excepții introduse pentru o revizie particulară.
+Comanda de [guvernanță](../atf-tests/README.md#verificare-rapidă) se rulează în staging; artifactele Markdown randate se inspectează în TAB MCP. Rubrica editorială rămâne cea [de mai sus](#rubrica-reviziei-editoriale), fără praguri sau excepții introduse pentru o revizie particulară.
 
-## Library contracts and release history
+<a id="library-contracts-and-release-history"></a>
+<a id="contractele-bibliotecilor-și-istoricul-release-urilor"></a>
+## Contractele bibliotecilor și istoricul release-urilor
 
-Official documentation describes the current API, ownership, configuration, limitations and verification procedure. Library improvement chronology, old/new release comparisons, dated execution counts and release-specific scorecards belong to packaging evidence or historical provenance.
+Documentația oficială descrie API curent, ownership-ul, configurația, limitele și verificarea. Cronologia îmbunătățirilor, comparațiile de release, numerele execuțiilor datate și scorecard-urile specifice versiunii aparțin dovezilor de împachetare sau provenienței istorice.
 
-- Read coordinates and hashes from the consuming POM and provenance; avoid repeating release identifiers throughout contracts and atlases.
-- Keep one current verification note per library beside its producer package, with build logs and generated reports in owned TMP.
-- Keep active gaps in owner feedback and approved test-change controls in their technical baseline; neither becomes a second release journal.
-- Preserve architectural diagrams and legends when removing historical labels; document transport-specific limitations without implying a universal guarantee.
+- Citește coordonatele și hash-urile din POM și proveniența consumerului; evită repetarea identificatorilor de release în contracte și atlase.
+- Păstrează o notă curentă de verificare per bibliotecă lângă pachetul producătorului, cu logurile și rapoartele generate în TMP propriu.
+- Păstrează lacunele active în feedback-ul ownerului și controalele aprobate în baseline-ul tehnic; niciunul nu devine un al doilea jurnal de release.
+- Păstrează diagramele și legendele arhitecturale când elimini etichete istorice; documentează limitele fiecărui transport fără garanții universale.
+
+<a id="maintained-language-editions"></a>
+
+<a id="other-including-mixtures-of-mixtures-of-two-or-more-of-the-foregoing-products"></a>
+<a id="ediții-de-limbă-întreținute"></a>
+## Ediții de limbă întreținute
+
+Ramura main conține documentația engleză; main_RO conține corespondentul român. Codul și configurațiile rămân identice, cu excepția limbii documentației declarate. Păstrați comenzile, identificatorii API, căile și ancorele explicite la traducerea prozei vizibile și a etichetelor diagramelor.
+
+Comparatorul verifică inventarul Markdown complet, structura, destinațiile linkurilor și implementarea comună. Inventarele revizuite sunt fixate pe commit-uri Git în config/documentation-editions.json; identitatea artefactelor curente rămâne în library-provenance.json.
+
+~~~powershell
+node atf-tests/tools/documentation-editions.mjs compare <main-worktree> <main_RO-worktree>
+node atf-tests/tools/documentation-editions.mjs inspect <repository> <English-ref> <Romanian-ref>
+node atf-tests/tools/documentation-editions.mjs verify <repository> <English-commit>
+~~~
+
+Traducerea nu autorizează schimbarea unui oracol, a coordonatei bibliotecii sau a bazei Git înregistrate. Guvernanța limbii include fixture-uri pozitive și negative, iar controalele factuale păstrează verificările numerice și de ownership.
