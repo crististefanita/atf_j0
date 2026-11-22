@@ -354,7 +354,13 @@ Metadatele curente sunt corectate; rămâne acoperirea prin controale, fără sc
 <a id="report-duration-scenario-wall-141--timp-total-față-de-suma-pașilor"></a>
 ## REPORT-DURATION-SCENARIO-WALL-141 - timp total față de suma pașilor
 
-**Prioritate: 76/100 = 30 + 23 + 16 + 7. Owner: Reporting runtime și Reporting Tests.** Proba J7 Saved/Finished în browser real (`chess/atf-tests/src/test/java/ro/atf/chess/ChessWebMatchListPlaywrightE2e.java`) a folosit JAR-ul publicat `atf-reporting:1.0.0-j25` la commit-ul sursă Chess `8500f443a5f830e082aa0b41b7d061c3fe3b943e`. Badge-urile brute ale scenariului și TEST BODY au înregistrat aproximativ `01:31:508`, iar scenariul a păstrat `data-atf-measured-duration-ms=91508`. După inițializarea runtime-ului raportului, ambele badge-uri vizibile au afișat `2.396 s`, suma duratelor înregistrate ale copiilor. Testul a trecut; constatarea privește prezentarea duratei, nu un verdict eșuat. [Decizia curentă de agregare](../../atf-reporting/src/main/resources/atf/reporting/javascript/duration-aggregation.js) preferă de asemenea totalul copiilor atunci când aceștia există și lipsește un marker explicit al execuției. Verificați mai întâi dacă un JAR calificat mai nou distinge deja cele două ceasuri.
+**Prioritate: 76/100 = 30 + 23 + 16 + 7. Owner: Reporting runtime și Reporting Tests.**
+
+- Reproducere: proba J7 Saved/Finished în browser (`chess/atf-tests/src/test/java/ro/atf/chess/ChessWebMatchListPlaywrightE2e.java`), sursa Chess `8500f443a5f830e082aa0b41b7d061c3fe3b943e`, `atf-reporting:1.0.0-j25` publicat.
+- Observație: badge-urile brute ale scenariului și TEST BODY afișau aproximativ `01:31:508`, păstrând `data-atf-measured-duration-ms=91508`; după inițializarea runtime-ului, ambele badge-uri vizibile afișau suma duratelor copiilor `2.396 s`.
+- Limită: testul a trecut; constatarea privește prezentarea duratei. [Decizia de agregare](../../atf-reporting/src/main/resources/atf/reporting/javascript/duration-aggregation.js) preferă totalul copiilor atunci când aceștia există fără un marker explicit al execuției.
+
+Verificați mai întâi dacă un JAR calificat mai nou distinge deja timpul total de agregatul copiilor.
 
 - [ ] Într-un fixture înghețat Extent și fallback, păstrați separat intervalul total măsurat și agregatul copiilor. Etichetați valoarea vizibilă după sursă, astfel încât cititorul să nu confunde timpul publicării ori suma acțiunilor cu timpul total al scenariului; nu fabricați durata execuției dintr-un copil.
 - [ ] Adăugați un control în browser cu o așteptare lentă neinstrumentată în jurul unor pași rapizi înregistrați, altul cu durata explicită a execuției unei faze și unul pentru agregatul clasei. Verificați că Overview, Tests, tooltip/ARIA și expandarea completă exprimă același sens al fiecărei durate. Rerulați proba consumerului J7 pe JAR-ul publicat înainte de închidere.
