@@ -2,7 +2,7 @@
 <a id="regulile-workspace-ului-atf"></a>
 # ATF workspace rules
 
-- Use the sibling workspace `atf_j0` (`../atf_j0`) as the current Core/Reporting/Console/Mock
+- Use the sibling workspace `atf_j0` (`../atf_j0`) as the current Core/Reporting/Console/Mock/Debug UI
   source and test reference.
   `demo2` is historical; do not edit or synchronize it for new work.
 - Read `docs/ATF_Workspace_Synchronization.md` and
@@ -14,8 +14,8 @@
   project's current scope before promotion; one consumer's result never implies
   another's acceptance.
 - J2 keeps its existing Git and messaging scope. Its explicit Eventuate profile includes Setup and excludes Shop, AutoEx, UI and Debug UI; do not restore those modules or Playwright in J2.
-- Keep Core implementation and native tests only in J0. Binary consumers
-  retain the latest Core, Reporting, Console, Mock and Test Kit JAR/POM pairs directly in `lib`,
+- Keep Core and Debug UI implementation/native tests only in J0. Binary consumers
+  retain the JAR/POM pairs selected by their local catalogs directly in `lib`,
   with one root provenance file. Do not copy Reporting source or its harness
   into the live binary consumers.
 - Reconcile common code and consumer adapters selectively in both directions.
@@ -28,8 +28,9 @@
   tests. Preserve historical build provenance; a directory rename alone does
   not require a new Reporting version or imply a fresh test execution.
 
-- Keep active J0 feedback limited to Core/Reporting/Console/Mock and Test Kit, including generic Reporting tests. J0 owns Test Kit implementation/native governance; J1–J7 consume its flat JAR/POM pair without parallel Kit source. J1 coordinates other shared-module criteria and consumer handoffs; preserve domain ownership and independent acceptance in every affected consumer. Compatibility routes may remain in J0 without duplicated TODOs.
+- Keep active J0 feedback limited to Core/Reporting/Console/Mock, Debug UI and Test Kit, including generic Reporting tests. J0 owns Test Kit and Debug UI implementation/native governance; binary consumers use the exact pairs selected by their local catalogs, without parallel source. J1 is the first Debug UI consumer; do not infer adoption by J2–J7. J1 coordinates other shared-module criteria and consumer handoffs; preserve domain ownership and independent acceptance in every affected consumer. Compatibility routes may remain in J0 without duplicated TODOs.
 
 - Keep project README files and docs focused on current contracts. Retain only the current Reporting verification note beside its producer package in owned TMP; record its location in current consumer provenance. Do not accumulate per-release verification Markdown in docs or consumer lib. Preserve historical build/test provenance.
 
 - Official documentation describes current contracts, not iterative Core/Reporting improvements. Keep library release chronology, dated acceptance counts and scorecards outside official README/atlas/contract documents; retain current packaging evidence beside the matching library. Report review scores in the conversation and keep actionable gaps at their owner.
+- Developer-authored Java and JavaScript/MJS identifiers, comments, test names, and technical diagnostics use English. J0 owns the shared Test Kit scanner and the whole-reactor gate; consumers adopt its versioned JAR rather than copying scanner code. Localized product strings and deliberate fixture/payload values remain data.

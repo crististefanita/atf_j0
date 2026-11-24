@@ -32,20 +32,23 @@ class AtfMaintenanceWorkspacePairGovernanceTest {
         var producer = GovernanceDeployment.read(j0);
         assertTrue(producer.reportingSource(), "J0 owns Reporting implementation sources");
         assertTrue(producer.sourceModules().contains(AtfModuleIds.TEST_KIT), "J0 owns Test Kit implementation sources");
+        assertTrue(producer.sourceModules().contains(AtfModuleIds.DEBUG_UI), "J0 owns Debug UI implementation sources");
 
         var consumer = GovernanceDeployment.read(j1);
         assertFalse(consumer.reportingSource(), "J1 consumes the published Reporting binary");
         assertFalse(consumer.sourceModules().contains(AtfModuleIds.TEST_KIT), "J1 consumes the published Test Kit binary");
         assertFalse(Files.exists(j1.resolve(AtfModuleIds.REPORTING)), "J1 has no shadow Reporting source module");
         assertFalse(Files.exists(j1.resolve(AtfModuleIds.TEST_KIT)), "J1 has no shadow Test Kit source module");
+        assertFalse(consumer.sourceModules().contains(AtfModuleIds.DEBUG_UI), "J1 consumes Debug UI as a binary");
+        assertFalse(Files.exists(j1.resolve(AtfModuleIds.DEBUG_UI)), "J1 has no shadow Debug UI source module");
     }
 
     @Test
-    void consumerUsesTheFiveVerifiedFlatLibraryPairs() throws Exception {
+    void consumerUsesTheSixVerifiedFlatLibraryPairs() throws Exception {
         Path j1 = workspace("atf.maintenance.j1");
         assertFalse(ReportingGovernanceSurface.read(j1).source());
         assertFalse(CoreGovernanceSurface.read(j1).source());
-        for (String artifact : List.of("console", "mock", "test-kit")) {
+        for (String artifact : List.of("console", "mock", "test-kit", "debug-ui")) {
             new PlatformLibrarySurface(j1, artifact).inspectConsumerArtifact();
         }
         PlatformLibrarySurface.assertFlatLayout(j1);
@@ -60,13 +63,13 @@ class AtfMaintenanceWorkspacePairGovernanceTest {
             for (Path file : paths.filter(Files::isRegularFile)
                     .filter(path -> path.getFileName().toString().toLowerCase(java.util.Locale.ROOT).endsWith(".md"))
                     .filter(path -> !excludedGeneratedPath(j1, path)).toList()) {
-                String content = Files.readString(file);
+                String content = withoutCanonicalLibrarySourceReference(j1, file, Files.readString(file));
                 if (OTHER_WORKSPACE_REFERENCE.matcher(content).find()) findings.add(j1.relativize(file).toString());
             }
         }
         assertTrue(findings.isEmpty(), "consumer documentation must describe libraries without naming other ATF workspaces: " + findings);
         libraryCatalog.append(Files.readString(j1.resolve("docs/ATF_Workspace_Synchronization.md")));
-        for (String artifact : List.of("core", "reporting", "console", "mock", "test-kit")) {
+        for (String artifact : List.of("core", "reporting", "console", "mock", "test-kit", "debug-ui")) {
             String version = PlatformLibrarySurface.version(j1, artifact);
             assertTrue(libraryCatalog.toString().contains("atf.api:atf-" + artifact + ":" + version),
                     "consumer documentation names the pinned " + artifact + " library coordinate");
@@ -96,5 +99,43 @@ class AtfMaintenanceWorkspacePairGovernanceTest {
             if (List.of(".git", ".idea", "target", "node_modules", "artifacts").contains(name)) return true;
         }
         return false;
+    }
+
+    private static String withoutCanonicalLibrarySourceReference(Path root, Path file, String content) {
+        Path relative = root.relativize(file);
+        if (relative.getNameCount() != 2 || !relative.getName(0).toString().equals("lib")) return content;
+        String name = relative.getFileName().toString();
+        if (!List.of("README.md", "README.Core.md", "README.Reporting.md", "README.Console.md",
+                "README.Mock.md", "README.TestKit.md", "README.DebugUi.md").contains(name)) return content;
+        String marker = "<a id=\"shared-library-source\"></a>";
+        List<String> labels = name.equals("README.md")
+                ? List.of("Library sources", "Sursa bibliotecilor")
+                : List.of("Library source", "Sursa bibliotecii");
+        String linkLabel = name.equals("README.md") ? "Catalog" : name.substring(7, name.length() - 3)
+                .replace("TestKit", "Test Kit").replace("DebugUi", "Debug UI");
+        int markerAt = content.lastIndexOf(marker);
+        int afterMarker = markerAt < 0 ? -1 : markerAt + marker.length();
+        if (afterMarker < 0) return content;
+        int lineAt = -1;
+        String line = null;
+        for (String label : labels) {
+            String candidate = "> **" + label + ":** [" + linkLabel + " · ATF J0](https://github.com/crististefanita/atf_j0/blob/";
+            int candidateAt = content.lastIndexOf(candidate);
+            if (candidateAt >= afterMarker && candidateAt > lineAt) {
+                lineAt = candidateAt;
+                line = candidate;
+            }
+        }
+        if (lineAt < afterMarker || line == null || !content.substring(afterMarker, lineAt).isBlank()) return content;
+        int urlEnd = content.indexOf(").", lineAt);
+        if (urlEnd < 0) return content;
+        String sourcePath = content.substring(lineAt, urlEnd + 2);
+        String expectedPath = "/lib/" + name + ").";
+        if (!(sourcePath.startsWith(line + "main") || sourcePath.startsWith(line + "main_RO"))
+                || !sourcePath.endsWith(expectedPath)) return content;
+        int after = urlEnd + 2;
+        if (after < content.length() && content.charAt(after) == '\r') after++;
+        if (after < content.length() && content.charAt(after) == '\n') after++;
+        return content.substring(0, lineAt) + content.substring(after);
     }
 }

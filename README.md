@@ -2,7 +2,7 @@
 <a id="atf--platformă-modulară-pentru-testare-și-rezultate-verificabile"></a>
 # ATF Java — modular testing and auditable results
 
-ATF Java is a Maven reactor for deterministic API execution, semantic validation, Extent reports and browser auditing. It contains the source of five reusable libraries, integration fixtures and governance tests.
+ATF Java is a Maven reactor for deterministic API execution, semantic validation, Extent reports and browser auditing. It contains the source of six reusable libraries, integration fixtures and governance tests.
 
 `Deterministic API → semantic validation → Extent report → UI audit`
 

@@ -19,6 +19,7 @@ J0 holds the code API, the natives, packaging and feedback Test Kit. J1 -J7 keep
 | `ComponentAuditExtension`, `ComponentAuditAdapter` | Neutral protocol for phases, comparisons and cleanup; the consumer provides the factory and publication in Reporting. |
 | Lifecycle and scope | Resources per invoicing, rollback and case retention; no browser, broker, ADB or ASR in Kit. |
 | Configuration and resolvers | Typed policies for channel, evidence, console and output; actual configuration and selection belong to the consumer. |
+| Source-language governance | `AtfSourceLanguageScanner` checks Java/JavaScript comments, identifiers, and recognized developer diagnostics. Source discovery, localization exceptions, and failure routing remain with each governance owner. |
 | Resources | `readResourceUtf8` also reads JAR entries; `requiredPath` requires a real file. Do not confuse a URL resource with a disk path. |
 | Executable guides | Optional application for compiling examples on JAR / POM; JDK / Maven when checking, do not start processes when simply using annotations. |
 

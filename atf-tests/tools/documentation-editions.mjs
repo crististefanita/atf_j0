@@ -71,6 +71,16 @@ function linkDestination(path, destination) {
   return posix.normalize(posix.join(posix.dirname(path), clean));
 }
 
+function languageAwareDestination(destination, language, path, problems) {
+  const match = /^(https:\/\/github\.com\/crististefanita\/(?:atf_j1|whist|chess)\/blob\/)(main|main_RO)(\/.*)$/i.exec(destination);
+  if (!match) return destination;
+  const expected = language === 'en' ? 'main' : 'main_RO';
+  if (match[2] !== expected) {
+    problems.push(`${language} edition links to the wrong language branch in ${path}: expected ${expected}`);
+  }
+  return `${match[1]}{language-branch}${match[3]}`;
+}
+
 export function markdownContract(path, source) {
   const structure = [];
   const destinations = [];
@@ -210,7 +220,8 @@ function sameNonMarkdownTree(englishRoot, romanianRoot, problems) {
     const enBytes = readFileSync(join(englishRoot, path));
     const roBytes = readFileSync(join(romanianRoot, path));
     const publishedLibraryPom = /^lib\/[^/]+\.pom$/i.test(path);
-    const textFile = /\.(?:java|xml|pom|html|json|ya?ml|properties|txt|ps1|cmd|bat|md|cjs|mjs|js)$/i.test(path);
+    const textFile = /\.(?:java|xml|pom|html|json|ya?ml|properties|txt|ps1|cmd|bat|md|cjs|mjs|js)$/i.test(path)
+      || path.startsWith('atf-reporting-tests/src/test/resources/META-INF/services/');
     const equal = publishedLibraryPom ? enBytes.equals(roBytes) : textFile
       ? utf8.decode(enBytes).replaceAll('\r\n', '\n').replaceAll('\r', '\n')
           === utf8.decode(roBytes).replaceAll('\r\n', '\n').replaceAll('\r', '\n')
@@ -237,8 +248,10 @@ export function compareDocumentationEditions(englishRoot, romanianRoot) {
     const en = markdownContract(path, utf8.decode(readFileSync(join(englishRoot, path))));
     const ro = markdownContract(path, utf8.decode(readFileSync(join(romanianRoot, path))));
     if (!isDeepStrictEqual(en.structure, ro.structure)) problems.push(`Markdown structure differs: ${path}`);
-    if (!isDeepStrictEqual(en.destinations, ro.destinations)) {
-      problems.push(`Link destinations differ: ${path}\n  en: ${JSON.stringify(en.destinations)}\n  ro: ${JSON.stringify(ro.destinations)}`);
+    const enDestinations = en.destinations.map(destination => languageAwareDestination(destination, 'en', path, problems));
+    const roDestinations = ro.destinations.map(destination => languageAwareDestination(destination, 'ro', path, problems));
+    if (!isDeepStrictEqual(enDestinations, roDestinations)) {
+      problems.push(`Link destinations differ: ${path}\n  en: ${JSON.stringify(enDestinations)}\n  ro: ${JSON.stringify(roDestinations)}`);
     }
   }
 

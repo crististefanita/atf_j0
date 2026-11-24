@@ -3,18 +3,18 @@
 <a id="atf--j0-reference-and-consumer-synchronization"></a>
 # ATF — J0 reference and consumer synchronization
 
-[Ownership, feedback and synchronization](../lib/README.md) describes the five-library contract; this page owns the workspace protocol.
+[Ownership, feedback and synchronization](../lib/README.md) describes the shared-library contract; this page owns the workspace protocol.
 
 <a id="at-a-glance"></a>
 <a id="pe-scurt"></a>
 ## At a glance
 
-`atf_j0` owns Core, Reporting, Console, Mock and Test Kit code, tests and feedback; `demo2` remains historical. Their implementations and native tests stay here. Each destination receives and verifies a delivery suited to its own deployment.
+`atf_j0` owns Core, Reporting, Console, Mock, Test Kit and Debug UI code, tests and feedback; `demo2` remains historical. Their implementations and native tests stay here. Each destination receives and verifies a delivery suited to its own deployment.
 
 | Workspace | Role | Existing area |
 |---|---|---|
-| `atf_j0` | Core/Reporting/Console/Mock/Test Kit source, native tests and `atf-reporting-tests`; reference for shared contracts | 12 source modules; Core and reconciled joint governance |
-| `atf_j1` | AutoEx/Shop testing; binary consumer of Core/Reporting/Console/Mock/Test Kit | 6 journey modules; five JAR/POM pairs in lib and independent acceptance |
+| `atf_j0` | Core/Reporting/Console/Mock/Test Kit/Debug UI source, native tests and `atf-reporting-tests`; reference for shared contracts | 12 source modules; producer and shared governance |
+| `atf_j1` | AutoEx/Shop testing; binary consumer of six selected libraries | 5 local modules; six JAR/POM pairs in `lib`; first Debug UI adoption and independent acceptance |
 | `atf_j2` | WIP: framework and Kafka / messaging tests, without browser modules or Shop / AutoEx | 5 source modules, including SQL; Core/Reporting/Console/Mock/Test Kit JAR; Eventuate MOCK components; remote Kafka and the Java infrastructure client verified in the J2 increment; the framework client/observer remains WIP |
 | `atf_j4` | Android/ADB consumer, three modules; Core/Reporting/Console/Mock/Test Kit JAR | independent binary adoption with complete captured PNG evidence; E2E device remains at J4 |
 | `atf_j3` | Speech consumer, four source modules; Core / Reporting / Console / Mock / Test Kit by JAR | Core / Reporting in lib and its own acceptance, without web or messaging modules |
@@ -32,7 +32,7 @@ J1 may have shared changes in progress. J0 reference ownership does not authoriz
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Source["J0<br/>five libraries"] -->|verifies| Candidate["Candidate<br/>JAR + POM + proof"]
+    Source["J0<br/>six libraries"] -->|verifies| Candidate["Candidate<br/>JAR + POM + proof"]
     Candidate -->|deliver| J1["J1 <br/>consumer"]
     Candidate -->|deliver| J2["J2 <br/>consumer initialized"]
     Candidate -->|deliver| J3["J3<br/>consumer speech"]
@@ -78,7 +78,8 @@ J2 is WIP: three components check MOCK oracles, and Setup configures Kafka in Po
 | Reporting Java, assets, API or POM | new version, JAR / POM and provenance; adoption documents | native, permanent regressions and gate on physical JAR |
 | Core Java, API or POM | new Core version, JAR / POM pair and provenance; source and natives remain in J0 | native and contracts on JAR, separate governance and acceptance in each consumer affected J1-J7 |
 | Reporting regression only | tests remain in J0; check relevance for the consumed version | negative reproduction and acceptance on affected binary; without copying the harness live |
-| Test Kit, Console or Mock | new version and JAR/POM pair in J1–J7; source and native tests remain in J0 | native, contracts on JAR and the acceptance of each consumer |
+| Test Kit, Console or Mock | new version and JAR/POM pair only in explicitly adopting consumers; source and native tests remain in J0 | native, contracts on JAR and the acceptance of each consumer |
+| Debug UI | J0 owns module, native tests and shared feedback; J1 first adopts the standalone pair | J0 source package tests, then J1 physical JAR/POM, provenance, scope and documentation acceptance |
 | Validation / UI or Shop / AutoEx adapters | only sources and samples selected for the same behaviour | comparison with local changes and owner tests; a new JAR Reporting is not by default necessary |
 | documentation or reference movement | contracts and links adapted to the deployment | Documentary governance; without new binary version solely for renaming a directory |
 
@@ -86,7 +87,7 @@ J2 is WIP: three components check MOCK oracles, and Setup configures Kafka in Po
   The native hashes and catalogue are in `library-provenance.json`, at the root.
 - POM reactor, `.git`, `testChanges` bases, local configurations,
   caches, outputs and reports are not copied by mirror.
-- J0 owns Core/Reporting/Console/Mock/Test Kit feedback; J1 coordinates shared nonlibrary criteria. [Test Kit](ATF_Test_Kit_Library.md) is distributed as a library in J1–J7; source and native tests remain in J0. Feedback on a shared implementation
+- J0 owns Core/Reporting/Console/Mock/Test Kit/Debug UI feedback; J1 coordinates shared nonlibrary criteria. A library is distributed only to the consumers named in its delivery; source and native tests remain in J0. Feedback on a shared implementation
   be closed in another deployment only after synchronisation and testing its code.
 
 <a id="maintenance-increment-protocol"></a>
@@ -186,7 +187,7 @@ The acceptance of J2 Eventuate and the limit of the host are in [proof of consum
 <a id="j2-fără-module-browser--perimetru-distinct"></a>
 ## J2 without browser modules - distinct perimeter
 
-J2 declares five source modules: the platform, SQL, Setup, Eventuate and governance; Core and Reporting are external libraries. [Scope-ul J2](https://github.com/crististefanita/atf_j2/blob/HEAD/docs/ATF_J2_Scope.md) delimits the contract without UI / Debug or Playwright; withdrawal is implemented in J2 checkout.
+J2 declares five source modules: the platform, SQL, Setup, Eventuate and governance; Core and Reporting are external libraries. [Scope-ul J2](https://github.com/crististefanita/atf_j2/blob/HEAD/docs/ATF_J2_Scope.md) delimits the contract without UI / Debug or Playwright; withdrawal is implemented in J2 checkout. J2 does not consume Debug UI in this delivery.
 
 Do not restore browser modules via sync. Atlas, README and feedback remain adapted to the domain of each deployment; joint contracts are selectively reconciled and the Reporting and web backlog remain with the J0 / J1 owners.
 

@@ -530,6 +530,23 @@ Required checklist for a test module:
 | Responsibility placement | [ArchitectureOwnershipBoundaryTest](../atf-tests/src/test/java/atf/api/tests/governance/ArchitectureOwnershipBoundaryTest.java) | exceptions are explicit; the business verdict remains in the consumer |
 | Package cohesion | [AtfPackageCohesionGovernanceTest](../atf-tests/src/test/java/atf/api/tests/governance/AtfPackageCohesionGovernanceTest.java) | an inventory limit does not justify mechanically splitting a class |
 | Layer and Java sources | [AtfTestLayerArchitectureTest](../atf-tests/src/test/java/atf/api/tests/governance/layers/AtfTestLayerArchitectureTest.java) | includes roots from the POM; does not demonstrate functional coverage |
+| Developer-authored source language | [SourceLanguageGovernanceTest](../atf-tests/src/test/java/atf/api/tests/governance/source/SourceLanguageGovernanceTest.java) and the [Test Kit scanner](../atf-test-kit/src/main/java/atf/testkit/governance/AtfSourceLanguageScanner.java) | catches Romanian diacritics and a curated set of high-confidence Romanian words in identifiers/comments; localized literals and generated roots are out of scope |
+
+### Source-language rule
+
+Write developer-authored Java and JavaScript/MJS identifiers, comments,
+Javadocs/docstrings, test names, and technical diagnostics in English. Keep
+maintained source and tests byte-identical between `main` and `main_RO`; only
+governed documentation prose changes language. Localized product strings,
+deliberate fixture/payload values, protocol/API names, chess notation, and
+generated output remain test data or external contracts, not source prose.
+
+The shared scanner is a deterministic lexical guard with a reviewed Romanian lexicon.
+
+- It checks identifiers, comments, docstrings, and recognized developer diagnostics.
+- It masks localized literals and generated Maven output, except diagnostic-message contexts.
+- Findings include source file, line, construct, and matched token.
+- Extend the lexicon only with positive and negative fixtures; do not duplicate the scanner or use a diacritic-only grep.
 
 [The whole-ATF command](../atf-tests/README.md#quick-verification) runs in staging. The owner's unit/component tests verify changed behavior; a green governance suite does not replace those probes or report audit.
 

@@ -62,6 +62,28 @@ public class GovernanceDeploymentTest {
                 assertThrows(IllegalStateException.class, () -> GovernanceDeployment.read(root)).getMessage());
     }
 
+    @Test void binaryDebugUiNeedsAnExplicitCoordinateAndMapsItsConsumerGuide() throws Exception {
+        prepare(false);
+        Path pom = root.resolve("pom.xml");
+        String original = Files.readString(pom);
+        String withoutDebugUi = original.replace("<module>atf-debug-ui</module>", "");
+        Files.delete(root.resolve("atf-debug-ui/pom.xml"));
+        Files.delete(root.resolve("atf-debug-ui"));
+        Files.writeString(pom, withoutDebugUi);
+        assertTrue(assertThrows(IllegalStateException.class, () -> GovernanceDeployment.read(root))
+                .getMessage().startsWith("GOV-REACTOR:"), "A missing source module cannot be inferred as a binary dependency");
+        String xml = withoutDebugUi.replace("<properties>", "<properties><atf.debugui.version>fixture</atf.debugui.version>");
+        Files.createDirectories(root.resolve("lib"));
+        Files.writeString(root.resolve("lib/README.DebugUi.md"), "# Debug UI consumer contract\n");
+        Files.writeString(pom, xml);
+        var deployment = GovernanceDeployment.read(root);
+        assertFalse(deployment.sourceModules().contains("atf-debug-ui"));
+        assertEquals(List.of("lib/README.DebugUi.md"), deployment.documentationTargets("atf-debug-ui/README.md"));
+        Files.createDirectory(root.resolve("atf-debug-ui"));
+        assertEquals("GOV-DEBUGUI-SHADOW: source in binary deployment",
+                assertThrows(IllegalStateException.class, () -> GovernanceDeployment.read(root)).getMessage());
+    }
+
     private void prepare(boolean reportingSource) throws Exception { DeploymentFixture.prepare(root, reportingSource); }
 
     @Test void binaryConsumerAndExternalHarnessKeepExplicitCatalogs() throws Exception {

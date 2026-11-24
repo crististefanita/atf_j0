@@ -7,7 +7,7 @@
 <a id="pe-scurt"></a>
 ## At a glance
 
-The J0 registry tracks Core, Reporting, Console, Mock and Test Kit gaps, including generic Reporting regressions. The [atlas](../ATF_Context_Atlas.md) routes delivered contracts to their owners; the [J1 registry](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/README.md) owns shared requirements outside the libraries and AutoEx/Shop scenarios.
+The J0 registry tracks Core, Reporting, Console, Mock, Test Kit and Debug UI gaps, including generic Reporting regressions. The [atlas](../ATF_Context_Atlas.md) routes delivered contracts to their owners; the [J1 registry](https://github.com/crististefanita/atf_j1/blob/main/docs/feedback/README.md) owns shared requirements outside the libraries and AutoEx/Shop scenarios.
 
 [Workspaces](../ATF_Workspace_Synchronization.md) separates J0 source, J1 web consumer and J2 WIP for Kafka / Setup messaging in Podman. A result or priority shall not be transferred automatically to each other.
 
@@ -15,7 +15,7 @@ The J0 registry tracks Core, Reporting, Console, Mock and Test Kit gaps, includi
 <a id="biblioteci-comune"></a>
 ## Common libraries
 
-J0 owns Core, Reporting, Console, Mock and Test Kit implementation, public contracts, native tests, packaging and feedback, including findings from ATF consumers. The [maintenance guide](../../lib/README.md) defines one requirement per defect and independent consumer acceptance.
+J0 owns Core, Reporting, Console, Mock, Test Kit and Debug UI implementation, public contracts, native tests, packaging and feedback, including findings from ATF consumers. The [maintenance guide](../../lib/README.md) defines one requirement per defect and independent consumer acceptance.
 
 | Library / evidence | Canonical backlog |
 |---|---|
@@ -24,6 +24,7 @@ J0 owns Core, Reporting, Console, Mock and Test Kit implementation, public contr
 | Reporting generic regressions | [Reporting Tests](ATF_Reporting_Tests_Feedback.md) |
 | Console and Mock | [Console / Mock](ATF_Console_Mock_Feedback.md) |
 | Test Kit | [Test Kit](ATF_Common_Test_Support_Feedback.md) |
+| Debug UI | [Debug UI contract and feedback ownership](../ATF_Platform_Libraries.md#debug-ui-ownership-and-acceptance) |
 
 <a id="maintenance-governance"></a>
 <a id="guvernanța-mentenanței"></a>
@@ -31,7 +32,7 @@ J0 owns Core, Reporting, Console, Mock and Test Kit implementation, public contr
 
 [Workspace feedback](ATF_Maintenance_Feedback.md) keeps the ownership of the whole- reactor gates and J0 / J1. The combined point entry, readonly checks and closing criteria are executable and related to process documentation.
 
-Source-library editorial criteria belong to [documentation feedback](ATF_Documentation_Feedback.md); shared consumer criteria remain with J1.
+Source-library editorial criteria belong to [documentation feedback](ATF_Documentation_Feedback.md); shared consumer criteria remain with J1. Adoption of the English-source rule beyond J1 remains open there until each applicable owner adds and verifies its own language-aware gate.
 
 <a id="active-maintenance-priorities"></a>
 <a id="priorități-de-mentenanță-activă"></a>
@@ -65,7 +66,7 @@ The [atlas](../ATF_Context_Atlas.md) routes reusable contracts to their normativ
 <a id="cerințe-transferate-în-j1"></a>
 ## Requirements transferred to J1
 
-[J1 Registry](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/README.md) owns shared governance, AI design and consumer coordination. J0 owns Test Kit, consumed as a JAR in J1–J7 without parallel source. ID- identifiers and evidence are retained; moving the record does not complete the implementation.
+[J1 Registry](https://github.com/crististefanita/atf_j1/blob/main/docs/feedback/README.md) owns shared governance, AI design and consumer coordination. J0 owns Test Kit, consumed as a JAR in J1–J7 without parallel source. ID- identifiers and evidence are retained; moving the record does not complete the implementation.
 
 <a id="preservation-promotion-and-verification"></a>
 <a id="păstrare-promovare-și-verificare"></a>

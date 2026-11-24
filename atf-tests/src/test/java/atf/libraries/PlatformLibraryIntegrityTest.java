@@ -17,7 +17,7 @@ class PlatformLibraryIntegrityTest {
     @TempDir Path root;
 
     @Test void rejectsChangedJarPomAndParallelSourceWithoutSuppressingTheOriginalFailure() throws Exception {
-        for (String artifact : List.of("console", "mock", "test-kit")) {
+        for (String artifact : List.of("console", "mock", "test-kit", "debug-ui")) {
             prepare(artifact);
             var surface = new PlatformLibrarySurface(root, artifact); surface.inspect();
             Path jar = surface.jar(); byte[] original = Files.readAllBytes(jar);
@@ -63,14 +63,16 @@ class PlatformLibraryIntegrityTest {
     private void prepare(String artifact) throws Exception {
         Files.createDirectories(root.resolve("lib"));
         Files.writeString(root.resolve("pom.xml"), "<project><properties><atf.core.version>fixture</atf.core.version><atf."
-                + (artifact.equals("test-kit") ? "testkit" : artifact) + ".version>fixture</atf."
-                + (artifact.equals("test-kit") ? "testkit" : artifact) + ".version></properties></project>");
+                + property(artifact) + ".version>fixture</atf." + property(artifact) + ".version></properties></project>");
         try (var files = Files.list(root.resolve("lib"))) { for (Path file : files.toList()) Files.delete(file); }
-        for (String guide : List.of("README.md", "README.Core.md", "README.Reporting.md", "README.Console.md", "README.Mock.md", "README.TestKit.md"))
+        for (String guide : List.of("README.md", "README.Core.md", "README.Reporting.md", "README.Console.md", "README.Mock.md", "README.TestKit.md", "README.DebugUi.md"))
             Files.writeString(root.resolve("lib").resolve(guide), "# Library usage\n");
         for (String extension : List.of("jar", "pom")) Files.writeString(root.resolve("lib/atf-core-fixture." + extension), "fixture");
         String pom = "<project><groupId>atf.api</groupId><artifactId>atf-" + artifact
-                + "</artifactId><version>fixture</version><properties><atf.core.version>fixture</atf.core.version></properties></project>";
+                + "</artifactId><version>fixture</version><properties><atf.core.version>fixture</atf.core.version></properties>"
+                + (artifact.equals("debug-ui") ? "<dependencies><dependency><groupId>atf.api</groupId><artifactId>atf-console</artifactId><version>fixture</version></dependency>"
+                        + "<dependency><groupId>atf.api</groupId><artifactId>atf-test-kit</artifactId><version>fixture</version><scope>test</scope></dependency></dependencies>" : "")
+                + "</project>";
         Path publishedPom = root.resolve("lib/atf-" + artifact + "-fixture.pom"); Files.writeString(publishedPom, pom); pack(artifact, pom);
         var mapper = new ObjectMapper(); var metadata = mapper.createObjectNode(); var library = metadata.putObject("platformLibraries").putObject(artifact);
         metadata.putObject("platformLibraryOwnership").put("sourceOwner", "atf_j0").put("feedbackOwner", "atf_j0")
@@ -85,7 +87,10 @@ class PlatformLibraryIntegrityTest {
     private void pack(String artifact, String pom) throws Exception {
         try (var archive = new JarOutputStream(Files.newOutputStream(root.resolve("lib/atf-" + artifact + "-fixture.jar")))) {
             archive.putNextEntry(new JarEntry("META-INF/maven/atf.api/atf-" + artifact + "/pom.xml")); archive.write(pom.getBytes(java.nio.charset.StandardCharsets.UTF_8)); archive.closeEntry();
-            archive.putNextEntry(new JarEntry((artifact.equals("test-kit") ? "atf/testkit/assertions/RecordedAssertions" : "atf/" + artifact + "/" + (artifact.equals("console") ? "AtfConsoleReporter" : "AtfMockTransport")) + ".class"));
+            String namespace = artifact.equals("test-kit") ? "atf/testkit/assertions/RecordedAssertions"
+                    : artifact.equals("debug-ui") ? "atf/debugui/AtfDebugUiLauncher"
+                    : "atf/" + artifact + "/" + (artifact.equals("console") ? "AtfConsoleReporter" : "AtfMockTransport");
+            archive.putNextEntry(new JarEntry(namespace + ".class"));
             archive.write(new byte[]{1}); archive.closeEntry();
         }
     }
@@ -93,4 +98,5 @@ class PlatformLibraryIntegrityTest {
         library.put("producerInputsSha256", java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256")
                 .digest(library.path("producerInputs").toString().getBytes(java.nio.charset.StandardCharsets.UTF_8))));
     }
+    private static String property(String artifact) { return artifact.equals("test-kit") ? "testkit" : artifact.equals("debug-ui") ? "debugui" : artifact; }
 }

@@ -8,18 +8,29 @@
 <a id="pe-scurt"></a>
 ## At a glance
 
-J0 is the producer reactor with 12 modules. It owns implementation and native tests for Core, Reporting, Console, Mock and Test Kit. J1–J7 consume one current JAR/POM pair per library directly from `lib`; application adapters, configuration and acceptance remain local.
+- J0 owns the source, native tests, packaging and shared feedback for Core, Reporting, Console, Mock, Test Kit and Debug UI.
+- Consumers select versioned JAR/POM pairs from a flat `lib` catalog. Application adapters, configuration and acceptance remain with each consumer.
+- J1 is the first Debug UI consumer. J2–J7 catalogs are unchanged by this adoption.
 
 | Project | Source plugins | Domain |
 |---|---|---|
 | J0 | 12 | Producer and native contracts of libraries |
-| J1 | 6 | Browser / API flows for Shop and AutoEx |
+| J1 | 5 local modules + 6 library pairs | Browser / API flows for Shop and AutoEx; first Debug UI binary consumer |
 | J2 | 5 | SQL, setup and messaging Eventuate WIP; without browser modules |
 | J3 | 4 | Speech and acceptance framework |
 | J4 | 3 | Framework Android and acceptance |
 | J5 | 2 | Rentz WIP and independent acceptance of libraries |
 | J6 | 5 | Hold'em WIP; adoption only in the holder-app test scope without producing or harness |
 | J7 | 1 | Chess Lab. Maven Reactor qualifies the engine, reports and pairs of lib via atf-tests. |
+
+<a id="debug-ui-ownership-and-acceptance"></a>
+## Debug UI ownership and acceptance
+
+- J0 owns the `atf-debug-ui` source module, its native regression tests, the published JAR/POM contract and shared implementation feedback.
+- J1 is the first binary consumer. It selects one versioned pair from its flat `lib` catalog and uses the launcher only from the `atf-tests` test classpath.
+- J1 owns its launcher configuration and local inspection acceptance. It does not fork the implementation or certify report behavior.
+
+The Debug UI serves an already-generated HTML file over loopback for browser inspection. It does not produce reports, evaluate assertions or set the test verdict. See the [consumer usage guide](../lib/README.DebugUi.md), [source module](../atf-debug-ui/README.md) and [J0-owned feedback registry](feedback/README.md#common-libraries).
 
 <a id="console-and-mock-limits"></a>
 <a id="limitele-console-și-mock"></a>
@@ -69,7 +80,9 @@ mvn -B -ntp -N validate
 mvn -B -ntp -DskipTests test-compile
 ```
 
-`validate` phase in POM root sets up the five real POM / JAR pairs in the selected Maven repository. Use the same settings and local Maven repository in IntelliJ, then reload POM root. `atf.core.version`, `atf.reporting.version`, `atf.console.version`, `atf.mock.version` and `atf.testkit.version`; do not restore source modules to resolve imports.
+- The J1 root POM's `validate` phase installs the six selected POM/JAR pairs into the configured Maven repository, including `atf.debugui.version`.
+- Use the same settings and local repository in IntelliJ, then reload the root POM.
+- J1 declares Debug UI only in `atf-tests` test scope. Do not restore its source module to resolve imports.
 
 The native library controls run only in J0. Acceptance on a published JAR compiles native tests in TMP without copying production classes, checks the actual `CodeSource` and retains negative oracles. Do not select directly JUnit fixed-ups: their intentional failures are checked by the external test.
 
@@ -77,12 +90,13 @@ The native library controls run only in J0. Acceptance on a published JAR compil
 <a id="integritate-și-mentenanță"></a>
 ## Integrity and maintenance
 
-- `lib` contains ten binary artifacts, index and five user guides: five JAR / POM pairs, without nested repository, old versions, sources or verification notes.
+- J1 `lib` contains twelve binary artifacts, the index and six usage guides: six JAR / POM pairs, without nested repositories, old versions, source trees or release notes.
 - When changing the version of a library, first promote the new pair and the provenance through the guard; then withdraw the old JAR / POM by explicitly cleaning the two files after checking the hashes. The guard does not delete artifacts.
-- `library-provenance.json` maintains the Core / Reporting provenance and adds `platformLibraries.console`, `platformLibraries.mock` and `platformLibraries.test-kit`: coordinates, binary hashes / POM, manufacturer's input digestion, native catalogue and proof of current package.
+- J1 `library-provenance.json` records all six consumed pairs. `platformLibraries.debug-ui` records the selected coordinate, binary and POM hashes, producer inputs, native test catalog, package stage, and J0 ownership; J1 records its independent physical-JAR acceptance.
 - POM incorporated into JAR must be octet-octet with the next published POM. Consumer governance checks JAR physically, rejection of parallel sources, limit of dependence and flat inventory.
 - The manufacturer's building, cachets, recovery copies and final check note remain in the manufacturer's TMP staging. The official documentation describes contracts, not the history of increments.
-- The changes start from J0, keep the default 240 character preview.Accurable and auditable collapse assertions, then receive separate component acceptance in each affected consumer. Offline checks do not certify dev, external broker or ASR.
+- Library changes are implemented and qualified in J0, then accepted independently by each affected consumer.
+- Consumer tests should keep report evidence auditable and assertion details easy to inspect. Offline checks do not certify devices, external brokers or speech services.
 
 See [synchronization of workspaces](ATF_Workspace_Synchronization.md) and [isolated execution](ATF_Build_And_Execution_Safety.md). The sources' Owners are [Console](../atf-console/README.md) and [Mock](../atf-mock/README.md).
 
@@ -90,7 +104,7 @@ See [synchronization of workspaces](ATF_Workspace_Synchronization.md) and [isola
 <a id="ghiduri-executabile-pe-publicația-binară"></a>
 ## Executable guides on binary publication
 
-Maven `library-guides` profile verifies the examples Java / YAML directly from the five README delivered in lib. Owners are `CoreLibraryGuideIT`, `ConsoleLibraryGuideIT` and `MockLibraryGuideIT` in native modules `KitLibraryGuideIT` in Test Kit, `ReportingLibraryGuideIT` in atf-reporting-tests. Neutral support in Test Kit compiles and executes the consumption; oracles remain in libraries.
+Maven `library-guides` profile verifies the examples Java / YAML directly from the selected library guides in `lib`. Owners are `CoreLibraryGuideIT`, `ConsoleLibraryGuideIT` and `MockLibraryGuideIT` in native modules, `KitLibraryGuideIT` in Test Kit, and `ReportingLibraryGuideIT` in atf-reporting-tests. Debug UI is verified by J0's source tests and J1's physical-JAR boundary checks; it is an inspection tool, not a report producer.
 
 In a copy of J0 held in TMP, with the reposition Maven and the director of JVM temporarily own:
 

@@ -6,7 +6,7 @@
 <a id="pe-scurt"></a>
 ## At a glance
 
-J0 maintains Core, Reporting, Console, Mock and Test Kit: implementation, APIs, tests, packaging and feedback. Source code stays in this project; consumers use verified JAR/POM pairs.
+J0 maintains Core, Reporting, Console, Mock, Test Kit and Debug UI: implementation, APIs, tests, packaging and feedback. Source code stays in this project; consumers use verified JAR/POM pairs.
 
 <a id="usage-guidelines"></a>
 <a id="ghiduri-de-utilizare"></a>
@@ -19,6 +19,7 @@ J0 maintains Core, Reporting, Console, Mock and Test Kit: implementation, APIs, 
 | [Console](README.Console.md) | Configurable events and diagnostics | Run diagnostics in Maven and IntelliJ. |
 | [Mock](README.Mock.md) | Deterministic HTTP transport | Offline components and contracts with a local catalog. |
 | [Test Kit](README.TestKit.md) | `atf-test-kit` · audit and a neutral JUnit lifecycle | Classification, comparisons and test support. |
+| [Debug UI](README.DebugUi.md) | `atf-debug-ui` · read-only loopback access to an existing HTML artifact | Inspect generated reports in a local browser; it does not create reports or certify journeys. |
 
 <a id="maintenance-and-feedback"></a>
 <a id="mentenanță-și-feedback"></a>
@@ -31,8 +32,9 @@ J0 maintains Core, Reporting, Console, Mock and Test Kit: implementation, APIs, 
 | Console | [atf-console](../atf-console/README.md) | [Feedback](../docs/feedback/ATF_Console_Mock_Feedback.md) |
 | Mock | [atf-mock](../atf-mock/README.md) | [Feedback](../docs/feedback/ATF_Console_Mock_Feedback.md) |
 | Test Kit | [atf-test-kit](../atf-test-kit/README.md) | [Feedback](../docs/feedback/ATF_Common_Test_Support_Feedback.md) |
+| Debug UI | [atf-debug-ui](../atf-debug-ui/README.md) | [Feedback index](../docs/feedback/README.md#biblioteci-comune) |
 
-The [library feedback index](../docs/feedback/README.md#biblioteci-comune) routes shared findings. Generic Reporting composition and rendering regressions belong to [atf-reporting-tests](../atf-reporting-tests/README.md); other native tests stay beside their library implementation.
+The [library feedback index](../docs/feedback/README.md#biblioteci-comune) routes shared findings. Generic Reporting composition and rendering regressions belong to [atf-reporting-tests](../atf-reporting-tests/README.md); other native tests stay beside their library implementation. J1 is the first binary Debug UI consumer; J2–J7 retain their existing local library catalogs until a separately reviewed delivery and local acceptance.
 
 <a id="working-flow"></a>
 <a id="fluxul-de-lucru"></a>
@@ -75,7 +77,7 @@ flowchart LR
 
 | Control | Contract |
 |---|---|
-| Consumer inventory | Exactly five JAR/POM pairs, the index and five usage guides directly in lib; no extra versions, nested repository or release notes. |
+| Consumer inventory | J1 selects six JAR/POM pairs, this index, and six usage guides directly in `lib`; other consumers retain their own selected catalogs. No extra versions, nested repository or release notes. |
 | Dependencies | Console and Mock pin the verified Core version; a dependency change requires republishing the JAR/POM pair together, without editing only the POM. |
 | Identity | POM coordinates, hashes and root provenance agree; the embedded POM matches the published pair. |
 | Loading | CodeSource identifies the physical JAR; parallel library source and the native harness stay outside the consumer. |
@@ -90,6 +92,6 @@ Project entry points are collected in the [workspace index](../docs/workspaces/R
 
 ## Consumer guides
 
-[J1](https://github.com/crististefanita/atf_j1/blob/HEAD/lib/README.md) · [J2](https://github.com/crististefanita/atf_j2/blob/HEAD/lib/README.md) · [J3](https://github.com/crististefanita/atf_j3/blob/HEAD/lib/README.md) · [J4](https://github.com/crististefanita/whist/blob/HEAD/lib/README.md) · [J5](https://github.com/crististefanita/rentz/blob/HEAD/lib/README.md) · [J6](https://github.com/crististefanita/atf_j6/blob/HEAD/lib/README.md) · [J7](https://github.com/crististefanita/chess/blob/HEAD/lib/README.md)
+[J1 · Shop / AutoEx](https://github.com/crististefanita/atf_j1/blob/main/lib/README.md) · [J2 · Kafka / messaging](https://github.com/crististefanita/atf_j2/blob/HEAD/lib/README.md) · [J3 · audio](https://github.com/crististefanita/atf_j3/blob/main/lib/README.md) · [J4 · Whist](https://github.com/crististefanita/whist/blob/main/lib/README.md) · [J5 · Rentz](https://github.com/crististefanita/rentz/blob/main/lib/README.md) · [J6 · Hold’em](https://github.com/crististefanita/atf_j6/blob/main/lib/README.md) · [J7 · Chess](https://github.com/crististefanita/chess/blob/main/lib/README.md)
 
 Each guide describes its project’s library integration; versions, provenance and acceptance remain local.

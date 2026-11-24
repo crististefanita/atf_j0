@@ -46,6 +46,7 @@ flowchart LR
 | reactor, POM, and dependency direction | `atf-tests` | does not modify production code |
 | source/package ownership and module placement | `ArchitectureModuleBoundaryTest`, `ArchitectureOwnershipBoundaryTest` | does not own application selectors |
 | relocatable documentation and consistent sources | `governance.documentation.*`, `AtfSourceReadabilityGovernanceTest` | does not validate one consumer's content |
+| developer-authored source language | `SourceLanguageGovernanceTest` using the J0-owned Test Kit scanner | lexical guard for Java/MJS identifiers, comments and recognized technical diagnostics; not a general language classifier |
 | constant ownership and package cohesion | `ConstantsOwnershipGovernanceTest`, `AtfPackageCohesionGovernanceTest` | maximum 8 classes per package in production and test source sets across all reactor modules; exceptions must be explicit |
 | Practice Shop purchase journey | `atf-test-practice-shop` | is not copied here |
 | reporting contract/API/UI composition | `atf-reporting-tests` | not moving to government |
@@ -74,7 +75,7 @@ For IntelliJ and Maven, use the same [staging with real Git](../docs/ATF_Build_A
 | Gate | What it checks | Role in feedback |
 |---|---|---|
 | `WholeAtfGovernanceSuiteTest` | architecture, layers, building and governance of all J0 documents | protect structural rules; functional criterion continues to require the owner's sample |
-| `AtfMaintenanceWorkspacePairGovernanceTest` | Source / binary ownership, the five JAR / POM pairs and library catalogue without references to other workspaces | check the declared boundary for selected workspaces |
+| `AtfMaintenanceWorkspacePairGovernanceTest` | Source / binary ownership, the six JAR / POM pairs and library catalogue without references to other workspaces | check the declared boundary for selected workspaces |
 | `AtfWorkspaceMaintenanceSuite` | both gates above in an argument | common gate before reconciliation; does not replace native consumer tests when adopting a new JAR |
 
 `ATF_MAINTENANCE_J0` and `ATF_MAINTENANCE_J1` roots must indicate verified pre-rolling checkouts. J0 and J1 roots are mandatory, explicit and absolute; the suite refuses missing or relative paths, discovers no projects in the vicinity and changes any workspace. J1 is read as an acceptance source; it is not updated by this suite.
@@ -143,6 +144,7 @@ src/test/java/atf/api/tests/governance/
 ├── AtfGovernanceTestSupport.java
 ├── AtfPackageCohesionGovernanceTest.java
 ├── AtfSourceReadabilityGovernanceTest.java
+├── SourceLanguageGovernanceTest.java
 ├── ConstantsOwnershipGovernanceTest.java
 └── WholeAtfGovernanceSuiteTest.java
 ```
@@ -154,6 +156,7 @@ src/test/java/atf/api/tests/governance/
 - `AtfPackageCohesionGovernanceTest` - cohesion of production packages
   governed and test-set sources in each reactor module, including `atf-test-practice-shop`, `atf-test-kit` and `atf-reporting-tests`; the threshold is up to eight classes, and the diagnosis identifies the module, packager and concrete classes for any new or exceptional hotspot;
 - `AtfSourceReadabilityGovernanceTest` - duplicate imports into Maven main sources / test and ATF invocations fully qualified in reporting tests; comments and literature are excluded lexically;
+- `SourceLanguageGovernanceTest` — scans every declared Maven Java source root and maintained `atf-tests/tools/*.mjs`; the J0-owned Test Kit scanner reports path, line, construct, and token, while localized literals and fixture payloads remain valid test data;
 - `layers.AtfTestLayerArchitectureTest` — inventories `sourceDirectory` and `testSourceDirectory` roots from the POM (using Maven defaults), then checks the level of every executable class; nested fixtures do not change the level of the enclosing class;
 - `layers.ConsumerSuiteCoverageGovernanceTest` — exactly three primary suites per consumer, with no omitted classes, overlapping selections, or mixed local/E2E/live API coverage; reads the owner's declaration and executable selectors, without promoting comments or nested fixtures to gates. It also checks explicit scope for component reports;
 - `consumers.ConsumerModuleArchitectureGovernanceTest` and `ConsumerAuditSourceGraphTest` — shared annotation resolver for audit/layer, aliases, inheritance, and imported helpers; comments, literals, and nested fixtures do not exclude the executable owner. Source analysis does not replace launcher/report evidence;

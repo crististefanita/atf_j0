@@ -4764,3 +4764,49 @@ testChanges:
 ```
 
 </details>
+
+<details>
+<summary><strong>Verified control — Debug UI producer and first consumer</strong></summary>
+
+```yaml
+testChanges:
+  - id: J0-DEBUG-UI-CATALOG-20261124
+    status: VERIFIED
+    base: 287c7ae8c8906f669ea278c68d51e5f507a44ae7
+    expires: 2026-12-24
+    reason: Register the Debug UI producer artifact and its J1-first consumer boundary, preserving the six flat library pairs, owner routes, native-test ownership and the explicit non-adoption of J2–J7.
+    proof: mvn -B -ntp -pl atf-tests -am "-Dtest=AtfWorkspaceMaintenanceSuite" "-Datf.maintenance.j0=<source-workspace>" "-Datf.maintenance.j1=<consumer-workspace>" "-Datf.governance.testChanges.baseRef=287c7ae8c8906f669ea278c68d51e5f507a44ae7" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationTargetGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationGovernanceSupport.java
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/factual/LibraryDocumentationInventoryTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/GovernanceDeployment.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/GovernanceDeploymentTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/maintenance/AtfMaintenanceWorkspacePairGovernanceTest.java
+      - atf-tests/pom.xml
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/core/BinaryCoreFixture.java
+      - atf-tests/src/test/java/atf/libraries/PlatformLibraryContractTest.java
+      - atf-tests/src/test/java/atf/libraries/PlatformLibraryIntegrityTest.java
+      - atf-tests/src/test/java/atf/libraries/PlatformLibrarySurface.java
+```
+
+</details>
+
+<details>
+<summary><strong>Verified control — source-language governance</strong></summary>
+
+```yaml
+testChanges:
+  - id: SOURCE-LANGUAGE-GOVERNANCE-20261124
+    status: VERIFIED
+    base: 287c7ae8c8906f669ea278c68d51e5f507a44ae7
+    expires: 2026-12-24
+    reason: Add the shared Test Kit source-language scanner and enroll negative, localized-data, inventory, package-cohesion, documentation, and whole-suite checks.
+    proof: mvn -o -B -ntp -pl atf-tests,atf-test-kit -am "-Dtest=TestChangeGovernanceTest" "-Datf.governance.testChanges.baseRef=287c7ae8c8906f669ea278c68d51e5f507a44ae7" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-kit/src/test/java/atf/testkit/governance/AtfSourceLanguageScannerTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/WholeAtfGovernanceSuiteTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/source/SourceLanguageGovernanceTest.java
+```
+
+</details>

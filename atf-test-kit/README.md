@@ -111,6 +111,14 @@ Each executable class declares exactly one level:
 | `atf.testkit.assertions` | facade / recorder, injected display and component protocol | JUnit comparisons with neutral evidence per phase and invocation; no renderer or business rules |
 | `atf.testkit.timing` | `InvocationTimer` | Monotone intervals per owner, immutable snapshot and accumulation without renderer or JUnit |
 | `atf.testkit.recovery` | `AtfUiRecovery`, plan and Resolver | per-invocation BE policy restriction; no YAML, browser or renderer |
+| `atf.testkit.governance` | `AtfSourceLanguageScanner` | deterministic Java/JS lexical guard for developer identifiers, comments and recognized diagnostics; no file discovery or project policy |
+
+The scanner supplies lexical checks; each consumer owns the inventory and gate.
+
+- Findings identify the source file, line, construct, and matched token.
+- Localized product text and ordinary fixture literals are excluded.
+- Exception, log, console, and JUnit assertion messages are inspected.
+- The reviewed Romanian lexicon is a high-confidence guard, not an English classifier.
 
 `atf.testkit.lifecycle` is a package of the existing `atf-test-kit` module, not a new module. It does not introduce dependencies to UI or Reporting.
 

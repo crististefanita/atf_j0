@@ -14,10 +14,15 @@ import static org.junit.jupiter.api.Assertions.*;
 class PlatformLibraryContractTest {
     @Test void commonLibrariesRetainIndependentPomsAndPhysicalConsumerCodeSources() throws Exception {
         Path root = PlatformLibrarySurface.workspace();
-        for (String artifact : List.of("console", "mock", "test-kit")) {
+        for (String artifact : List.of("console", "mock", "test-kit", "debug-ui")) {
             var surface = new PlatformLibrarySurface(root, artifact);
             surface.inspect();
-            surface.assertLoaded(artifact.equals("console") ? AtfConsoleReporter.class : artifact.equals("mock") ? AtfMockTransport.class : atf.testkit.assertions.RecordedAssertions.class);
+            surface.assertLoaded(switch (artifact) {
+                case "console" -> AtfConsoleReporter.class;
+                case "mock" -> AtfMockTransport.class;
+                case "debug-ui" -> atf.debugui.AtfDebugUiLauncher.class;
+                default -> atf.testkit.assertions.RecordedAssertions.class;
+            });
             if (Files.exists(root.resolve("library-provenance.json"))) assertFalse(surface.source(), "Every binary consumer declares both platform libraries");
         }
     }
@@ -26,7 +31,7 @@ class PlatformLibraryContractTest {
         Files.writeString(root.resolve("pom.xml"), "<project><properties><atf.console.version>fixture</atf.console.version>"
                 + "<atf.mock.version>fixture</atf.mock.version></properties></project>");
         Path lib = Files.createDirectory(root.resolve("lib"));
-        for (String guide : List.of("README.md", "README.Core.md", "README.Reporting.md", "README.Console.md", "README.Mock.md", "README.TestKit.md")) Files.writeString(lib.resolve(guide), "# Library usage\n");
+        for (String guide : List.of("README.md", "README.Core.md", "README.Reporting.md", "README.Console.md", "README.Mock.md", "README.TestKit.md", "README.DebugUi.md")) Files.writeString(lib.resolve(guide), "# Library usage\n");
         for (String artifact : List.of("console", "mock")) for (String extension : List.of("jar", "pom"))
             Files.writeString(lib.resolve("atf-" + artifact + "-fixture." + extension), "fixture");
         PlatformLibrarySurface.assertFlatLayout(root);
@@ -43,7 +48,7 @@ class PlatformLibraryContractTest {
         Path lib = Files.createDirectory(root.resolve("lib"));
         for (String extension : List.of("jar", "pom")) Files.writeString(lib.resolve("atf-mock-fixture." + extension), "fixture");
         assertThrows(IllegalStateException.class, () -> PlatformLibrarySurface.assertFlatLayout(root), "The usage guides are required");
-        var guides = List.of("README.md", "README.Core.md", "README.Reporting.md", "README.Console.md", "README.Mock.md", "README.TestKit.md");
+        var guides = List.of("README.md", "README.Core.md", "README.Reporting.md", "README.Console.md", "README.Mock.md", "README.TestKit.md", "README.DebugUi.md");
         for (String guide : guides) Files.writeString(lib.resolve(guide), "# Usage\n");
         PlatformLibrarySurface.assertFlatLayout(root);
         for (String guide : guides) {
@@ -54,7 +59,7 @@ class PlatformLibraryContractTest {
             Files.delete(file); Files.writeString(file, "# Usage\n");
         }
         Path releaseNote = lib.resolve("verification.md"); Files.writeString(releaseNote, "release history");
-        assertThrows(IllegalStateException.class, () -> PlatformLibrarySurface.assertFlatLayout(root), "Only the index and five named guides are allowed");
+        assertThrows(IllegalStateException.class, () -> PlatformLibrarySurface.assertFlatLayout(root), "Only the index and six named guides are allowed");
     }
 
     @Test void unsafeAndDuplicateVersionsAreRejectedBeforeResolvingLibraryPaths(@TempDir Path root) throws Exception {
