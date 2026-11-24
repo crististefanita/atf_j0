@@ -46,6 +46,7 @@ flowchart LR
 | reactor, POM și dependency direction | `atf-tests` | nu modifică production code |
 | source/package ownership și module placement | `ArchitectureModuleBoundaryTest`, `ArchitectureOwnershipBoundaryTest` | nu deține selectorii unei aplicații |
 | documentație relocabilă și surse coerente | `governance.documentation.*`, `AtfSourceReadabilityGovernanceTest` | nu validează conținutul unui singur consumer |
+| limba sursei scrise de dezvoltatori | `SourceLanguageGovernanceTest` cu scannerul din Test Kit-ul deținut de J0 | guard lexical Java/MJS pentru identificatori, comentarii și diagnostice recunoscute; textele localizate rămân date |
 | ownership de constante și coeziune de package | `ConstantsOwnershipGovernanceTest`, `AtfPackageCohesionGovernanceTest` | maximum 8 clase/pachet în producție și în source-set-urile de test ale tuturor modulelor din reactor; excepțiile trebuie să fie explicite |
 | Practice Shop purchase journey | `atf-test-practice-shop` | nu se copiază aici |
 | reporting contract/API/UI composition | `atf-reporting-tests` | nu se mută în governance |
@@ -74,7 +75,7 @@ Pentru IntelliJ și Maven folosește același [staging cu Git real](../docs/ATF_
 | Poartă | Ce verifică | Rol în feedback |
 |---|---|---|
 | `WholeAtfGovernanceSuiteTest` | arhitectură, layere, build și guvernanța tuturor documentelor J0 | protejează regulile structurale; criteriul funcțional cere în continuare proba ownerului |
-| `AtfMaintenanceWorkspacePairGovernanceTest` | ownership sursă/binar, cele cinci perechi JAR/POM și catalogul de biblioteci fără referințe la alte workspaces | verifică boundary-ul declarat pentru workspace-urile selectate |
+| `AtfMaintenanceWorkspacePairGovernanceTest` | ownership sursă/binar, cele șase perechi JAR/POM și catalogul de biblioteci fără referințe la alte workspaces | verifică boundary-ul declarat pentru workspace-urile selectate |
 | `AtfWorkspaceMaintenanceSuite` | ambele porți de mai sus într-o invocare | gate comun înainte de reconciliere; nu înlocuiește testele native ale consumerului la adoptarea unui JAR nou |
 
 Rădăcinile `ATF_MAINTENANCE_J0` și `ATF_MAINTENANCE_J1` trebuie să indice checkout-uri verificate înainte de rulare. Rădăcinile J0 și J1 sunt obligatorii, explicite și absolute; suita refuză căile lipsă sau relative, nu descoperă proiecte în vecinătate și nu modifică niciun workspace. J1 este citit ca sursă de acceptanță; nu este actualizat de această suită.
@@ -143,6 +144,7 @@ src/test/java/atf/api/tests/governance/
 ├── AtfGovernanceTestSupport.java
 ├── AtfPackageCohesionGovernanceTest.java
 ├── AtfSourceReadabilityGovernanceTest.java
+├── SourceLanguageGovernanceTest.java
 ├── ConstantsOwnershipGovernanceTest.java
 └── WholeAtfGovernanceSuiteTest.java
 ```
@@ -156,6 +158,7 @@ src/test/java/atf/api/tests/governance/
 - `AtfPackageCohesionGovernanceTest` — coeziunea package-urilor de producție
   guvernate și a source-set-urilor de test din fiecare modul al reactorului, inclusiv `atf-test-practice-shop`, `atf-test-kit` și `atf-reporting-tests`; pragul este de maximum opt clase, iar diagnosticul identifică modulul, package-ul și clasele concrete pentru orice hotspot nou sau excepție stale;
 - `AtfSourceReadabilityGovernanceTest` — importuri duplicate în sursele Maven main/test și invocații ATF complet calificate în reporting tests; comentariile și literalii sunt excluși lexical;
+- `SourceLanguageGovernanceTest` — aplică scannerul comun din Test Kit tuturor rădăcinilor Java declarate și `atf-tests/tools/*.mjs`; verifică diagnosticul fișier/linie/construcție și păstrează valorile localizate din fixture-uri în afara verdictului;
 - `layers.AtfTestLayerArchitectureTest` — inventariază rădăcinile `sourceDirectory` și `testSourceDirectory` din POM (cu default Maven), apoi verifică nivelul fiecărei clase executabile; fixture-urile imbricate nu schimbă nivelul clasei exterioare;
 - `layers.ConsumerSuiteCoverageGovernanceTest` — exact trei suite principale per consumer, fără clase omise, selecții suprapuse sau amestec local/E2E/API live; citește declarația ownerului și selectorii executabili, fără comentarii ori fixture-uri nested promovate la gate. Probează și scope-ul explicit al rapoartelor componentelor;
 - `consumers.ConsumerModuleArchitectureGovernanceTest` și `ConsumerAuditSourceGraphTest` — resolver comun de adnotări pentru audit/layer, alias-uri, moștenire și helperi importați; comentariile, literalii și fixture-urile nested nu exclud ownerul executabil. Analiza sursei nu înlocuiește proba launcher/raport;

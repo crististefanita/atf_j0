@@ -19,6 +19,7 @@ J0 deține codul, API-ul, nativele, împachetarea și feedback-ul Test Kit. J1�
 | `ComponentAuditExtension`, `ComponentAuditAdapter` | Protocol neutru pentru faze, comparații și cleanup; consumerul furnizează fabrica și publicarea în Reporting. |
 | Lifecycle și scope | Resurse per invocare, rollback și păstrarea cauzei; fără browser, broker, ADB ori ASR în Kit. |
 | Configurație și resolvere | Politici typed pentru canal, evidence, consolă și output; configurația efectivă și selecția aparțin consumerului. |
+| Guvernanța limbii sursei | `AtfSourceLanguageScanner` verifică comentarii și identificatori Java/JavaScript, plus mesaje tehnice recunoscute. Descoperirea surselor, excepțiile de localizare și raportarea încălcărilor aparțin fiecărui owner de guvernanță. |
 | Resurse | `readResourceUtf8` citește și intrări JAR; `requiredPath` cere un fișier real. Nu confundați un resource URL cu o cale pe disc. |
 | Ghiduri executabile | Utilitare opționale pentru compilarea exemplelor pe JAR/POM; cer JDK/Maven la verificare, nu pornesc procese la simpla utilizare a adnotărilor. |
 

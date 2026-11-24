@@ -37,11 +37,15 @@ public record GovernanceDeployment(Path root, List<String> sourceModules, boolea
         boolean binaryKit = !atf.libraries.PlatformLibrarySurface.version(root, "test-kit").isBlank();
         if (binaryKit && (source || actual.contains(AtfModuleIds.TEST_KIT) || Files.exists(root.resolve(AtfModuleIds.TEST_KIT))))
             throw new IllegalStateException("GOV-KIT-SHADOW: source in binary deployment");
+        boolean binaryDebugUi = !atf.libraries.PlatformLibrarySurface.version(root, "debug-ui").isBlank();
+        if (binaryDebugUi && (source || actual.contains(AtfModuleIds.DEBUG_UI) || Files.exists(root.resolve(AtfModuleIds.DEBUG_UI))))
+            throw new IllegalStateException("GOV-DEBUGUI-SHADOW: source in binary deployment");
         boolean foundation = List.of("foundation", "eventuate").contains(profile);
         List<String> binaryGate = AtfModuleIds.REACTOR_MODULES.stream()
                 .filter(module -> source || !module.equals(AtfModuleIds.REPORTING))
                 .filter(module -> !binaryCore || !module.equals(AtfModuleIds.CORE))
                 .filter(module -> !binaryKit || !module.equals(AtfModuleIds.TEST_KIT))
+                .filter(module -> !binaryDebugUi || !module.equals(AtfModuleIds.DEBUG_UI))
                 .filter(module -> !platform || !List.of(AtfModuleIds.CONSOLE, AtfModuleIds.MOCK).contains(module))
                 .filter(module -> !foundation || !consumerModule(module))
                 .filter(module -> !profile.equals("eventuate") || !List.of(AtfModuleIds.UI, AtfModuleIds.DEBUG_UI).contains(module)).toList();
@@ -85,6 +89,9 @@ public record GovernanceDeployment(Path root, List<String> sourceModules, boolea
         if (!sourceModules.contains(AtfModuleIds.TEST_KIT) && configured.equals("atf-test-kit/README.md")) return List.of("lib/README.TestKit.md");
         if (!coreSource() && configured.equals("atf-core/README.md")) return List.of("docs/ATF_Core_Consumer.md");
         String module = configured.contains("/") ? configured.substring(0, configured.indexOf('/')) : "";
+        if (module.equals(AtfModuleIds.DEBUG_UI) && !sourceModules.contains(module)
+                && configured.equals(module + "/README.md") && Files.isRegularFile(root.resolve("lib/README.DebugUi.md")))
+            return List.of("lib/README.DebugUi.md");
         if (List.of(AtfModuleIds.UI, AtfModuleIds.DEBUG_UI).contains(module) && !sourceModules.contains(module) && configured.equals(module + "/README.md"))
             return List.of("docs/ATF_J2_Verification.md", "docs/ATF_Eventuate_Integration.md");
         if (consumerModule(module) && !sourceModules.contains(module) && configured.equals(module + "/README.md"))

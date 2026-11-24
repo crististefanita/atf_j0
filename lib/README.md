@@ -6,7 +6,7 @@
 <a id="pe-scurt"></a>
 ## Pe scurt
 
-J0 deține bibliotecile Core, Reporting, Console, Mock și Test Kit: cod, API, teste, împachetare și feedback. Codul rămâne în modulele sursă ale acestui proiect; consumerii ATF reutilizează perechile JAR/POM verificate.
+J0 deține bibliotecile Core, Reporting, Console, Mock, Test Kit și Debug UI: cod, API, teste, împachetare și feedback. Codul rămâne în modulele sursă ale acestui proiect; consumerii ATF reutilizează perechile JAR/POM verificate.
 
 <a id="usage-guidelines"></a>
 <a id="ghiduri-de-utilizare"></a>
@@ -19,6 +19,7 @@ J0 deține bibliotecile Core, Reporting, Console, Mock și Test Kit: cod, API, t
 | [Console](README.Console.md) | Evenimente și diagnostic configurabil | Urmărirea execuției în Maven și IntelliJ. |
 | [Mock](README.Mock.md) | Transport HTTP determinist | Componente și contracte offline, cu catalog propriu. |
 | [Test Kit](README.TestKit.md) | `atf-test-kit` · audit și lifecycle JUnit neutru | Clasificare, comparații și suportul testelor. |
+| [Debug UI](README.DebugUi.md) | `atf-debug-ui` · acces read-only prin loopback la un artifact HTML existent | Inspectează rapoarte generate în browser local; nu generează rapoarte și nu califică journey-uri. |
 
 <a id="maintenance-and-feedback"></a>
 <a id="mentenanță-și-feedback"></a>
@@ -31,8 +32,9 @@ J0 deține bibliotecile Core, Reporting, Console, Mock și Test Kit: cod, API, t
 | Consolă | [atf-console](../atf-console/README.md) | [Feedback](../docs/feedback/ATF_Console_Mock_Feedback.md) |
 | Mock | [atf-mock](../atf-mock/README.md) | [Feedback](../docs/feedback/ATF_Console_Mock_Feedback.md) |
 | Test Kit | [atf-test-kit](../atf-test-kit/README.md) | [Feedback](../docs/feedback/ATF_Common_Test_Support_Feedback.md) |
+| Debug UI | [atf-debug-ui](../atf-debug-ui/README.md) | [Index feedback](../docs/feedback/README.md#biblioteci-comune) |
 
-[Registrul J0](../docs/feedback/README.md#biblioteci-comune) este punctul de intrare pentru toate proiectele. Regresiile generice de compoziție și randare Reporting rămân în [atf-reporting-tests](../atf-reporting-tests/README.md); celelalte teste native stau lângă implementarea bibliotecii.
+[Registrul J0](../docs/feedback/README.md#biblioteci-comune) este punctul de intrare pentru toate proiectele. Regresiile generice de compoziție și randare Reporting rămân în [atf-reporting-tests](../atf-reporting-tests/README.md); celelalte teste native stau lângă implementarea bibliotecii. J1 este primul consumer binar Debug UI; J2–J7 își păstrează cataloagele locale existente până la o livrare revizuită separat și acceptanță locală.
 
 <a id="working-flow"></a>
 <a id="fluxul-de-lucru"></a>
@@ -75,7 +77,7 @@ flowchart LR
 
 | Control | Contract |
 |---|---|
-| Inventar consumer | Exact cinci perechi JAR/POM, indexul și cinci ghiduri de utilizare, direct în lib; fără versiuni suplimentare, depozit imbricat sau note de release. |
+| Inventar consumer | J1 selectează șase perechi JAR/POM, acest index și șase ghiduri direct în `lib`; ceilalți consumeri își păstrează cataloagele selectate. Fără versiuni suplimentare, depozit imbricat sau note de release. |
 | Dependențe | Console și Mock fixează versiunea Core verificată; schimbarea ei cere republicarea JAR/POM împreună, fără editarea izolată a POM-ului. |
 | Identitate | Coordonate din POM; hash-uri și proveniență la rădăcină; POM-ul încorporat coincide cu perechea publicată. |
 | Încărcare | CodeSource indică JAR-ul fizic; sursele paralele și harness-urile native nu revin în consumer. |
@@ -90,6 +92,6 @@ Punctele de intrare ale proiectelor sunt reunite în [indexul workspace-urilor](
 
 ## Ghidurile consumerilor
 
-[J1](https://github.com/crististefanita/atf_j1/blob/HEAD/lib/README.md) · [J2](https://github.com/crististefanita/atf_j2/blob/HEAD/lib/README.md) · [J3](https://github.com/crististefanita/atf_j3/blob/HEAD/lib/README.md) · [J4](https://github.com/crististefanita/whist/blob/HEAD/lib/README.md) · [J5](https://github.com/crististefanita/rentz/blob/HEAD/lib/README.md) · [J6](https://github.com/crististefanita/atf_j6/blob/HEAD/lib/README.md) · [J7](https://github.com/crististefanita/chess/blob/HEAD/lib/README.md)
+[J1 · Shop / AutoEx](https://github.com/crististefanita/atf_j1/blob/main_RO/lib/README.md) · [J2](https://github.com/crististefanita/atf_j2/blob/HEAD/lib/README.md) · [J3](https://github.com/crististefanita/atf_j3/blob/main/lib/README.md) · [J4 · Whist](https://github.com/crististefanita/whist/blob/main_RO/lib/README.md) · [J5 · Rentz](https://github.com/crististefanita/rentz/blob/main/lib/README.md) · [J6 · Hold’em](https://github.com/crististefanita/atf_j6/blob/main/lib/README.md) · [J7 · Chess](https://github.com/crististefanita/chess/blob/main_RO/lib/README.md)
 
 Fiecare ghid descrie integrarea bibliotecilor în propriul proiect; versiunile, proveniența și acceptanța rămân locale.

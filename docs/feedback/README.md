@@ -7,7 +7,7 @@
 <a id="pe-scurt"></a>
 ## Pe scurt
 
-Registrul J0 urmărește lacunele Core, Reporting, Console, Mock și Test Kit, inclusiv regresiile generice Reporting. [Atlasul](../ATF_Context_Atlas.md) indică ownerii contractelor livrate, iar [registrul J1](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/README.md) urmărește cerințele comune din afara bibliotecilor și scenariile AutoEx/Shop.
+Registrul J0 urmărește lacunele Core, Reporting, Console, Mock, Test Kit și Debug UI, inclusiv regresiile generice Reporting. [Atlasul](../ATF_Context_Atlas.md) indică ownerii contractelor livrate, iar [registrul J1](https://github.com/crististefanita/atf_j1/blob/main_RO/docs/feedback/README.md) urmărește cerințele comune din afara bibliotecilor și scenariile AutoEx/Shop.
 
 [Workspace-urile](../ATF_Workspace_Synchronization.md) separă J0 sursă, J1 consumer web și J2 WIP pentru Kafka/mesagerie cu Setup în Podman. Un rezultat sau o prioritate nu se transferă automat între ele.
 
@@ -15,7 +15,7 @@ Registrul J0 urmărește lacunele Core, Reporting, Console, Mock și Test Kit, i
 <a id="biblioteci-comune"></a>
 ## Biblioteci comune
 
-J0 deține codul, contractele publice, testele native, împachetarea și feedback-ul Core, Reporting, Console, Mock și Test Kit, inclusiv constatările venite din consumerii ATF. [Ghidul de mentenanță](../../lib/README.md) definește o singură cerință per problemă și acceptanțe distincte la consumeri.
+J0 deține codul, contractele publice, testele native, împachetarea și feedback-ul Core, Reporting, Console, Mock, Test Kit și Debug UI, inclusiv constatările venite din consumerii ATF. [Ghidul de mentenanță](../../lib/README.md) definește o singură cerință per problemă și acceptanțe distincte la consumeri.
 
 | Bibliotecă / probă | Backlog canonic |
 |---|---|
@@ -24,6 +24,7 @@ J0 deține codul, contractele publice, testele native, împachetarea și feedbac
 | Regresii generice Reporting | [Reporting Tests](ATF_Reporting_Tests_Feedback.md) |
 | Console și Mock | [Console / Mock](ATF_Console_Mock_Feedback.md) |
 | Test Kit | [Test Kit](ATF_Common_Test_Support_Feedback.md) |
+| Debug UI | [Contractul Debug UI și ownership-ul feedback-ului](../ATF_Platform_Libraries.md#debug-ui-ownership-and-acceptance) |
 
 <a id="maintenance-governance"></a>
 <a id="guvernanța-mentenanței"></a>
@@ -31,7 +32,7 @@ J0 deține codul, contractele publice, testele native, împachetarea și feedbac
 
 [Feedback-ul workspace-urilor](ATF_Maintenance_Feedback.md) păstrează ownership-ul porților whole-reactor și J0/J1. Entry point-ul combinat, verificările read-only și criteriul de închidere sunt executabile și legate de documentația procesului.
 
-Criteriile editoriale ale bibliotecilor sursă sunt în [feedback-ul documentației](ATF_Documentation_Feedback.md); criteriile comune ale consumerilor rămân în J1.
+Criteriile editoriale ale bibliotecilor sursă și adopția regulii pentru limba sursei dincolo de J1 sunt urmărite în [feedback-ul documentației](ATF_Documentation_Feedback.md); rollout-ul rămâne deschis până când fiecare owner aplicabil adaugă și verifică un gate conștient de limbaj. Criteriile comune ale consumerilor rămân în J1.
 
 <a id="active-maintenance-priorities"></a>
 <a id="priorități-de-mentenanță-activă"></a>
@@ -65,7 +66,7 @@ Nu introduceți funcționalitate doar pentru a atinge o notă; prioritizați cor
 <a id="cerințe-transferate-în-j1"></a>
 ## Cerințe transferate în J1
 
-[Registrul J1](https://github.com/crististefanita/atf_j1/blob/HEAD/docs/feedback/README.md) deține guvernanța comună, designul AI și coordonarea consumerilor. Test Kit are owner în J0 și este consumat ca JAR în J1–J7, fără surse paralele. ID-urile și probele sunt păstrate; transferul nu închide implementarea.
+[Registrul J1](https://github.com/crististefanita/atf_j1/blob/main_RO/docs/feedback/README.md) deține guvernanța comună, designul AI și coordonarea consumerilor. Test Kit și Debug UI au owner în J0; J1 este primul consumer Debug UI, fără surse paralele. ID-urile și probele sunt păstrate; transferul nu închide implementarea.
 
 <a id="preservation-promotion-and-verification"></a>
 <a id="păstrare-promovare-și-verificare"></a>

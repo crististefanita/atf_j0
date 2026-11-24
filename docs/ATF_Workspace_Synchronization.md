@@ -3,18 +3,18 @@
 <a id="atf--j0-reference-and-consumer-synchronization"></a>
 # ATF — referința J0 și sincronizarea consumerilor
 
-[Owner, feedback și sincronizare](../lib/README.md) descrie contractul celor cinci biblioteci; această pagină păstrează protocolul workspace-urilor.
+[Owner, feedback și sincronizare](../lib/README.md) descrie contractul celor șase biblioteci; această pagină păstrează protocolul workspace-urilor.
 
 <a id="at-a-glance"></a>
 <a id="pe-scurt"></a>
 ## Pe scurt
 
-`atf_j0` deține codul, testele și feedback-ul Core, Reporting, Console, Mock și Test Kit; `demo2` rămâne istoric. Implementările Core/Reporting/Console/Mock/Test Kit și toate testele lor native rămân aici; fiecare destinație primește și verifică livrarea potrivită propriului deployment.
+`atf_j0` deține codul, testele și feedback-ul Core, Reporting, Console, Mock, Test Kit și Debug UI; `demo2` rămâne istoric. Implementările și testele native ale celor șase biblioteci rămân aici; fiecare destinație primește și verifică livrarea potrivită propriului deployment.
 
 | Workspace | Rol | Suprafață existentă |
 |---|---|---|
-| `atf_j0` | sursă Core/Reporting/Console/Mock/Test Kit, teste native și `atf-reporting-tests`; referință pentru contractele comune | 12 module sursă; Core și guvernanța comune reconciliate |
-| `atf_j1` | testarea AutoEx și Shop; consumer Core/Reporting/Console/Mock/Test Kit prin JAR | 6 module journeys; cinci perechi JAR/POM în lib și acceptanță proprie |
+| `atf_j0` | sursă Core/Reporting/Console/Mock/Test Kit/Debug UI, teste native și `atf-reporting-tests`; referință pentru contractele comune | 12 module sursă; producător și guvernanță comună |
+| `atf_j1` | testarea AutoEx și Shop; consumer al celor șase biblioteci selectate | 5 module locale; șase perechi JAR/POM în `lib`; prima adopție Debug UI și acceptanță proprie |
 | `atf_j2` | WIP: framework și teste Kafka/mesagerie, fără module browser ori Shop/AutoEx | 5 module sursă, inclusiv SQL; Core/Reporting/Console/Mock/Test Kit JAR; componente Eventuate MOCK; Kafka remote și clientul Java de infrastructură validate în incrementul J2; clientul/observerul framework-ului rămâne WIP |
 | `atf_j4` | consumer Android/ADB, trei module; Core/Reporting/Console/Mock/Test Kit JAR | independent binary adoption, with complete captured PNG evidence; E2E device rămâne la J4 |
 | `atf_j3` | consumer speech, patru module sursă; Core/Reporting/Console/Mock/Test Kit prin JAR | Core/Reporting in lib și acceptanță proprie, fără module web ori mesagerie |
@@ -32,7 +32,7 @@ J1 poate avea schimbări comune în lucru. Referința J0 nu autorizează suprasc
 ```mermaid
 %%{init: {"themeVariables":{"fontSize":"15px"},"themeCSS":".nodeLabel, .nodeLabel p { font-size: 15px !important; line-height: 1.35 !important; } .edgeLabel, .edgeLabel p { font-size: 12px !important; font-weight: 400 !important; line-height: 1.2 !important; } .edgeLabel .labelBkg, .edgeLabel p { background: transparent !important; } .edgeLabel foreignObject { transform: translateY(-18px); overflow: visible; } .node rect { rx: 6px; ry: 6px; }","flowchart":{"curve":"linear","nodeSpacing":24,"rankSpacing":40,"padding":10,"diagramPadding":16}}}%%
 flowchart LR
-    Source["J0<br/>cele cinci biblioteci"] -->|verifică| Candidate["Candidat unic<br/>JAR + POM + dovadă"]
+    Source["J0<br/>cele șase biblioteci"] -->|verifică| Candidate["Candidat unic<br/>JAR + POM + dovadă"]
     Candidate -->|livrează| J1["J1<br/>consumer existent"]
     Candidate -->|livrează| J2["J2<br/>consumer inițializat"]
     Candidate -->|livrează| J3["J3<br/>consumer speech"]
@@ -78,7 +78,8 @@ J2 este WIP: trei componente verifică oracole MOCK, iar Setup configurează Kaf
 | Reporting Java, assets, API sau POM | versiune nouă, JAR/POM și proveniență; documentele de adopție | native, regresii permanente și gate pe JAR-ul fizic |
 | Core Java, API sau POM | versiune Core nouă, pereche JAR/POM și proveniență; sursa și nativele rămân în J0 | native și contracte pe JAR, guvernanță și acceptanță distinctă în fiecare consumer afectat J1–J7 |
 | numai regresii Reporting | testele rămân în J0; se verifică relevanța pentru versiunea consumată | reproducere negativă și acceptanță pe binarul afectat; fără copierea harness-ului în live |
-| Test Kit, Console sau Mock | versiune nouă și pereche JAR/POM în J1–J7; sursa și nativele rămân în J0 | native, contracte pe JAR și acceptanța fiecărui consumer |
+| Test Kit, Console sau Mock | versiune nouă și pereche JAR/POM numai în consumerii care o adoptă explicit; sursa și nativele rămân în J0 | native, contracte pe JAR și acceptanța fiecărui consumer |
+| Debug UI | J0 deține modulul, testele native și feedback-ul comun; J1 adoptă primul perechea standalone | teste de pachet sursă J0, apoi JAR/POM fizic, proveniență, scope și acceptanța documentată în J1 |
 | surse comune Validation/UI sau adaptoare Shop/AutoEx | numai sursele și probele selectate pentru același comportament | comparație cu schimbările locale și testele ownerului; un JAR Reporting nou nu este implicit necesar |
 | documentație ori mutarea referinței | contracte și linkuri adaptate deployment-ului | guvernanță documentară; fără versiune binară nouă numai pentru redenumirea directorului |
 
@@ -86,7 +87,7 @@ J2 este WIP: trei componente verifică oracole MOCK, iar Setup configurează Kaf
   Hash-urile și catalogul native sunt în `library-provenance.json`, la rădăcină.
 - POM-urile reactorului, `.git`, bazele `testChanges`, configurațiile locale,
   cache-urile, output-urile și rapoartele nu se copiază prin mirror.
-- Feedback-ul Core/Reporting/Console/Mock/Test Kit are owner în J0; cerințele comune nonbibliotecă sunt coordonate în J1. [Test Kit](ATF_Test_Kit_Library.md) este distribuit ca bibliotecă în J1–J7; sursa și nativele rămân în J0. Feedback-ul unei implementări comune
+- Feedback-ul Core/Reporting/Console/Mock/Test Kit/Debug UI are owner în J0; cerințele comune nonbibliotecă sunt coordonate în J1. Test Kit rămâne distribuit conform cataloagelor fiecărui consumer; Debug UI se livrează numai consumerilor numiți în increment. Sursa și testele native rămân în J0. Feedback-ul unei implementări comune
   se închide în alt deployment numai după sincronizarea și proba codului său.
 
 <a id="maintenance-increment-protocol"></a>
@@ -186,7 +187,7 @@ Acceptanța J2 Eventuate și limita hostului sunt în [dovada consumerului](http
 <a id="j2-fără-module-browser--perimetru-distinct"></a>
 ## J2 fără module browser — perimetru distinct
 
-J2 declară cinci module sursă: platforma, SQL, Setup, Eventuate și guvernanța; Core și Reporting sunt biblioteci externe. [Scope-ul J2](https://github.com/crististefanita/atf_j2/blob/HEAD/docs/ATF_J2_Scope.md) delimitează contractul fără UI/Debug sau Playwright; retragerea este implementată în checkout-ul J2.
+J2 declară cinci module sursă: platforma, SQL, Setup, Eventuate și guvernanța; Core și Reporting sunt biblioteci externe. [Scope-ul J2](https://github.com/crististefanita/atf_j2/blob/HEAD/docs/ATF_J2_Scope.md) delimitează contractul fără UI/Debug sau Playwright; retragerea este implementată în checkout-ul J2. J2 nu consumă Debug UI în această livrare.
 
 Nu restaurați modulele browser prin sync. Atlasele, README-urile și feedback-urile rămân adaptate domeniului fiecărui deployment; contractele comune se reconciliază selectiv, iar backlog-ul Reporting și cel web rămân la ownerii J0/J1.
 
@@ -202,7 +203,7 @@ J0 păstrează sursa și testele native Core; reactorul sursă are în continuar
 
 - Fișierele README, atlasele și `docs` descriu contracte și ownership curente; nu acumulează narațiuni de îmbunătățire sau note de verificare per release.
 - Păstrează o notă curentă per bibliotecă în staging-ul de împachetare al producătorului, lângă POM efectiv. Build-urile, logurile și dovezile HTML rămân în TMP propriu.
-- `library-provenance.json` al consumerului înregistrează coordonata curentă, hash-urile, `buildStage` original și locația `currentAcceptance.evidence`. `lib` păstrează ultimele perechi Core, Reporting, Console, Mock și Test Kit JAR/POM și propriul README; fără note de release acolo.
+- `library-provenance.json` al consumerului înregistrează coordonatele curente, hash-urile, `buildStage` original și locația `currentAcceptance.evidence`. J1 păstrează șase perechi JAR/POM în `lib`; ceilalți consumeri păstrează catalogul propriu și README-ul local, fără note de release.
 - Notele depășite sunt retrase după reconcilierea contractelor durabile. Faptele istorice și căile originale ale dovezilor rămân proveniență, marcate ca retrase; nu sunt ținte curente sau acceptanță nouă.
 
 Fiecare notă curentă rămâne lângă pachetul corespunzător; coordonata și hash-urile JAR/POM trebuie să corespundă perechii distribuite. Mentenanța documentară singură nu reconstruiește biblioteca și nu repetă testele înregistrate.

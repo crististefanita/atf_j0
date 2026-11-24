@@ -159,6 +159,26 @@ test('rejects missing document counterparts and changed link destinations', t =>
     .includes('Missing Markdown counterpart: docs/guide.md'));
 });
 
+test('accepts only the matching main/main_RO links for bilingual consumer repositories', t => {
+  const {english, romanian} = pair(t);
+  const repos = ['atf_j1', 'whist', 'chess'];
+  const links = (branch) => repos.map(repo =>
+    `[${repo}](https://github.com/crististefanita/${repo}/blob/${branch}/lib/README.md)`).join(' · ');
+  const enPath = join(english, 'docs/guide.md');
+  const roPath = join(romanian, 'docs/guide.md');
+  writeFileSync(enPath, readFileSync(enPath, 'utf8') + `\n${links('main')}\n`);
+  writeFileSync(roPath, readFileSync(roPath, 'utf8') + `\n${links('main_RO')}\n`);
+  assert.deepEqual(compareDocumentationEditions(english, romanian).problems, []);
+
+  writeFileSync(roPath, readFileSync(roPath, 'utf8').replaceAll('/blob/main_RO/', '/blob/main/'));
+  const wrongBranch = compareDocumentationEditions(english, romanian);
+  assert.ok(wrongBranch.problems.some(problem => problem.includes('ro edition links to the wrong language branch')));
+
+  writeFileSync(roPath, readFileSync(roPath, 'utf8').replace('/blob/main/lib/README.md', '/blob/main_RO/docs/README.md'));
+  const changedTarget = compareDocumentationEditions(english, romanian);
+  assert.ok(changedTarget.problems.some(problem => problem.startsWith('Link destinations differ: docs/guide.md')));
+});
+
 test('rejects structural drift and non-Markdown implementation drift', t => {
   const roots = pair(t);
   writeFileSync(join(roots.romanian, 'docs/guide.md'), readFileSync(join(roots.romanian, 'docs/guide.md'), 'utf8')
@@ -182,6 +202,22 @@ test('normalizes checkout line endings for JavaScript tools but detects code dri
   writeFileSync(romanianTool, 'const edition = "drift";\r\n');
   assert.ok(compareDocumentationEditions(english, romanian).problems
     .includes('Non-Markdown content differs: atf-tests/tools/documentation-editions.mjs'));
+});
+
+test('normalizes JUnit service descriptor line endings but detects provider drift', t => {
+  const {english, romanian} = pair(t);
+  const relative = 'atf-reporting-tests/src/test/resources/META-INF/services/org.junit.platform.launcher.LauncherDiscoveryListener';
+  const enPath = join(english, relative);
+  const roPath = join(romanian, relative);
+  mkdirSync(join(english, 'atf-reporting-tests/src/test/resources/META-INF/services'), {recursive: true});
+  mkdirSync(join(romanian, 'atf-reporting-tests/src/test/resources/META-INF/services'), {recursive: true});
+  writeFileSync(enPath, 'example.Listener\n');
+  writeFileSync(roPath, 'example.Listener\r\n');
+  assert.deepEqual(compareDocumentationEditions(english, romanian).problems, []);
+
+  writeFileSync(roPath, 'other.Listener\r\n');
+  assert.ok(compareDocumentationEditions(english, romanian).problems
+    .includes(`Non-Markdown content differs: ${relative}`));
 });
 
 test('compares published library POM bytes because provenance hashes include line endings', t => {

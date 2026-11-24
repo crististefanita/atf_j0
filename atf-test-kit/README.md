@@ -111,6 +111,14 @@ Fiecare clasă executabilă declară exact un nivel:
 | `atf.testkit.assertions` | fațadă/recorder, display injectat și protocol componentă | comparații JUnit cu dovadă neutră pe faze și invocări; fără renderer sau reguli business |
 | `atf.testkit.timing` | `InvocationTimer` | intervale monotone per owner, snapshot imutabil și acumulare fără renderer sau JUnit |
 | `atf.testkit.recovery` | `AtfUiRecovery`, plan și resolver | restricție per invocare pentru politica BE; fără YAML, browser sau renderer |
+| `atf.testkit.governance` | `AtfSourceLanguageScanner` | guard lexical determinist Java/JS pentru identificatori, comentarii și diagnostice recunoscute; fără inventar de fișiere sau politică de proiect |
+
+Scannerul oferă verificarea lexicală; fiecare consumer deține inventarul și gate-ul.
+
+- Diagnosticul indică fișierul, linia, construcția și tokenul găsit.
+- Textele UI localizate și valorile obișnuite din fixture-uri sunt excluse.
+- Mesajele de excepție, log, consolă și aserțiune JUnit sunt inspectate.
+- Lexiconul românesc revizuit este un guard cu precizie ridicată, nu un clasificator general de engleză.
 
 `atf.testkit.lifecycle` este un pachet al modulului existent `atf-test-kit`, nu un modul nou. Nu introduce dependențe către UI sau Reporting.
 

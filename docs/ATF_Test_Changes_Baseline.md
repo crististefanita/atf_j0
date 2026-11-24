@@ -4764,3 +4764,49 @@ testChanges:
 ```
 
 </details>
+
+<details>
+<summary><strong>Control verificat — producătorul Debug UI și primul consumator</strong></summary>
+
+```yaml
+testChanges:
+  - id: J0-DEBUG-UI-CATALOG-20261124
+    status: VERIFIED
+    base: 474c7a15d51d6e4f2f51110acec5e7ecd69eb37e
+    expires: 2026-12-24
+    reason: Înregistrează artefactul producătorului Debug UI și limita primei adopții în J1, păstrând cele șase perechi plate de biblioteci, rutele responsabile, ownership-ul testelor native și excluderea explicită a J2–J7.
+    proof: mvn -B -ntp -pl atf-tests -am "-Dtest=AtfWorkspaceMaintenanceSuite" "-Datf.maintenance.j0=<source-workspace>" "-Datf.maintenance.j1=<consumer-workspace>" "-Datf.governance.testChanges.baseRef=474c7a15d51d6e4f2f51110acec5e7ecd69eb37e" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationTargetGovernanceTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/DocumentationGovernanceSupport.java
+      - atf-tests/src/test/java/atf/api/tests/governance/documentation/factual/LibraryDocumentationInventoryTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/GovernanceDeployment.java
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/GovernanceDeploymentTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/maintenance/AtfMaintenanceWorkspacePairGovernanceTest.java
+      - atf-tests/pom.xml
+      - atf-tests/src/test/java/atf/api/tests/governance/distribution/core/BinaryCoreFixture.java
+      - atf-tests/src/test/java/atf/libraries/PlatformLibraryContractTest.java
+      - atf-tests/src/test/java/atf/libraries/PlatformLibraryIntegrityTest.java
+      - atf-tests/src/test/java/atf/libraries/PlatformLibrarySurface.java
+```
+
+</details>
+
+<details>
+<summary><strong>Control verificat — guvernanța limbii sursei</strong></summary>
+
+```yaml
+testChanges:
+  - id: SOURCE-LANGUAGE-GOVERNANCE-20261124
+    status: VERIFIED
+    base: 287c7ae8c8906f669ea278c68d51e5f507a44ae7
+    expires: 2026-12-24
+    reason: Adaugă scannerul comun de limbă în Test Kit și înscrie verificările negative, de date localizate, inventar, coeziune, documentație și suita completă.
+    proof: mvn -o -B -ntp -pl atf-tests,atf-test-kit -am "-Dtest=TestChangeGovernanceTest" "-Datf.governance.testChanges.baseRef=287c7ae8c8906f669ea278c68d51e5f507a44ae7" "-Dsurefire.failIfNoSpecifiedTests=false" test
+    paths:
+      - atf-test-kit/src/test/java/atf/testkit/governance/AtfSourceLanguageScannerTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/WholeAtfGovernanceSuiteTest.java
+      - atf-tests/src/test/java/atf/api/tests/governance/source/SourceLanguageGovernanceTest.java
+```
+
+</details>

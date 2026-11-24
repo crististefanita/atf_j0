@@ -23,3 +23,26 @@ J0 deține documentația bibliotecilor sursă și a regresiilor Reporting. [Crit
 
 - Păstrează criteriile nerezolvate, comenzile executabile și bazele originale ale controalelor de teste; elimină narațiunea rezultatelor închise în loc să o traduci.
 - Închide după ce pasajele selectate au proză naturală, păstrează același contract în ambele ediții și trec guvernanța documentației.
+
+<a id="source-language-english-2026-11-24"></a>
+## SOURCE-LANGUAGE-EN-2026-11-24 — sursă și comentarii în engleză
+
+**Stare: Verificat și închis pentru J0 și J1.** J0 deține regula și scannerul comun din Test Kit; J1 consumă binarul selectat și îl aplică inventarului său Java/MJS. Sursa și testele rămân identice între `main` și `main_RO`; se traduce doar proza documentației guvernate.
+
+- Identificatorii, comentariile/docstrings, numele testelor și diagnosticele scrise de dezvoltatori sunt în engleză. Textele UI localizate, fixture-urile/payload-urile intenționat localizate, numele API/protocol, notația de șah și sursa generată rămân date sau contracte externe.
+- J0 deține implementarea canonică; consumerii dețin descoperirea surselor, excepțiile de localizare și includerea în suite. Gate-ul J1 verifică Java și MJS fără o copie proprie de scanner.
+- Fixture-urile pozitive/negative, diagnosticele fișier/linie/construcție, guvernanța limbii documentației și integrarea în suita completă au trecut în build-uri staging.
+
+Adopția rămasă este urmărită separat și nu anulează incrementul J0/J1 verificat.
+
+<a id="source-language-adoption-2026-11-24"></a>
+## SOURCE-LANGUAGE-ADOPTION-2026-11-24 — ceilalți consumatori ATF
+
+**Stare: Deschis.** J0/J1 stabilesc regula comună Java/MJS. Ceilalți owneri ATF au nevoie de un gate local verificat înainte ca regula să fie declarată universală.
+
+- Inventariază limbajele și rădăcinile sursă întreținute în fiecare modul; exclude explicit sursele generate.
+- Adoptă scannerul Test Kit acolo unde sintaxa este suportată. Pentru alte limbaje, extinde-l cu fixture-uri sau definește un gate echivalent, conștient de limbaj; nu aplica verificarea lexicală Java/MJS la sintaxă nesuportată.
+- Păstrează aceeași semnificație în documentațiile EN/RO și sursa identică între ramurile lingvistice.
+- Include gate-ul în suita obișnuită de guvernanță a fiecărui modul, cu exemple negative de cod și exemple pozitive de date localizate.
+
+Închide per consumer numai după trecerea inventarului surselor, diagnosticelor, includerii în suită și guvernanței documentației.

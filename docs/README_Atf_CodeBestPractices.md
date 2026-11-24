@@ -566,6 +566,22 @@ Checklist obligatoriu pentru un modul de test:
 | Amplasarea responsabilităților | [ArchitectureOwnershipBoundaryTest](../atf-tests/src/test/java/atf/api/tests/governance/ArchitectureOwnershipBoundaryTest.java) | excepțiile sunt explicite; verdictul business rămâne la consumer |
 | Coeziunea pachetelor | [AtfPackageCohesionGovernanceTest](../atf-tests/src/test/java/atf/api/tests/governance/AtfPackageCohesionGovernanceTest.java) | limita de inventar nu justifică împărțirea mecanică a unei clase |
 | Layer și surse Java | [AtfTestLayerArchitectureTest](../atf-tests/src/test/java/atf/api/tests/governance/layers/AtfTestLayerArchitectureTest.java) | include rădăcinile din POM; nu demonstrează acoperirea funcțională |
+| Limba sursei scrise de dezvoltatori | [SourceLanguageGovernanceTest](../atf-tests/src/test/java/atf/api/tests/governance/source/SourceLanguageGovernanceTest.java) și [scannerul Test Kit](../atf-test-kit/src/main/java/atf/testkit/governance/AtfSourceLanguageScanner.java) | identifică diacritice românești și un lexicon controlat în identificatori/comentarii; literalii localizați și rădăcinile generate sunt în afara scope-ului |
+
+### Regula limbii sursei
+
+Identificatorii Java și JavaScript/MJS scriși de dezvoltatori, comentariile,
+Javadocs/docstrings, numele testelor și mesajele tehnice sunt în engleză. Sursa
+și testele rămân identice între `main` și `main_RO`; se traduce doar proza
+documentației guvernate. Textele produsului și fixture-urilor localizate,
+numele API/protocol, notația de șah și codul generat rămân date ori contracte externe.
+
+Scannerul comun este un guard lexical determinist, cu lexicon românesc revizuit.
+
+- Verifică identificatori, comentarii, docstrings și mesaje tehnice recunoscute.
+- Maschează literalii localizați și output-ul Maven generat, exceptând mesajele diagnostice.
+- Raportează fișierul sursă, linia, construcția și tokenul potrivit.
+- Extinde lexiconul numai cu fixture-uri pozitive și negative; nu duplica scannerul și nu folosi un grep doar după diacritice.
 
 [Comanda whole-ATF](../atf-tests/README.md#verificare-rapidă) rulează în staging. Testele unit/component ale ownerului verifică comportamentul schimbat; verdele guvernanței nu substituie aceste probe sau auditul de raport.
 

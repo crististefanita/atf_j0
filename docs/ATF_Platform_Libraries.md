@@ -8,18 +8,29 @@
 <a id="pe-scurt"></a>
 ## Pe scurt
 
-J0 este reactorul producător cu 12 module. Deține implementarea și testele native Core, Reporting, Console, Mock și Test Kit. J1–J7 consumă direct din `lib` câte o singură pereche curentă JAR/POM pentru fiecare bibliotecă; adaptoarele, configurația și acceptanța aplicațiilor rămân locale.
+- J0 deține sursa, testele native, împachetarea și feedback-ul comun pentru Core, Reporting, Console, Mock, Test Kit și Debug UI.
+- Consumerii selectează perechi JAR/POM versionate dintr-un catalog plat `lib`. Adaptoarele aplicației, configurația și acceptanța rămân la fiecare consumer.
+- J1 este primul consumer Debug UI. Adoptarea nu schimbă cataloagele J2–J7.
 
 | Proiect | Module sursă | Domeniu |
 |---|---|---|
 | J0 | 12 | Producător și contracte native ale bibliotecilor |
-| J1 | 6 | Fluxuri browser/API pentru Shop și AutoEx |
+| J1 | 5 module locale + 6 perechi de biblioteci | Fluxuri browser/API pentru Shop și AutoEx; primul consumer binar Debug UI |
 | J2 | 5 | SQL, setup și mesagerie Eventuate WIP; fără module browser |
 | J3 | 4 | Framework de vorbire și acceptanță |
 | J4 | 3 | Framework Android și acceptanță |
 | J5 | 2 | Rentz WIP și acceptanță independentă a bibliotecilor |
 | J6 | 5 | Hold’em WIP; adoptare doar în scope-ul de test al holdem-app, fără surse producătoare sau harness |
 | J7 | 1 | Chess Lab. Reactorul Maven califică motorul, rapoartele și perechile din lib prin atf-tests. |
+
+<a id="debug-ui-ownership-and-acceptance"></a>
+## Ownership și acceptanța Debug UI
+
+- J0 deține modulul sursă `atf-debug-ui`, testele native de regresie, contractul JAR/POM publicat și feedback-ul comun de implementare.
+- J1 este primul consumer binar. Selectează o pereche versionată din catalogul plat `lib` și folosește launcherul numai în classpath-ul de test `atf-tests`.
+- J1 deține configurarea launcherului și acceptanța inspecției locale. Nu copiază implementarea și nu certifică comportamentul raportului.
+
+Debug UI servește prin loopback un fișier HTML deja generat, pentru inspecție în browser. Nu produce rapoarte, nu evaluează aserțiuni și nu stabilește verdictul testului. Consultați [ghidul consumatorului](../lib/README.DebugUi.md), [modulul sursă](../atf-debug-ui/README.md) și [registrul de feedback deținut în J0](feedback/README.md#biblioteci-comune).
 
 <a id="console-and-mock-limits"></a>
 <a id="limitele-console-și-mock"></a>
@@ -69,7 +80,9 @@ mvn -B -ntp -N validate
 mvn -B -ntp -DskipTests test-compile
 ```
 
-Faza `validate` din POM-ul rădăcină instalează cele cinci perechi reale POM/JAR în repository-ul Maven selectat. Folosiți aceleași setări și același repository local Maven în IntelliJ, apoi reîncărcați POM-ul rădăcină. Dependențele folosesc `atf.core.version`, `atf.reporting.version`, `atf.console.version`, `atf.mock.version` și `atf.testkit.version`; nu restaurați module sursă pentru a rezolva importurile.
+- Faza `validate` din POM-ul rădăcină al J1 instalează cele șase perechi POM/JAR selectate în repository-ul Maven configurat, inclusiv `atf.debugui.version`.
+- Folosiți aceleași setări și același repository local Maven în IntelliJ, apoi reîncărcați POM-ul rădăcină.
+- J1 declară Debug UI numai în scope-ul de test `atf-tests`. Nu restaurați modulul sursă pentru a rezolva importurile.
 
 Comenzile native ale bibliotecilor rulează numai în J0. Acceptanța pe un JAR publicat compilează testele native în TMP fără să copieze clase de producție, verifică `CodeSource` real și păstrează oracolele negative. Nu selectați direct fixture-urile JUnit imbricate: eșecurile lor intenționate sunt verificate de testul exterior.
 
@@ -77,12 +90,13 @@ Comenzile native ale bibliotecilor rulează numai în J0. Acceptanța pe un JAR 
 <a id="integritate-și-mentenanță"></a>
 ## Integritate și mentenanță
 
-- `lib` conține zece artifacte binare, indexul și cinci ghiduri de utilizare: cinci perechi JAR/POM, fără repository imbricat, versiuni vechi, surse sau note de verificare.
+- `lib` din J1 conține douăsprezece artefacte binare, indexul și șase ghiduri de utilizare: șase perechi JAR/POM, fără repository imbricat, versiuni vechi, arbori de surse sau note de release.
 - La schimbarea versiunii unei biblioteci, promovați mai întâi noua pereche și proveniența prin guard; apoi retrageți vechiul JAR/POM printr-o curățare explicită a celor două fișiere, după verificarea hash-urilor. Guard-ul nu șterge artifacte.
 - `library-provenance.json` păstrează proveniența Core/Reporting și adaugă `platformLibraries.console`, `platformLibraries.mock` și `platformLibraries.test-kit`: coordonate, hash-uri binar/POM, digest-ul intrărilor producătorului, catalog nativ și dovada pachetului curent.
 - POM-ul încorporat în JAR trebuie să fie identic octet cu octet cu POM-ul publicat alăturat. Guvernanța consumatorului verifică JAR-ul fizic, respingerea surselor paralele, limita dependențelor și inventarul plat.
 - Build-urile, cache-urile, copiile de recuperare și ultima notă de verificare a pachetului rămân în staging-ul TMP al producătorului. Documentația oficială descrie contracte, nu istoricul incrementelor.
-- Schimbările pornesc din J0, păstrează preview-ul implicit de 240 de caractere și assertions colapsabile auditabile, apoi primesc acceptanță componentă separată în fiecare consumator afectat. Verificările offline nu certifică device-uri, broker extern sau ASR.
+- Modificările bibliotecilor se implementează și se califică în J0, apoi fiecare consumer afectat le acceptă separat.
+- Testele consumerilor păstrează dovezi auditabile și detalii de aserțiuni ușor de inspectat. Verificările offline nu certifică dispozitive, brokeri externi sau servicii de vorbire.
 
 Consultați [sincronizarea workspace-urilor](ATF_Workspace_Synchronization.md) și [execuția izolată](ATF_Build_And_Execution_Safety.md). Ownerii surselor sunt [Console](../atf-console/README.md) și [Mock](../atf-mock/README.md).
 
@@ -90,7 +104,7 @@ Consultați [sincronizarea workspace-urilor](ATF_Workspace_Synchronization.md) �
 <a id="ghiduri-executabile-pe-publicația-binară"></a>
 ## Ghiduri executabile pe publicația binară
 
-Profilul Maven `library-guides` verifică exemplele Java/YAML direct din cele cinci README-uri livrate în lib. Ownerii sunt `CoreLibraryGuideIT`, `ConsoleLibraryGuideIT` și `MockLibraryGuideIT` în modulele native, `KitLibraryGuideIT` în Test Kit, respectiv `ReportingLibraryGuideIT` în atf-reporting-tests. Suportul neutru din Test Kit compilează și execută consumerul; oracolele rămân la biblioteci.
+Profilul Maven `library-guides` verifică exemplele Java/YAML direct din ghidurile selectate în `lib`. Ownerii sunt `CoreLibraryGuideIT`, `ConsoleLibraryGuideIT` și `MockLibraryGuideIT` în modulele native, `KitLibraryGuideIT` în Test Kit, respectiv `ReportingLibraryGuideIT` în atf-reporting-tests. Debug UI este verificat prin testele sursă J0 și verificările de boundary JAR fizic din J1; este instrument de inspecție, nu producător de rapoarte.
 
 Într-o copie J0 deținută în TMP, cu repository Maven și director JVM temporar proprii:
 
